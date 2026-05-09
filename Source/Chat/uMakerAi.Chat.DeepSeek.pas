@@ -1,4 +1,4 @@
-﻿unit uMakerAi.Chat.DeepSeek;
+unit uMakerAi.Chat.DeepSeek;
 
 // IT License
 //
@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enríquez
+// Name: Gustavo Enríquez
 // Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -154,7 +154,7 @@ begin
       JArr := TJSonArray(TJSonArray.ParseJSONValue(GetTools(TToolFormat.tfOpenAi).Text));
 {$ENDIF}
       If Not Assigned(JArr) then
-        Raise Exception.Create('La propiedad Tools están mal definido, debe ser un JsonArray');
+        Raise Exception.Create('Tools property is incorrectly defined, it must be a JsonArray');
       AJSONObject.AddPair('tools', JArr);
 
       If (Trim(Tool_choice) <> '') then
@@ -220,7 +220,7 @@ end;
 
 function TAiDeepSeekChat.InternalRunCompletions(ResMsg, AskMsg: TAiChatMessage): String;
 begin
-  FTmpReasoning := ''; // Resetear antes de cada nueva petición
+  FTmpReasoning := ''; // Reset before each new request
   Result := inherited InternalRunCompletions(ResMsg, AskMsg);
 end;
 
@@ -266,7 +266,7 @@ Var
   jArrChoices: TJSonArray;
 
   // Copia exacta del ProcessLine del base class (TAiChat.OnInternalReceiveData).
-  // Maneja SSE delta y [DONE] con reconstrucción de tool_calls.
+  // Handles SSE delta and [DONE] with tool_calls reconstruction.
   Procedure ProcessLine(ALine: String);
   Begin
     if ALine = '' then Exit;
@@ -336,8 +336,8 @@ Var
           ParseChat(FakeResponseObj, TempMsg);
           if sToolCallsStr = '' then
           begin
-            // ParseChat (rama else) ya disparó FOnReceiveDataEnd y DoStateChange(acsFinished).
-            // Solo agregamos TempMsg al historial si no está ya (RunNew async no lo agrega).
+            // ParseChat (else branch) already fired FOnReceiveDataEnd and DoStateChange(acsFinished).
+            // Only add TempMsg to history if not already there (RunNew async does not add it).
             if FMessages.IndexOf(TempMsg) = -1 then
             begin
               TempMsg.Id := FMessages.Count + 1;
@@ -347,11 +347,11 @@ Var
           end
           else
           begin
-            // Tool calls: ParseChat ejecutó las herramientas y Self.Run inició
+            // Tool calls: ParseChat executed the tools and Self.Run initiated
             // el segundo round en modo async (stream=true). El segundo round
-            // emitirá sus propios eventos (SSE → [DONE] → FOnReceiveDataEnd).
-            // No ponemos FBusy=False aquí: el segundo round sigue en vuelo
-            // y lo marcará como False cuando termine (BLOQUE DEEPSEEK / [DONE]).
+            // will emit its own events (SSE → [DONE] → FOnReceiveDataEnd).
+            // Do not set FBusy=False here: the second round is still in flight
+            // and will mark it False when done (DEEPSEEK BLOCK / [DONE]).
             DoStateChange(acsToolCalling, 'Ejecutando tools, segundo round en proceso...');
           end;
         finally
@@ -361,14 +361,14 @@ Var
         FakeResponseObj.Free;
       end;
       if sToolCallsStr = '' then
-        FBusy := False; // texto: todo terminó
+        FBusy := False; // text: everything finished
       // tool_calls: FBusy sigue True — lo cierra el segundo round
-      FTmpReasoning := ''; // Limpiar para el próximo round o próxima petición
+      FTmpReasoning := ''; // Clear for next round or next request
       Exit;
     End;
 
     // -------------------------------------------------------------------
-    // CASO 2: JSON estándar SSE con delta
+    // CASE 2: Standard JSON SSE with delta
     // -------------------------------------------------------------------
     var LParsedLine := TJSonObject.ParseJSONValue(ALine);
     if not (LParsedLine is TJSonObject) then
@@ -495,7 +495,7 @@ begin
     // -------------------------------------------------------------------
     // BLOQUE DEEPSEEK: JSON completo con choices[0].message
     // Cuando DeepSeek usa stream=false con FClient.Asynchronous=True, la
-    // respuesta llega como un objeto JSON completo (no líneas SSE con delta).
+    // response arrives as a complete JSON object (not SSE lines with delta).
     // Lo detectamos al inicio para procesarlo directamente.
     // -------------------------------------------------------------------
     sJson := Trim(FTmpResponseText);
@@ -541,8 +541,8 @@ begin
                 end
                 else
                 begin
-                  // Tool calls: ParseChat ejecutó herramientas y Self.Run inició
-                  // el segundo round async. No disparar evento aquí.
+                  // Tool calls: ParseChat executed tools and Self.Run initiated
+                  // the second async round. Do not trigger event here.
                   DoStateChange(acsToolCalling, 'Segundo round en proceso...');
                 end;
               finally
@@ -560,10 +560,10 @@ begin
     end;
 
     // -------------------------------------------------------------------
-    // FLUJO SSE ESTÁNDAR (stream=true, delta por líneas)
+    // STANDARD SSE FLOW (stream=true, delta per line)
     // -------------------------------------------------------------------
 
-    // 1. Bucle principal: procesa líneas completas terminadas en #10
+    // 1. Main loop: processes complete lines ending in #10
     while Pos(#10, FTmpResponseText) > 0 do
     begin
       P := Pos(#10, FTmpResponseText);
@@ -572,7 +572,7 @@ begin
       ProcessLine(sJson);
     end;
 
-    // 2. Borde de seguridad: [DONE] sin salto de línea final
+    // 2. Safety edge: [DONE] without final line break
     sJson := Trim(FTmpResponseText);
     if (sJson = '[DONE]') or (sJson = 'data: [DONE]') then
     begin

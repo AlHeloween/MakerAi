@@ -1,4 +1,4 @@
-﻿// IT License
+// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enríquez
+// Name: Gustavo Enríquez
 // Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -68,7 +68,7 @@ type
     Destructor Destroy; Override;
     Function GetMessages: TJSonArray; Override;
 
-    // ----- FUNCIONES DE GESTIÓN DE MODELOS  -----------
+    // ----- MODEL MANAGEMENT FUNCTIONS  -----------
     procedure PullModel(const aModelName: string);
     procedure CreateModel(const aNewModelName, aModelfileContent: string);
     function ShowModelInfo(const aModelName: string): TJSonObject;
@@ -171,7 +171,7 @@ begin
     begin
       LToolCall := TAiToolsFunction.Create;
       try
-        // Ollama ahora sé incluye un 'id', pero lo generamos como fallback por si acaso.
+        // Ollama now includes an 'id', but we generate it as fallback just in case.
         LToolCall.Id := LToolCallObj.GetValue<string>('id', 'call_' + TGuid.NewGuid.ToString);
         LToolCall.Name := LFunctionObj.GetValue<string>('name', '');
         LToolCall.&Type := 'function';
@@ -214,7 +214,7 @@ begin
 
     // La API de Ollama SOLO acepta content:string + images:[base64...].
     // No soporta content como array de partes (formato OpenAI multipart).
-    // Imágenes y audio se envían ambos en el campo 'images' en base64.
+    // Images and audio are both sent in the 'images' field in base64.
     JObj.AddPair('content', Msg.Prompt);
 
     jImages := nil;
@@ -325,7 +325,7 @@ Var
   I: Integer;
   LModel: String;
 begin
-  // 1. Configuración básica y Modelo
+  // 1. Basic configuration and Model
   If User = '' then
     User := 'user';
 
@@ -333,7 +333,7 @@ begin
   If LModel = '' then
     LModel := 'gpt-oss:20b'; // Fallback seguro
 
-  // Configuramos el cliente HTTP según la propiedad del componente
+  // Configure HTTP client according to component property
   FClient.Asynchronous := Self.Asynchronous;
 
   // Aumentamos timeout por defecto ya que los modelos locales pueden tardar en cargar
@@ -341,15 +341,15 @@ begin
     FClient.ResponseTimeout := 1000 * 60 * 5; // 5 minutos por defecto
 
   AJSONObject := TJSonObject.Create;
-  jOptions := TJSonObject.Create; // Objeto para parámetros avanzados
+  jOptions := TJSonObject.Create; // Object for advanced parameters
   Lista := TStringList.Create;
 
   Try
-    // --- PARÁMETROS RAÍZ ---
+    // --- ROOT PARAMETERS ---
     AJSONObject.AddPair('model', LModel);
-    AJSONObject.AddPair('messages', GetMessages); // Usa GetMessages (revisaremos este después)
+    AJSONObject.AddPair('messages', GetMessages); // Uses GetMessages (we will review this later)
 
-    // Respetamos la configuración asíncrona (True/False)
+    // Respect async configuration (True/False)
     AJSONObject.AddPair('stream', TJSONBool.Create(Self.Asynchronous));
 
     if Fkeep_alive <> '' then
@@ -361,7 +361,7 @@ begin
       if JsonSchema.Text <> '' then
       begin
         try
-          // Ollama espera el esquema DIRECTAMENTE en el parámetro "format".
+          // Ollama expects the schema DIRECTLY in the "format" parameter.
           // No requiere wrappers como "json_schema" o "schema".
           Var sShema := StringReplace(JsonSchema.Text,'\n',' ',[rfReplaceAll]);
           var
@@ -372,10 +372,10 @@ begin
             if JSchema is TJSonObject then
               AJSONObject.AddPair('format', JSchema as TJSonObject)
             else
-              JSchema.Free; // Si no es un objeto válido, limpiar
+              JSchema.Free; // If not a valid object, clean
           end;
         except
-          // Manejo silencioso de errores de parseo, se enviará sin formato o ignorado
+          // Silent handling of parse errors, will send without format or ignored
         end;
       end;
     end
@@ -397,8 +397,8 @@ begin
         AJSONObject.AddPair('tools', JArr);
     End;
 
-    // --- PARÁMETROS "OPTIONS" (Diferencia clave con OpenAI) ---
-    // Ollama requiere encapsular estos parámetros dentro de 'options'
+    // --- "OPTIONS" PARAMETERS (Key difference with OpenAI) ---
+    // Ollama requires encapsulating these parameters inside 'options'
 
     if Temperature > 0 then
       jOptions.AddPair('temperature', TJSONNumber.Create(Temperature));
@@ -433,14 +433,14 @@ begin
     if jOptions.Count > 0 then
       AJSONObject.AddPair('options', jOptions)
     else
-      jOptions.Free; // Si no se añadió al padre, hay que liberarlo
+      jOptions.Free; // If not added to parent, must free it
 
-    // Generación del String final
+    // Generation of final String
     Result := AJSONObject.ToJSON;
 
   Finally
     AJSONObject.Free;
-    // jOptions se libera automáticamente si fue añadido a AJSONObject
+    // jOptions is freed automatically if added to AJSONObject
     Lista.Free;
   End;
 end;
@@ -487,7 +487,7 @@ begin
     If FClient.Asynchronous = False then
     Begin
       if not Assigned(Res) then
-        Raise Exception.Create('Error de conexion: no se recibio respuesta del servidor Ollama')
+        Raise Exception.Create('Connection error: no response received from Ollama server')
       else if Res.StatusCode = 200 then
       Begin
         Var
@@ -513,7 +513,7 @@ begin
   Finally
     If FClient.Asynchronous = False then
       St.Free;
-    // Esto no funciona en multiarea, así que se libera cuando no lo es.
+    // This does not work in multiarea, so it is freed when it is not.
   End;
 end;
 
@@ -617,7 +617,7 @@ var
       end;
     end;
 
-    // Limpieza de buffers para la siguiente petición
+    // Clean buffers for next request
     FLastContent := '';
     FTmpResponseText := '';
     FTmpToolCallsStr := '';
@@ -645,7 +645,7 @@ begin
     FTmpResponseText := FTmpResponseText + LChunkStr;
     LStreamFinished := False;
 
-    // --- Bucle principal para procesar líneas (Ollama envía un JSON por línea) ---
+    // --- Main loop to process lines (Ollama sends one JSON per line) ---
     while Pos(#10, FTmpResponseText) > 0 do
     begin
       LJsonLine := Copy(FTmpResponseText, 1, Pos(#10, FTmpResponseText) - 1);
@@ -704,7 +704,7 @@ begin
       end;
     end;
 
-    // --- MANEJO DE FRAGMENTO FINAL (sin salto de línea) ---
+    // --- FINAL FRAGMENT HANDLING (no line break) ---
     if (not LStreamFinished) and (FTmpResponseText.Trim <> '') then
     begin
       LJsonObject := TJSonObject.ParseJSONValue(FTmpResponseText.Trim) as TJSonObject;
@@ -756,9 +756,9 @@ begin
   if not Assigned(JObj) then
     Exit;
 
-  // 1. EXTRAER METADATOS Y ESTADÍSTICAS
+  // 1. EXTRACT METADATA AND STATISTICS
   LModel := JObj.GetValue<string>('model', '');
-  // Ollama usa nombres específicos para los tokens
+  // Ollama uses specific names for tokens
   LPromptTokens := JObj.GetValue<Integer>('prompt_eval_count', 0);
   LEvalTokens := JObj.GetValue<Integer>('eval_count', 0);
 
@@ -770,7 +770,7 @@ begin
   // 2. VALIDAR LA EXISTENCIA DE "MESSAGE"
   if not JObj.TryGetValue<TJSonObject>('message', LMessageObj) then
   begin
-    // Si no hay mensaje pero el JSON indica que terminó, disparamos el evento de fin
+    // If no message but JSON indicates finished, fire the end event
     if JObj.GetValue<Boolean>('done', False) then
     begin
       DoStateChange(acsFinished, 'Done');
@@ -805,13 +805,13 @@ begin
 
   LAskMsg := GetLastMessage;
 
-  // 4. LÓGICA DE LLAMADO A FUNCIONES (TOOLS)
+  // 4. FUNCTION CALLING LOGIC (TOOLS)
   // Verificamos si Ollama nos ha devuelto tool_calls
   if LMessageObj.TryGetValue<TJSonArray>('tool_calls', LToolCallsArray) and (LToolCallsArray.Count > 0) then
   begin
     // --- CASO A: El modelo solicita ejecutar herramientas ---
 
-    // A.1 Guardamos el mensaje del asistente (la petición de tool) en el historial
+    // A.1 Save the assistant message (the tool request) in history
     LHistoryToolMsg := TAiChatMessage.Create(ResMsg.Content, LRole);
     LHistoryToolMsg.Tool_calls := LToolCallsArray.ToJSON;
     LHistoryToolMsg.Id := FMessages.Count + 1;
@@ -829,7 +829,7 @@ begin
 
       if (LFunciones <> nil) and (LFunciones.Count > 0) then
       begin
-        // A.3 Ejecución en paralelo de las funciones encontradas
+        // A.3 Parallel execution of found functions
         NumTasks := LFunciones.Count;
         SetLength(TaskList, NumTasks);
         I := 0;
@@ -864,7 +864,7 @@ begin
         // Esperar a que todas las funciones terminen (bloqueo controlado)
         TTask.WaitForAll(TaskList);
 
-        // A.4 Añadir los resultados de las funciones (role: tool) al historial
+        // A.4 Add function results (role: tool) to history
         for LToolCall in LFunciones.Values do
         begin
           LToolMsg := TAiChatMessage.Create(LToolCall.Response, 'tool', LToolCall.Id, LToolCall.Name);
@@ -896,7 +896,7 @@ begin
   begin
     // --- CASO B: Respuesta de texto normal o final de cadena ---
 
-    // B.1 Extracción automática de bloques de código si se solicita
+    // B.1 Automatic extraction of code blocks if requested
     if (cap_ExtractCode in ModelConfig.SessionCaps) and (ResMsg.Content <> '') then
     begin
       Code := TMarkdownCodeExtractor.Create;
@@ -908,7 +908,7 @@ begin
           try
             St.Position := 0;
             MF := TAiMediaFile.Create;
-            // Cargamos el código extraído como un archivo adjunto al mensaje
+            // Load extracted code as an attachment to the message
             MF.LoadFromStream('file.' + CodeFile.FileType, St as TMemoryStream);
             ResMsg.MediaFiles.Add(MF);
           finally
@@ -923,16 +923,16 @@ begin
     // B.2 Notificar el procesamiento de la respuesta (Hooks externos)
     DoProcessResponse(LAskMsg, ResMsg, FLastContent);
 
-    // B.3 Gestión del historial (Evitar Doble Add en Asíncrono)
-    // En séncrono, TAiChat.Run añade el mensaje al finalizar.
-    // En asíncrono, como el Run ya salió, debemos añadirlo aquí.
+    // B.3 History management (Avoid Double Add in Async)
+    // In sync, TAiChat.Run adds the message at the end.
+    // In async, since Run already exited, we must add it here.
     if Self.Asynchronous and (FMessages.IndexOf(ResMsg) = -1) then
     begin
       ResMsg.Id := FMessages.Count + 1;
       FMessages.Add(ResMsg);
     end;
 
-    // B.4 Finalización y notificación a la UI
+    // B.4 Completion and UI notification
     DoStateChange(acsFinished, 'Done');
 
     if Assigned(FOnReceiveDataEnd) then
@@ -942,7 +942,7 @@ begin
   end;
 end;
 
-// ----- FUNCIONES DE GESTIÓN DE MODELOS  -----------
+// ----- MODEL MANAGEMENT FUNCTIONS  -----------
 
 procedure TAiOllamaChat.CopyModel(const aSourceModel, aDestinationModel: string);
 var
@@ -1083,7 +1083,7 @@ begin
     LBodyStream.Position := 0;
 
     FClient.ContentType := 'application/json';
-    // Hacemos la llamada séncrona, pero Ollama devuelve el stream completo de una vez
+    // We make the sync call, but Ollama returns the complete stream at once
     LResponse := FClient.Post(LUrl, LBodyStream, LResponseStream);
 
     if LResponse.StatusCode <> 200 then
@@ -1095,7 +1095,7 @@ begin
 
     for LLine in LJsonLines do
     begin
-      // Si el evento de progreso está asignado, lo disparamos
+      // If the progress event is assigned, fire it
       if Assigned(OnProgressEvent) then
       begin
         LStatusObj := TJSonObject.ParseJSONValue(LLine) as TJSonObject;
@@ -1104,7 +1104,7 @@ begin
             LStatus := LStatusObj.GetValue<string>('status');
             LCompleted := 0;
             LTotal := 0;
-            // TryGetValue es más seguro si los campos no siempre están presentes
+            // TryGetValue is safer if fields are not always present
             LStatusObj.TryGetValue<Int64>('completed', LCompleted);
             LStatusObj.TryGetValue<Int64>('total', LTotal);
             OnProgressEvent(Self, LStatus, LCompleted, LTotal);
@@ -1147,7 +1147,7 @@ begin
     end
     else
     begin
-      raise Exception.CreateFmt('Error al obtener información del modelo: %d - %s', [LResponse.StatusCode, LResponse.ContentAsString]);
+      raise Exception.CreateFmt('Error getting model information: %d - %s', [LResponse.StatusCode, LResponse.ContentAsString]);
     end;
 
   finally

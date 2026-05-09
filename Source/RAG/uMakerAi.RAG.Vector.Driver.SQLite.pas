@@ -1,4 +1,4 @@
-﻿unit uMakerAi.RAG.Vector.Driver.SQLite;
+unit uMakerAi.RAG.Vector.Driver.SQLite;
 
 {
   TAiRAGVectorSQLiteDriver — Driver SQLite para TAiRAGVector (MakerAI 3.3)
@@ -94,7 +94,7 @@ type
     function FuseWeighted(AVec, ALex: TAiRAGVector;
       AVW, ALW: Double; ALimit: Integer): TAiRAGVector;
 
-    // Copia un nodo creando una instancia nueva con misma dimensión que ATarget
+    // Copies a node creating a new instance with same dimension as ATarget
     function CopyNode(Src: TAiEmbeddingNode; ATargetDim: Integer): TAiEmbeddingNode;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -121,7 +121,7 @@ type
     property TableName: string read FTableName write SetTableName;
     property CurrentEntidad: string read FCurrentEntidad write FCurrentEntidad;
     property Language: TAiLanguage read FLanguage write FLanguage default alSpanish;
-    // Ruta completa a sqlite_vec.dll/.so — vacío = modo Delphi (brute-force cosine)
+    // Full path to sqlite_vec.dll/.so — empty = Delphi mode (brute-force cosine)
     property VecExtensionPath: string read FVecExtensionPath write FVecExtensionPath;
   end;
 
@@ -284,7 +284,7 @@ begin
           Parts.Add(Format('(json_type(properties, ''$.%s'') IS NOT NULL)', [Criterion.Key]));
 
         foContains:
-          // Aproximación: valor exacto en la clave indicada
+          // Approximation: exact value at indicated key
           begin Parts.Add(Format('(%s = :%s)', [Path, PName])); AddParam(PName, Criterion.Value); end;
 
       else
@@ -465,7 +465,7 @@ begin
 end;
 
 // =============================================================================
-// Gestión del esquema
+// Schema management
 // =============================================================================
 
 procedure TAiRAGVectorSQLiteDriver.CreateSchema(const ABaseTableName: string);
@@ -562,7 +562,7 @@ begin
     LEnt := IfThen(AEntidad = '', FCurrentEntidad, AEntidad);
 
     // Upsert: eliminar primero dispara trigger _ad en FTS5,
-    // luego el INSERT dispara _ai — así FTS5 queda siempre consistente.
+    // then INSERT fires _ai — thus FTS5 stays always consistent.
     Q.SQL.Text := 'DELETE FROM ' + FTableName + ' WHERE entidad=:ent AND id=:id';
     Q.ParamByName('ent').AsString := LEnt;
     Q.ParamByName('id').AsString  := ANode.Tag;
@@ -614,8 +614,8 @@ begin
 end;
 
 // =============================================================================
-// Búsqueda vectorial — similitud coseno en Delphi (brute-force, O(n))
-// Adecuado para colecciones pequeñas/medianas (≤ 50K nodos).
+// search vectorial — similitud coseno en Delphi (brute-force, O(n))
+// Suitable for small/medium collections (≤ 50K nodes).
 // =============================================================================
 
 function TAiRAGVectorSQLiteDriver.VectorSearchDelphi(
@@ -734,7 +734,7 @@ begin
 end;
 
 // =============================================================================
-// Búsqueda vectorial con sqlite-vec (rápida, usa índice vectorial nativo)
+// Vector search with sqlite-vec (fast, uses native vector index)
 // =============================================================================
 
 function TAiRAGVectorSQLiteDriver.VectorSearchVecExt(
@@ -754,9 +754,9 @@ begin
   Result := TAiRAGVector.Create(nil, True);
   Q := NewQuery;
   try
-    // sqlite-vec almacena embeddings como BLOB; aquí asumimos la columna
+    // sqlite-vec stores embeddings as BLOB; here we assume the column
     // 'embedding' ya fue creada como vec_f32 por el usuario, o usamos
-    // la versión TEXT con conversión inline.
+    // the TEXT version with inline conversion.
     // Distancia coseno sqlite-vec: vec_distance_cosine(a, b) ∈ [0, 2]
     // Similitud coseno ≈ 1 - distancia (rango [−1, 1], usamos max(0, ...))
     SQL :=
@@ -811,8 +811,8 @@ begin
 end;
 
 // =============================================================================
-// Búsqueda léxical BM25 vía FTS5
-// FTS5 bm25() devuelve valores ≤ 0 (más negativo = más relevante).
+// Lexical BM25 search via FTS5
+// FTS5 bm25() returns values ≤ 0 (more negative = more relevant).
 // Convertimos a score positivo normalizado al rango [0, 1].
 // =============================================================================
 
@@ -859,12 +859,12 @@ begin
     try
       Q.Open;
     except
-      // Query FTS inválida (caracteres especiales sin escapar) — devolver vacío
+      // Invalid FTS query (special characters unescaped) — return empty
       Exit;
     end;
 
-    // Primera pasada: recopilar candidatos y encontrar máximo raw_score
-    MaxRaw := 1e-12; // evitar división por cero
+    // First pass: collect candidates and find max raw_score
+    MaxRaw := 1e-12; // avoid division by zero
     while not Q.Eof do
     begin
       RawScore := Q.FieldByName('raw_score').AsFloat;
@@ -875,7 +875,7 @@ begin
         Node.Tag   := Q.FieldByName('id').AsString;
         Node.Text  := Q.FieldByName('content').AsString;
         Node.Model := Q.FieldByName('model').AsString;
-        Node.Idx   := RawScore; // temporal — se normaliza después
+        Node.Idx   := RawScore; // temporal — normalized later
         Node.Data  := StrToEmbedding(Q.FieldByName('embedding').AsString);
         if Length(Node.Data) > 0 then Node.SetDataLength(Length(Node.Data));
         PropStr := Q.FieldByName('properties').AsString;
@@ -913,7 +913,7 @@ begin
 end;
 
 // =============================================================================
-// Fusión RRF (Reciprocal Rank Fusion)
+// Fusion RRF (Reciprocal Rank Fusion)
 // =============================================================================
 
 function TAiRAGVectorSQLiteDriver.FuseRRF(AVec, ALex: TAiRAGVector; ALimit: Integer): TAiRAGVector;
@@ -967,7 +967,7 @@ begin
 end;
 
 // =============================================================================
-// Fusión ponderada (Weighted Score Fusion)
+// Fusion ponderada (Weighted Score Fusion)
 // =============================================================================
 
 function TAiRAGVectorSQLiteDriver.FuseWeighted(AVec, ALex: TAiRAGVector;
@@ -1090,7 +1090,7 @@ begin
           FreeAndNil(VecRes);
           if FVecExtLoaded then
           begin
-            FVecExtLoaded := False; // sqlite-vec falló en runtime → fallback
+            FVecExtLoaded := False; // sqlite-vec failed at runtime → fallback
             VecRes := VectorSearchDelphi(ATarget, LEnt, ALimit * 3, MinVec, FilterSQL, FB);
           end
           else raise;
@@ -1101,7 +1101,7 @@ begin
     if DoLexical then
       LexRes := LexicalSearchFTS5(ATarget, LEnt, ALimit * 3, MinLex, FilterSQL, FB);
 
-    // Fusión
+    // Fusion
     if DoVector and DoLexical then
     begin
       if Assigned(LOptions) and LOptions.UseRRF then

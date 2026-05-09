@@ -42,9 +42,9 @@
   try
   // Convertir archivo PCM mono de 24kHz y 16 bits
   if ConvertPCMToWAV('c:\temp\imagen.pcm', 'c:\temp\imagen.wav', 24000, 1, 16) then
-  ShowMessage('Conversi�n exitosa')
+  ShowMessage('Conversion successful')
   else
-  ShowMessage('Error en la conversi�n');
+  ShowMessage('Conversion error');
   except
   on E: Exception do
   ShowMessage('Error: ' + E.Message);

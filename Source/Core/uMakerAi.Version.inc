@@ -16,8 +16,8 @@ const
 // Product Information
 const
   MAKERAI_PRODUCT_NAME     = 'MakerAi Library';
-  MAKERAI_COMPANY_NAME     = 'Gustavo Enr�quez';
-  MAKERAI_COPYRIGHT        = 'Copyright � 2024-2026 Gustavo Enr�quez - CimaMaker';
+  MAKERAI_COMPANY_NAME     = 'Gustavo Enrï¿½quez';
+  MAKERAI_COPYRIGHT        = 'Copyright ï¿½ 2024-2026 Gustavo Enrï¿½quez - CimaMaker';
   MAKERAI_DESCRIPTION      = 'Advanced AI Integration Library for Delphi';
 
 // Build Information
@@ -192,7 +192,7 @@ begin
   else if SameText(FeatureName, 'Agents') then Result := MAKERAI_HAS_AGENTS;
 end;
 
-//Mostrar en el versi�n about dialog
+//Mostrar en el versiï¿½n about dialog
 procedure TFormAbout.FormShow(Sender: TObject);
 begin
   lblVersion.Caption := MAKERAI_VERSION_STRING;

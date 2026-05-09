@@ -1,4 +1,4 @@
-﻿// IT License
+// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -1000,7 +1000,7 @@ Var
     TaskList[AIdx] := TTask.Create(
       procedure
       begin
-        // Outer try: garantiza que ninguna excepción (ni siquiera del log)
+        // Outer try: guarantees no exception (not even from logging)
         // escape al TTask system y cause EAggregateException en WaitForAll.
         try
           try
@@ -1017,7 +1017,7 @@ Var
               TFile.AppendAllText('makerai_tools.log',
                 FormatDateTime('hh:nn:ss.zzz', Now) +
                 Format(' [Tool] Completado: "%s" -> %s'#13#10,
-                  [TC.Name, IfThen(TC.Response = '', '(vacío)', Copy(TC.Response, 1, 120))]),
+                  [TC.Name, IfThen(TC.Response = '', '(empty)', Copy(TC.Response, 1, 120))]),
                 TEncoding.UTF8);
             except
             end;
@@ -1042,7 +1042,7 @@ Var
         except
           on E: Exception do
           begin
-            // Fallback: captura cualquier excepción no prevista (nunca debe llegar aquí)
+            // Fallback: catches any unexpected exception (should never reach here)
             TC.Response := '{"error": "unexpected: ' + E.Message.Replace('"', '''') + '"}';
           end;
         end;

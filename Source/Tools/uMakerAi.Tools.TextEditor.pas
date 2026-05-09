@@ -1,4 +1,4 @@
-﻿// MIT License
+// MIT License
 //
 // Copyright (c) 2013 Gustavo Enr?quez - CimaMaker
 //
@@ -201,7 +201,7 @@ begin
     if TFile.Exists(Path) then
       Result := TFile.ReadAllText(Path, TEncoding.UTF8)
     else
-      raise EFileNotFoundException.Create('Archivo no encontrado: ' + Path);
+      raise EFileNotFoundException.Create('File not found: ' + Path);
   end;
 end;
 

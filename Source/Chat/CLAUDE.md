@@ -30,7 +30,7 @@ Each inherits from `TAiChat` (defined in Core):
 | `uMakerAi.Chat.GenericLLM.pas` | `TAiGenericChat` | Any OpenAI-compatible API |
 
 ### Configuration
-- `uMakerAi.Chat.Initializations.pas` - Driver registration and model capabilities. Uses `TAiChatFactory` to configure `ModelCaps`, `SessionCaps`, `Tool_Active`, `ThinkingLevel` per model. **Última actualización: Feb 2026.**
+- `uMakerAi.Chat.Initializations.pas` - Driver registration and model capabilities. Uses `TAiChatFactory` to configure `ModelCaps`, `SessionCaps`, `Tool_Active`, `ThinkingLevel` per model. **Ãšltima actualizaciÃ³n: Feb 2026.**
 
 ### Legacy (Deprecated)
 - `uMakerAi.Chat.OpenAi_Deprecated.pas`
@@ -39,38 +39,38 @@ Each inherits from `TAiChat` (defined in Core):
 
 ---
 
-## Capability System (v3.3 — nuevo)
+## Capability System (v3.3 â€” nuevo)
 
 ### Concepto central
 Dos propiedades de tipo `TAiCapabilities` (set de `TAiCapability`) reemplazan los cuatro params legacy:
 
-| Propiedad | Descripción | Sincroniza a (legacy) |
+| Propiedad | DescripciÃ³n | Sincroniza a (legacy) |
 |-----------|-------------|----------------------|
-| `ModelCaps` | Capacidades nativas del modelo vía completions | `NativeInputFiles` + `ChatMediaSupports` |
-| `SessionCaps` | Capacidades deseadas en la sesión | `NativeOutputFiles` + `EnabledFeatures` |
+| `ModelCaps` | Capacidades nativas del modelo vÃ­a completions | `NativeInputFiles` + `ChatMediaSupports` |
+| `SessionCaps` | Capacidades deseadas en la sesiÃ³n | `NativeOutputFiles` + `EnabledFeatures` |
 
-**Gap = SessionCaps − ModelCaps** → determina qué bridge/tool activa `RunNew` automáticamente.
+**Gap = SessionCaps âˆ’ ModelCaps** â†’ determina quÃ© bridge/tool activa `RunNew` automÃ¡ticamente.
 
 ### TAiCapability enum
 ```delphi
 TAiCapability = (
-  // Entrada / Comprensión
+  // Entrada / ComprensiÃ³n
   cap_Image, cap_Audio, cap_Video, cap_Pdf,
   cap_WebSearch, cap_Reasoning, cap_CodeInterpreter,
   cap_Memory, cap_TextEditor, cap_ComputerUse, cap_Shell,
-  // Salida / Generación (gap → activa bridge)
+  // Salida / GeneraciÃ³n (gap â†’ activa bridge)
   cap_GenImage, cap_GenAudio, cap_GenVideo, cap_GenReport, cap_ExtractCode
 );
 ```
 
-### Patrones de configuración frecuentes
+### Patrones de configuraciÃ³n frecuentes
 
 ```delphi
-// Modelo de texto + tools (default para la mayoría)
+// Modelo de texto + tools (default para la mayorÃ­a)
 RegisterUserParam('Driver', 'ModelCaps',   '[]');
 RegisterUserParam('Driver', 'SessionCaps', '[]');
 
-// Modelo con visión nativa
+// Modelo con visiÃ³n nativa
 RegisterUserParam('Driver', 'ModelCaps',   '[cap_Image]');
 RegisterUserParam('Driver', 'SessionCaps', '[cap_Image]');
 
@@ -79,19 +79,19 @@ RegisterUserParam('Driver', Model, 'ModelCaps',    '[cap_Reasoning]');
 RegisterUserParam('Driver', Model, 'SessionCaps',  '[cap_Reasoning]');
 RegisterUserParam('Driver', Model, 'ThinkingLevel', 'tlMedium');
 
-// TTS via endpoint dedicado (Gap=[cap_GenAudio] → InternalRunSpeechGeneration)
+// TTS via endpoint dedicado (Gap=[cap_GenAudio] â†’ InternalRunSpeechGeneration)
 RegisterUserParam('Driver', Model, 'ModelCaps',   '[]');
 RegisterUserParam('Driver', Model, 'SessionCaps', '[cap_GenAudio]');
 RegisterUserParam('Driver', Model, 'Tool_Active', 'False');
 
-// Generación de imagen via endpoint dedicado (Gap=[cap_GenImage])
+// GeneraciÃ³n de imagen via endpoint dedicado (Gap=[cap_GenImage])
 RegisterUserParam('Driver', Model, 'ModelCaps',   '[]');
 RegisterUserParam('Driver', Model, 'SessionCaps', '[cap_GenImage]');
 RegisterUserParam('Driver', Model, 'Tool_Active', 'False');
 ```
 
 ### Compatibilidad con sistema legacy
-`EnsureNewSystemConfig` traduce automáticamente los params legacy (`NativeInputFiles`, `ChatMediaSupports`, `EnabledFeatures`, `NativeOutputFiles`) al nuevo sistema en el primer `Run`. Los modelos con configuración antigua siguen funcionando sin cambios. Si se asignan `ModelCaps`/`SessionCaps` explícitamente, `FNewSystemConfigured=True` y la traducción automática se omite.
+`EnsureNewSystemConfig` traduce automÃ¡ticamente los params legacy (`NativeInputFiles`, `ChatMediaSupports`, `EnabledFeatures`, `NativeOutputFiles`) al nuevo sistema en el primer `Run`. Los modelos con configuraciÃ³n antigua siguen funcionando sin cambios. Si se asignan `ModelCaps`/`SessionCaps` explÃ­citamente, `FNewSystemConfigured=True` y la traducciÃ³n automÃ¡tica se omite.
 
 ---
 
@@ -122,18 +122,18 @@ TAiChatFactory.Instance.RegisterUserParam('Ollama', 'qwen3:latest', 'ThinkingLev
 ```
 
 Key parameters:
-- `ModelCaps` / `SessionCaps` — **sistema nuevo v3.3** (preferido)
-- `NativeInputFiles` / `NativeOutputFiles` — físico, legacy (aún soportado)
-- `ChatMediaSupports` / `EnabledFeatures` — lógico, legacy (aún soportado)
-- `Tool_Active` — habilita function calling
-- `ThinkingLevel` — nivel de razonamiento (`tlLow`, `tlMedium`, `tlHigh`)
-- `Max_Tokens` — tokens máximos de respuesta
-- `Temperature` — temperatura de sampling
+- `ModelCaps` / `SessionCaps` â€” **sistema nuevo v3.3** (preferido)
+- `NativeInputFiles` / `NativeOutputFiles` â€” fÃ­sico, legacy (aÃºn soportado)
+- `ChatMediaSupports` / `EnabledFeatures` â€” lÃ³gico, legacy (aÃºn soportado)
+- `Tool_Active` â€” habilita function calling
+- `ThinkingLevel` â€” nivel de razonamiento (`tlLow`, `tlMedium`, `tlHigh`)
+- `Max_Tokens` â€” tokens mÃ¡ximos de respuesta
+- `Temperature` â€” temperatura de sampling
 
 ### Chat State Machine
 Drivers follow states in `TAiChatState`:
 ```text
-acsIdle → acsConnecting → acsReasoning → acsWriting → acsToolCalling → acsFinished/acsError
+acsIdle â†’ acsConnecting â†’ acsReasoning â†’ acsWriting â†’ acsToolCalling â†’ acsFinished/acsError
 ```
 
 ### Tool Calling Flow
@@ -175,84 +175,84 @@ acsIdle → acsConnecting → acsReasoning → acsWriting → acsToolCalling →
 
 ### Claude (Anthropic)
 - `x-anthropic-version` header + beta features via dynamic headers
-- Thinking/reasoning via `EnableThinking` + `ThinkingBudget`; `ThinkingLevel` mapea a presupuesto automático
+- Thinking/reasoning via `EnableThinking` + `ThinkingBudget`; `ThinkingLevel` mapea a presupuesto automÃ¡tico
 - Citations (RAG nativo): soporte parcial implementado
 - Modelos actuales: `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-haiku-4-5`
 
 ### OpenAI
 - GPT-4.1 (32K output, vision), o3/o4-mini (reasoning + vision), GPT-4o (audio multimodal)
-- Generación de imagen: `gpt-image-1` (calidad HD), `dall-e-3/2` → `SessionCaps=[cap_GenImage]`
-- TTS: `gpt-4o-mini-tts` → `SessionCaps=[cap_GenAudio]`
-- Video: Sora → `SessionCaps=[cap_GenVideo]`
-- Web search: `gpt-4o-search-preview` → `ModelCaps=[cap_WebSearch]`, `Tool_Active=False`
+- GeneraciÃ³n de imagen: `gpt-image-1` (calidad HD), `dall-e-3/2` â†’ `SessionCaps=[cap_GenImage]`
+- TTS: `gpt-4o-mini-tts` â†’ `SessionCaps=[cap_GenAudio]`
+- Video: Sora â†’ `SessionCaps=[cap_GenVideo]`
+- Web search: `gpt-4o-search-preview` â†’ `ModelCaps=[cap_WebSearch]`, `Tool_Active=False`
 - Modelos de reasoning usan `ThinkingLevel` para controlar esfuerzo
 
 ### Gemini (Google)
 - Gemini 2.5-flash/pro: vision + audio + video + PDF + web search + code interpreter + reasoning
 - Gemini 3-pro-preview / 3.1-pro-preview: capacidades completas + `ThinkingLevel=tlHigh`
-- Generación de imagen nativa vía completions: `gemini-2.5-flash-image-preview` → `ModelCaps=[cap_Image, cap_GenImage]`
-- TTS: `gemini-2.5-flash-tts` / `gemini-2.5-pro-tts` → `SessionCaps=[cap_GenAudio]`
-- Video: Veo 2.0/3.0/3.1 → `SessionCaps=[cap_GenVideo]`
-- Grounding nativo: el driver gestiona `groundingSupports` automáticamente
+- GeneraciÃ³n de imagen nativa vÃ­a completions: `gemini-2.5-flash-image-preview` â†’ `ModelCaps=[cap_Image, cap_GenImage]`
+- TTS: `gemini-2.5-flash-tts` / `gemini-2.5-pro-tts` â†’ `SessionCaps=[cap_GenAudio]`
+- Video: Veo 2.0/3.0/3.1 â†’ `SessionCaps=[cap_GenVideo]`
+- Grounding nativo: el driver gestiona `groundingSupports` automÃ¡ticamente
 
-### Groq (inferencia rápida)
+### Groq (inferencia rÃ¡pida)
 - Modelos populares: llama-4-scout/maverick (vision), kimi-k2, compound-beta, deepseek-r1, qwen3
-- TTS: `playai-tts`, `playai-tts-arabic`, `voxtral-mini/small` → `SessionCaps=[cap_GenAudio]`
-- Transcripción: `whisper-large-v3/turbo` → `ModelCaps=[cap_Audio]`, `Tool_Active=False`
+- TTS: `playai-tts`, `playai-tts-arabic`, `voxtral-mini/small` â†’ `SessionCaps=[cap_GenAudio]`
+- TranscripciÃ³n: `whisper-large-v3/turbo` â†’ `ModelCaps=[cap_Audio]`, `Tool_Active=False`
 - compound-beta/mini: web search + code interpreter nativos, `Tool_Active=False`
 
 ### Mistral
 - Vision: todos los modelos hereden el global `ModelCaps=[cap_Image]` (Mistral Large/Medium/Small 3.x)
-- Reasoning: magistral-medium/small → `ModelCaps=[cap_Reasoning]`, `ThinkingLevel=tlMedium`
-- Código: devstral-latest / devstral-small-latest → `ModelCaps=[]` (sin visión)
-- TTS: voxtral-mini/small-latest → `ModelCaps=[cap_Audio]`, `Tool_Active=False`
-- OCR: mistral-ocr-latest → `ModelCaps=[cap_Pdf]`, `Tool_Active=False`
+- Reasoning: magistral-medium/small â†’ `ModelCaps=[cap_Reasoning]`, `ThinkingLevel=tlMedium`
+- CÃ³digo: devstral-latest / devstral-small-latest â†’ `ModelCaps=[]` (sin visiÃ³n)
+- TTS: voxtral-mini/small-latest â†’ `ModelCaps=[cap_Audio]`, `Tool_Active=False`
+- OCR: mistral-ocr-latest â†’ `ModelCaps=[cap_Pdf]`, `Tool_Active=False`
 
 ### xAI Grok
 - grok-3: texto + tools (default)
 - grok-3-mini: reasoning ligero (`ThinkingLevel=tlLow`)
 - grok-4-fast-reasoning / grok-4-1-fast-reasoning: vision + reasoning, 2M ctx
-- grok-code-fast-1: reasoning para código, sin visión
-- Imagen: grok-2-image-1212, grok-imagine-image/pro → `SessionCaps=[cap_GenImage]`
-- Video: grok-imagine-video → `SessionCaps=[cap_GenVideo]`
+- grok-code-fast-1: reasoning para cÃ³digo, sin visiÃ³n
+- Imagen: grok-2-image-1212, grok-imagine-image/pro â†’ `SessionCaps=[cap_GenImage]`
+- Video: grok-imagine-video â†’ `SessionCaps=[cap_GenVideo]`
 
 ### DeepSeek
 - `deepseek-chat` (V3.2): texto + tools, 128K ctx, 32K output
 - `deepseek-reasoner` (R1): reasoning + tools, `ThinkingLevel=tlMedium`
-- Sin visión en la API pública (DeepSeek-VL2 no disponible vía api.deepseek.com)
+- Sin visiÃ³n en la API pÃºblica (DeepSeek-VL2 no disponible vÃ­a api.deepseek.com)
 
 ### Kimi (Moonshot AI)
 - `kimi-k2`: texto + tools, 256K ctx (default del driver)
 - `kimi-k2.5`: vision + PDF + reasoning + tools, MoE 1T params activos 32B
-- `kimi-k2-thinking`: reasoning + tools, sin visión
+- `kimi-k2-thinking`: reasoning + tools, sin visiÃ³n
 - `moonshot-v1-*`: legacy, sin tools (`Tool_Active=False`)
-- `moonshot-v1-*-vision-preview`: visión vía base64, sin tools
+- `moonshot-v1-*-vision-preview`: visiÃ³n vÃ­a base64, sin tools
 
 ### Cohere
 - `command-a-03-2025`: texto + tools (flagship, 256K ctx)
 - `command-a-reasoning-08-2025`: reasoning + tools, 32K output
-- `command-a-vision-07-2025`: visión, **sin tools** (`Tool_Active=False`)
-- `command-a-translate-08-2025`: traducción especializada, sin tools
-- `c4ai-aya-vision-8b/32b`: visión multilingual, sin tools
+- `command-a-vision-07-2025`: visiÃ³n, **sin tools** (`Tool_Active=False`)
+- `command-a-translate-08-2025`: traducciÃ³n especializada, sin tools
+- `c4ai-aya-vision-8b/32b`: visiÃ³n multilingual, sin tools
 
 ### Ollama
 - Default global: texto puro, sin tools (`Tool_Active=False`, `ModelCaps=[]`)
 - Modelos con tools: llama3.3, qwen2.5, qwen3, qwen2.5vl
 - Modelos con reasoning: qwen3 (`ThinkingLevel=tlMedium`), deepseek-r1 (via `<think>` tags)
-- Modelos con visión: llama3.2-vision, qwen2.5vl, gemma3 (todos los tamaños: 1b/4b/12b/27b)
-- Gemma 3: visión en todos los tamaños; **sin function calling** vía Ollama (`Tool_Active=False`)
-- Gemma 4 (e2b/e4b): visión + audio nativo + reasoning + **function calling** (`Tool_Active=True`)
+- Modelos con visiÃ³n: llama3.2-vision, qwen2.5vl, gemma3 (todos los tamaÃ±os: 1b/4b/12b/27b)
+- Gemma 3: visiÃ³n en todos los tamaÃ±os; **sin function calling** vÃ­a Ollama (`Tool_Active=False`)
+- Gemma 4 (e2b/e4b): visiÃ³n + audio nativo + reasoning + **function calling** (`Tool_Active=True`)
 
 ### LM Studio
 - Default global conservador: texto puro, sin tools, `Max_Tokens=4096`
-- IDs de modelo según nombre/alias configurado en la app (no son fijos)
+- IDs de modelo segÃºn nombre/alias configurado en la app (no son fijos)
 - Modelos configurados: llama-3.3-70b, qwen2.5-7b, deepseek-r1-7b, llama-3.2-11b-vision, mistral-7b, gemma-3-4b/12b/27b-it
 
 ### GenericLLM
 - Driver catch-all para cualquier API OpenAI-compatible
 - Defaults conservadores: texto, sin tools, `Max_Tokens=4096`
 - Configurar: `DriverName='GenericLLM'`, `URL='http://host/v1/'`, `Model='nombre'`
-- El usuario activa caps según las capacidades reales de su endpoint
+- El usuario activa caps segÃºn las capacidades reales de su endpoint
 
 ---
 

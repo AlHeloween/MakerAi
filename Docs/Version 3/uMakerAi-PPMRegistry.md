@@ -1,45 +1,45 @@
-# Integración con PPM Registry
+# IntegraciÃ³n con PPM Registry
 
-**MakerAI v3.3 — Documentación Técnica**
-Última actualización: Marzo 2026
+**MakerAI v3.3 â€” DocumentaciÃ³n TÃ©cnica**
+Ãšltima actualizaciÃ³n: Marzo 2026
 
 ---
 
 ## Tabla de Contenidos
 
-1. [¿Qué es PPM?](#1-qué-es-ppm)
-2. [TAiPrompts — Integración con Prompts](#2-taiprompts--integración-con-prompts)
+1. [Â¿QuÃ© es PPM?](#1-quÃ©-es-ppm)
+2. [TAiPrompts â€” IntegraciÃ³n con Prompts](#2-taiprompts--integraciÃ³n-con-prompts)
    - [Propiedad PPMRegistryUrl](#21-propiedad-ppmregistryurl)
-   - [SearchPPM — Buscar prompts](#22-searchppm--buscar-prompts)
-   - [LoadFromPPM — Importar un prompt](#23-loadfromppm--importar-un-prompt)
-   - [Conversión de placeholders](#24-conversión-de-placeholders)
-3. [TAiFunctions — Integración con Herramientas MCP](#3-taifunctions--integración-con-herramientas-mcp)
-   - [SearchPPMMCP — Descubrir herramientas](#31-searchppmmcp--descubrir-herramientas)
-   - [ImportMCPFromPPM — Registrar una herramienta](#32-importmcpfromppm--registrar-una-herramienta)
+   - [SearchPPM â€” Buscar prompts](#22-searchppm--buscar-prompts)
+   - [LoadFromPPM â€” Importar un prompt](#23-loadfromppm--importar-un-prompt)
+   - [ConversiÃ³n de placeholders](#24-conversiÃ³n-de-placeholders)
+3. [TAiFunctions â€” IntegraciÃ³n con Herramientas MCP](#3-taifunctions--integraciÃ³n-con-herramientas-mcp)
+   - [SearchPPMMCP â€” Descubrir herramientas](#31-searchppmmcp--descubrir-herramientas)
+   - [ImportMCPFromPPM â€” Registrar una herramienta](#32-importmcpfromppm--registrar-una-herramienta)
 4. [Ejemplos completos](#4-ejemplos-completos)
 5. [Referencia de la API REST de PPM](#5-referencia-de-la-api-rest-de-ppm)
 6. [Archivos fuente](#6-archivos-fuente)
 
 ---
 
-## 1. ¿Qué es PPM?
+## 1. Â¿QuÃ© es PPM?
 
-**PPM (PascalAI Package Manager)** es un registry público de paquetes para el ecosistema Pascal/Delphi AI. Permite publicar y consumir:
+**PPM (PascalAI Package Manager)** es un registry pÃºblico de paquetes para el ecosistema Pascal/Delphi AI. Permite publicar y consumir:
 
-| Tipo | Descripción |
+| Tipo | DescripciÃ³n |
 |------|-------------|
 | `prompt` | Plantillas de prompts reutilizables con variables `{{nombre}}` |
 | `mcp` | Definiciones de herramientas MCP con JSON Schema |
-| `pai` | Paquetes de librerías Pascal AI |
-| `clib` | Bindings de librerías C |
+| `pai` | Paquetes de librerÃ­as Pascal AI |
+| `clib` | Bindings de librerÃ­as C |
 
 **URL oficial del registry:** `https://registry.pascalai.org`
 
-MakerAI se integra con los tipos `prompt` y `mcp` a través de `TAiPrompts` y `TAiFunctions` respectivamente. Los endpoints públicos de búsqueda y descarga **no requieren autenticación**.
+MakerAI se integra con los tipos `prompt` y `mcp` a travÃ©s de `TAiPrompts` y `TAiFunctions` respectivamente. Los endpoints pÃºblicos de bÃºsqueda y descarga **no requieren autenticaciÃ³n**.
 
 ---
 
-## 2. TAiPrompts — Integración con Prompts
+## 2. TAiPrompts â€” IntegraciÃ³n con Prompts
 
 Archivo fuente: `Source/Core/uMakerAi.Prompts.pas`
 
@@ -59,11 +59,11 @@ AiPrompts1.PPMRegistryUrl := 'https://registry.pascalai.org';
 AiPrompts1.PPMRegistryUrl := 'http://mi-servidor-interno:8080';
 ```
 
-La propiedad es visible en el Object Inspector del IDE y se puede configurar en tiempo de diseño.
+La propiedad es visible en el Object Inspector del IDE y se puede configurar en tiempo de diseÃ±o.
 
 ---
 
-### 2.2 SearchPPM — Buscar prompts
+### 2.2 SearchPPM â€” Buscar prompts
 
 ```pascal
 function SearchPPM(
@@ -76,14 +76,14 @@ function SearchPPM(
 
 Busca paquetes en el registry. Devuelve el JSON de resultados. **El llamador es responsable de liberar el objeto devuelto.**
 
-**Parámetros:**
+**ParÃ¡metros:**
 
-| Parámetro | Tipo | Descripción |
+| ParÃ¡metro | Tipo | DescripciÃ³n |
 |-----------|------|-------------|
-| `AQuery` | String | Texto de búsqueda (busca en nombre y descripción) |
+| `AQuery` | String | Texto de bÃºsqueda (busca en nombre y descripciÃ³n) |
 | `AType` | String | Filtro de tipo: `'prompt'`, `'mcp'`, `'pai'`, `'clib'` |
-| `APage` | Integer | Página de resultados (base 1) |
-| `APerPage` | Integer | Resultados por página (máximo 100) |
+| `APage` | Integer | PÃ¡gina de resultados (base 1) |
+| `APerPage` | Integer | Resultados por pÃ¡gina (mÃ¡ximo 100) |
 
 **Estructura del JSON devuelto:**
 
@@ -93,7 +93,7 @@ Busca paquetes en el registry. Devuelve el JSON de resultados. **El llamador es 
     {
       "name": "code-review",
       "type": "prompt",
-      "description": "Prompt para revisión de código con análisis de seguridad",
+      "description": "Prompt para revisiÃ³n de cÃ³digo con anÃ¡lisis de seguridad",
       "version": "1.2.0",
       "author": "gustavoeenriquez",
       "downloads": 850
@@ -124,7 +124,7 @@ begin
     for I := 0 to LPackages.Count - 1 do
     begin
       var LPkg := LPackages.Items[I] as TJSONObject;
-      Memo1.Lines.Add(Format('%s v%s — %s',
+      Memo1.Lines.Add(Format('%s v%s â€” %s',
         [LPkg.GetValue<String>('name'),
          LPkg.GetValue<String>('version'),
          LPkg.GetValue<String>('description')]));
@@ -137,7 +137,7 @@ end;
 
 ---
 
-### 2.3 LoadFromPPM — Importar un prompt
+### 2.3 LoadFromPPM â€” Importar un prompt
 
 ```pascal
 function LoadFromPPM(
@@ -146,24 +146,24 @@ function LoadFromPPM(
 ): TAiPromptItem;
 ```
 
-Descarga un prompt del registry y lo agrega a la colección `Items` del componente. Si ya existe un prompt con el mismo nombre, lo actualiza en lugar de duplicarlo.
+Descarga un prompt del registry y lo agrega a la colecciÃ³n `Items` del componente. Si ya existe un prompt con el mismo nombre, lo actualiza en lugar de duplicarlo.
 
-**Parámetros:**
+**ParÃ¡metros:**
 
-| Parámetro | Tipo | Descripción |
+| ParÃ¡metro | Tipo | DescripciÃ³n |
 |-----------|------|-------------|
 | `AName` | String | Nombre exacto del paquete en el registry |
-| `AVersion` | String | Versión a descargar. Si está vacío, resuelve automáticamente la última versión disponible |
+| `AVersion` | String | VersiÃ³n a descargar. Si estÃ¡ vacÃ­o, resuelve automÃ¡ticamente la Ãºltima versiÃ³n disponible |
 
 **Retorno:** `TAiPromptItem` cargado, o `nil` si el paquete no existe o hay un error de red.
 
-**Ejemplo básico:**
+**Ejemplo bÃ¡sico:**
 
 ```pascal
 var
   LItem: TAiPromptItem;
 begin
-  // Cargar la última versión disponible
+  // Cargar la Ãºltima versiÃ³n disponible
   LItem := AiPrompts1.LoadFromPPM('code-review');
   if Assigned(LItem) then
     ShowMessage('Prompt cargado: ' + LItem.Nombre)
@@ -172,16 +172,16 @@ begin
 end;
 ```
 
-**Ejemplo con versión específica:**
+**Ejemplo con versiÃ³n especÃ­fica:**
 
 ```pascal
 LItem := AiPrompts1.LoadFromPPM('sql-generator', '2.1.0');
 ```
 
-**Usar el prompt después de importarlo:**
+**Usar el prompt despuÃ©s de importarlo:**
 
 ```pascal
-// Después de LoadFromPPM, el prompt está disponible como cualquier otro:
+// DespuÃ©s de LoadFromPPM, el prompt estÃ¡ disponible como cualquier otro:
 var LTexto := AiPrompts1.GetTemplate('code-review', ['language=Delphi', 'focus=security']);
 
 // Con TStringList:
@@ -197,34 +197,34 @@ end;
 
 ---
 
-### 2.4 Conversión de placeholders
+### 2.4 ConversiÃ³n de placeholders
 
-Los prompts en PPM usan la sintaxis `{{nombre_variable}}`. Al importarlos con `LoadFromPPM`, MakerAI los convierte **automáticamente** al formato nativo `<#nombre_variable>`.
+Los prompts en PPM usan la sintaxis `{{nombre_variable}}`. Al importarlos con `LoadFromPPM`, MakerAI los convierte **automÃ¡ticamente** al formato nativo `<#nombre_variable>`.
 
-| Formato PPM | Formato MakerAI | Descripción |
+| Formato PPM | Formato MakerAI | DescripciÃ³n |
 |-------------|-----------------|-------------|
 | `{{language}}` | `<#language>` | Variable de texto simple |
-| `{{code_to_review}}` | `<#code_to_review>` | Variable con guión bajo |
+| `{{code_to_review}}` | `<#code_to_review>` | Variable con guiÃ³n bajo |
 | `{{focus}}` | `<#focus>` | Variable de foco |
 
 **Ejemplo de prompt en PPM (`code-review.prompt`):**
 
 ```
-Eres un revisor de código experto en {{language}}.
+Eres un revisor de cÃ³digo experto en {{language}}.
 
-Analiza el siguiente código:
+Analiza el siguiente cÃ³digo:
 
 {{code_to_review}}
 
 Aspectos a revisar: {{focus}}
 ```
 
-**Después de `LoadFromPPM`, el prompt queda en MakerAI como:**
+**DespuÃ©s de `LoadFromPPM`, el prompt queda en MakerAI como:**
 
 ```
-Eres un revisor de código experto en <#language>.
+Eres un revisor de cÃ³digo experto en <#language>.
 
-Analiza el siguiente código:
+Analiza el siguiente cÃ³digo:
 
 <#code_to_review>
 
@@ -233,15 +233,15 @@ Aspectos a revisar: <#focus>
 
 ---
 
-## 3. TAiFunctions — Integración con Herramientas MCP
+## 3. TAiFunctions â€” IntegraciÃ³n con Herramientas MCP
 
 Archivo fuente: `Source/Tools/uMakerAi.Tools.Functions.pas`
 
-Los paquetes MCP en PPM contienen un **JSON Schema** que describe qué parámetros acepta una herramienta. A diferencia de los prompts, la herramienta MCP en sí (el servidor que la ejecuta) no está incluida en PPM — el registry funciona como **catálogo de descubrimiento**. El desarrollador debe configurar la URL o comando del servidor MCP por separado.
+Los paquetes MCP en PPM contienen un **JSON Schema** que describe quÃ© parÃ¡metros acepta una herramienta. A diferencia de los prompts, la herramienta MCP en sÃ­ (el servidor que la ejecuta) no estÃ¡ incluida en PPM â€” el registry funciona como **catÃ¡logo de descubrimiento**. El desarrollador debe configurar la URL o comando del servidor MCP por separado.
 
 ---
 
-### 3.1 SearchPPMMCP — Descubrir herramientas
+### 3.1 SearchPPMMCP â€” Descubrir herramientas
 
 ```pascal
 function SearchPPMMCP(
@@ -261,15 +261,15 @@ Busca herramientas MCP disponibles en el registry. El resultado incluye el JSON 
   "tools": [
     {
       "name": "mcp-web-search",
-      "description": "Búsqueda web con Brave Search API",
+      "description": "BÃºsqueda web con Brave Search API",
       "version": "1.2.0",
       "downloads": 3500,
       "schema": {
         "type": "object",
         "title": "Web Search",
         "properties": {
-          "query": { "type": "string", "description": "Término de búsqueda" },
-          "count": { "type": "integer", "description": "Número de resultados" }
+          "query": { "type": "string", "description": "TÃ©rmino de bÃºsqueda" },
+          "count": { "type": "integer", "description": "NÃºmero de resultados" }
         },
         "required": ["query"]
       }
@@ -295,7 +295,7 @@ begin
     for var I := 0 to LTools.Count - 1 do
     begin
       var LTool := LTools.Items[I] as TJSONObject;
-      ListBox1.Items.Add(Format('%s — %s',
+      ListBox1.Items.Add(Format('%s â€” %s',
         [LTool.GetValue<String>('name'),
          LTool.GetValue<String>('description')]));
     end;
@@ -307,7 +307,7 @@ end;
 
 ---
 
-### 3.2 ImportMCPFromPPM — Registrar una herramienta
+### 3.2 ImportMCPFromPPM â€” Registrar una herramienta
 
 ```pascal
 function ImportMCPFromPPM(
@@ -317,23 +317,23 @@ function ImportMCPFromPPM(
 ): TMCPClientItem;
 ```
 
-Registra una herramienta MCP del registry como un nuevo `TMCPClientItem` en la colección `MCPClients` del componente. El item se crea con:
+Registra una herramienta MCP del registry como un nuevo `TMCPClientItem` en la colecciÃ³n `MCPClients` del componente. El item se crea con:
 
 - `TransportType = tpHttp`
-- `URL = ''` (vacía — requiere configuración)
+- `URL = ''` (vacÃ­a â€” requiere configuraciÃ³n)
 - `Enabled = False` (deshabilitado hasta configurar el servidor)
 
 Si ya existe un cliente con el mismo nombre, devuelve el existente sin duplicar.
 
-**Parámetros:**
+**ParÃ¡metros:**
 
-| Parámetro | Tipo | Descripción |
+| ParÃ¡metro | Tipo | DescripciÃ³n |
 |-----------|------|-------------|
 | `AName` | String | Nombre del paquete MCP en el registry |
-| `AVersion` | String | Versión específica, o vacío para la última |
+| `AVersion` | String | VersiÃ³n especÃ­fica, o vacÃ­o para la Ãºltima |
 | `ARegistryUrl` | String | URL del registry (por defecto: oficial) |
 
-**Flujo de uso típico:**
+**Flujo de uso tÃ­pico:**
 
 ```pascal
 var
@@ -354,7 +354,7 @@ begin
   LItem.Enabled := True;
   LItem.UpdateClientProperties;
 
-  // 4. Inicializar la conexión
+  // 4. Inicializar la conexiÃ³n
   if LItem.MCPClient <> nil then
     LItem.MCPClient.Initialize;
 end;
@@ -364,7 +364,7 @@ end;
 
 ## 4. Ejemplos completos
 
-### Ejemplo 1 — Cargar un prompt de PPM y usarlo en un chat
+### Ejemplo 1 â€” Cargar un prompt de PPM y usarlo en un chat
 
 ```pascal
 procedure TForm1.BtnCargarPromptClick(Sender: TObject);
@@ -376,7 +376,7 @@ begin
   LItem := AiPrompts1.LoadFromPPM('delphi-code-review');
   if not Assigned(LItem) then
   begin
-    ShowMessage('No se encontró el prompt en PPM.');
+    ShowMessage('No se encontrÃ³ el prompt en PPM.');
     Exit;
   end;
 
@@ -391,7 +391,7 @@ end;
 
 ---
 
-### Ejemplo 2 — Explorar el catálogo de prompts en una lista
+### Ejemplo 2 â€” Explorar el catÃ¡logo de prompts en una lista
 
 ```pascal
 procedure TForm1.BtnBuscarClick(Sender: TObject);
@@ -413,7 +413,7 @@ begin
       var LPkg := LPackages.Items[I] as TJSONObject;
       // Guardar el nombre del paquete en el Data del item
       ListBox1.Items.AddObject(
-        Format('[v%s] %s — %s', [
+        Format('[v%s] %s â€” %s', [
           LPkg.GetValue<String>('version'),
           LPkg.GetValue<String>('name'),
           LPkg.GetValue<String>('description')
@@ -434,10 +434,10 @@ var
   LItem: TAiPromptItem;
 begin
   if ListBox1.ItemIndex < 0 then Exit;
-  // Extraer nombre del texto "[v1.0.0] nombre-prompt — descripción"
+  // Extraer nombre del texto "[v1.0.0] nombre-prompt â€” descripciÃ³n"
   LNombre := ListBox1.Items[ListBox1.ItemIndex];
   LNombre := Copy(LNombre, Pos('] ', LNombre) + 2, MaxInt);
-  LNombre := Copy(LNombre, 1, Pos(' — ', LNombre) - 1);
+  LNombre := Copy(LNombre, 1, Pos(' â€” ', LNombre) - 1);
 
   LItem := AiPrompts1.LoadFromPPM(LNombre);
   if Assigned(LItem) then
@@ -449,7 +449,7 @@ end;
 
 ---
 
-### Ejemplo 3 — Descubrir e integrar una herramienta MCP
+### Ejemplo 3 â€” Descubrir e integrar una herramienta MCP
 
 ```pascal
 procedure TForm1.BtnIntegrarMCPClick(Sender: TObject);
@@ -478,7 +478,7 @@ begin
   LItem := AiFunctions1.ImportMCPFromPPM(LNombre);
   if not Assigned(LItem) then Exit;
 
-  // Completar configuración con la URL del servidor local
+  // Completar configuraciÃ³n con la URL del servidor local
   LItem.Params.Values['URL'] := 'http://localhost:4000/mcp';
   LItem.Enabled := True;
   LItem.UpdateClientProperties;
@@ -494,21 +494,21 @@ end;
 
 ## 5. Referencia de la API REST de PPM
 
-Los métodos de MakerAI llaman internamente a estos endpoints. Se documentan aquí para referencia o para implementar llamadas directas.
+Los mÃ©todos de MakerAI llaman internamente a estos endpoints. Se documentan aquÃ­ para referencia o para implementar llamadas directas.
 
-| Endpoint | Método | Descripción |
+| Endpoint | MÃ©todo | DescripciÃ³n |
 |----------|--------|-------------|
 | `/v1/search?q=...&type=prompt` | GET | Buscar paquetes |
 | `/v1/packages/:name` | GET | Info de un paquete (versiones, autor, etc.) |
-| `/v1/packages/:name/:version/raw` | GET | Texto plano del prompt (sin sustitución) |
+| `/v1/packages/:name/:version/raw` | GET | Texto plano del prompt (sin sustituciÃ³n) |
 | `/v1/packages/:name/:version/render?var=val` | GET | Prompt con variables sustituidas (server-side) |
 | `/v1/mcp/discover?q=...` | GET | Buscar herramientas MCP con schemas inline |
 | `/v1/packages/:name/:version/schema` | GET | JSON Schema de una herramienta MCP |
 
 **Notas:**
-- Todos los endpoints de consulta son **públicos** (no requieren autenticación).
-- La autenticación (`Authorization: Bearer ppm_...`) solo es necesaria para publicar paquetes.
-- La versión `latest` no existe como path literal — `LoadFromPPM` y `ImportMCPFromPPM` la resuelven consultando el endpoint de info del paquete y seleccionando la primera versión no anulada (*yanked*).
+- Todos los endpoints de consulta son **pÃºblicos** (no requieren autenticaciÃ³n).
+- La autenticaciÃ³n (`Authorization: Bearer ppm_...`) solo es necesaria para publicar paquetes.
+- La versiÃ³n `latest` no existe como path literal â€” `LoadFromPPM` y `ImportMCPFromPPM` la resuelven consultando el endpoint de info del paquete y seleccionando la primera versiÃ³n no anulada (*yanked*).
 
 ---
 
@@ -516,8 +516,8 @@ Los métodos de MakerAI llaman internamente a estos endpoints. Se documentan aqu
 
 | Archivo | Contenido relevante |
 |---------|---------------------|
-| `Source/Core/uMakerAi.Prompts.pas` | `TAiPrompts`, `TAiPromptItem`, métodos PPM para prompts |
-| `Source/Tools/uMakerAi.Tools.Functions.pas` | `TAiFunctions`, `TMCPClientItems`, métodos PPM para MCP |
+| `Source/Core/uMakerAi.Prompts.pas` | `TAiPrompts`, `TAiPromptItem`, mÃ©todos PPM para prompts |
+| `Source/Tools/uMakerAi.Tools.Functions.pas` | `TAiFunctions`, `TMCPClientItems`, mÃ©todos PPM para MCP |
 
 ### Constantes y defaults
 
@@ -527,15 +527,15 @@ const
   PPM_DEFAULT_REGISTRY = 'https://registry.pascalai.org';
 
 // uMakerAi.Tools.Functions.pas
-// La URL por defecto se pasa como valor por defecto del parámetro ARegistryUrl:
+// La URL por defecto se pasa como valor por defecto del parÃ¡metro ARegistryUrl:
 //   const ARegistryUrl: String = 'https://registry.pascalai.org'
 ```
 
-### Dependencias añadidas
+### Dependencias aÃ±adidas
 
 Los dos archivos usan:
-- `System.Net.HttpClient` — cliente HTTP (`THTTPClient`, `IHTTPResponse`)
-- `System.NetEncoding` — codificación de parámetros URL (`TNetEncoding.URL.Encode`)
-- `System.RegularExpressions` — conversión de placeholders `{{var}}` → `<#var>` (solo en Prompts)
+- `System.Net.HttpClient` â€” cliente HTTP (`THTTPClient`, `IHTTPResponse`)
+- `System.NetEncoding` â€” codificaciÃ³n de parÃ¡metros URL (`TNetEncoding.URL.Encode`)
+- `System.RegularExpressions` â€” conversiÃ³n de placeholders `{{var}}` â†’ `<#var>` (solo en Prompts)
 
-Estas unidades forman parte del RTL estándar de Delphi y están disponibles desde Delphi 10.4 Sydney.
+Estas unidades forman parte del RTL estÃ¡ndar de Delphi y estÃ¡n disponibles desde Delphi 10.4 Sydney.

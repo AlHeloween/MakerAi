@@ -516,7 +516,7 @@ begin
   case FModel of
     smSora2: Result := 'sora-2';
   else
-    raise Exception.Create('El modelo Sora debe especificarse.');
+    raise Exception.Create('Sora model must be specified.');
   end;
 end;
 
@@ -595,7 +595,7 @@ begin
 
     // 3. Iniciar generaci�n
     LUrl := OPENAI_API_BASE_URL + 'videos';
-    ReportState(acsReasoning, 'Iniciando generaci�n de video Sora...');
+    ReportState(acsReasoning, 'Starting Sora video generation...');
     LResponse := HTTP.Post(LUrl, LFormData, nil, LHeaders);
 
     if LResponse.StatusCode <> 200 then
@@ -604,7 +604,7 @@ begin
     LResponseObj := TJSONObject.ParseJSONValue(LResponse.ContentAsString) as TJSONObject;
     try
       if not LResponseObj.TryGetValue<string>('id', LVideoJobId) then
-        raise Exception.Create('ID de job de video no encontrado en la respuesta de la API.');
+        raise Exception.Create('Video job ID not found in API response.');
       LResponseObj.TryGetValue<string>('status', LStatus);
     finally
       LResponseObj.Free;
@@ -636,7 +636,7 @@ begin
           break
         else if LStatus.Equals('failed') then
         begin
-          LErrorMessage := 'La generaci�n de video fall� con estado: "failed".';
+          LErrorMessage := 'Video generation failed with status: "failed".';
           if LPollingResponse.TryGetValue<TJSONObject>('error', LErrorObj) then
             LErrorMessage := 'API Error: ' + LErrorObj.GetValue<string>('message', LErrorObj.ToJSON);
           raise Exception.Create(LErrorMessage);
@@ -647,7 +647,7 @@ begin
     end;
 
     // 5. Descargar Video Final
-    ReportState(acsWriting, 'Descargando video generado...');
+    ReportState(acsWriting, 'Downloading generated video...');
     LUrl := OPENAI_API_BASE_URL + 'videos/' + LVideoJobId + '/content';
     LVideoStream := TMemoryStream.Create;
     try
@@ -659,10 +659,10 @@ begin
         LVideoFile.CloudName := LVideoJobId;
         LVideoFile.LoadFromStream(LVideoJobId + '.mp4', LVideoStream);
         AResMsg.MediaFiles.Add(LVideoFile);
-        ReportDataEnd(AResMsg, 'assistant', '[Video generado exitosamente]');
+        ReportDataEnd(AResMsg, 'assistant', '[Video generated successfully]');
       end
       else
-        raise Exception.CreateFmt('Error descargando video: %d, %s',
+        raise Exception.CreateFmt('Error downloading video: %d, %s',
           [LResponse.StatusCode, LResponse.ContentAsString(TEncoding.UTF8)]);
     finally
       LVideoStream.Free;

@@ -1,4 +1,4 @@
-﻿// IT License
+// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -135,7 +135,7 @@ begin
       raise Exception.Create('No se encontr? el campo "embedding" en los datos de respuesta.');
 
     if JArrVector.Count = 0 then
-      raise Exception.Create('El vector de embedding est? vac?o.');
+      raise Exception.Create('The embedding vector is empty.');
 
     // 6. Dimensionar y llenar el vector con validaci?n de tipo
     SetLength(Emb, JArrVector.Count);

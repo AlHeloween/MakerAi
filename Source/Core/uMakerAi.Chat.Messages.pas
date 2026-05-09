@@ -1,4 +1,4 @@
-﻿// MIT License
+// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -68,7 +68,7 @@ Type
     Metadata: TAiMetadata; // Metadatos adicionales que se pueden enviar a la funci?n
     AskMsg: TAiChatMessage; // TAiChatMessage que representa la pregunta
     ResMsg: TAiChatMessage; // TAiChatMessage que representa la respuesta
-    MediaFiles: TAiMediaFiles; // Archivos extraídos por el tool (ej: imágenes devueltas por MCP)
+    MediaFiles: TAiMediaFiles; // Files extracted by the tool (e.g. images returned by MCP)
 
     Constructor Create;
     Destructor Destroy; Override;
@@ -1061,8 +1061,8 @@ begin
       JObj.AddPair('tool_calls', TJSonArray(TJSonArray.ParseJSONValue(Msg.FTool_calls)));
 {$ENDIF}
 
-    // reasoning_content requerido por APIs como DeepSeek y Kimi cuando thinking está habilitado.
-    // Solo se serializa cuando está presente (no afecta a providers que no lo usan).
+    // reasoning_content required by APIs like DeepSeek and Kimi when thinking is enabled.
+    // Only serialized when present (does not affect providers that do not use it).
     if Msg.FReasoningContent <> '' then
       JObj.AddPair('reasoning_content', Msg.FReasoningContent);
 

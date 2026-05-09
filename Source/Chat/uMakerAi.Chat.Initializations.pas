@@ -1,4 +1,4 @@
-﻿// IT License
+// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -44,8 +44,8 @@ implementation
 
 // Estos imports activan los initialization de cada driver de Chat,
 // que registran tanto TAiChatFactory (chat) como TAiEmbeddingFactory (embeddings).
-// Centralizado aquí para que cualquier app que use uMakerAi.Chat.Initializations
-// tenga todos los drivers disponibles automáticamente.
+// Centralized here so any app using uMakerAi.Chat.Initializations
+// has all drivers available automatically.
 uses
   uMakerAi.Chat.OpenAi,
   uMakerAi.Chat.Claude,
@@ -142,7 +142,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'SessionCaps', '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'Tool_Active', 'True');
 
-  // ------- Gemma 4 (vision + audio + reasoning nativo, tamaños: e4b / 4b / 12b / 27b) ------
+  // ------- Gemma 4 (native vision + audio + reasoning, sizes: e4b / 4b / 12b / 27b) ------
   // gemma4 soporta imagen, audio y reasoning de forma nativa.
   for Model in ['gemma4', 'gemma4:latest',
                 'gemma4:e2b', 'gemma4:e4b',
@@ -416,7 +416,7 @@ Begin
 
   // ------- Gemini 3 Pro Image (Nano Banana Pro) -- generacion de imagenes avanzada ------
   // https://ai.google.dev/gemini-api/docs/image-generation
-  // Nota: no soporta ThinkingLevel (INVALID_ARGUMENT si se envía)
+  // Note: does not support ThinkingLevel (INVALID_ARGUMENT if sent)
   Model := 'gemini-3-pro-image-preview';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',   '[cap_Image, cap_GenImage]');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'SessionCaps', '[cap_Image, cap_GenImage]');

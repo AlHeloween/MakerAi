@@ -10,11 +10,11 @@ This is the documentation root for MakerAI v3.2 - an AI orchestration framework 
 
 ```text
 Docs/
-└── Version 3/           ← Current version documentation
-    ├── Agents/          ← Agent orchestration (graph-based workflows)
-    ├── MCPServer/       ← Model Context Protocol server implementation
-    ├── RAG/             ← Retrieval-Augmented Generation (vector + graph)
-    └── PDF/             ← Distribution-ready consolidated PDFs
+â””â”€â”€ Version 3/           â† Current version documentation
+    â”œâ”€â”€ Agents/          â† Agent orchestration (graph-based workflows)
+    â”œâ”€â”€ MCPServer/       â† Model Context Protocol server implementation
+    â”œâ”€â”€ RAG/             â† Retrieval-Augmented Generation (vector + graph)
+    â””â”€â”€ PDF/             â† Distribution-ready consolidated PDFs
 ```
 
 ## Language
@@ -29,7 +29,7 @@ Specialized guidance exists in subdirectories:
 - `Version 3/MCPServer/CLAUDE.md` - MCP protocol patterns, testing commands
 - `Version 3/RAG/CLAUDE.md` - pgvector reference, RAG implementation patterns
 
-## Key Documentation → Source Mapping
+## Key Documentation â†’ Source Mapping
 
 | Documentation | Source Code |
 |---------------|-------------|

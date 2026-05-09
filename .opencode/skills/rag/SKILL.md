@@ -90,7 +90,7 @@ Use `tools/adm.exe --rag settings` to inspect the effective `include_globs`, `ad
 
 ## Common queries (smoke)
 
-After indexing docs, these are good “first queries” to validate wiring:
+After indexing docs, these are good â€œfirst queriesâ€ to validate wiring:
 
 - `tools/adm.exe --query <index_name> "ADIDInstaller.json"`
 - `tools/adm.exe --query <index_name> "codex mcp add adid_rag"`

@@ -1,4 +1,4 @@
-﻿unit uMakerAi.Embeddings.Cohere;
+unit uMakerAi.Embeddings.Cohere;
 
 // IT License
 //
@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enríquez
+// Name: Gustavo Enríquez
 // Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -50,11 +50,11 @@ type
     FInputType: TAiCohereInputType;
     function GetInputTypeAsString: string;
   protected
-    // Este método es para procesar la respuesta específica de Cohere.
+    // This method is for processing Cohere-specific response.
     procedure ParseCohereEmbedding(jObj: TJSonObject);
   public
     constructor Create(aOwner: TComponent); override;
-    // Sobrescribimos el método principal para la implementación de Cohere.
+    // We override the main method for the Cohere implementation.
     function CreateEmbedding(aInput, aUser: String; aDimensions: Integer = -1; aModel: String = ''; aEncodingFormat: String = 'float'): TAiEmbeddingData; override;
     class function GetDriverName: string; override;
     class function CreateInstance(aOwner: TComponent): TAiEmbeddings; override;
@@ -96,7 +96,7 @@ var
   LModel: string;
   LResponseJson: TJSonObject;
 begin
-  // Si el evento está asignado, se delega la lógica (comportamiento de la clase base)
+  // If the event is assigned, the logic is delegated (base class behavior)
   if Assigned(OnGetEmbedding) then
   begin
     Result := inherited CreateEmbedding(aInput, aUser, aDimensions, aModel, aEncodingFormat);
@@ -115,11 +115,11 @@ begin
     else
       LModel := FModel;
 
-    // 1. Construir el cuerpo de la petición JSON
+    // 1. Build the JSON request body
     jObj.AddPair('model', LModel);
     jObj.AddPair('input_type', GetInputTypeAsString);
 
-    // La API espera un array de textos. Creamos uno con el único input.
+    // The API expects an array of texts. We create one with the single input.
     JTexts := TJSONArray.Create;
     JTexts.Add(aInput);
     jObj.AddPair('texts', JTexts);
@@ -130,15 +130,15 @@ begin
     jObj.AddPair('embedding_types', JEmbeddingTypes);
 
     // Opcional: Cohere no usa 'dimensions' como OpenAI, sino 'output_dimension'.
-    // Lo añadimos si es un valor válido para Cohere.
+    // Add it if it is a valid value for Cohere.
     if (aDimensions = 256) or (aDimensions = 512) or (aDimensions = 1024) or (aDimensions = 1536) then
     begin
       jObj.AddPair('output_dimension', aDimensions);
     end
     else if (aDimensions > 0) then
     begin
-      // Opcional: Lanzar un warning o un error si el usuario especifica una dimensión
-      // que no es válida para este modelo, para evitar confusiones.
+      // Optional: Throw a warning or error if user specifies a dimension
+      // that is not valid for this model, to avoid confusion.
       // Por ahora, simplemente lo ignoramos.
     end;
 
@@ -158,7 +158,7 @@ begin
       // 1. Parsear el string de respuesta y castearlo a un TJSONObject.
       LResponseJson := TJSonObject.ParseJSONValue(ResponseStream.DataString) as TJSonObject;
       try
-        // 2. Pasar el objeto JSON parseado directamente al método de parseo.
+        // 2. Pass the parsed JSON object directly to the parse method.
         ParseCohereEmbedding(LResponseJson);
         Result := Self.FData;
       finally

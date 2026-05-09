@@ -1,4 +1,4 @@
-﻿// MIT License
+// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enríquez
+// Name: Gustavo Enríquez
 // Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -82,12 +82,12 @@ type
     Function GetTemplate(Nombre: String; Params: TStringList): String; Overload;
     Function GetTemplate(Nombre: String; Params: TJSonObject): String; Overload;
 
-    // Integración con PPM (registry público de prompts)
+    // Integration with PPM (public prompts registry)
     // SearchPPM: busca prompts en el registry. El llamador es responsable de liberar el TJSONObject.
     function SearchPPM(const AQuery: String; const AType: String = 'prompt';
       APage: Integer = 1; APerPage: Integer = 20): TJSONObject;
     // LoadFromPPM: descarga el prompt y lo agrega a Items. Si ya existe, lo actualiza.
-    // AVersion vacío = resuelve la última versión disponible.
+    // Empty AVersion = resolves the latest available version.
     function LoadFromPPM(const AName: String; const AVersion: String = ''): TAiPromptItem;
 
   published
@@ -195,7 +195,7 @@ begin
     S := Params[I];
     P := Pos('=',S);
     If  p <= 0 then
-      Raise Exception.Create('Los parámetros deben tener la forma Nombre=Valor');
+      Raise Exception.Create('Parameters must be in the form Name=Value');
 
     Nom := Copy(S, 1, P - 1);
     Val := Copy(S, P + 1, Length(S));
@@ -274,7 +274,7 @@ begin
       if LResponse.StatusCode = 200 then
         Result := LResponse.ContentAsString(TEncoding.UTF8);
     except
-      // Error de red: retorna vacío
+      // Network error: returns empty
     end;
   finally
     LClient.Free;

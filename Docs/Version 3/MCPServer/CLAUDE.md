@@ -25,7 +25,7 @@ MCPServer is included in the main MakerAI runtime package. Compile from Delphi I
 
 ```
 Open: Source/Packages/MakerAI.dpk
-Build → Compile
+Build â†’ Compile
 ```
 
 Required library paths: `Source/MCPServer`, `Source/Core`, `Source/Tools`, `Source/Utils`
@@ -61,11 +61,11 @@ curl -X POST http://localhost:8080/mcp \
 
 ```
 TAiMCPLogicServer (JSON-RPC engine, tool/resource registry)
-    └── TAiMCPServer (TComponent wrapper)
-            ├── TAiMCPHttpServer
-            ├── TAiMCPSSEHttpServer
-            ├── TAiMCPStdioServer
-            └── TAiMCPDirectConnection
+    â””â”€â”€ TAiMCPServer (TComponent wrapper)
+            â”œâ”€â”€ TAiMCPHttpServer
+            â”œâ”€â”€ TAiMCPSSEHttpServer
+            â”œâ”€â”€ TAiMCPStdioServer
+            â””â”€â”€ TAiMCPDirectConnection
 ```
 
 ### Key Interfaces

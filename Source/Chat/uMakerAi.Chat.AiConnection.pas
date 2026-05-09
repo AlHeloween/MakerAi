@@ -1,4 +1,4 @@
-﻿// IT License
+// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -127,9 +127,9 @@ type
     procedure SetModelConfig(const Value: TAiModelConfig);
 
     // Atajos directos para ChatTools — permiten asignar en el IDE sin necesidad
-    // de código en el formulario. Las propiedades directas de TComponent resuelven
+    // of code in the form. Direct TComponent properties resolve
     // referencias forward en el DFM/FMX correctamente; ChatTools.XxxTool (sub-objeto
-    // TPersistent) no garantiza la resolución de referencias forward.
+    // TPersistent) does not guarantee forward reference resolution.
     procedure SetSpeechTool(const Value: TAiSpeechToolBase);
     function  GetSpeechTool: TAiSpeechToolBase;
     procedure SetImageTool(const Value: TAiImageToolBase);
@@ -581,10 +581,10 @@ begin
   // Inyectar las herramientas (ChatTools)
   AChat.ChatTools.Assign(Self.FChatTools);
 
-  // Inyectar configuración del sanitizador
+  // Inject sanitizer configuration
   AChat.SanitizerActive := Self.FSanitizerActive;
 
-  // Inyectar sub-objetos de parámetros especiales
+  // Inject special parameters sub-objects
   AChat.TtsParams.Assign(Self.FTtsParams);
   AChat.TranscriptionParams.Assign(Self.FTranscriptionParams);
   AChat.ImageParams.Assign(Self.FImageGenParams);
@@ -685,7 +685,7 @@ begin
                       TrimmedName := Trim(EnumName);
                       if not TrimmedName.IsEmpty then
                       begin
-                        // GetEnumValue es sensible a mayúsculas según el Enum definido en uMakerAi.Core
+                        // GetEnumValue is case-sensitive according to the Enum defined in uMakerAi.Core
                         var
                         OrdinalValue := GetEnumValue(LEnumType.Handle, TrimmedName);
                         if OrdinalValue >= 0 then
@@ -710,7 +710,7 @@ begin
               end;
           end;
         except
-          // Fallo silencioso por propiedad individual para no detener el resto de la inyección
+          // Silent failure per property to not stop the rest of the injection
         end;
       end;
     end;

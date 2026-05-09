@@ -1,4 +1,4 @@
-﻿unit uMakerAi.RAG.Vector.Driver.Postgres;
+unit uMakerAi.RAG.Vector.Driver.Postgres;
 
 interface
 
@@ -20,7 +20,7 @@ uses
   uMakerAi.RAG.MetaData; // Ahora contiene TFilterOperator unificado
 
 type
-  // Tipos de datos para conversi�n correcta a SQL
+  // Tipos de datos para conversi?n correcta a SQL
   TJSONBDataType = (jdtString, jdtInteger, jdtFloat, jdtBoolean, jdtDate, jdtDateTime, jdtJSON, jdtArray);
 
   TQueryParamValue = record
@@ -28,7 +28,7 @@ type
     Value: Variant;
   end;
 
-  // Clase helper para construcci�n de condiciones SQL
+  // Clase helper para construcci?n de condiciones SQL
   TJSONBFilterCondition = class
   private
     FPath: string;
@@ -46,7 +46,7 @@ type
     property SecondValue: Variant read FSecondValue write FSecondValue;
   end;
 
-  // Builder para construir la cl�usula WHERE
+  // Builder para construir la cl?usula WHERE
   TJSONBFilterBuilder = class
   private
     // FConditions: TObjectList<TJSONBFilterCondition>;
@@ -62,10 +62,10 @@ type
     constructor Create(AQuery: TFDQuery);
     destructor Destroy; override;
 
-    // M�todo principal que consume los criterios unificados
+    // M?todo principal que consume los criterios unificados
     function BuildSQL(ACriteria: TAiFilterCriteria): string;
 
-    // Generaci�n SQL
+    // Generaci?n SQL
     property Params: TList<TQueryParamValue> read FParams;
   end;
 
@@ -91,7 +91,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    { M�todos Principales }
+    { M?todos Principales }
     procedure Add(const ANode: TAiEmbeddingNode; const AEntidad: string = ''); override;
 
     // Firma actualizada para coincidir con la clase base y usar TAiFilterCriteria
@@ -175,7 +175,7 @@ begin
     foIsNotNull:
       Result := 'IS NOT NULL';
 
-    // foContainedBy y foStartsWith/EndsWith se manejan con l�gica especial o LIKE
+    // foContainedBy y foStartsWith/EndsWith se manejan con l?gica especial o LIKE
     foStartsWith, foEndsWith:
       Result := 'LIKE';
   else
@@ -220,7 +220,7 @@ var
   ParamList: TStringList;
   SQLOp: string;
 
-  // Sub-rutina para a�adir par�metros a la lista diferida
+  // Sub-rutina para a?adir par?metros a la lista diferida
   procedure AddParam(const AName: string; const AValue: Variant);
   var
     P: TQueryParamValue;
@@ -251,7 +251,7 @@ begin
     CastType := 'text';
   end;
 
-  // 2. Generar SQL y coleccionar par�metros
+  // 2. Generar SQL y coleccionar par?metros
   case FOperator of
     // Comparaciones simples (=, <>, >, etc.)
     foEqual, foNotEqual, foGreater, foGreaterOrEqual, foLess, foLessOrEqual:
@@ -284,11 +284,11 @@ begin
         var
         KeyName := FPath.Replace('properties->>''', '').Replace('properties #>> ''{', '').Replace('}''', '').Replace('''', '');
 
-        // 2. Formatear el valor seg�n su tipo para que el JSON sea v�lido
+        // 2. Formatear el valor seg?n su tipo para que el JSON sea v?lido
         var
           JsonValue: string;
 
-          // Verificaci�n de tipo usando VarType
+          // Verificaci?n de tipo usando VarType
         if VarIsNumeric(FValue) then
           JsonValue := VarToStr(FValue).Replace(',', '.')
         else if (VarType(FValue) and varTypeMask) = varBoolean then
@@ -296,7 +296,7 @@ begin
         else if VarIsNull(FValue) then
           JsonValue := 'null'
         else
-          // Los strings DEBEN llevar comillas dobles para ser JSON v�lido
+          // Los strings DEBEN llevar comillas dobles para ser JSON v?lido
           JsonValue := '"' + VarToStr(FValue).Replace('"', '\"') + '"';
 
         AddParam(ParamName, '{"' + KeyName + '": ' + JsonValue + '}');
@@ -306,7 +306,7 @@ begin
     foExists:
       begin
         Result := Format('(properties ? :%s)', [ParamName]);
-        // Aqu� el valor del par�metro es el nombre de la llave
+        // Aqu? el valor del par?metro es el nombre de la llave
         AddParam(ParamName, FPath.Replace('properties->>''', '').Replace('''', ''));
       end;
 
@@ -348,7 +348,7 @@ begin
               ParamList.Add(':' + SubParam);
               AddParam(SubParam, VarArrayGet(FValue, [I]));
             end;
-            // USAR CastType AQU�
+            // USAR CastType AQU?
             Result := Format('((%s)::%s %s (%s))', [FPath, CastType, GetSQLOperator, String.Join(',', ParamList.ToStringArray)]);
           finally
             ParamList.Free;
@@ -361,7 +361,7 @@ begin
         end;
       end;
 
-    // BETWEEN con dos par�metros
+    // BETWEEN con dos par?metros
     foBetween:
       begin
         Result := Format('((%s)::%s BETWEEN :%s_1 AND :%s_2)', [FPath, CastType, ParamName, ParamName]);
@@ -369,7 +369,7 @@ begin
         AddParam(ParamName + '_2', FSecondValue);
       end;
 
-    // IS NULL / IS NOT NULL (No requieren par�metros)
+    // IS NULL / IS NOT NULL (No requieren par?metros)
     foIsNull:
       Result := Format('((%s) IS NULL)', [FPath]);
     foIsNotNull:
@@ -379,7 +379,7 @@ begin
     Result := '(1=1)';
   end;
 
-  // 3. Negaci�n si aplica
+  // 3. Negaci?n si aplica
   if FIsNegated then
     Result := 'NOT (' + Result + ')';
 end;
@@ -405,7 +405,7 @@ var
 begin
   for P in FParams do
   begin
-    // Ahora FireDAC encontrar� los par�metros porque ya asignamos el SQL.Text antes
+    // Ahora FireDAC encontrar? los par?metros porque ya asignamos el SQL.Text antes
     AQuery.ParamByName(P.Name).Value := P.Value;
   end;
 end;
@@ -441,7 +441,7 @@ begin
   end
   else
   begin
-    // 3. Si es una llave simple, usamos el operador est�ndar ->> (devuelve TEXT)
+    // 3. Si es una llave simple, usamos el operador est?ndar ->> (devuelve TEXT)
     Result := Format('properties->>''%s''', [AKey]);
   end;
 end;
@@ -469,7 +469,7 @@ begin
     end;
   end;
 
-  // Tipos at�micos
+  // Tipos at?micos
   case VarType(AValue) and varTypeMask of
     varSmallint, varInteger, varShortInt, varByte, varWord, varLongWord, varInt64:
       Result := jdtInteger;
@@ -513,10 +513,10 @@ begin
       end
       else
       begin
-        // CONDICI�N AT�MICA
+        // CONDICI?N AT?MICA
         Inc(FParamCounter);
 
-        // 1. Crear la condici�n
+        // 1. Crear la condici?n
         Cond := TJSONBFilterCondition.Create(BuildPath(Criterion.Key, Criterion.Op), Criterion.Op, Criterion.Value, InferDataType(Criterion.Value));
         try
           if Criterion.Op = foBetween then
@@ -558,7 +558,7 @@ end;
 function TAiRAGVectorPostgresDriver.NewQuery: TFDQuery;
 begin
   if not Assigned(FConnection) then
-    raise Exception.Create('Error Cr�tico: Driver Postgres sin conexi�n asignada.');
+    raise Exception.Create('Error Cr?tico: Driver Postgres sin conexi?n asignada.');
   Result := TFDQuery.Create(nil);
   Result.Connection := FConnection;
 end;
@@ -778,7 +778,7 @@ var
   MinVectorScore, MinLexicalScore: Double;
   LangConfig, FilterSQL: string;
   HasFilter: Boolean;
-  FilterBuilder: TJSONBFilterBuilder; // Builder para filtros din�micos
+  FilterBuilder: TJSONBFilterBuilder; // Builder para filtros din?micos
   VWeight, LWeight: Double;
 begin
   Result := TAiRAGVector.Create(nil, True);
@@ -813,9 +813,9 @@ begin
 
   Q := NewQuery;
   SQL := TStringBuilder.Create;
-  FilterBuilder := TJSONBFilterBuilder.Create(Q); // Pasamos Q para inicializar contexto, pero no asignamos par�metros a�n
+  FilterBuilder := TJSONBFilterBuilder.Create(Q); // Pasamos Q para inicializar contexto, pero no asignamos par?metros a?n
   try
-    // 1. GENERAR SQL DIN�MICO Y COLECCIONAR PAR�METROS
+    // 1. GENERAR SQL DIN?MICO Y COLECCIONAR PAR?METROS
     FilterSQL := '';
     HasFilter := False;
     if Assigned(AFilter) and (AFilter.Count > 0) then
@@ -887,7 +887,7 @@ begin
       end
       else
       begin
-        // C�lculo de pesos con IF normales
+        // C?lculo de pesos con IF normales
         if Assigned(LOptions) then
         begin
           VWeight := LOptions.EmbeddingWeight;
@@ -911,7 +911,7 @@ begin
     SQL.AppendLine('  FROM combined');
     SQL.AppendLine(')');
 
-    // --- SELECCI�N FINAL ---
+    // --- SELECCI?N FINAL ---
     SQL.AppendLine('SELECT id, content, model, properties, embedding,');
     if Assigned(LOptions) and LOptions.UseRRF and DoVector and DoLexical then
       SQL.AppendLine('  (raw_score / ((1.0/61) + (1.0/61))) as final_score')
@@ -926,11 +926,11 @@ begin
     Q.SQL.Text := SQL.ToString;
     FLastSQL := Q.SQL.Text;
 
-    // 4. AHORA APLICAMOS LOS PAR�METROS DIN�MICOS DEL FILTRO
+    // 4. AHORA APLICAMOS LOS PAR?METROS DIN?MICOS DEL FILTRO
     if HasFilter then
       FilterBuilder.ApplyParams(Q);
 
-    // 5. ASIGNAR PAR�METROS EST�NDAR
+    // 5. ASIGNAR PAR?METROS EST?NDAR
     Q.ParamByName('ent').AsString := LEnt;
     Q.ParamByName('lim').AsInteger := ALimit;
     Q.ParamByName('prelim_limit').AsInteger := ALimit * 3;
@@ -953,7 +953,7 @@ begin
         Q.ParamByName('min_l').AsFloat := MinLexicalScore;
     end;
 
-    // 6. EJECUCI�N
+    // 6. EJECUCI?N
     try
       Q.Open;
     except

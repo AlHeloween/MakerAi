@@ -509,12 +509,12 @@ end;
 
 function TAiOpenChat.InternalRunNativeVideoGeneration(ResMsg, AskMsg: TAiChatMessage): String;
 begin
-  Raise Exception.Create('Todav�a no se ha implementado esta opci�n para este modelo');
+  Raise Exception.Create('This option has not yet been implemented for this model');
 end;
 
 function TAiOpenChat.InternalRunNativePDFDescription(aMediaFile: TAiMediaFile; ResMsg, AskMsg: TAiChatMessage): String;
 begin
-  Raise Exception.Create('Todav�a no se ha implementado esta opci�n para este modelo, debe ejecutarlos desde Responses');
+  Raise Exception.Create('This option has not yet been implemented for this model, you must execute them from Responses');
 end;
 
 function TAiOpenChat.InternalRunNativeSpeechGeneration(ResMsg, AskMsg: TAiChatMessage): String;
@@ -626,7 +626,7 @@ var
 begin
   Result := '';
   if not Assigned(aMediaFile) or (aMediaFile.Content.Size = 0) then
-    raise Exception.Create('Se necesita un archivo de audio con contenido para la transcripci�n.');
+    raise Exception.Create('An audio file with content is required for transcription.');
 
   sUrl := Url + 'audio/transcriptions';
 
@@ -2255,7 +2255,7 @@ var
 begin
   Result := '';
   if not Assigned(aMediaFile) or (aMediaFile.Content.Size = 0) then
-    raise Exception.Create('Se necesita un archivo con contenido para subirlo.');
+    raise Exception.Create('A file with content is required for upload.');
 
   // El endpoint para subir archivos es /v1/files
   sUrl := Url + 'files';
@@ -2305,7 +2305,7 @@ begin
     end
     else
     begin
-      Raise Exception.CreateFmt('Error subiendo archivo a OpenAI: %d, %s', [Res.StatusCode, Res.ContentAsString]);
+      Raise Exception.CreateFmt('Error uploading file to OpenAI: %d, %s', [Res.StatusCode, Res.ContentAsString]);
     end;
 
   finally

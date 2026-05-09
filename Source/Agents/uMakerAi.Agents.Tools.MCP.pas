@@ -1,9 +1,9 @@
-﻿// MIT License
+// MIT License
 // MakerAI - Sistema de Agentes v3.4
 // Adaptador MCP → IAiTool: expone cada herramienta de un servidor MCP
 // como un IAiTool intercambiable dentro del TAiToolRegistry.
 //
-// Autor: Gustavo Enríquez
+// Author: Gustavo Enríquez
 // GitHub: https://github.com/gustavoeenriquez/MakerAi
 
 unit uMakerAi.Agents.Tools.MCP;
@@ -60,7 +60,7 @@ type
     Uso:
       var Tools: TArray<IAiTool>;
       Tools := TAiMCPToolFactory.CreateFromClient(MyMCPClient);
-      // Añadir al registry:
+      // Add to registry:
       for var T in Tools do
         Registry.Register(T);
 
@@ -165,7 +165,7 @@ begin
   Result := [];
   if not Assigned(AClient) then Exit;
 
-  // Inicializar si todavía no se hizo
+  // Initialize if not yet done
   if not AClient.Initialized then
   begin
     if not AClient.Initialize then

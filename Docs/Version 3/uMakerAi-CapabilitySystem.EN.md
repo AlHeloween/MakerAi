@@ -1,6 +1,6 @@
 # Capability System: ModelCaps and SessionCaps
 
-**MakerAI v3.3 — Technical Documentation**
+**MakerAI v3.3 â€” Technical Documentation**
 Last updated: March 2026
 
 ---
@@ -79,22 +79,22 @@ TAiCapabilities = set of TAiCapability;
 
 ## 3. ModelCaps vs SessionCaps
 
-### ModelCaps — native model capabilities
+### ModelCaps â€” native model capabilities
 
 Represents exactly what the model can do through the completions endpoint **without external intervention**. This is a fixed fact about the model; it does not change based on user needs.
 
 Examples:
-- `GPT-4.1`: can process images → `ModelCaps = [cap_Image]`
-- `dall-e-3`: only generates images, does not handle completions → `ModelCaps = []`
-- `gemini-2.5-flash`: fully multimodal → `ModelCaps = [cap_Image, cap_Audio, cap_Video, cap_Pdf, cap_WebSearch, cap_Reasoning, cap_CodeInterpreter]`
+- `GPT-4.1`: can process images â†’ `ModelCaps = [cap_Image]`
+- `dall-e-3`: only generates images, does not handle completions â†’ `ModelCaps = []`
+- `gemini-2.5-flash`: fully multimodal â†’ `ModelCaps = [cap_Image, cap_Audio, cap_Video, cap_Pdf, cap_WebSearch, cap_Reasoning, cap_CodeInterpreter]`
 
-### SessionCaps — desired session capabilities
+### SessionCaps â€” desired session capabilities
 
 Represents what the **user wants** the session to be able to do. It can match `ModelCaps` (no gap, direct call) or exceed it (gap present, bridges are activated).
 
 Examples:
-- Using GPT-4o to generate TTS audio: `SessionCaps = [cap_Image, cap_GenAudio]` → Gap = `[cap_GenAudio]` → uses OpenAI TTS endpoint
-- Using Ollama (text-only) with images: `SessionCaps = [cap_Image]` + `ModelCaps = []` → Gap = `[cap_Image]` → image description bridge runs before completions
+- Using GPT-4o to generate TTS audio: `SessionCaps = [cap_Image, cap_GenAudio]` â†’ Gap = `[cap_GenAudio]` â†’ uses OpenAI TTS endpoint
+- Using Ollama (text-only) with images: `SessionCaps = [cap_Image]` + `ModelCaps = []` â†’ Gap = `[cap_Image]` â†’ image description bridge runs before completions
 
 ### Relationship with legacy parameters
 
@@ -125,9 +125,9 @@ For each file attached to the message that the model does not support natively:
 
 | Gap contains | File type | Bridge activated |
 |---|---|---|
-| `cap_Audio` | `.mp3`, `.wav`, etc. | `InternalRunTranscription` → converts to text |
-| `cap_Image` | `.png`, `.jpg`, etc. | `InternalRunImageDescription` → describes the image |
-| `cap_Pdf` | `.pdf` | `InternalRunPDFDescription` → extracts/describes the PDF |
+| `cap_Audio` | `.mp3`, `.wav`, etc. | `InternalRunTranscription` â†’ converts to text |
+| `cap_Image` | `.png`, `.jpg`, etc. | `InternalRunImageDescription` â†’ describes the image |
+| `cap_Pdf` | `.pdf` | `InternalRunPDFDescription` â†’ extracts/describes the PDF |
 
 Already-processed files (`MF.Procesado = True`) are skipped. There is also a priority 1 override: if the `OnProcessMediaFile` event is assigned, it is called before any automatic bridge.
 
@@ -135,7 +135,7 @@ Already-processed files (`MF.Procesado = True`) are skipped. There is also a pri
 
 | Gap contains | Action |
 |---|---|
-| `cap_WebSearch` | `InternalRunWebSearch` — searches the web and injects results into the context |
+| `cap_WebSearch` | `InternalRunWebSearch` â€” searches the web and injects results into the context |
 
 ### Phase 3: Output orchestration (in `cmConversation` mode)
 
@@ -149,19 +149,19 @@ The gap determines which endpoint is used. Evaluated in priority order:
 | `cap_GenReport` | `InternalRunReport` |
 | (empty) | `InternalRunCompletions` (normal conversation) |
 
-`cap_ExtractCode` does not redirect the endpoint — it is handled internally by `InternalRunCompletions` through the legacy parameter `Tfc_ExtractTextFile in NativeOutputFiles` (synchronized by `SyncLegacyFromSessionCaps`).
+`cap_ExtractCode` does not redirect the endpoint â€” it is handled internally by `InternalRunCompletions` through the legacy parameter `Tfc_ExtractTextFile in NativeOutputFiles` (synchronized by `SyncLegacyFromSessionCaps`).
 
 ### Forced modes
 
 If `ChatMode` is anything other than `cmConversation`, Phases 1 and 3 ignore the gap and call the corresponding method directly:
 
 ```pascal
-cmImageGeneration  → InternalRunImageGeneration  (always)
-cmVideoGeneration  → InternalRunImageVideoGeneration
-cmSpeechGeneration → InternalRunSpeechGeneration
-cmWebSearch        → InternalRunWebSearch
-cmReportGeneration → InternalRunReport
-cmTranscription    → InternalRunTranscription (first audio file in the message)
+cmImageGeneration  â†’ InternalRunImageGeneration  (always)
+cmVideoGeneration  â†’ InternalRunImageVideoGeneration
+cmSpeechGeneration â†’ InternalRunSpeechGeneration
+cmWebSearch        â†’ InternalRunWebSearch
+cmReportGeneration â†’ InternalRunReport
+cmTranscription    â†’ InternalRunTranscription (first audio file in the message)
 ```
 
 ---
@@ -174,9 +174,9 @@ The standard way to configure capabilities is in `Source/Chat/uMakerAi.Chat.Init
 
 Parameters have three levels (lowest to highest priority):
 
-1. **Driver defaults** — `RegisterDefaultParams` in the driver class
-2. **Global provider defaults** — `RegisterUserParam(Driver, Param, Value)`
-3. **Per-model overrides** — `RegisterUserParam(Driver, Model, Param, Value)`
+1. **Driver defaults** â€” `RegisterDefaultParams` in the driver class
+2. **Global provider defaults** â€” `RegisterUserParam(Driver, Param, Value)`
+3. **Per-model overrides** â€” `RegisterUserParam(Driver, Model, Param, Value)`
 
 A per-model override always wins over the driver global.
 
@@ -213,9 +213,9 @@ For models with extended reasoning, the level is configured with `ThinkingLevel`
 | Value | Description |
 |-------|-------------|
 | `tlDefault` | Let the provider decide (usually Medium) |
-| `tlLow` | Minimal reasoning — fast response, lower cost |
-| `tlMedium` | Balanced quality/speed — recommended default |
-| `tlHigh` | Maximum reasoning — highest quality, slower and more expensive |
+| `tlLow` | Minimal reasoning â€” fast response, lower cost |
+| `tlMedium` | Balanced quality/speed â€” recommended default |
+| `tlHigh` | Maximum reasoning â€” highest quality, slower and more expensive |
 
 `ThinkingLevel` only takes effect when `cap_Reasoning` is in `ModelCaps`. If the model does not have `cap_Reasoning`, the parameter is ignored.
 
@@ -306,8 +306,8 @@ The previous system configured capabilities through four parameters:
 If a model was configured with the legacy system and `ModelCaps`/`SessionCaps` were **not** assigned explicitly (`FNewSystemConfigured = False`), the method `EnsureNewSystemConfig` (called at the start of every `Run`) automatically translates:
 
 ```
-ChatMediaSupports + NativeInputFiles/OutputFiles  →  ModelCaps
-EnabledFeatures   + NativeOutputFiles             →  SessionCaps
+ChatMediaSupports + NativeInputFiles/OutputFiles  â†’  ModelCaps
+EnabledFeatures   + NativeOutputFiles             â†’  SessionCaps
 ```
 
 This translation happens once per session and is invisible to the user. The legacy system continues to work without any code changes.
@@ -350,7 +350,7 @@ RegisterUserParam('Driver', 'SessionCaps', '[]');
 RegisterUserParam('Driver', 'Tool_Active', 'False');
 ```
 
-Result: `Gap = []` → direct `InternalRunCompletions` call.
+Result: `Gap = []` â†’ direct `InternalRunCompletions` call.
 
 ### Pattern 2: Model with native vision
 
@@ -361,7 +361,7 @@ RegisterUserParam('Driver', 'SessionCaps', '[cap_Image]');
 RegisterUserParam('Driver', 'Tool_Active', 'True');
 ```
 
-Result: `Gap = []` → images go directly to the completions API.
+Result: `Gap = []` â†’ images go directly to the completions API.
 
 ### Pattern 3: Fully multimodal model (Gemini 2.5 Flash)
 
@@ -372,7 +372,7 @@ RegisterUserParam('Gemini', 'gemini-2.5-flash', 'SessionCaps',
   '[cap_Image, cap_Audio, cap_Video, cap_Pdf, cap_WebSearch, cap_Reasoning, cap_CodeInterpreter]');
 ```
 
-Result: `Gap = []` → everything goes directly to Gemini's native completions.
+Result: `Gap = []` â†’ everything goes directly to Gemini's native completions.
 
 ### Pattern 4: Reasoning model (CoT/thinking)
 
@@ -388,7 +388,7 @@ Result: the driver activates extended reasoning mode at the configured level.
 
 ```pascal
 // Empty ModelCaps = no completions / cannot understand inputs
-// Gap = [cap_GenAudio] → InternalRunSpeechGeneration
+// Gap = [cap_GenAudio] â†’ InternalRunSpeechGeneration
 RegisterUserParam('Driver', 'tts-model', 'ModelCaps',   '[]');
 RegisterUserParam('Driver', 'tts-model', 'SessionCaps', '[cap_GenAudio]');
 RegisterUserParam('Driver', 'tts-model', 'Tool_Active', 'False');
@@ -399,7 +399,7 @@ RegisterUserParam('Driver', 'tts-model', 'Voice',       'alloy');
 
 ```pascal
 // Empty ModelCaps = uses image endpoint, not completions
-// Gap = [cap_GenImage] → InternalRunImageGeneration
+// Gap = [cap_GenImage] â†’ InternalRunImageGeneration
 RegisterUserParam('Driver', 'image-model', 'ModelCaps',   '[]');
 RegisterUserParam('Driver', 'image-model', 'SessionCaps', '[cap_GenImage]');
 RegisterUserParam('Driver', 'image-model', 'Tool_Active', 'False');
@@ -409,7 +409,7 @@ RegisterUserParam('Driver', 'image-model', 'Tool_Active', 'False');
 
 ```pascal
 // cap_GenImage in BOTH ModelCaps AND SessionCaps = model returns image inline in the completions response
-// Gap = [] → InternalRunCompletions (model generates image inline in the response)
+// Gap = [] â†’ InternalRunCompletions (model generates image inline in the response)
 RegisterUserParam('Gemini', 'gemini-2.5-flash-image', 'ModelCaps',   '[cap_Image, cap_GenImage]');
 RegisterUserParam('Gemini', 'gemini-2.5-flash-image', 'SessionCaps', '[cap_Image, cap_GenImage]');
 RegisterUserParam('Gemini', 'gemini-2.5-flash-image', 'Tool_Active', 'False');
@@ -431,10 +431,10 @@ RegisterUserParam('Driver', 'whisper', 'Tool_Active', 'False');
 
 ```pascal
 // The model (e.g. plain Ollama) has no native vision
-// The user wants to send images → automatic bridge describes them before the prompt
+// The user wants to send images â†’ automatic bridge describes them before the prompt
 RegisterUserParam('Ollama', 'ModelCaps',   '[]');          // cannot see images
 RegisterUserParam('Ollama', 'SessionCaps', '[cap_Image]'); // session requires images
-// Gap = [cap_Image] → in Phase 1, InternalRunImageDescription runs automatically
+// Gap = [cap_Image] â†’ in Phase 1, InternalRunImageDescription runs automatically
 // The image is described in text and appended to the prompt
 ```
 
@@ -442,7 +442,7 @@ RegisterUserParam('Ollama', 'SessionCaps', '[cap_Image]'); // session requires i
 
 ```pascal
 // ModelCaps=[cap_Image]: accepts image input (text-to-video or image-to-video)
-// SessionCaps adds cap_GenVideo: Gap=[cap_GenVideo] → InternalRunImageVideoGeneration
+// SessionCaps adds cap_GenVideo: Gap=[cap_GenVideo] â†’ InternalRunImageVideoGeneration
 RegisterUserParam('Gemini', 'aa_veo-3.0-generate-preview', 'ModelCaps',   '[cap_Image]');
 RegisterUserParam('Gemini', 'aa_veo-3.0-generate-preview', 'SessionCaps', '[cap_Image, cap_GenVideo]');
 RegisterUserParam('Gemini', 'aa_veo-3.0-generate-preview', 'Tool_Active', 'False');
@@ -463,8 +463,8 @@ RegisterUserParam('Gemini', 'aa_veo-3.0-generate-preview', 'Tool_Active', 'False
 | o4-mini | `[cap_Image, cap_Reasoning]` | `[cap_Image, cap_Reasoning]` | True | ThinkingLevel=tlMedium |
 | o3/o4-mini-deep-research | `[cap_Reasoning, cap_WebSearch, cap_CodeInterpreter]` | same | True | |
 | gpt-4o-search-preview | `[cap_WebSearch]` | `[cap_WebSearch]` | False | |
-| gpt-image-1 / dall-e-3 / dall-e-2 | `[]` | `[cap_GenImage]` | False | Gap → image endpoint |
-| gpt-4o-mini-tts | `[]` | `[cap_GenAudio]` | False | Gap → TTS endpoint |
+| gpt-image-1 / dall-e-3 / dall-e-2 | `[]` | `[cap_GenImage]` | False | Gap â†’ image endpoint |
+| gpt-4o-mini-tts | `[]` | `[cap_GenAudio]` | False | Gap â†’ TTS endpoint |
 | gpt-4o-audio-preview | `[cap_Audio, cap_GenAudio]` | `[cap_Audio, cap_GenAudio]` | False | Native audio I/O in completions |
 | gpt-4o-transcribe / mini-transcribe | `[cap_Audio]` | `[cap_Audio]` | False | Native STT |
 | aa_gpt-4.1-pdf | `[cap_Image, cap_Pdf]` | `[cap_Image, cap_Pdf]` | True | Custom profile with native PDF |
@@ -480,9 +480,9 @@ RegisterUserParam('Gemini', 'aa_veo-3.0-generate-preview', 'Tool_Active', 'False
 | gemini-3.1-pro-preview | same | same | True | ThinkingLevel=tlHigh |
 | gemini-2.5-flash-image | `[cap_Image, cap_GenImage]` | same | False | Native image gen in completions |
 | gemini-3-pro-image-preview | `[cap_Image, cap_GenImage]` | same | False | No ThinkingLevel support |
-| gemini-2.5-flash-preview-tts | `[]` | `[cap_GenAudio]` | False | Gap → TTS |
-| gemini-2.5-pro-preview-tts | `[]` | `[cap_GenAudio]` | False | Gap → TTS |
-| aa_veo-2.0/3.0/3.1 | `[cap_Image]` | `[cap_Image, cap_GenVideo]` | False | Gap=[cap_GenVideo] → video |
+| gemini-2.5-flash-preview-tts | `[]` | `[cap_GenAudio]` | False | Gap â†’ TTS |
+| gemini-2.5-pro-preview-tts | `[]` | `[cap_GenAudio]` | False | Gap â†’ TTS |
+| aa_veo-2.0/3.0/3.1 | `[cap_Image]` | `[cap_Image, cap_GenVideo]` | False | Gap=[cap_GenVideo] â†’ video |
 
 ### Claude (Anthropic)
 
@@ -503,7 +503,7 @@ All current Claude models (Opus 4.6, Sonnet 4.6/4.5, Haiku 4.5) share the same n
 | llama-4-scout / llama-4-maverick | `[cap_Image]` | `[cap_Image]` | True | |
 | compound-beta / mini | `[cap_WebSearch, cap_CodeInterpreter]` | same | False | Native, no tool calls |
 | whisper-large-v3 / turbo | `[cap_Audio]` | `[cap_Audio]` | False | STT |
-| canopylabs/orpheus-v1-english | `[]` | `[cap_GenAudio]` | False | Gap → TTS |
+| canopylabs/orpheus-v1-english | `[]` | `[cap_GenAudio]` | False | Gap â†’ TTS |
 
 ### DeepSeek
 
@@ -529,8 +529,8 @@ All current Claude models (Opus 4.6, Sonnet 4.6/4.5, Haiku 4.5) share the same n
 | grok-3 | `[]` | `[]` | True |
 | grok-3-mini | `[cap_Reasoning]` | `[cap_Reasoning]` | True | ThinkingLevel=tlLow |
 | grok-4-fast-reasoning | `[cap_Image, cap_Reasoning]` | same | True | 2M ctx |
-| grok-2-image-1212 / grok-imagine-* | `[]` | `[cap_GenImage]` | False | Gap → image |
-| grok-imagine-video | `[]` | `[cap_GenVideo]` | False | Gap → video |
+| grok-2-image-1212 / grok-imagine-* | `[]` | `[cap_GenImage]` | False | Gap â†’ image |
+| grok-imagine-video | `[]` | `[cap_GenVideo]` | False | Gap â†’ video |
 
 ### Mistral
 
@@ -595,19 +595,19 @@ TAiChatFactory.Instance.RegisterUserParam('MyProvider', 'my-model-tts', 'Tool_Ac
 ### Design questions when configuring a new model
 
 1. **What input types does the completions endpoint accept?**
-   → Those are the input `ModelCaps` (`cap_Image`, `cap_Audio`, etc.)
+   â†’ Those are the input `ModelCaps` (`cap_Image`, `cap_Audio`, etc.)
 
 2. **Can the completions endpoint generate images/audio/video inline?**
-   → Add the corresponding `cap_Gen*` to both `ModelCaps` and `SessionCaps`. Gap = 0, call goes directly.
+   â†’ Add the corresponding `cap_Gen*` to both `ModelCaps` and `SessionCaps`. Gap = 0, call goes directly.
 
 3. **Does the model have a separate TTS/image/video endpoint?**
-   → `ModelCaps = []`, `SessionCaps = [cap_Gen*]`. The gap activates the bridge.
+   â†’ `ModelCaps = []`, `SessionCaps = [cap_Gen*]`. The gap activates the bridge.
 
 4. **Does the model support extended reasoning?**
-   → `cap_Reasoning` in both `ModelCaps` and `SessionCaps`, plus `ThinkingLevel`.
+   â†’ `cap_Reasoning` in both `ModelCaps` and `SessionCaps`, plus `ThinkingLevel`.
 
 5. **Does the model support tool calling?**
-   → `Tool_Active = True`.
+   â†’ `Tool_Active = True`.
 
 ---
 
@@ -624,5 +624,5 @@ TAiChatFactory.Instance.RegisterUserParam('MyProvider', 'my-model-tts', 'Tool_Ac
 
 ---
 
-*Documentation for MakerAI v3.3 — March 2026*
+*Documentation for MakerAI v3.3 â€” March 2026*
 *Official project website: https://makerai.cimamaker.com*

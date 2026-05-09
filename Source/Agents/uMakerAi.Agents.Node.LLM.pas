@@ -1,13 +1,13 @@
-﻿// MIT License
+// MIT License
 // MakerAI - Sistema de Agentes v3.4
 // TLLMNode: nodo de agente con loop ReAct integrado.
 //
-// TLLMNode extiende TAIAgentsNode añadiendo un modelo LLM con capacidad de
-// llamar herramientas del TAiToolRegistry automáticamente. El loop LLM →
-// Tool → Observación es manejado internamente por TAiChatConnection
+// TLLMNode extends TAIAgentsNode by adding an LLM model with capacity to
+// call tools from TAiToolRegistry automatically. The LLM →
+// Tool → Observation is handled internally by TAiChatConnection
 // (function calling nativo de cada proveedor).
 //
-// Uso básico:
+// Basic usage:
 //   Node := TLLMNode.Create(Manager);
 //   Node.DriverName   := 'Claude';
 //   Node.Model        := 'claude-sonnet-4-5';
@@ -15,7 +15,7 @@
 //   Node.SystemPrompt := 'Eres un asistente experto en...';
 //   Node.UseAllTools  := True;   // inyecta todo el TAiToolRegistry.Instance
 //
-// Autor: Gustavo Enríquez
+// Author: Gustavo Enríquez
 // GitHub: https://github.com/gustavoeenriquez/MakerAi
 
 unit uMakerAi.Agents.Node.LLM;
@@ -62,9 +62,9 @@ type
     FUseAllTools   : Boolean;
     FRegistry      : TAiToolRegistry;
 
-    // Estado temporal válido sólo durante DoExecute (un hilo a la vez por nodo)
+    // Temporary state valid only during DoExecute (one thread at a time per node)
     FActiveRegistry: TAiToolRegistry;
-    // Captura el último error del LLM para re-lanzarlo como excepción
+    // Captures the last LLM error to re-throw it as exception
     FLastError     : String;
 
     procedure LoadRegistryTools(AFunctions: TAiFunctions);
@@ -86,15 +86,15 @@ type
   published
     // Nombre del driver LLM: 'OpenAI', 'Claude', 'Gemini', 'Ollama', etc.
     property DriverName   : String  read FDriverName   write FDriverName;
-    // Modelo específico del proveedor (vacío = usa el default del driver)
+    // Provider-specific model (empty = uses driver default)
     property Model        : String  read FModel        write FModel;
-    // API key. Soporta sintaxis @ENV_VAR_NAME para resolución en runtime.
+    // API key. Supports @ENV_VAR_NAME syntax for runtime resolution.
     property ApiKey       : String  read FApiKey       write FApiKey;
-    // Instrucción de sistema para el LLM
+    // System instruction for the LLM
     property SystemPrompt : String  read FSystemPrompt write FSystemPrompt;
-    // Máximo de tokens en la respuesta (0 = usa el default del driver)
+    // Maximum tokens in response (0 = uses driver default)
     property MaxTokens    : Integer read FMaxTokens    write FMaxTokens default 0;
-    // Si True, inyecta automáticamente todas las herramientas disponibles del registry
+    // If True, automatically injects all available tools from the registry
     property UseAllTools  : Boolean read FUseAllTools  write FUseAllTools default True;
   end;
 
@@ -131,7 +131,7 @@ end;
 // ---------------------------------------------------------------------------
 // Carga todas las herramientas del registry en el componente TAiFunctions.
 // Cada IAiTool se convierte en un TFunctionActionItem usando SetJSon para
-// transferir el nombre, descripción e inputSchema completo.
+// transfer the name, description and complete inputSchema.
 // ---------------------------------------------------------------------------
 procedure TLLMNode.LoadRegistryTools(AFunctions: TAiFunctions);
 var
@@ -162,7 +162,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Captura errores del LLM para re-lanzarlos como excepción en DoExecute.
+// Captures LLM errors to re-throw them as exception in DoExecute.
 // ---------------------------------------------------------------------------
 procedure TLLMNode.InternalOnError(Sender: TObject; const ErrorMsg: string;
   AException: Exception; const AResponse: IHTTPResponse);
@@ -172,8 +172,8 @@ end;
 
 // ---------------------------------------------------------------------------
 // Handler unificado para todas las tool calls del LLM.
-// TAiChatConnection invoca este método cuando el modelo pide ejecutar
-// una función. Buscamos la herramienta en el registry y ejecutamos.
+// TAiChatConnection invokes this method when the model requests to execute
+// a function. We look for the tool in the registry and execute.
 // ---------------------------------------------------------------------------
 procedure TLLMNode.HandleToolCall(Sender: TObject;
   FunctionAction: TFunctionActionItem; FunctionName: String;
@@ -225,7 +225,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Punto de entrada principal del nodo. Reemplaza el DoExecute genérico.
+// Main entry point of the node. Replaces the generic DoExecute.
 // Crea el chat, carga las herramientas y ejecuta el input del nodo.
 // El loop ReAct es gestionado internamente por TAiChatConnection.
 // ---------------------------------------------------------------------------
@@ -248,7 +248,7 @@ begin
   if Assigned(Self.Graph) and Assigned(Self.Graph.OnEnterNode) then
     Self.Graph.OnEnterNode(Self.Graph, Self);
 
-  // Determinar el registry activo para esta ejecución
+  // Determine the active registry for this execution
   if Assigned(FRegistry) then
     FActiveRegistry := FRegistry
   else
@@ -266,7 +266,7 @@ begin
     // Conectar handler de errores para capturar fallos del LLM
     Chat.OnError := InternalOnError;
 
-    // Parámetros vía TStrings (Asynchronous DEBE ser False en nodos de agente)
+    // Parameters via TStrings (Asynchronous MUST be False in agent nodes)
     Chat.Params.Values['Asynchronous'] := 'False';
     if FApiKey <> '' then
       Chat.Params.Values['ApiKey'] := FApiKey;
@@ -281,21 +281,21 @@ begin
       LoadRegistryTools(Functions);
       Chat.AiFunctions := Functions;
 
-      // Limpiar ModelCaps/SessionCaps: LLMNode usa sólo TAiFunctions.
-      // Sin esto, el driver puede añadir tools built-in (web_search,
-      // code_execution, etc.) que nuestro código no sabe manejar.
+      // Clear ModelCaps/SessionCaps: LLMNode uses only TAiFunctions.
+      // Without this, the driver may add built-in tools (web_search,
+      // code_execution, etc.) that our code does not know how to handle.
       Chat.Params.Values['ModelCaps']   := '[]';
       Chat.Params.Values['SessionCaps'] := '[]';
 
-      // Tool_Active debe ser True para que el driver envíe las tools al LLM.
+      // Tool_Active must be True for the driver to send the tools to the LLM.
       // Algunos drivers (Claude, Gemini) lo tienen en False por defecto.
       Chat.Params.Values['Tool_Active'] := 'True';
     end;
 
-    // Ejecutar el input del nodo (el loop de tools es automático)
+    // Execute the node input (the tools loop is automatic)
     Response := Chat.AddMessageAndRun(Self.Input, 'user', []);
 
-    // Si el LLM reportó un error y la respuesta está vacía, propagarlo
+    // If the LLM reported an error and the response is empty, propagate it
     if (Response = '') and (FLastError <> '') then
       raise Exception.Create('[TLLMNode] LLM error: ' + FLastError);
 

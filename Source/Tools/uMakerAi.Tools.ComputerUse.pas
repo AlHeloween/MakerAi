@@ -1,4 +1,4 @@
-﻿unit uMakerAi.tools.ComputerUse;
+unit uMakerAi.tools.ComputerUse;
 
 interface
 
@@ -18,7 +18,7 @@ type
     catDrag, // drag_and_drop
     catHover, // hover_at
     catNavigate, // navigate, search, open_web_browser
-    catScreenshot, // screenshot (solicitud expl�cita del modelo)
+    catScreenshot, // screenshot (solicitud expl?cita del modelo)
     catWait, // wait_5_seconds
     catTerminate, // Para detener el bucle
     catImageEdit, catDrawBox);
@@ -28,7 +28,7 @@ type
     ActionType: TAiComputerActionType;
     FunctionName: string;
 
-    // Coordenadas calculadas a p�xeles reales de pantalla
+    // Coordenadas calculadas a p?xeles reales de pantalla
     X, Y: Integer;
     DestX, DestY: Integer; // Para Drag & Drop
 
@@ -39,18 +39,18 @@ type
 
     // Datos de Scroll
     ScrollDirection: string; // 'up', 'down', 'left', 'right'
-    ScrollAmount: Integer; // Default 800 (seg�n docs)
+    ScrollAmount: Integer; // Default 800 (seg?n docs)
 
-    // Datos de Edici�n de Imagen
+    // Datos de Edici?n de Imagen
     Width, Height: Integer;
     EditType: string; // 'black_out', 'highlight', etc.
     ColorName: string;
 
-    // Datos de navegaci�n
+    // Datos de navegaci?n
     Url: string;
   end;
 
-  // Resultado devuelto por tu aplicaci�n
+  // Resultado devuelto por tu aplicaci?n
   TAiActionResult = record
     Success: Boolean;
     ErrorMessage: string;
@@ -85,18 +85,18 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    // M�todo principal llamado desde TAiGeminiChat
+    // M?todo principal llamado desde TAiGeminiChat
     // Retorna el JSON string para la respuesta y el MediaFile (Screenshot) por referencia
     function ProcessToolCall(ToolCall: TAiToolsFunction; out ResponseMedia: TAiMediaFile): string;
 
-    // Convierte un punto X,Y de Gemini (0-1000) a p�xeles reales de pantalla
+    // Convierte un punto X,Y de Gemini (0-1000) a p?xeles reales de pantalla
     function GetRealPoint(GeminiX, GeminiY: Integer): TPoint;
 
     // Convierte dos puntos (TopLeft, BottomRight) de Gemini a un TRect de pantalla
     function GetRealRect(GemX1, GemY1, GemX2, GemY2: Integer): TRect;
 
   published
-    // Configuraci�n de tu pantalla f�sica
+    // Configuraci?n de tu pantalla f?sica
     property ScreenWidth: Integer read FScreenWidth write FScreenWidth default 1920;
     property ScreenHeight: Integer read FScreenHeight write FScreenHeight default 1080;
 
@@ -108,7 +108,7 @@ type
     property OnExecuteAction: TOnExecuteAction read FOnExecuteAction write FOnExecuteAction;
     property OnRequestScreenshot: TOnRequestScreenshot read FOnRequestScreenshot write FOnRequestScreenshot;
     property OnSafetyConfirmation: TOnSafetyConfirmation read FOnSafetyConfirmation write FOnSafetyConfirmation;
-    // Si AreaWidth es 0, se asumir� pantalla completa en tiempo de ejecuci�n
+    // Si AreaWidth es 0, se asumir? pantalla completa en tiempo de ejecuci?n
     property AreaLeft: Integer read FAreaLeft write FAreaLeft default 0;
     property AreaTop: Integer read FAreaTop write FAreaTop default 0;
     property AreaWidth: Integer read FAreaWidth write FAreaWidth default 1920;
@@ -136,20 +136,20 @@ end;
 
 function TAiComputerUseTool.DenormalizeCoordinate(Coord, MaxPixels, Offset: Integer): Integer;
 begin
-  // Gemini devuelve 0-999. Convertimos a p�xeles reales.
+  // Gemini devuelve 0-999. Convertimos a p?xeles reales.
   if Coord < 0 then
     Coord := 0;
   if Coord > 999 then
     Coord := 999;
 
-  // F�rmula: (Normalizado % * Tama�o Imagen) + Desplazamiento Monitor
+  // F?rmula: (Normalizado % * Tama?o Imagen) + Desplazamiento Monitor
   Result := Round((Coord / 1000) * MaxPixels) + Offset;
 end;
 
 function TAiComputerUseTool.GetRealPoint(GeminiX, GeminiY: Integer): TPoint;
 begin
-  // Reutilizamos la l�gica interna para asegurar consistencia
-  // DenormalizeCoordinate aplica: (Coord / 1000 * Tama�o) + Offset
+  // Reutilizamos la l?gica interna para asegurar consistencia
+  // DenormalizeCoordinate aplica: (Coord / 1000 * Tama?o) + Offset
   Result.X := DenormalizeCoordinate(GeminiX, FAreaWidth, FAreaLeft);
   Result.Y := DenormalizeCoordinate(GeminiY, FAreaHeight, FAreaTop);
 end;
@@ -202,7 +202,7 @@ begin
     if not Assigned(JArgs) then
       Exit;
 
-    // 1. Detecci�n de Safety Decision (Human-in-the-loop)
+    // 1. Detecci?n de Safety Decision (Human-in-the-loop)
     // "safety_decision": { "decision": "require_confirmation", "explanation": "..." }
     if JArgs.TryGetValue<TJSONObject>('safety_decision', JSafety) then
     begin
@@ -214,7 +214,7 @@ begin
       end;
     end;
 
-    // 2. Mapeo de Funci�n a Tipo de Acci�n
+    // 2. Mapeo de Funci?n a Tipo de Acci?n
     var
     FName := LowerCase(Trim(ToolCall.Name));
 
@@ -247,20 +247,20 @@ begin
     else if (FName = 'draw_box_at') then
       Result.ActionType := catDrawBox;
 
-    // 3. Extracci�n y Normalizaci�n de Par�metros
+    // 3. Extracci?n y Normalizaci?n de Par?metros
 
-    // Extraer Width y Height (y desnormalizarlos tambi�n)
-    // Nota: width/height en Gemini tambi�n suelen ser relativos a 1000x1000
-    // Si Gemini env�a 288, significa 28.8% del ancho total.
+    // Extraer Width y Height (y desnormalizarlos tambi?n)
+    // Nota: width/height en Gemini tambi?n suelen ser relativos a 1000x1000
+    // Si Gemini env?a 288, significa 28.8% del ancho total.
     if JArgs.TryGetValue<Integer>('width', NormX) then
-      Result.Width := DenormalizeCoordinate(NormX, FAreaWidth, 0); // Offset 0 porque es una magnitud, no una posici�n
+      Result.Width := DenormalizeCoordinate(NormX, FAreaWidth, 0); // Offset 0 porque es una magnitud, no una posici?n
 
     if JArgs.TryGetValue<Integer>('height', NormY) then
       Result.Height := DenormalizeCoordinate(NormY, FAreaHeight, 0);
 
     JArgs.TryGetValue<string>('color', Result.ColorName);
 
-    // Extraer tipo de edici�n
+    // Extraer tipo de edici?n
     JArgs.TryGetValue<string>('edit_type', Result.EditType);
 
     // Coordenadas X, Y
@@ -285,7 +285,7 @@ begin
     if JArgs.GetValue('press_enter') is TJSONBool then
       Result.PressEnter := JArgs.GetValue<Boolean>('press_enter')
     else
-      Result.PressEnter := True; // Default seg�n docs
+      Result.PressEnter := True; // Default seg?n docs
 
     // Scroll
     JArgs.TryGetValue<string>('direction', Result.ScrollDirection);
@@ -293,7 +293,7 @@ begin
     if not JArgs.TryGetValue<Integer>('magnitude', Result.ScrollAmount) then
       Result.ScrollAmount := 800;
 
-    // Navegaci�n
+    // Navegaci?n
     JArgs.TryGetValue<string>('url', Result.Url);
 
   finally
@@ -317,7 +317,7 @@ begin
   // 1. Parsear datos y detectar seguridad
   ActionData := ParseAction(ToolCall, SafetyReason);
 
-  // 2. Verificaci�n de Seguridad (Human-in-the-loop)
+  // 2. Verificaci?n de Seguridad (Human-in-the-loop)
   if SafetyReason <> '' then
   begin
     UserAllowed := False;
@@ -328,7 +328,7 @@ begin
 
     if not UserAllowed then
     begin
-      // Retornar rechazo al modelo (sin ejecutar acci�n)
+      // Retornar rechazo al modelo (sin ejecutar acci?n)
       // Gemini necesita saber que hubo un safety check
       JResponse := TJSONObject.Create;
       try
@@ -343,7 +343,7 @@ begin
     end;
   end;
 
-  // 3. Ejecutar Acci�n (Eventos Externos)
+  // 3. Ejecutar Acci?n (Eventos Externos)
   if Assigned(FOnExecuteAction) then
   begin
     try
@@ -374,8 +374,8 @@ begin
     if Assigned(FOnRequestScreenshot) then
       FOnRequestScreenshot(Self, ResponseMedia);
 
-    // Si la acci�n fue de navegaci�n, actualizar CurrentUrl simulado si el usuario lo devolvi� en CustomOutput
-    // O mantener el est�tico si no cambia.
+    // Si la acci?n fue de navegaci?n, actualizar CurrentUrl simulado si el usuario lo devolvi? en CustomOutput
+    // O mantener el est?tico si no cambia.
     if (ActionData.ActionType = catNavigate) and (ActionData.Url <> '') then
       FCurrentUrl := ActionData.Url;
   end;
@@ -395,7 +395,7 @@ begin
     if SafetyReason <> '' then
       JResponse.AddPair('safety_acknowledgement', TJSONBool.Create(True));
 
-    // Si el usuario gener� data custom (ej: texto le�do), agregarla
+    // Si el usuario gener? data custom (ej: texto le?do), agregarla
     if ActionResult.CustomOutput <> '' then
       JResponse.AddPair('data', ActionResult.CustomOutput);
 
@@ -411,35 +411,35 @@ end.
 
 '''
 
-# Gu�a de Arquitectura: Adaptador Universal "Computer Use" (Delphi)
+# Gu?a de Arquitectura: Adaptador Universal "Computer Use" (Delphi)
 
-Esta gu�a define la l�gica necesaria para implementar una unidad unificada (`uMakerAi.Tools.ComputerUse`) que abstrae las diferencias entre **Gemini**, **Claude** y **OpenAI**. El sistema utiliza el patr�n **Adapter** para traducir cualquier dialecto de IA a instrucciones f�sicas estandarizadas.
+Esta gu?a define la l?gica necesaria para implementar una unidad unificada (`uMakerAi.Tools.ComputerUse`) que abstrae las diferencias entre **Gemini**, **Claude** y **OpenAI**. El sistema utiliza el patr?n **Adapter** para traducir cualquier dialecto de IA a instrucciones f?sicas estandarizadas.
 
-## 1. Detecci�n de Proveedor (Auto-Discovery)
-El sistema no debe requerir configuraci�n manual. Debe detectar el proveedor analizando la firma del JSON de entrada (`RawArgs`) y el nombre de la herramienta (`ToolName`).
+## 1. Detecci?n de Proveedor (Auto-Discovery)
+El sistema no debe requerir configuraci?n manual. Debe detectar el proveedor analizando la firma del JSON de entrada (`RawArgs`) y el nombre de la herramienta (`ToolName`).
 
-| Proveedor | Firma Heur�stica | Ejemplo JSON |
+| Proveedor | Firma Heur?stica | Ejemplo JSON |
 | :--- | :--- | :--- |
 | **Claude** | `ToolName` contiene "computer" **Y** existe clave `"action"`. | `{"action": "left_click", "coordinate": [x, y]}` |
 | **OpenAI** | Existe clave `"type"` (**Y NO** existe `"action"`). | `{"type": "click", "x": 100}` |
-| **Gemini** | `ToolName` expl�cito (ej: `click_at`) **O** argumentos planos `x,y`. | `{"x": 500, "y": 500}` (Tool: `click_at`) |
+| **Gemini** | `ToolName` expl?cito (ej: `click_at`) **O** argumentos planos `x,y`. | `{"x": 500, "y": 500}` (Tool: `click_at`) |
 
-## 2. Unificaci�n de Coordenadas
-Cada modelo opera en un espacio de coordenadas distinto. El adaptador debe traducir todo a **P�xeles F�sicos Reales** (`FPhysicalWidth/Height`) antes de ejecutar.
+## 2. Unificaci?n de Coordenadas
+Cada modelo opera en un espacio de coordenadas distinto. El adaptador debe traducir todo a **P?xeles F?sicos Reales** (`FPhysicalWidth/Height`) antes de ejecutar.
 
 ### Gemini: Coordenadas Normalizadas
-*   **Espacio:** 0 a 1000 (independiente de la resoluci�n).
-*   **F�rmula:** `X_Real = Round((Input / 1000) * PhysicalWidth)`
+*   **Espacio:** 0 a 1000 (independiente de la resoluci?n).
+*   **F?rmula:** `X_Real = Round((Input / 1000) * PhysicalWidth)`
 
 ### Claude: Coordenadas Escaladas
 *   **Espacio:** Relativo a la imagen redimensionada enviada a la API (max ~1.5MP).
-*   **Requisito:** Se debe almacenar el ancho/alto de la �ltima imagen enviada (`FLastAiViewWidth`).
-*   **F�rmula:** `X_Real = Round(Input * (PhysicalWidth / FLastAiViewWidth))`
+*   **Requisito:** Se debe almacenar el ancho/alto de la ?ltima imagen enviada (`FLastAiViewWidth`).
+*   **F?rmula:** `X_Real = Round(Input * (PhysicalWidth / FLastAiViewWidth))`
 
 ### OpenAI: Coordenadas Virtuales Absolutas
-*   **Espacio:** Relativo a la resoluci�n virtual declarada en el prompt (ej: 1024x768).
+*   **Espacio:** Relativo a la resoluci?n virtual declarada en el prompt (ej: 1024x768).
 *   **Requisito:** Se debe configurar `FVirtualWidth`.
-*   **F�rmula:** `X_Real = Round(Input * (PhysicalWidth / FVirtualWidth))`
+*   **F?rmula:** `X_Real = Round(Input * (PhysicalWidth / FVirtualWidth))`
 
 ## 3. Mapeo de Acciones (Parsing)
 El JSON de entrada debe convertirse a un registro interno unificado `TAiActionData`.
@@ -452,15 +452,15 @@ El JSON de entrada debe convertirse a un registro interno unificado `TAiActionDa
     *   Convertir direcciones textuales ("up", "down") a valores positivos/negativos.
 
 ## 4. Protocolo de Seguridad (Safety Loop)
-El flujo de ejecuci�n cambia seg�n el modelo cuando se detecta riesgo.
+El flujo de ejecuci?n cambia seg?n el modelo cuando se detecta riesgo.
 
-1.  **Gemini:** Env�a flag `require_confirmation` dentro de los argumentos.
-    *   *Acci�n:* Pausar, pedir confirmaci�n. Si Usuario=No, devolver error JSON.
+1.  **Gemini:** Env?a flag `require_confirmation` dentro de los argumentos.
+    *   *Acci?n:* Pausar, pedir confirmaci?n. Si Usuario=No, devolver error JSON.
 2.  **OpenAI (Handshake):**
-    *   *Paso 1:* Env�a `pending_safety_checks` (Lista de IDs).
-    *   *Acci�n:* **DETENER EJECUCI�N F�SICA**.
+    *   *Paso 1:* Env?a `pending_safety_checks` (Lista de IDs).
+    *   *Acci?n:* **DETENER EJECUCI?N F?SICA**.
     *   *Paso 2:* Responder inmediatamente a la API con `acknowledged_safety_checks` (copiando los IDs).
-    *   *Paso 3:* La IA reenv�a la acci�n en el siguiente turno.
+    *   *Paso 3:* La IA reenv?a la acci?n en el siguiente turno.
 
 ## 5. Formato de Respuesta (Output)
 La unidad debe generar el string de resultado en el formato nativo del proveedor detectado.
@@ -495,7 +495,7 @@ OpenAI
 Si el parser no reconoce la herramienta (ej: una herramienta custom definida por el usuario como open_calculator):
 Asignar ActionType := catUnknown.
 Guardar RawFunctionName y RawJsonArgs.
-Disparar evento OnCustomAction para que el c�digo del usuario intente manejarla.
+Disparar evento OnCustomAction para que el c?digo del usuario intente manejarla.
 
 
 

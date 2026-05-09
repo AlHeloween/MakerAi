@@ -1,4 +1,4 @@
-﻿// MIT License
+// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -357,7 +357,7 @@ begin
     try
       if Hunks.Count = 0 then
       begin
-        ErrorMsg := 'No se encontraron bloques de cambios (hunks) v?lidos.';
+        ErrorMsg := 'No valid change blocks (hunks) found.';
         Exit;
       end;
 
@@ -370,13 +370,13 @@ begin
 
         if not FindHunkPosition(FileLines, Hunk, ActualStart) then
         begin
-          ErrorMsg := Format('Fallo al aplicar Hunk #%d: No se encontr? el contexto (Original Start: %d).', [I + 1, Hunk.OriginalStart]);
+          ErrorMsg := Format('Failed to apply Hunk #%d: Context not found (Original Start: %d).', [I + 1, Hunk.OriginalStart]);
           Exit;
         end;
 
         if ActualStart < CurrentPos then
         begin
-          ErrorMsg := Format('Fallo al aplicar Hunk #%d: Solapamiento detectado.', [I + 1]);
+          ErrorMsg := Format('Failed to apply Hunk #%d: Overlap detected.', [I + 1]);
           Exit;
         end;
 

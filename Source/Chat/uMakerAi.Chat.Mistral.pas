@@ -1,4 +1,4 @@
-﻿// IT License
+// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -237,7 +237,7 @@ begin
   Result := '';
   // MODIFICADO: Comprobar el campo correcto.
   if not Assigned(aMediaFile) or aMediaFile.IDFile.IsEmpty then
-    raise Exception.Create('El TAiMediaFile debe tener un ID de archivo v?lido (en IDFile) para obtener una URL firmada.');
+    raise Exception.Create('TAiMediaFile must have a valid file ID (in IDFile) to obtain a signed URL.');
 
   // MODIFICADO: Usar el campo correcto para construir la URL.
   LUrl := Url + 'files/' + aMediaFile.IDFile + '/url';
@@ -299,7 +299,7 @@ var
 begin
   Result := nil; // Por defecto, devolvemos nil si algo falla.
   if aFileId.IsEmpty then
-    raise Exception.Create('Se requiere un ID de archivo para recuperarlo.');
+    raise Exception.Create('A file ID is required to retrieve it.');
 
   // 1. Obtener los metadatos primero para saber el nombre del archivo y otros detalles.
   LMetadata := RetrieveFileMetadata(aFileId);
@@ -347,7 +347,7 @@ begin
       finally
         LStringStream.Free;
       end;
-      DoError(Format('Error al recuperar contenido del archivo: %d - %s', [LResponse.StatusCode, FLastError]), nil);
+      DoError(Format('Error retrieving file content: %d - %s', [LResponse.StatusCode, FLastError]), nil);
       // Result sigue siendo nil, que es lo que queremos devolver en caso de error.
     end;
   finally
@@ -366,7 +366,7 @@ begin
   Result.Id := '';
 
   if aFileId.IsEmpty then
-    raise Exception.Create('Se requiere un ID de archivo para recuperar sus metadatos.');
+    raise Exception.Create('A file ID is required to retrieve its metadata.');
 
   LUrl := Url + 'files/' + aFileId;
   LResponse := FClient.Get(LUrl);
@@ -388,7 +388,7 @@ begin
   else
   begin
     FLastError := LResponse.ContentAsString;
-    DoError(Format('Error al recuperar metadatos del archivo: %d - %s', [LResponse.StatusCode, FLastError]), nil);
+    DoError(Format('Error retrieving file metadata: %d - %s', [LResponse.StatusCode, FLastError]), nil);
   end;
 end;
 
@@ -476,7 +476,7 @@ begin
     else
     begin
       FLastError := LResponse.ContentAsString;
-      DoError(Format('Error al subir archivo: %d - %s', [LResponse.StatusCode, FLastError]), nil);
+      DoError(Format('Error uploading file: %d - %s', [LResponse.StatusCode, FLastError]), nil);
     end;
   finally
     LBody.Free;
@@ -516,7 +516,7 @@ var
 begin
   Result := '';
   if not Assigned(aMediaFile) or aMediaFile.IDFile.IsEmpty then
-    raise Exception.Create('El TAiMediaFile debe tener un ID de archivo v?lido para ser borrado.');
+    raise Exception.Create('TAiMediaFile must have a valid file ID to be deleted.');
 
   LUrl := Url + 'files/' + aMediaFile.IDFile;
   LResponse := FClient.Delete(LUrl, nil);
@@ -537,7 +537,7 @@ begin
   else
   begin
     FLastError := LResponse.ContentAsString;
-    DoError(Format('Error al borrar archivo: %d - %s', [LResponse.StatusCode, FLastError]), nil);
+    DoError(Format('Error deleting file: %d - %s', [LResponse.StatusCode, FLastError]), nil);
   end;
 end;
 
@@ -587,10 +587,10 @@ begin
           End;
 
           Try
-            // Arguments contiene el JSON canónico de parámetros
+            // Arguments contains the canonical JSON of parameters
 
           Except
-            // Si no hay parámetros no marca error
+            // If no parameters, do not mark error
           End;
 
           Result.Add(Fun.Id, Fun);
@@ -1049,7 +1049,7 @@ begin
       if FileId.IsEmpty then
       begin
         // Reportar error y salir.
-        DoError('No se pudo subir el archivo al API', nil);
+        DoError('Could not upload file to API', nil);
         Exit;
       end;
       aMediaFile.IDFile := FileId; // Asignar el ID al objeto MediaFile.
@@ -1068,7 +1068,7 @@ begin
       if LDataUri.IsEmpty then
       begin
         // GetSignedUrl ya habr? reportado el error.
-        DoError('No se pudo obtener la URL firmada para el archivo con ID: ' + aMediaFile.IDFile, nil);
+        DoError('Could not obtain signed URL for file with ID: ' + aMediaFile.IDFile, nil);
         aMediaFile.CloudState := 'ocr-failed: signed-url';
         Exit;
       end;
@@ -1114,7 +1114,7 @@ begin
       end
       else
       begin
-        // Si no se especifican las p?ginas, a?ade la primera p?gina (p?gina 0)
+        // If pages are not specified, adds the first page (page 0)
         LPagesArray.Add(0);
       end;
       LJsonObject.AddPair('pages', LPagesArray);
@@ -1198,7 +1198,7 @@ var
   MF: TAiMediaFile;
 begin
   // mistral-ocr-latest no soporta el endpoint /v1/chat/completions.
-  // Si la Fase 1 (InternalRunPDFDescription) ya ejecutó el OCR con éxito
+  // If Phase 1 (InternalRunPDFDescription) already executed OCR successfully
   // (CloudState = 'ocr-completed'), devolvemos el resultado directamente.
   LBaseModel := TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model);
   if LBaseModel = 'mistral-ocr-latest' then

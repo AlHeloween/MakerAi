@@ -1,4 +1,4 @@
-﻿// Pendiente [TODO] //Estimar el costo de la generaci?n ya que no retorna el consumo
+// Pendiente [TODO] //Estimar el costo de la generaci?n ya que no retorna el consumo
 // https://ai.google.dev/gemini-api/docs/pricing
 
 unit uMakerAi.Gemini.Speech;
@@ -384,17 +384,17 @@ procedure TAiGeminiSpeechTool.ExecuteTranscription(aMediaFile: TAiMediaFile; Res
 var
   LText: string;
 begin
-  // Llamada directa siempre — nunca TTask.Run aquí:
+  // Direct call always — never TTask.Run here:
   // - IsAsync=True:  ya estamos en hilo background del chat → sin problema.
   // - IsAsync=False: modo sync → bloquear es correcto (igual que la llamada HTTP al LLM).
-  //   Con TTask.Run en sync mode, el caller leía ResMsg.Prompt vacío y aMediaFile
-  //   podía liberarse antes de que el TTask terminara → access violation.
+  //   With TTask.Run in sync mode, the caller read ResMsg.Prompt empty and aMediaFile
+  //   could be freed before the TTask finished → access violation.
   try
     ReportState(acsReasoning, 'Transcribiendo audio con Gemini...');
     LText := InternalRunGeminiTranscription(aMediaFile);
     aMediaFile.Transcription := LText;
     aMediaFile.Procesado := True;
-    ResMsg.Prompt := LText;  // asignación directa para que InternalRunTranscription lo lea en sync
+    ResMsg.Prompt := LText;  // direct assignment so InternalRunTranscription reads it in sync
     ReportDataEnd(ResMsg, 'assistant', LText);
   except
     on E: Exception do

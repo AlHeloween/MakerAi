@@ -1,4 +1,4 @@
-﻿// MIT License
+// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -126,7 +126,7 @@ type
     function CallTool(const AToolName: string; AArguments: TJSONObject; AExtractedMedia: TObjectList<TAiMediaFile>): TJSONObject; overload; virtual;
     function CallTool(const AToolName: string; AArguments: TStrings; AExtractedMedia: TObjectList<TAiMediaFile>): TJSONObject; overload; virtual;
 
-    // Desconecta el servidor (conexión persistente Opción D). Llamar para
+    // Disconnects the server (persistent connection Option D). Call to
     // liberar recursos cuando ya no se necesite el servidor.
     procedure Disconnect; virtual;
 
@@ -191,7 +191,7 @@ type
     function CallTool(const AToolName: string; AArguments: TJSONObject; AExtractedMedia: TObjectList<TAiMediaFile>): TJSONObject; overload; override;
     function CallTool(const AToolName: string; AArguments: TStrings; AExtractedMedia: TObjectList<TAiMediaFile>): TJSONObject; overload; override;
 
-    // Detiene el proceso servidor y libera la conexión persistente
+    // Stops the server process and releases the persistent connection
     procedure Disconnect; override;
   end;
 
@@ -685,7 +685,7 @@ end;
 
 procedure TMCPClientCustom.Disconnect;
 begin
-  // Implementación base vacía: las subclases con conexión persistente la sobreescriben
+  // Empty base implementation: subclasses with persistent connection override it
 end;
 
 { TMCPClientStdIo }
@@ -704,7 +704,7 @@ destructor TMCPClientStdIo.Destroy;
 var
   LJson: TJSONObject;
 begin
-  // La conexión persistente se cierra aquí automáticamente.
+  // The persistent connection closes here automatically.
   // No es necesario llamar Disconnect() antes de liberar el componente.
   {$IFDEF DEBUG} MCPLog('TMCPClientStdIo.Destroy BEGIN name=' + Self.Name); {$ENDIF}
   {$IFDEF DEBUG} MCPLog('  InternalStopServerProcess...'); {$ENDIF}
@@ -734,16 +734,16 @@ begin
   Result := FIsRunning and Assigned(FInteractiveProcess) and FInteractiveProcess.IsRunning;
 end;
 
-// --- Métodos de Ciclo de Vida Completo ---
+// --- Full Lifecycle Methods ---
 
-// --- Opción D: conexión persistente StdIo ---
+// --- Option D: persistent StdIo connection ---
 // El servidor se inicia una sola vez y permanece activo entre llamadas.
-// ListTools y CallTool reutilizan la conexión existente si está disponible.
+// ListTools and CallTool reuse existing connection if available.
 // Ciclo de vida:
-//   - El servidor se inicia automáticamente en la primera llamada a ListTools o CallTool.
-//   - Permanece activo para reutilizar la conexión en llamadas siguientes.
-//   - Se detiene automáticamente al destruir el componente (no hace falta llamar Disconnect).
-//   - Llamar Disconnect() explícitamente solo si se quiere liberar el proceso antes de destruir.
+//   - Server starts automatically on first ListTools or CallTool call.
+//   - Remains active to reuse connection in subsequent calls.
+//   - Stops automatically when component is destroyed (no need to call Disconnect).
+//   - Call Disconnect() explicitly only if you want to free the process before destroying.
 
 function TMCPClientStdIo.ListTools: TJSONObject;
 var
@@ -752,7 +752,7 @@ begin
   Result := nil;
   FCallLock.Enter;
   try
-    // Si el servidor ya está corriendo reutilizamos la conexión
+    // If server is already running we reuse the connection
     if IsServerRunning then
     begin
       DoLog('ListTools: servidor activo, reutilizando conexión.');
@@ -780,7 +780,7 @@ begin
     end;
     InitResponse.Free;
     InternalSendInitializedNotification;
-    Sleep(200); // Pausa para que el servidor procese la notificación
+    Sleep(200); // Pause for server to process the notification
 
     // El servidor queda activo para futuras llamadas
     DoLog('ListTools: conexión persistente establecida.');
@@ -796,12 +796,12 @@ var
 begin
   Result := nil;
   // Serializar llamadas concurrentes al mismo servidor (race condition cuando
-  // ParseChat lanza múltiples TTask con herramientas del mismo servidor MCP).
+  // ParseChat launches multiple TTask with tools from the same MCP server).
   // TCriticalSection en Delphi es reentrante: el overload TStrings que llama
   // a este m?todo no genera deadlock.
   FCallLock.Enter;
   try
-    // Si el servidor ya está corriendo reutilizamos la conexión
+    // If server is already running we reuse the connection
     if IsServerRunning then
     begin
       DoLog(Format('CallTool: servidor activo, llamando %s.', [AToolName]));
@@ -829,7 +829,7 @@ begin
     end;
     InitResponse.Free;
     InternalSendInitializedNotification;
-    Sleep(200); // Pausa para que el servidor procese la notificación
+    Sleep(200); // Pause for server to process the notification
 
     // El servidor queda activo para futuras llamadas
     DoLog(Format('CallTool: conexión persistente establecida, llamando %s.', [AToolName]));
@@ -853,7 +853,7 @@ begin
       ArgsObject.AddPair(AArguments.Names[i], AArguments.ValueFromIndex[i]);
     end;
   end;
-  // Llamar a la versión principal, que ahora es dueña de ArgsObject
+  // Call the main version, which now owns ArgsObject
   Result := CallTool(AToolName, ArgsObject, AExtractedMedia);
 end;
 
@@ -881,8 +881,8 @@ begin
   end;
 
   // Limpiar estado zombie: el proceso pudo haber muerto inesperadamente dejando
-  // FIsRunning=True y FReadThread/FInteractiveProcess asignados pero inválidos.
-  // Invocar Stop garantiza liberación antes de crear objetos nuevos.
+  // FIsRunning=True and FReadThread/FInteractiveProcess assigned but invalid.
+  // Calling Stop guarantees release before creating new objects.
   InternalStopServerProcess;
 
   DoLog('Starting MCP server process...');
@@ -948,8 +948,8 @@ end;
 
 procedure TMCPClientStdIo.InternalStopServerProcess;
 begin
-  // Salida rápida solo si ya estamos completamente detenidos (todos los campos limpios).
-  // NO usar IsServerRunning aquí: si el proceso murió de forma inesperada,
+  // Fast exit only if already completely stopped (all fields clean).
+  // Do NOT use IsServerRunning here: if the process died unexpectedly,
   // IsServerRunning=False pero FReadThread y FInteractiveProcess siguen asignados
   // (estado zombie). En ese caso debemos limpiarlos igualmente.
   if not FIsRunning and not Assigned(FReadThread) and not Assigned(FInteractiveProcess) then
@@ -961,7 +961,7 @@ begin
   try
     FIsRunning := False;
 
-    // CRÍTICO: secuencia correcta para evitar AV por race condition.
+    // CRITICAL: correct sequence to avoid AV due to race condition.
     // El read thread puede estar dentro de FInteractiveProcess.ReadOutput() justo
     // cuando liberamos el objeto → AV. La secuencia segura es:
     //   1. Matar el proceso SIN liberar el objeto → cierra el pipe → ReadOutput
@@ -978,12 +978,12 @@ begin
     if Assigned(FReadThread) then
     begin
       {$IFDEF DEBUG} MCPLog('  WaitFor thread...'); {$ENDIF}
-      FReadThread.WaitFor;           // thread ya salió (pipe cerrado + FIsRunning=False)
+      FReadThread.WaitFor;           // thread already exited (pipe closed + FIsRunning=False)
       FreeAndNil(FReadThread);
       {$IFDEF DEBUG} MCPLog('  Thread freed'); {$ENDIF}
     end;
 
-    // Ahora sí es seguro liberar el objeto del proceso
+    // Now it is safe to free the process object
     if Assigned(FInteractiveProcess) then
     begin
       {$IFDEF DEBUG} MCPLog('  Free FInteractiveProcess...'); {$ENDIF}
@@ -1144,8 +1144,8 @@ begin
     InternalSendRawMessage(RequestObj.ToJSON);
 
     // Usar timeout generoso para tool calls: operaciones de red (SMTP, HTTP, SSH)
-    // pueden tardar mucho más que el handshake de inicialización.
-    // Mínimo 60s; si el parámetro Timeout está configurado más alto, usarlo.
+    // may take much longer than the initialization handshake.
+    // Minimum 60s; if Timeout parameter is configured higher, use it.
     var LCallTimeout := StrToIntDef(GetParamByName('Timeout'), 60000);
     if LCallTimeout < 60000 then LCallTimeout := 60000;
     DoLog(Format('Waiting for tool response (timeout=%dms)...', [LCallTimeout]));

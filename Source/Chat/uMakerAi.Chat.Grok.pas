@@ -1,4 +1,4 @@
-﻿// IT License
+// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -278,10 +278,10 @@ begin
   End;
 end;
 
-// Respuestas API de xAI para búsqueda web
+// xAI API responses for web search
 // search_parameters fue deprecado enero 2026 (devuelve 410 "Live search is deprecated").
 // Nueva API: POST /v1/responses  con tools=[{type:"web_search"}]
-// Formato respuesta: output[].type="message" → content[].type="output_text" → text
+// Formato respuesta: output[].type="message" ? content[].type="output_text" ? text
 function TAiGrokChat.InternalRunCompletions(ResMsg, AskMsg: TAiChatMessage): String;
 var
   ABody, sUrl, SType, SVal, sRole, sContent: String;
@@ -294,14 +294,14 @@ var
   LModel: String;
   I, K: Integer;
 begin
-  // Sin web search activo → flujo normal de chat/completions
+  // Sin web search activo ? flujo normal de chat/completions
   if not (cap_WebSearch in ModelConfig.ModelCaps) then
   begin
     Result := inherited InternalRunCompletions(ResMsg, AskMsg);
     Exit;
   end;
 
-  // Web search activo → xAI Agent Tools API (POST /v1/responses)
+  // Web search activo ? xAI Agent Tools API (POST /v1/responses)
   FBusy        := True;
   FAbort       := False;
   FLastError   := '';
@@ -323,7 +323,7 @@ begin
   jReq      := nil;
   St        := nil;
   try
-    // Construir input: mensajes del historial con "system" → "developer"
+    // Construir input: mensajes del historial con "system" ? "developer"
     jInput    := TJSonArray.Create;
     jMessages := GetMessages;
     for I := 0 to jMessages.Count - 1 do
@@ -440,7 +440,7 @@ begin
 
   // 1. Validaciones y configuraci?n
   if AskMsg.Prompt.IsEmpty then
-    raise Exception.Create('Se requiere un prompt para generar una imagen.');
+    raise Exception.Create('A prompt is required to generate an image.');
 
   LModel := TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model);
 

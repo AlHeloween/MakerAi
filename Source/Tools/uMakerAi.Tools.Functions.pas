@@ -1,4 +1,4 @@
-﻿// MIT License
+// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -126,9 +126,9 @@ type
     FParams: TFunctionParamsItems;
     FToolType: TToolstype;
     FScript: TStrings;
-    // Schema completo en JSON (no descompuesto). Cuando está asignado,
+    // Complete schema in JSON (not decomposed). When assigned,
     // ToJSon lo usa directamente en lugar de reconstruir desde TFunctionParamsItems.
-    // Útil para herramientas con schemas complejos (anyOf, nested objects, etc.)
+    // Useful for tools with complex schemas (anyOf, nested objects, etc.)
     FRawSchemaJson: String;
     procedure SetEnabled(const Value: Boolean);
     procedure SetOnAction(const Value: TFunctionEvent);
@@ -214,7 +214,7 @@ type
     procedure SetConfiguration(const Value: string);
     function GetEnvVars: TStrings;
     procedure SetEnvVars(const Value: TStrings);
-    // Propagación automática al cliente real cuando se editan in-place
+    // Automatic propagation to the real client when edited in-place
     procedure OnFParamsChanged(Sender: TObject);
     procedure OnFEnvVarsChanged(Sender: TObject);
   protected
@@ -258,9 +258,9 @@ type
     property Items[Index: Integer]: TMCPClientItem read GetClient write SetClient; default;
   end;
 
-  // TAutoMCPConfig: configuración agrupada del subsistema AutoMCP / PPM.
+  // TAutoMCPConfig: grouped configuration of AutoMCP / PPM subsystem.
   // Aparece en el Object Inspector como propiedad expandible (+).
-  // Nota: OnAutoMCPRequest se mantiene en TAiFunctions (pestaña Events del OI).
+  // Note: OnAutoMCPRequest remains in TAiFunctions (Events tab of the OI).
   TAutoMCPConfig = class(TPersistent)
   private
     FActive: Boolean;
@@ -287,12 +287,12 @@ type
     property RegistryUrl: String read FRegistryUrl write FRegistryUrl;
     // Allowed: whitelist de paquetes permitidos. Si tiene entradas, solo esos pueden instalarse.
     property Allowed: TStrings read GetAllowed write SetAllowed;
-    // Blocked: blacklist de paquetes bloqueados. Si Allowed está vacío, se permite todo excepto estos.
+    // Blocked: blacklist of blocked packages. If Allowed is empty, everything is allowed except these.
     property Blocked: TStrings read GetBlocked write SetBlocked;
     // ConfigFile: ruta al archivo JSON con servidores MCP (formato Claude Desktop).
-    // Vacío = detecta automáticamente la ruta por defecto de Claude Desktop según el SO.
+    // Empty = automatically detects Claude Desktop default path according to OS.
     property ConfigFile: String read FConfigFile write FConfigFile;
-    // AutoLoad: si True, importa ConfigFile automáticamente al cargar el componente (Loaded).
+    // AutoLoad: if True, imports ConfigFile automatically when component loads (Loaded).
     property AutoLoad: Boolean read FAutoLoad write FAutoLoad default False;
   end;
 
@@ -305,15 +305,15 @@ type
     FOnMCPStreamMessage: TMCPStreamMessageEvent;
     FAutoMCPConfig: TAutoMCPConfig;
     FOnAutoMCPRequest: TAutoMCPRequestEvent;
-    FInstalledPackages: TStringList; // paquetes ya instalados en esta sesión
+    FInstalledPackages: TStringList; // packages already installed in this session
     // AutoMCP: funciones internas (invisibles al developer, no en FFunctions)
     FAutoMCPFunctions: TFunctionActionItems;
     FAutoMCPLock: TCriticalSection; // serializa llamadas a call_mcp_tool
     procedure SetOnMCPStreamMessage(const Value: TMCPStreamMessageEvent);
     procedure SetAutoMCPConfig(const Value: TAutoMCPConfig);
     function IsAutoMCPAllowed(const APkgName: string): Boolean;
-    // Retorna la ruta efectiva del archivo de configuración MCP:
-    // ConfigFile si está asignado, sino <exedir>\mcp_servers.json
+    // Returns the effective MCP config file path:
+    // ConfigFile if assigned, otherwise <exedir>\mcp_servers.json
     function GetEffectiveMCPConfigPath: String;
     // AutoMCP: crea ppm_search, ppm_install, call_mcp_tool como funciones internas
     procedure CreateInternalPPMFunctions;
@@ -336,7 +336,7 @@ type
     Function DoCallFunction(ToolCall: TAiToolsFunction): Boolean; Virtual;
 
     // InitAutoMCP: instala mcp-ppm como bootstrap del sistema AutoMCP.
-    // Se llama automáticamente desde Loaded si AutoMCP=True.
+    // Called automatically from Loaded if AutoMCP=True.
     // Puede llamarse manualmente si AutoMCP se activa en runtime.
     procedure InitAutoMCP;
     // SetFunctionEnable  Retorna True si encuentra la funci�n y puede actualizar el estado
@@ -350,30 +350,30 @@ type
     // Sobrecarga 1: Recibe el objeto JSON ya parseado (ideal si el JSON viene de una API o stream)
     function ImportClaudeMCPConfiguration(AConfig: TJSonObject): Integer; overload;
 
-    // Sobrecarga 2: Recibe la ruta del archivo (o usa GetEffectiveMCPConfigPath si está vacía)
+    // Overload 2: Receives the file path (or uses GetEffectiveMCPConfigPath if empty)
     function ImportClaudeMCPConfiguration(const AJsonFilePath: string = ''): Integer; overload;
 
     // SaveMCPConfiguration: serializa los MCPClients actuales al archivo JSON.
-    // AFilePath vacío = usa GetEffectiveMCPConfigPath.
-    // Retorna True si guardó correctamente.
+    // AFilePath empty = uses GetEffectiveMCPConfigPath.
+    // Returns True if saved correctly.
     function SaveMCPConfiguration(const AFilePath: string = ''): Boolean;
 
-    // Integración con PPM (registry público de herramientas MCP)
+    // Integration with PPM (public MCP tools registry)
     // SearchPPMMCP: busca herramientas MCP en el registry. El llamador libera el TJSONObject.
     function SearchPPMMCP(const AQuery: String; APage: Integer = 1; APerPage: Integer = 20;
       const ARegistryUrl: String = 'https://registry.pascalai.org'): TJSONObject;
 
     // ImportMCPFromPPM: registra una herramienta MCP desde PPM como stub StdIo sin descargar.
-    // Útil cuando el binario ya está instalado manualmente; el llamador debe asignar
+    // Useful when the binary is already manually installed; the caller must assign
     // Params['Command'] con la ruta al ejecutable antes de habilitar el item.
-    // AVersion vacío = resuelve la última versión disponible.
+    // Empty AVersion = resolves the latest available version.
     function ImportMCPFromPPM(const AName: String; const AVersion: String = '';
       const ARegistryUrl: String = 'https://registry.pascalai.org'): TMCPClientItem;
 
     // InstallMCPFromPPM: descarga el .paipkg desde el registry, extrae el binario y
     // registra el cliente StdIo listo para usar.
-    // AVersion vacío    = resuelve la última versión disponible.
-    // AInstallDir vacío = ~/.ppm/mcp/<AName>/
+    // Empty AVersion    = resolves the latest available version.
+    // Empty AInstallDir = ~/.ppm/mcp/<AName>/
     // Retorna el TMCPClientItem configurado, o nil si falla.
     function InstallMCPFromPPM(const AName: String; const AVersion: String = '';
       const AInstallDir: String = '';
@@ -381,7 +381,7 @@ type
 
     // GetMCPSchema: retorna el JSON Schema de una herramienta MCP del registry.
     // El llamador es responsable de liberar el TJSONObject devuelto.
-    // AVersion vacío = resuelve la última versión disponible.
+    // Empty AVersion = resolves the latest available version.
     function GetMCPSchema(const AName: String; const AVersion: String = '';
       const ARegistryUrl: String = 'https://registry.pascalai.org'): TJSONObject;
 
@@ -398,10 +398,10 @@ type
     property OnStatusUpdate: TMCPStatusEvent read FOnStatusUpdate write FOnStatusUpdate;
     property OnMCPStreamMessage: TMCPStreamMessageEvent read FOnMCPStreamMessage write SetOnMCPStreamMessage;
 
-    // AutoMCPConfig: configuración agrupada del subsistema AutoMCP / PPM.
+    // AutoMCPConfig: grouped configuration of AutoMCP / PPM subsystem.
     // Expandible en el Object Inspector con (+).
     property AutoMCPConfig: TAutoMCPConfig read FAutoMCPConfig write SetAutoMCPConfig;
-    // OnAutoMCPRequest: callback dinámico para aprobar/denegar instalaciones en runtime.
+    // OnAutoMCPRequest: dynamic callback to approve/deny installations at runtime.
     // Tiene prioridad sobre Allowed/Blocked. AAllow=True por defecto.
     property OnAutoMCPRequest: TAutoMCPRequestEvent read FOnAutoMCPRequest write FOnAutoMCPRequest;
 
@@ -672,7 +672,7 @@ begin
       Fun.AddPair('default', FDefault);
     End;
 
-    // Preferir RawSchemaJson (schema completo) sobre la reconstrucción desde TFunctionParamsItems
+    // Prefer RawSchemaJson (complete schema) over reconstruction from TFunctionParamsItems
     if FRawSchemaJson <> '' then
       Params := TJSonObject(TJSonObject.ParseJSONValue(FRawSchemaJson))
     else
@@ -800,7 +800,7 @@ Var
   Item: TFunctionActionItem;
 begin
   If Not TFile.Exists(FileName) then
-    Raise Exception.Create('No se encuentra el archivo "' + FileName + '" en el sistema');
+    Raise Exception.Create('No se encuentra el archivo "' + FileName + '"');
 
   Lista := TStringStream.Create('', TEncoding.UTF8);
   try
@@ -1345,7 +1345,7 @@ begin
     PosAt := Pos(MCP_TOOL_SEP, ToolCall.Name);
 
     // AutoMCP: despachar a handlers internos antes de buscar en FFunctions.
-    // Lazy init: crea las funciones si Active=True pero aún no existen.
+    // Lazy init: creates functions if Active=True but do not exist yet.
     if FAutoMCPConfig.Active and (PosAt = 0) then
     begin
       if FAutoMCPFunctions.Count = 0 then
@@ -1370,7 +1370,7 @@ begin
       end;
     end;
 
-    if PosAt = 0 then // --- Es una función local ---
+    if PosAt = 0 then // --- Is a local function ---
     begin
       Funcion := FFunctions.GetFunction(ToolCall.Name);
       if Assigned(Funcion) and Assigned(Funcion.OnAction) then
@@ -1407,13 +1407,13 @@ begin
 
             If AExtractedMedia.Count > 0 then
             Begin
-              // Archivos extraídos → ToolCall.MediaFiles (los drivers los transfieren
+              // Extracted files → ToolCall.MediaFiles (drivers transfer them
               // al ToolMsg para que el LLM los vea en el siguiente turno).
               // Adicionalmente, se clonan al ResMsg para que el app los reciba
               // en OnReceiveDataEnd sin conflictos de ownership.
               For MF In AExtractedMedia do
               Begin
-                ToolCall.MediaFiles.Add(MF); // original → ToolMsg (vía driver)
+                ToolCall.MediaFiles.Add(MF); // original → ToolMsg (via driver)
 
                 If Assigned(ToolCall.ResMsg) then
                 Begin
@@ -1454,7 +1454,7 @@ begin
       else
       begin
         // Cliente no encontrado, deshabilitado o no disponible.
-        // Setear Response para que el driver pueda enviar un tool result válido al LLM.
+        // Set Response so the driver can send a valid tool result to the LLM.
         if not Assigned(ClientItem) then
           ToolCall.Response := Format('{"error":"MCP server ''%s'' not found"}', [ServerName])
         else if not ClientItem.Enabled then
@@ -1531,7 +1531,7 @@ begin
                 if NameValue <> nil then
                 begin
                   FunctionName := NameValue.Value;
-                  // Reemplazar separador MCP por --> para visualización
+                  // Replace MCP separator with --> for display
                   FunctionName := StringReplace(FunctionName, MCP_TOOL_SEP, '-->', [rfReplaceAll]);
                   Result.Add(FunctionName);
                 end;
@@ -1725,11 +1725,11 @@ begin
     LocalToolsObj := TJSonObject.Create;
     var LLocalTools := FFunctions.ToJSon;
     LocalToolsObj.AddPair('tools', LLocalTools);
-    TJsonToolUtils.NormalizeToolsFromSource('local', LocalToolsObj, LAllNormalizedTools); // Usamos 'local' o un nombre vacío
+    TJsonToolUtils.NormalizeToolsFromSource('local', LocalToolsObj, LAllNormalizedTools); // Use 'local' or an empty name
 
     // 1b. FUNCIONES INTERNAS DE AUTOMCP (ppm_search, ppm_install, call_mcp_tool)
-    // Lazy init: si Active=True pero las funciones aún no existen (ej: Active activado
-    // en runtime después de Loaded), las crea ahora.
+    // Lazy init: if Active=True but functions do not exist yet (e.g. Active activated
+    // at runtime after Loaded), creates them now.
     if FAutoMCPConfig.Active and not (csDesigning in ComponentState) then
     begin
       if FAutoMCPFunctions.Count = 0 then
@@ -1873,16 +1873,16 @@ begin
     end;
   end;
 
-  // Carga automática de servidores MCP desde archivo JSON (formato Claude Desktop)
+  // Automatic loading of MCP servers from JSON file (Claude Desktop format)
   if FAutoMCPConfig.AutoLoad and not (csDesigning in ComponentState) then
   begin
     var LCount := ImportClaudeMCPConfiguration(FAutoMCPConfig.ConfigFile);
     if LCount > 0 then
-      DoLog(Format('AutoLoad: %d servidor(es) MCP cargado(s) desde configuración.', [LCount]));
+      DoLog(Format('AutoLoad: %d MCP server(s) loaded from config.', [LCount]));
   end;
 
   // AutoMCP: las funciones internas se crean de forma lazy en GetTools/DoCallFunction.
-  // InitAutoMCP puede llamarse manualmente para forzar la inicialización en runtime.
+  // InitAutoMCP can be called manually to force initialization at runtime.
 end;
 
 // =============================================================================
@@ -2144,7 +2144,7 @@ begin
       if LResponse.StatusCode = 200 then
         Result := LResponse.ContentAsString(TEncoding.UTF8);
     except
-      // Error de red: retorna vacío
+      // Network error: returns empty
     end;
   finally
     LClient.Free;
@@ -2180,8 +2180,8 @@ begin
   end;
 end;
 
-// Resuelve la versión a usar: si AVersion no está vacío la retorna directamente;
-// si está vacío consulta /v1/packages/:name y devuelve la última versión no-yanked.
+// Resolves the version to use: if AVersion is not empty returns it directly;
+// if empty queries /v1/packages/:name and returns the latest non-yanked version.
 function PPMResolveVersion(const ARegistryUrl, AName, AVersion: String): String;
 var
   LBody: String;
@@ -2224,8 +2224,8 @@ end;
 // Extrae el contenido de un .paipkg (ZIP) a ADestDir y devuelve la ruta
 // completa del entrypoint declarado en pai.package [mcp] entrypoint=...
 // Si no hay manifiesto, intenta encontrar el primer .exe (Windows) o binario
-// sin extensión (Linux) en la raíz del ZIP.
-// Retorna '' si no se pudo extraer o no se encontró el entrypoint.
+// without extension (Linux) in the ZIP root.
+// Returns '' if could not extract or entrypoint not found.
 function PPMExtractBinary(const APaipkgPath, ADestDir: String): String;
 var
   LZip       : TZipFile;
@@ -2323,8 +2323,8 @@ begin
     end;
   end;
 
-  // Fallback: primer .exe en Windows, o primer archivo sin extensión en Linux
-  // Búsqueda recursiva para soportar paquetes con estructura bin/win64/
+  // Fallback: first .exe on Windows, or first file without extension on Linux
+  // Recursive search to support packages with bin/win64/ structure
   if TDirectory.Exists(ADestDir) then
   begin
 {$IFDEF MSWINDOWS}
@@ -2354,7 +2354,7 @@ end;
 
 procedure TAiFunctions.OnAutoMCPActiveChanged(Sender: TObject);
 // Llamado cuando AutoMCPConfig.Active cambia en runtime.
-// Active=True  → crea las funciones si aún no existen (lazy).
+// Active=True  → creates functions if they do not exist yet (lazy).
 // Active=False → limpia FAutoMCPFunctions para un estado limpio al reactivar.
 begin
   if csDesigning in ComponentState then Exit;
@@ -2372,10 +2372,10 @@ begin
 end;
 
 procedure TAiFunctions.InitAutoMCP;
-// Fuerza la creación de las 3 funciones internas PPM en runtime.
+// Forces creation of the 3 internal PPM functions at runtime.
 // Normalmente NO es necesario llamarlo — las funciones se crean de forma lazy
 // en el primer GetTools() o DoCallFunction() cuando Active=True.
-// Útil si el developer necesita que las funciones existan antes del primer chat
+// Useful if the developer needs the functions to exist before the first chat
 // (ej: para mostrar el system prompt con las funciones ya listadas).
 begin
   if csDesigning in ComponentState then Exit;
@@ -2475,7 +2475,7 @@ begin
   LResult := SearchPPMMCP(LQuery, 1, 20, FAutoMCPConfig.RegistryUrl);
   if not Assigned(LResult) then
   begin
-    ToolCall.Response := 'No se pudo conectar con el registry PPM. Verifica la conexión a Internet.';
+    ToolCall.Response := 'Could not connect to PPM registry. Check your internet connection.';
     Exit;
   end;
 
@@ -2492,7 +2492,7 @@ begin
         LTool.TryGetValue<string>('name', LName);
         LTool.TryGetValue<string>('description', LDesc);
         LTool.TryGetValue<string>('version', LVer);
-        // Aplicar política Allowed/Blocked antes de mostrar al LLM
+        // Apply Allowed/Blocked policy before showing to LLM
         if not IsAutoMCPAllowed(LName) then
         begin
           Inc(LFiltered);
@@ -2507,16 +2507,16 @@ begin
         // Insertar encabezado al inicio del resultado
         var LHeader := Format('Se encontraron %d herramientas para "%s":', [LShown, LQuery]);
         if LFiltered > 0 then
-          LHeader := LHeader + Format(' (%d bloqueadas por política)', [LFiltered]);
+          LHeader := LHeader + Format(' (%d blocked by policy)', [LFiltered]);
         ToolCall.Response := LHeader + sLineBreak + LSb.ToString +
           sLineBreak + 'Para usar una herramienta: llama ppm_install("<nombre>"), luego call_mcp_tool.';
       end
       else if LFiltered > 0 then
         ToolCall.Response := Format(
-          'Se encontraron %d herramientas para "%s" pero todas están bloqueadas por la política AutoMCP.',
+          'Found %d tools for "%s" but all are blocked by AutoMCP policy.',
           [LFiltered, LQuery])
       else
-        ToolCall.Response := Format('No se encontraron herramientas para "%s" en el registry PPM.', [LQuery]);
+        ToolCall.Response := Format('No tools found for "%s" in the PPM registry.', [LQuery]);
     end
     else
       ToolCall.Response := Format('No se encontraron herramientas para "%s" en el registry PPM.', [LQuery]);
@@ -2551,7 +2551,7 @@ begin
     Exit;
   end;
 
-  // Verificar política de whitelist/blacklist
+  // Check whitelist/blacklist policy
   if not IsAutoMCPAllowed(LToolName) then
   begin
     ToolCall.Response := Format(
@@ -2567,7 +2567,7 @@ begin
   if FInstalledPackages.IndexOf(LowerCase(LToolName)) < 0 then
     FInstalledPackages.Add(LowerCase(LToolName));
 
-  // Si ya está registrado: reutilizar salvo que force=true
+  // If already registered: reuse unless force=true
   LItem := FMCPClients.GetClientByName(LToolName);
   if Assigned(LItem) and not LForce then
     DoLog('[AutoMCP] "' + LToolName + '" ya instalado, reutilizando.')
@@ -2585,7 +2585,7 @@ begin
   if not Assigned(LItem) then
   begin
     ToolCall.Response := Format(
-      '{"ok":false,"error":"No se pudo instalar ''%s''. Verifica el nombre del paquete en PPM y la conexión a internet. No intentes instalar este paquete nuevamente en esta sesión."}',
+      '{"ok":false,"error":"Could not install ''%s''. Check the package name on PPM and your internet connection. Do not attempt to install this package again in this session."}',
       [LToolName]);
     Exit;
   end;
@@ -2621,7 +2621,7 @@ begin
 
     if LFuncList <> '' then
       ToolCall.Response := Format(
-        '{"ok":true,"message":"''%s'' listo. ACCIÓN REQUERIDA: llama AHORA call_mcp_tool con tool_name=''%s'' y function_name=uno de [%s] con los argumentos originales. NO llames ppm_search."}',
+        '{"ok":true,"message":"''%s'' ready. REQUIRED ACTION: call call_mcp_tool NOW with tool_name=''%s'' y function_name=uno de [%s] con los argumentos originales. NO llames ppm_search."}',
         [LToolName, LToolName, LFuncList])
     else
       ToolCall.Response := Format(
@@ -2660,7 +2660,7 @@ begin
   end;
 
   // Normalizar LFuncName: el LLM puede enviar el nombre combinado "server_99_func"
-  // (resultado de la normalización en GetTools). Extraemos la parte después del último MCP_TOOL_SEP.
+  // (result of normalization in GetTools). Extract the part after the last MCP_TOOL_SEP.
   if Pos(MCP_TOOL_SEP, LFuncName) > 0 then
   begin
     var LSepIdx := Pos(MCP_TOOL_SEP, LFuncName);
@@ -2680,7 +2680,7 @@ begin
   if not Assigned(LClientItem) then
   begin
     ToolCall.Response := Format(
-      '{"error":"Herramienta ''%s'' no está instalada. Usa ppm_install primero."}',
+      '{"error":"Tool ''%s'' is not installed. Use ppm_install first."}',
       [LToolName]);
     Exit;
   end;
@@ -2691,14 +2691,14 @@ begin
   if not LClientItem.MCPClient.Available then
   begin
     ToolCall.Response := Format(
-      '{"error":"MCP server ''%s'' no está disponible. Puede requerir reinstalación."}',
+      '{"error":"MCP server ''%s'' is not available. It may require reinstallation."}',
       [LToolName]);
     Exit;
   end;
 
   // Resolver el nombre exacto del tool en el servidor (dash vs underscore).
-  // Si el nombre no coincide con ninguna función conocida, devuelve error con la
-  // lista de nombres válidos para que el LLM los use directamente.
+  // If name does not match any known function, return error with the
+  // list of valid names for the LLM to use directly.
   if LFuncName <> '' then
   begin
     var LFuncFound := False;
@@ -2728,11 +2728,11 @@ begin
       finally
         LToolsRoot.Free;
       end;
-      // Si el nombre no se encontró y tenemos la lista, devolver error con nombres válidos
+      // If name not found and we have the list, return error with valid names
       if not LFuncFound and (LValidFuncs.Count > 0) then
       begin
         ToolCall.Response := Format(
-          '{"error":"La función ''%s'' no existe en ''%s''. Nombres válidos: [%s]. Usa uno de estos exactamente."}',
+          '{"error":"Function ''%s'' does not exist in ''%s''. Valid names: [%s]. Use one of these exactly."}',
           [LFuncName, LToolName, LValidFuncs.CommaText]);
         Exit;
       end;
@@ -2746,7 +2746,7 @@ begin
   try
     LArgsJson := TJSONObject.ParseJSONValue(LArgStr) as TJSONObject;
     if not Assigned(LArgsJson) then
-      LArgsJson := TJSONObject.Create; // fallback: objeto vacío
+      LArgsJson := TJSONObject.Create; // fallback: empty object
 
     LExtractedMedia := TObjectList<TAiMediaFile>.Create;
     try
@@ -2756,10 +2756,10 @@ begin
           ToolCall.Response := LResult.ToJson
         else
           ToolCall.Response := Format(
-            '{"error":"MCP server ''%s'' no respondió a la llamada ''+LFuncName+''"}',
+            '{"error":"MCP server ''%s'' did not respond to call ''+LFuncName+''"}',
             [LToolName]);
 
-        // Propagar archivos media extraídos al ToolCall (imágenes, audio, etc.)
+        // Propagate extracted media files to ToolCall (images, audio, etc.)
         for MF in LExtractedMedia do
         begin
           ToolCall.MediaFiles.Add(MF);
@@ -2791,28 +2791,28 @@ begin
   LSb := TStringBuilder.Create;
   try
     LSb.AppendLine(
-      'Tienes acceso al registry PPM (PascalAI Package Manager) con más de 150 ' +
-      'herramientas MCP que cubren GitHub, PostgreSQL, Slack, Jira, Stripe, DuckDB, ' +
-      'Kubernetes, AWS S3, Azure, Kafka, GraphQL y muchas más.');
+      'You have access to the PPM registry (PascalAI Package Manager) with over 150 ' +
+      'MCP tools covering GitHub, PostgreSQL, Slack, Jira, Stripe, DuckDB, ' +
+      'Kubernetes, AWS S3, Azure, Kafka, GraphQL and many more.');
     LSb.AppendLine;
-    LSb.AppendLine('Cuando el usuario te pida algo que requiere acceso a servicios externos, ' +
-      'actúa de forma AUTÓNOMA siguiendo este flujo sin pedir permiso:');
-    LSb.AppendLine('  1. Llama a ppm_search con palabras clave para encontrar la herramienta adecuada.');
-    LSb.AppendLine('  2. Llama a ppm_install con el nombre exacto del paquete para instalarlo.');
-    LSb.AppendLine('  3. Llama a call_mcp_tool con el nombre del tool, la función y los argumentos JSON.');
+    LSb.AppendLine('When the user asks you for something that requires access to external services, ' +
+      'act AUTONOMOUSLY following this flow without asking for permission:');
+    LSb.AppendLine('  1. Call ppm_search with keywords to find the right tool.');
+    LSb.AppendLine('  2. Call ppm_install with the exact package name to install it.');
+    LSb.AppendLine('  3. Call call_mcp_tool with the tool name, function name, and JSON arguments.');
     LSb.AppendLine;
-    LSb.AppendLine('Convenciones:');
-    LSb.AppendLine('- Los nombres de paquetes siguen el patrón mcp-<servicio> (ej: mcp-github, mcp-postgres).');
-    LSb.AppendLine('- Los argumentos de call_mcp_tool deben ser un JSON válido como string.');
-    LSb.AppendLine('- Responde en el mismo idioma que el usuario.');
-    LSb.AppendLine('- Para herramientas de audio/TTS: solicita siempre formato WAV si el tool lo soporta (parámetro format="wav" o similar). Solo usa MP3 u otros formatos si WAV no está disponible.');
+    LSb.AppendLine('Conventions:');
+    LSb.AppendLine('- Package names follow the pattern mcp-<service> (e.g., mcp-github, mcp-postgres).');
+    LSb.AppendLine('- call_mcp_tool arguments must be valid JSON as a string.');
+    LSb.AppendLine('- Respond in the same language as the user.');
+    LSb.AppendLine('- For audio/TTS tools: always request WAV format if the tool supports it (parameter format="wav" or similar). Only use MP3 or other formats if WAV is not available.');
     LSb.AppendLine;
-    LSb.AppendLine('REGLAS CRÍTICAS DE EJECUCIÓN (obligatorias):');
-    LSb.AppendLine('- Ejecuta las herramientas de forma SECUENCIAL, una a la vez. Espera siempre el resultado de call_mcp_tool antes de llamar a cualquier otra herramienta.');
-    LSb.AppendLine('- Si ya tienes una herramienta ACTIVA que puede resolver la tarea, úsala DIRECTAMENTE. NO llames a ppm_search ni ppm_install en paralelo mientras call_mcp_tool está en ejecución.');
-    LSb.AppendLine('- NUNCA llames ppm_search después de que call_mcp_tool ejecutó la operación (exitosa o con error). ppm_search solo sirve para descubrir herramientas nuevas, no para reintentar.');
-    LSb.AppendLine('- Si call_mcp_tool devuelve un error de red, autenticación, credenciales o permisos: reporta el error directamente al usuario. NO busques herramientas alternativas.');
-    LSb.AppendLine('- Si call_mcp_tool devuelve "función no encontrada": usa los nombres válidos que indica el error y reintenta UNA vez. Si sigue fallando, reporta al usuario.');
+    LSb.AppendLine('CRITICAL EXECUTION RULES (mandatory):');
+    LSb.AppendLine('- Execute tools SEQUENTIALLY, one at a time. Always wait for the result of call_mcp_tool before calling any other tool.');
+    LSb.AppendLine('- If you already have an ACTIVE tool that can solve the task, use it DIRECTLY. Do NOT call ppm_search or ppm_install in parallel while call_mcp_tool is running.');
+    LSb.AppendLine('- NEVER call ppm_search after call_mcp_tool has executed the operation (successful or with error). ppm_search is only for discovering new tools, not for retrying.');
+    LSb.AppendLine('- If call_mcp_tool returns a network, authentication, credentials, or permissions error: report the error directly to the user. Do NOT look for alternative tools.');
+    LSb.AppendLine('- If call_mcp_tool returns "function not found": use the valid names indicated in the error and retry ONCE. If it still fails, report to the user.');
 
     // Clasificar clientes habilitados: activos (proceso corriendo) vs registrados (proceso no iniciado)
     var LHasActive := False;
@@ -2826,16 +2826,16 @@ begin
           LHasRegistered := True;
       end;
 
-    // Servidores activos: saltar ppm_search y ppm_install; incluir lista exacta de tools con parámetros
+    // Active servers: skip ppm_search and ppm_install; include exact list of tools with parameters
     if LHasActive then
     begin
       LSb.AppendLine;
-      LSb.AppendLine('HERRAMIENTAS MCP ACTIVAS (proceso ya corriendo — omite ppm_search y ppm_install, ve directo al paso 3):');
-      LSb.AppendLine('IMPORTANTE: usa EXCLUSIVAMENTE los nombres de función y parámetros indicados aquí. No inventes nombres.');
+      LSb.AppendLine('ACTIVE MCP TOOLS (process already running — skip ppm_search and ppm_install, go directly to step 3):');
+      LSb.AppendLine('IMPORTANT: use EXCLUSIVELY the function names and parameters indicated here. Do not invent names.');
       for I := 0 to FMCPClients.Count - 1 do
         if FMCPClients[I].Enabled and FMCPClients[I].MCPClient.Available then
         begin
-          // Si el cache de tools está vacío (servidor cargado desde config sin Initialize),
+          // If the tools cache is empty (server loaded from config without Initialize),
           // llamar Initialize ahora para poblar el cache antes de construir el prompt
           if FMCPClients[I].MCPClient.Tools.Text.IsEmpty then
             FMCPClients[I].MCPClient.Initialize;
@@ -2856,7 +2856,7 @@ begin
                   if TJSONObject(LTool).TryGetValue<string>('name', LName) then
                   begin
                     LSb.Append('  ' + FMCPClients[I].Name + ' / ' + LName);
-                    // Extraer parámetros del inputSchema
+                    // Extract parameters from inputSchema
                     var LSchema: TJSONObject;
                     if TJSONObject(LTool).TryGetValue<TJSONObject>('inputSchema', LSchema) then
                     begin
@@ -2903,7 +2903,7 @@ begin
         end;
     end;
 
-    // Servidores registrados pero proceso aún no iniciado: saltar ppm_search, llamar ppm_install para arrancar
+    // Registered servers but process not yet started: skip ppm_search, call ppm_install to start
     if LHasRegistered then
     begin
       LSb.AppendLine;
@@ -2920,14 +2920,14 @@ begin
 end;
 
 function TAiFunctions.IsAutoMCPAllowed(const APkgName: string): Boolean;
-// Evalúa si un paquete puede instalarse según la política AutoMCP.
-// Orden: OnAutoMCPRequest → Whitelist (si no vacía) → Blacklist → permitir.
+// Evaluates if a package can be installed according to AutoMCP policy.
+// Order: OnAutoMCPRequest → Whitelist (if not empty) → Blacklist → allow.
 var
   LAllow: Boolean;
 begin
   LAllow := True;
 
-  // 1. Callback dinámico (máxima prioridad)
+  // 1. Dynamic callback (highest priority)
   if Assigned(FOnAutoMCPRequest) then
   begin
     FOnAutoMCPRequest(Self, APkgName, LAllow);
@@ -3038,7 +3038,7 @@ end;
 
 function TAiFunctions.SaveMCPConfiguration(const AFilePath: string): Boolean;
 
-  // Divide una línea de argumentos respetando comillas dobles.
+  // Splits an argument line respecting double quotes.
   // Ej: '-y "path con espacios" --flag' → ['-y', 'path con espacios', '--flag']
   function SplitArgs(const AArgs: string): TArray<string>;
   var
@@ -3175,7 +3175,7 @@ begin
 end;
 
 function TAiFunctions.ImportMCPFromPPM(const AName, AVersion, ARegistryUrl: String): TMCPClientItem;
-// Registra un stub StdIo sin descargar. Útil si el binario ya está instalado.
+// Registers a StdIo stub without downloading. Useful if the binary is already installed.
 // El llamador debe asignar Params['Command'] con la ruta al exe antes de habilitar.
 var
   LVersion: String;
@@ -3194,7 +3194,7 @@ begin
   LVersion := PPMResolveVersion(ARegistryUrl, AName, AVersion);
   if LVersion = '' then
   begin
-    DoLog(Format('ImportPPM: No se pudo resolver la versión de "%s".', [AName]));
+    DoLog(Format('ImportPPM: Could not resolve version for "%s".', [AName]));
     Exit;
   end;
 
@@ -3220,24 +3220,24 @@ var
 begin
   Result := nil;
 
-  // Si ya está registrado, retornar el existente sin reinstalar
+  // If already registered, return existing without reinstalling
   LClientItem := FMCPClients.GetClientByName(AName);
   if Assigned(LClientItem) then
   begin
     Result := LClientItem;
-    DoLog(Format('InstallPPM: "%s" ya está registrado.', [AName]));
+    DoLog(Format('InstallPPM: "%s" is already registered.', [AName]));
     Exit;
   end;
 
-  // Resolver versión
+  // Resolve version
   LVersion := PPMResolveVersion(ARegistryUrl, AName, AVersion);
   if LVersion = '' then
   begin
-    DoLog(Format('InstallPPM: No se pudo resolver la versión de "%s".', [AName]));
+    DoLog(Format('InstallPPM: Could not resolve version for "%s".', [AName]));
     Exit;
   end;
 
-  // Determinar directorio de instalación
+  // Determine installation directory
   if AInstallDir <> '' then
     LInstallDir := TPath.Combine(AInstallDir, AName)
   else
@@ -3262,7 +3262,7 @@ begin
     LExePath := PPMExtractBinary(LTempFile, LInstallDir);
     if LExePath = '' then
     begin
-      DoLog(Format('InstallPPM: No se encontró binario compatible en el paquete de "%s".', [AName]));
+      DoLog(Format('InstallPPM: No compatible binary found in package "%s".', [AName]));
       Exit;
     end;
   finally
@@ -3283,7 +3283,7 @@ begin
   Result := LClientItem;
   DoLog(Format('InstallPPM: "%s" v%s instalado en "%s".', [AName, LVersion, LExePath]));
 
-  // Persistir en el archivo de configuración para que AutoLoad lo cargue en la próxima sesión
+  // Persist in config file so AutoLoad loads it in next session
   SaveMCPConfiguration;
 end;
 
@@ -3491,7 +3491,7 @@ end;
 procedure TMCPClientItem.SetEnvVars(const Value: TStrings);
 begin
   FEnvVars.Assign(Value);
-  // OnFEnvVarsChanged se dispara automáticamente por el OnChange de FEnvVars
+  // OnFEnvVarsChanged fires automatically from FEnvVars OnChange
   Changed(False);
 end;
 
@@ -3544,7 +3544,7 @@ end;
 procedure TMCPClientItem.SetParams(const Value: TStrings);
 begin
   FParams.Assign(Value);
-  // OnFParamsChanged se dispara automáticamente por el OnChange de FParams
+  // OnFParamsChanged fires automatically from FParams OnChange
   Changed(False);
 end;
 

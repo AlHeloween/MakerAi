@@ -1,4 +1,4 @@
-﻿// IT License
+// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enríquez
+// Name: Gustavo Enríquez
 // Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -65,7 +65,7 @@ type
     class function CreateInstance(Sender: TComponent): TAiChat; override;
   published
     // Nombre personalizado con el que este componente se registra en el factory.
-    // Permite usar múltiples instancias de TAiGenericChat apuntando a APIs distintas.
+    // Allows using multiple TAiGenericChat instances pointing to different APIs.
     property CustomDriverName: string read FCustomDriverName write SetCustomDriverName;
   end;
 
@@ -117,7 +117,7 @@ end;
 constructor TAiGenericChat.Create(Sender: TComponent);
 begin
   inherited;
-  ApiKey := '1234'; // local, no se requiere autenticación
+  ApiKey := '1234'; // local, no authentication required
   Model := 'generic-local';
   Url := GlGenericUrl;
 end;

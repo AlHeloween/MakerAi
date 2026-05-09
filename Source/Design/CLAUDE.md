@@ -29,7 +29,7 @@ Each editor unit contains a `Register` procedure that hooks into the Delphi IDE:
 
 **`TAiChatFactory`** (`UMakerAi.ParamsRegistry.pas`): Singleton factory for driver management
 - `RegisterDriver(AClass)` - Register a chat driver class
-- `GetDriverParams(DriverName, ModelName, Params)` - Get hierarchical params (driver defaults → driver overrides → model overrides)
+- `GetDriverParams(DriverName, ModelName, Params)` - Get hierarchical params (driver defaults â†’ driver overrides â†’ model overrides)
 - `RegisterUserParam(DriverName, [ModelName,] ParamName, Value)` - Override default params
 - `RegisterCustomModel(DriverName, CustomModelName, BaseModelName)` - Map custom model aliases to base models
 - Environment variable expansion: Values starting with `@` are replaced with the corresponding env var

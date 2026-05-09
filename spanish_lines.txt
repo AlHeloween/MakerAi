@@ -1,0 +1,489 @@
+Total Spanish comment lines found: 488
+Agents\uMakerAi.Agents.IAiTool.pas:113 |   // Acceso v├нa RTTI al nombre publicado de TAiToolBase
+Agents\uMakerAi.Agents.IAiTool.pas:122 |   // Intentamos leer la propiedad Description v├нa RTTI si existe
+Agents\uMakerAi.Agents.IAiTool.pas:171 |   // Llama Execute v├нa RTTI (firma: Execute(ANode, AInput, var AOutput))
+Agents\uMakerAi.Agents.IAiTool.pas:3 | // Interfaz unificada de herramientas para el redise├▒o del sistema de agentes.
+Agents\uMakerAi.Agents.IAiTool.pas:37 |     // Retorna el JSON Schema de par├бmetros. NO liberar.
+Agents\uMakerAi.Agents.IAiTool.pas:41 |     // Indica si la herramienta est├б disponible para su uso.
+Agents\uMakerAi.Agents.IAiTool.pas:5 | // Autor: Gustavo Enr├нquez
+Agents\uMakerAi.Agents.Node.LLM.pas:10 | // Uso b├бsico:
+Agents\uMakerAi.Agents.Node.LLM.pas:134 | // transferir el nombre, descripci├│n e inputSchema completo.
+Agents\uMakerAi.Agents.Node.LLM.pas:165 | // Captura errores del LLM para re-lanzarlos como excepci├│n en DoExecute.
+Agents\uMakerAi.Agents.Node.LLM.pas:175 | // TAiChatConnection invoca este m├йtodo cuando el modelo pide ejecutar
+Agents\uMakerAi.Agents.Node.LLM.pas:176 | // una funci├│n. Buscamos la herramienta en el registry y ejecutamos.
+Agents\uMakerAi.Agents.Node.LLM.pas:18 | // Autor: Gustavo Enr├нquez
+Agents\uMakerAi.Agents.Node.LLM.pas:228 | // Punto de entrada principal del nodo. Reemplaza el DoExecute gen├йrico.
+Agents\uMakerAi.Agents.Node.LLM.pas:251 |   // Determinar el registry activo para esta ejecuci├│n
+Agents\uMakerAi.Agents.Node.LLM.pas:269 |     // Par├бmetros v├нa TStrings (Asynchronous DEBE ser False en nodos de agente)
+Agents\uMakerAi.Agents.Node.LLM.pas:284 |       // Limpiar ModelCaps/SessionCaps: LLMNode usa s├│lo TAiFunctions.
+Agents\uMakerAi.Agents.Node.LLM.pas:285 |       // Sin esto, el driver puede a├▒adir tools built-in (web_search,
+Agents\uMakerAi.Agents.Node.LLM.pas:286 |       // code_execution, etc.) que nuestro c├│digo no sabe manejar.
+Agents\uMakerAi.Agents.Node.LLM.pas:290 |       // Tool_Active debe ser True para que el driver env├нe las tools al LLM.
+Agents\uMakerAi.Agents.Node.LLM.pas:295 |     // Ejecutar el input del nodo (el loop de tools es autom├бtico)
+Agents\uMakerAi.Agents.Node.LLM.pas:298 |     // Si el LLM report├│ un error y la respuesta est├б vac├нa, propagarlo
+Agents\uMakerAi.Agents.Node.LLM.pas:5 | // TLLMNode extiende TAIAgentsNode a├▒adiendo un modelo LLM con capacidad de
+Agents\uMakerAi.Agents.Node.LLM.pas:6 | // llamar herramientas del TAiToolRegistry autom├бticamente. El loop LLM тЖТ
+Agents\uMakerAi.Agents.Node.LLM.pas:65 |     // Estado temporal v├бlido s├│lo durante DoExecute (un hilo a la vez por nodo)
+Agents\uMakerAi.Agents.Node.LLM.pas:67 |     // Captura el ├║ltimo error del LLM para re-lanzarlo como excepci├│n
+Agents\uMakerAi.Agents.Node.LLM.pas:7 | // Tool тЖТ Observaci├│n es manejado internamente por TAiChatConnection
+Agents\uMakerAi.Agents.Node.LLM.pas:89 |     // Modelo espec├нfico del proveedor (vac├нo = usa el default del driver)
+Agents\uMakerAi.Agents.Node.LLM.pas:91 |     // API key. Soporta sintaxis @ENV_VAR_NAME para resoluci├│n en runtime.
+Agents\uMakerAi.Agents.Node.LLM.pas:93 |     // Instrucci├│n de sistema para el LLM
+Agents\uMakerAi.Agents.Node.LLM.pas:95 |     // M├бximo de tokens en la respuesta (0 = usa el default del driver)
+Agents\uMakerAi.Agents.Node.LLM.pas:97 |     // Si True, inyecta autom├бticamente todas las herramientas disponibles del registry
+Agents\uMakerAi.Agents.ToolRegistry.pas:102 |     // Devuelve el n├║mero de herramientas registradas (0 = fallo).
+Agents\uMakerAi.Agents.ToolRegistry.pas:107 |     // Si est├б vac├нo usa %APPDATA%\MakerAI\tools\
+Agents\uMakerAi.Agents.ToolRegistry.pas:134 |     FItem   : TFunctionActionItem;  // ref d├йbil тАФ no owning
+Agents\uMakerAi.Agents.ToolRegistry.pas:3 | // Registro unificado de herramientas IAiTool con integraci├│n PPM.
+Agents\uMakerAi.Agents.ToolRegistry.pas:503 |       // Error de red: devolver lista vac├нa
+Agents\uMakerAi.Agents.ToolRegistry.pas:516 | // Si no hay versi├│n, primero obtenemos la ├║ltima versi├│n no-yanked del listado,
+Agents\uMakerAi.Agents.ToolRegistry.pas:534 |     // Si no viene versi├│n, resolver la ├║ltima desde GET /v1/packages/{name}
+Agents\uMakerAi.Agents.ToolRegistry.pas:550 |               // Tomar la primera versi├│n no-yanked (el registry las devuelve en orden descendente)
+Agents\uMakerAi.Agents.ToolRegistry.pas:622 | // Descarga, extrae y devuelve el path del ejecutable seg├║n [mcp] entrypoint=...
+Agents\uMakerAi.Agents.ToolRegistry.pas:647 |   // Directorio de extracci├│n: tools\mcp-nombre\
+Agents\uMakerAi.Agents.ToolRegistry.pas:651 |   // Si ya est├б extra├нdo, leer entrypoint del manifiesto y devolver
+Agents\uMakerAi.Agents.ToolRegistry.pas:7 | // funci├│n LLM, servidor MCP, o herramienta PPM descargada).
+Agents\uMakerAi.Agents.ToolRegistry.pas:707 |     Exit; // extracci├│n fallida
+Agents\uMakerAi.Agents.ToolRegistry.pas:710 |   // Leer entrypoint del manifiesto extra├нdo
+Agents\uMakerAi.Agents.ToolRegistry.pas:735 |   // Si no tenemos DownloadUrl, obtener info completa del paquete v├нa registry
+Agents\uMakerAi.Agents.ToolRegistry.pas:78 |     // Devuelve el n├║mero total de herramientas registradas.
+Agents\uMakerAi.Agents.ToolRegistry.pas:81 |     // --- B├║squeda ---
+Agents\uMakerAi.Agents.ToolRegistry.pas:9 | // Autor: Gustavo Enr├нquez
+Agents\uMakerAi.Agents.Tools.MCP.pas:168 |   // Inicializar si todav├нa no se hizo
+Agents\uMakerAi.Agents.Tools.MCP.pas:6 | // Autor: Gustavo Enr├нquez
+Agents\uMakerAi.Agents.Tools.MCP.pas:63 |       // A├▒adir al registry:
+ChatUI\uMakerAi.UI.ChatBubble.pas:907 |   // Notificar al padre para recalcular tama├▒o.
+ChatUI\uMakerAi.UI.ChatBubble.pas:908 |   // InvalidateLayout es redundante aqu├н: RecalculateSize ya lo dispara
+ChatUI\uMakerAi.UI.ChatList.pas:927 |   // Throttle: m├бximo ~15 rec├бlculos/seg durante streaming.
+ChatUI\uMakerAi.UI.ChatList.pas:931 |     // Guardar burbuja pendiente; encolar rec├бlculo diferido si no hay uno ya encolado
+Chat\uMakerAi.Chat.AiConnection.pas:130 |     // de c├│digo en el formulario. Las propiedades directas de TComponent resuelven
+Chat\uMakerAi.Chat.AiConnection.pas:132 |     // TPersistent) no garantiza la resoluci├│n de referencias forward.
+Chat\uMakerAi.Chat.AiConnection.pas:584 |   // Inyectar configuraci├│n del sanitizador
+Chat\uMakerAi.Chat.AiConnection.pas:587 |   // Inyectar sub-objetos de par├бmetros especiales
+Chat\uMakerAi.Chat.AiConnection.pas:688 |                         // GetEnumValue es sensible a may├║sculas seg├║n el Enum definido en uMakerAi.Core
+Chat\uMakerAi.Chat.AiConnection.pas:713 |           // Fallo silencioso por propiedad individual para no detener el resto de la inyecci├│n
+Chat\uMakerAi.Chat.Claude.pas:1003 |         // Outer try: garantiza que ninguna excepci├│n (ni siquiera del log)
+Chat\uMakerAi.Chat.Claude.pas:1045 |             // Fallback: captura cualquier excepci├│n no prevista (nunca debe llegar aqu├н)
+Chat\uMakerAi.Chat.Cohere.pas:919 |           // v2: tool_calls es un objeto (no array); index en nivel ra├нz identifica la posici├│n
+Chat\uMakerAi.Chat.Cohere.pas:953 |           // Usamos index del nivel ra├нz para localizar el tool call iniciado previamente
+Chat\uMakerAi.Chat.Cohere.pas:983 |           // v2: citations es un objeto (no array); index en nivel ra├нz identifica la posici├│n
+Chat\uMakerAi.Chat.DeepSeek.pas:223 |   FTmpReasoning := ''; // Resetear antes de cada nueva petici├│n
+Chat\uMakerAi.Chat.DeepSeek.pas:25 | // Nombre: Gustavo Enr├нquez
+Chat\uMakerAi.Chat.DeepSeek.pas:269 |   // Maneja SSE delta y [DONE] con reconstrucci├│n de tool_calls.
+Chat\uMakerAi.Chat.DeepSeek.pas:339 |             // ParseChat (rama else) ya dispar├│ FOnReceiveDataEnd y DoStateChange(acsFinished).
+Chat\uMakerAi.Chat.DeepSeek.pas:340 |             // Solo agregamos TempMsg al historial si no est├б ya (RunNew async no lo agrega).
+Chat\uMakerAi.Chat.DeepSeek.pas:350 |             // Tool calls: ParseChat ejecut├│ las herramientas y Self.Run inici├│
+Chat\uMakerAi.Chat.DeepSeek.pas:352 |             // emitir├б sus propios eventos (SSE тЖТ [DONE] тЖТ FOnReceiveDataEnd).
+Chat\uMakerAi.Chat.DeepSeek.pas:353 |             // No ponemos FBusy=False aqu├н: el segundo round sigue en vuelo
+Chat\uMakerAi.Chat.DeepSeek.pas:354 |             // y lo marcar├б como False cuando termine (BLOQUE DEEPSEEK / [DONE]).
+Chat\uMakerAi.Chat.DeepSeek.pas:364 |         FBusy := False; // texto: todo termin├│
+Chat\uMakerAi.Chat.DeepSeek.pas:366 |       FTmpReasoning := ''; // Limpiar para el pr├│ximo round o pr├│xima petici├│n
+Chat\uMakerAi.Chat.DeepSeek.pas:371 |     // CASO 2: JSON est├бndar SSE con delta
+Chat\uMakerAi.Chat.DeepSeek.pas:498 |     // respuesta llega como un objeto JSON completo (no l├нneas SSE con delta).
+Chat\uMakerAi.Chat.DeepSeek.pas:544 |                   // Tool calls: ParseChat ejecut├│ herramientas y Self.Run inici├│
+Chat\uMakerAi.Chat.DeepSeek.pas:545 |                   // el segundo round async. No disparar evento aqu├н.
+Chat\uMakerAi.Chat.DeepSeek.pas:563 |     // FLUJO SSE EST├БNDAR (stream=true, delta por l├нneas)
+Chat\uMakerAi.Chat.DeepSeek.pas:566 |     // 1. Bucle principal: procesa l├нneas completas terminadas en #10
+Chat\uMakerAi.Chat.DeepSeek.pas:575 |     // 2. Borde de seguridad: [DONE] sin salto de l├нnea final
+Chat\uMakerAi.Chat.Gemini.pas:1032 |     // 4. TOOLS (Validaci├│n Estricta)
+Chat\uMakerAi.Chat.Gemini.pas:1051 |     // B. Code Execution (Solo si est├б expl├нcitamente en el Set)
+Chat\uMakerAi.Chat.Gemini.pas:1063 |     // C. Google Search (Solo si est├б expl├нcitamente en el Set)
+Chat\uMakerAi.Chat.Gemini.pas:1085 |       // La documentaci├│n especifica el entorno.
+Chat\uMakerAi.Chat.Gemini.pas:1087 |       // Usaremos 'only_name' si la API lo infiere, pero mejor ser expl├нcitos.
+Chat\uMakerAi.Chat.Gemini.pas:1091 |       // Nota: Si quieres excluir acciones (como drag_and_drop), se configuran aqu├н.
+Chat\uMakerAi.Chat.Gemini.pas:1092 |       // Por ahora enviamos el objeto vac├нo o con configuraci├│n m├нnima si es necesario.
+Chat\uMakerAi.Chat.Gemini.pas:1111 |     // A. Par├бmetros Est├бndar (No perder funcionalidad b├бsica)
+Chat\uMakerAi.Chat.Gemini.pas:1134 |     // B. Configuraci├│n de Imagen (Gemini 3 Image / Imagen 3)
+Chat\uMakerAi.Chat.Gemini.pas:1194 |         // Gemini 2.5 y anteriores: usar thinkingBudget num├йrico
+Chat\uMakerAi.Chat.Gemini.pas:1211 |           // Safety: Gemini suele requerir un m├нnimo (ej. 1024) para pensar efectivamente
+Chat\uMakerAi.Chat.Gemini.pas:1216 |         // Solo a├▒adimos budget si es mayor a 0 (0 deshabilita thinking en Flash 2.5)
+Chat\uMakerAi.Chat.Gemini.pas:1256 |       // Si el archivo NO es imagen ni audio, y a├║n no tiene URL de nube...
+Chat\uMakerAi.Chat.Gemini.pas:1401 |   // 2. Extracci├│n de Metadatos Generales
+Chat\uMakerAi.Chat.Gemini.pas:1416 |     // [V3] Token count espec├нfico para pensamientos
+Chat\uMakerAi.Chat.Gemini.pas:1423 |   // 4. Procesar Grounding (B├║squeda Web)
+Chat\uMakerAi.Chat.Gemini.pas:1453 |         // B. Code Execution: C├│digo generado (Historial)
+Chat\uMakerAi.Chat.Gemini.pas:1468 |         // D. Multimedia Inline (Im├бgenes/Audio generados)
+Chat\uMakerAi.Chat.Gemini.pas:1479 |               // Determinar extensi├│n usando la funci├│n central de MimeType->Ext
+Chat\uMakerAi.Chat.Gemini.pas:1518 |   // Si se solicit├│ extracci├│n de archivos de texto (native output)
+Chat\uMakerAi.Chat.Gemini.pas:1536 |     // Acumulamos el texto. Nota: Si ya tra├нa algo (streaming), concatenamos o seteamos.
+Chat\uMakerAi.Chat.Gemini.pas:1537 |     // En ParseChat normal (s├йncrono o final de async), Prompt suele estar vac├нo al inicio del parseo de este frame.
+Chat\uMakerAi.Chat.Gemini.pas:1556 |   // CASO 2: HAY FUNCIONES (EJECUCI├УN DE HERRAMIENTAS)
+Chat\uMakerAi.Chat.Gemini.pas:1592 |       // GetMessages lo detectar├б y NO lo volver├б a envolver gracias a la correcci├│n.
+Chat\uMakerAi.Chat.Gemini.pas:1598 |       // M├║ltiples funciones: usamos gemini_parts
+Chat\uMakerAi.Chat.Gemini.pas:1614 |     // Pero en el flujo de herramientas, 'ResMsg' se recicla para el resultado final de la recursi├│n.
+Chat\uMakerAi.Chat.Gemini.pas:1615 |     // El mensaje que contiene la llamada a la funci├│n (y por tanto la firma) es 'Msg'.
+Chat\uMakerAi.Chat.Gemini.pas:1665 |             // Lo quitamos del diccionario sin liberarlo (porque usamos ExtractPair impl├нcito al reasignar propiedad o manual)
+Chat\uMakerAi.Chat.Gemini.pas:1674 |         // Archivos devueltos por el tool MCP (im├бgenes, PDFs) тЖТ ToolMsg para que el LLM los vea
+Chat\uMakerAi.Chat.Gemini.pas:1684 |       // El resultado final llenar├б 'ResMsg' correctamente.
+Chat\uMakerAi.Chat.Gemini.pas:1687 |       // Limpieza cosm├йtica: A veces la recursi├│n a├▒ade el texto al final,
+Chat\uMakerAi.Chat.Gemini.pas:171 | // [V3 UPDATE] Helpers para conversi├│n de enums
+Chat\uMakerAi.Chat.Gemini.pas:1728 |   // Parsear groundingSupports (v├нnculos texto->fuente)
+Chat\uMakerAi.Chat.Gemini.pas:187 | // M├йtodos de Cache existentes (RetrieveCache, DeleteCache, ListCaches)...
+Chat\uMakerAi.Chat.Gemini.pas:1904 | // A├▒adir en la secci├│n Private o Protected de la clase
+Chat\uMakerAi.Chat.Gemini.pas:1924 |     Exit; // Ya se proces├│
+Chat\uMakerAi.Chat.Gemini.pas:1961 |             // Determinar extensi├│n usando la funci├│n central de MimeType->Ext
+Chat\uMakerAi.Chat.Gemini.pas:2047 |   // Solo procesar si el usuario lo configur├│ en NativeOutputFiles
+Chat\uMakerAi.Chat.Gemini.pas:2064 |         // Intentar dar un nombre l├│gico
+Chat\uMakerAi.Chat.Gemini.pas:2085 | // [M├йtodos de archivo (UploadFile, etc.) se mantienen igual]
+Chat\uMakerAi.Chat.Gemini.pas:2215 |   // 1. Verificar si ComputerUse est├б activo y tenemos el componente enlazado
+Chat\uMakerAi.Chat.Gemini.pas:2231 |     // Como estamos dentro de un TTask (hilo), el evento OnExecuteAction se disparar├б en un hilo secundario.
+Chat\uMakerAi.Chat.Gemini.pas:2232 |     // Aseg├║rate de usar TThread.Synchronize en tu formulario si tocas la GUI.
+Chat\uMakerAi.Chat.Gemini.pas:2263 |     // 4. Si no es acci├│n de computadora, usar el comportamiento est├бndar (AiFunctions o Evento)
+Chat\uMakerAi.Chat.Gemini.pas:23 | // Nombre: Gustavo Enr├нquez
+Chat\uMakerAi.Chat.Gemini.pas:2365 | // Implementaci├│n basada en predictLongRunning y Polling
+Chat\uMakerAi.Chat.Gemini.pas:2411 |       // Preferir URI si ya est├б subido (File API), si no, usar Base64 (para im├бgenes peque├▒as)
+Chat\uMakerAi.Chat.Gemini.pas:2434 |     // 3. Construir "parameters" (Configuraci├│n de Veo)
+Chat\uMakerAi.Chat.Gemini.pas:2441 |     // Iterar par├бmetros definidos por el usuario en el componente
+Chat\uMakerAi.Chat.Gemini.pas:2452 |         // L├│gica espec├нfica para strings de Veo que NO deben ser n├║meros
+Chat\uMakerAi.Chat.Gemini.pas:2457 |       // Detecci├│n de tipos para el resto (seed, durationSeconds, etc)
+Chat\uMakerAi.Chat.Gemini.pas:2472 |     // 4. Enviar Petici├│n Inicial
+Chat\uMakerAi.Chat.Gemini.pas:2495 |     // 5. Obtener Operation Name (ID de la tarea de larga duraci├│n)
+Chat\uMakerAi.Chat.Gemini.pas:2508 |     // La URL de polling es base + nombre de operaci├│n
+Chat\uMakerAi.Chat.Gemini.pas:2511 |     // 6. Iniciar Tarea As├нncrona de Polling
+Chat\uMakerAi.Chat.Gemini.pas:2558 |                 // Verificar si termin├│ ("done": true)
+Chat\uMakerAi.Chat.Gemini.pas:2561 |                   // Clonar respuesta final porque TaskPollingResponse se liberar├б
+Chat\uMakerAi.Chat.Gemini.pas:2572 |               // Verificar errores devueltos por la operaci├│n
+Chat\uMakerAi.Chat.Gemini.pas:2601 |                   // --- CORRECCI├УN AQU├Н ---
+Chat\uMakerAi.Chat.Gemini.pas:2624 |                         // Asignar Stream y MimeType es importante para que el componente visual sepa qu├й es
+Chat\uMakerAi.Chat.Gemini.pas:2635 |                     // Ahora ver├бs el mensaje de error real si falla de nuevo
+Chat\uMakerAi.Chat.Gemini.pas:264 |   // Dictionary que es due├▒o de los MediaFiles (los libera autom├бticamente)
+Chat\uMakerAi.Chat.Gemini.pas:2662 |           // Notificaci├│n final
+Chat\uMakerAi.Chat.Gemini.pas:2674 |     // El TTask se ejecutar├б en segundo plano y notificar├б v├нa eventos.
+Chat\uMakerAi.Chat.Gemini.pas:2727 |       // Voz por defecto 'Puck' si no hay configuraci├│n
+Chat\uMakerAi.Chat.Gemini.pas:2752 |   // RAMA AS├НNCRONA: lanza TTask y retorna inmediatamente
+Chat\uMakerAi.Chat.Gemini.pas:2756 |     // Crear un ResMsg propio y a├▒adirlo a FMessages ANTES de lanzar la tarea.
+Chat\uMakerAi.Chat.Gemini.pas:2757 |     // Esto es imprescindible porque Run() liberar├б el ResMsg que nos pas├н
+Chat\uMakerAi.Chat.Gemini.pas:2758 |     // (LOwnsResMsg=True) justo despu├йs de que retornemos. Si us├йramos ese
+Chat\uMakerAi.Chat.Gemini.pas:2759 |     // mismo puntero en el TTask, acceder├нamos a memoria liberada.
+Chat\uMakerAi.Chat.Gemini.pas:277 | // M├йtodos Batch (CreateBatchJob, GetBatchJob)
+Chat\uMakerAi.Chat.Gemini.pas:2829 |                       // Notificar ├йxito en el hilo principal
+Chat\uMakerAi.Chat.Gemini.pas:2895 |   // RAMA S├НNCRONA: comportamiento original (bloquea hasta tener el audio)
+Chat\uMakerAi.Chat.Gemini.pas:2903 |     // Forzar modo s├йncrono en FClient y restaurar despu├йs
+Chat\uMakerAi.Chat.Gemini.pas:2940 |               // Convertir a WAV (24kHz, Mono, 16bit тАФ est├бndar Gemini TTS)
+Chat\uMakerAi.Chat.Gemini.pas:2986 | // [V3 UPDATE] Implementaci├│n de Image Generation espec├нfica para V3 (si es diferente)
+Chat\uMakerAi.Chat.Gemini.pas:2988 | // Como el m├йtodo InternalRunImageGeneration actualmente deriva a Completions,
+Chat\uMakerAi.Chat.Gemini.pas:2991 | // pero aqu├н a├▒adimos soporte b├бsico si el modelo es gemini-3-pro-image-preview.
+Chat\uMakerAi.Chat.Gemini.pas:3024 |   // Variables para la l├│gica de finalizaci├│n
+Chat\uMakerAi.Chat.Gemini.pas:3045 |   // 1. LECTURA DEL STREAM Y ACUMULACI├УN EN BUFFER
+Chat\uMakerAi.Chat.Gemini.pas:3069 |       Break; // Esperar m├бs datos o buffer vac├нo
+Chat\uMakerAi.Chat.Gemini.pas:3072 |     // Debemos ignorar llaves {} que est├бn dentro de cadenas (Quotes)
+Chat\uMakerAi.Chat.Gemini.pas:3086 |         // Detectar escape para la siguiente iteraci├│n (ej: \")
+Chat\uMakerAi.Chat.Gemini.pas:3114 |     // C. Extracci├│n y Parseo Seguro
+Chat\uMakerAi.Chat.Gemini.pas:3117 |     // Intentamos parsear. Si falla, podr├нa ser un JSON malformado, pero asumimos que Gemini env├нa bien.
+Chat\uMakerAi.Chat.Gemini.pas:3118 |     // Lo importante es NO borrar del buffer hasta confirmar que parse├│ bien.
+Chat\uMakerAi.Chat.Gemini.pas:3123 |       // Raro: Estructura parec├нa bien balanceada pero fall├│ el parseo.
+Chat\uMakerAi.Chat.Gemini.pas:3125 |       // En este caso, asumimos corrupci├│n y avanzamos para no colgar el bucle.
+Chat\uMakerAi.Chat.Gemini.pas:3131 |     // PARSEO EXITOSO: Ahora s├й borramos del buffer
+Chat\uMakerAi.Chat.Gemini.pas:3146 |         // 1. Detecci├│n de Finalizaci├│n (FinishReason)
+Chat\uMakerAi.Chat.Gemini.pas:3235 |       // 3. FINALIZACI├УN IN-PLACE
+Chat\uMakerAi.Chat.Gemini.pas:3236 |       // Aqu├н ejecutamos lo que antes hac├нa InternalCompleteRequest
+Chat\uMakerAi.Chat.Gemini.pas:3256 |         // --- RECONSTRUCCI├УN DEL HISTORIAL (GEMINI PARTS / FIRMAS) ---
+Chat\uMakerAi.Chat.Gemini.pas:3303 |                   // Determinar extensi├│n usando la funci├│n central de MimeType->Ext
+Chat\uMakerAi.Chat.Gemini.pas:34 | // Actualizaci├│n: Integraci├│n API Gemini 3 (Thinking Level, Signatures, Media Resolution)
+Chat\uMakerAi.Chat.Gemini.pas:3414 |                 // RECURSI├УN
+Chat\uMakerAi.Chat.Gemini.pas:3443 |         // FINALIZAR: Cortar conexi├│n HTTP
+Chat\uMakerAi.Chat.Gemini.pas:3457 |   // Si ya se proces├│ el final en el stream (finishReason detectado), FBusy ser├б False.
+Chat\uMakerAi.Chat.Gemini.pas:3461 |   // Si llegamos aqu├н, el stream termin├│ HTTP-wise pero no detectamos finishReason antes.
+Chat\uMakerAi.Chat.Gemini.pas:3465 |   // Llamamos al padre por si acaso tiene l├│gica gen├йrica
+Chat\uMakerAi.Chat.Gemini.pas:429 |     // Limpiar entradas vac├нas
+Chat\uMakerAi.Chat.Gemini.pas:435 |     // CASO A: M├ЪLTIPLES VOCES (> 1 elemento) -> MULTI-SPEAKER
+Chat\uMakerAi.Chat.Gemini.pas:447 |         // --- NUEVA L├УGICA DE PARSEO MANUAL (M├БS SEGURA) ---
+Chat\uMakerAi.Chat.Gemini.pas:452 |           // Encontr├│ el '=', separamos:
+Chat\uMakerAi.Chat.Gemini.pas:455 |           // Voice: desde despu├йs del '=' hasta el final
+Chat\uMakerAi.Chat.Gemini.pas:490 |       // Parseo manual tambi├йn aqu├н para limpiar "Gustavo=Puck" -> "Puck"
+Chat\uMakerAi.Chat.Gemini.pas:577 |   // Variables para gesti├│n de firmas V3
+Chat\uMakerAi.Chat.Gemini.pas:622 |         // --- CORRECCI├УN JSON RESPONSE ---
+Chat\uMakerAi.Chat.Gemini.pas:626 |           // Si el mensaje es un JSON v├бlido (como el que devuelve ComputerUseTool)
+Chat\uMakerAi.Chat.Gemini.pas:634 |             // Si es texto plano o inv├бlido, usamos la estructura legacy envolvente
+Chat\uMakerAi.Chat.Gemini.pas:639 |             // Usamos 'content' o 'result' seg├║n prefieras para texto plano,
+Chat\uMakerAi.Chat.Gemini.pas:640 |             // pero ComputerUse siempre entrar├б en el IF de arriba.
+Chat\uMakerAi.Chat.Gemini.pas:68 |     // Nuevo helper para agregar firmas f├бcilmente
+Chat\uMakerAi.Chat.Gemini.pas:715 |                   // --- CORRECCI├УN CR├НTICA AQU├Н ---
+Chat\uMakerAi.Chat.Gemini.pas:716 |                   // Si esta parte es un archivo binario (inlineData), NO la agregamos al historial de env├нo.
+Chat\uMakerAi.Chat.Gemini.pas:717 |                   // El modelo ya sabe que gener├│ el archivo, no necesitamos devolverle los bytes.
+Chat\uMakerAi.Chat.Gemini.pas:842 |   // Variables para extracci├│n de par├бmetros
+Chat\uMakerAi.Chat.Gemini.pas:864 |     // --- BUCLE DE PAGINACI├УN ---
+Chat\uMakerAi.Chat.Gemini.pas:866 |       // 2. Construir URL con el token de p├бgina si existe
+Chat\uMakerAi.Chat.Gemini.pas:871 |       // 3. Petici├│n GET
+Chat\uMakerAi.Chat.Gemini.pas:880 |             // A. Procesar Modelos de esta p├бgina
+Chat\uMakerAi.Chat.Gemini.pas:890 |                   // --- EXTRACCI├УN DE VARIABLES ---
+Chat\uMakerAi.Chat.Gemini.pas:905 |                   // 1. Datos B├бsicos
+Chat\uMakerAi.Chat.Gemini.pas:922 |                   // --- FILTRADO DE M├ЙTODOS ---
+Chat\uMakerAi.Chat.Gemini.pas:927 |                       // ACEPTAMOS M├БS M├ЙTODOS AHORA:
+Chat\uMakerAi.Chat.Gemini.pas:939 |                   // B. Agregar si es v├бlido
+Chat\uMakerAi.Chat.Gemini.pas:952 |             // C. Obtener el Token para la siguiente p├бgina (si hay)
+Chat\uMakerAi.Chat.Gemini.pas:962 |         // Error de conexi├│n, rompemos el bucle
+Chat\uMakerAi.Chat.Gemini.pas:966 |     until sNextPageToken = ''; // Repetir mientras haya m├бs p├бginas
+Chat\uMakerAi.Chat.Gemini.pas:998 |     // 1. CONTEXTO Y CACH├Й
+Chat\uMakerAi.Chat.GenericLLM.pas:120 |   ApiKey := '1234'; // local, no se requiere autenticaci├│n
+Chat\uMakerAi.Chat.GenericLLM.pas:23 | // Nombre: Gustavo Enr├нquez
+Chat\uMakerAi.Chat.GenericLLM.pas:68 |     // Permite usar m├║ltiples instancias de TAiGenericChat apuntando a APIs distintas.
+Chat\uMakerAi.Chat.Grok.pas:281 | // Respuestas API de xAI para b├║squeda web
+Chat\uMakerAi.Chat.Initializations.pas:145 |   // ------- Gemma 4 (vision + audio + reasoning nativo, tama├▒os: e4b / 4b / 12b / 27b) ------
+Chat\uMakerAi.Chat.Initializations.pas:419 |   // Nota: no soporta ThinkingLevel (INVALID_ARGUMENT si se env├нa)
+Chat\uMakerAi.Chat.Initializations.pas:47 | // Centralizado aqu├н para que cualquier app que use uMakerAi.Chat.Initializations
+Chat\uMakerAi.Chat.Initializations.pas:48 | // tenga todos los drivers disponibles autom├бticamente.
+Chat\uMakerAi.Chat.Mistral.pas:1201 |   // Si la Fase 1 (InternalRunPDFDescription) ya ejecut├│ el OCR con ├йxito
+Chat\uMakerAi.Chat.Mistral.pas:590 |             // Arguments contiene el JSON can├│nico de par├бmetros
+Chat\uMakerAi.Chat.Mistral.pas:593 |             // Si no hay par├бmetros no marca error
+Chat\uMakerAi.Chat.Ollama.pas:1086 |     // Hacemos la llamada s├йncrona, pero Ollama devuelve el stream completo de una vez
+Chat\uMakerAi.Chat.Ollama.pas:1098 |       // Si el evento de progreso est├б asignado, lo disparamos
+Chat\uMakerAi.Chat.Ollama.pas:1107 |             // TryGetValue es m├бs seguro si los campos no siempre est├бn presentes
+Chat\uMakerAi.Chat.Ollama.pas:174 |         // Ollama ahora s├й incluye un 'id', pero lo generamos como fallback por si acaso.
+Chat\uMakerAi.Chat.Ollama.pas:217 |     // Im├бgenes y audio se env├нan ambos en el campo 'images' en base64.
+Chat\uMakerAi.Chat.Ollama.pas:23 | // Nombre: Gustavo Enr├нquez
+Chat\uMakerAi.Chat.Ollama.pas:328 |   // 1. Configuraci├│n b├бsica y Modelo
+Chat\uMakerAi.Chat.Ollama.pas:336 |   // Configuramos el cliente HTTP seg├║n la propiedad del componente
+Chat\uMakerAi.Chat.Ollama.pas:344 |   jOptions := TJSonObject.Create; // Objeto para par├бmetros avanzados
+Chat\uMakerAi.Chat.Ollama.pas:348 |     // --- PAR├БMETROS RA├НZ ---
+Chat\uMakerAi.Chat.Ollama.pas:350 |     AJSONObject.AddPair('messages', GetMessages); // Usa GetMessages (revisaremos este despu├йs)
+Chat\uMakerAi.Chat.Ollama.pas:352 |     // Respetamos la configuraci├│n as├нncrona (True/False)
+Chat\uMakerAi.Chat.Ollama.pas:364 |           // Ollama espera el esquema DIRECTAMENTE en el par├бmetro "format".
+Chat\uMakerAi.Chat.Ollama.pas:375 |               JSchema.Free; // Si no es un objeto v├бlido, limpiar
+Chat\uMakerAi.Chat.Ollama.pas:378 |           // Manejo silencioso de errores de parseo, se enviar├б sin formato o ignorado
+Chat\uMakerAi.Chat.Ollama.pas:400 |     // --- PAR├БMETROS "OPTIONS" (Diferencia clave con OpenAI) ---
+Chat\uMakerAi.Chat.Ollama.pas:401 |     // Ollama requiere encapsular estos par├бmetros dentro de 'options'
+Chat\uMakerAi.Chat.Ollama.pas:436 |       jOptions.Free; // Si no se a├▒adi├│ al padre, hay que liberarlo
+Chat\uMakerAi.Chat.Ollama.pas:438 |     // Generaci├│n del String final
+Chat\uMakerAi.Chat.Ollama.pas:443 |     // jOptions se libera autom├бticamente si fue a├▒adido a AJSONObject
+Chat\uMakerAi.Chat.Ollama.pas:516 |     // Esto no funciona en multiarea, as├н que se libera cuando no lo es.
+Chat\uMakerAi.Chat.Ollama.pas:620 |     // Limpieza de buffers para la siguiente petici├│n
+Chat\uMakerAi.Chat.Ollama.pas:648 |     // --- Bucle principal para procesar l├нneas (Ollama env├нa un JSON por l├нnea) ---
+Chat\uMakerAi.Chat.Ollama.pas:707 |     // --- MANEJO DE FRAGMENTO FINAL (sin salto de l├нnea) ---
+Chat\uMakerAi.Chat.Ollama.pas:71 |     // ----- FUNCIONES DE GESTI├УN DE MODELOS  -----------
+Chat\uMakerAi.Chat.Ollama.pas:759 |   // 1. EXTRAER METADATOS Y ESTAD├НSTICAS
+Chat\uMakerAi.Chat.Ollama.pas:761 |   // Ollama usa nombres espec├нficos para los tokens
+Chat\uMakerAi.Chat.Ollama.pas:773 |     // Si no hay mensaje pero el JSON indica que termin├│, disparamos el evento de fin
+Chat\uMakerAi.Chat.Ollama.pas:808 |   // 4. L├УGICA DE LLAMADO A FUNCIONES (TOOLS)
+Chat\uMakerAi.Chat.Ollama.pas:814 |     // A.1 Guardamos el mensaje del asistente (la petici├│n de tool) en el historial
+Chat\uMakerAi.Chat.Ollama.pas:832 |         // A.3 Ejecuci├│n en paralelo de las funciones encontradas
+Chat\uMakerAi.Chat.Ollama.pas:867 |         // A.4 A├▒adir los resultados de las funciones (role: tool) al historial
+Chat\uMakerAi.Chat.Ollama.pas:899 |     // B.1 Extracci├│n autom├бtica de bloques de c├│digo si se solicita
+Chat\uMakerAi.Chat.Ollama.pas:911 |             // Cargamos el c├│digo extra├нdo como un archivo adjunto al mensaje
+Chat\uMakerAi.Chat.Ollama.pas:926 |     // B.3 Gesti├│n del historial (Evitar Doble Add en As├нncrono)
+Chat\uMakerAi.Chat.Ollama.pas:927 |     // En s├йncrono, TAiChat.Run a├▒ade el mensaje al finalizar.
+Chat\uMakerAi.Chat.Ollama.pas:928 |     // En as├нncrono, como el Run ya sali├│, debemos a├▒adirlo aqu├н.
+Chat\uMakerAi.Chat.Ollama.pas:935 |     // B.4 Finalizaci├│n y notificaci├│n a la UI
+Chat\uMakerAi.Chat.Ollama.pas:945 | // ----- FUNCIONES DE GESTI├УN DE MODELOS  -----------
+Chat\uMakerAi.Chat.OpenAi.pas:1060 |   // C) INFORMACI├УN de finalizaci├│n (Finish Reason / Incomplete Details)
+Chat\uMakerAi.Chat.OpenAi.pas:1073 |     // incomplete_details ausente o null: si el estado es completed, finalizaci├│n normal
+Chat\uMakerAi.Chat.OpenAi.pas:2182 |     // --- 2. EJECUCI├УN DE LA PETICI├УN POST ---
+Chat\uMakerAi.Chat.OpenAi.pas:2224 |   FResponseId := ''; // Inicia una nueva conversaci├│n
+Chat\uMakerAi.Chat.OpenAi.pas:2428 |               FTmpToolCallBuffer.Remove(OutputIndex); // doOwnsValues libera BufferTool autom├бticamente
+Chat\uMakerAi.Chat.OpenAi.pas:505 |         // Archivos adjuntos (im├бgenes/PDFs devueltos por el tool MCP)
+Chat\uMakerAi.Chat.OpenAi.pas:507 |         // mensaje user separado, inmediatamente despu├йs del tool result.
+Chat\uMakerAi.Chat.OpenAi.pas:858 |       FreeAndNil(JTextConfig);  // vac├нo, no se usa
+Core\uMakerAi.Chat.Messages.pas:1064 |     // reasoning_content requerido por APIs como DeepSeek y Kimi cuando thinking est├б habilitado.
+Core\uMakerAi.Chat.Messages.pas:1065 |     // Solo se serializa cuando est├б presente (no afecta a providers que no lo usan).
+Core\uMakerAi.Chat.Messages.pas:71 |     MediaFiles: TAiMediaFiles; // Archivos extra├нdos por el tool (ej: im├бgenes devueltas por MCP)
+Core\uMakerAi.Chat.Sanitizer.pas:327 |   // Handles %XX and multi-byte UTF-8 sequences (%C3%A9 тЖТ ├й, %EF%BD%89 тЖТ я╜Й).
+Core\uMakerAi.Chat.Sanitizer.pas:93 | /// Handles multi-byte UTF-8 sequences (%C3%A9 тЖТ ├й, %EF%BD%89 тЖТ я╜Й).
+Core\uMakerAi.Chat.pas:129 |   // -- Par├бmetros TTS (Text-to-Speech) -----------------------------------------
+Core\uMakerAi.Chat.pas:146 |   // -- Par├бmetros Transcripci├│n (STT) -------------------------------------------
+Core\uMakerAi.Chat.pas:163 |   // -- Par├бmetros Generaci├│n de Imagen -----------------------------------------
+Core\uMakerAi.Chat.pas:179 |   // -- Par├бmetros Generaci├│n de Video ------------------------------------------
+Core\uMakerAi.Chat.pas:1910 |       FLastReasoning := ''; // Limpiar para el pr├│ximo round o pr├│xima petici├│n
+Core\uMakerAi.Chat.pas:1929 |       // Anthropic env├нa {"type":"error","error":{"type":"rate_limit_error","message":"..."}}
+Core\uMakerAi.Chat.pas:195 |   // -- Par├бmetros Web Search ----------------------------------------------------
+Core\uMakerAi.Chat.pas:208 |   // -- Configuraci├│n unificada del modelo (ModelCaps/SessionCaps/ThinkingLevel/Format/Tool_Active) --
+Core\uMakerAi.Chat.pas:2113 |   // Implementaci├│n base vac├нa.
+Core\uMakerAi.Chat.pas:2115 |   // sobreescriben este m├йtodo para procesar los bloques {"type":"text"/"thinking",...}.
+Core\uMakerAi.Chat.pas:2947 |         if FMessages.IndexOf(ResMsg) = -1 then // guard: evitar doble-add (ej: Cohere ParseChat ya lo agreg├│)
+Core\uMakerAi.Chat.pas:2954 |         FreeAndNil(ResMsg); // respuesta de tool no se agrega al historial: liberar si somos due├▒os
+Core\uMakerAi.Chat.pas:2978 |       LSanitizeAction := saBlock; // acci├│n por defecto: bloquear
+Core\uMakerAi.Chat.pas:2989 |           ; // contin├║a sin modificar el prompt
+Core\uMakerAi.Chat.pas:359 |     // Extensi├│n para drivers con delta.content como array tipado (ej: Mistral magistral).
+Core\uMakerAi.Chat.pas:360 |     // La base no hace nada; los drivers con formato no-est├бndar lo sobreescriben.
+Core\uMakerAi.Chat.pas:459 |     // -- Par├бmetros de completions (no DFM-streamed) --------------------------------------
+Core\uMakerAi.Chat.pas:515 |     property ModelConfig: TAiModelConfig read FModelConfig; // configuraci├│n unificada del modelo (v3.3)
+Core\uMakerAi.Chat.pas:85 |   // Agrupa todas las herramientas (tools) del chat en un ├║nico objeto persistente.
+Core\uMakerAi.Chat.pas:941 |   // que FOwner sea destruido. Si no, SpeechTool.FFreeNotifies quedar├б con un
+Core\uMakerAi.Chat.pas:942 |   // puntero colgante y llamar├б Notification sobre memoria liberada ? AV.
+Core\uMakerAi.Core.pas:107 |   // Evento para que el desarrollador apruebe o deniegue la instalaci├│n de un paquete MCP v├нa AutoMCP.
+Core\uMakerAi.Core.pas:317 |   // (Gemini, OpenAI, Claude, Ollama) requieren base64 sin saltos de l├нnea.
+Core\uMakerAi.Prompts.pas:23 | // Nombre: Gustavo Enr├нquez
+Core\uMakerAi.Prompts.pas:277 |       // Error de red: retorna vac├нo
+Core\uMakerAi.Prompts.pas:85 |     // Integraci├│n con PPM (registry p├║blico de prompts)
+Core\uMakerAi.Prompts.pas:90 |     // AVersion vac├нo = resuelve la ├║ltima versi├│n disponible.
+Embeddings\uMakerAi.Embeddings.Cohere.pas:118 |     // 1. Construir el cuerpo de la petici├│n JSON
+Embeddings\uMakerAi.Embeddings.Cohere.pas:122 |     // La API espera un array de textos. Creamos uno con el ├║nico input.
+Embeddings\uMakerAi.Embeddings.Cohere.pas:133 |     // Lo a├▒adimos si es un valor v├бlido para Cohere.
+Embeddings\uMakerAi.Embeddings.Cohere.pas:140 |       // Opcional: Lanzar un warning o un error si el usuario especifica una dimensi├│n
+Embeddings\uMakerAi.Embeddings.Cohere.pas:141 |       // que no es v├бlida para este modelo, para evitar confusiones.
+Embeddings\uMakerAi.Embeddings.Cohere.pas:161 |         // 2. Pasar el objeto JSON parseado directamente al m├йtodo de parseo.
+Embeddings\uMakerAi.Embeddings.Cohere.pas:25 | // Nombre: Gustavo Enr├нquez
+Embeddings\uMakerAi.Embeddings.Cohere.pas:53 |     // Este m├йtodo es para procesar la respuesta espec├нfica de Cohere.
+Embeddings\uMakerAi.Embeddings.Cohere.pas:57 |     // Sobrescribimos el m├йtodo principal para la implementaci├│n de Cohere.
+Embeddings\uMakerAi.Embeddings.Cohere.pas:99 |   // Si el evento est├б asignado, se delega la l├│gica (comportamiento de la clase base)
+Embeddings\uMakerAi.Embeddings.Gemini.pas:25 | // Nombre: Gustavo Enr├нquez
+Embeddings\uMakerAi.Embeddings.Generic.pas:150 |     // Campos est├бndar OpenAI-compatible
+Embeddings\uMakerAi.Embeddings.Generic.pas:210 |   // Formato 1 тАФ OpenAI est├бndar: {"data": [{"embedding": [...]}]}
+Embeddings\uMakerAi.Embeddings.Generic.pas:34 | // Driver de embeddings gen├йrico para cualquier endpoint compatible con la API
+Embeddings\uMakerAi.Embeddings.Generic.pas:40 | // Uso m├нnimo:
+Embeddings\uMakerAi.Embeddings.Generic.pas:62 |   // Driver gen├йrico para cualquier API de embeddings compatible con OpenAI.
+Embeddings\uMakerAi.Embeddings.Generic.pas:63 |   // Configura Url, ApiKey y Model en tiempo de dise├▒o o en c├│digo.
+Embeddings\uMakerAi.Embeddings.Generic.pas:66 |   // gen├йricos simult├бneos en el mismo proyecto.
+Embeddings\uMakerAi.Embeddings.Generic.pas:81 |     // Permite usar m├║ltiples instancias apuntando a APIs distintas.
+Embeddings\uMakerAi.Embeddings.LMStudio.pas:25 | // Nombre: Gustavo Enr├нquez
+Embeddings\uMakerAi.Embeddings.Ollama.pas:25 | // Nombre: Gustavo Enr├нquez
+Embeddings\uMakerAi.Embeddings.Ollama.pas:85 |   Model := 'snowflake-arctic-embed'; //Vector[1024]    //Esta es la mejor versi├│n a mayo/2024
+MCPClient\uMakerAi.MCPClient.Core.pas:1147 |     // pueden tardar mucho m├бs que el handshake de inicializaci├│n.
+MCPClient\uMakerAi.MCPClient.Core.pas:1148 |     // M├нnimo 60s; si el par├бmetro Timeout est├б configurado m├бs alto, usarlo.
+MCPClient\uMakerAi.MCPClient.Core.pas:129 |     // Desconecta el servidor (conexi├│n persistente Opci├│n D). Llamar para
+MCPClient\uMakerAi.MCPClient.Core.pas:194 |     // Detiene el proceso servidor y libera la conexi├│n persistente
+MCPClient\uMakerAi.MCPClient.Core.pas:688 |   // Implementaci├│n base vac├нa: las subclases con conexi├│n persistente la sobreescriben
+MCPClient\uMakerAi.MCPClient.Core.pas:707 |   // La conexi├│n persistente se cierra aqu├н autom├бticamente.
+MCPClient\uMakerAi.MCPClient.Core.pas:737 | // --- M├йtodos de Ciclo de Vida Completo ---
+MCPClient\uMakerAi.MCPClient.Core.pas:739 | // --- Opci├│n D: conexi├│n persistente StdIo ---
+MCPClient\uMakerAi.MCPClient.Core.pas:741 | // ListTools y CallTool reutilizan la conexi├│n existente si est├б disponible.
+MCPClient\uMakerAi.MCPClient.Core.pas:743 | //   - El servidor se inicia autom├бticamente en la primera llamada a ListTools o CallTool.
+MCPClient\uMakerAi.MCPClient.Core.pas:744 | //   - Permanece activo para reutilizar la conexi├│n en llamadas siguientes.
+MCPClient\uMakerAi.MCPClient.Core.pas:745 | //   - Se detiene autom├бticamente al destruir el componente (no hace falta llamar Disconnect).
+MCPClient\uMakerAi.MCPClient.Core.pas:746 | //   - Llamar Disconnect() expl├нcitamente solo si se quiere liberar el proceso antes de destruir.
+MCPClient\uMakerAi.MCPClient.Core.pas:755 |     // Si el servidor ya est├б corriendo reutilizamos la conexi├│n
+MCPClient\uMakerAi.MCPClient.Core.pas:783 |     Sleep(200); // Pausa para que el servidor procese la notificaci├│n
+MCPClient\uMakerAi.MCPClient.Core.pas:799 |   // ParseChat lanza m├║ltiples TTask con herramientas del mismo servidor MCP).
+MCPClient\uMakerAi.MCPClient.Core.pas:804 |     // Si el servidor ya est├б corriendo reutilizamos la conexi├│n
+MCPClient\uMakerAi.MCPClient.Core.pas:832 |     Sleep(200); // Pausa para que el servidor procese la notificaci├│n
+MCPClient\uMakerAi.MCPClient.Core.pas:856 |   // Llamar a la versi├│n principal, que ahora es due├▒a de ArgsObject
+MCPClient\uMakerAi.MCPClient.Core.pas:884 |   // FIsRunning=True y FReadThread/FInteractiveProcess asignados pero inv├бlidos.
+MCPClient\uMakerAi.MCPClient.Core.pas:885 |   // Invocar Stop garantiza liberaci├│n antes de crear objetos nuevos.
+MCPClient\uMakerAi.MCPClient.Core.pas:951 |   // Salida r├бpida solo si ya estamos completamente detenidos (todos los campos limpios).
+MCPClient\uMakerAi.MCPClient.Core.pas:952 |   // NO usar IsServerRunning aqu├н: si el proceso muri├│ de forma inesperada,
+MCPClient\uMakerAi.MCPClient.Core.pas:964 |     // CR├НTICO: secuencia correcta para evitar AV por race condition.
+MCPClient\uMakerAi.MCPClient.Core.pas:981 |       FReadThread.WaitFor;           // thread ya sali├│ (pipe cerrado + FIsRunning=False)
+MCPClient\uMakerAi.MCPClient.Core.pas:986 |     // Ahora s├н es seguro liberar el objeto del proceso
+MCPServer\UMakerAi.MCPServer.Direct.pas:159 |       // Clonamos el resultado para que el llamador sea el due├▒o
+MCPServer\uMakerAi.MCPServer.Core.pas:1491 |   // Layer 1: Validaci├│n de API Key
+MCPServer\uMakerAi.MCPServer.Core.pas:1510 |   // Layer 2: Evento de validaci├│n custom (JWT, OAuth, DB lookup, etc.)
+MCPServer\uMakerAi.MCPServer.Core.pas:280 |     // Lo hacemos protected para que los descendientes puedan acceder a ├йl directamente.
+MCPServer\uMakerAi.MCPServer.Core.pas:286 |     // Validaci├│n de requests: Layer 1 (API Key) + Layer 2 (evento custom)
+MCPServer\uMakerAi.MCPServer.Core.pas:316 |     // Autenticaci├│n: Si ApiKey est├б configurado, valida "Authorization: Bearer <key>" o "X-API-Key: <key>"
+MCPServer\uMakerAi.MCPServer.Core.pas:318 |     // Evento custom para validaci├│n avanzada (JWT, OAuth, DB lookup, etc.)
+MCPServer\uMakerAi.MCPServer.Core.pas:52 |   // Evento de validaci├│n custom (Layer 2).
+MCPServer\uMakerAi.MCPServer.Core.pas:55 |   // AAuthContext: contexto de autenticaci├│n a poblar.
+MCPServer\uMakerAi.MCPServer.Core.pas:56 |   // AIsValid: True si la petici├│n es v├бlida.
+MCPServer\uMakerAi.MCPServer.Core.pas:664 | // Overload con AuthContext: usado por Http y SSE con autenticaci├│n
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:108 |     // ├Нndice de offsets: compKey ? TNodeFileEntry
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:1154 |     // Reabrir y reconstruir ├нndices
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:117 |     // ├Нndices BM25: entidad ? TAIBm25Index
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:1170 | // Estad├нsticas
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:135 |     // B├║squedas individuales
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:143 |     // Fusi├│n
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:169 |     // ---- Gesti├│n del archivo ----
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:242 |   // Actualizar idioma en todos los ├нndices BM25 existentes
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:248 | // Helpers de clave compuesta y acceso a ├нndices
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:446 | // Reconstrucci├│n de ├нndices desde el archivo (se llama en Open)
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:489 |     // --- ├Нndice de offsets ---
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:523 | // Reconstrucci├│n BM25 tras borrados (solo en memoria, no releer disco)
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:573 |   // Si ya existe, borrarlo primero (sin reconstruir BM25 todav├нa)
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:584 |     // Limpiar de ├нndices en memoria
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:591 |       // No borrar de IDList aqu├н тАФ lo reemplazaremos al agregar
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:611 |   // Preparar embedding (con padding si la dimensi├│n no coincide)
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:636 |     // Actualizar ├нndice de offsets
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:658 |     // Agregar stub al ├нndice BM25
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:688 |     // Limpiar ├нndices
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:696 |     // Reconstruir BM25 solo para esta entidad (en memoria, r├бpido)
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:742 | // B├║squeda vectorial (embeddings desde disco)
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:843 | // B├║squeda l├йxical BM25 (completamente en memoria, stubs)
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:868 |     // Normalizar scores BM25 a [0, 1] usando el m├бximo del conjunto
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:869 |     MaxScore := BM25Results[0].Key; // ya est├б ordenado desc
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:88 |   // Entrada del ├нndice de archivo: offsets para lectura eficiente
+RAG\uMakerAi.RAG.Vector.Driver.BinFile.pas:894 | // Fusi├│n RRF y ponderada
+RAG\uMakerAi.RAG.Vector.Driver.SQLite.pas:1093 |             FVecExtLoaded := False; // sqlite-vec fall├│ en runtime тЖТ fallback
+RAG\uMakerAi.RAG.Vector.Driver.SQLite.pas:1104 |     // Fusi├│n
+RAG\uMakerAi.RAG.Vector.Driver.SQLite.pas:124 |     // Ruta completa a sqlite_vec.dll/.so тАФ vac├нo = modo Delphi (brute-force cosine)
+RAG\uMakerAi.RAG.Vector.Driver.SQLite.pas:287 |           // Aproximaci├│n: valor exacto en la clave indicada
+RAG\uMakerAi.RAG.Vector.Driver.SQLite.pas:468 | // Gesti├│n del esquema
+RAG\uMakerAi.RAG.Vector.Driver.SQLite.pas:565 |     // luego el INSERT dispara _ai тАФ as├н FTS5 queda siempre consistente.
+RAG\uMakerAi.RAG.Vector.Driver.SQLite.pas:617 | // B├║squeda vectorial тАФ similitud coseno en Delphi (brute-force, O(n))
+RAG\uMakerAi.RAG.Vector.Driver.SQLite.pas:618 | // Adecuado para colecciones peque├▒as/medianas (тЙд 50K nodos).
+RAG\uMakerAi.RAG.Vector.Driver.SQLite.pas:737 | // B├║squeda vectorial con sqlite-vec (r├бpida, usa ├нndice vectorial nativo)
+RAG\uMakerAi.RAG.Vector.Driver.SQLite.pas:757 |     // sqlite-vec almacena embeddings como BLOB; aqu├н asumimos la columna
+RAG\uMakerAi.RAG.Vector.Driver.SQLite.pas:759 |     // la versi├│n TEXT con conversi├│n inline.
+RAG\uMakerAi.RAG.Vector.Driver.SQLite.pas:814 | // B├║squeda l├йxical BM25 v├нa FTS5
+RAG\uMakerAi.RAG.Vector.Driver.SQLite.pas:815 | // FTS5 bm25() devuelve valores тЙд 0 (m├бs negativo = m├бs relevante).
+RAG\uMakerAi.RAG.Vector.Driver.SQLite.pas:862 |       // Query FTS inv├бlida (caracteres especiales sin escapar) тАФ devolver vac├нo
+RAG\uMakerAi.RAG.Vector.Driver.SQLite.pas:866 |     // Primera pasada: recopilar candidatos y encontrar m├бximo raw_score
+RAG\uMakerAi.RAG.Vector.Driver.SQLite.pas:867 |     MaxRaw := 1e-12; // evitar divisi├│n por cero
+RAG\uMakerAi.RAG.Vector.Driver.SQLite.pas:878 |         Node.Idx   := RawScore; // temporal тАФ se normaliza despu├йs
+RAG\uMakerAi.RAG.Vector.Driver.SQLite.pas:916 | // Fusi├│n RRF (Reciprocal Rank Fusion)
+RAG\uMakerAi.RAG.Vector.Driver.SQLite.pas:97 |     // Copia un nodo creando una instancia nueva con misma dimensi├│n que ATarget
+RAG\uMakerAi.RAG.Vector.Driver.SQLite.pas:970 | // Fusi├│n ponderada (Weighted Score Fusion)
+Tools\uMakerAi.Gemini.Speech.pas:387 |   // Llamada directa siempre тАФ nunca TTask.Run aqu├н:
+Tools\uMakerAi.Gemini.Speech.pas:390 |   //   Con TTask.Run en sync mode, el caller le├нa ResMsg.Prompt vac├нo y aMediaFile
+Tools\uMakerAi.Gemini.Speech.pas:391 |   //   pod├нa liberarse antes de que el TTask terminara тЖТ access violation.
+Tools\uMakerAi.Gemini.Speech.pas:397 |     ResMsg.Prompt := LText;  // asignaci├│n directa para que InternalRunTranscription lo lea en sync
+Tools\uMakerAi.Tools.Functions.pas:129 |     // Schema completo en JSON (no descompuesto). Cuando est├б asignado,
+Tools\uMakerAi.Tools.Functions.pas:131 |     // ├Ъtil para herramientas con schemas complejos (anyOf, nested objects, etc.)
+Tools\uMakerAi.Tools.Functions.pas:1348 |     // Lazy init: crea las funciones si Active=True pero a├║n no existen.
+Tools\uMakerAi.Tools.Functions.pas:1373 |     if PosAt = 0 then // --- Es una funci├│n local ---
+Tools\uMakerAi.Tools.Functions.pas:1410 |               // Archivos extra├нdos тЖТ ToolCall.MediaFiles (los drivers los transfieren
+Tools\uMakerAi.Tools.Functions.pas:1416 |                 ToolCall.MediaFiles.Add(MF); // original тЖТ ToolMsg (v├нa driver)
+Tools\uMakerAi.Tools.Functions.pas:1457 |         // Setear Response para que el driver pueda enviar un tool result v├бlido al LLM.
+Tools\uMakerAi.Tools.Functions.pas:1534 |                   // Reemplazar separador MCP por --> para visualizaci├│n
+Tools\uMakerAi.Tools.Functions.pas:1728 |     TJsonToolUtils.NormalizeToolsFromSource('local', LocalToolsObj, LAllNormalizedTools); // Usamos 'local' o un nombre vac├нo
+Tools\uMakerAi.Tools.Functions.pas:1731 |     // Lazy init: si Active=True pero las funciones a├║n no existen (ej: Active activado
+Tools\uMakerAi.Tools.Functions.pas:1732 |     // en runtime despu├йs de Loaded), las crea ahora.
+Tools\uMakerAi.Tools.Functions.pas:1876 |   // Carga autom├бtica de servidores MCP desde archivo JSON (formato Claude Desktop)
+Tools\uMakerAi.Tools.Functions.pas:1885 |   // InitAutoMCP puede llamarse manualmente para forzar la inicializaci├│n en runtime.
+Tools\uMakerAi.Tools.Functions.pas:2147 |       // Error de red: retorna vac├нo
+Tools\uMakerAi.Tools.Functions.pas:217 |     // Propagaci├│n autom├бtica al cliente real cuando se editan in-place
+Tools\uMakerAi.Tools.Functions.pas:2183 | // Resuelve la versi├│n a usar: si AVersion no est├б vac├нo la retorna directamente;
+Tools\uMakerAi.Tools.Functions.pas:2184 | // si est├б vac├нo consulta /v1/packages/:name y devuelve la ├║ltima versi├│n no-yanked.
+Tools\uMakerAi.Tools.Functions.pas:2227 | // sin extensi├│n (Linux) en la ra├нz del ZIP.
+Tools\uMakerAi.Tools.Functions.pas:2228 | // Retorna '' si no se pudo extraer o no se encontr├│ el entrypoint.
+Tools\uMakerAi.Tools.Functions.pas:2326 |   // Fallback: primer .exe en Windows, o primer archivo sin extensi├│n en Linux
+Tools\uMakerAi.Tools.Functions.pas:2327 |   // B├║squeda recursiva para soportar paquetes con estructura bin/win64/
+Tools\uMakerAi.Tools.Functions.pas:2357 | // Active=True  тЖТ crea las funciones si a├║n no existen (lazy).
+Tools\uMakerAi.Tools.Functions.pas:2375 | // Fuerza la creaci├│n de las 3 funciones internas PPM en runtime.
+Tools\uMakerAi.Tools.Functions.pas:2378 | // ├Ъtil si el developer necesita que las funciones existan antes del primer chat
+Tools\uMakerAi.Tools.Functions.pas:2495 |         // Aplicar pol├нtica Allowed/Blocked antes de mostrar al LLM
+Tools\uMakerAi.Tools.Functions.pas:2554 |   // Verificar pol├нtica de whitelist/blacklist
+Tools\uMakerAi.Tools.Functions.pas:2570 |   // Si ya est├б registrado: reutilizar salvo que force=true
+Tools\uMakerAi.Tools.Functions.pas:261 |   // TAutoMCPConfig: configuraci├│n agrupada del subsistema AutoMCP / PPM.
+Tools\uMakerAi.Tools.Functions.pas:263 |   // Nota: OnAutoMCPRequest se mantiene en TAiFunctions (pesta├▒a Events del OI).
+Tools\uMakerAi.Tools.Functions.pas:2663 |   // (resultado de la normalizaci├│n en GetTools). Extraemos la parte despu├йs del ├║ltimo MCP_TOOL_SEP.
+Tools\uMakerAi.Tools.Functions.pas:2700 |   // Si el nombre no coincide con ninguna funci├│n conocida, devuelve error con la
+Tools\uMakerAi.Tools.Functions.pas:2701 |   // lista de nombres v├бlidos para que el LLM los use directamente.
+Tools\uMakerAi.Tools.Functions.pas:2731 |       // Si el nombre no se encontr├│ y tenemos la lista, devolver error con nombres v├бlidos
+Tools\uMakerAi.Tools.Functions.pas:2749 |       LArgsJson := TJSONObject.Create; // fallback: objeto vac├нo
+Tools\uMakerAi.Tools.Functions.pas:2762 |         // Propagar archivos media extra├нdos al ToolCall (im├бgenes, audio, etc.)
+Tools\uMakerAi.Tools.Functions.pas:2829 |     // Servidores activos: saltar ppm_search y ppm_install; incluir lista exacta de tools con par├бmetros
+Tools\uMakerAi.Tools.Functions.pas:2859 |                     // Extraer par├бmetros del inputSchema
+Tools\uMakerAi.Tools.Functions.pas:290 |     // Blocked: blacklist de paquetes bloqueados. Si Allowed est├б vac├нo, se permite todo excepto estos.
+Tools\uMakerAi.Tools.Functions.pas:2906 |     // Servidores registrados pero proceso a├║n no iniciado: saltar ppm_search, llamar ppm_install para arrancar
+Tools\uMakerAi.Tools.Functions.pas:2923 | // Eval├║a si un paquete puede instalarse seg├║n la pol├нtica AutoMCP.
+Tools\uMakerAi.Tools.Functions.pas:2924 | // Orden: OnAutoMCPRequest тЖТ Whitelist (si no vac├нa) тЖТ Blacklist тЖТ permitir.
+Tools\uMakerAi.Tools.Functions.pas:293 |     // Vac├нo = detecta autom├бticamente la ruta por defecto de Claude Desktop seg├║n el SO.
+Tools\uMakerAi.Tools.Functions.pas:2930 |   // 1. Callback din├бmico (m├бxima prioridad)
+Tools\uMakerAi.Tools.Functions.pas:295 |     // AutoLoad: si True, importa ConfigFile autom├бticamente al cargar el componente (Loaded).
+Tools\uMakerAi.Tools.Functions.pas:3041 |   // Divide una l├нnea de argumentos respetando comillas dobles.
+Tools\uMakerAi.Tools.Functions.pas:308 |     FInstalledPackages: TStringList; // paquetes ya instalados en esta sesi├│n
+Tools\uMakerAi.Tools.Functions.pas:315 |     // Retorna la ruta efectiva del archivo de configuraci├│n MCP:
+Tools\uMakerAi.Tools.Functions.pas:316 |     // ConfigFile si est├б asignado, sino <exedir>\mcp_servers.json
+Tools\uMakerAi.Tools.Functions.pas:3178 | // Registra un stub StdIo sin descargar. ├Ъtil si el binario ya est├б instalado.
+Tools\uMakerAi.Tools.Functions.pas:3223 |   // Si ya est├б registrado, retornar el existente sin reinstalar
+Tools\uMakerAi.Tools.Functions.pas:3232 |   // Resolver versi├│n
+Tools\uMakerAi.Tools.Functions.pas:3240 |   // Determinar directorio de instalaci├│n
+Tools\uMakerAi.Tools.Functions.pas:3286 |   // Persistir en el archivo de configuraci├│n para que AutoLoad lo cargue en la pr├│xima sesi├│n
+Tools\uMakerAi.Tools.Functions.pas:339 |     // Se llama autom├бticamente desde Loaded si AutoMCP=True.
+Tools\uMakerAi.Tools.Functions.pas:3494 |   // OnFEnvVarsChanged se dispara autom├бticamente por el OnChange de FEnvVars
+Tools\uMakerAi.Tools.Functions.pas:353 |     // Sobrecarga 2: Recibe la ruta del archivo (o usa GetEffectiveMCPConfigPath si est├б vac├нa)
+Tools\uMakerAi.Tools.Functions.pas:3547 |   // OnFParamsChanged se dispara autom├бticamente por el OnChange de FParams
+Tools\uMakerAi.Tools.Functions.pas:357 |     // AFilePath vac├нo = usa GetEffectiveMCPConfigPath.
+Tools\uMakerAi.Tools.Functions.pas:358 |     // Retorna True si guard├│ correctamente.
+Tools\uMakerAi.Tools.Functions.pas:361 |     // Integraci├│n con PPM (registry p├║blico de herramientas MCP)
+Tools\uMakerAi.Tools.Functions.pas:367 |     // ├Ъtil cuando el binario ya est├б instalado manualmente; el llamador debe asignar
+Tools\uMakerAi.Tools.Functions.pas:369 |     // AVersion vac├нo = resuelve la ├║ltima versi├│n disponible.
+Tools\uMakerAi.Tools.Functions.pas:375 |     // AVersion vac├нo    = resuelve la ├║ltima versi├│n disponible.
+Tools\uMakerAi.Tools.Functions.pas:376 |     // AInstallDir vac├нo = ~/.ppm/mcp/<AName>/
+Tools\uMakerAi.Tools.Functions.pas:384 |     // AVersion vac├нo = resuelve la ├║ltima versi├│n disponible.
+Tools\uMakerAi.Tools.Functions.pas:401 |     // AutoMCPConfig: configuraci├│n agrupada del subsistema AutoMCP / PPM.
+Tools\uMakerAi.Tools.Functions.pas:404 |     // OnAutoMCPRequest: callback din├бmico para aprobar/denegar instalaciones en runtime.
+Tools\uMakerAi.Tools.Functions.pas:675 |     // Preferir RawSchemaJson (schema completo) sobre la reconstrucci├│n desde TFunctionParamsItems
+Tools\uMakerAi.Tools.Shell.pas:137 |     // Se compara contra el primer token del comando, sin distinguir may├║sculas.
+Tools\uMakerAi.Tools.Shell.pas:142 |     // Evento disparado cuando un comando es rechazado por la pol├нtica de seguridad.
+Tools\uMakerAi.Tools.Shell.pas:247 |   // Verificar si el primer token est├б en la lista
+Tools\uMakerAi.Tools.Shell.pas:61 |   // Evento disparado cuando un comando es bloqueado por la pol├нtica de seguridad.
+Tools\uMakerAi.Tools.Shell.pas:98 |     // Devuelve '' si el comando est├б permitido, o un mensaje de error si est├б bloqueado.

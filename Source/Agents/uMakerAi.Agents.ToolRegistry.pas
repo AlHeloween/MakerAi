@@ -1,12 +1,12 @@
-﻿// MIT License
+// MIT License
 // MakerAI - Sistema de Agentes v3.4
-// Registro unificado de herramientas IAiTool con integración PPM.
+// Unified registry of IAiTool tools with PPM integration.
 //
 // TAiToolRegistry centraliza todas las herramientas disponibles para
 // el sistema de agentes, independientemente de su origen (legacy TAiToolBase,
-// función LLM, servidor MCP, o herramienta PPM descargada).
+// LLM function, MCP server, or downloaded PPM tool).
 //
-// Autor: Gustavo Enríquez
+// Author: Gustavo Enríquez
 // GitHub: https://github.com/gustavoeenriquez/MakerAi
 
 unit uMakerAi.Agents.ToolRegistry;
@@ -75,10 +75,10 @@ type
                        const ASourceId: String = '');
     function RegisterFromMCP(AClient: TMCPClientCustom): Integer;
     // Registra todas las funciones locales y clientes MCP de un TAiFunctions.
-    // Devuelve el número total de herramientas registradas.
+    // Returns the total number of registered tools.
     function RegisterFromTAiFunctions(AFunctions: TAiFunctions): Integer;
 
-    // --- Búsqueda ---
+    // --- Search ---
     function Find(const AName: String): IAiTool;
     function TryFind(const AName: String; out ATool: IAiTool): Boolean;
     function GetAll: TArray<IAiTool>;
@@ -99,12 +99,12 @@ type
                             AOwner: TComponent = nil): TMCPClientCustom;
     // Para paquetes schema-only (sin binario ejecutable):
     // descarga el .paipkg, extrae los .tool JSON y registra TAiSchemaTool.
-    // Devuelve el número de herramientas registradas (0 = fallo).
+    // Returns the number of registered tools (0 = failure).
     function InstallSchemaFromPPM(const APkg: TAiPPMPackageInfo): Integer;
 
     property PPMBaseUrl: String read FPPMBase write FPPMBase;
     // Directorio donde se guardan los ejecutables descargados.
-    // Si está vacío usa %APPDATA%\MakerAI\tools\
+    // If empty uses %APPDATA%\MakerAI\tools\
     property ToolsDir: String read FToolsDir write FToolsDir;
   end;
 
@@ -131,7 +131,7 @@ uses
 type
   TAiFunctionItem_IAiTool = class(TInterfacedObject, IAiTool)
   private
-    FItem   : TFunctionActionItem;  // ref débil — no owning
+    FItem   : TFunctionActionItem;  // weak ref — not owning
     FSchema : TJSONObject;          // propiedad de este objeto
   public
     constructor Create(AItem: TFunctionActionItem);
@@ -500,7 +500,7 @@ begin
         JResp.Free;
       end;
     except
-      // Error de red: devolver lista vacía
+      // Network error: return empty list
     end;
     Result := List.ToArray;
   finally
@@ -513,7 +513,7 @@ function TAiToolRegistry.GetPPMPackage(const AName, AVersion: String): TAiPPMPac
 // API Registry:
 //   GET /v1/packages/{name}           → { "package": { "name","description","versions":[{"version","yanked"...}] } }
 //   GET /v1/packages/{name}/{version} → { "version": { "package","version","description","download_url" } }
-// Si no hay versión, primero obtenemos la última versión no-yanked del listado,
+// If no version, first get the latest non-yanked version from the listing,
 // luego consultamos el endpoint versionado para obtener el download_url.
 var
   Http      : TNetHTTPClient;
@@ -531,7 +531,7 @@ begin
     Http.Accept := 'application/json';
     LatestVer := AVersion;
 
-    // Si no viene versión, resolver la última desde GET /v1/packages/{name}
+    // If no version comes, resolve the latest from GET /v1/packages/{name}
     if LatestVer = '' then
     begin
       Url := Format('%s/v1/packages/%s', [FPPMBase, AName]);
@@ -547,7 +547,7 @@ begin
             begin
               JPkg.TryGetValue<String>('name',        Result.Name);
               JPkg.TryGetValue<String>('description', Result.Description);
-              // Tomar la primera versión no-yanked (el registry las devuelve en orden descendente)
+              // Take the first non-yanked version (the registry returns them in descending order)
               var JVersions: TJSONArray := nil;
               if JPkg.TryGetValue<TJSONArray>('versions', JVersions) then
               begin
@@ -619,7 +619,7 @@ end;
 
 function TAiToolRegistry.DownloadPackage(const APkg: TAiPPMPackageInfo): String;
 // El .paipkg es un ZIP que contiene pai.package (manifiesto INI) + binarios.
-// Descarga, extrae y devuelve el path del ejecutable según [mcp] entrypoint=...
+// Downloads, extracts and returns the executable path according to [mcp] entrypoint=...
 var
   Http        : TNetHTTPClient;
   Stream      : TFileStream;
@@ -644,11 +644,11 @@ begin
 
   if not ForceDirectories(DestDir) then Exit;
 
-  // Directorio de extracción: tools\mcp-nombre\
+  // Extraction directory: tools\mcp-name\
   ExtractDir   := TPath.Combine(DestDir, APkg.Name);
   ManifestPath := TPath.Combine(ExtractDir, 'pai.package');
 
-  // Si ya está extraído, leer entrypoint del manifiesto y devolver
+  // If already extracted, read entrypoint from manifest and return
   if TFile.Exists(ManifestPath) then
   begin
     Ini := TMemIniFile.Create(ManifestPath);
@@ -704,10 +704,10 @@ begin
     end;
     TFile.Delete(PkgPath); // limpiar .paipkg temporal
   except
-    Exit; // extracción fallida
+    Exit; // extraction failed
   end;
 
-  // Leer entrypoint del manifiesto extraído
+  // Read entrypoint from extracted manifest
   if not TFile.Exists(ManifestPath) then Exit;
 
   Ini := TMemIniFile.Create(ManifestPath);
@@ -732,7 +732,7 @@ begin
   Result := nil;
   if APkg.Name = '' then Exit;
 
-  // Si no tenemos DownloadUrl, obtener info completa del paquete vía registry
+  // If no DownloadUrl, get full package info via registry
   var FullPkg: TAiPPMPackageInfo := APkg;
   if FullPkg.DownloadUrl = '' then
     FullPkg := GetPPMPackage(APkg.Name, APkg.Version);

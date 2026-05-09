@@ -1,6 +1,6 @@
-# MakerAI 3.1 Suite — The AI Operating System for Delphi
+# MakerAI 3.1 Suite â€” The AI Operating System for Delphi
 
-🌐 **Official Website:** [https://makerai.cimamaker.com](https://makerai.cimamaker.com)
+ðŸŒ **Official Website:** [https://makerai.cimamaker.com](https://makerai.cimamaker.com)
 
 [![GitHub Stars](https://img.shields.io/github/stars/gustavoeenriquez/MakerAi?style=social)](https://github.com/gustavoeenriquez/MakerAi)
 [![GitHub Issues](https://img.shields.io/github/issues/gustavoeenriquez/MakerAi)](https://github.com/gustavoeenriquez/MakerAi/issues)
@@ -14,51 +14,51 @@ Now featuring support for **GPT-5.1**, **Gemini 3.0**, and **Claude 4.5**, Maker
 
 ---
 
-## 🚀 What's New in MakerAI 3.1.001 (Dec-10-2025)
+## ðŸš€ What's New in MakerAI 3.1.001 (Dec-10-2025)
 
 MakerAI 3.1 represents a massive leap forward in native AI capabilities:
 
-- 🧠 **Next-Gen Models:** Full support for **OpenAI GPT-5.1** & **Sora 2** (Video), **Gemini 3.0** (NanoBanana & Veo 3), and **Claude 4.5**.
-- 🎨 **Professional FMX UI:** New set of FireMonkey visual components for building modern, multimodal chat interfaces (Text + Voice + Vision) effortlessly.
-- 🎯 **High-Precision RAG:** Added **Embedding Rerank** functionality to drastically improve search relevance in large document sets.
-- 🕸️ **RagGraph Engine:** A new graph-based knowledge engine that goes beyond vector similarity.
-- 🔗 **MCP Server Framework:** Create your own MCP Servers natively using **SSE** or **DataSnap**.
+- ðŸ§  **Next-Gen Models:** Full support for **OpenAI GPT-5.1** & **Sora 2** (Video), **Gemini 3.0** (NanoBanana & Veo 3), and **Claude 4.5**.
+- ðŸŽ¨ **Professional FMX UI:** New set of FireMonkey visual components for building modern, multimodal chat interfaces (Text + Voice + Vision) effortlessly.
+- ðŸŽ¯ **High-Precision RAG:** Added **Embedding Rerank** functionality to drastically improve search relevance in large document sets.
+- ðŸ•¸ï¸ **RagGraph Engine:** A new graph-based knowledge engine that goes beyond vector similarity.
+- ðŸ”— **MCP Server Framework:** Create your own MCP Servers natively using **SSE** or **DataSnap**.
 
 ---
 
-## 📊 Feature Support Matrix
+## ðŸ“Š Feature Support Matrix
 
 Overview of capabilities across supported providers in MakerAI 3.1.
 
 | Feature Category | Feature | OpenAI (GPT-5.1) | Claude (4.5) | Gemini (3.0) | Ollama (Local) | LM Studio | Groq | DeepSeek | Kimi 2 |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Chat** | Text Generation | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| | JSON Mode | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
-| | JSON Schema | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ |
-| **Input** | Image Input | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
-| | PDF / Files | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| | Video Input | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| | Audio Input | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **Output (Gen)** | Image Gen | ✅ | ❌ | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ |
-| | Video Gen (**Sora 2/Veo 3**) | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| | Audio (TTS) | ⚠️ | ❌ | ⚠️ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **Tools** | Function Calling | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| | Web Search | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ |
-| | Code Interpreter | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| | Computer Use | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **MakerAI Native** | **RAG (Vector/Graph)** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| | **MCP Client/Server**| ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| | **Agents/Voice** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Chat** | Text Generation | âœ… | âœ… | âœ… | âœ… | âœ… | âœ… | âœ… | âœ… |
+| | JSON Mode | âœ… | âŒ | âœ… | âœ… | âŒ | âŒ | âŒ | âœ… |
+| | JSON Schema | âœ… | âœ… | âœ… | âœ… | âŒ | âœ… | âŒ | âŒ |
+| **Input** | Image Input | âœ… | âœ… | âœ… | âœ… | âœ… | âœ… | âŒ | âœ… |
+| | PDF / Files | âœ… | âœ… | âœ… | âŒ | âŒ | âŒ | âŒ | âŒ |
+| | Video Input | âœ… | âŒ | âœ… | âŒ | âŒ | âŒ | âŒ | âŒ |
+| | Audio Input | âœ… | âŒ | âœ… | âŒ | âŒ | âŒ | âŒ | âŒ |
+| **Output (Gen)** | Image Gen | âœ… | âŒ | âœ… | âŒ | âŒ | âœ… | âŒ | âŒ |
+| | Video Gen (**Sora 2/Veo 3**) | âœ… | âŒ | âœ… | âŒ | âŒ | âŒ | âŒ | âŒ |
+| | Audio (TTS) | âš ï¸ | âŒ | âš ï¸ | âŒ | âŒ | âŒ | âŒ | âŒ |
+| **Tools** | Function Calling | âœ… | âœ… | âœ… | âœ… | âœ… | âœ… | âœ… | âœ… |
+| | Web Search | âœ… | âœ… | âœ… | âŒ | âŒ | âœ… | âŒ | âŒ |
+| | Code Interpreter | âœ… | âœ… | âœ… | âŒ | âŒ | âŒ | âŒ | âŒ |
+| | Computer Use | âŒ | âœ… | âŒ | âŒ | âŒ | âŒ | âŒ | âŒ |
+| **MakerAI Native** | **RAG (Vector/Graph)** | âœ… | âœ… | âœ… | âœ… | âœ… | âœ… | âœ… | âœ… |
+| | **MCP Client/Server**| âœ… | âœ… | âœ… | âœ… | âœ… | âœ… | âœ… | âœ… |
+| | **Agents/Voice** | âœ… | âœ… | âœ… | âœ… | âœ… | âœ… | âœ… | âœ… |
 
-> **Legend:** ✅ = Full Support (Sync & Async) | ⚠️ = Partial Support (Sync Only) | ❌ = Not Supported by Provider/Driver
+> **Legend:** âœ… = Full Support (Sync & Async) | âš ï¸ = Partial Support (Sync Only) | âŒ = Not Supported by Provider/Driver
 
 ---
 
-## 🛠️ MakerAI 3.1 Core Modules & Components
+## ðŸ› ï¸ MakerAI 3.1 Core Modules & Components
 
 The suite is composed of non-visual and visual components designed for maximum modularity.
 
-### 🌐 Universal Connectivity & LLMs (AiConnection V3)
+### ðŸŒ Universal Connectivity & LLMs (AiConnection V3)
 
 | Component | Description |
 |:---|:---|
@@ -72,7 +72,7 @@ The suite is composed of non-visual and visual components designed for maximum m
 | `TAIChatGroq` | Driver for Groq (LPU high-speed processing). |
 | `TAIChatDeepSeek` | Driver for DeepSeek AI. |
 
-### 🎨 Visual Multimodal Interface (FMX Only)
+### ðŸŽ¨ Visual Multimodal Interface (FMX Only)
 
 | Component | Description |
 |:---|:---|
@@ -80,7 +80,7 @@ The suite is composed of non-visual and visual components designed for maximum m
 | `TAIMultimodalInput` | An all-in-one input bar that handles text, voice recording (whisper-ready), and attachment dropping/selection seamlessly. |
 | `VoiceMonitor` | Engine for real-time voice processing, including wake-word detection and progressive transcription. |
 
-### 🧠 Knowledge & Memory Engines (RAG)
+### ðŸ§  Knowledge & Memory Engines (RAG)
 
 | Component | Description |
 |:---|:---|
@@ -88,7 +88,7 @@ The suite is composed of non-visual and visual components designed for maximum m
 | `RAGGraph` | **NEW:** Graph-based RAG system. Creates and queries knowledge graphs for deep context understanding and relationship mapping. |
 | `GraphDB` | Component for administering and querying the graph-based knowledge database. |
 
-### 📞 Tools & Protocol (MCP & Functions)
+### ðŸ“ž Tools & Protocol (MCP & Functions)
 
 | Component | Description |
 |:---|:---|
@@ -98,7 +98,7 @@ The suite is composed of non-visual and visual components designed for maximum m
 
 ---
 
-## 📦 Detailed Installation Guide (Modular V3.0)
+## ðŸ“¦ Detailed Installation Guide (Modular V3.0)
 
 Follow these steps carefully to ensure a correct installation of the core packages.
 
@@ -138,7 +138,7 @@ Compile and Install in this specific order:
 
 ---
 
-## 💡 Usage Examples
+## ðŸ’¡ Usage Examples
 
 ### Example 1: Simple Text Generation with GPT-5.1
 
@@ -224,7 +224,7 @@ end;
 
 ---
 
-## ⚠️ Known Issues & Limitations
+## âš ï¸ Known Issues & Limitations
 
 Please be aware of the following behaviors in version 3.1.0:
 
@@ -236,7 +236,7 @@ Please be aware of the following behaviors in version 3.1.0:
 
 ---
 
-## 🔄 Changelog
+## ðŸ”„ Changelog
 
 ### Version 3.1.0 (December 3, 2025) - OFFICIAL RELEASE
 
@@ -263,19 +263,19 @@ Please be aware of the following behaviors in version 3.1.0:
 
 ---
 
-## 🤝 Contributing
+## ðŸ¤ Contributing
 
 Contributions are welcome. Please open an issue or submit a pull request on GitHub.
 
 ---
 
-## 💬 Community & Support
+## ðŸ’¬ Community & Support
 
 - **Official Website:** [https://makerai.cimamaker.com](https://makerai.cimamaker.com)
 - **Email:** gustavoeenriquez@gmail.com
 
 ---
 
-## 📜 License
+## ðŸ“œ License
 
 This project is licensed under the MIT License. See the [LICENSE.txt](LICENSE.txt) file for details.

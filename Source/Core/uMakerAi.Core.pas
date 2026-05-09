@@ -1,4 +1,4 @@
-﻿// MIT License
+// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -104,7 +104,7 @@ Type
   // Evento para notificar cambios de estado del servidor (iniciado, detenido, etc.)
   TMCPStatusEvent = procedure(Sender: TObject; const StatusMsg: string) of object;
 
-  // Evento para que el desarrollador apruebe o deniegue la instalación de un paquete MCP vía AutoMCP.
+  // event for the developer to approve or deny installation of an MCP package via AutoMCP.
   // AAllow = True (default) para permitir, False para bloquear.
   TAutoMCPRequestEvent = procedure(Sender: TObject; const APkgName: string; var AAllow: Boolean) of object;
 
@@ -314,7 +314,7 @@ begin
   Stream.Position := 0;
   Result := TNetEncoding.Base64.EncodeBytesToString(Stream.Memory, Stream.Size);
   // TBase64Encoding inserta CRLF cada 76 chars. Todos los endpoints REST
-  // (Gemini, OpenAI, Claude, Ollama) requieren base64 sin saltos de línea.
+  // (Gemini, OpenAI, Claude, Ollama) require base64 without line breaks.
   Result := StringReplace(Result, #13#10, '', [rfReplaceAll]);
   Result := StringReplace(Result, #10,   '', [rfReplaceAll]);
 end;

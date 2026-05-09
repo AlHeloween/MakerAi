@@ -1,4 +1,4 @@
-﻿unit uMakerAi.Embeddings.Ollama;
+unit uMakerAi.Embeddings.Ollama;
 
 // IT License
 //
@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enríquez
+// Name: Gustavo Enríquez
 // Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -82,7 +82,7 @@ end;
   Model := 'mxbai-embed-large'; //Vector[1024]
   Model := 'nomic-embed-text'; // Vector[768]
   Model := 'all-minilm';      //Vector[384]
-  Model := 'snowflake-arctic-embed'; //Vector[1024]    //Esta es la mejor versión a mayo/2024
+  Model := 'snowflake-arctic-embed'; //Vector[1024]    //This is the best version as of May/2024
 
   Url para llamado http://IPOLLAMASERVER:11434/
 }

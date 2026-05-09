@@ -216,7 +216,7 @@ begin
     LBody := TStringStream.Create(LRequest.ToJSON, TEncoding.UTF8);
     HTTP.ContentType := 'application/json';
 
-    ReportState(acsReasoning, 'Iniciando generaci?n de video Veo...');
+    ReportState(acsReasoning, 'Starting Veo video generation...');
     LResponse := HTTP.Post(LUrl, LBody);
 
     if LResponse.StatusCode <> 200 then
@@ -227,7 +227,7 @@ begin
     LJSON.Free;
 
     if LOpName.IsEmpty then
-      raise Exception.Create('No se recibi? el nombre de la operaci?n.');
+      raise Exception.Create('Operation name not received.');
 
     // 3. Bucle de Polling
     LPollingUrl := FUrl + LOpName + '?key=' + GetApiKey;
@@ -236,7 +236,7 @@ begin
     while not LIsDone do
     begin
       Sleep(10000); // Esperar 10 segundos
-      ReportState(acsReasoning, 'Procesando video en los servidores de Google...');
+      ReportState(acsReasoning, 'Processing video on Google servers...');
 
       LResponse := HTTP.Get(LPollingUrl);
       if LResponse.StatusCode = 200 then
@@ -247,7 +247,7 @@ begin
           if LIsDone then
           begin
             if LJSON.TryGetValue<TJSONObject>('error', LErrorObj) then
-              raise Exception.Create('Error en la operaci?n: ' + LErrorObj.ToJSON);
+              raise Exception.Create('Error in operation: ' + LErrorObj.ToJSON);
 
             LVideoUri := LJSON.GetValue<string>('response.generateVideoResponse.generatedSamples[0].video.uri', '');
           end;

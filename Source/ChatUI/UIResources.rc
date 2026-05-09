@@ -2,12 +2,12 @@
 // Archivo de Recursos para el Componente ChatInput
 //------------------------------------------------------------------------------
 
-// --- Im·genes para botones individuales ---
+// --- Im√°genes para botones individuales ---
 BTN_MENU_PNG           RCDATA "Resources/Plus_48px.png"
 BTN_SEND_PNG           RCDATA "Resources/Play_52px.png"
 BTN_SOUND_PNG          RCDATA "Resources/Audio Wave_64px.png"
 
-// --- Im·genes para TImageList1 (Men˙ y tipos de archivo) ---
+// --- Im√°genes para TImageList1 (Men√∫ y tipos de archivo) ---
 IMG_PASTE_PNG          RCDATA "Resources/Paste_64px.png"
 IMG_UPLOAD_PNG         RCDATA "Resources/Upload_52px.png"
 IMG_SCREENSHOT_PNG     RCDATA "Resources/Screenshot_64px.png"
@@ -26,7 +26,7 @@ IMG_PLAY_PNG           RCDATA "Resources/Play_50px.png"
 IMG_CANCEL_PNG         RCDATA "Resources/Cancel_48px.png"
 
 
-// --- Im·genes para TImageListVoice (Estados del micrÛfono) ---
+// --- Im√°genes para TImageListVoice (Estados del micr√≥fono) ---
 MIC_INACTIVO_PNG       RCDATA "Resources/mic_gris.png"
 MIC_PREPARING_PNG      RCDATA "Resources/mic_rojo.png"     // O el que uses para 'Preparing'
 MIC_LISTENING_PNG      RCDATA "Resources/mic_verde.png"

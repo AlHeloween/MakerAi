@@ -1,4 +1,4 @@
-﻿unit uMakerAi.Chat.OpenAi;
+unit uMakerAi.Chat.OpenAi;
 
 // MIT License
 //
@@ -502,9 +502,9 @@ var
         JToolOutObj.AddPair('output', Msg.Prompt);
         TargetArray.Add(JToolOutObj);
 
-        // Archivos adjuntos (imágenes/PDFs devueltos por el tool MCP)
-        // La Responses API no admite binarios en function_call_output → van en un
-        // mensaje user separado, inmediatamente después del tool result.
+        // Attached files (images/PDFs returned by MCP tool)
+        // La Responses API no admite binarios en function_call_output ? van en un
+        // separate user message, immediately after the tool result.
         var LMediaArr2 := Msg.MediaFiles.GetMediaList([Tfc_Image, Tfc_pdf], False);
         if Length(LMediaArr2) > 0 then
         begin
@@ -855,7 +855,7 @@ JFormatConfig := Nil;
         JTextConfig.Free;  // ya existe 'text', no se puede agregar
     end
     else
-      FreeAndNil(JTextConfig);  // vacío, no se usa
+      FreeAndNil(JTextConfig);  // empty, not used
 
 
 
@@ -1057,7 +1057,7 @@ begin
     ResMsg.Model := SVal;
 
 
-  // C) INFORMACIÓN de finalización (Finish Reason / Incomplete Details)
+  // C) COMPLETION INFO (Finish Reason / Incomplete Details)
   // incomplete_details puede venir como null en el JSON; usar TJSONValue evita
   // el fallo del typecast cuando el valor no es un objeto.
   var JVal: TJSONValue;
@@ -1070,7 +1070,7 @@ begin
   end
   else
   begin
-    // incomplete_details ausente o null: si el estado es completed, finalización normal
+    // incomplete_details absent or null: if status is completed, normal completion
     if FResponseStatus = 'completed' then
       ResMsg.FinishReason := 'stop';
   end;
@@ -1990,7 +1990,7 @@ begin
         Result := aMediaFile.FileName;
       end
       else
-        raise Exception.Create('El servidor devolvi? un stream vac?o.');
+        raise Exception.Create('The server returned an empty stream.');
     end
     else
       raise Exception.CreateFmt('Error downloading file (%d): %s', [LResponse.StatusCode, LResponse.StatusText]);
@@ -2117,7 +2117,7 @@ var
 begin
   Result := '';
   if not Assigned(aMediaFile) or (aMediaFile.Content.Size = 0) then
-    raise Exception.Create('Se necesita un archivo de audio con contenido para la transcripci?n.');
+    raise Exception.Create('An audio file with content is needed for transcription.');
 
   sUrl := Url + 'audio/transcriptions';
 
@@ -2179,7 +2179,7 @@ begin
 
     // TODO: Async transcription no implementado. Solo modo sincrono.
 
-    // --- 2. EJECUCIÓN DE LA PETICIÓN POST ---
+    // --- 2. POST REQUEST EXECUTION ---
     begin
 
       Res := Client.Post(sUrl, Body, LResponseStream, Headers);
@@ -2221,7 +2221,7 @@ end;
 procedure TAiOpenChat.NewChat;
 begin
   // TODO: DeleteAllUploadedFiles desactivado — OpenAI no persiste archivos entre sesiones
-  FResponseId := ''; // Inicia una nueva conversación
+  FResponseId := ''; // Starts a new conversation
   inherited;
 end;
 
@@ -2425,7 +2425,7 @@ begin
               ToolCall.Id := BufferTool.GetValue<string>('call_id');
               ToolCall.Name := ToolName;
               ToolCall.Arguments := BufferTool.GetValue<string>('arguments');
-              FTmpToolCallBuffer.Remove(OutputIndex); // doOwnsValues libera BufferTool automáticamente
+              FTmpToolCallBuffer.Remove(OutputIndex); // doOwnsValues frees BufferTool automatically
 
               DoCallFunction(ToolCall);
 

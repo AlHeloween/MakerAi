@@ -12,10 +12,10 @@ MCPClient implements the Model Context Protocol (MCP) client for MakerAI, enabli
 
 ```text
 TMCPClientCustom (Abstract Base)
-├── TMCPClientStdIo   - Local subprocess via stdin/stdout pipes
-├── TMCPClientHttp    - Remote server via HTTP POST JSON-RPC
-├── TMCPClientSSE     - Bidirectional Server-Sent Events streaming
-└── TMCPClientMakerAi - DataSnap-wrapped REST API variant
+â”œâ”€â”€ TMCPClientStdIo   - Local subprocess via stdin/stdout pipes
+â”œâ”€â”€ TMCPClientHttp    - Remote server via HTTP POST JSON-RPC
+â”œâ”€â”€ TMCPClientSSE     - Bidirectional Server-Sent Events streaming
+â””â”€â”€ TMCPClientMakerAi - DataSnap-wrapped REST API variant
 ```
 
 ### Transport Types

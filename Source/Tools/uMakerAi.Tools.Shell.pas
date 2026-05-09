@@ -1,4 +1,4 @@
-﻿// MIT License
+// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -58,7 +58,7 @@ type
   // ssmAllowList : solo permite los comandos de la lista; el resto se bloquea
   TShellSecurityMode = (ssmNone, ssmBlockList, ssmAllowList);
 
-  // Evento disparado cuando un comando es bloqueado por la política de seguridad.
+  // Event fired when a command is blocked by the security policy.
   // AErrorMessage puede modificarse para personalizar el mensaje devuelto al LLM.
   TAiShellSecurityEvent = procedure(Sender: TObject; const Command: string; const CallId: string; var AErrorMessage: string) of object;
 
@@ -95,7 +95,7 @@ type
     procedure SetEnvironment(const Value: TStringList);
     procedure SetSecurityList(const Value: TStringList);
 
-    // Devuelve '' si el comando está permitido, o un mensaje de error si está bloqueado.
+    // Returns '' if the command is allowed, or an error message if blocked.
     // Compara el primer token del comando (nombre del ejecutable/comando) contra FSecurityList.
     function CheckSecurity(const ACommand, ACallId: string): string;
 
@@ -134,12 +134,12 @@ type
     // Lista de comandos para el modo activo.
     //   ssmBlockList: nombres de comandos bloqueados (ej: 'rm', 'del', 'format')
     //   ssmAllowList: nombres de comandos permitidos (ej: 'dir', 'ls', 'echo')
-    // Se compara contra el primer token del comando, sin distinguir mayúsculas.
+    // Compares against the first command token, case-insensitive.
     property SecurityList: TStringList read FSecurityList write SetSecurityList;
 
     property OnCommand: TAiShellCommandEvent read FOnCommand write FOnCommand;
     property OnConsoleLog: TAiShellLogEvent read FOnConsoleLog write FOnConsoleLog;
-    // Evento disparado cuando un comando es rechazado por la política de seguridad.
+    // Event fired when a command is rejected by the security policy.
     property OnSecurityViolation: TAiShellSecurityEvent read FOnSecurityViolation write FOnSecurityViolation;
   end;
 
@@ -244,7 +244,7 @@ begin
   if SpacePos > 0 then
     FirstWord := Copy(FirstWord, 1, SpacePos - 1);
 
-  // Verificar si el primer token está en la lista
+  // Check if the first token is in the list
   IsInList := False;
   for I := 0 to FSecurityList.Count - 1 do
   begin

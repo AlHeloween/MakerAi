@@ -53,7 +53,7 @@ class function CreateInstance(Sender: TComponent): TAiChat; override;
 Register in `uMakerAi.Chat.Initializations.pas`.
 
 ### Chat State Machine
-All chat implementations follow: `acsIdle → acsConnecting → [acsReasoning] → acsWriting → [acsToolCalling] → acsFinished/acsError`
+All chat implementations follow: `acsIdle â†’ acsConnecting â†’ [acsReasoning] â†’ acsWriting â†’ [acsToolCalling] â†’ acsFinished/acsError`
 
 ### Media File Handling
 `TAiMediaFile` abstracts files across providers. Load with `LoadFromFile()`, attach to messages via `AddMessageAndRun(prompt, role, [mediaFile])`.

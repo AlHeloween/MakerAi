@@ -1,8 +1,8 @@
-﻿// MIT License
+// MIT License
 // MakerAI - Sistema de Agentes v3.4
-// Interfaz unificada de herramientas para el rediseño del sistema de agentes.
+// Unified tool interface for the agent system redesign.
 //
-// Autor: Gustavo Enríquez
+// Author: Gustavo Enríquez
 // GitHub: https://github.com/gustavoeenriquez/MakerAi
 
 unit uMakerAi.Agents.IAiTool;
@@ -34,11 +34,11 @@ type
     function GetName: String;
     function GetDescription: String;
     function GetCategory: String;
-    // Retorna el JSON Schema de parámetros. NO liberar.
+    // Returns the JSON Schema of parameters. Do NOT free.
     function GetSchema: TJSONObject;
     // Ejecuta la herramienta con argumentos JSON. Caller libera el resultado.
     function Execute(const AArgs: TJSONObject): TJSONObject;
-    // Indica si la herramienta está disponible para su uso.
+    // Indicates if the tool is available for use.
     function IsAvailable: Boolean;
 
     property Name        : String       read GetName;
@@ -110,7 +110,7 @@ end;
 
 function TAiToolBase_IAiTool.GetName: String;
 begin
-  // Acceso vía RTTI al nombre publicado de TAiToolBase
+  // Access via RTTI to the published name of TAiToolBase
   if Assigned(FTool) and (FTool is TComponent) then
     Result := TComponent(FTool).Name
   else
@@ -119,7 +119,7 @@ end;
 
 function TAiToolBase_IAiTool.GetDescription: String;
 begin
-  // Intentamos leer la propiedad Description vía RTTI si existe
+  // Try to read the Description property via RTTI if exists
   Result := '';
   if not Assigned(FTool) then Exit;
   try
@@ -168,7 +168,7 @@ begin
 
   Output := '';
 
-  // Llama Execute vía RTTI (firma: Execute(ANode, AInput, var AOutput))
+  // Calls Execute via RTTI (signature: Execute(ANode, AInput, var AOutput))
   try
     var Ctx := TRttiContext.Create;
     try

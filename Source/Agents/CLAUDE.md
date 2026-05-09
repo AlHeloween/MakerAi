@@ -92,10 +92,10 @@ Access via `Blackboard.SetStatus()`/`GetStatus()`.
 ## Durable Execution (Checkpoint / Suspend-Resume)
 
 **Key types** (in `uMakerAi.Agents.Checkpoint`):
-- `IAiCheckpointer` — persistence contract; assign to `TAIAgentManager.Checkpointer`
-- `TAiNullCheckpointer` — no-op (default behavior, no disk writes)
-- `TAiFileCheckpointer` — JSON on disk (`<dir>/<GUID>.checkpoint.json`)
-- `TAiCheckpointSnapshot` — serialized state (blackboard + node/link states + pending steps)
+- `IAiCheckpointer` â€” persistence contract; assign to `TAIAgentManager.Checkpointer`
+- `TAiNullCheckpointer` â€” no-op (default behavior, no disk writes)
+- `TAiFileCheckpointer` â€” JSON on disk (`<dir>/<GUID>.checkpoint.json`)
+- `TAiCheckpointSnapshot` â€” serialized state (blackboard + node/link states + pending steps)
 
 **Suspend a node from `OnExecute`:**
 ```pascal
@@ -103,7 +103,7 @@ procedure MyNodeExecute(Node, Before: TAIAgentsNode; Link: TAIAgentsLink;
   Input: string; var Output: string);
 begin
   Output := Input; // pass-through
-  Node.Suspend('Requiere aprobación', 'Contexto adicional');
+  Node.Suspend('Requiere aprobaciÃ³n', 'Contexto adicional');
 end;
 ```
 
@@ -121,7 +121,7 @@ AgentManager.ResumeThread(ThreadID, 'NombreDelNodo', 'Aprobado');
 ```pascal
 AgentManager.OnSuspend := procedure(Sender: TObject; const ThreadID, NodeName,
   Reason, Context: string) begin
-  ShowMessage('Aprobación requerida: ' + Reason);
+  ShowMessage('AprobaciÃ³n requerida: ' + Reason);
 end;
 ```
 

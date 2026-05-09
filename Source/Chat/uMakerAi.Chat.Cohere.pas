@@ -1,4 +1,4 @@
-﻿// IT License
+// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -916,7 +916,7 @@ begin
         end
         else if LType = 'tool-call-start' then
         begin
-          // v2: tool_calls es un objeto (no array); index en nivel raíz identifica la posición
+          // v2: tool_calls is an object (not array); index at root level identifies the position
           jDelta := nil;
           if JsonData.TryGetValue<TJSonObject>('delta', jDelta) then
           begin
@@ -950,7 +950,7 @@ begin
         else if LType = 'tool-call-delta' then
         begin
           // v2: tool_calls es un objeto (no array) con solo function.arguments; sin id
-          // Usamos index del nivel raíz para localizar el tool call iniciado previamente
+          // Use root level index to locate the previously initiated tool call
           jDelta := nil;
           if JsonData.TryGetValue<TJSonObject>('delta', jDelta) then
           begin
@@ -980,7 +980,7 @@ begin
         end
         else if LType = 'citation-start' then
         begin
-          // v2: citations es un objeto (no array); index en nivel raíz identifica la posición
+          // v2: citations is an object (not array); index at root level identifies the position
           CurrentCitation := TAiMsgCitation.Create;
           try
             jDelta := nil;

@@ -1,4 +1,4 @@
-﻿// MIT License
+// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -156,7 +156,7 @@ begin
     // Extraer el resultado
     if ResponseJSON.TryGetValue('result', ResultValue) then
     begin
-      // Clonamos el resultado para que el llamador sea el dueño
+      // Clone the result so the caller is the owner
       if ResultValue is TJSONObject then
         Result := TJSONObject(ResultValue.Clone)
       else

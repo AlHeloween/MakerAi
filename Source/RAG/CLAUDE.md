@@ -28,19 +28,19 @@ uMakerAi.RAG.Graph.Builder.pas   # Graph construction helpers
 
 ```text
 TAiEmbeddingNode (base embedding container)
-├── TAiRagGraphNode (graph node with edges)
-└── TAiRagGraphEdge (graph edge with weight)
+â”œâ”€â”€ TAiRagGraphNode (graph node with edges)
+â””â”€â”€ TAiRagGraphEdge (graph edge with weight)
 
 TAIEmbeddingIndex (abstract index)
-├── TAIBasicEmbeddingIndex (brute force)
-├── THNSWIndex (HNSW approximate search)
-└── TAIEuclideanDistanceIndex (L2 distance)
+â”œâ”€â”€ TAIBasicEmbeddingIndex (brute force)
+â”œâ”€â”€ THNSWIndex (HNSW approximate search)
+â””â”€â”€ TAIEuclideanDistanceIndex (L2 distance)
 
 TAiVectorStoreDriverBase (abstract DB driver)
-└── [PostgreSQL driver in uMakerAi.RAG.Vector.Driver.Postgres]
+â””â”€â”€ [PostgreSQL driver in uMakerAi.RAG.Vector.Driver.Postgres]
 
 TAiRagGraphDriverBase (abstract graph DB driver)
-└── [PostgreSQL driver in uMakerAi.RAG.Graph.Driver.Postgres]
+â””â”€â”€ [PostgreSQL driver in uMakerAi.RAG.Graph.Driver.Postgres]
 ```
 
 ## Key Patterns
@@ -78,7 +78,7 @@ RETURN TEXT, METADATA, SCORE
 LIMIT 10
 ```
 
-Execution flow: `TVGQLLexer` → `TVGQLParser` → `TVGQLQuery` (AST) → `TVGQLCompiler` → `TVGQLRequest` → `TAiRAGVector.ExecuteVGQL()`
+Execution flow: `TVGQLLexer` â†’ `TVGQLParser` â†’ `TVGQLQuery` (AST) â†’ `TVGQLCompiler` â†’ `TVGQLRequest` â†’ `TAiRAGVector.ExecuteVGQL()`
 
 ### MakerGQL Query Language (Graph)
 

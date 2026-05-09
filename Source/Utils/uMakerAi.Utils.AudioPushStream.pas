@@ -1,4 +1,4 @@
-﻿unit uMakerAi.Utils.AudioPushStream;
+unit uMakerAi.Utils.AudioPushStream;
 
 {******************************************************************************
   UAudioPushStream - Push-Stream Audio Player for Delphi FMX (Cross-Platform)
@@ -201,7 +201,7 @@ type
 implementation
 
 { ============================================================================
-  macOS: tipos auxiliares � deben estar antes de InitAudioQueue
+  macOS: tipos auxiliares ? deben estar antes de InitAudioQueue
   ============================================================================ }
 {$IFDEF MACOS}
 type
@@ -292,7 +292,7 @@ begin
     else if Chunk.ID = 'data' then
     begin
       PCMOffset := Offset;
-      // WAV streaming (OpenAI TTS): chunk size = 0xFFFFFFFF → checar ANTES de asignar a Integer
+      // WAV streaming (OpenAI TTS): chunk size = 0xFFFFFFFF ? checar ANTES de asignar a Integer
       // para evitar Range check error (UInt32 $FFFFFFFF no cabe en Integer con range check ON)
       if Chunk.Size = $FFFFFFFF then
         PCMSize := DataSize - PCMOffset
@@ -498,7 +498,7 @@ begin
       CALLBACK_FUNCTION);
 
     if Res <> MMSYSERR_NOERROR then
-      raise Exception.CreateFmt('waveOutOpen fallo con error %d', [Res]);
+      raise Exception.CreateFmt('waveOutOpen failed with error %d', [Res]);
 
     AllocateBuffers;
 {$ENDIF}
@@ -798,7 +798,7 @@ begin
   Res := AudioQueueNewOutput(@Desc, AudioQueueOutputCallback, Self,
     nil, nil, 0, FAudioQueue);
   if Res <> 0 then
-    raise Exception.CreateFmt('AudioQueueNewOutput fallo: %d', [Res]);
+    raise Exception.CreateFmt('AudioQueueNewOutput failed: %d', [Res]);
 
   for I := 0 to MAX_BUFFERS - 1 do
   begin
@@ -990,7 +990,7 @@ var
   PCMSize  : Integer;
 begin
   if not ParseWavHeader(WavData, WavDataSize, Fmt, PCMOffset, PCMSize) then
-    raise Exception.Create('Formato WAV invalido o no reconocido');
+    raise Exception.Create('Invalid or unrecognized WAV format');
 
   FLock.Enter;
   try
@@ -1039,7 +1039,7 @@ end;
 procedure TAudioPushStream.PushPCMData(const PCMData: Pointer; PCMSize: Integer);
 begin
   if not FIsStarted then
-    raise Exception.Create('Llamar a Start antes de PushPCMData');
+    raise Exception.Create('Call Start before PushPCMData');
 
   FLock.Enter;
   try
@@ -1073,7 +1073,7 @@ const
   kMAI_AudioDevicePropertyStreams   = UInt32($73746D23); // 'stm#'
   kMAI_CFStringEncodingUTF8         = UInt32($08000100);
 
-{ CoreAudio hardware API � no esta en Macapi.AudioToolbox }
+{ CoreAudio hardware API ? no esta en Macapi.AudioToolbox }
 function _AO_GetPropertyDataSize(inObjectID: UInt32; inAddress: Pointer;
   inQualifierDataSize: UInt32; inQualifierData: Pointer;
   out outDataSize: UInt32): Integer; cdecl;
@@ -1166,7 +1166,7 @@ end;
 {$ENDIF MACOS}
 
 { ============================================================================
-  EnumerateDevices � lista de dispositivos de salida por plataforma
+  EnumerateDevices ? lista de dispositivos de salida por plataforma
   ============================================================================ }
 class function TAudioPushStream.EnumerateDevices: TArray<string>;
 var

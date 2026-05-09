@@ -12,7 +12,7 @@ MCPServer is included in the main MakerAI runtime package:
 
 ```text
 Open: Source/Packages/MakerAI.dpk
-Build → Compile
+Build â†’ Compile
 ```
 
 **IDE:** RAD Studio (Delphi 11 Alexandria to 13 Florence)
@@ -54,11 +54,11 @@ curl -X POST http://localhost:8080/mcp \
 
 ```text
 TAiMCPLogicServer (JSON-RPC engine, tool/resource registry)
-    └── TAiMCPServer (TComponent wrapper)
-            ├── TAiMCPHttpServer (stateless HTTP JSON-RPC)
-            ├── TAiMCPSSEHttpServer (bidirectional event streaming)
-            ├── TAiMCPStdioServer (stdin/stdout for subprocess)
-            └── TAiMCPDirectConnection (in-process, zero network)
+    â””â”€â”€ TAiMCPServer (TComponent wrapper)
+            â”œâ”€â”€ TAiMCPHttpServer (stateless HTTP JSON-RPC)
+            â”œâ”€â”€ TAiMCPSSEHttpServer (bidirectional event streaming)
+            â”œâ”€â”€ TAiMCPStdioServer (stdin/stdout for subprocess)
+            â””â”€â”€ TAiMCPDirectConnection (in-process, zero network)
 ```
 
 ### Key Interfaces

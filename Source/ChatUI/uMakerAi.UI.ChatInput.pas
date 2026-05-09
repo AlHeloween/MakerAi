@@ -523,7 +523,7 @@ procedure TChatInput.AIVoiceMonitorError(Sender: TObject; const ErrorMessage: st
 begin
   // MemoLog.Lines.Add('ERROR: ' + ErrorMessage);
   AddStatus('Error-' + ErrorMessage);
-  ShowMessage('Ocurri� un error en el monitor de audio: ' + sLineBreak + ErrorMessage);
+  ShowMessage('An error occurred in the audio monitor: ' + sLineBreak + ErrorMessage);
   StopMonitoring;
 end;
 
@@ -1179,7 +1179,7 @@ begin
 
       if not TFile.Exists(FileName) then
       begin
-        ShowMessage('El archivo seleccionado no existe.');
+        ShowMessage('The selected file does not exist.');
         Exit;
       end;
 
@@ -1288,7 +1288,7 @@ var
 begin
   if not TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService, IInterface(ClipboardService)) then
   begin
-    ShowMessage('El servicio de portapapeles no est� disponible.');
+    ShowMessage('Clipboard service is not available.');
     FMemoPrompt.SetFocus;
     Exit;
   end;

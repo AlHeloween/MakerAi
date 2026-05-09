@@ -1,4 +1,4 @@
-﻿// IT License
+// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -924,11 +924,11 @@ begin
   ABubble := Sender as TChatBubble;
   LNow := TThread.GetTickCount;
 
-  // Throttle: máximo ~15 recálculos/seg durante streaming.
+  // Throttle: max ~15 recalcs/sec during streaming.
   // Evita que cada chunk dispare un resize+scroll completo.
   if LNow - FLastRecalcTick < 66 then
   begin
-    // Guardar burbuja pendiente; encolar recálculo diferido si no hay uno ya encolado
+    // Save pending bubble; enqueue deferred recalc if none already enqueued
     FRecalcPendingBubble := ABubble;
     if not FRecalcQueued then
     begin

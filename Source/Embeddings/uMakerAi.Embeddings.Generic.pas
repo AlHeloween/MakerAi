@@ -1,4 +1,4 @@
-﻿unit uMakerAi.Embeddings.Generic;
+unit uMakerAi.Embeddings.Generic;
 
 // MIT License
 //
@@ -31,13 +31,13 @@
 // - Youtube: https://www.youtube.com/@cimamaker3945
 // - GitHub: https://github.com/gustavoeenriquez/
 
-// Driver de embeddings genérico para cualquier endpoint compatible con la API
+// Generic embeddings driver for any API-compatible endpoint
 // OpenAI de embeddings (POST /embeddings con body {input, model, dimensions}).
 // Soporta: vLLM, llama.cpp, OpenLLM, Text Embeddings Inference (TEI),
 //          Hugging Face Inference Endpoints, FastEmbed-server, y cualquier
 //          proveedor con interfaz OpenAI-compatible.
 //
-// Uso mínimo:
+// Minimal usage:
 //   EmbConn.DriverName := 'GenericLLM';
 //   EmbConn.Url        := 'http://localhost:8080/v1/';
 //   EmbConn.Model      := 'BAAI/bge-m3';
@@ -59,11 +59,11 @@ uses
   uMakerAi.ParamsRegistry, uMakerAi.Embeddings, uMakerAi.Embeddings.Core;
 
 type
-  // Driver genérico para cualquier API de embeddings compatible con OpenAI.
-  // Configura Url, ApiKey y Model en tiempo de diseño o en código.
+  // Generic driver for any OpenAI-compatible embeddings API.
+  // Configure Url, ApiKey and Model at design time or in code.
   // Permite registrar el mismo driver bajo nombres distintos mediante
   // CustomDriverName, igual que TAiGenericChat, para tener varios proveedores
-  // genéricos simultáneos en el mismo proyecto.
+  // simultaneous generics in the same project.
   TAiGenericEmbeddings = class(TAiEmbeddings)
   private
     FCustomDriverName: string;
@@ -78,7 +78,7 @@ type
     class procedure RegisterDefaultParams(Params: TStrings); override;
   published
     // Nombre con el que este componente se registra en la factory.
-    // Permite usar múltiples instancias apuntando a APIs distintas.
+    // Allows using multiple instances pointing to different APIs.
     // Ej: 'AzureEmb', 'LocalTEI', 'VllmServer'
     property CustomDriverName: string read FCustomDriverName write SetCustomDriverName;
   end;
@@ -147,7 +147,7 @@ begin
   jResp  := nil;
 
   try
-    // Campos estándar OpenAI-compatible
+    // Standard OpenAI-compatible fields
     jReq.AddPair('input', aInput);
     jReq.AddPair('model', aModel);
 
@@ -207,7 +207,7 @@ begin
     jUsage.TryGetValue<Integer>('total_tokens',  Ftotal_tokens);
   end;
 
-  // Formato 1 — OpenAI estándar: {"data": [{"embedding": [...]}]}
+  // Format 1 — Standard OpenAI: {"data": [{"embedding": [...]}]}
   if jObj.TryGetValue<TJSONArray>('data', jData) and (jData.Count > 0) then
   begin
     jFirst := jData.Items[0] as TJSONObject;

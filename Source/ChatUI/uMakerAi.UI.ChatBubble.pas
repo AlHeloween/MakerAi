@@ -1,4 +1,4 @@
-﻿// IT License
+// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -904,8 +904,8 @@ begin
   // 4. Hacemos scroll al final y notificamos cambios
   LMemo.GoToTextEnd;
 
-  // Notificar al padre para recalcular tamaño.
-  // InvalidateLayout es redundante aquí: RecalculateSize ya lo dispara
+  // Notify parent to recalculate size.
+  // InvalidateLayout is redundant here: RecalculateSize already triggers it
   // via Self.Height := ... -> Resize -> InvalidateLayout.
   if Assigned(FOnRecalculateRequired) then
     FOnRecalculateRequired(Self);

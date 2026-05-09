@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 MakerAI is an AI orchestration framework for Delphi developers (v3.3). It provides components for integrating multiple LLM providers (OpenAI, Claude, Gemini, Ollama, Groq, DeepSeek, Kimi, Grok, Mistral, Cohere, LM Studio, GenericLLM), RAG systems (vector and graph-based), MCP servers, autonomous agents, and native ChatTools into Delphi applications. Supports Delphi 10.4 Sydney through 13 Florence (full support: 11 Alexandria+).
 
-**v3.3 highlights:** nuevo sistema de orquestación `TAiCapabilities` (`ModelCaps`/`SessionCaps`) que unifica y simplifica la configuración de capacidades por modelo; soporte de modelos actualizado para todos los providers (Feb 2026).
+**v3.3 highlights:** nuevo sistema de orquestaciÃ³n `TAiCapabilities` (`ModelCaps`/`SessionCaps`) que unifica y simplifica la configuraciÃ³n de capacidades por modelo; soporte de modelos actualizado para todos los providers (Feb 2026).
 
 **Official Website:** https://makerai.cimamaker.com
 
@@ -67,7 +67,7 @@ curl -X POST http://localhost:8080/mcp \
 - **Async transcription**: OpenAI async transcription mode pending
 - **OpenAI Audio streaming events**: `speech.audio.delta` and `transcript.text.delta` parsing not implemented
 - **Mistral OCR annotations**: Feature stub present but unimplemented
-- **Claude Citations (RAG nativo)**: Implementación parcial disponible; soporte completo pendiente
+- **Claude Citations (RAG nativo)**: ImplementaciÃ³n parcial disponible; soporte completo pendiente
 - **Gemini Speech cost estimation**: Token/cost tracking not yet implemented
 
 ## Architecture
@@ -75,32 +75,32 @@ curl -X POST http://localhost:8080/mcp \
 ### Overview Diagram
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│  Application / Demos                                        │
-└──────┬──────────────────┬──────────────────┬────────────────┘
-       │                  │                  │
-┌──────v──────┐  ┌────────v────────┐  ┌──────v──────────────┐
-│  ChatUI     │  │  Agents         │  │  Design-Time (Dsg)  │
-│  TChatList  │  │  TAIAgentManager│  │  Property editors   │
-│  TChatInput │  │  TAIBlackboard  │  │  VCL + DesignIDE    │
-└──────┬──────┘  └────────┬────────┘  └──────┬──────────────┘
-       │                  │                  │
-┌──────v──────────────────v──────────────────v────────────────┐
-│  Chat Drivers                                               │
-│  OpenAI│Claude│Gemini│Ollama│Groq│Mistral│DeepSeek│Kimi│...│
-│  TAiChatConnection (universal connector via DriverName)     │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-┌──────────────────────────v──────────────────────────────────┐
-│  Core Layer                                                 │
-│  TAiChat (abstract) │ TAiMediaFile │ TAiChatMessages        │
-└──────┬───────────────────┬──────────────────┬───────────────┘
-       │                   │                  │
-┌──────v──────┐  ┌─────────v────────┐  ┌──────v──────────────┐
-│  Tools      │  │  RAG             │  │  MCP                │
-│  Functions  │  │  Vectors + Graph │  │  Client + Server    │
-│  Shell      │  │  VQL + GQL       │  │  StdIO/HTTP/SSE     │
-└─────────────┘  └──────────────────┘  └─────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚  Application / Demos                                        â”‚
+â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+       â”‚                  â”‚                  â”‚
+â”Œâ”€â”€â”€â”€â”€â”€vâ”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€vâ”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€vâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚  ChatUI     â”‚  â”‚  Agents         â”‚  â”‚  Design-Time (Dsg)  â”‚
+â”‚  TChatList  â”‚  â”‚  TAIAgentManagerâ”‚  â”‚  Property editors   â”‚
+â”‚  TChatInput â”‚  â”‚  TAIBlackboard  â”‚  â”‚  VCL + DesignIDE    â”‚
+â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+       â”‚                  â”‚                  â”‚
+â”Œâ”€â”€â”€â”€â”€â”€vâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€vâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€vâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚  Chat Drivers                                               â”‚
+â”‚  OpenAIâ”‚Claudeâ”‚Geminiâ”‚Ollamaâ”‚Groqâ”‚Mistralâ”‚DeepSeekâ”‚Kimiâ”‚...â”‚
+â”‚  TAiChatConnection (universal connector via DriverName)     â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                           â”‚
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€vâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚  Core Layer                                                 â”‚
+â”‚  TAiChat (abstract) â”‚ TAiMediaFile â”‚ TAiChatMessages        â”‚
+â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+       â”‚                   â”‚                  â”‚
+â”Œâ”€â”€â”€â”€â”€â”€vâ”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€vâ”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€vâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚  Tools      â”‚  â”‚  RAG             â”‚  â”‚  MCP                â”‚
+â”‚  Functions  â”‚  â”‚  Vectors + Graph â”‚  â”‚  Client + Server    â”‚
+â”‚  Shell      â”‚  â”‚  VQL + GQL       â”‚  â”‚  StdIO/HTTP/SSE     â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ### Core Layers
@@ -152,12 +152,12 @@ curl -X POST http://localhost:8080/mcp \
 **Driver Registration**: Chat drivers register via `uMakerAi.Chat.Initializations.pas` using `TAiChatFactory.Instance.RegisterUserParam()`. Custom drivers inherit from `TAiChat`.
 
 **Model Capabilities Configuration (v3.3)**: Model capabilities are configured per-provider and per-model in `uMakerAi.Chat.Initializations.pas` usando el nuevo sistema unificado:
-- `ModelCaps` (`TAiCapabilities`) — capacidades nativas del modelo vía completions (e.g., `[cap_Image, cap_Reasoning]`)
-- `SessionCaps` (`TAiCapabilities`) — capacidades deseadas en la sesión; **Gap = SessionCaps − ModelCaps** activa bridges automáticamente
-- `ThinkingLevel` — nivel de razonamiento (`tlLow`, `tlMedium`, `tlHigh`)
-- `Tool_Active` — habilita function calling
+- `ModelCaps` (`TAiCapabilities`) â€” capacidades nativas del modelo vÃ­a completions (e.g., `[cap_Image, cap_Reasoning]`)
+- `SessionCaps` (`TAiCapabilities`) â€” capacidades deseadas en la sesiÃ³n; **Gap = SessionCaps âˆ’ ModelCaps** activa bridges automÃ¡ticamente
+- `ThinkingLevel` â€” nivel de razonamiento (`tlLow`, `tlMedium`, `tlHigh`)
+- `Tool_Active` â€” habilita function calling
 
-**API eliminada (no usar en `RegisterUserParam`):** `NativeInputFiles`, `NativeOutputFiles`, `ChatMediaSupports`, `EnabledFeatures` fueron eliminados de la API pública. Existen internamente en el engine (calculados automáticamente desde `ModelCaps`/`SessionCaps` vía `SetModelCaps`/`EnsureNewSystemConfig`), pero NO deben usarse directamente.
+**API eliminada (no usar en `RegisterUserParam`):** `NativeInputFiles`, `NativeOutputFiles`, `ChatMediaSupports`, `EnabledFeatures` fueron eliminados de la API pÃºblica. Existen internamente en el engine (calculados automÃ¡ticamente desde `ModelCaps`/`SessionCaps` vÃ­a `SetModelCaps`/`EnsureNewSystemConfig`), pero NO deben usarse directamente.
 
 ### Agent Graph Execution Model
 

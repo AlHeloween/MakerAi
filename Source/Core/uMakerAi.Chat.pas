@@ -1,4 +1,4 @@
-﻿// MIT License
+// MIT License
 //
 // Copyright (c) 2013 Gustavo Enr?quez - CimaMaker
 //
@@ -82,7 +82,7 @@ type
   TAiSanitizeAction = (saBlock, saAllow, saAllowWrapped);
   TAiSanitizeEvent = procedure(Sender: TObject; const AResult: TSanitizeResult; var AAction: TAiSanitizeAction) of object;
 
-  // Agrupa todas las herramientas (tools) del chat en un único objeto persistente.
+  // Groups all chat tools in a single persistent object.
   // Se asigna a TAiChat.ChatTools y a TAiChatConnection.ChatTools.
   // FOwner es TComponent para ser compatible con ambos.
   TAiChatTools = class(TPersistent)
@@ -126,7 +126,7 @@ type
     property ComputerUseTool: TAiComputerUseTool read FComputerUseTool write SetComputerUseTool;
   end;
 
-  // ── Parámetros TTS (Text-to-Speech) ─────────────────────────────────────────
+  // -- TTS Parameters (Text-to-Speech) -----------------------------------------
   TAiTtsParams = class(TPersistent)
   private
     FVoice: String;
@@ -143,7 +143,7 @@ type
     property Language: String read FLanguage write SetLanguage;
   end;
 
-  // ── Parámetros Transcripción (STT) ───────────────────────────────────────────
+  // -- Transcription Parameters (STT) -------------------------------------------
   TAiTranscriptionParams = class(TPersistent)
   private
     FLanguage: String;
@@ -160,7 +160,7 @@ type
     property TimestampGranularities: String read FTimestampGranularities write SetTimestampGranularities;
   end;
 
-  // ── Parámetros Generación de Imagen ─────────────────────────────────────────
+  // -- Image Generation Parameters -----------------------------------------
   TAiImageGenParams = class(TPersistent)
   private
     FParams: TStrings;
@@ -176,7 +176,7 @@ type
     property Resolution: TAiMediaResolution read FResolution write SetResolution;
   end;
 
-  // ── Parámetros Generación de Video ──────────────────────────────────────────
+  // -- Video Generation Parameters ------------------------------------------
   TAiVideoGenParams = class(TPersistent)
   private
     FParams: TStrings;
@@ -192,7 +192,7 @@ type
     property Resolution: TAiMediaResolution read FResolution write SetResolution;
   end;
 
-  // ── Parámetros Web Search ────────────────────────────────────────────────────
+  // -- Web Search Parameters ----------------------------------------------------
   TAiWebSearchParams = class(TPersistent)
   private
     FParams: TStrings;
@@ -205,7 +205,7 @@ type
     property Params: TStrings read FParams write SetParams;
   end;
 
-  // ── Configuración unificada del modelo (ModelCaps/SessionCaps/ThinkingLevel/Format/Tool_Active) ──
+  // -- Unified model configuration (ModelCaps/SessionCaps/ThinkingLevel/Format/Tool_Active) --
   TAiModelConfig = class(TPersistent)
   private
     FModelCaps: TAiCapabilities;
@@ -356,8 +356,8 @@ type
 
     Procedure OnInternalReceiveData(const Sender: TObject; AContentLength, AReadCount: Int64; var AAbort: Boolean); Virtual;
 
-    // Extensión para drivers con delta.content como array tipado (ej: Mistral magistral).
-    // La base no hace nada; los drivers con formato no-estándar lo sobreescriben.
+    // Extension for drivers with delta.content as typed array (e.g. Mistral magistral).
+    // Base does nothing; drivers with non-standard format override it.
     procedure ParseDeltaContentArray(AContentArr: TJSonArray; jObj: TJSonObject); Virtual;
 
     Procedure OnRequestErrorEvent(const Sender: TObject; const AError: string); Virtual;
@@ -452,11 +452,11 @@ type
     Property LastError: String read FLastError write SetLastError;
     // Backward-compatible shortcut para drivers (apunta a FModelConfig.FTool_Active)
     Property Tool_Active: Boolean read GetTool_Active write SetTool_Active;
-    // ── Propiedades de estado (solo lectura en runtime) ──────────────────────────────────
+    // -- Propiedades de estado (solo lectura en runtime) ----------------------------------
     Property Busy: Boolean Read FBusy;
     Property LastPrompt: String Read FLastPrompt;
     Property LastContent: String Read FLastContent;
-    // ── Parámetros de completions (no DFM-streamed) ──────────────────────────────────────
+    // -- Completions Parameters (no DFM-streamed) --------------------------------------
     Property Logit_bias: String read FLogit_bias write SetLogit_bias;
     Property Logprobs: Boolean read FLogprobs write SetLogprobs;
     Property N: Integer read FN write SetN;
@@ -512,7 +512,7 @@ type
     property ImageParams: TAiImageGenParams read FImageGenParams;
     property VideoParams: TAiVideoGenParams read FVideoGenParams;
     property WebSearchParams: TAiWebSearchParams read FWebSearchParams;
-    property ModelConfig: TAiModelConfig read FModelConfig; // configuración unificada del modelo (v3.3)
+    property ModelConfig: TAiModelConfig read FModelConfig; // unified model configuration (v3.3)
     property OnStateChange: TAiStateChangeEvent read FOnStateChange write FOnStateChange;
     property SanitizerActive: Boolean read FSanitizerActive write SetSanitizerActive default False;
     property OnSanitize: TAiSanitizeEvent read FOnSanitize write SetOnSanitize;
@@ -657,11 +657,11 @@ begin
         DoProcessMediaFile(aMsg.Prompt, MF, Respuesta, Procesado); // Env?a el archivo por si lo quiere procesar otra AI especializada, Ej.
         MF.Procesado := Procesado;
         MF.Transcription := Respuesta;
-        // Guarda las transcripciones en los MediaFile,  luego construye la respuesta definitiva con todos los mediafiles
+        // Saves transcriptions in MediaFile, then builds the definitive response with all mediafiles
       End;
     End;
 
-    FLastPrompt := aMsg.Prompt; // aqui lleva el Prompt Inicial + la conversi?n de los MediaFiles a texto si el usuario lo permite
+    FLastPrompt := aMsg.Prompt; // here goes the Initial Prompt + conversion of MediaFiles to text if the user allows
 
     if Assigned(FOnAddMessage) then
       FOnAddMessage(Self, aMsg, Nil, aMsg.Role, aMsg.Prompt);
@@ -852,7 +852,7 @@ var
 begin
   Result := '';
   if not Assigned(aMediaFile) or (aMediaFile.Content.Size = 0) then
-    raise Exception.Create('Se necesita un archivo de audio con contenido para la transcripci?n.');
+    raise Exception.Create('An audio file with content is needed for transcription.');
   if Assigned(FChatTools.FSpeechTool) and Supports(FChatTools.FSpeechTool, IAiSpeechTool, LTool) then
   begin
     if FChatTools.FSpeechTool is TAiCustomTool then
@@ -938,8 +938,8 @@ end;
 destructor TAiChatTools.Destroy;
 begin
   // Eliminar FOwner de la lista FFreeNotifies de cada tool externo antes de
-  // que FOwner sea destruido. Si no, SpeechTool.FFreeNotifies quedará con un
-  // puntero colgante y llamará Notification sobre memoria liberada → AV.
+  // that FOwner is destroyed. If not, SpeechTool.FFreeNotifies will be left with a
+  // dangling pointer and will call Notification on freed memory тЖТ AV.
   if Assigned(FOwner) then
   begin
     if Assigned(FSpeechTool)     then FSpeechTool.RemoveFreeNotification(FOwner);
@@ -1325,7 +1325,7 @@ begin
   FResponse_format := TAiChatResponseFormat.tiaChatRfText;
   FTemperature := 1;
   FUser := 'user';
-  FSystemPrompt.Text := 'Eres un asistente muy ?til y servicial';
+  FSystemPrompt.Text := 'You are a very helpful and useful assistant';
   FMax_tokens := 3000;
   FUrl := GlOpenAIUrl;
   FTop_p := 1;
@@ -1907,7 +1907,7 @@ Var
         FakeResponseObj.Free;
       end;
 
-      FLastReasoning := ''; // Limpiar para el próximo round o próxima petición
+      FLastReasoning := ''; // Clear for next round or next request
       FBusy := False;
       Exit;
     End;
@@ -1926,7 +1926,7 @@ Var
 
     Try
       // Detectar error de API dentro del stream (ej: 429 rate limit, 500, etc.)
-      // Anthropic envía {"type":"error","error":{"type":"rate_limit_error","message":"..."}}
+      // Anthropic sends {"type":"error","error":{"type":"rate_limit_error","message":"..."}}
       var sStreamErrType: string;
       if jObj.TryGetValue<string>('type', sStreamErrType) and (sStreamErrType = 'error') then
       begin
@@ -2110,9 +2110,9 @@ end;
 
 procedure TAiChat.ParseDeltaContentArray(AContentArr: TJSonArray; jObj: TJSonObject);
 begin
-  // Implementación base vacía.
+  // Empty base implementation.
   // Drivers que reciben delta.content como array tipado (ej: Mistral magistral)
-  // sobreescriben este método para procesar los bloques {"type":"text"/"thinking",...}.
+  // override this method to process {"type":"text"/"thinking",...} blocks.
 end;
 
 procedure TAiChat.OnRequestCompletedEvent(const Sender: TObject; const aResponse: IHTTPResponse);
@@ -2944,14 +2944,14 @@ begin
       Result := ResMsg.Prompt;
       if (AskMsg.Role <> 'tool') and (AskMsg.ToolCallId = '') then
       begin
-        if FMessages.IndexOf(ResMsg) = -1 then // guard: evitar doble-add (ej: Cohere ParseChat ya lo agregó)
+        if FMessages.IndexOf(ResMsg) = -1 then // guard: avoid double-add (e.g. Cohere ParseChat already added it)
         begin
           ResMsg.Id := FMessages.Count + 1;
           FMessages.Add(ResMsg);
         end;
       end
       else if LOwnsResMsg then
-        FreeAndNil(ResMsg); // respuesta de tool no se agrega al historial: liberar si somos dueños
+        FreeAndNil(ResMsg); // tool response not added to history: free if we are owners
     end;
 
   except
@@ -2975,7 +2975,7 @@ begin
     LSanitizeResult := TSanitizerPipeline.Run(AskMsg.Prompt);
     if LSanitizeResult.IsSuspicious then
     begin
-      LSanitizeAction := saBlock; // acción por defecto: bloquear
+      LSanitizeAction := saBlock; // Default action: block
       if Assigned(FOnSanitize) then
         FOnSanitize(Self, LSanitizeResult, LSanitizeAction);
       case LSanitizeAction of
@@ -2986,7 +2986,7 @@ begin
           Exit;
         end;
         saAllow:
-          ; // continúa sin modificar el prompt
+          ; // continues without modifying the prompt
         saAllowWrapped:
           AskMsg.Prompt := LSanitizeResult.WrappedText;
       end;
@@ -3297,7 +3297,7 @@ end;
 function TAiChat.InternalRunNativeTranscription(aMediaFile: TAiMediaFile; ResMsg, AskMsg: TAiChatMessage): String;
 begin
   Result := '';
-  raise Exception.Create('Este driver no tiene transcripción nativa. Asigna un SpeechTool a ChatTools.');
+  raise Exception.Create('This driver has no native transcription. Assign a SpeechTool to ChatTools.');
 end;
 
 function TAiChat.InternalRunNativeImageDescription(aMediaFile: TAiMediaFile; ResMsg, AskMsg: TAiChatMessage): String;
