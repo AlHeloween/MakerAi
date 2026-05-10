@@ -107,7 +107,7 @@ begin
     LContents := TJSONObject.Create.AddPair('parts', TJSONArray.Create.Add(LPart));
     LRequestJson.AddPair('contents', TJSONArray.Create.Add(LContents));
 
-    // 3. Configuraci?n de Herramientas (Grounding)
+    // 3. Tool Configuration (Grounding)
     if FDynamicThreshold > 0 then
     begin
       // MODO DIN?MICO: El modelo decide si buscar en Google o no
@@ -143,7 +143,7 @@ begin
     begin
       LResponseJson := TJSONObject.ParseJSONValue(LResponse.ContentAsString) as TJSONObject;
       try
-        // A. Extraer Texto Principal
+        // A. Extract Main Text
         Result := LResponseJson.GetValue<string>('candidates[0].content.parts[0].text', '');
         LMsg.Prompt := Result;
 
@@ -228,7 +228,7 @@ begin
   // Creamos el mensaje que retornar? con la respuesta y las citas
   Result := TAiChatMessage.Create('', 'assistant');
 
-  // Creamos una instancia temporal de la herramienta para realizar la labor
+  // We create a temporary instance of the tool to perform the task
   LInstance := TAiGeminiWebSearchTool.Create(nil);
   try
     LInstance.ApiKey := AApiKey;

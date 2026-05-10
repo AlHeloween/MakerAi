@@ -23,7 +23,7 @@ unit uMakerAi.Embeddings.Generic;
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enriquez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - Telegram: https://t.me/MakerAi_Delphi_Suite_English
@@ -103,7 +103,7 @@ procedure TAiGenericEmbeddings.SetCustomDriverName(const Value: string);
 begin
   if FCustomDriverName = Value then Exit;
   FCustomDriverName := Value;
-  // Registrar la clase en la factory bajo el nombre personalizado.
+// Register the class in the factory under the custom name.
   // 'GenericLLM' siempre queda registrado (via initialization).
   if Value <> '' then
     TAiEmbeddingFactory.Instance.RegisterDriver(TAiGenericEmbeddings, Value);

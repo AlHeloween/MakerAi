@@ -23,7 +23,7 @@ unit uMakerAi.Embeddings.Cohere;
 // THE SOFTWARE.
 //
 // Name: Gustavo Enríquez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - Telegram: https://t.me/MakerAi_Delphi_Suite_English
@@ -155,7 +155,7 @@ begin
     // 3. Procesar la respuesta
     if Res.StatusCode = 200 then
     begin
-      // 1. Parsear el string de respuesta y castearlo a un TJSONObject.
+      // 1. Parse the response string and cast it to a TJSONObject.
       LResponseJson := TJSonObject.ParseJSONValue(ResponseStream.DataString) as TJSonObject;
       try
         // 2. Pass the parsed JSON object directly to the parse method.
@@ -208,7 +208,7 @@ begin
   Fprompt_tokens := 0;
   Ftotal_tokens := 0;
 
-  // Extraer el uso de tokens
+  // Extract token usage
   if jObj.TryGetValue<TJSonObject>('meta', JMeta) then
     if JMeta.TryGetValue<TJSonObject>('billed_units', JBilledUnits) then
       JBilledUnits.TryGetValue<Integer>('input_tokens', Fprompt_tokens);

@@ -1,4 +1,4 @@
-﻿// IT License
+// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -298,7 +298,7 @@ begin
     );
 end;
 
-{ Encapsulamos la l?gica original en un m?todo interno para reutilizar }
+{ We encapsulate the original logic in an internal method for reuse }
 function TAIWhisper.InternalTranscription(aStream: TMemoryStream; aFileName, aPrompt: String): String;
 begin
   Result := Transcription(aStream, aFileName, aPrompt);

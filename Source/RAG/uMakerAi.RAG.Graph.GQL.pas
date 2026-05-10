@@ -1,4 +1,4 @@
-unit uMakerAi.RAG.Graph.GQL;
+﻿unit uMakerAi.RAG.Graph.GQL;
 
 interface
 
@@ -183,7 +183,7 @@ begin
     Next;
 
   Result.Kind := tkString;
-  // Extraer el texto SIN las comillas
+  // Extract the text WITHOUT the quotes
   Result.Text := Copy(FText, Start, FPos - Start);
   Result.Position := Start - 1; // Posici?n del inicio de la cadena
 
@@ -729,7 +729,7 @@ var
   Edge: TMatchEdgePattern;
   Dir: TGraphDirection;
 begin
-  // 1. Parsear el nodo inicial del patr?n: (a)
+  // 1. Parse the initial node of the pattern: (a)
   SrcNode := ParseNode(AQuery);
 
   // 2. Bucle para relaciones encadenadas.
@@ -738,12 +738,12 @@ begin
   // (un gui?n '-' o una flecha izquierda '<-').
   while FCurrent.Kind in [tkDash, tkArrowLeft] do
   begin
-    // A. Parsear la estructura de la arista -[...]-, ->, <-
+    // A. Parse the edge structure -[...]-, ->, <-
     // Esto nos devuelve el objeto del patr?n de arista y la direcci?n detectada.
     Edge := ParseEdge(Dir);
     Edge.Direction := Dir; // Asignamos la direcci?n al patr?n
 
-    // B. Parsear el nodo siguiente en la cadena
+    // B. Parse the next node in the chain
     DstNode := ParseNode(AQuery);
 
     // C. Crear la cl?usula de emparejamiento (Match Clause)

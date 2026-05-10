@@ -23,7 +23,7 @@ unit uMakerAi.Chat.DeepSeek;
 // THE SOFTWARE.
 //
 // Name: Gustavo Enríquez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi

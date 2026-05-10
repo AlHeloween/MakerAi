@@ -1,4 +1,4 @@
-unit uMakerAi.RAG.Vector.Driver.BinFile;
+﻿unit uMakerAi.RAG.Vector.Driver.BinFile;
 
 {
   TAiMkVecDriver — Driver de archivo binario propio para TAiRAGVector
@@ -357,7 +357,7 @@ begin
   if not Assigned(FStream) and FAutoOpen and (FFilePath <> '') then
     Open;
   if not Assigned(FStream) then
-    raise Exception.Create('TAiMkVecDriver: archivo no abierto. Asigna FilePath y llama a Open().');
+    raise Exception.Create('TAiMkVecDriver: file not open. Assign FilePath and call Open().');
 end;
 
 procedure TAiMkVecDriver.Open;

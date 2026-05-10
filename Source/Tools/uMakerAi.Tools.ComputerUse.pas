@@ -1,4 +1,4 @@
-unit uMakerAi.tools.ComputerUse;
+﻿unit uMakerAi.tools.ComputerUse;
 
 interface
 
@@ -196,7 +196,7 @@ begin
   Result.Url := '';
   SafetyReason := '';
 
-  // Parsear Argumentos JSON
+  // Parse JSON Arguments
   JArgs := TJSONObject.ParseJSONValue(ToolCall.Arguments) as TJSONObject;
   try
     if not Assigned(JArgs) then
@@ -249,7 +249,7 @@ begin
 
     // 3. Extracci?n y Normalizaci?n de Par?metros
 
-    // Extraer Width y Height (y desnormalizarlos tambi?n)
+    // Extract Width and Height (and denormalize them too)
     // Nota: width/height en Gemini tambi?n suelen ser relativos a 1000x1000
     // Si Gemini env?a 288, significa 28.8% del ancho total.
     if JArgs.TryGetValue<Integer>('width', NormX) then
@@ -260,7 +260,7 @@ begin
 
     JArgs.TryGetValue<string>('color', Result.ColorName);
 
-    // Extraer tipo de edici?n
+    // Extract edit type
     JArgs.TryGetValue<string>('edit_type', Result.EditType);
 
     // Coordenadas X, Y
@@ -314,7 +314,7 @@ begin
   ActionResult.ErrorMessage := 'Unknown error';
   ActionResult.CustomOutput := '';
 
-  // 1. Parsear datos y detectar seguridad
+  // 1. Parse data and detect security
   ActionData := ParseAction(ToolCall, SafetyReason);
 
   // 2. Verificaci?n de Seguridad (Human-in-the-loop)

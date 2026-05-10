@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -39,10 +39,10 @@
 // 2. Core: TAiMsgCitation, TAiMsgCitations en TAiChatMessage  [COMPLETADO]
 // 3. Claude.GetMessages: Inyectar "citations": {"enabled": true}  [COMPLETADO]
 // 4. Claude.ProcessStreamChunk: Captura citations_delta  [YA FUNCIONABA]
-// 5. Claude.ParseChat: Parsear char_location, page_location, etc.  [COMPLETADO]
+// 5. Claude.ParseChat: Parse char_location, page_location, etc.  [COMPLETED]
 // Ref: https://docs.anthropic.com/en/docs/build-with-claude/citations
 // -----------------------------------------------------------------------------
-// ------ Herramientas que no se implementar?n por ahora --------------------
+// ------ Tools that will not be implemented for now --------------------
 // 1. https://platform.claude.com/docs/es/agents-and-tools/tool-use/code-execution-tool
 // 2. https://platform.claude.com/docs/es/agents-and-tools/tool-use/fine-grained-tool-streaming
 // 3.
@@ -97,7 +97,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    // Agrega una regla para limpiar herramientas cuando se alcanzan X tokens
+    // Adds a rule to clean tools when X tokens are reached
     procedure AddRule_ClearTools(TriggerTokens: Integer; KeepCount: Integer = 0; ClearAtLeast: Integer = 0);
     function ToJSONObject: TJSONObject;
     function IsEmpty: Boolean;
@@ -184,7 +184,7 @@ type
 
     // M?todo f?cil para configurar la limpieza autom?tica de contexto
     // TriggerTokens: A partir de cu?ntos tokens de entrada se activa la limpieza (ej. 20000)
-    // KeepLast: Cu?ntas interacciones de herramientas recientes conservar (ej. 3)
+    // KeepLast: How many recent tool interactions to keep (e.g. 3)
     procedure ConfigureAutoContextClearing(TriggerTokens: Integer; KeepLast: Integer = 3);
 
     // Acceso a la configuraci?n de contexto
@@ -209,7 +209,7 @@ Const
   CLAUDE_API_VERSION = '2023-06-01';
 
   // --- HEADERS BETA ACTUALIZADOS ---
-  // Herramientas generales (se mantiene)
+  // General tools (kept)
   BETA_HDR_TOOLS = 'tools-2024-05-16';
   // API de Archivos (se mantiene)
   BETA_HDR_FILES = 'files-api-2025-04-14';
@@ -503,7 +503,7 @@ begin
 
   BetaFeatures := TList<string>.Create;
   try
-    // 1. Tools (General) - Se a?ade si hay herramientas activas
+    // 1. Tools (General) - Added if there are active tools
     if Tool_Active then
       BetaFeatures.Add(BETA_HDR_TOOLS);
 
@@ -1353,7 +1353,7 @@ begin
     FMessages.Add(Msg);
   end;
 
-  // 6. Ejecuci?n de Herramientas
+  // 6. Tool Execution
   try
     if LFunciones.Count > 0 then
     begin
@@ -1540,7 +1540,7 @@ begin
             streamBlock.ExtraData.AddPair(Pair.JsonString.Value, Pair.JsonValue.Clone as TJSONValue);
         end;
 
-        // Si es una herramienta, inicializamos la estructura
+        // If it is a tool, we initialize the structure
         if streamBlock.BlockType = 'tool_use' then
         begin
           streamBlock.ToolFunction := TAiToolsFunction.Create;
@@ -1626,7 +1626,7 @@ begin
         blockIndex := jData.GetValue<Integer>('index');
         if FStreamContentBlocks.TryGetValue(blockIndex, streamBlock) then
         begin
-          // Si termin? un bloque de herramienta, parseamos los argumentos JSON acumulados
+          // If a tool block ended, we parse the accumulated JSON arguments
           if streamBlock.BlockType = 'tool_use' then
           begin
             try
@@ -1850,9 +1850,9 @@ begin
   // Limpia configuraciones previas para evitar duplicados
   FContextConfig.Clear;
 
-  // Agregar la regla de limpieza de herramientas
+  // Add the tool cleanup rule
   // TriggerTokens: Cuando el prompt supere este tama?o
-  // KeepLast: Mantener los ?ltimos N usos de herramientas (para no perder contexto inmediato)
+  // KeepLast: Keep the last N tool uses (to not lose immediate context)
   // ClearAtLeast: 0 (Default, deja que Claude decida cu?nto borrar)
   FContextConfig.AddRule_ClearTools(TriggerTokens, KeepLast, 0);
 end;
@@ -1932,7 +1932,7 @@ begin
     LContentArray := TJSonArray.Create;
 
     // -------------------------------------------------------------------------
-    // CASO 1: Resultado de Herramienta (Role: User)
+    // CASE 1: Tool Result (Role: User)
     // -------------------------------------------------------------------------
     if (LMessage.Role = 'user') and (not LMessage.ToolCallId.IsEmpty) then
     begin
@@ -2218,7 +2218,7 @@ begin
       jRes := TJSONObject.ParseJSONValue(Res.ContentAsString) as TJSONObject;
       if Assigned(jRes) then
         try
-          // 4. Parsear la respuesta JSON
+          // 4. Parse the JSON response
           // La estructura es: { "data": [ {"id": "...", ...}, ... ] }
           if jRes.TryGetValue<TJSonArray>('data', jArr) then
           begin
@@ -2226,7 +2226,7 @@ begin
             begin
               if JVal is TJSONObject then
               begin
-                // Extraer el ID del modelo (ej: "claude-sonnet-4-5-20250514")
+                // Extract the model ID (e.g: "claude-sonnet-4-5-20250514")
                 sModel := (JVal as TJSONObject).GetValue<string>('id', '');
                 if sModel <> '' then
                   Result.Add(sModel);
@@ -2441,7 +2441,7 @@ procedure TAiClaudeChat.DoCallFunction(ToolCall: TAiToolsFunction);
 begin
 
   // ---------------------------------------------------------------------------
-  // 1. Interceptar Herramienta BASH / SHELL
+  // 1. Intercept BASH / SHELL Tool
   // ---------------------------------------------------------------------------
   if (ToolCall.Name = 'bash') then
   begin
@@ -2467,7 +2467,7 @@ begin
     Exit;
   end;
 
-  // 2. Interceptar Herramienta de Edici?n Nativa
+  // 2. Intercept Native Editing Tool
   if ((ToolCall.Name = 'str_replace_based_edit_tool') or (ToolCall.Name = 'str_replace_editor')) and Assigned(ChatTools.TextEditorTool) then
   begin
     ToolCall.Response := ChatTools.TextEditorTool.Execute(ToolCall.Arguments);

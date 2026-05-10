@@ -1,10 +1,10 @@
 // MIT License
-// MakerAI - Sistema de Agentes v3.4
+// MakerAI - Agent System v3.4
 // Unified registry of IAiTool tools with PPM integration.
 //
-// TAiToolRegistry centraliza todas las herramientas disponibles para
-// el sistema de agentes, independientemente de su origen (legacy TAiToolBase,
-// LLM function, MCP server, or downloaded PPM tool).
+// TAiToolRegistry centralizes all tools available for
+  // the agent system, regardless of origin (legacy TAiToolBase,
+  // LLM function, MCP server, or downloaded PPM tool).
 //
 // Author: Gustavo Enríquez
 // GitHub: https://github.com/gustavoeenriquez/MakerAi
@@ -27,12 +27,12 @@ uses
 type
 
   { TAiRegistryEntry ------------------------------------------------------------
-    Entrada del registry: herramienta + metadatos de origen.
+    Entry del registry: herramienta + metadatos de origen.
   }
   TAiRegistryEntry = record
     Tool     : IAiTool;
     Origin   : String;  // 'local', 'mcp', 'ppm', 'legacy'
-    SourceId : String;  // nombre del servidor MCP, paquete PPM, etc.
+    SourceId : String;  // MCP server name, PPM package, etc.
   end;
 
   { EAiToolNotFound }
@@ -49,10 +49,10 @@ type
   end;
 
   { TAiToolRegistry -------------------------------------------------------------
-    Registro central de herramientas IAiTool.
+    Central IAiTool tool registry.
 
-    Singleton global: TAiToolRegistry.Instance
-    Limpiar singleton: TAiToolRegistry.DropInstance
+    Global singleton: TAiToolRegistry.Instance
+    Clear singleton: TAiToolRegistry.DropInstance
   }
   TAiToolRegistry = class
   private
@@ -66,7 +66,7 @@ type
     destructor Destroy; override;
 
     class function  Instance: TAiToolRegistry;
-    // Libera el singleton (llamar en finalization o TearDown de tests)
+    // Frees the singleton (call in finalization or test TearDown)
     class procedure DropInstance;
 
     // --- Registro ---
@@ -74,7 +74,7 @@ type
                        const AOrigin: String = 'local';
                        const ASourceId: String = '');
     function RegisterFromMCP(AClient: TMCPClientCustom): Integer;
-    // Registra todas las funciones locales y clientes MCP de un TAiFunctions.
+    // Registers all local functions and MCP clients from a TAiFunctions.
     // Returns the total number of registered tools.
     function RegisterFromTAiFunctions(AFunctions: TAiFunctions): Integer;
 
@@ -92,18 +92,18 @@ type
                        APage: Integer = 1;
                        APerPage: Integer = 20): TArray<TAiPPMPackageInfo>;
     function GetPPMPackage(const AName, AVersion: String): TAiPPMPackageInfo;
-    // Descarga el ejecutable del paquete a ToolsDir (omite si ya existe).
+    // Downloads the package executable to ToolsDir (skips if already exists).
     // Devuelve la ruta completa del ejecutable, o '' si falla.
     function DownloadPackage(const APkg: TAiPPMPackageInfo): String;
     function InstallFromPPM(const APkg: TAiPPMPackageInfo;
                             AOwner: TComponent = nil): TMCPClientCustom;
-    // Para paquetes schema-only (sin binario ejecutable):
+    // For schema-only packages (no executable binary):
     // descarga el .paipkg, extrae los .tool JSON y registra TAiSchemaTool.
     // Returns the number of registered tools (0 = failure).
     function InstallSchemaFromPPM(const APkg: TAiPPMPackageInfo): Integer;
 
     property PPMBaseUrl: String read FPPMBase write FPPMBase;
-    // Directorio donde se guardan los ejecutables descargados.
+    // Directory where downloaded executables are saved.
     // If empty uses %APPDATA%\MakerAI\tools\
     property ToolsDir: String read FToolsDir write FToolsDir;
   end;
@@ -122,11 +122,11 @@ uses
   uMakerAi.Agents.Tools.MCP;
 
 { TAiFunctionItem_IAiTool -----------------------------------------------------
-  Adaptador que expone un TFunctionActionItem (función local de TAiFunctions)
-  como IAiTool para el TAiToolRegistry.
+  Adapter that exposes a TFunctionActionItem (local function from TAiFunctions)
+  as IAiTool for TAiToolRegistry.
 
-  Memoria: no-owning sobre FItem (el TFunctionActionItem vive en TAiFunctions).
-  FSchema es propiedad de este objeto (liberado en destructor).
+  Memory: non-owning over FItem (TFunctionActionItem lives in TAiFunctions).
+  FSchema is property of this object (freed in destructor).
 }
 type
   TAiFunctionItem_IAiTool = class(TInterfacedObject, IAiTool)
@@ -234,9 +234,9 @@ begin
 end;
 
 { TAiSchemaTool ---------------------------------------------------------------
-  Herramienta schema-only (sin binario): lee un .tool JSON del PPM y expone
-  su interfaz como IAiTool. Execute devuelve nil (el llamador usa fallback
-  nativo). IsAvailable = True para que FindMCPToolBySource lo encuentre.
+  Schema-only tool (no binary): reads a .tool JSON from PPM and exposes
+  its interface as IAiTool. Execute returns nil (caller uses native
+  fallback). IsAvailable = True so FindMCPToolBySource finds it.
 }
 type
   TAiSchemaTool = class(TInterfacedObject, IAiTool)
@@ -297,7 +297,7 @@ function TAiSchemaTool.GetSchema:      TJSONObject;  begin Result := FSchema;   
 function TAiSchemaTool.IsAvailable:    Boolean;      begin Result := True;         end;
 function TAiSchemaTool.Execute(const AArgs: TJSONObject): TJSONObject;
 begin
-  Result := nil;  // sin implementacion nativa; el llamador usa fallback
+  Result := nil;  // no native implementation; caller uses fallback
 end;
 
 { TAiToolRegistry }
@@ -366,7 +366,7 @@ begin
   Result := 0;
   if not Assigned(AFunctions) then Exit;
 
-  // Registrar clientes MCP del componente
+  // Register MCP clients from the component
   for I := 0 to AFunctions.MCPClients.Count - 1 do
   begin
     ClientItem := AFunctions.MCPClients[I];
@@ -374,7 +374,7 @@ begin
       Inc(Result, RegisterFromMCP(ClientItem.MCPClient));
   end;
 
-  // Registrar funciones locales habilitadas
+  // Register enabled local functions
   for I := 0 to AFunctions.Functions.Count - 1 do
   begin
     FuncItem := AFunctions.Functions[I];
@@ -390,7 +390,7 @@ end;
 function TAiToolRegistry.Find(const AName: String): IAiTool;
 begin
   if not TryFind(AName, Result) then
-    raise EAiToolNotFound.CreateFmt('Herramienta "%s" no encontrada en el registry.', [AName]);
+    raise EAiToolNotFound.CreateFmt('Tool "%s" not found in registry.', [AName]);
 end;
 
 function TAiToolRegistry.TryFind(const AName: String; out ATool: IAiTool): Boolean;
@@ -479,7 +479,7 @@ begin
       JResp := TJSONObject(TJSONObject.ParseJSONValue(Resp.ContentAsString));
       if not Assigned(JResp) then Exit;
       try
-        // El registry devuelve { "packages": [...], "total", "page", "per_page" }
+        // The registry returns { "packages": [...], "total", "page", "per_page" }
         if not JResp.TryGetValue<TJSONArray>('packages', JData) then Exit;
         for i := 0 to JData.Count - 1 do
         begin
@@ -491,7 +491,7 @@ begin
           JObj.TryGetValue<String>('name',        Pkg.Name);
           JObj.TryGetValue<String>('version',     Pkg.Version);
           JObj.TryGetValue<String>('description', Pkg.Description);
-          // download_url no viene en el search; se obtiene con GetPPMPackage
+          // download_url not in search; obtained via GetPPMPackage
 
           if Pkg.Name <> '' then
             List.Add(Pkg);
@@ -514,7 +514,7 @@ function TAiToolRegistry.GetPPMPackage(const AName, AVersion: String): TAiPPMPac
 //   GET /v1/packages/{name}           → { "package": { "name","description","versions":[{"version","yanked"...}] } }
 //   GET /v1/packages/{name}/{version} → { "version": { "package","version","description","download_url" } }
 // If no version, first get the latest non-yanked version from the listing,
-// luego consultamos el endpoint versionado para obtener el download_url.
+// then consult the versioned endpoint for the download_url.
 var
   Http      : TNetHTTPClient;
   Resp      : IHTTPResponse;
@@ -577,7 +577,7 @@ begin
     if LatestVer = '' then Exit;
     Result.Version := LatestVer;
 
-    // Obtener detalles con download_url desde GET /v1/packages/{name}/{version}
+    // Get version details with download_url from GET /v1/packages/{name}/{version}
     Url := Format('%s/v1/packages/%s/%s', [FPPMBase, Result.Name, LatestVer]);
     try
       Resp := Http.Get(Url);
@@ -586,7 +586,7 @@ begin
       JResp := TJSONObject(TJSONObject.ParseJSONValue(Resp.ContentAsString));
       if not Assigned(JResp) then Exit;
       try
-        // El registry devuelve { "version": { "package","version","description","download_url" } }
+        // The registry returns { "version": { "package","version","description","download_url" } }
         JData := nil;
         if not JResp.TryGetValue<TJSONObject>('version', JData) then
           JData := JResp;
@@ -601,7 +601,7 @@ begin
           Result.Description := STmp;
         if JData.TryGetValue<String>('download_url', STmp) and (STmp <> '') then
         begin
-          // Convertir URL relativa a absoluta
+          // Convert relative URL to absolute
           if STmp[1] = '/' then
             Result.DownloadUrl := FPPMBase + STmp
           else
@@ -618,7 +618,7 @@ begin
 end;
 
 function TAiToolRegistry.DownloadPackage(const APkg: TAiPPMPackageInfo): String;
-// El .paipkg es un ZIP que contiene pai.package (manifiesto INI) + binarios.
+// The .paipkg is a ZIP containing pai.package (INI manifest) + binaries.
 // Downloads, extracts and returns the executable path according to [mcp] entrypoint=...
 var
   Http        : TNetHTTPClient;
@@ -664,7 +664,7 @@ begin
     end;
   end;
 
-  // Descargar el .paipkg (ZIP) — la URL puede redirigir (302)
+  // Download the .paipkg (ZIP) - URL may redirect (302)
   PkgPath := TPath.Combine(DestDir, APkg.Name + '.paipkg');
   Ok      := False;
   Http    := TNetHTTPClient.Create(nil);
@@ -691,7 +691,7 @@ begin
     Exit;
   end;
 
-  // Extraer el ZIP al directorio del paquete
+  // Extract the ZIP to the package directory
   ForceDirectories(ExtractDir);
   try
     Zip := TZipFile.Create;
@@ -702,7 +702,7 @@ begin
     finally
       Zip.Free;
     end;
-    TFile.Delete(PkgPath); // limpiar .paipkg temporal
+    TFile.Delete(PkgPath); // clean up temporary .paipkg
   except
     Exit; // extraction failed
   end;
@@ -742,7 +742,7 @@ begin
     Client.Name    := FullPkg.Name;
     Client.Enabled := True;
 
-    // Preferir descargar el ejecutable si hay DownloadUrl
+    // Prefer downloading the executable if DownloadUrl is available
     if FullPkg.DownloadUrl <> '' then
     begin
       ExePath := DownloadPackage(FullPkg);
@@ -753,7 +753,7 @@ begin
       end;
     end;
 
-    // Fallback: Command/Args del paquete (ej. paquetes npm via npx)
+    // Fallback: Command/Args from package (e.g. npm packages via npx)
     if Client.Params.Values['Command'] = '' then
     begin
       if FullPkg.Command <> '' then
@@ -785,8 +785,8 @@ begin
 end;
 
 function TAiToolRegistry.InstallSchemaFromPPM(const APkg: TAiPPMPackageInfo): Integer;
-// Descarga el .paipkg, extrae los .tool JSON y registra TAiSchemaTool.
-// Si ya fue extraido anteriormente, omite la descarga y reutiliza el dir.
+// Downloads the .paipkg, extracts .tool JSON files and registers TAiSchemaTool.
+// If already extracted previously, skips download and reuses the dir.
 var
   FullPkg     : TAiPPMPackageInfo;
   DestDir     : String;
@@ -822,7 +822,7 @@ begin
   ExtractDir   := TPath.Combine(DestDir, FullPkg.Name);
   ManifestPath := TPath.Combine(ExtractDir, 'pai.package');
 
-  // Solo descargar si aun no fue extraido
+  // Only download if not yet extracted
   if not TFile.Exists(ManifestPath) then
   begin
     PkgPath := TPath.Combine(DestDir, FullPkg.Name + '.paipkg');
@@ -867,7 +867,7 @@ begin
     end;
   end;
 
-  // Buscar archivos .tool y registrar
+  // Search for .tool files and register
   if FindFirst(TPath.Combine(ExtractDir, '*.tool'), faAnyFile, Sr) = 0 then
   try
     repeat

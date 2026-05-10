@@ -1475,7 +1475,7 @@ begin
   try
     Next; // consumir RETURN
 
-    // Parsear campos
+    // Parse fields
     repeat
       case FCurrent.Kind of
         tkText:
@@ -1544,7 +1544,7 @@ begin
     Next; // consumir ORDER
     Expect(tkBy, 'BY despues de ORDER');
 
-    // Parsear lista de campos: campo1 [ASC|DESC], campo2 [ASC|DESC], ...
+    // Parse field list: field1 [ASC|DESC], field2 [ASC|DESC], ...
     repeat
       // Nombre del campo
       if FCurrent.Kind in [tkIdentifier, tkText, tkMetadata, tkScore, tkId, tkRank, tkModel] then

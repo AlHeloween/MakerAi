@@ -1,4 +1,4 @@
-// Pendiente [TODO] //Estimar el costo de la generaci?n ya que no retorna el consumo
+﻿// Pendiente [TODO] //Estimar el costo de la generaci?n ya que no retorna el consumo
 // https://ai.google.dev/gemini-api/docs/pricing
 
 unit uMakerAi.Gemini.Speech;
@@ -468,7 +468,7 @@ class function TAiGeminiSpeechTool.GenerateSpeech(const AApiKey, AText, AVice: s
       if LDummyMsg.MediaFiles.Count > 0 then
       begin
         Result := LDummyMsg.MediaFiles[0];
-        // Importante: Extraer para que no se libere al destruir LDummyMsg
+        // Important: Extract so it is not freed when destroying LDummyMsg
         LDummyMsg.MediaFiles.Extract(Result);
       end;
     finally

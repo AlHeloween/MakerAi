@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr�quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -217,7 +217,7 @@ begin
     End;
   Finally
     If FClient.Asynchronous = False then
-      St.Free; // Esto no funciona en multiarea, as� que se libera cuando no lo es.
+      St.Free; // This doesn't work in multithreading, so it's freed when it's not.
   End;
 end;
 
@@ -246,7 +246,7 @@ begin
     Exit
   end;
 
-  Result := ''; // La funci�n principal no devuelve texto, la imagen va en ResMsg
+  Result := ''; // The main function returns no text, the image goes in ResMsg
   FBusy := True;
   FLastError := '';
   FLastContent := '';
@@ -269,7 +269,7 @@ begin
   LResponseJson := nil;
 
   try
-    LJsonObject.AddPair('model', LModel); // Deber�a ser 'gpt-image-1'
+    LJsonObject.AddPair('model', LModel); // Should be 'gpt-image-1'
     LJsonObject.AddPair('prompt', TJSONString.Create(AskMsg.Prompt));
     LJsonObject.AddPair('n', TJSONNumber.Create(n));
     // LJsonObject.AddPair('response_format', TJSONString.Create('b64_json'));
@@ -362,7 +362,7 @@ begin
             FOnReceiveDataEnd(Self, ResMsg, nil, 'model', '');
 
         except
-          LNewImageFile.Free; // Liberar si algo falla despu�s de crearlo
+          LNewImageFile.Free; // Free if something fails after creating it
           raise;
         end;
       end
@@ -402,7 +402,7 @@ var
   LErrorResponse: string;
 begin
 
-  Result := ''; // La funci�n principal no devuelve texto, la imagen va en ResMsg
+  Result := ''; // The main function returns no text, the image goes in ResMsg
   FBusy := True;
   FLastError := '';
   FLastContent := '';
@@ -481,7 +481,7 @@ begin
             FOnReceiveDataEnd(Self, ResMsg, nil, 'model', '');
 
         except
-          LNewImageFile.Free; // Liberar si algo falla despu�s de crearlo
+          LNewImageFile.Free; // Free if something fails after creating it
           raise;
         end;
       end
@@ -528,14 +528,14 @@ var
   LErrorResponse: string;
   LNewAudioFile: TAiMediaFile;
 begin
-  Result := ''; // La funci�n Run devuelve el texto, que en este caso es vac�o.
+  Result := ''; // The Run function returns the text, which is empty in this case.
   FBusy := True;
   FLastError := '';
   FLastContent := '';
   FLastPrompt := AskMsg.Prompt;
 
   // 1. A�adir el mensaje del usuario al historial para mantener la consistencia
-  if FMessages.IndexOf(AskMsg) < 0 then // Solo lo a�adimos si no est� ya en la lista
+  if FMessages.IndexOf(AskMsg) < 0 then // Only add if not already in the list
   begin
     AskMsg.Id := FMessages.Count + 1;
     FMessages.Add(AskMsg);
@@ -727,7 +727,7 @@ begin
       end
       else
       begin
-        Raise Exception.CreateFmt('Error en la transcripci�n: %d, %s', [Res.StatusCode, Res.ContentAsString]);
+        Raise Exception.CreateFmt('Transcription error: %d, %s', [Res.StatusCode, Res.ContentAsString]);
       end;
     end;
 
@@ -760,11 +760,11 @@ Var
 begin
   // Verificaci�n de mensaje
   if FMessages.Count = 0 then
-    raise Exception.Create('No hay mensajes en el historial para realizar una b�squeda web.');
+    raise Exception.Create('No messages in history to perform a web search.');
 
   LastMessage := GetLastMessage;
   if not Assigned(LastMessage) then
-    raise Exception.Create('No se pudo obtener el �ltimo mensaje para la b�squeda web.');
+    raise Exception.Create('Could not obtain the last message for web search.');
 
   LModel := TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model);
 
@@ -870,16 +870,16 @@ begin
   Response_format := TAiChatResponseFormat.tiaChatRfText;
   Temperature := 1;
   User := 'user';
-  InitialInstructions.Text := 'Eres un asistente muy �til y servicial';
+  InitialInstructions.Text := 'You are a very helpful and friendly assistant';
   Max_tokens := 300;
   Url := GlOpenAIUrl;
   Top_p := 1;
   ResponseTimeOut := 60000;
   Voice := 'alloy';
   voice_format := 'mp3';
-  FStore := False; // no almacene la informaci�n para modelos de distilaci�n o evaluaciones
+  FStore := False; // do not store info for distillation or evaluation models
   FParallel_ToolCalls := True; // Por defecto realiza el llamado en paralelo, esto ahorra tiempo en las respuestas
-  FService_Tier := 'auto'; // posibles valore auto y default  ver API documentaci�n.
+  FService_Tier := 'auto'; // posibles valore auto y default  ver API documentation.
 end;
 
 destructor TAiOpenChat.Destroy;
@@ -1157,7 +1157,7 @@ begin
         JArr := TJSonArray.ParseJSONValue(GetTools(TToolFormat.tfOpenAI).Text) as TJSonArray;
 {$ENDIF}
         if not Assigned(JArr) then
-          Raise Exception.Create('La propiedad Tools tiene un formato JSON inv�lido.')
+          Raise Exception.Create('The Tools property has an invalid JSON format.')
         else
         begin
           AJSONObject.AddPair('tools', JArr);
@@ -1193,7 +1193,7 @@ begin
     end;
 
     AJSONObject.AddPair('user', User);
-    AJSONObject.AddPair('store', FStore); // Para modelos de evaluaci�n
+    AJSONObject.AddPair('store', FStore); // For evaluation models
 
     // --- L�GICA CLAVE: DETERMINAR EL TIPO DE RESPUESTA ---
     if (cap_GenAudio in ModelConfig.SessionCaps) then
@@ -1209,7 +1209,7 @@ begin
       jAudio.AddPair('format', voice_format);
       AJSONObject.AddPair('audio', jAudio);
     end
-    else if cap_Image in ModelConfig.ModelCaps then // Adiciona los par�metros de im�gen
+    else if cap_Image in ModelConfig.ModelCaps then // Adds image parameters
     Begin
       AJSONObject.AddPair('size', '1024x1024');
       var
@@ -1286,7 +1286,7 @@ begin
     // y luego convertimos a String de Delphi (Unicode).
     Res := UTF8ToString(UTF8Encode(AJSONObject.ToJson));
 
-    // Opcional: limpiar el JSON para algunos casos (como barras invertidas)
+// Optional: clean the JSON for some cases (like backslashes)
     Res := StringReplace(Res, '\/', '/', [rfReplaceAll]);
     Result := StringReplace(Res, '\r\n', '', [rfReplaceAll]);
 
@@ -1375,7 +1375,7 @@ begin
     FResponse.Clear;
     FResponse.Position := 0;
 
-    // Limpieza de prefijos si quedaron cortados anteriormente
+    // Prefix cleanup if they were cut off previously
     If Copy(FTmpResponseText, 1, 5) = 'data:' then
       FTmpResponseText := Copy(FTmpResponseText, 6, Length(FTmpResponseText));
 
@@ -1395,7 +1395,7 @@ begin
           FTmpResponseText := '';
         End
         Else
-          sJson := ''; // Esperar m�s datos
+          sJson := ''; // Wait for more data
       End;
 
       // =======================================================================
@@ -1696,7 +1696,7 @@ begin
   if not jObj.TryGetValue<TJSonArray>('choices', choices) or (choices.Count = 0) then
   begin
     // Si no hay 'choices', no hay nada que procesar.
-    FLastError := 'La respuesta de la API no contiene ninguna "choice".';
+    FLastError := 'API response contains no "choice".';
     DoError(FLastError, nil);
     FBusy := False;
     Exit;
@@ -1713,7 +1713,7 @@ begin
       if not JItem.TryGetValue<TJSonObject>('message', jMessage) then
         Continue; // Ir a la siguiente 'choice' si esta no tiene un mensaje
 
-      // --- 2.1. Extraer los componentes del mensaje ---
+      // --- 2.1. Extract message components ---
       Role := jMessage.GetValue<string>('role');
       Respuesta := '';
       sToolCalls := '';
@@ -1747,7 +1747,7 @@ begin
         if not AudioTranscript.IsEmpty then
         begin
           if not Respuesta.IsEmpty then
-            Respuesta := Respuesta + sLineBreak; // A�adir separador si ya hab�a texto
+            Respuesta := Respuesta + sLineBreak; // Add separator if text already exists
           Respuesta := Respuesta + AudioTranscript;
         end;
       end;
@@ -1953,7 +1953,7 @@ begin
 
   if not jObj.TryGetValue<string>('text', sTextoTranscrito) then
   begin
-    FLastError := 'La respuesta de la API no contiene el campo "text" con la transcripci�n.';
+    FLastError := 'The API response does not contain the "text" field with the transcription.';
     DoError(FLastError, nil);
     FBusy := False; // Asumiendo que usas FBusy como en ParseChat
     Exit;
@@ -2035,11 +2035,11 @@ begin
   aTotal_tokens := 0;
 
   try
-    // Extraer el ResponseId del nivel superior
+    // Extract the ResponseId from the top level
     jObj.TryGetValue<String>('id', ResponseId);
     jObj.TryGetValue<String>('model', LModel);
 
-    // Extraer los datos de uso (tokens)
+    // Extract usage data (tokens)
     if jObj.TryGetValue<TJSonObject>('usage', jUsage) then
     begin
       jUsage.TryGetValue<integer>('input_tokens', aInput_tokens);
@@ -2165,7 +2165,7 @@ begin
       FreeAndNil(ResMsg.WebSearchResponse);
 {$ENDIF}
       ResMsg.WebSearchResponse := WebSearch;
-      WebSearch := nil; // Evitar doble liberaci�n
+      WebSearch := nil; // Avoid double free
     end;
 
     // --- 4. Disparar eventos finales ---
@@ -2211,7 +2211,7 @@ begin
     Except
       ON E: Exception do
       Begin
-        Raise Exception.Create('El formato de memoria debe ser Key=Value, no est� bien configurado');
+        Raise Exception.Create('Memory format must be Key=Value, not properly configured');
       End;
     End;
 

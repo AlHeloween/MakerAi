@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -645,7 +645,7 @@ begin
       if LVideoUri.IsEmpty then
         raise Exception.Create('Final response did not contain a video URI.');
 
-      // --- PASO 4: Descargar el video y notificar el ?xito ---
+      // --- STEP 4: Download the video and notify success ---
       DoProgress('Video generated. Downloading...');
       LResultVideo := DownloadVideoFile(LVideoUri);
       DoSuccess(LResultVideo);

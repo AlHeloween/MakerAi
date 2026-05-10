@@ -1,4 +1,4 @@
-unit uMakerAi.RAG.Vector.Driver.SQLite;
+﻿unit uMakerAi.RAG.Vector.Driver.SQLite;
 
 {
   TAiRAGVectorSQLiteDriver — Driver SQLite para TAiRAGVector (MakerAI 3.3)

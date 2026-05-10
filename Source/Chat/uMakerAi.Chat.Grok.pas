@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -366,7 +366,7 @@ begin
     FClient.ContentType  := 'application/json';
     FClient.Asynchronous := False;
     FResponse.Clear;
-    DoStateChange(acsConnecting, 'Enviando búsqueda web...');
+    DoStateChange(acsConnecting, 'Sending web search...');
 
     Res := FClient.Post(sUrl, St, FResponse, FHeaders);
 
@@ -376,7 +376,7 @@ begin
       if not (LParsed is TJSonObject) then
       begin
         LParsed.Free;
-        raise Exception.CreateFmt('Respuesta JSON inválida: %s', [Res.ContentAsString]);
+        raise Exception.CreateFmt('Invalid JSON response: %s', [Res.ContentAsString]);
       end;
       jRes := TJSonObject(LParsed);
       try
@@ -496,7 +496,7 @@ begin
             LImageObject := LJsonValue as TJSonObject;
             LNewMediaFile := TAiMediaFile.Create;
             try
-              // Extraer el prompt revisado y guardarlo (es informaci?n ?til)
+              // Extract the revised prompt and save it (it is useful information)
               LImageObject.TryGetValue<string>('revised_prompt', LRevisedPrompt);
               LNewMediaFile.Transcription := LRevisedPrompt;
               FLastContent := LRevisedPrompt;

@@ -1,4 +1,4 @@
-﻿// IT License
+// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr�quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -60,7 +60,7 @@ uses
 
 procedure Register;
 begin
-  // Registrar el Property Editor para la propiedad Version
+  // Register the Property Editor for the Version property
   // de la clase TAiChatConnection
   RegisterPropertyEditor(TypeInfo(string), // Tipo de la propiedad (string)
     TAiChatConnection, // Clase que contiene la propiedad

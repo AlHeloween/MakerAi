@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr�quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -243,7 +243,7 @@ begin
   if Length(Candidates) = 0 then
     raise Exception.Create('The list of candidates cannot be empty.');
 
-  bestScore := -2.0; // Iniciar m�s bajo que cualquier similitud coseno posible (-1 a 1).
+  bestScore := -2.0; // Start lower than any possible cosine similarity (-1 to 1).
   Result.Index := -1;
 
   // OPTIMIZACI�N: Calcular la magnitud del Query UNA SOLA VEZ fuera del bucle.
@@ -387,7 +387,7 @@ begin
   MagB := Magnitude(B);
 
   if (MagA = 0) or (MagB = 0) then
-    Result := 0 // Evitar divisi�n por cero
+    Result := 0 // Avoid division by zero
   else
     Result := Dot / (MagA * MagB);
 end;
@@ -469,7 +469,7 @@ var
   I: Integer;
   FormatSettings: TFormatSettings;
 begin
-  Result := []; // Devuelve un array vac�o por defecto
+  Result := []; // Returns an empty array by default
   if AVectorString.IsEmpty or (AVectorString = '[]') then
     Exit;
 

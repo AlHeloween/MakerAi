@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - Telegram: https://t.me/MakerAi_Delphi_Suite_English
@@ -414,7 +414,7 @@ begin
   FLock.Enter;
   Try
 
-    // Siempre limpiar la lista de destino primero.
+    // Always clean the destination list first.
     // Como la lista es due?a de sus objetos, esto los destruir? correctamente.
     FCitations.Clear;
 

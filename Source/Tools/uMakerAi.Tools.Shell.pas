@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -114,7 +114,7 @@ type
 
     procedure Restart;
 
-    { Registra la funcion 'bash' en un TAiFunctions para su uso con Ollama
+    { Registers the 'bash' function in a TAiFunctions for use with Ollama
       (y cualquier provider que requiera definicion explicita de herramientas).
       AFunctionName permite personalizar el nombre si el modelo lo requiere. }
     procedure RegisterInFunctions(AFunctions: TAiFunctions;
@@ -238,7 +238,7 @@ begin
   if FSecurityMode = ssmNone then
     Exit;
 
-  // Extraer el primer token del comando (nombre del ejecutable)
+  // Extract the first token of the command (executable name)
   FirstWord := Trim(LowerCase(ACommand));
   SpacePos := Pos(' ', FirstWord);
   if SpacePos > 0 then
@@ -274,7 +274,7 @@ begin
   begin
     if FSession.IsRunning then
       Exit;
-    // Sesi?n muerta: limpiar antes de recrear
+    // Dead session: clean before recreating
     StopSession;
   end;
   if Trim(FShellPath) = '' then

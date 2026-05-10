@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -76,7 +76,7 @@ type
   TAiChatOnProcessResponseEvent = procedure(const Sender: TObject; LastMsg, ResMsg: TAiChatMessage; var Response: String) of object;
   TAiModelProgressEvent = procedure(Sender: TObject; Status: string; Completed, Total: Int64) of object; // Se dispara cuando hay procesos largos
 
-  // Evento callback cuando se utiliza la herramienta tools del chat
+  // Callback event when the chat tools feature is used
   TOnCallToolFunction = Procedure(Sender: TObject; AiToolCall: TAiToolsFunction) of object;
 
   TAiSanitizeAction = (saBlock, saAllow, saAllowWrapped);
@@ -2095,7 +2095,7 @@ begin
 
     // 2. Borde de Seguridad: ?ltima l?nea sin salto
     // Si lo que queda en el buffer es EXACTAMENTE '[DONE]' (o con data:), lo procesamos.
-    // Si es JSON incompleto (ej: '{"id":'), NO lo tocamos, esperamos el siguiente paquete.
+    // If it is incomplete JSON (e.g.: '{"id":'), we do NOT touch it, we wait for the next packet.
     sJson := Trim(FTmpResponseText);
     if (sJson = '[DONE]') or (sJson = 'data: [DONE]') then
     begin
@@ -2385,7 +2385,7 @@ end;
 
   if not jObj.TryGetValue<string>('text', sTextoTranscrito) then
   begin
-  FLastError := 'La respuesta de la API no contiene el campo "text" con la transcripci?n.';
+  FLastError := 'The API response does not contain the "text" field with the transcription.';
   DoError(FLastError, nil);
   FBusy := False;
   Exit;
@@ -2466,13 +2466,13 @@ begin
   // 1. Validar texto principal
   if not jObj.TryGetValue<string>('text', sTextoTranscrito) then
   begin
-    FLastError := 'La respuesta de la API no contiene el campo "text" con la transcripci?n.';
+FLastError := 'The API response does not contain the "text" field with the transcription.';
     DoError(FLastError, nil);
     FBusy := False;
     Exit;
   end;
 
-  // 2. Extraer detalles (Granularidad)
+  // 2. Extract details (Granularity)
   If jObj.TryGetValue<TJSonArray>('words', jArrWords) then
     sTextoWords := jArrWords.Format;
 
@@ -2981,7 +2981,7 @@ begin
       case LSanitizeAction of
         saBlock:
         begin
-          DoError('Posible inyección de prompt detectada. Mensaje bloqueado por el sanitizador.', nil);
+          DoError('Possible prompt injection detected. Message blocked by the sanitizer.', nil);
           Result := '';
           Exit;
         end;

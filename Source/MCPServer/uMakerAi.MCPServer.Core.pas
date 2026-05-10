@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -572,7 +572,7 @@ begin
   FActiveTools.Clear;
   FActiveResources.Clear;
 
-  // 2. Ejecutamos las factor?as de herramientas.
+  // 2. We run the tool factories.
   // Cada Pair.Value es una funci?n que al ser llamada devuelve una instancia de IAiMCPTool.
   for Pair in FToolFactories do
   begin
@@ -1491,7 +1491,7 @@ begin
   // Layer 1: API Key Validation
   if FApiKey <> '' then
   begin
-    // Extraer key de "Bearer <key>" o valor directo
+    // Extract key from "Bearer <key>" or direct value
     if AAuthHeader.StartsWith('Bearer ', True) then
       ProvidedKey := Trim(Copy(AAuthHeader, 8, Length(AAuthHeader)))
     else

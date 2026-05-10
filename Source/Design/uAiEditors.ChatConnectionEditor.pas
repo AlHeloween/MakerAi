@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr�quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -102,7 +102,7 @@ end;
 
 function TAiChatConnectionComponentEditor.GetVerbCount: Integer;
 begin
-  Result := 1; // Una acci�n en el men� contextual
+  Result := 1; // One action in the context menu
 end;
 
 function TAiChatConnectionComponentEditor.GetVerb(Index: Integer): string;
@@ -139,7 +139,7 @@ end;
 procedure Register;
 begin
 
-  // Registrar el Property Editor para la propiedad DriverName
+  // Register the Property Editor for the DriverName property
   RegisterPropertyEditor(
     TypeInfo(string),              // Tipo de la propiedad
     TAiChatConnection,             // Clase del componente
@@ -147,7 +147,7 @@ begin
     TAiChatDriverNamePropertyEditor // Clase del Property Editor
   );
 
-  // Registrar el Component Editor (opcional)
+  // Register the Component Editor (optional)
   RegisterComponentEditor(
     TAiChatConnection,                    // Clase del componente
     TAiChatConnectionComponentEditor      // Clase del Component Editor

@@ -197,7 +197,7 @@ begin
         SmoothMouseMove(Action.X, Action.Y);
         SendMouseInput(MOUSEEVENTF_LEFTDOWN);
         SendMouseInput(MOUSEEVENTF_LEFTUP);
-        Sleep(100); // Pausa t�pica para doble clic
+        Sleep(100); // Typical pause for double click
         SendMouseInput(MOUSEEVENTF_LEFTDOWN);
         SendMouseInput(MOUSEEVENTF_LEFTUP);
       end;
@@ -337,7 +337,7 @@ begin
     Jpg := TJPEGImage.Create;
     try
       Jpg.Assign(Bmp);
-      Jpg.CompressionQuality := Quality; // 70 es buen balance calidad/tama�o
+      Jpg.CompressionQuality := Quality; // 70 is a good quality/size balance
       Jpg.Compress;
 
       Stream := TMemoryStream.Create;
@@ -438,7 +438,7 @@ begin
     Jpg := TJPEGImage.Create;
     try
       Jpg.Assign(Bmp);
-      Jpg.CompressionQuality := Quality; // Recomendado: 60-75 para velocidad/tama�o
+      Jpg.CompressionQuality := Quality; // Recommended: 60-75 for speed/size
       Jpg.Compress;
 
       Stream := TMemoryStream.Create;

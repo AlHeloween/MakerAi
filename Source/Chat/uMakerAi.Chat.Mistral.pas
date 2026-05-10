@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -1230,7 +1230,7 @@ begin
   if not Assigned(jResponse) or not Assigned(ResMsg) then
     Exit;
 
-  // El objeto aMediaFile ya existe, vamos a limpiarlo por si tiene datos previos.
+  // The aMediaFile object already exists, let us clean it in case it has previous data.
   // aMediaFile.Transcription := '';
   // aMediaFile.Detail := '';
   // Limpiamos los MediaFiles anidados (im?genes extra?das del OCR)
@@ -1276,7 +1276,7 @@ begin
             continue;
           jImage := jImagesArray.Items[I] as TJSONObject;
 
-          // Extraer informaci?n de la imagen
+          // Extract image information
           if jImage.TryGetValue<string>('id', imageId) then;
           if jImage.TryGetValue<integer>('top_left_x', topLeftX) then;
           if jImage.TryGetValue<integer>('top_left_y', topLeftY) then;

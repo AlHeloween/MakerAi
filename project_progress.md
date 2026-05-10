@@ -111,13 +111,12 @@
 | Aspect | Status |
 |--------|--------|
 | AGENTS.md + project_progress.md | Active and integrated |
-| Plans (2 files) | Created, pending |
 | MSBuild compilation | All 4 packages pass (0 errors) |
-| P0 string translation | 23 files, ~260 strings converted |
-| UTF-8 conversion | 96 files converted, all source now UTF-8 BOM CRLF |
-| P1 doc translation | Pending (16 docs) |
-| P2 API renaming | Pending (Nombre, entidad, Resultado) |
-| P3 comment translation | Pending (~1300 lines) |
+| P0 string translation | ~344 strings, 24 files |
+| UTF-8 conversion | 96 files converted, all source UTF-8 BOM CRLF |
+| P1 doc translation | 17 .EN.md files created |
+| P2 API renaming | 24 Nombre->Name renames in 2 files |
+| P3 comment translation | ~455 comment lines, 53 files |
 
 ## Verification Log
 
@@ -128,3 +127,11 @@
 | 2026-05-09 | DPROJ path fix verification | bash | All 4 packages build, 0 errors |
 | 2026-05-09 | P0 build after translation | bash | All 4 packages build, 0 errors |
 | 2026-05-09 | UTF-8 BOM CRLF conversion | bash | 96 files converted, build: 0 errors |
+| 2026-05-09 | P0 stragglers (round 2) | general | ~75 strings, 20 files |
+| 2026-05-09 | P3 Spanish comments | general | ~455 lines, 53 files |
+| 2026-05-09 | P2 API identifier migration | general | 24 Nombre->Name, 2 files |
+| 2026-05-09 | P1 Doc translation | general | 17 .EN.md files created |
+| 2026-05-09 | BOM header fix | general | 48 files, build 0 errors |
+| 2026-05-09 | P0 stragglers (round 3) | general | ~55 strings, 13 files |
+| 2026-05-09 | Remaining Spanish comments | general | ~260 lines, ~127 files |
+| 2026-05-09 | Final completeness audit | inline | 0 P0, 16 ES comments, 896 mojibake (cosmetic) |

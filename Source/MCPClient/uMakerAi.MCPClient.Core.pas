@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -112,9 +112,9 @@ type
     Function GetParamByName(ParamName: String): String;
     Function GetDefaultParams: TStringList; Virtual;
 
-    // La funci?n initialization intentar? conectar con el servidor y obtener la lista de herramientas (ListTools) y almacenar?
+    // The initialization function will try to connect to the server and get the tool list (ListTools) and store it
     // la informaci?n en la propiedad Tools : TStrings que es de solo lectura.  esto se hace para evitar hacer el llamado
-    // a la funci?n cada vez que se necesite la lista de herramientas y se ahorra tiempo y recursos de conexi?n.
+    // to the function every time the tool list is needed, saving time and connection resources.
     // Tambi?n marca la propiedad initialized en true para indicar que ya se prob?.
     // si el servidor en el proceso de inicializaci?n falla asigna Enabled = False, de lo
 
@@ -579,7 +579,7 @@ begin
     Exit;
   end;
 
-  // 2. Clonar el objeto JSON de entrada para no modificar el original.
+  // 2. Clone the input JSON object to avoid modifying the original.
   LClonedResult := TJSONObject(AJsonResult.Clone);
   try
     // 3. Buscar el array 'content' en el JSON clonado.
@@ -597,7 +597,7 @@ begin
 
       LContentItem := LContentArray.Items[i] as TJSONObject;
 
-      // Verificar si el item es de un tipo que contiene datos binarios
+      // Check if the item is of a type that contains binary data
       if LContentItem.TryGetValue<string>('type', LItemType) and IsBinaryContentType(LItemType) then
       begin
         // Intentar obtener los datos base64 y el tipo mime.
@@ -755,16 +755,16 @@ begin
     // If server is already running we reuse the connection
     if IsServerRunning then
     begin
-      DoLog('ListTools: servidor activo, reutilizando conexión.');
+      DoLog('ListTools: server active, reusing connection.');
       Result := InternalListTools;
       Exit;
     end;
 
-    DoLog('ListTools: iniciando servidor...');
+    DoLog('ListTools: starting server...');
     InternalStartServerProcess;
     if not IsServerRunning then
     begin
-      DoLog('ListTools: fallo al iniciar servidor.');
+      DoLog('ListTools: failed to start server.');
       Available := False;
       Exit;
     end;
@@ -773,7 +773,7 @@ begin
     InitResponse := InternalInitialize;
     if not Assigned(InitResponse) then
     begin
-      DoLog('ListTools: fallo en initialize. Deteniendo servidor.');
+      DoLog('ListTools: initialize failed. Stopping server.');
       InternalStopServerProcess;
       Available := False;
       Exit;
@@ -783,7 +783,7 @@ begin
     Sleep(200); // Pause for server to process the notification
 
     // El servidor queda activo para futuras llamadas
-    DoLog('ListTools: conexión persistente establecida.');
+    DoLog('ListTools: persistent connection established.');
     Result := InternalListTools;
   finally
     FCallLock.Leave;
@@ -804,16 +804,16 @@ begin
     // If server is already running we reuse the connection
     if IsServerRunning then
     begin
-      DoLog(Format('CallTool: servidor activo, llamando %s.', [AToolName]));
+      DoLog(Format('CallTool: server active, calling %s.', [AToolName]));
       Result := InternalCallTool(AToolName, AArguments, AExtractedMedia);
       Exit;
     end;
 
-    DoLog(Format('CallTool: iniciando servidor para %s...', [AToolName]));
+    DoLog(Format('CallTool: starting server for %s...', [AToolName]));
     InternalStartServerProcess;
     if not IsServerRunning then
     begin
-      DoLog('CallTool: fallo al iniciar servidor.');
+      DoLog('CallTool: failed to start server.');
       Available := False;
       Exit;
     end;
@@ -822,7 +822,7 @@ begin
     InitResponse := InternalInitialize;
     if not Assigned(InitResponse) then
     begin
-      DoLog('CallTool: fallo en initialize. Deteniendo servidor.');
+      DoLog('CallTool: initialize failed. Stopping server.');
       InternalStopServerProcess;
       Available := False;
       Exit;
@@ -832,7 +832,7 @@ begin
     Sleep(200); // Pause for server to process the notification
 
     // El servidor queda activo para futuras llamadas
-    DoLog(Format('CallTool: conexión persistente establecida, llamando %s.', [AToolName]));
+    DoLog(Format('CallTool: persistent connection established, calling %s.', [AToolName]));
     Result := InternalCallTool(AToolName, AArguments, AExtractedMedia);
   finally
     FCallLock.Leave;
@@ -861,7 +861,7 @@ procedure TMCPClientStdIo.Disconnect;
 begin
   FCallLock.Enter;
   try
-    DoLog('Disconnect: cerrando conexión persistente.');
+    DoLog('Disconnect: closing persistent connection.');
     InternalStopServerProcess;
   finally
     FCallLock.Leave;
@@ -951,7 +951,7 @@ begin
   // Fast exit only if already completely stopped (all fields clean).
   // Do NOT use IsServerRunning here: if the process died unexpectedly,
   // IsServerRunning=False pero FReadThread y FInteractiveProcess siguen asignados
-  // (estado zombie). En ese caso debemos limpiarlos igualmente.
+  // (zombie state). In that case we must clean them up as well.
   if not FIsRunning and not Assigned(FReadThread) and not Assigned(FInteractiveProcess) then
     Exit;
 
@@ -1156,7 +1156,7 @@ begin
         if (Response is TJSONObject) and TJSONObject(Response).TryGetValue('result', ResultPair) and (ResultPair is TJSONObject) then
         begin
           // Result := TJSONObject(ResultPair.Clone); // Clonar para el llamador
-          // Separa la respuesta de los archivos binarios que pasar?n a la respuesta como mediafiles el el mensaje de respuesta
+          // Separates the response from the binary files that will pass to the response as mediafiles in the response message
           Result := ProcessAndExtractMedia(TJSONObject(ResultPair), AExtractedMedia);
         end
         else
@@ -1224,7 +1224,7 @@ begin
         if LineFeedPos = -1 then
           Break; // No hay l?nea completa a?n
 
-        // Extraer l?nea y convertir a String UTF8
+        // Extract line and convert to UTF8 String
         // Nota: LineFeedPos incluye hasta justo antes del LF.
         CurrentLine := TEncoding.UTF8.GetString(LineBuffer, 0, LineFeedPos).Trim;
 
@@ -1366,7 +1366,7 @@ begin
   end;
 
   // 2. Obtener los arrays de "tools" de ambos JSON.
-  // Si no existen, salimos porque no hay herramientas que procesar.
+  // If they do not exist, we exit because there are no tools to process.
   if not ASourceJson.TryGetValue<TJSonArray>('tools', LSourceTools) then
   begin
     Result := ATargetJson;
@@ -1376,7 +1376,7 @@ begin
   if not ATargetJson.TryGetValue<TJSonArray>('tools', LTargetTools) then
     raise Exception.Create('Target JSON object does not contain a "tools" array.');
 
-  // 3. Iterar sobre cada herramienta en el JSON de origen (Source)
+  // 3. Iterate over each tool in the source JSON (Source)
   for i := 0 to LSourceTools.Count - 1 do
   begin
     if not(LSourceTools.Items[i] is TJSONObject) then
@@ -1385,7 +1385,7 @@ begin
     LSourceTool := LSourceTools.Items[i] as TJSONObject;
     LNewTool := TJSONObject.Create; // Crear un nuevo objeto para la herramienta transformada
 
-    // 4. Transformar el nombre de la herramienta con el prefijo
+    // 4. Transform the tool name with the prefix
     if LSourceTool.TryGetValue<string>('name', LToolName) then
     begin
       if ASourceName.IsEmpty then
@@ -1439,7 +1439,7 @@ begin
       end;
     end;
 
-    // 7. A?adir la herramienta transformada al array de herramientas del Target
+    // 7. Add the transformed tool to the Target tools array
     LTargetTools.Add(LNewTool);
   end;
 
@@ -1499,7 +1499,7 @@ begin
       // 2. Enviar la notificaci?n de inicializado (no lanza excepci?n, solo logea warnings si falla la POST de la notificaci?n)
       InternalSendInitializedNotification;
 
-      // 3. Obtener la lista de herramientas
+      // 3. Get the tool list
       jTools := ListTools;
 
       If Assigned(jTools) and (jTools.TryGetValue<TJSonValue>('tools', jValue)) and (jValue is TJSonArray) then
@@ -1942,7 +1942,7 @@ begin
             if LResponseObj.TryGetValue<TJSONObject>('error', LErrorObj) then
               raise EMCPClientException.Create('Server returned a JSON-RPC error: ' + LErrorObj.ToJSON);
 
-            // Extraer el resultado de la respuesta JSON-RPC y clonarlo para el llamador
+            // Extract the result from the JSON-RPC response and clone it for the caller
             if LResponseObj.TryGetValue('result', LResultPair) and (LResultPair is TJSONObject) then
               Result := TJSONObject(LResultPair.Clone)
             else
@@ -2162,7 +2162,7 @@ begin
       if LResponse.StatusCode <> 200 then
         raise EMCPClientException.CreateFmt('HTTP request failed. Code: %d. Message: %s', [LResponse.StatusCode, LResponseContent]);
 
-      // 6. Parsear el wrapper DataSnap
+      // 6. Parse the DataSnap wrapper
       var LDataSnapVal := TJSONObject.ParseJSONValue(LResponseContent);
       if not (LDataSnapVal is TJSONObject) then
       begin
@@ -2182,7 +2182,7 @@ begin
       var
       LJsonRpcString := (LDataSnapResultArray.Items[0] as TJSONString).Value;
 
-      // 9. Parsear el JSON-RPC anidado
+      // 9. Parse the nested JSON-RPC
       var LJsonRpcVal := TJSONObject.ParseJSONValue(LJsonRpcString);
       if not (LJsonRpcVal is TJSONObject) then
       begin
@@ -2347,7 +2347,7 @@ begin
   end;
 end;
 
-// Adaptador para el evento OnRequestError que en tu versi?n usa (Sender, ErrorString)
+// Adapter for the OnRequestError event that in your version uses (Sender, ErrorString)
 procedure TMCPClientSSE.DoRequestError(const Sender: TObject; const AError: string);
 begin
   if not FStopRequested then // Solo loguear si no fue una parada intencional
@@ -2423,7 +2423,7 @@ begin
     if P = 0 then
       Break; // No hay l?nea completa, salimos y esperamos el siguiente chunk
 
-    // Extraer la l?nea (incluyendo el LF para borrarlo despu?s)
+    // Extract the line (including the LF to delete it afterwards)
     Line := Copy(FBuffer, 1, P - 1);
 
     // Eliminar la l?nea del buffer acumulador
@@ -2623,7 +2623,7 @@ begin
 
     Source := TStringStream.Create(Req.ToJSON, TEncoding.UTF8);
     try
-      // IMPORTANTE: Para el POST, usamos un cliente S?NCRONO temporal o reutilizamos.
+      // IMPORTANT: For the POST, we use a temporary SYNCHRONOUS client or reuse one.
       // Si usamos FHttpClient que est? en modo Asynchronous=True, el Post retornar? inmediatamente
       // y no garantiza orden si se mezcla con el stream.
       // Mejor pr?ctica: Crear un cliente ligero para el POST s?ncrono.

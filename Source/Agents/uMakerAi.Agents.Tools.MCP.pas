@@ -1,7 +1,7 @@
-// MIT License
-// MakerAI - Sistema de Agentes v3.4
-// Adaptador MCP → IAiTool: expone cada herramienta de un servidor MCP
-// como un IAiTool intercambiable dentro del TAiToolRegistry.
+﻿// MIT License
+// MakerAI - Agent System v3.4
+// MCP → IAiTool adapter: exposes each tool from an MCP server
+// as an interchangeable IAiTool within TAiToolRegistry.
 //
 // Author: Gustavo Enríquez
 // GitHub: https://github.com/gustavoeenriquez/MakerAi
@@ -23,25 +23,25 @@ uses
 type
 
   { TAiMCPTool ------------------------------------------------------------------
-    Envuelve UNA herramienta específica de un servidor MCP como IAiTool.
-    El TAiMCPToolFactory crea una instancia por cada herramienta listada en el
-    servidor.
+    Wraps ONE specific tool from an MCP server as IAiTool.
+    TAiMCPToolFactory creates one instance for each tool listed on the
+    server.
 
-    Contrato de memoria:
-      - FClient NO es propiedad de esta clase (el owner es el código externo).
-      - FSchema es propiedad de esta clase y se libera en el destructor.
-      - Execute → el caller es responsable de liberar el TJSONObject retornado.
+    Memory contract:
+      - FClient is NOT owned by this class (owner is external code).
+      - FSchema is owned by this class and freed in the destructor.
+      - Execute → the caller is responsible for freeing the returned TJSONObject.
   }
   TAiMCPTool = class(TInterfacedObject, IAiTool)
   private
     FClient      : TMCPClientCustom;
     FToolName    : String;
     FDescription : String;
-    FSchema      : TJSONObject;   // inputSchema del servidor; propiedad de esta clase
+    FSchema      : TJSONObject;   // server inputSchema; owned by this class
   public
     constructor Create(AClient: TMCPClientCustom;
                        const AToolName, ADescription: String;
-                       AInputSchema: TJSONObject);  // se clona internamente
+                       AInputSchema: TJSONObject);  // cloned internally
     destructor Destroy; override;
 
     // IAiTool
@@ -54,20 +54,20 @@ type
   end;
 
   { TAiMCPToolFactory -----------------------------------------------------------
-    Inicializa un TMCPClientCustom y crea un TAiMCPTool por cada herramienta
-    que el servidor declara en su respuesta tools/list.
+    Initializes a TMCPClientCustom and creates a TAiMCPTool for each tool
+    that the server declares in its tools/list response.
 
-    Uso:
+    Usage:
       var Tools: TArray<IAiTool>;
       Tools := TAiMCPToolFactory.CreateFromClient(MyMCPClient);
       // Add to registry:
       for var T in Tools do
         Registry.Register(T);
 
-    Notas:
-      - Si el cliente no está inicializado, llama Initialize() internamente.
-      - Si Initialize falla devuelve un array vacío (no eleva excepción).
-      - El caller es responsable de la vida de AClient.
+    Notes:
+      - If the client is not initialized, calls Initialize() internally.
+      - If Initialize fails returns an empty array (does not raise exception).
+      - The caller is responsible for AClient lifetime.
   }
   TAiMCPToolFactory = class
   public
@@ -85,7 +85,7 @@ begin
   FClient      := AClient;
   FToolName    := AToolName;
   FDescription := ADescription;
-  // Clonar el schema para no depender del objeto JSON temporal del ListTools
+  // Clone the schema to avoid depending on the temporary JSON object from ListTools
   if Assigned(AInputSchema) then
     FSchema := TJSONObject(AInputSchema.Clone)
   else
@@ -131,14 +131,14 @@ begin
   if not Assigned(FClient) then Exit;
   if not FClient.Available then Exit;
 
-  // CallTool devuelve un TJSONObject; esta clase lo retorna directamente.
-  // El caller (TAiToolRegistry / agent node) es responsable de liberarlo.
+  // CallTool returns a TJSONObject; this class returns it directly.
+  // The caller (TAiToolRegistry / agent node) is responsible for freeing it.
   RawResult := FClient.CallTool(FToolName, AArgs, nil);
   if not Assigned(RawResult) then Exit;
 
-  // El resultado MCP tiene la forma:
+  // The MCP result has the form:
   //   { "content": [ { "type":"text", "text":"..." } ], "isError": false }
-  // Lo pasamos tal cual — el agente sabe interpretarlo.
+  // We pass it as-is — the agent knows how to interpret it.
   Result := RawResult;
 end;
 
@@ -179,8 +179,8 @@ begin
     ListResp := AClient.ListTools;
     if not Assigned(ListResp) then Exit;
     try
-      // Estructura esperada: { "result": { "tools": [...] } }
-      // Algunos transportes omiten el wrapper "result" y devuelven { "tools": [...] }
+      // Expected structure: { "result": { "tools": [...] } }
+      // Some transports omit the "result" wrapper and return { "tools": [...] }
       ToolsArr  := nil;
       ResultObj := nil;
       if ListResp.TryGetValue<TJSONObject>('result', ResultObj) then

@@ -94,8 +94,8 @@ const
   // Asumimos un tama�o m�ximo para cualquier componente (nodo, link, tool)
   // para el c�lculo. Es mejor que sobre un poco de espacio.
   ComponentMaxWidth = 100;
-  ComponentMaxHeight = 150; // Las tools pueden ser m�s altas
-  Margin = 50; // Espacio extra alrededor del �ltimo componente
+  ComponentMaxHeight = 150; // Tools can be taller
+  Margin = 50; // Extra space around the last component
 
 var
   maxX, maxY: Integer;
@@ -183,8 +183,8 @@ end;
 
 procedure TDataModuleGenerator.ParseNodes;
 var
-  LNodesArray, LPortsArray: TJSONArray; // A�adido LPortsArray
-  LNodeJson, LPropertiesJson, LParametersJson, LEngineJson, LPositionJson, LPortJson, LPortEngineJson: TJSONObject; // A�adido LPortJson y LPortEngineJson
+  LNodesArray, LPortsArray: TJSONArray; // Added LPortsArray
+  LNodeJson, LPropertiesJson, LParametersJson, LEngineJson, LPositionJson, LPortJson, LPortEngineJson: TJSONObject; // Added LPortJson and LPortEngineJson
   LNodeInfo, LLinkInfo, LToolInfo, LAgentsInfo: TComponentInfo;
   LToolClassName, LJoinModeStr, LDescription, LNodeGuid, LLabel, LNodeName, LLinkName: string;
   LJoinModeOrdinal, i: Integer;
@@ -374,7 +374,7 @@ begin
 
       // Encontrar el Link que ya creamos en ParseNodes
       if not FLinkIdToNameMap.TryGetValue(LSourceNodeId, LLinkName) then
-        Continue; // No se encontr� el link para este nodo, algo raro pas�.
+        Continue; // Link not found for this node, something weird happened.
 
       var
       LLinkInfoIndex := -1;
@@ -387,7 +387,7 @@ begin
         end;
       end;
       if LLinkInfoIndex = -1 then
-        Continue; // No se encontr� el registro del Link en la lista.
+        Continue; // Link entry not found in the list.
 
       var
       SharedPropertiesSet := False;
@@ -441,7 +441,7 @@ begin
             var
             LMaxCycles := LEngineJson.GetValue<Integer>('linkMaxCycles', -1);
             if LMaxCycles <> -1 then // Usar -1 para detectar si la propiedad existe
-              if LMaxCycles <> 1 then // Solo a�adir si no es el valor por defecto
+              if LMaxCycles <> 1 then // Only add if not the default value
                 FComponentList[LLinkInfoIndex].Properties.Values['MaxCycles'] := LMaxCycles.ToString;
 
             SharedPropertiesSet := True;
@@ -690,7 +690,7 @@ begin
     SB.AppendLine('{%CLASSGROUP FMX.Controls.TControl}'); // o Vcl.Controls.TControl
     SB.AppendLine;
     // CORREGIDO:
-    SB.Append(Format('{$R *.dfm}', [])); // No necesita formato, pero lo dejo as� por consistencia
+    SB.Append(Format('{$R *.dfm}', [])); // No format needed, but leaving it here for consistency
     SB.AppendLine;
     SB.AppendLine;
 

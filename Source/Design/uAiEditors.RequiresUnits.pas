@@ -1,4 +1,4 @@
-﻿// IT License
+// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -31,7 +31,7 @@
 // - Youtube: https://www.youtube.com/@cimamaker3945
 // - GitHub: https://github.com/gustavoeenriquez/
 
-// Registra TSelectionEditor para que al soltar un componente MakerAI en un
+// Registers TSelectionEditor so that when dropping a MakerAI component on a
 // formulario se a?adan autom?ticamente las units que el usuario necesita
 // (tipos de eventos, tipos base, etc.) sin tener que agregarlas a mano.
 

@@ -1,19 +1,19 @@
-// MIT License
-// MakerAI - Sistema de Agentes v3.4
-// TLLMNode: nodo de agente con loop ReAct integrado.
+﻿// MIT License
+// MakerAI - Agent System v3.4
+// TLLMNode: agent node with integrated ReAct loop.
 //
 // TLLMNode extends TAIAgentsNode by adding an LLM model with capacity to
 // call tools from TAiToolRegistry automatically. The LLM →
 // Tool → Observation is handled internally by TAiChatConnection
-// (function calling nativo de cada proveedor).
+// (native function calling of each provider).
 //
 // Basic usage:
 //   Node := TLLMNode.Create(Manager);
 //   Node.DriverName   := 'Claude';
 //   Node.Model        := 'claude-sonnet-4-5';
 //   Node.ApiKey       := '@CLAUDE_API_KEY';
-//   Node.SystemPrompt := 'Eres un asistente experto en...';
-//   Node.UseAllTools  := True;   // inyecta todo el TAiToolRegistry.Instance
+//   Node.SystemPrompt := 'You are an expert assistant in...';
+//   Node.UseAllTools  := True;   // injects all of TAiToolRegistry.Instance
 //
 // Author: Gustavo Enríquez
 // GitHub: https://github.com/gustavoeenriquez/MakerAi
@@ -28,7 +28,7 @@ uses
   System.SysUtils,
   System.Classes,
   System.JSON,
-  System.Net.HttpClient,     // IHTTPResponse (para TAiErrorEvent)
+    System.Net.HttpClient,     // IHTTPResponse (for TAiErrorEvent)
   uMakerAi.Agents,
   uMakerAi.Agents.IAiTool,
   uMakerAi.Agents.ToolRegistry,
@@ -38,19 +38,19 @@ uses
 type
 
   { TLLMNode -------------------------------------------------------------------
-    Nodo de agente con LLM y herramientas del TAiToolRegistry integradas.
+    Agent node with LLM and integrated TAiToolRegistry tools.
 
-    El loop ReAct (Think → Call Tool → Observe → repeat) es transparente:
-    TAiChatConnection lo maneja internamente vía function calling. TLLMNode
-    sólo conecta el resultado de cada tool call al TAiToolRegistry.
+    The ReAct loop (Think -> Call Tool -> Observe -> repeat) is transparent:
+    TAiChatConnection handles it internally via function calling. TLLMNode
+    only connects the result of each tool call to TAiToolRegistry.
 
-    Propiedad Registry:
-      - nil (default) → usa TAiToolRegistry.Instance (singleton global)
-      - Asignar uno propio para aislar las herramientas de este nodo
+    Registry property:
+      - nil (default) -> uses TAiToolRegistry.Instance (global singleton)
+      - Assign your own to isolate this node's tools
 
-    Ciclo de vida de los objetos internos:
-      TAiChatConnection y TAiFunctions se crean y liberan en cada llamada a
-      DoExecute para que no persista estado entre ejecuciones del nodo.
+    Lifecycle of internal objects:
+      TAiChatConnection and TAiFunctions are created and freed on each DoExecute
+      call so no state persists between node executions.
   }
   TLLMNode = class(TAIAgentsNode)
   private
@@ -81,10 +81,10 @@ type
   public
     constructor Create(aOwner: TComponent); override;
 
-    // Referencia al registry a usar. nil = TAiToolRegistry.Instance.
+    // Reference to the registry to use. nil = TAiToolRegistry.Instance.
     property Registry: TAiToolRegistry read FRegistry write FRegistry;
   published
-    // Nombre del driver LLM: 'OpenAI', 'Claude', 'Gemini', 'Ollama', etc.
+    // LLM driver name: 'OpenAI', 'Claude', 'Gemini', 'Ollama', etc.
     property DriverName   : String  read FDriverName   write FDriverName;
     // Provider-specific model (empty = uses driver default)
     property Model        : String  read FModel        write FModel;
@@ -129,8 +129,8 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Carga todas las herramientas del registry en el componente TAiFunctions.
-// Cada IAiTool se convierte en un TFunctionActionItem usando SetJSon para
+// Loads all registry tools into the TAiFunctions component.
+// Each IAiTool becomes a TFunctionActionItem using SetJSon to
 // transfer the name, description and complete inputSchema.
 // ---------------------------------------------------------------------------
 procedure TLLMNode.LoadRegistryTools(AFunctions: TAiFunctions);
@@ -146,14 +146,14 @@ begin
   Tools := FActiveRegistry.GetAll;
   for T in Tools do
   begin
-    // Registrar en TAiFunctions con el handler unificado
+    // Register in TAiFunctions with the unified handler
     Item := AFunctions.Functions.AddFunction(T.Name, True, HandleToolCall);
     Item.Description.Text := T.Description;
 
-    // Preservar el schema completo sin descomponerlo en TFunctionParamsItems.
-    // Esto garantiza que schemas complejos (anyOf, nested objects, arrays, etc.)
-    // lleguen intactos a GetTools() → NormalizeToolsFromSource → FormatToolList.
-    Schema := T.GetSchema;  // NO liberar — propiedad de la herramienta
+    // Preserve the complete schema without decomposing it into TFunctionParamsItems.
+    // This ensures complex schemas (anyOf, nested objects, arrays, etc.)
+    // arrive intact to GetTools() -> NormalizeToolsFromSource -> FormatToolList.
+    Schema := T.GetSchema;  // Do NOT free - owned by the tool
     if Assigned(Schema) then
       Item.RawSchemaJson := Schema.ToJSON
     else
@@ -171,7 +171,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Handler unificado para todas las tool calls del LLM.
+// Unified handler for all LLM tool calls.
 // TAiChatConnection invokes this method when the model requests to execute
 // a function. We look for the tool in the registry and execute.
 // ---------------------------------------------------------------------------
@@ -193,7 +193,7 @@ begin
     Exit;
   end;
 
-  // Parsear argumentos
+  // Parse arguments
   ArgsJSON := nil;
   if ToolCall.Arguments <> '' then
   begin
@@ -207,7 +207,7 @@ begin
   ResultJSON := nil;
   try
     try
-      ResultJSON := Tool.Execute(ArgsJSON);   // caller libera el resultado
+      ResultJSON := Tool.Execute(ArgsJSON);       // caller frees the result
       if Assigned(ResultJSON) then
         ToolCall.Response := ResultJSON.ToJSON
       else
@@ -226,8 +226,8 @@ end;
 
 // ---------------------------------------------------------------------------
 // Main entry point of the node. Replaces the generic DoExecute.
-// Crea el chat, carga las herramientas y ejecuta el input del nodo.
-// El loop ReAct es gestionado internamente por TAiChatConnection.
+// Creates the chat, loads tools and executes the node input.
+// The ReAct loop is managed internally by TAiChatConnection.
 // ---------------------------------------------------------------------------
 procedure TLLMNode.DoExecute(aBeforeNode: TAIAgentsNode;
   aLink: TAIAgentsLink);
@@ -236,15 +236,15 @@ var
   Functions : TAiFunctions;
   Response  : String;
 begin
-  // Evaluar logica de join (jmAny / jmAll) y actualizar Self.Input.
-  // Si el nodo no esta listo aun (jmAll esperando mas inputs), salir sin ejecutar.
+  // Evaluate join logic (jmAny / jmAll) and update Self.Input.
+  // If the node is not ready yet (jmAll waiting for more inputs), exit without executing.
   if not CheckJoinAndPrepareInput(aBeforeNode, aLink) then Exit;
 
-  // Disparar OnEnterNode ANTES de la llamada al LLM para que el handler pueda
-  // modificar Self.Input (p.ej. inyectar historial del debate).
-  // Se llama directo (sin Synchronize) porque Self.Input solo lo toca este
-  // worker thread en este momento, y Blackboard ya es thread-safe.
-  // Nota: en apps con UI, el handler debe ser thread-safe (no tocar controles).
+  // Fire OnEnterNode BEFORE the LLM call so the handler can
+  // modify Self.Input (e.g. inject debate history).
+  // Called directly (without Synchronize) because Self.Input is only touched by this
+  // worker thread at this time, and Blackboard is already thread-safe.
+  // Note: in UI apps, the handler must be thread-safe (no UI controls).
   if Assigned(Self.Graph) and Assigned(Self.Graph.OnEnterNode) then
     Self.Graph.OnEnterNode(Self.Graph, Self);
 
@@ -258,12 +258,12 @@ begin
   Chat      := TAiChatConnection.Create(nil);
   Functions := TAiFunctions.Create(nil);
   try
-    // Configurar el chat
+    // Configure the chat
     Chat.DriverName := FDriverName;
     if FModel <> '' then
       Chat.Model := FModel;
 
-    // Conectar handler de errores para capturar fallos del LLM
+    // Connect error handler to capture LLM failures
     Chat.OnError := InternalOnError;
 
     // Parameters via TStrings (Asynchronous MUST be False in agent nodes)
@@ -275,7 +275,7 @@ begin
     if FSystemPrompt <> '' then
       Chat.SystemPrompt.Text := FSystemPrompt;
 
-    // Cargar herramientas del registry en TAiFunctions
+    // Load registry tools into TAiFunctions
     if FUseAllTools and (FActiveRegistry.Count > 0) then
     begin
       LoadRegistryTools(Functions);
@@ -288,7 +288,7 @@ begin
       Chat.Params.Values['SessionCaps'] := '[]';
 
       // Tool_Active must be True for the driver to send the tools to the LLM.
-      // Algunos drivers (Claude, Gemini) lo tienen en False por defecto.
+      // Some drivers (Claude, Gemini) have it False by default.
       Chat.Params.Values['Tool_Active'] := 'True';
     end;
 
@@ -301,12 +301,12 @@ begin
 
     Self.Output := Response;
 
-    // Publicar en el Blackboard para que otros nodos puedan leerlo
+    // Publish to the Blackboard so other nodes can read it
     if Assigned(Self.Graph) and Assigned(Self.Graph.Blackboard) then
       Self.Graph.Blackboard.SetString(Self.Name + '.output', Response);
 
   finally
-    // Desconectar el functions ANTES de liberar para evitar referencias colgantes
+    // Disconnect the functions BEFORE freeing to avoid dangling references
     Chat.AiFunctions := nil;
     Functions.Free;
     Chat.Free;

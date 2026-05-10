@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -561,10 +561,10 @@ Begin
   Model := 'moonshotai/kimi-k2-instruct-0905';
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'Max_Tokens', '16384');
 
-  // ------- Sistemas agentes con herramientas integradas ------
+  // ------- Agent systems with integrated tools ------
   // Compound: sistemas agenticos server-side con web search + code execution + browser automation
   // https://console.groq.com/docs/compound
-  // groq/compound: multiples herramientas iterativas; groq/compound-mini: 1 herramienta (~3x mas rapido)
+  // groq/compound: multiple iterative tools; groq/compound-mini: 1 tool (~3x faster)
   Model := 'groq/compound';
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'ModelCaps',   '[cap_WebSearch, cap_CodeInterpreter]');
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'SessionCaps', '[cap_WebSearch, cap_CodeInterpreter]');

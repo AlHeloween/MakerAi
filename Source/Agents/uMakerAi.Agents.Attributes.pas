@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr�quez
-// Redes Sociales:
+// Name: Gustavo Enríquez
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -40,13 +40,13 @@ uses
 
 type
 
-  TAgentCustomAttribute = Class // Clase base para futuras herramientas
+  TAgentCustomAttribute = Class // Base class for future tools
 
   End;
 
   // ---------------------------------------------------------------------------
-  // 1. ATRIBUTO PARA LA CLASE DE LA HERRAMIENTA ([Tool])
-  // Define las propiedades generales de la herramienta.
+  // 1. ATTRIBUTE FOR THE TOOL CLASS ([Tool])
+  // Defines the general properties of the tool.
   // ---------------------------------------------------------------------------
   //[AttributeUsage(ClassServices, AllowMultiple = false, Inherited = true)]
   TToolAttribute = class(TCustomAttribute)

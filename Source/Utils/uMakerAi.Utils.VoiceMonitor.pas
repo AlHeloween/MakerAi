@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr�quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -208,9 +208,9 @@ type
     FPeakLevelInFragment: Int64;
     FFragmentSplitRatio: Double;
 
-    FPreBuffer: TMemoryStream; // Buffer de pre-grabaci�n
-    FPreBufferDurationMs: Integer; // Duraci�n del pre-buffer (ej: 500ms)
-    FPreBufferMaxSize: Int64; // Tama�o m�ximo del pre-buffer
+    FPreBuffer: TMemoryStream; // Pre-recording buffer
+    FPreBufferDurationMs: Integer; // Pre-buffer duration (e.g. 500ms)
+    FPreBufferMaxSize: Int64; // Maximum pre-buffer size
 
     FOnTranscriptionFragment: TTranscriptionFragmentEvent;
     FOnChangeState: TAIVoiceMonitorOnChange;
@@ -596,9 +596,9 @@ end;
 procedure TAIVoiceMonitor.SetSampleRate(const Value: Integer);
 const
   // Tasas de muestreo est�ndar soportadas
-  VALID_SAMPLE_RATES: array [0 .. 6] of Integer = (8000, // Telefon�a
+  VALID_SAMPLE_RATES: array [0 .. 6] of Integer = (8000, // Telephony
     11025, // Baja calidad
-    16000, // Telefon�a wideband / Whisper �ptimo
+    16000, // Telephony wideband / Whisper optimal
     22050, // Media calidad
     32000, // Radio FM
     44100, // CD Audio
@@ -873,7 +873,7 @@ begin
                   begin
                   WakeStreamPCM := TMemoryStream.Create;
                   try
-                  // Extraer el fragmento de wake word del inicio del audio
+                  // Extract the wake word fragment from the beginning of the audio
                   FCS.Enter;
                   try
                   FFileStream.Position := 0;
@@ -1293,7 +1293,7 @@ begin
 
   // Construir el chunk FMT (24 bytes totales: 8 header + 16 datos)
   FmtChunk.Subchunk1ID := 'fmt ';
-  FmtChunk.Subchunk1Size := 16; // Tama�o de los datos del fmt chunk (sin header)
+  FmtChunk.Subchunk1Size := 16; // Size of fmt chunk data (without header)
   FmtChunk.AudioFormat := 1; // PCM sin comprimir
   FmtChunk.NumChannels := FChannels;
   FmtChunk.SampleRate := FSampleRate;
@@ -1396,7 +1396,7 @@ begin
   // 3. Preparar la estructura del Header
   FillChar(FWaveHdr, SizeOf(FWaveHdr), 0);
   FWaveHdr.lpData := @FBuffer[0]; // Puntero al array de bytes
-  FWaveHdr.dwBufferLength := FBufferSize; // Tama�o del buffer
+  FWaveHdr.dwBufferLength := FBufferSize; // Buffer size
   FWaveHdr.dwFlags := 0;
 
   // 4. Preparar el Header (PrepareHeader)

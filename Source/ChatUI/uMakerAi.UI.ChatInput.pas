@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr�quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -142,7 +142,7 @@ type
 
     // Variables del SoundMonitor
     FCurrentSoundLevel: Integer;
-    FMaxLevelSeen: Integer; // Resetear el m�ximo para que la barra se ajuste
+    FMaxLevelSeen: Integer; // Reset the maximum so the bar adjusts
     // FProgressBarLevel: TSoundLevel;
     FUseSoundMonitor: Boolean;
     FOnTranscriptText: TChatTranscriptEvent;
@@ -155,7 +155,7 @@ type
     FMnuPaste: TMenuItem;
     FMnuClear: TMenuItem;
 
-    procedure LoadImageResources; // Nuevo procedimiento para cargar im�genes
+    procedure LoadImageResources; // New procedure to load images
     procedure CreateInternalControls; // Nuevo para crear la UI
     procedure Resize; Override;
     procedure Loaded; override;
@@ -257,7 +257,7 @@ begin
   FValidExtensions := 'jpg,jpeg,png,bmp,pdf,mp3,wav,mp4,avi';
   FWakeWordDetectedInSession := False;
   Width := 400; // Un ancho por defecto razonable
-  Height := 100; // MIN_FRAME_HEIGHT;; // Una altura inicial m�nima
+  Height := 100; // MIN_FRAME_HEIGHT;; // An initial minimum height
 
   // --- 2. Crear y cargar los ImageLists desde recursos ---
   FImageList1 := TImageList.Create(Self);
@@ -265,7 +265,7 @@ begin
 
   CreateInternalControls;
 
-  LoadImageResources; // Llama al nuevo m�todo para poblar los ImageLists
+  LoadImageResources; // Calls the new method to populate the ImageLists
 
   FSendBitmap := TBitMap.Create;
   FCancelBitmap := TBitMap.Create;
@@ -849,7 +849,7 @@ begin
     Child := FImageLayout.Children[I];
     if (Child is TLayout) and (Child.TagObject is TImageData) then
     begin
-      Child.TagObject.Free; // �Muy importante!
+      Child.TagObject.Free; // !Very important!
     end;
   end;
 
@@ -910,7 +910,7 @@ begin
   // Si no se pudo cargar, crear bitmap en blanco
   if not Result then
   begin
-    ABitmap.SetSize(32, 32); // Tama�o por defecto, puedes ajustarlo
+    ABitmap.SetSize(32, 32); // Default size, you can adjust it
     ABitmap.Clear(TAlphaColorRec.Null); // Transparente
   end;
 end;
@@ -1126,7 +1126,7 @@ end;
 
 procedure TChatInput.Loaded;
 begin
-  inherited; // �Siempre llama al inherited primero!
+  inherited; // !Always call inherited first!
 
   // En este punto, el componente est� completamente cargado desde el FMX.
   // Es el momento perfecto y seguro para capturar las dimensiones iniciales.
@@ -1173,7 +1173,7 @@ begin
       // Validar que la extensi�n est� en la lista de extensiones v�lidas
       if not IsValidFileExtension(Ext) then
       begin
-        ShowMessage('Tipo de archivo no compatible: ' + Ext);
+        ShowMessage('Unsupported file type: ' + Ext);
         Exit;
       end;
 
@@ -1221,7 +1221,7 @@ begin
               if Assigned(BitMap) then
                 BitMap.Free;
               St.Free;
-              ShowMessage('Error al cargar el archivo: ' + E.Message);
+              ShowMessage('Error loading file: ' + E.Message);
               Exit;
             end;
           end;
@@ -1238,7 +1238,7 @@ begin
             BitMap.Free;
           if Assigned(St) then
             St.Free;
-          ShowMessage('Error al procesar el archivo: ' + E.Message);
+ShowMessage('Error processing file: ' + E.Message);
         end;
       end;
     end;
@@ -1338,7 +1338,7 @@ begin
         FileName := 'archivo.dat';
       end;
     end
-    // Verificar si hay datos binarios en el portapapeles
+    // Check for binary data in the clipboard
     else if ClipboardService.GetClipboard.Kind = tkRecord then
     begin
       // Intentar obtener datos como bytes (esto puede variar seg�n la plataforma)
@@ -1472,7 +1472,7 @@ begin
           // --- ESTADO OCUPADO ---
           FImageBtnSend.BitMap.Assign(FCancelBitmap); // Cambia el icono a "Cancelar"
           FMemoPrompt.ReadOnly := True;
-          FBtnMenu.Enabled := False; // Buena idea deshabilitar el men� tambi�n
+          FBtnMenu.Enabled := False; // Good idea to disable the menu too
         end
         else
         begin
@@ -1606,7 +1606,7 @@ begin
   AddStatus('Preparando el ambiente, por favor espere');
 
   FCurrentSoundLevel := 0;
-  FMaxLevelSeen := 100; // Resetear el m�ximo para que la barra se ajuste
+  FMaxLevelSeen := 100; // Reset the maximum so the bar adjusts
   FProgressBarLevel.Max := FMaxLevelSeen;
 
   FAnimationTimer.Enabled := True;
@@ -1658,7 +1658,7 @@ end;
 procedure TChatInput.UpdateChatLayoutHeight;
 var
   RequiredMemoHeight, NewMemoHeight, NewFrameHeight: Single;
-  Padding: Single; // <-- NUEVO: Variable para el colch�n
+  Padding: Single; // <-- NEW: Variable for the padding
 begin
   // Asegurarnos de que las alturas iniciales hayan sido capturadas
   if not FInitialHeightsCaptured then
@@ -1791,7 +1791,7 @@ begin
               if Assigned(BitMap) then
                 BitMap.Free;
               St.Free;
-              raise; // Re-lanzamos la excepci�n
+              raise; // Re-throw the exception
             end;
           end;
         end;
@@ -1825,7 +1825,7 @@ begin
               // Para im�genes, descargar y cargar la imagen
               St := DownLoadFromUrl(FileName);
               if (St = nil) or (St.Size = 0) then
-                raise Exception.Create('La descarga result� en un stream vac�o.');
+                raise Exception.Create('The download resulted in an empty stream.');
               St.Position := 0;
               BitMap := TBitMap.Create;
               BitMap.LoadFromStream(St);
@@ -1835,7 +1835,7 @@ begin
               // Para otros tipos, descargar como stream y usar icono
               St := DownLoadFromUrl(FileName);
               if (St = nil) or (St.Size = 0) then
-                raise Exception.Create('La descarga result� en un stream vac�o.');
+                raise Exception.Create('The download resulted in an empty stream.');
               St.Position := 0;
               ImageIndex := GetImageIndexFromContentType(ContentType);
               BitMap := CreateBitmapFromImageList(ImageIndex);
@@ -1848,7 +1848,7 @@ begin
               BitMap.Free;
             if Assigned(St) then
               St.Free;
-            raise; // Re-lanzamos la excepci�n
+            raise; // Re-throw the exception
           end;
         end
         else
@@ -1883,7 +1883,7 @@ begin
               else
               begin
                 St.Free;
-                ShowMessage('Tipo de archivo no compatible detectado en la URL.');
+                ShowMessage('Unsupported file type detected in the URL.');
               end;
             except
               if Assigned(BitMap) then
@@ -2327,7 +2327,7 @@ begin
             MF.FullFileName := Data.FullFileName; // Asegura que si es un archivo contiene la ruta completa.
             MediaFiles.Add(MF);
           finally
-            St.Free; // `St` es temporal y se libera aqu�.
+            St.Free; // `St` is temporary and freed here.
           end;
         end;
       end;

@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr�quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -38,7 +38,7 @@ interface
 uses
   System.SysUtils, DesignIntf, DesignEditors, System.UITypes,
   uMakerAi.Tools.Functions, // Para TMCPClientItem
-  uMCPClientEditor; // Para TFMCPClientEditor, asumiendo que est� en esta unidad
+  uMCPClientEditor; // For TFMCPClientEditor, assuming it is in this unit
 
 type
   TMCPClientItemEditor = class(TClassProperty) // Usamos TClassProperty porque editamos un objeto
@@ -57,7 +57,7 @@ uses
 
 procedure Register;
 begin
-  // Registramos el editor para la propiedad "Configuration" de la clase TMCPClientItem
+  // We register the editor for the "Configuration" property of the TMCPClientItem class
   RegisterPropertyEditor(TypeInfo(string), // El tipo de la propiedad (string)
     TMCPClientItem, // La clase que contiene la propiedad
     'Configuration', // El nombre de la propiedad

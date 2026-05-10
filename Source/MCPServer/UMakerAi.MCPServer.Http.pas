@@ -1,4 +1,4 @@
-﻿// MIT License
+// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -175,7 +175,7 @@ begin
     Exit;
 
   // --- PASO 2: Autenticaci�n (Layer 1: API Key + Layer 2: Evento custom) ---
-  // Extraer header de autenticaci�n: primero Authorization, luego X-API-Key
+// Extract authentication header: first Authorization, then X-API-Key
   AuthHeader := ARequestInfo.RawHeaders.Values['Authorization'];
   if AuthHeader = '' then
     AuthHeader := ARequestInfo.RawHeaders.Values['X-API-Key'];

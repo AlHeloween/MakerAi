@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -115,7 +115,7 @@ begin
 
   // 3. Obtener el array 'data' con validaci?n
   if not JObj.TryGetValue<TJSONArray>('data', JArrData) then
-    raise Exception.Create('La respuesta de la API no contiene el array de datos esperado ("data").');
+    raise Exception.Create('API response does not contain the expected data array ("data").');
 
   if JArrData.Count = 0 then
     raise Exception.Create('El array de datos ("data") est? vac?o.');
@@ -132,7 +132,7 @@ begin
 
     // 5. Obtener el vector de embedding
     if not TJSONObject(JVal).TryGetValue<TJSONArray>('embedding', JArrVector) then
-      raise Exception.Create('No se encontr? el campo "embedding" en los datos de respuesta.');
+      raise Exception.Create('The "embedding" field was not found in the response data.');
 
     if JArrVector.Count = 0 then
       raise Exception.Create('The embedding vector is empty.');
@@ -216,7 +216,7 @@ begin
 
     if Res.StatusCode = 200 then
     begin
-      // Parsear la respuesta JSON
+      // Parse the JSON response
       ResponseJSON := TJSONObject.ParseJSONValue(Res.ContentAsString) as TJSONObject;
       try
         if not Assigned(ResponseJSON) then

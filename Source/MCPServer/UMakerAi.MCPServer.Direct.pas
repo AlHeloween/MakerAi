@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -133,7 +133,7 @@ begin
   // Ejecutar la petici?n
   ResponseStr := FLogicServer.ExecuteRequest(RequestStr, 'direct_connection');
 
-  // Parsear la respuesta
+  // Parse the response
   if ResponseStr = '' then
     Exit; // Notificaci?n, sin resultado
 
@@ -153,7 +153,7 @@ begin
         ErrorObj.GetValue<Integer>('code', 0)]);
     end;
 
-    // Extraer el resultado
+    // Extract the result
     if ResponseJSON.TryGetValue('result', ResultValue) then
     begin
       // Clone the result so the caller is the owner
@@ -191,7 +191,7 @@ var
   Params: TJSONObject;
 begin
   // AArguments es pasado al m?todo ExecuteDirectRequest, que tomar? posesi?n de ?l.
-  // El llamador no debe liberar AArguments.
+  // The caller must not free AArguments.
   if not Assigned(AArguments) then
     AArguments := TJSONObject.Create;
 

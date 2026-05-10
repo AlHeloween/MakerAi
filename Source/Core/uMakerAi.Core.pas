@@ -1,4 +1,4 @@
-// MIT License
+﻿// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -47,16 +47,16 @@ uses
 
 Type
 
-  { A. Capas de Archivos (F?sica) - Define tipos de datos binarios/f?sicos }
+  { A. File Layers (Physical) - Defines binary/physical data types }
   TAiFileCategory = (Tfc_Text, Tfc_Image, Tfc_Audio, Tfc_Video, Tfc_Pdf, Tfc_Document, Tfc_CalcSheet, Tfc_Presentation, Tfc_CompressFile, Tfc_Web, Tfc_GraphicDesign, Tfc_ExtractTextFile,
     Tfc_Report, // Reporte generado (PDF, HTML, XLSX) por herramienta externa o code_interpreter
     Tfc_Any, Tfc_Unknown);
 
   TAiFileCategories = set of TAiFileCategory;
 
-  { B. Capas de Habilidades (L?gica) - Define capacidades intelectuales o herramientas }
+  { B. Skill Layers (Logical) - Defines intellectual capabilities or tools }
   TAiChatMediaSupport = (Tcm_Text, Tcm_Image, Tcm_Audio, Tcm_Video, Tcm_Pdf, Tcm_WebSearch, Tcm_CodeInterpreter, Tcm_Memory, Tcm_TextEditor, Tcm_ComputerUse, Tcm_Shell, Tcm_Reasoning, // Capacidad de CoT (Chain of Thought)
-    Tcm_ReportGeneration, // Generaci�n de reportes (nativo v�a code_interpreter o herramienta externa)
+    Tcm_ReportGeneration, // Report generation (native via code_interpreter or external tool)
     Tcm_Any, Tcm_Unknown);
 
   TAiChatMediaSupports = set of TAiChatMediaSupport;
@@ -64,13 +64,13 @@ Type
   { C. Capa Unificada de Capacidades (nuevo sistema v3.3) }
   TAiCapability = (
     // Entrada / Comprensi�n (cubierto por completions nativo)
-    cap_Image,            // modelo entiende im�genes entrantes
+    cap_Image,            // model understands incoming images
     cap_Audio,            // modelo entiende/transcribe audio entrante
     cap_Video,            // modelo entiende video entrante
     cap_Pdf,              // modelo entiende PDFs entrantes
     cap_WebSearch,        // modelo puede buscar en la web
     cap_Reasoning,        // modelo tiene razonamiento extendido (CoT)
-    cap_CodeInterpreter,  // modelo puede ejecutar c�digo
+    cap_CodeInterpreter,  // model can execute code
     cap_Memory,           // modelo tiene memoria persistente
     cap_TextEditor,       // modelo puede editar archivos
     cap_ComputerUse,      // modelo puede controlar el ordenador
@@ -80,7 +80,7 @@ Type
     cap_GenAudio,         // producir audio como output (TTS)
     cap_GenVideo,         // producir video como output
     cap_GenReport,        // producir reporte (PDF, HTML, XLSX)
-    cap_ExtractCode       // post-procesar: extraer bloques de c�digo de la respuesta
+    cap_ExtractCode       // post-process: extract code blocks from response
   );
   TAiCapabilities = set of TAiCapability;
 
@@ -624,7 +624,7 @@ begin
   else if SameText(MimeType, 'image/heif') then
     Result := 'heif'
 
-    // Document formats binarios
+    // Binary document formats
   else if SameText(MimeType, 'application/pdf') then
     Result := 'pdf'
   else if SameText(MimeType, 'application/msword') then

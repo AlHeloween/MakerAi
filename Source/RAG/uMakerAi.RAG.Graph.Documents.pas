@@ -1,4 +1,4 @@
-﻿// IT License
+// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -713,7 +713,7 @@ begin
   CheckEmbeddingsAvailable;
   LEmbeddings := FGraph.Embeddings;
 
-  // Extraer campos requeridos
+  // Extract required fields
   DocName := AJSONObj.GetValue<string>('name', '');
   DocLabel := AJSONObj.GetValue<string>('label', '');
 
@@ -990,7 +990,7 @@ begin
         else
           Continue;
 
-        // Parsear respuesta JSON
+        // Parse JSON response
         JsonValue := TJSONObject.ParseJSONValue(Response);
         if JsonValue = nil then
           Continue;
@@ -1014,7 +1014,7 @@ begin
             if (SubjectObj = nil) or (PredicateObj = nil) or (ObjectObj = nil) then
               Continue;
 
-            // Extraer datos b?sicos
+            // Extract basic data
             SubjectName := SubjectObj.GetValue<string>('name', '');
             SubjectLabel := SubjectObj.GetValue<string>('nodeLabel', 'Entity');
             ObjectName := ObjectObj.GetValue<string>('name', '');
@@ -1173,7 +1173,7 @@ begin
         if Response.Trim.IsEmpty then
           Continue;
 
-        // Extraer array JSON de la respuesta
+        // Extract JSON array from the response
         Response := Response.Trim;
         var StartIdx := Pos('[', Response);
         var EndIdx := Length(Response);
@@ -1380,7 +1380,7 @@ begin
         if Response.Trim.IsEmpty then
           Continue;
 
-        // Extraer array JSON de la respuesta
+        // Extract JSON array from the response
         Response := Response.Trim;
         var StartIdx := Pos('[', Response);
         var EndIdx := Length(Response);
@@ -1860,7 +1860,7 @@ end;
 
 // ---------------------------------------------------------------------------
 // BuildChunkVector - Construye un TAiRAGVector temporal con todos los chunks
-// de todos los documentos. El caller debe liberar el vector retornado.
+// of all documents. The caller must free the returned vector.
 // ---------------------------------------------------------------------------
 function TAiRagDocumentManager.BuildChunkVector: TAiRAGVector;
 var

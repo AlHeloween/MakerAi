@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr�quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -351,7 +351,7 @@ begin
       // Cargamos los defaults en FParams sin aplicarlos al FChat actual
       // (Puedes refactorizar UpdateAndApplyParams para aceptar un booleano 'ApplyToChat')
       UpdateAndApplyParams;
-      SetupChatFromDriver; // Esto crear� el nuevo chat y le aplicar� los params
+      SetupChatFromDriver; // This will create the new chat and apply the params
     end
     else
     begin
@@ -578,7 +578,7 @@ begin
   // Inyectar el estado del orquestador
   AChat.ChatMode := Self.ChatMode;
 
-  // Inyectar las herramientas (ChatTools)
+  // Inject the tools (ChatTools)
   AChat.ChatTools.Assign(Self.FChatTools);
 
   // Inject sanitizer configuration
@@ -966,7 +966,7 @@ begin
 
   if Operation = opRemove then
   begin
-    // 1. Limpiamos las referencias de las herramientas en la Conexion
+    // 1. We clean the tool references in the Connection
     FChatTools.Notification(AComponent, Operation);
     if AComponent = FAiFunctions then
       FAiFunctions := nil;

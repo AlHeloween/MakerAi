@@ -1,4 +1,4 @@
-﻿// IT License
+// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -646,7 +646,7 @@ begin
       end;
     end;
 
-    // 5. Descargar Video Final
+    // 5. Download Final Video
     ReportState(acsWriting, 'Downloading generated video...');
     LUrl := OPENAI_API_BASE_URL + 'videos/' + LVideoJobId + '/content';
     LVideoStream := TMemoryStream.Create;

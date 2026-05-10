@@ -115,7 +115,7 @@ begin
 
   finally
     FJsonGraph.Free;
-    FJsonGraph := nil; // Buena pr�ctica para evitar punteros colgantes
+    FJsonGraph := nil; // Good practice to avoid dangling pointers
   end;
 end;
 
@@ -192,7 +192,7 @@ begin
     LNode.Name := LLabel;
     LNode.Graph := FAgents;
     LNode.JoinMode := jmAny;
-    LTool := nil; // Buena pr�ctica inicializar la referencia
+    LTool := nil; // Good practice to initialize the reference
 
     // 3. Procesar las propiedades del JSON
     if LNodeJson.TryGetValue<TJSONObject>(cJsonProperties, LPropertiesJson) then
@@ -223,7 +223,7 @@ begin
         begin
           LTool := TAiToolBase(TComponentClass(LToolClass).Create(LNode));
           LNode.Tool := LTool;
-          LTool.Description := LDescription; // Asignar la descripci�n tambi�n a la herramienta
+          LTool.Description := LDescription; // Also assign the description to the tool
 
           // Asignar par�metros a la herramienta usando RTTI
           if LPropertiesJson.TryGetValue<TJSONObject>(cJsonParameters, LParametersJson) then

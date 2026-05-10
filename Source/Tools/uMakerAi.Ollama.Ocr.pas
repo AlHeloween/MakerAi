@@ -11,7 +11,7 @@ uses
   uMakerAi.Chat.Messages;
 
 type
-  { TAiOllamaOcrTool: Herramienta de OCR utilizando modelos de visi?n en Ollama }
+  { TAiOllamaOcrTool: OCR tool using vision models in Ollama }
 
   TAiOllamaOcrTool = class(TAiVisionToolBase)
   private

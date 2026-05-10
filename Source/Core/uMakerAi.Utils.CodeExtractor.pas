@@ -1,4 +1,4 @@
-﻿// MIT License
+// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -65,7 +65,7 @@ type
     // M?todo principal para extraer archivos de c?digo del texto markdown
     function ExtractCodeFiles(const AMarkdownText: string): TCodeFileList;
 
-    // M?todo para limpiar la lista de archivos
+    // Method to clean the file list
     procedure Clear;
 
     // Propiedad para acceder a los archivos extra?dos

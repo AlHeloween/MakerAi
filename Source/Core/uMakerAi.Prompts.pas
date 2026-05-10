@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Name: Gustavo Enríquez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -83,7 +83,7 @@ type
     Function GetTemplate(Nombre: String; Params: TJSonObject): String; Overload;
 
     // Integration with PPM (public prompts registry)
-    // SearchPPM: busca prompts en el registry. El llamador es responsable de liberar el TJSONObject.
+    // SearchPPM: searches for prompts in the registry. Caller is responsible for freeing the TJSONObject.
     function SearchPPM(const AQuery: String; const AType: String = 'prompt';
       APage: Integer = 1; APerPage: Integer = 20): TJSONObject;
     // LoadFromPPM: descarga el prompt y lo agrega a Items. Si ya existe, lo actualiza.

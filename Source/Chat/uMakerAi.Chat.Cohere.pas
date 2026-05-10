@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -458,7 +458,7 @@ begin
       end
       else if (LRoleStr = 'tool') then
       begin
-        // Mensaje de resultado de herramienta (v2: tool_call_id + content)
+        // Tool result message (v2: tool_call_id + content)
         HasToolResults := True;
         if not LMessage.ToolCallId.IsEmpty then
           LMsgObj.AddPair('tool_call_id', LMessage.ToolCallId);
@@ -498,7 +498,7 @@ begin
     LJsonObject.AddPair('messages', LMessagesArray);
 
     // --- 3. INCLUSI?N DE HERRAMIENTAS ('tools' y 'tool_choice') ---
-    // No env?es la definici?n de herramientas si ya est?s enviando resultados.
+    // Do not send the tool definition if you are already sending results.
     if not HasToolResults and Tool_Active and Assigned(AiFunctions) and (AiFunctions.Functions.Count > 0) then
     begin
       LToolsJsonString := AiFunctions.GetTools(tfOpenAI);
@@ -702,11 +702,11 @@ begin
     end;
   end;
 
-  // --- Extraer message ---
+  // --- Extract message ---
   jMessage := nil;
   jObj.TryGetValue<TJSonObject>('message', jMessage);
 
-  // --- Extraer texto de message.content[] (v2: array de {type, text}) ---
+  // --- Extract text from message.content[] (v2: array of {type, text}) ---
   if Assigned(jMessage) then
   begin
     jMessage.TryGetValue<string>('role', LRole);
@@ -936,7 +936,7 @@ begin
                 if not FStreamingToolCalls.ContainsKey(CurrentToolCall.Id) then
                 begin
                   FStreamingToolCalls.Add(CurrentToolCall.Id, CurrentToolCall);
-                  // Registrar mapeo index → id para poder acumular args en tool-call-delta
+                  // Register index -> id mapping to accumulate args in tool-call-delta
                   var LIndex: Integer;
                   if JsonData.TryGetValue<Integer>('index', LIndex) then
                     FStreamingToolCallsByIndex.AddOrSetValue(LIndex, CurrentToolCall.Id);

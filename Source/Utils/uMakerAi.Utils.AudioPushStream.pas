@@ -1,4 +1,4 @@
-unit uMakerAi.Utils.AudioPushStream;
+﻿unit uMakerAi.Utils.AudioPushStream;
 
 {******************************************************************************
   UAudioPushStream - Push-Stream Audio Player for Delphi FMX (Cross-Platform)

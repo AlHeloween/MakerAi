@@ -23,7 +23,7 @@ unit uMakerAi.Chat.OpenAi;
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: +57 3128441700
 // - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
@@ -50,7 +50,7 @@ uses
 
 type
 
-  // Evento para manejar manualmente la herramienta apply_patch.
+// Event to manually handle the apply_patch tool.
   // Par?metros:
   // - OperationType: 'create_file', 'update_file', 'delete_file'.
   // - Path: Ruta del archivo objetivo.
@@ -194,7 +194,7 @@ begin
       begin
         try
           // Llamamos a nuestra funci?n DeleteFile
-          // Nota: DeleteFile ya se encarga de limpiar la propiedad IdFile del objeto si tiene ?xito
+          // Note: DeleteFile already takes care of cleaning the object's IdFile property if successful
           if DeleteFile(Media) = 'deleted' then
             Inc(Result);
         except
@@ -324,7 +324,7 @@ begin
     Exit(aMediaFile.IdFile);
 
   if (aMediaFile.Content.Size = 0) and (aMediaFile.Base64 = '') then
-    raise Exception.Create('El archivo est? vac?o (sin Content ni Base64).');
+    raise Exception.Create('The file is empty (no Content or Base64).');
 
   // 2. Preparar URL (asegurar endpoint /files)
   // Nota: Url suele ser 'https://api.openai.com/v1/'
@@ -503,7 +503,7 @@ var
         TargetArray.Add(JToolOutObj);
 
         // Attached files (images/PDFs returned by MCP tool)
-        // La Responses API no admite binarios en function_call_output ? van en un
+        // The Responses API does not support binaries in function_call_output ? they go in a
         // separate user message, immediately after the tool result.
         var LMediaArr2 := Msg.MediaFiles.GetMediaList([Tfc_Image, Tfc_pdf], False);
         if Length(LMediaArr2) > 0 then
@@ -677,14 +677,14 @@ begin
 
       LastMsg := FMessages[FMessages.Count - 1];
 
-      // Detectamos si estamos en un bucle de herramientas (el ?ltimo mensaje es un output de tool)
+      // We detect if we are in a tool loop (the last message is a tool output)
       // Nota: Checkeamos 'tool' o mensajes especiales de assistant que contienen outputs (legacy)
       IsToolLoop := (LastMsg.Role = 'tool') or ((LastMsg.Role = 'assistant') and ContainsText(LastMsg.Prompt, '_output"'));
 
       if IsToolLoop then
       begin
         // ESTRATEGIA TOOL LOOP:
-        // Si estamos enviando un resultado de herramienta, NO debemos enviar de nuevo el mensaje
+        // If we are sending a tool result, we must NOT send the original user message again
         // del Usuario que provoc? la llamada, porque ese contexto ya vive en 'previous_response_id'.
         // Buscamos hacia atr?s hasta encontrar el mensaje de User o Assistant previo y cortamos ah?.
         for I := FMessages.Count - 1 downto 0 do
@@ -1224,7 +1224,7 @@ begin
 
           if ImgBase64 <> '' then
           begin
-            // 2. Extraer metadatos
+            // 2. Extract metadata
             JItem.TryGetValue<string>('revised_prompt', ImgPrompt);
             JItem.TryGetValue<string>('id', ImgId);
             JItem.TryGetValue<string>('output_format', ImgFormat);
@@ -1304,7 +1304,7 @@ begin
                 var
                 ShellJsonOutput := ChatTools.ShellTool.Execute(SCallId, JAction);
 
-                // Crear y guardar el mensaje de respuesta de la herramienta
+                // Create and save the tool response message
                 NewMsg := TAiChatMessage.Create(ShellJsonOutput, 'tool');
                 NewMsg.ToolCallId := SCallId;
                 NewMsg.PreviousResponseId := FResponseId;
@@ -1411,7 +1411,7 @@ begin
         // --- TIPO: APPLY PATCH (EDICI?N DE ARCHIVOS) ---
         else if SType = 'apply_patch_call' then
         begin
-          // 1. Extraer datos de la operaci?n
+          // 1. Extract operation data
           var
           OpType := '';
           var

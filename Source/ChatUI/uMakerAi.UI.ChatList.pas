@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr�quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -40,7 +40,7 @@ uses
   System.SysUtils, System.Classes, System.Types, System.UITypes, System.Math.Vectors, System.Math,
   FMX.Types, FMX.Controls, FMX.Graphics, FMX.Layouts, FMX.ScrollBox, FMX.StdCtrls, System.JSON,
   FMX.Memo, FMX.Objects, FMX.Ani, FMX.Styles.Objects, FMX.Menus,
-  uMakerAi.UI.ChatBubble, uMakerAi.Core; // Aseg�rate de que esta unidad est� en el path de tu proyecto
+  uMakerAi.UI.ChatBubble, uMakerAi.Core; // Make sure this unit is in your project path
 
 type
   // Tipos de eventos definidos en la especificaci�n (req. 11)
@@ -246,13 +246,13 @@ begin
   begin
     if Assigned(LJsonValue) then
       LJsonValue.Free;
-    raise Exception.Create('Formato de chat inv�lido.');
+    raise Exception.Create('Invalid chat format.');
   end;
 
   LRoot := LJsonValue as TJSONObject;
   try
     if not(LRoot.TryGetValue<Integer>('version', LVersion) and (LVersion = CHAT_FORMAT_VERSION)) then
-      raise Exception.Create('Versi�n del formato de chat no soportada.');
+      raise Exception.Create('Chat format version not supported.');
 
     Self.Clear;
     Self.BeginUpdate;
@@ -394,9 +394,9 @@ var
 begin
   // Crea una burbuja, le asigna el control y llama al m�todo principal
   if (AControl = nil) or Assigned(AControl.Parent) then
-    raise EArgumentException.Create('El control a a�adir no puede ser nulo ni tener un padre asignado.');
+    raise EArgumentException.Create('The control to add cannot be null or already have a parent assigned.');
 
-  LBubble := TChatBubble.Create(nil); // Sin padre, se asignar� en InternalAddBubble
+  LBubble := TChatBubble.Create(nil); // No parent, will be assigned in InternalAddBubble
   try
     AControl.Parent := LBubble;
     Result := AddCustomBubble(LBubble, AUserName, AInbound);
@@ -409,9 +409,9 @@ end;
 function TChatList.AddCustomBubble(ABubble: TChatBubble; const AUserName: string; AInbound: Boolean): TChatBubble;
 begin
   if (ABubble = nil) or Assigned(ABubble.Parent) then
-    raise EArgumentException.Create('La burbuja a a�adir no puede ser nula ni tener un padre asignado.');
+    raise EArgumentException.Create('The bubble to add cannot be null or already have a parent assigned.');
 
-  // La l�gica central de adici�n est� en un m�todo privado para reutilizaci�n
+// The central addition logic is in a private method for reuse
   InternalAddBubble(ABubble, AUserName, AInbound);
   Result := ABubble;
 end;
@@ -429,7 +429,7 @@ begin
   LMemo.ReadOnly := True;
   LMemo.HitTest := True; // Para que el clic pase a la burbuja
   LMemo.GoToTextBegin;
-  LMemo.SelectionFill.Color := TAlphaColors.Null; // Ocultar el color de selecci�n
+  LMemo.SelectionFill.Color := TAlphaColors.Null; // Hide selection color
   LMemo.HideSelectionOnExit := True;
 
   try
@@ -442,7 +442,7 @@ begin
     SetMemoBackVisible(LMemo, False);
 
   except
-    LMemo.Free; // Liberar si la adici�n falla
+    LMemo.Free; // Free if addition fails
     raise;
   end;
 end;
@@ -508,7 +508,7 @@ begin
 
     LWriter := TStreamWriter.Create(AStream, TEncoding.UTF8); // Siempre usa UTF8
     try
-      LWriter.Write(LRoot.ToJSON); // ToJSON es m�s legible que ToString
+      LWriter.Write(LRoot.ToJSON); // ToJSON is more readable than ToString
     finally
       LWriter.Free;
     end;
@@ -540,7 +540,7 @@ end;
 
 function TChatList.IsScrolledToBottom: Boolean;
 const
-  TOLERANCE = 5; // Margen de p�xeles para considerar que est� al final
+  TOLERANCE = 5; // Pixel margin to consider at the end
 begin
   Result := (Self.ViewportPosition.Y >= (FContentLayout.Height - Self.Height - TOLERANCE));
 end;
@@ -556,7 +556,7 @@ begin
   // 6. Agrupamiento / Append
   if FGroupConsecutiveMessages and TryAppendToLastBubble(ABubble, AUserName, AInbound) then
   begin
-    ABubble.Free; // El bubble pasado no se us�, se liber� su contenido dentro de TryAppend
+    ABubble.Free; // The passed bubble was not used, its content was freed inside TryAppend
     if LShouldScroll then
       ScrollToBottom;
     Exit;
@@ -564,7 +564,7 @@ begin
 
   // Configuraci�n del nuevo bubble
   ABubble.UserName := AUserName;
-  ABubble.Title := AUserName; // Por defecto el t�tulo es el nombre de usuario
+  ABubble.Title := AUserName; // By default the title is the username
   ABubble.Timestamp := FormatDateTime('hh:nn', Now);
 
   If AInbound then
@@ -665,7 +665,7 @@ end;
   CalculateAndSetBubbleSize(FLastBubble);
   UpdateContentLayoutHeight;
   Result := True;
-  Exit; // �Importante! Salimos si ya hemos fusionado.
+  Exit; // !Important! Exit if we have already merged.
   end;
 
   // Si no se pudo fusionar TMemo, intentamos TText con TText (tu l�gica original).
@@ -705,14 +705,14 @@ begin
 
   // Regla 1: La burbuja de origen (la nueva) debe contener �nicamente un TMemo.
   if ABubble.ContentLayout.ChildrenCount <> 1 then
-    Exit; // Tiene im�genes, adjuntos, o est� vac�a. No fusionar.
+    Exit; // Has images, attachments, or is empty. Do not merge.
   LSourceMemo := ABubble.FindFirstChild<TMemo>;
   if not Assigned(LSourceMemo) then
-    Exit; // Su �nico hijo no es un TMemo. No fusionar.
+    Exit; // Its only child is not a TMemo. Do not merge.
 
   // Regla 2: La burbuja de destino (la �ltima en el chat) tambi�n debe contener �nicamente un TMemo.
   if FLastBubble.ContentLayout.ChildrenCount <> 1 then
-    Exit; // La burbuja anterior ya tiene contenido mixto. No a�adirle m�s.
+    Exit; // The previous bubble already has mixed content. Do not add more.
   LTargetMemo := FLastBubble.FindFirstChild<TMemo>;
   if not Assigned(LTargetMemo) then
     Exit; // La burbuja anterior no es de solo texto. No fusionar.

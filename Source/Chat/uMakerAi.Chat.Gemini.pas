@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Name: Gustavo Enríquez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -1075,7 +1075,7 @@ begin
     // D. Computer Use
     if (cap_ComputerUse in ModelConfig.ModelCaps) then
     Begin
-      // En Gemini 2.5, Computer Use es una herramienta de primer nivel,
+      // In Gemini 2.5, Computer Use is a first-class tool,
       // al igual que 'googleSearch' o 'codeExecution'.
       var
       JComputerTool := TJSONObject.Create;
@@ -1646,7 +1646,7 @@ begin
       End;
       TTask.WaitForAll(TaskList);
 
-      // Crear los mensajes de respuesta de las herramientas
+      // Create the tool response messages
       For Clave in LFunciones.Keys do
       Begin
         ToolCall := LFunciones[Clave];
@@ -1734,7 +1734,7 @@ begin
       var jSupport := jSupportVal as TJSONObject;
       var LCitation := TAiMsgCitation.Create;
 
-      // Extraer segmento de texto citado
+      // Extract cited text segment
       var jSegment: TJSONObject;
       if jSupport.TryGetValue<TJSONObject>('segment', jSegment) then
       begin
@@ -1933,7 +1933,7 @@ begin
   ResMsg.Total_tokens := Self.Total_tokens;
   ResMsg.Thinking_tokens := Self.Thinking_tokens;
 
-  // 2. Procesar Buffer de Herramientas/Archivos/Firmas acumulados
+  // 2. Process accumulated Tools/Files/Signatures Buffer
   if FTmpToolCallBuffer.Count > 0 then
   begin
     JArrParts := TJSonArray.Create;
@@ -2104,7 +2104,7 @@ begin
     LFileStream.Position := 0;
     LNumBytes := LFileStream.Size;
     if LNumBytes = 0 then
-      raise Exception.Create('No se pudo obtener el contenido del archivo para subir.');
+      raise Exception.Create('Could not obtain file content for upload.');
     try
       LHeaders := [TNetHeader.Create('X-Goog-Upload-Protocol', 'resumable'), TNetHeader.Create('X-Goog-Upload-Command', 'start'), TNetHeader.Create('X-Goog-Upload-Header-Content-Length', LNumBytes.ToString),
         TNetHeader.Create('X-Goog-Upload-Header-Content-Type', aMediaFile.MimeType)];
@@ -2577,7 +2577,7 @@ begin
                 raise Exception.Create('Veo Operation Failed: ' + ErrMsg);
               end;
 
-              // Extraer URI del video
+              // Extract video URI
               // Ruta JSON: response.generateVideoResponse.generatedSamples[0].video.uri
               var
               LVideoResponse := TaskFinalResponse.GetValue<TJSONObject>('response.generateVideoResponse');

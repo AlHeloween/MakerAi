@@ -1,4 +1,4 @@
-﻿// IT License
+// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: +57 3128441700
 // - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
@@ -36,10 +36,10 @@
 // 2. Core: TAiMsgCitation, TAiMsgCitations en TAiChatMessage  [COMPLETADO]
 // 3. Claude.GetMessages: Inyectar "citations": {"enabled": true}  [COMPLETADO]
 // 4. Claude.ProcessStreamChunk: Captura citations_delta  [YA FUNCIONABA]
-// 5. Claude.ParseChat: Parsear char_location, page_location, etc.  [COMPLETADO]
+// 5. Claude.ParseChat: Parse char_location, page_location, etc.  [COMPLETED]
 // Ref: https://docs.anthropic.com/en/docs/build-with-claude/citations
 // -----------------------------------------------------------------------------
-// ------ Herramientas que no se implementar?n por ahora --------------------
+// ------ Tools that will not be implemented for now --------------------
 // 1. https://platform.claude.com/docs/es/agents-and-tools/tool-use/code-execution-tool
 // 2. https://platform.claude.com/docs/es/agents-and-tools/tool-use/fine-grained-tool-streaming
 // 3.
@@ -94,7 +94,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    // Agrega una regla para limpiar herramientas cuando se alcanzan X tokens
+    // Adds a rule to clean tools when X tokens are reached
     procedure AddRule_ClearTools(TriggerTokens: Integer; KeepCount: Integer = 0; ClearAtLeast: Integer = 0);
     function ToJSONObject: TJSONObject;
     function IsEmpty: Boolean;
@@ -181,7 +181,7 @@ type
 
     // M?todo f?cil para configurar la limpieza autom?tica de contexto
     // TriggerTokens: A partir de cu?ntos tokens de entrada se activa la limpieza (ej. 20000)
-    // KeepLast: Cu?ntas interacciones de herramientas recientes conservar (ej. 3)
+    // KeepLast: How many recent tool interactions to keep (e.g. 3)
     procedure ConfigureAutoContextClearing(TriggerTokens: Integer; KeepLast: Integer = 3);
 
     // Acceso a la configuraci?n de contexto
@@ -496,8 +496,8 @@ begin
     // ACTIVACI?N DE BETAS (HEADERS) - CR?TICO PARA EVITAR ERROR "EXTRA INPUTS"
     // -------------------------------------------------------------------------
 
-    // 1. OBLIGATORIO: Activar herramientas modernas (base de structured output)
-    // Seg?n tu doc, esta es la versi?n m?s reciente para herramientas
+    // 1. MANDATORY: Enable modern tools (structured output base)
+    // According to your doc, this is the most recent version for tools
     BetaFeatures.Add('token-efficient-tools-2025-02-19');
 
     // 2. OBLIGATORIO: Activar capacidades de Output extendidas
@@ -834,7 +834,7 @@ begin
       jArrTools.Add(JTools);
     end;
 
-    // Inyectar herramientas al JSON principal
+    // Inject tools into the main JSON
     if jArrTools.Count > 0 then
     begin
       AJSONObject.AddPair('tools', jArrTools);
@@ -1167,7 +1167,7 @@ begin
               // --- RECUPERACI?N INTELIGENTE DEL NOMBRE ---
               FoundFileName := 'generated_file_' + Copy(Clave, 1, 8); // Nombre temporal
 
-              // 1. Obtenemos el ID de la herramienta que gener? este resultado
+              // 1. We get the ID of the tool that generated this result
               ToolUseID := jContentItem.GetValue<string>('tool_use_id', '');
 
               if ToolUseID <> '' then
@@ -1456,7 +1456,7 @@ begin
             streamBlock.ExtraData.AddPair(Pair.JsonString.Value, Pair.JsonValue.Clone as TJSONValue);
         end;
 
-        // Si es una herramienta, inicializamos la estructura
+        // If it is a tool, we initialize the structure
         if streamBlock.BlockType = 'tool_use' then
         begin
           streamBlock.ToolFunction := TAiToolsFunction.Create;
@@ -1542,7 +1542,7 @@ begin
         blockIndex := jData.GetValue<Integer>('index');
         if FStreamContentBlocks.TryGetValue(blockIndex, streamBlock) then
         begin
-          // Si termin? un bloque de herramienta, parseamos los argumentos JSON acumulados
+          // If a tool block ended, we parse the accumulated JSON arguments
           if streamBlock.BlockType = 'tool_use' then
           begin
             try
@@ -1767,9 +1767,9 @@ begin
   // Limpia configuraciones previas para evitar duplicados
   FContextConfig.Clear;
 
-  // Agregar la regla de limpieza de herramientas
+  // Add the tool cleanup rule
   // TriggerTokens: Cuando el prompt supere este tama?o
-  // KeepLast: Mantener los ?ltimos N usos de herramientas (para no perder contexto inmediato)
+  // KeepLast: Keep the last N tool uses (to not lose immediate context)
   // ClearAtLeast: 0 (Default, deja que Claude decida cu?nto borrar)
   FContextConfig.AddRule_ClearTools(TriggerTokens, KeepLast, 0);
 end;
@@ -1838,7 +1838,7 @@ end;
   LContentArray := TJSonArray.Create;
 
   // -------------------------------------------------------------------------
-  // CASO 1: Resultado de Herramienta (Role: User)
+  // CASE 1: Tool Result (Role: User)
   // -------------------------------------------------------------------------
   if (LMessage.Role = 'user') and (not LMessage.ToolCallId.IsEmpty) then
   begin
@@ -1888,7 +1888,7 @@ end;
   bHasContent := True;
   end;
 
-  // B. Bloques de Uso de Herramientas (Tool Use)
+  // B. Tool Use Blocks (Tool Use)
   if LMessage.Tool_calls <> '' then
   begin
   try
@@ -2018,7 +2018,7 @@ begin
     LContentArray := TJSonArray.Create;
 
     // -------------------------------------------------------------------------
-    // CASO 1: Resultado de Herramienta (Role: User)
+    // CASE 1: Tool Result (Role: User)
     // -------------------------------------------------------------------------
     if (LMessage.Role = 'user') and (not LMessage.ToolCallId.IsEmpty) then
     begin
@@ -2253,7 +2253,7 @@ begin
       jRes := TJSONObject.ParseJSONValue(Res.ContentAsString) as TJSONObject;
       if Assigned(jRes) then
         try
-          // 4. Parsear la respuesta JSON
+          // 4. Parse the JSON response
           // La estructura es: { "data": [ {"id": "...", ...}, ... ] }
           if jRes.TryGetValue<TJSonArray>('data', jArr) then
           begin
@@ -2261,7 +2261,7 @@ begin
             begin
               if JVal is TJSONObject then
               begin
-                // Extraer el ID del modelo (ej: "claude-sonnet-4-5-20250514")
+                // Extract the model ID (e.g: "claude-sonnet-4-5-20250514")
                 sModel := (JVal as TJSONObject).GetValue<string>('id', '');
                 if sModel <> '' then
                   Result.Add(sModel);
@@ -2476,7 +2476,7 @@ procedure TAiClaudeChat.DoCallFunction(ToolCall: TAiToolsFunction);
 begin
 
   // ---------------------------------------------------------------------------
-  // 1. Interceptar Herramienta BASH / SHELL
+  // 1. Intercept BASH / SHELL Tool
   // ---------------------------------------------------------------------------
   if (ToolCall.Name = 'bash') then
   begin
@@ -2502,7 +2502,7 @@ begin
     Exit;
   end;
 
-  // 2. Interceptar Herramienta de Edici?n Nativa
+  // 2. Intercept Native Editing Tool
   if ((ToolCall.Name = 'str_replace_based_edit_tool') or (ToolCall.Name = 'str_replace_editor')) and Assigned(ChatTools.TextEditorTool) then
   begin
     ToolCall.Response := ChatTools.TextEditorTool.Execute(ToolCall.Arguments);

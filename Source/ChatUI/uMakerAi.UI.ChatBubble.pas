@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr�quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -104,7 +104,7 @@ type
     FOnRequiredSizeCalculated: TRequiredSizeEvent;
     FUserName: String;
 
-    FContentLayout: TLayout; // Contenedor para todo el contenido din�mico
+    FContentLayout: TLayout; // Container for all dynamic content
     FDocIcons: TListImages;
     FContentFont: TFont;
     FMediaFiles: TAiMediaFiles;
@@ -361,7 +361,7 @@ begin
   FTimestampFont.Size := 10;
   FTimestampFont.OnChanged := FontChanged;
   FContentFont := TFont.Create;
-  FContentFont.Size := 12; // Un tama�o por defecto razonable
+  FContentFont.Size := 12; // A reasonable default size
   FContentFont.OnChanged := FontChanged; // Reutilizamos el evento que ya tienes
 
   FLayoutCalculated := False;
@@ -376,7 +376,7 @@ begin
 
   FContentLayout := TLayout.Create(Self);
   FContentLayout.Parent := Self;
-  FContentLayout.Align := TAlignLayout.Client; // El layout llenar� el �rea de padding
+  FContentLayout.Align := TAlignLayout.Client; // The layout will fill the padding area
   FMediaFiles := TAiMediaFiles.Create;
 
 
@@ -422,7 +422,7 @@ begin
     Tfc_Video:
       IconKey := 'video';
     Tfc_Image:
-      IconKey := 'image'; // Icono gen�rico si no se puede mostrar
+      IconKey := 'image'; // Generic icon if cannot be displayed
   else
     IconKey := 'unknown';
   end;
@@ -458,7 +458,7 @@ const
   MAX_IMAGE_WIDTH = 250;
   MAX_IMAGE_HEIGHT = 300;
 begin
-  Result := TImage.Create(nil); // Se a�adir� al FContentLayout, sin owner
+  Result := TImage.Create(nil); // Will be added to FContentLayout, no owner
   try
     // Cargar la imagen desde el stream del media file
     AMediaFile.Content.Position := 0;
@@ -630,7 +630,7 @@ begin
     end;
 
     // 3. Usamos AddContent para construir el contenido visual con los datos deserializados.
-    // Esto reutiliza toda tu l�gica de UI, �es la forma correcta de hacerlo!
+// This reuses all your UI logic, it is the correct way to do it!
     AddContent(LText, LMediaFiles);
 
   finally
@@ -707,7 +707,7 @@ begin
   // Si no se pudo cargar, crear bitmap en blanco
   if not Result then
   begin
-    ABitmap.SetSize(32, 32); // Tama�o por defecto, puedes ajustarlo
+    ABitmap.SetSize(32, 32); // Default size, you can adjust it
     ABitmap.Clear(TAlphaColorRec.Null); // Transparente
   end;
 end;
@@ -759,7 +759,7 @@ begin
   if not AText.IsEmpty then
   begin
     LMemo := TMemo.Create(nil);
-    LMemo.Parent := FContentLayout; // Se a�ade como el �ltimo hijo
+    LMemo.Parent := FContentLayout; // Added as the last child
     LMemo.Align := TAlignLayout.Client;
     LMemo.WordWrap := True;
     LMemo.ReadOnly := True;
@@ -768,7 +768,7 @@ begin
     LMemo.TextSettings.Font.Assign(FContentFont);
     LMemo.TextSettings.HorzAlign := TTextAlign.Leading;
     LMemo.Text := AText;
-    LMemo.Height := 50; // La altura se recalcular� despu�s
+    LMemo.Height := 50; // Height will be recalculated later
     LMemo.Margins.Top := 4;
 
     LMemo.StyleLookup := 'memostyle';

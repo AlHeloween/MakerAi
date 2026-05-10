@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -101,7 +101,7 @@ type
     function Cmd_ApplyDiff(const Path: string; const jArgs: TJSONObject): string; virtual;
 
   public
-    // Ejecuta la herramienta recibiendo un JSON string
+    // Executes the tool receiving a JSON string
     function Execute(const JsonArguments: string): string; virtual;
 
   published
@@ -141,7 +141,7 @@ begin
   jArgs := TJSONObject(jVal);
   try
     try
-      // 1. Extraer par?metros comunes
+      // 1. Extract common parameters
       Cmd := jArgs.GetValue<string>('command');
       Path := jArgs.GetValue<string>('path');
 
@@ -158,7 +158,7 @@ begin
         Exit('Error: Ruta inv?lida o vac?a.');
 
       if (Cmd <> 'create') and (not FileExists(Path)) then
-        Exit('Error: El archivo no existe en la ruta: ' + Path);
+        Exit('Error: File does not exist at path: ' + Path);
 
       // 3. Despachar comando
       if Cmd = 'view' then
@@ -338,12 +338,12 @@ var
   Content: string;
 begin
   if FileExists(Path) then
-    Exit('Error: El archivo ya existe. Usa "str_replace" o "insert" para modificarlo.');
+    Exit('Error: File already exists. Use "str_replace" or "insert" to modify it.');
 
   Content := jArgs.GetValue<string>('file_text', '');
 
   if not EnsureDirectory(Path) then
-    Exit('Error: No se pudo crear el directorio para el archivo.');
+    Exit('Error: Could not create directory for the file.');
 
   SaveFileContent(Path, Content);
   Result := 'Archivo creado exitosamente.';

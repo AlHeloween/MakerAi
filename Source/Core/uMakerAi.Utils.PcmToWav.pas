@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr�quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -74,14 +74,14 @@ type
   TWAVHeader = packed record
     // Chunk RIFF
     ChunkID: array [0 .. 3] of AnsiChar; // "RIFF"
-    ChunkSize: Cardinal; // Tama�o del archivo - 8 bytes
+    ChunkSize: Cardinal; // File size - 8 bytes
     Format: array [0 .. 3] of AnsiChar; // "WAVE"
 
     // Subchunk fmt
     Subchunk1ID: array [0 .. 3] of AnsiChar; // "fmt "
     Subchunk1Size: Cardinal; // 16 para PCM
     AudioFormat: Word; // 1 para PCM
-    NumChannels: Word; // N�mero de canales
+    NumChannels: Word; // Number of channels
     SampleRate: Cardinal; // Frecuencia de muestreo
     ByteRate: Cardinal; // SampleRate * NumChannels * BitsPerSample/8
     BlockAlign: Word; // NumChannels * BitsPerSample/8
@@ -89,7 +89,7 @@ type
 
     // Subchunk data
     Subchunk2ID: array [0 .. 3] of AnsiChar; // "data"
-    Subchunk2Size: Cardinal; // Tama�o de los datos PCM
+    Subchunk2Size: Cardinal; // PCM data size
   end;
 
   // Funci�n principal para convertir PCM a WAV

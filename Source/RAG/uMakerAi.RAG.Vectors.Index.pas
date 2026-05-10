@@ -22,7 +22,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr�quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -62,7 +62,7 @@ Type
     FModel: String;
     FMetaData: TAiEmbeddingMetaData;
 
-    FTag: string; // GUID o ID de DB (m�s vers�til que Integer)
+    FTag: string; // GUID or DB ID (more versatile than Integer)
     FTagObject: TObject; // Referencia a objetos externos
     FOrden: Integer;
     FMagnitude: Double;
@@ -273,14 +273,14 @@ Type
   public
     constructor Create;
     destructor Destroy; override;
-    procedure AddNode(aNode: TAiEmbeddingNode); // Para indexar al a�adir
+    procedure AddNode(aNode: TAiEmbeddingNode); // For indexing when adding
     function Search(const aQuery: string; aLimit: Integer; aFilter: TAiFilterCriteria = nil): TList<TPair<Double, TAiEmbeddingNode>>;
 
     procedure Clear;
 
     property Language: TAiLanguage read FLanguage write SetLanguage;
 {$IF CompilerVersion >= 35}
-    property StopWords: THashSet<string> read FStopWords; // Permite a�adir palabras personalizadas
+    property StopWords: THashSet<string> read FStopWords; // Allows adding custom words
 {$ELSE}
     property StopWords: TDictionary<string, Boolean> read FStopWords;
 {$ENDIF}
@@ -305,7 +305,7 @@ begin
   FDim := aDim;
   SetLength(FData, FDim);
   FMetaData := TAiEmbeddingMetaData.Create;
-  FTag := TGuid.NewGuid.ToString; // ID �nico por defecto
+  FTag := TGuid.NewGuid.ToString; // Unique ID by default
   FOrden := 0;
   FTagObject := nil;
   FMagnitude := 0;
@@ -544,7 +544,7 @@ end;
 procedure TAIBasicEmbeddingIndex.BuildIndex(Points: TRagItems);
 begin
   if not Assigned(Points) then
-    Exit; // <- Protecci�n
+    Exit; // <- Protection
   inherited;
 end;
 
@@ -657,7 +657,7 @@ end;
 
 procedure TAIEuclideanDistanceIndex.BuildIndex(Points: TRagItems);
 begin
-  Inherited; // La implementaci�n base es suficiente
+  Inherited; // The base implementation is sufficient
 end;
 
 constructor TAIEuclideanDistanceIndex.Create;
@@ -742,7 +742,7 @@ begin
       if Assigned(FConnections[i]) then
         FConnections[i].Free;
     end;
-    raise; // Re-lanzamos la excepci�n
+    raise; // Re-throw the exception
   end;
 end;
 
@@ -812,7 +812,7 @@ end;
 
 destructor THNSWIndex.Destroy;
 begin
-  // Limpieza centralizada
+  // Centralized cleanup
   Clear;
 
   // Liberar el diccionario contenedor
@@ -999,7 +999,7 @@ begin
   try
     FNodes.Add(NodeID, Node);
   except
-    Node.Free; // Si falla la inserci�n en el diccionario, limpiamos
+    Node.Free; // If dictionary insertion fails, clean up
     raise;
   end;
 
@@ -1253,7 +1253,7 @@ begin
     Exit;
 
   // Split con separadores extendidos (incluyendo caracteres especiales de espa�ol)
-  Words := aText.ToLower.Split([' ', '.', ',', ';', ':', '-', '_', '(', ')', '[', ']', '{', '}', '"', '�', '?', '�', '!', '/', '\', '|', #13, #10, #9], // A�ad� TAB (#9)
+  Words := aText.ToLower.Split([' ', '.', ',', ';', ':', '-', '_', '(', ')', '[', ']', '{', '}', '"', 'á', '?', 'á', '!', '/', '\', '|', #13, #10, #9], // Added TAB (#9)
   TStringSplitOptions.ExcludeEmpty);
 
   for W in Words do
@@ -1312,7 +1312,7 @@ begin
       end;
     end;
 
-    // 2. Registrar longitud del documento
+    // 2. Register document length
     FDocLengths.Add(aNode, Tokens.Count);
 
     // 3. Actualizar el �ndice invertido
@@ -1341,8 +1341,8 @@ end;
 
 function TAIBm25Index.Search(const aQuery: string; aLimit: Integer; aFilter: TAiFilterCriteria = nil): TList<TPair<Double, TAiEmbeddingNode>>;
 const
-  k1 = 1.2; // Saturaci�n de frecuencia
-  B = 0.75; // Penalizaci�n por longitud
+  k1 = 1.2; // Frequency saturation
+  B = 0.75; // Length penalty
 var
   QueryTokens: TStringList;
   QW: string;
@@ -1387,7 +1387,7 @@ begin
           // --- PRE-FILTERING CON CRITERIA ---
           if Assigned(aFilter) and (aFilter.Count > 0) then
           begin
-            // Nuevo m�todo centralizado
+            // New centralized method
             if not Occur.Node.MetaData.Matches(aFilter) then
               Continue;
           end;

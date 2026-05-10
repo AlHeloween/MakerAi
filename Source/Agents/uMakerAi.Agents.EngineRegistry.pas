@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr�quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -38,7 +38,7 @@ interface
 
 uses
   System.SysUtils, System.Classes, System.JSON, System.Generics.Collections, System.Variants, System.TypInfo,
-  // Dependencias del "Motor"
+  // "Engine" dependencies
   uMakerAi.Agents, uMakerAi.Agents.Attributes;
 
 type
@@ -52,7 +52,7 @@ type
     Schema: TJSONObject;
   end;
 
-  // --- CAMBIO 1: Nueva estructura para almacenar la clase Y el nombre de su unidad. ---
+  // --- CHANGE 1: New structure to store the class AND its unit name. ---
   // Esto enriquece el registro para que el generador de c�digo sepa qu� unidades incluir.
   TToolInfo = record
     ToolClass: TClass;
@@ -170,7 +170,7 @@ end;
 function TEngineRegistry.GetToolBlueprints: TArray<TToolBlueprint>;
 var
   LToolInfo: TToolInfo;   // La variable del bucle ahora es del tipo TToolInfo.
-  ToolClass: TClass;      // Variable local para mantener la claridad del c�digo existente.
+  ToolClass: TClass;      // Local variable to maintain clarity of existing code.
   LContext: TRttiContext;
   LRttiType: TRttiType;
   ClassToolAttr: TToolAttribute;

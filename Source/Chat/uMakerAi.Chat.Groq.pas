@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr�quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -181,7 +181,7 @@ begin
       JArr := TJSonArray(TJSonArray.ParseJSONValue(GetTools(TToolFormat.tfOpenAi).Text));
 {$ENDIF}
       If Not Assigned(JArr) then
-        Raise Exception.Create('La propiedad Tools est�n mal definido, debe ser un JsonArray');
+        Raise Exception.Create('Tools property is incorrectly defined, it must be a JsonArray');
       AJSONObject.AddPair('tools', JArr);
 
       If (Trim(Tool_choice) <> '') then
@@ -201,11 +201,11 @@ begin
     Begin
       If LastMsg.MediaFiles.Count > 0 then
       Begin
-        AJSONObject.AddPair('messages', LastMsg.ToJSon); // Si tiene im�genes solo envia una entrada
+        AJSONObject.AddPair('messages', LastMsg.ToJSon); // If it has images, only send one entry
       End
       Else
       Begin
-        AJSONObject.AddPair('messages', GetMessages); // Si no tiene im�genes env�a todos los mensajes
+        AJSONObject.AddPair('messages', GetMessages); // If no images, send all messages
       End;
     End;
 

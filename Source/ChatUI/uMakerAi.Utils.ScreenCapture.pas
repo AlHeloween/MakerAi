@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr�quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -160,7 +160,7 @@ begin
           GetMem(BmpData, DataSize);
           try
             if GetDIBits(MemDC, HBmp, 0, CaptureRect.Height, BmpData, BmpInfo, DIB_RGB_COLORS) = 0 then
-              Exit; // GetDIBits fall�
+              Exit; // GetDIBits failed
 
             // Asegurar alfa opaco (GetDIBits suele dejar alfa = 0 o basura)
             pByte := System.PByte(BmpData);

@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -1642,7 +1642,7 @@ begin
         // 1. Ejecutar Match
         AResultObjects := Self.Match(QueryObj, FinalDepth);
 
-        // 2. Extraer Nodos ?nicos para generar el contexto
+        // 2. Extract unique Nodes to generate the context
         ContextNodes := TList<TAiRagGraphNode>.Create;
         try
           for ResDict in AResultObjects do
@@ -1854,7 +1854,7 @@ begin
   FNodeRegistry.Clear;
   FEdgeRegistry.Clear;
 
-  // Liberar las listas de nodos dentro del ?ndice de etiquetas antes de limpiarlo
+  // Free the node lists within the label index before cleaning it
   for NodeList in FNodeLabelIndex.Values do
   begin
     NodeList.Free;
@@ -3187,7 +3187,7 @@ begin
   if FNodeRegistry.TryGetValue(ANode.ID, Result) then
   begin
     // El nodo ya existe. Devolvemos el nodo existente para mantener la
-    // consistencia. El llamador es responsable de liberar el ANode duplicado.
+    // consistency. The caller is responsible for freeing the duplicated ANode.
     Exit;
   end;
 

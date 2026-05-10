@@ -35,7 +35,7 @@ type
     foContains, // String contiene (LIKE %val%) / JSON @>
     foStartsWith, // String empieza (LIKE val%)
     foEndsWith, // String termina (LIKE %val)
-    foLike, // Patr�n SQL est�ndar (con % y _)
+    foLike, // Standard SQL pattern (with % and _)
     foILike, // Case insensitive Like
 
     // Listas y Rangos
@@ -91,7 +91,7 @@ type
     function Add(const Key: string; Op: TFilterOperator; const Value: Variant): TAiFilterCriteria; overload;
     function Add(const Key: string; Op: TFilterOperator; const Value, Value2: Variant): TAiFilterCriteria; overload;
 
-    // M�todo para agregar subgrupos (Necesario para el VGQL Compiler)
+// Method to add subgroups (Needed for the VGQL Compiler)
     function AddGroup(ALogic: TLogicalOperator): TAiFilterCriteria;
 
     function AddEqual(const Key: string; const Value: Variant): TAiFilterCriteria;

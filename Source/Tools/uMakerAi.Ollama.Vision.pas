@@ -1,4 +1,4 @@
-﻿// IT License
+// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enriquez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - Telegram: https://t.me/MakerAi_Delphi_Suite_English
@@ -30,7 +30,7 @@
 // - GitHub: https://github.com/gustavoeenriquez/
 
 // -------------------------------------------------------------------------
-// TAiOllamaVisionTool: Herramienta de descripcion de imagenes usando modelos
+// TAiOllamaVisionTool: Image description tool using models
 // de vision en Ollama (ej: gemma3:4b, llava:latest, moondream:latest).
 //
 // Implementa IAiVisionTool -> usable como ChatTool en TAiChat.VisionTool.

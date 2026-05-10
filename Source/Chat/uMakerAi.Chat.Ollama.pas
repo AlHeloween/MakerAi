@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Name: Gustavo Enríquez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -670,7 +670,7 @@ begin
             // 1. CAPTURAR TOOL CALLS (Fundamental para Ollama)
             if LMessageObj.TryGetValue<TJSonArray>('tool_calls', LToolCallsArray) then
             begin
-              // Guardamos el string de las herramientas. Ollama suele enviarlas
+              // We save the tools string. Ollama usually sends them
               // completas en un solo chunk, pero lo sobreescribimos por seguridad.
               FTmpToolCallsStr := LToolCallsArray.ToJSON;
               DoStateChange(acsToolCalling, 'Tool call detected in stream...');
@@ -809,7 +809,7 @@ begin
   // Verificamos si Ollama nos ha devuelto tool_calls
   if LMessageObj.TryGetValue<TJSonArray>('tool_calls', LToolCallsArray) and (LToolCallsArray.Count > 0) then
   begin
-    // --- CASO A: El modelo solicita ejecutar herramientas ---
+    // --- CASE A: The model requests to execute tools ---
 
     // A.1 Save the assistant message (the tool request) in history
     LHistoryToolMsg := TAiChatMessage.Create(ResMsg.Content, LRole);
@@ -819,7 +819,7 @@ begin
 
     DoStateChange(acsToolExecuting, 'Executing local tools...');
 
-    // A.2 Extraer las definiciones de las funciones
+    // A.2 Extract the function definitions
     LChoicesSimulado := TJSonArray.Create;
     LFunciones := nil;
     try
@@ -875,7 +875,7 @@ begin
           FMessages.Add(LToolMsg);
         end;
 
-        // A.5 Re-ejecutar el Run para que el modelo analice los resultados de las herramientas
+        // A.5 Re-run the Run so the model analyzes the tool results
         // Limpiamos el ResMsg para recibir la respuesta final
         ResMsg.Content := '';
         ResMsg.Tool_calls := '';
@@ -1087,7 +1087,7 @@ begin
     LResponse := FClient.Post(LUrl, LBodyStream, LResponseStream);
 
     if LResponse.StatusCode <> 200 then
-      raise Exception.CreateFmt('Error al descargar el modelo: %d - %s', [LResponse.StatusCode, LResponse.ContentAsString]);
+      raise Exception.CreateFmt('Error downloading model: %d - %s', [LResponse.StatusCode, LResponse.ContentAsString]);
 
     // Procesar la respuesta en stream (linea por linea)
     LResponseStream.Position := 0;
@@ -1142,7 +1142,7 @@ begin
 
     if LResponse.StatusCode = 200 then
     begin
-      // El llamador es responsable de liberar el TJSONObject devuelto
+      // The caller is responsible for freeing the returned TJSONObject
       Result := TJSonObject.ParseJSONValue(LResponse.ContentAsString) as TJSonObject;
     end
     else

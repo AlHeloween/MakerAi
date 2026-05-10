@@ -28,11 +28,11 @@ Use this skill when a command may be:
 
 ## Why use cmd_runner?
 
-1. **Prevents context flooding** â€” Long output doesn't consume your agent context window
-2. **Isolates crashes** â€” If the subprocess crashes, your agent session stays stable
-3. **Visible window control** â€” Subprocess opens in a minimized window (SW_SHOWMINNOACTIVE); you can always find it in the taskbar and close it if needed
-4. **Cross-shell safety** â€” Paths are normalized to survive bash â†’ cmd â†’ PowerShell â†’ Python transformations
-5. **Programmatic input** â€” Send keystrokes/text via the inbox bridge without terminal hacks
+1. **Prevents context flooding** — Long output doesn't consume your agent context window
+2. **Isolates crashes** — If the subprocess crashes, your agent session stays stable
+3. **Visible window control** — Subprocess opens in a minimized window (SW_SHOWMINNOACTIVE); you can always find it in the taskbar and close it if needed
+4. **Cross-shell safety** — Paths are normalized to survive bash → cmd → PowerShell → Python transformations
+5. **Programmatic input** — Send keystrokes/text via the inbox bridge without terminal hacks
 
 ## Process window behavior
 

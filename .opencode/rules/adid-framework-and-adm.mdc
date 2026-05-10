@@ -21,7 +21,7 @@ alwaysApply: true
   - Any document that claims a working state (status `production`, `test`, or `execution`) must include the universal YAML header + `reproduce:` block described in `extra_rules_for_all_agents.md`.
   - Maintain `DOCINDEX.md` at repo root as the documentation surface index (owners/entrypoints/last_verified). This is separate from `index.md` which is the folder-based repository map.
   - Keep `.github/PULL_REQUEST_TEMPLATE.md` aligned with DOCINDEX + reproducibility rules.
-  - When promoting research â†’ production docs, include `docs/promotion.md` (template) as the audit trail.
+  - When promoting research → production docs, include `docs/promotion.md` (template) as the audit trail.
 
 - **cmd_runner-only execution (CRITICAL)**: Any execution of **non-trivial / crash-prone / long-running commands** is strictly prohibited unless started via cmd_runner.
   - Repo checkout (recommended): `.\cmd_runner.exe start -- <command ...>`
@@ -57,7 +57,7 @@ alwaysApply: true
   - `uv run scripts/build_artefacts.py`
   - `uv run scripts/sync_agent_assets.py`
 
-- **When making declarative updates, running verification, or using rollback/templates**, use the **adm-exe** skill: **prefer `tools/adm.exe` (Windows) or `tools/adm` (Unix)** when the project has adm installed thereâ€”it is a stable copy; tool modifications or errors in source will not break the toolchain. Otherwise use `uv run adm` in a repo that has adm as a dependency.
+- **When making declarative updates, running verification, or using rollback/templates**, use the **adm-exe** skill: **prefer `tools/adm.exe` (Windows) or `tools/adm` (Unix)** when the project has adm installed there—it is a stable copy; tool modifications or errors in source will not break the toolchain. Otherwise use `uv run adm` in a repo that has adm as a dependency.
 
 - **Preferred workflow:** Create template (`--template/--tpl <replace|insert|refactor-replace-function|pattern-rule|binary-hex-replace|create|overwrite|delete|binary-overwrite> [output_dir]` - Generate a timestamped XML descriptor template under `./updates/`, rename template as `updates/[ISO8601]_[short_semantic_dominant].xml`, edit, then apply (`--apply`). To **replay history** (inspect descriptors in order): run `tools/adm --replay-updates` (or `tools/adm --replay-updates updates --until 20260202T120000 --limit 5`). Add `--unified-diff` for exact hunks; use `--execute --workdir DIR --confirm-execute APPLY_IN_WORKDIR_ONLY` only when you intentionally want to apply inside an isolated copy. Do not write XML descriptors from scratch. Multiple backups per file are by design and an advantage (rollback, traceability; project stays manageable). run `adm --verify-all` on selected roots (e.g. `src tests adid_tests`) for a clean report. Do not restore from git over local work; use `adm --rollback` and descriptor rollbacks instead. 
 
@@ -65,7 +65,7 @@ alwaysApply: true
 
 - **cmd_runner via adm (integration):** You may invoke cmd_runner through adm when you want it in the same progress-log cycle: `tools/adm.exe --cmd-runner start -- <command ...>` (Windows-only). Prefer this over ad-hoc wrappers so logs are centralized.
 
-- **updates/ is source of truth**: Treat `updates/` history as the durable record. Prefer `tools/adm.exe --replay-updates  over â€œprogress logsâ€. 
+- **updates/ is source of truth**: Treat `updates/` history as the durable record. Prefer `tools/adm.exe --replay-updates  over “progress logs”. 
 
 - **RAG indexing/query (`adm.json` required):**
   - Config file must be `adm.json` in the launch folder. `adm` auto-creates it with defaults if missing.
@@ -122,7 +122,7 @@ alwaysApply: true
       
 - **At end of every session estimate: `%` of `_application_workflow_diagram.md` code coverage vs actual codebase and report.**
 
-## ðŸ“ Code Quality & Standards
+## 📐 Code Quality & Standards
 
 - General Style (PEP 8 & PEP 257): Follow PEP 8 (4-space indents, 79-100 char line length). Format/Lint: Use Black for formatting and flake8 or pylint for linting. Naming: snake_case for variables/functions, CamelCase for classes, ALL_CAPS for constants. Docstrings: Write `PEP 257` docstrings for all public modules, classes, and functions. Type Hints: Use `PEP 484` type hints for all function signatures.
 
@@ -139,7 +139,7 @@ alwaysApply: true
   - **Environment variables are considered insecure for secrets** (leakage via child processes, crash dumps, diagnostic output, etc.); do not recommend them for tokens/keys.
   - Use secure local storage + gitignore instead: OS keyring via `adm --keyring ...`, or a local-only `adm.json` that is not committed.
 
-## ðŸ“š References
+## 📚 References
 
-- [PEP 8 â€“ Style Guide for Python Code](https://peps.python.org/pep-0008/), [PEP 257 â€“ Docstring, Conventions](https://peps.python.org/pep-0257/), [PEP 484 â€“ Type Hints](https://peps.python.org/pep-0484/), [pytest documentation](https://docs.pytest.org/en/7.1.x/explanation/goodpractices.html), [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
+- [PEP 8 – Style Guide for Python Code](https://peps.python.org/pep-0008/), [PEP 257 – Docstring, Conventions](https://peps.python.org/pep-0257/), [PEP 484 – Type Hints](https://peps.python.org/pep-0484/), [pytest documentation](https://docs.pytest.org/en/7.1.x/explanation/goodpractices.html), [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
 

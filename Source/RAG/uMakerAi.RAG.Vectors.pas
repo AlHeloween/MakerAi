@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -118,7 +118,7 @@ type
 
   TAiVectorStoreDriverBase = class(TComponent)
   public
-    // Contrato del driver — cada implementacion sobreescribe estos metodos
+// Driver contract â each implementation overwrites these methods
     procedure Add(const aNode: TAiEmbeddingNode; const AEntidad: string); virtual; abstract;
     function Search(const ATarget: TAiEmbeddingNode; const AEntidad: string; aLimit: Integer; aPrecision: Double; aFilter: TAiFilterCriteria; Options: TAiSearchOptions): TAiRAGVector; virtual; abstract;
     procedure Delete(const aID, AEntidad: string); virtual; abstract;
@@ -374,7 +374,7 @@ begin
     if Assigned(MetaData) then
       Result.MetaData.Assign(MetaData);
 
-    // 4. Registrar en el sistema llamando a la L?gica Maestra
+    // 4. Register in the system by calling the Master Logic
     AddedIndex := Self.AddItem(Result, Result.MetaData);
 
     // 5. Gesti?n de Memoria post-intento
@@ -431,7 +431,7 @@ begin
     end;
     // ---> FIN LOGICA DE PROGRESO <---
 
-    // Extraer texto limpio
+    // Extract clean text
     if JVal is TJSONString then
       TextToEmbed := JVal.Value
     else

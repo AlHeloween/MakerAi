@@ -1,4 +1,4 @@
-unit uMakerAi.RAG.Vector.Driver.Postgres;
+﻿unit uMakerAi.RAG.Vector.Driver.Postgres;
 
 interface
 
@@ -280,7 +280,7 @@ begin
       begin
         Result := Format('(properties @> :%s::jsonb)', [ParamName]);
 
-        // 1. Extraer el nombre de la llave de forma limpia
+        // 1. Extract the key name cleanly
         var
         KeyName := FPath.Replace('properties->>''', '').Replace('properties #>> ''{', '').Replace('}''', '').Replace('''', '');
 

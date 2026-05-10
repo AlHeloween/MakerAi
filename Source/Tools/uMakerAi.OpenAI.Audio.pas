@@ -1,4 +1,4 @@
-﻿// IT License
+// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -208,7 +208,7 @@ begin
     ASourceStream.ReadBuffer(Buffer, Length(Buffer));
   TFile.WriteAllBytes(TempSourcePath, Buffer);
 
-  // El -y en ffmpeg sobreescribe el archivo de destino si ya existe.
+  // The -y in ffmpeg overwrites the destination file if it already exists.
   Command := 'ffmpeg -i "' + TempSourcePath + '" -y "' + TempDestPath + '"';
   RunCommand(Command);
 

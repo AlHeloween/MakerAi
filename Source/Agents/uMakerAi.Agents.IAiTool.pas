@@ -1,4 +1,4 @@
-// MIT License
+﻿// MIT License
 // MakerAI - Sistema de Agentes v3.4
 // Unified tool interface for the agent system redesign.
 //
@@ -20,14 +20,14 @@ uses
 type
 
   { IAiTool ----------------------------------------------------------------
-    Interfaz unificada para todas las herramientas del sistema de agentes.
-    Cualquier herramienta (MCP, función, sub-agente, shell) implementa esta
-    interfaz para ser intercambiable dentro del TAiToolRegistry.
+    Unified interface for all tools in the agent system.
+    Any tool (MCP, function, sub-agent, shell) implements this
+    interface to be interchangeable within TAiToolRegistry.
 
-    Contrato de memoria:
-      - GetSchema   → NO liberar; el objeto es propiedad de la herramienta.
-      - Execute     → El llamador es responsable de liberar el TJSONObject
-                      retornado (puede ser nil si no hay resultado).
+    Memory contract:
+      - GetSchema   → Do NOT free; the object is owned by the tool.
+      - Execute     → The caller is responsible for freeing the TJSONObject
+                      returned (may be nil if no result).
   }
   IAiTool = interface
     ['{3F7A9B2E-C154-4D8A-B3F1-0E9A7C6D5824}']
@@ -36,7 +36,7 @@ type
     function GetCategory: String;
     // Returns the JSON Schema of parameters. Do NOT free.
     function GetSchema: TJSONObject;
-    // Ejecuta la herramienta con argumentos JSON. Caller libera el resultado.
+    // Executes the tool with JSON arguments. Caller frees the result.
     function Execute(const AArgs: TJSONObject): TJSONObject;
     // Indicates if the tool is available for use.
     function IsAvailable: Boolean;
@@ -47,15 +47,15 @@ type
   end;
 
   { TAiToolBase_IAiTool ------------------------------------------------------
-    Adaptador que envuelve TAiToolBase (sistema legacy de nodos) como IAiTool,
-    permitiendo usarlas en TAiToolRegistry sin modificar el código existente.
+    Adapter that wraps TAiToolBase (legacy node system) as IAiTool,
+    allowing use in TAiToolRegistry without modifying existing code.
 
-    Uso:
+    Usage:
       var Tool: IAiTool := TAiToolBase_IAiTool.Create(MyLegacyTool, True);
   }
   TAiToolBase_IAiTool = class(TInterfacedObject, IAiTool)
   private
-    FTool     : TObject;   // TAiToolBase — evita dependencia circular
+    FTool     : TObject;   // TAiToolBase — avoids circular dependency
     FOwnsTool : Boolean;
     FSchema   : TJSONObject;
   public
@@ -71,7 +71,7 @@ type
   end;
 
   { TAiNullTool ---------------------------------------------------------------
-    Implementación vacía de IAiTool. Útil como placeholder o en tests.
+    Empty implementation of IAiTool. Useful as placeholder or in tests.
   }
   TAiNullTool = class(TInterfacedObject, IAiTool)
   private
@@ -160,7 +160,7 @@ begin
   Result := nil;
   if not Assigned(FTool) then Exit;
 
-  // Convierte los args JSON a string plano para TAiToolBase
+  // Converts JSON args to plain string for TAiToolBase
   if Assigned(AArgs) then
     Input := AArgs.ToJSON
   else

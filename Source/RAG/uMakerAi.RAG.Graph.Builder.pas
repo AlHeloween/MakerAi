@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr�quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -60,7 +60,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    Function Process(AJsonTripletArray: string; AMergeStrategy: TMergeStrategy = msAddNewOnly): Integer; // Retorna el n�mero de items insertados
+    Function Process(AJsonTripletArray: string; AMergeStrategy: TMergeStrategy = msAddNewOnly): Integer; // Returns the number of inserted items
     function FindExistingNode(AName, ALabel: string): TAiRagGraphNode;
 
   published
@@ -241,7 +241,7 @@ begin
 
   LEmbeddings := FGraph.Embeddings;
 
-  // 1. Extraer datos b�sicos del objeto JSON de entrada
+// 1. Extract basic data from the input JSON object
   NodeName := ANodeObject.GetValue<string>('name', '');
   NodeLabel := ANodeObject.GetValue<string>('nodeLabel', 'Undefined');
 
@@ -323,7 +323,7 @@ begin
       Result.Data := LEmbeddings.CreateEmbedding(Result.Text, 'user');
     end;
 
-    // 5. Registrar y Persistir en el Grafo (Un solo paso at�mico)
+// 5. Register and Persist in the Graph (A single atomic step)
     FGraph.AddNode(Result);
   end;
 end;
@@ -381,7 +381,7 @@ begin
 
         TripletObject := TripletValue as TJSONObject;
 
-        // Extraer componentes de la tripleta
+        // Extract triple components
         SubjectObj := TripletObject.GetValue<TJSONObject>('subject', nil);
         PredicateObj := TripletObject.GetValue<TJSONObject>('predicate', nil);
         ObjectObj := TripletObject.GetValue<TJSONObject>('object', nil);
@@ -403,7 +403,7 @@ begin
 
         if (SubjectNode <> nil) and (ObjectNode <> nil) then
         begin
-          // Extraer datos del predicado
+          // Extract predicate data
           EdgeLabel := PredicateObj.GetValue<string>('edgeLabel', 'related_to');
           EdgeName := PredicateObj.GetValue<string>('name', '');
           PredicateProps := PredicateObj.GetValue<TJSONObject>('properties', nil);
