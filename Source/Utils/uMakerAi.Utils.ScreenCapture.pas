@@ -1,4 +1,4 @@
-﻿﻿// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -419,7 +419,7 @@ begin
   Result := CaptureScreenAndroid;
   {$ENDIF}
   {$IFDEF IOS}
-  // iOS no permite captura de pantalla del sistema por seguridad
+  // iOS no permite captura de pantalla of the system por seguridad
   Result := nil;
   {$ENDIF}
 end;

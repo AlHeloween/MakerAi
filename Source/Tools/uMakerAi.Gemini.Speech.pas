@@ -1,4 +1,4 @@
-﻿// Pendiente [TODO] //Estimar el costo de la generaci?n ya que no retorna el consumo
+﻿// Pendiente [TODO] //Estimar el costo de la generation ya que no retorna el consumo
 // https://ai.google.dev/gemini-api/docs/pricing
 
 unit uMakerAi.Gemini.Speech;
@@ -171,7 +171,7 @@ begin
   end;
 end;
 
-{ --- L?GICA DE EJECUCI?N --- }
+{ --- logic DE execution --- }
 
 function TAiGeminiSpeechTool.InternalRunGeminiTTS(const AText: string; ResMsg: TAiChatMessage): string;
 var
@@ -200,7 +200,7 @@ begin
     // 1. Prompt de Director
     LRequestJson.AddPair('contents', TJSONArray.Create.Add(TJSONObject.Create.AddPair('parts', TJSONArray.Create.Add(TJSONObject.Create.AddPair('text', BuildFullPrompt(AText))))));
 
-    // 2. Configuraci?n de Generaci?n
+    // 2. configuration de generation
     LGenConfig := TJSONObject.Create;
 
     LRespModalities := TJSONArray.Create;
@@ -223,7 +223,7 @@ begin
       LBody.Free;
     end;
 
-    // 4. Respuesta y Conversi?n
+    // 4. Respuesta y conversion
     if LResponse.StatusCode = 200 then
     begin
       LResponseJson := TJSONObject.ParseJSONValue(LResponse.ContentAsString) as TJSONObject;
@@ -247,7 +247,7 @@ begin
           FTotal_tokens := FTotal_tokens + LTt;
         end;
 
-        // --- EXTRACCI?N DEL AUDIO ---
+        // --- EXTRaction DEL AUDIO ---
         LBase64 := LResponseJson.GetValue<string>('candidates[0].content.parts[0].inlineData.data', '');
         if not LBase64.IsEmpty then
         begin
@@ -265,7 +265,7 @@ begin
               LMsg.MediaFiles.Add(LNewFile);
 
               Result := '[Audio Generado]';
-              // Sincronizamos el Prompt del mensaje con el resultado
+              // Sincronizamos el Prompt del mensaje con the result
               LMsg.Prompt := Result;
 
               ReportDataEnd(ResMsg, 'assistant', Result);
@@ -292,7 +292,7 @@ begin
   end;
 end;
 
-{ --- M?TODOS DE APOYO --- }
+{ --- methodS DE APOYO --- }
 
 function TAiGeminiSpeechTool.BuildFullPrompt(const AText: string): string;
 var
@@ -406,7 +406,7 @@ procedure TAiGeminiSpeechTool.ExecuteSpeechGeneration(const AText: string; ResMs
 begin
   // Llamada directa siempre — mismo razonamiento que ExecuteTranscription:
   // InternalRunGeminiTTS asigna ResMsg.Prompt y ResMsg.MediaFiles directamente,
-  // por lo que el caller debe esperar a que termine para leer el resultado.
+  // por lo que el caller debe esperar a que termine to read the result.
   InternalRunGeminiTTS(AText, ResMsg);
 end;
 
@@ -452,7 +452,7 @@ class function TAiGeminiSpeechTool.GenerateSpeech(const AApiKey, AText, AVice: s
       LInstance.ApiKey := AApiKey;
       LInstance.Voice := AVice;
 
-      // Asignamos los par?metros de direcci?n si se proveen
+      // Asignamos los parameters de direction si se proveen
       if Assigned(AAudioProfile) then
         LInstance.AudioProfile.Assign(AAudioProfile);
       if Assigned(AScene) then
@@ -460,8 +460,8 @@ class function TAiGeminiSpeechTool.GenerateSpeech(const AApiKey, AText, AVice: s
       if Assigned(ADirectorsNotes) then
         LInstance.DirectorsNotes.Assign(ADirectorsNotes);
 
-      // 4. Ejecutamos la l?gica interna (S?ncronamente)
-      // Llamamos a InternalRunGeminiTTS que es donde est? la l?gica de red y tokens
+      // 4. Ejecutamos la logic interna (synchronousmente)
+      // Llamamos a InternalRunGeminiTTS que es donde is la logic de red y tokens
       LInstance.InternalRunGeminiTTS(AText, LDummyMsg);
 
       // 5. Extraemos el archivo resultante

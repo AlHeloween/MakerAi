@@ -194,7 +194,7 @@ begin
     LNode.JoinMode := jmAny;
     LTool := nil; // Good practice to initialize the reference
 
-    // 3. Procesar las propiedades del JSON
+    // 3. Procesar the properties del JSON
     if LNodeJson.TryGetValue<TJSONObject>(cJsonProperties, LPropertiesJson) then
     begin
       // 3.1. Leer la descripci�n (de forma anidada y segura)
@@ -240,7 +240,7 @@ begin
         FAgents.EndNode := LNode;
     end;
 
-    // 4. Registrar el nodo en los diccionarios para el paso de 'ParseEdges'
+    // 4. Registrar el nodo en los diccionarios for the paso de 'ParseEdges'
     FNodeMap.Add(LNodeGuid, LNode);
     FNodeJsonMap.Add(LNodeGuid, LNodeJson);
   end;
@@ -283,7 +283,7 @@ begin
       Continue;
 
     // MEJORA: La l�gica de creaci�n del Link es m�s expl�cita.
-    // Se crea un �nico Link por nodo de origen la primera vez que se encuentra una arista saliente.
+    // Is created un �nico Link por nodo de origen la primera vez que se encuentra una arista saliente.
     LLink := LSourceNode.Next;
     if not Assigned(LLink) then
     begin
@@ -292,7 +292,7 @@ begin
       LLink.Name := 'Link_From_' + LSourceNode.Name;
       LSourceNode.Next := LLink;
 
-      // Las propiedades del Link se leen del objeto 'engine' del NODO DE ORIGEN.
+      // the properties del Link se leen del objeto 'engine' del NODO DE ORIGEN.
       LEngineJson := FindEngineObject(LSourceNodeJson);
       if Assigned(LEngineJson) then
       begin

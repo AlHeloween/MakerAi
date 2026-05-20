@@ -244,7 +244,7 @@ begin
     Exit;
 
   // Dibujamos un indicador visual (C�rculo rojo con borde blanco)
-  // Esto es m�s f�cil en FMX que convertir HICONs y suficiente para la IA.
+  // Esto es m�s f�cil en FMX que convertir HICONs y suficiente for the IA.
   if Bmp.Canvas.BeginScene then
   try
     R := TRectF.Create(RelX - 10, RelY - 10, RelX + 10, RelY + 10);
@@ -288,13 +288,13 @@ begin
     );
   end;
 
-  // 2. Usar tu librer�a existente para la captura de p�xeles
+  // 2. Usar tu librer�a existente for the captura de p�xeles
   Bmp := TScreenCapture.CaptureArea(TargetArea);
   if not Assigned(Bmp) then Exit;
 
   try
     // 3. Dibujar el cursor sobre el Bitmap capturado
-    // Es vital para que Gemini sepa d�nde est� el mouse
+    // Es vital so that Gemini sepa d�nde est� el mouse
     DrawCursorOnBitmap(Bmp, TargetArea.Left, TargetArea.Top);
 
     // 4. Guardar como JPG comprimido

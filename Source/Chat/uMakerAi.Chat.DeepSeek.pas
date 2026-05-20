@@ -1,4 +1,4 @@
-unit uMakerAi.Chat.DeepSeek;
+﻿unit uMakerAi.Chat.DeepSeek;
 
 // IT License
 //
@@ -232,7 +232,7 @@ var
 begin
   Result := inherited GetMessages;
   // Para deepseek-reasoner: el mensaje del asistente con tool_calls DEBE incluir
-  // reasoning_content en el historial. TAiChatMessages.ToJSon no lo serializa por defecto.
+  // reasoning_content en el historial. TAiChatMessages.ToJSon no lo serializa By default.
   if Self.Messages.Count <> Result.Count then Exit;
   for I := 0 to Self.Messages.Count - 1 do
   begin

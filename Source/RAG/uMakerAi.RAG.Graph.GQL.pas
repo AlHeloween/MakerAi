@@ -36,10 +36,10 @@ type
     // Palabras Reservadas: Estructura de Consulta
     tkMatch, tkWhere, tkReturn, tkShow, tkLabels, tkEdges,
 
-    // Operadores L?gicos
+    // Operadores logicals
     tkAnd, tkOr, tkNot, // Nuevo: Para NOT IN, IS NOT NULL
 
-    // Operadores de Comparaci?n y Texto (Alineados con TAiFilterCriteria)
+    // Operadores de comparison y Texto (Alineados con TAiFilterCriteria)
     tkEqual, // =
     tkNotEqual, // <>
     tkGreater, // >
@@ -53,7 +53,7 @@ type
     tkIs, // IS
     tkAsterisk,
 
-    // Funciones de Agregaci?n y Modificadores
+    // Funciones de aggregation y Modificadores
     tkCount, tkSum, tkAvg, tkDepth,
 
     // Palabras Reservadas: Algoritmos de Grafo
@@ -67,19 +67,19 @@ type
     Position: Integer;
   end;
 
-  { Analizador L?xico (Lexer) }
+  { Analizador lexicon/lexical (Lexer) }
   TGraphLexer = class
   private
     FText: string;
     FPos: Integer;
 
-    // M?todos internos de navegaci?n
+    // methods internos de navigation
     function Peek: Char;
     function Next: Char;
     procedure SkipWhitespace;
     function IsEOF: Boolean;
 
-    // M?todos de lectura de tipos espec?ficos
+    // methods de lectura de tipos specifics
     function ReadIdentifier: TToken;
     function ReadString: TToken;
     function ReadNumber: TToken;
@@ -106,12 +106,12 @@ type
     function GetTokenTextAndNext: string;
     procedure Expect(AKind: TTokenKind);
 
-    // M?todos internos de parsing
+    // methods internos de parsing
     function ParseNode(AQuery: TGraphMatchQuery): TMatchNodePattern;
     function ParseEdge(out ADirection: TGraphDirection): TMatchEdgePattern;
     procedure ParseProperties(AProps: TDictionary<string, Variant>);
 
-    // M?todos de parsing de expresiones (nuevos)
+    // methods de parsing de expresiones (nuevos)
     function ParseExpression: TGraphExpression;
     function ParseAndExpression: TGraphExpression;
     function ParseComparison: TGraphExpression;
@@ -185,7 +185,7 @@ begin
   Result.Kind := tkString;
   // Extract the text WITHOUT the quotes
   Result.Text := Copy(FText, Start, FPos - Start);
-  Result.Position := Start - 1; // Posici?n del inicio de la cadena
+  Result.Position := Start - 1; // position del inicio de la cadena
 
   if not IsEOF then
     Next; // Consumir comilla de cierre
@@ -203,7 +203,7 @@ begin
   begin
     if Peek = '.' then
     begin
-      // Solo permitimos un punto decimal
+      // only permitimos un punto decimal
       if HasDot then
         Break;
       HasDot := True;
@@ -223,19 +223,19 @@ var
 begin
   Start := FPos;
 
-  // Leemos letras, d?gitos o guiones bajos
+  // Leemos letras, digits o guiones bajos
   while (not IsEOF) and (Peek.IsLetterOrDigit or (Peek = '_')) do
     Next;
 
   Result.Text := Copy(FText, Start, FPos - Start);
   Result.Position := Start;
 
-  // Normalizamos a may?sculas para chequear palabras reservadas
+  // Normalizamos a uppercase para chequear palabras reservadas
   UpperText := Result.Text.ToUpper;
 
   // --- MAPEO DE PALABRAS RESERVADAS ---
 
-  // Estructura B?sica
+  // Estructura basic
   if UpperText = 'MATCH' then
     Result.Kind := tkMatch
   else if UpperText = 'WHERE' then
@@ -243,7 +243,7 @@ begin
   else if UpperText = 'RETURN' then
     Result.Kind := tkReturn
 
-    // Operadores L?gicos
+    // Operadores logicals
   else if UpperText = 'AND' then
     Result.Kind := tkAnd
   else if UpperText = 'OR' then
@@ -257,7 +257,7 @@ begin
   else if UpperText = 'NULL' then
     Result.Kind := tkNull
 
-    // Introspecci?n
+    // introspection
   else if UpperText = 'SHOW' then
     Result.Kind := tkShow
   else if UpperText = 'LABELS' then
@@ -265,7 +265,7 @@ begin
   else if UpperText = 'EDGES' then
     Result.Kind := tkEdges
 
-    // Operadores de Comparaci?n Textual y Listas
+    // Operadores de comparison Textual y Listas
   else if UpperText = 'CONTAINS' then
     Result.Kind := tkContains
   else if UpperText = 'LIKE' then
@@ -277,7 +277,7 @@ begin
   else if UpperText = 'IS' then
     Result.Kind := tkIs
 
-    // Agregaci?n y Modificadores
+    // aggregation y Modificadores
   else if UpperText = 'SUM' then
     Result.Kind := tkSum
   else if UpperText = 'AVG' then
@@ -387,7 +387,7 @@ begin
       begin
         Result.Text := '*';
         Next;
-        Result.Kind := tkAsterisk; // O usa un token gen?rico si prefieres
+        Result.Kind := tkAsterisk; // O usa un token generic si prefieres
       end;
 
     // Operadores Compuestos que empiezan con '<'
@@ -460,13 +460,13 @@ begin
       end;
 
   else
-    // Identificadores y N?meros
+    // Identificadores y numbers
     if Peek.IsLetter or (Peek = '_') then
       Result := ReadIdentifier
     else if Peek.IsDigit then
       Result := ReadNumber
     else
-      // Error: Car?cter desconocido
+      // Error: character desconocido
       raise Exception.CreateFmt('Error L?xico: Car?cter inesperado "%s" en posici?n %d', [Peek, FPos]);
   end;
 end;
@@ -560,7 +560,7 @@ begin
     end;
     Expect(tkRBracket);
 
-    // --- CONVERSI?N A VARIANT ARRAY (para compatibilidad) ---
+    // --- conversion A VARIANT ARRAY (para compatibilidad) ---
     SetLength(Values, ValueList.Count);
     for I := 0 to ValueList.Count - 1 do
       Values[I] := ValueList[I];
@@ -583,7 +583,7 @@ begin
   if FCurrent.Kind = tkIdentifier then
     VarName := GetTokenTextAndNext;
 
-  // Etiqueta opcional: (:Persona)
+  // Label opcional: (:Persona)
   if FCurrent.Kind = tkColon then
   begin
     Next;
@@ -591,7 +591,7 @@ begin
     Expect(tkIdentifier);
   end;
 
-  // Binding o Creaci?n de Variable
+  // Binding o creation de Variable
   if (VarName <> '') and FNodeVariables.TryGetValue(VarName, Result) then
   begin
     // Reutilizar nodo si existe. Actualizar etiqueta si fue provista.
@@ -600,7 +600,7 @@ begin
   end
   else
   begin
-    // Nueva variable (o nodo an?nimo)
+    // Nueva variable (o Node anonymous)
     Result := TMatchNodePattern.Create;
     Result.Variable := VarName;
     Result.NodeLabel := LblName;
@@ -622,7 +622,7 @@ function TGraphParser.ParseEdge(out ADirection: TGraphDirection): TMatchEdgePatt
 var
   Left, Right: Boolean;
 begin
-  // Detecci?n de flecha izquierda <-
+  // detection de flecha izquierda <-
   Left := (FCurrent.Kind = tkArrowLeft);
   if Left then
     Next
@@ -636,7 +636,7 @@ begin
   if FCurrent.Kind = tkIdentifier then
     Result.Variable := GetTokenTextAndNext;
 
-  // Tipo de relaci?n opcional [:KNOWS]
+  // Tipo de relation opcional [:KNOWS]
   if FCurrent.Kind = tkColon then
   begin
     Next;
@@ -650,14 +650,14 @@ begin
 
   Expect(tkRBracket);
 
-  // Detecci?n de flecha derecha ->
+  // detection de flecha derecha ->
   Right := (FCurrent.Kind = tkArrowRight);
   if Right then
     Next
   else
     Expect(tkDash);
 
-  // Determinar la direcci?n
+  // Determinar la direction
   if Left and Right then
     ADirection := gdBoth
   else if Left then
@@ -734,26 +734,26 @@ begin
 
   // 2. Bucle para relaciones encadenadas.
   // Ejemplo: (a)-[r1]->(b)-[r2]->(c)
-  // El bucle contin?a mientras el token actual indique el inicio de una arista
-  // (un gui?n '-' o una flecha izquierda '<-').
+  // El bucle continues while el token actual indique el inicio de una Edge
+  // (un script/hyphen '-' o una flecha izquierda '<-').
   while FCurrent.Kind in [tkDash, tkArrowLeft] do
   begin
     // A. Parse the edge structure -[...]-, ->, <-
-    // Esto nos devuelve el objeto del patr?n de arista y la direcci?n detectada.
+    // Esto nos devuelve el objeto del pattern de arista y la direction detectada.
     Edge := ParseEdge(Dir);
-    Edge.Direction := Dir; // Asignamos la direcci?n al patr?n
+    Edge.Direction := Dir; // Asignamos la direction al pattern
 
     // B. Parse the next node in the chain
     DstNode := ParseNode(AQuery);
 
-    // C. Crear la cl?usula de emparejamiento (Match Clause)
-    // Una cl?usula conecta "VariableOrigen + Patr?nArista + VariableDestino"
-    // Nota: TMatchClause toma posesi?n de la memoria del objeto 'Edge'.
+    // C. Crear la clause de emparejamiento (Match Clause)
+    // Una clause conecta "VariableOrigen + patternArista + Variabledestination"
+    // Note: TMatchClause toma possession de la memoria del objeto 'Edge'.
     AQuery.AddMatchClause(TMatchClause.Create(SrcNode.Variable, Edge, DstNode.Variable));
 
     // D. Avanzar el pivote:
-    // El nodo que acabamos de encontrar como destino (b) se convierte
-    // en el origen para la siguiente posible conexi?n en la cadena.
+    // El nodo que acabamos de encontrar como destino (b) is converted
+    // en el origen for the siguiente posible connection en la cadena.
     SrcNode := DstNode;
   end;
 end;
@@ -832,7 +832,7 @@ begin
       tkLessEqual:
         Op := opLessEqual;
       tkContains:
-        Op := opContains; // ya est? en el Lexer
+        Op := opContains; // ya is en el Lexer
       tkLike:
         Op := opLike;
       tkILike:
@@ -840,7 +840,7 @@ begin
       tkIn:
         Op := opIn;
     else
-      Op := opEqual; // Default (nunca deber?a llegar aqu?)
+      Op := opEqual; // Default (nunca should llegar awhat)
     end;
     Next; // Consumir el operador
 
@@ -853,7 +853,7 @@ begin
     else
       {
         Result := TBinaryExpr.Create(L, Op, ParsePrimary); // <-- Original
-        Result := TBinaryExpr.Create(L, Op, ParseExpression); // <-- Nueva versi?n
+        Result := TBinaryExpr.Create(L, Op, ParseExpression); // <-- Nueva version
       }
       Result := TBinaryExpr.Create(L, Op, ParsePrimary);
   end
@@ -867,7 +867,7 @@ var
   Negate: Boolean;
 begin
   case FCurrent.Kind of
-    tkLParen: // Agrupaci?n: (expresi?n)
+    tkLParen: // grouping: (expression)
       begin
         Next;
         Result := ParseExpression;
@@ -883,7 +883,7 @@ begin
         Expect(tkIdentifier); // Consume nombre de la propiedad
         Result := TPropertyExpr.Create(V, P);
       end;
-    // Literales (cadenas, n?meros, booleanos, null)
+    // Literales (cadenas, numbers, booleanos, null)
     tkString:
       Result := TLiteralExpr.Create(GetTokenTextAndNext);
     tkBoolean:
@@ -891,7 +891,7 @@ begin
 
     tkNumber:
       begin
-        // Aplicar el negativo si exist?a
+        // Aplicar el negativo si existed
         if Negate then
           Result := TLiteralExpr.Create(-StrToFloat(GetTokenTextAndNext, TFormatSettings.Invariant))
         else
@@ -912,7 +912,7 @@ Procedure TGraphParser.ParseReturnClause(AQuery: TGraphMatchQuery);
 begin
   Expect(tkReturn);
 
-  // Verificar que haya al menos un elemento
+  // Verify que haya al menos un elemento
   if FCurrent.Kind = tkEOF then
     raise Exception.Create('Error: Se esperaba una expresi?n despu?s de RETURN.');
 
@@ -921,10 +921,10 @@ begin
     // --- CASO A: Funciones agregadas (COUNT, SUM, AVG) ---
     if FCurrent.Kind in [tkCount, tkSum, tkAvg] then
     begin
-      Next; // Consumir funci?n
+      Next; // Consumir function
       Expect(tkLParen);
 
-      // argumento puede ser variable (p), propiedad (p.valor) o * (todo)
+      // argumento may be variable (p), propiedad (p.valor) o * (todo)
       if FCurrent.Kind = tkIdentifier then
       begin
         Next; // Consumir identificador (p)
@@ -984,7 +984,7 @@ begin
   FCommandType := cmdNone;
   ClearCommandPatterns;
 
-  // 1. Comandos de Introspecci?n (SHOW...)
+  // 1. Comandos de introspection (SHOW...)
   if FCurrent.Kind = tkShow then
   begin
     Next; // Consumir 'SHOW'
@@ -995,7 +995,7 @@ begin
       FCommandType := cmdShowEdges
     else
       raise Exception.Create('Error Sint?ctico: Se esperaba LABELS o EDGES despu?s de SHOW.');
-    Next; // Avanzamos despu?s del comando show
+    Next; // Avanzamos after del comando show
     Exit;
   end;
 
@@ -1049,15 +1049,15 @@ begin
     Exit;
   end;
 
-  // 3. Consultas MATCH Est?ndar (La m?s compleja)
+  // 3. Consultas MATCH isndar (La more compleja)
   Result := TGraphMatchQuery.Create;
   try
     if FCurrent.Kind = tkMatch then
       Next; // Consumimos MATCH
 
-    // --- PARSEO DE CL?USULAS MATCH (a)-[]->(b), (c)-[]->(d) ---
+    // --- PARSEO DE clauseS MATCH (a)-[]->(b), (c)-[]->(d) ---
     ParseMatchClause(Result);
-    while FCurrent.Kind = tkComma do // Soporte para m?ltiples patrones separados por coma
+    while FCurrent.Kind = tkComma do // Soporte para multiples patrones separados por coma
     begin
       Next; // Consumir la coma
       ParseMatchClause(Result);
@@ -1081,7 +1081,7 @@ begin
     if FCurrent.Kind = tkReturn then
       ParseReturnClause(Result);
 
-    // 7. Verificaci?n del EOF
+    // 7. verification del EOF
     if FCurrent.Kind <> tkEOF then
       raise Exception.CreateFmt('Error: Sintaxis incorrecta. Se esperaba EOF, se encontr? "%s" en posici?n %d', [FCurrent.Text, FCurrent.Position]);
   except

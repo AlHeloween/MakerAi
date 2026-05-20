@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -33,8 +33,8 @@
 
 //--------------------------------------------------------------------------------
 
-// Whisper mantiene la compatibilidad con la versi?n de Github de whisper opensource
-// el modelo estandar de OpenAi se mueva a uMakerAi.OpenAi.Audio con las nuevas
+// Whisper mantiene la compatibilidad con la version de Github de whisper opensource
+// the model estandar de OpenAi se mueva a uMakerAi.OpenAi.Audio con las nuevas
 // caracteristicas.
 
 unit uMakerAi.Whisper;
@@ -86,7 +86,7 @@ Type
     Function IsValidExtension(FileExtension: String): Boolean;
     procedure ConvertAudioIfNeeded(var aStream: TMemoryStream; var aFileName: String);
 
-    { Implementaci?n de IAiSpeechTool }
+    { implementation de IAiSpeechTool }
     procedure ExecuteTranscription(aMediaFile: TAiMediaFile; ResMsg, AskMsg: TAiChatMessage); virtual;
     procedure ExecuteSpeechGeneration(const AText: string; ResMsg, AskMsg: TAiChatMessage); virtual;
     function InternalTranscription(aStream: TMemoryStream; aFileName, aPrompt: String): String;
@@ -190,7 +190,7 @@ begin
   Inherited;
   FUrl := GlOpenAIUrl;
   FApiKey := '@OPENAI_API_KEY';
-  FModel := 'whisper-1'; // whisper-1 por defecto y tts para spech nada mas tts-1, tts-1-hd
+  FModel := 'whisper-1'; // whisper-1 By default y tts para spech nada mas tts-1, tts-1-hd
   FVoice := 'nova'; // alloy, echo, fable, onyx, nova, shimmer
   FFormat := 'mp3'; // "mp3", opus", "aac", "flac", and "pcm"
   FLanguaje := 'es'; // ISO-639-1
@@ -307,14 +307,14 @@ end;
 
 function TAIWhisper.GetApiKey: String;
 begin
-  // Si est? en modo de dise?o, simplemente retorna el valor tal cual
+  // Si is en modo de design, simplemente retorna el valor tal cual
   if (csDesigning in ComponentState) or (csDestroying in ComponentState) then
   begin
     Result := FApiKey;
     Exit;
   end;
 
-  // En modo de ejecuci?n
+  // En modo de execution
   if (FApiKey <> '') and (Copy(FApiKey, 1, 1) = '@') then
     // Retorna el valor de la variable de entorno, quitando el '@'
     Result := GetEnvironmentVariable(Copy(FApiKey, 2, Length(FApiKey)))
@@ -454,7 +454,7 @@ begin
   Finally
     Client.Free;
     St.Free;
-    // Response.Free;  //No se libera, se pasa al usuario
+    // Response.Free;  //No Is freed, se pasa al usuario
     JObj.Free;
   End;
 end;
@@ -470,7 +470,7 @@ Var
 begin
 
 
-  // Valida que la extensi?n del audio sea compatible, sino utiliza ffmpeg para convertirla
+  // Valida que la extension del audio sea compatible, sino utiliza ffmpeg para convertirla
   {
     var Destino: TMemoryStream;
     var FileNameDestino: String;

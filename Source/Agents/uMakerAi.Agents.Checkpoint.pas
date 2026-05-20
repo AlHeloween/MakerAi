@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -49,7 +49,7 @@ uses
 
 type
   // -------------------------------------------------------------------------
-  // TAiPendingStep  -- un paso suspendido esperando aprobaci?n humana
+  // TAiPendingStep  -- un paso suspendido esperando approval humana
   // -------------------------------------------------------------------------
   TAiPendingStep = class
   private
@@ -78,7 +78,7 @@ type
   end;
 
   // -------------------------------------------------------------------------
-  // TAiCheckpointSnapshot  -- estado completo de una ejecuci?n en un instante
+  // TAiCheckpointSnapshot  -- estado completo de una execution en un instante
   // -------------------------------------------------------------------------
   TAiCheckpointSnapshot = class
   private

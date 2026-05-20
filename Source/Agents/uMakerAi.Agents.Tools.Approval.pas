@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -31,14 +31,14 @@
 
 unit uMakerAi.Agents.Tools.Approval;
 
-// Herramienta de suspensi?n human-in-the-loop.
-// Cuando un nodo ejecuta esta tool, la ejecuci?n del grafo se suspende
+// Herramienta de suspension human-in-the-loop.
+// Cuando un nodo ejecuta esta tool, la execution del grafo se suspende
 // y se dispara el evento TAIAgentManager.OnSuspend.
-// La ejecuci?n se reanuda llamando a TAIAgentManager.ResumeThread.
+// La execution se reanuda llamando a TAIAgentManager.ResumeThread.
 //
 // Uso:
 //   LNode.Tool := TAiWaitApprovalTool.Create(LNode);
-//   TAiWaitApprovalTool(LNode.Tool).SuspendReason := 'Requiere aprobaci?n';
+//   TAiWaitApprovalTool(LNode.Tool).SuspendReason := 'Requiere approval';
 //   TAiWaitApprovalTool(LNode.Tool).ContextKey    := 'resultado_previo';
 
 interface

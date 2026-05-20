@@ -208,7 +208,7 @@ begin
         SendMouseInput(MOUSEEVENTF_LEFTDOWN);
         Sleep(100); // Pausa para iniciar drag
 
-        // Movimiento interpolado simple para que el OS detecte el arrastre
+        // Movimiento interpolado simple so that el OS detecte el arrastre
         // Mover a mitad de camino
         SmoothMouseMove((Action.X + Action.DestX) div 2, (Action.Y + Action.DestY) div 2);
         Sleep(50);
@@ -274,7 +274,7 @@ begin
       begin
          // Aqu� no hacemos nada f�sico en Desktop,
          // pero podr�amos abrir el navegador default si quisi�ramos.
-         // Por ahora, asumimos �xito l�gico y retornamos la URL en el componente principal.
+         // for now, asumimos �xito l�gico y retornamos the URL en el componente principal.
       end;
 
     else
@@ -403,7 +403,7 @@ begin
       BitBlt(Bmp.Canvas.Handle, 0, 0, W, H, DC, TargetArea.Left, TargetArea.Top, SRCCOPY);
 
       // 4. Dibujar el Cursor (Overlay)
-      // Esto es crucial para que la IA sepa donde est� el puntero relativo a la imagen.
+      // Esto es crucial so that la IA sepa donde est� el puntero relativo a la imagen.
       {
       CursorInfo.cbSize := SizeOf(CursorInfo);
       if GetCursorInfo(CursorInfo) and (CursorInfo.flags = CURSOR_SHOWING) then

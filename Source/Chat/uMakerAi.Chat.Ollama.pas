@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -336,9 +336,9 @@ begin
   // Configure HTTP client according to component property
   FClient.Asynchronous := Self.Asynchronous;
 
-  // Aumentamos timeout por defecto ya que los modelos locales pueden tardar en cargar
+  // Aumentamos timeout By default ya que los modelos locales pueden tardar en cargar
   if FClient.ResponseTimeout < 60000 then
-    FClient.ResponseTimeout := 1000 * 60 * 5; // 5 minutos por defecto
+    FClient.ResponseTimeout := 1000 * 60 * 5; // 5 minutos By default
 
   AJSONObject := TJSonObject.Create;
   jOptions := TJSonObject.Create; // Object for advanced parameters
@@ -572,7 +572,7 @@ var
     FBusy := False;
 
     // Si capturamos tool_calls en fragmentos anteriores pero el JSON final no los tiene,
-    // los re-inyectamos para que ParseChat los procese.
+    // los re-inyectamos so that ParseChat los procese.
     if not FTmpToolCallsStr.IsEmpty then
     begin
       if not AJson.TryGetValue<TJSonObject>('message', LMsgObj) then
@@ -762,7 +762,7 @@ begin
   LPromptTokens := JObj.GetValue<Integer>('prompt_eval_count', 0);
   LEvalTokens := JObj.GetValue<Integer>('eval_count', 0);
 
-  // Actualizar contadores globales del componente
+  // Actualizar contadores globales of the component
   Self.Prompt_tokens := Self.Prompt_tokens + LPromptTokens;
   Self.Completion_tokens := Self.Completion_tokens + LEvalTokens;
   Self.Total_tokens := Self.Total_tokens + LPromptTokens + LEvalTokens;
@@ -876,11 +876,11 @@ begin
         end;
 
         // A.5 Re-run the Run so the model analyzes the tool results
-        // Limpiamos el ResMsg para recibir la respuesta final
+        // Limpiamos el ResMsg to receive the response final
         ResMsg.Content := '';
         ResMsg.Tool_calls := '';
         FLastContent := '';
-        // En modo async, preservar ResMsg entre rounds para que ProcessFinalJsonObject
+        // En modo async, preservar ResMsg entre rounds so that ProcessFinalJsonObject
         // lo reutilice y conserve los MediaFiles agregados durante tool calls.
         if Self.Asynchronous then
           FAsyncResMsg := ResMsg;

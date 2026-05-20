@@ -247,7 +247,7 @@ var
 begin
   FDLLPath := DLLPath;
 {$IFDEF MSWINDOWS}
-  // Agrega el directorio de makerai.gen.dll al search path para que Windows
+  // Agrega el directorio de makerai.gen.dll al search path so that Windows
   // encuentre las dependencias (ggml-cuda.dll, cublas*.dll, etc.) aunque el
   // .exe este en otro directorio.
   LDir := ExtractFilePath(ExpandFileName(DLLPath));

@@ -1,4 +1,4 @@
-// MIT License
+﻿// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -65,16 +65,16 @@ type
     class function New: TAiMCPResponseBuilder;
     destructor Destroy; override;
 
-    // A?ade un bloque de texto simple a la respuesta
+    // adds un bloque de texto simple a la respuesta
     function AddText(const AText: string): TAiMCPResponseBuilder;
 
-    // A?ade un archivo desde una ruta en disco
+    // adds un archivo desde una ruta en disco
     function AddFile(const AFilePath: string; AFileName: string = ''): TAiMCPResponseBuilder;
 
-    // A?ade un archivo desde un TStream
+    // adds un archivo desde un TStream
     function AddFileFromStream(AStream: TStream; const AFileName: string; const AMimeType: string): TAiMCPResponseBuilder;
 
-    // Construye el objeto JSON final que se devolver? como 'result' en la llamada al tool
+    // Construye el objeto JSON final que se dewould return como 'result' en la llamada al tool
     function Build: TJSONObject;
   end;
 
@@ -272,14 +272,14 @@ type
     function GetServerName: String;
     procedure SetServerName(const Value: String);
     procedure SetAiFunctions(const Value: TAiFunctions);
-    // Helper: registra una sola funci?n. Al estar en un m?todo separado,
+    // Helper: registra una sola function. Al estar en un method separado,
     // cada llamada tiene su propio frame de captura — garantiza que el
     // closure de la factory no comparte AItem con otras iteraciones del loop.
     procedure InternalRegisterOneFunction(AItem: TFunctionActionItem);
   protected
     // Make it protected so descendants can access it directly.
     FLogicServer: TAiMCPLogicServer;
-    // Hacemos el setter protected para que solo los descendientes controlen el estado.
+    // Hacemos el setter protected so that solo los descendientes controlen el estado.
     procedure SetActive(const Value: Boolean);
     Procedure InternalRegisterFromAiFunctions;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -289,7 +289,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    // Hacemos Start y Stop virtuales para que los descendientes puedan extenderlos.
+    // Hacemos Start y Stop virtuales so that los descendientes puedan extenderlos.
     procedure Start; virtual;
     procedure Stop; virtual;
 
@@ -365,7 +365,7 @@ end;
 
 class procedure TAiMCPSerializerUtils.DeserializeObject(Instance: TObject; JSON: TJSONObject);
 begin
-  // Como este m?todo NO es gen?rico, s? puede llamar a un tipo local de la implementation.
+  // Como este method NO es generic, s? puede llamar a un tipo local de la implementation.
   TInternalSerializer.DeserializeObject(Instance, JSON);
 end;
 // -----------------------------------------------------------
@@ -374,7 +374,7 @@ class function TAiMCPSerializerUtils.Deserialize<T>(JSON: TJSONObject): T;
 begin
   Result := T.Create;
   try
-    // Ahora llamamos al intermediario p?blico, lo que es v?lido para el compilador.
+    // Ahora llamamos al intermediario public, lo que es valid for the compilador.
     DeserializeObject(Result, JSON);
   except
     Result.Free;
@@ -427,13 +427,13 @@ function TAiMCPToolBase<T>.Execute(const Arguments: TJSONObject; const AuthConte
 var
   ParamsInstance: T;
 begin
-  // El c?digo de deserializaci?n es el mismo
+  // El code de deserialization es el mismo
   if not Assigned(Arguments) then
     raise Exception.Create('Arguments cannot be nil for tool execution.');
 
   ParamsInstance := TAiMCPSerializerUtils.Deserialize<T>(Arguments);
   try
-    // La diferencia es que ahora el resultado es un TJSONObject
+    // La diferencia es que ahora the result es un TJSONObject
     Result := ExecuteWithParams(ParamsInstance, AuthContext);
   finally
     ParamsInstance.Free;
@@ -573,14 +573,14 @@ begin
   FActiveResources.Clear;
 
   // 2. We run the tool factories.
-  // Cada Pair.Value es una funci?n que al ser llamada devuelve una instancia de IAiMCPTool.
+  // Cada Pair.Value es una function que al ser llamada devuelve una instancia de IAiMCPTool.
   for Pair in FToolFactories do
   begin
     // Importante: Pair.Key es el nombre registrado, Pair.Value() crea la instancia.
     FActiveTools.Add(Pair.Key, Pair.Value());
   end;
 
-  // 3. Ejecutamos las factor?as de recursos.
+  // 3. Ejecutamos las factorys de recursos.
   for ResourcePair in FResourceFactories do
   begin
     FActiveResources.Add(ResourcePair.Key, ResourcePair.Value());
@@ -1082,7 +1082,7 @@ begin
         PropTypeStr := GetJsonTypeFromRttiType(RttiProp.PropertyType);
         PropSchema.AddPair('type', PropTypeStr);
 
-        // 2. L?gica espec?fica para Arrays (NUEVO)
+        // 2. logic specific para Arrays (NUEVO)
         if PropTypeStr = 'array' then
         begin
           if RttiProp.PropertyType is TRttiDynamicArrayType then
@@ -1090,7 +1090,7 @@ begin
             DynArrayType := TRttiDynamicArrayType(RttiProp.PropertyType);
             ElementType := DynArrayType.ElementType;
 
-            // Definimos qu? hay dentro del array (items)
+            // Definimos what hay dentro del array (items)
             var
             ItemsObj := TJSONObject.Create;
             ItemsObj.AddPair('type', GetJsonTypeFromRttiType(ElementType));
@@ -1098,7 +1098,7 @@ begin
           end
           else
           begin
-            // Fallback por si es un array est?tico u otro tipo complejo no soportado
+            // Fallback in case es un array istico u otro tipo complejo no soportado
             var
             ItemsObj := TJSONObject.Create;
             ItemsObj.AddPair('type', 'string');
@@ -1106,7 +1106,7 @@ begin
           end;
         end;
 
-        // 3. Manejo de atributos (Descripci?n y Enums) - (Igual que antes)
+        // 3. Manejo de atributos (description y Enums) - (Igual que antes)
         for Attr in RttiProp.GetAttributes do
         begin
           if Attr is AiMCPSchemaDescriptionAttribute then
@@ -1338,12 +1338,12 @@ begin
   else if SameText(AMimeType, 'application/pdf') then
     LType := 'document'
   else
-    LType := 'binary'; // Un tipo gen?rico
+    LType := 'binary'; // Un tipo generic
 
   LFileItem.AddPair('type', LType);
   LFileItem.AddPair('mimeType', AMimeType);
   LFileItem.AddPair('data', LBase64);
-  LFileItem.AddPair('fileName', AFileName); // Opcional, pero buena pr?ctica
+  LFileItem.AddPair('fileName', AFileName); // Opcional, pero buena practical
 
   FContentArray.AddElement(LFileItem);
 end;
@@ -1403,9 +1403,9 @@ end;
 
 procedure TAiMCPServer.InternalRegisterOneFunction(AItem: TFunctionActionItem);
 begin
-  // Cada llamada a este m?todo crea un frame propio en el heap de captura.
+  // Cada llamada a este method crea un frame propio en el heap de captura.
   // El closure captura AItem de este frame, no del loop padre.
-  // As? cada factory tiene su propio TFunctionActionItem independiente.
+  // like this cada factory tiene su propio TFunctionActionItem independiente.
   RegisterTool(AItem.FunctionName,
     function: IAiMCPTool
     begin
@@ -1439,17 +1439,17 @@ procedure TAiMCPServer.Notification(AComponent: TComponent; Operation: TOperatio
 begin
   inherited Notification(AComponent, Operation);
 
-  // Si la operaci?n es eliminar (opRemove) y el componente es el que tenemos guardado
+  // Si la operation es eliminar (opRemove) y el componente es el que tenemos guardado
   if (Operation = opRemove) and (AComponent = FAiFunctions) then
   begin
     // Ponemos la referencia a NIL de forma segura
     FAiFunctions := nil;
 
-    // Opcional: Si el servidor estaba activo y depend?a de estas funciones,
-    // podr?as decidir detenerlo o simplemente logear un aviso.
+    // Opcional: Si el servidor estaba activo y depended de estas functions,
+    // coulds decidir detenerlo o simplemente logear un aviso.
     if FActive then
     begin
-      // Podr?as llamar a Stop; si consideras que sin funciones el servidor no debe seguir.
+      // coulds llamar a Stop; si consideras que sin functions el servidor no debe seguir.
     end;
   end;
 end;
@@ -1475,7 +1475,7 @@ begin
   begin
     FAiFunctions := Value;
 
-    // Si se asigna un componente, le pedimos que nos notifique su destrucci?n
+    // Si Is assigned un componente, le pedimos que nos notifique su destruction
     if Assigned(FAiFunctions) then
       FAiFunctions.FreeNotification(Self);
   end;
@@ -1548,10 +1548,10 @@ begin
     Exit;
 
   // 1. PASO CLAVE: Antes de iniciar el LogicServer, registramos
-  // autom?ticamente las funciones del componente vinculado.
+  // autookticamente las functions of the component vinculado.
   InternalRegisterFromAiFunctions;
 
-  // 2. Iniciamos el motor l?gico (que instanciar? los Proxies creados arriba)
+  // 2. Iniciamos el motor logical (que would instantiate los Proxies creados arriba)
   FLogicServer.Start;
 
   FActive := True;

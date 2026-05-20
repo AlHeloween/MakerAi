@@ -1,4 +1,4 @@
-// MIT License
+﻿// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -199,12 +199,12 @@ begin
   end
   else if SameText(ARequestInfo.Command, 'OPTIONS') then
   begin
-    // El navegador env?a una petici?n OPTIONS (preflight) para verificar CORS.
+    // El navegador sends una request OPTIONS (preflight) para verificar CORS.
     HandleOptionsRequest(AResponseInfo);
   end
   else if SameText(ARequestInfo.Command, 'GET') then
   begin
-    // Una petici?n GET a /mcp devuelve informaci?n del servidor.
+    // Una request GET a /mcp devuelve information del servidor.
     HandleGetRequest(ARequestInfo, AResponseInfo);
   end
   else if SameText(ARequestInfo.Command, 'POST') then
@@ -214,7 +214,7 @@ begin
   end
   else
   begin
-    // Cualquier otro m?todo (PUT, DELETE, etc.) no est? permitido.
+    // Cualquier otro method (PUT, DELETE, etc.) no is permitido.
     AResponseInfo.ResponseNo := HTTP_METHOD_NOT_ALLOWED;
     AResponseInfo.ResponseText := 'Method Not Allowed';
     AResponseInfo.ContentText := 'Only GET, POST, and OPTIONS are supported.';
@@ -225,7 +225,7 @@ procedure TAiMCPHttpServer.HandleOptionsRequest(AResponseInfo: TIdHTTPResponseIn
 begin
   AResponseInfo.ResponseNo := HTTP_NO_CONTENT;
   AResponseInfo.ResponseText := 'No Content';
-  // Indy > 10.6 puede requerir esto para evitar el HTML por defecto
+  // Indy > 10.6 puede requerir esto to avoid el HTML By default
   AResponseInfo.ContentLength := 0;
 end;
 
@@ -233,7 +233,7 @@ procedure TAiMCPHttpServer.HandleGetRequest(ARequestInfo: TIdHTTPRequestInfo; AR
 var
   InfoObj: TJSONObject;
 begin
-  // Respondemos con informaci?n b?sica del servidor en formato JSON
+  // Respondemos con information basic del servidor en formato JSON
   InfoObj := TJSONObject.Create;
   try
     InfoObj.AddPair('serverName', TJSONString.Create(FLogicServer.ServerName));
@@ -243,7 +243,7 @@ begin
     AResponseInfo.ResponseNo := HTTP_OK;
     AResponseInfo.ResponseText := 'OK';
     AResponseInfo.ContentType := 'application/json; charset=utf-8';
-    AResponseInfo.ContentText := InfoObj.ToJSON; // <- Aqu? asignamos el JSON
+    AResponseInfo.ContentText := InfoObj.ToJSON; // <- Awhat asignamos el JSON
   finally
     InfoObj.Free;
   end;

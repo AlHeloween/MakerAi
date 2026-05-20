@@ -391,9 +391,9 @@ var
   LblFileName, LblInfo: TLabel;
   IconKey: string;
 begin
-  // Crear el layout contenedor para el documento
+  // Crear el layout contenedor for the documento
   Result := TLayout.Create(nil);
-  Result.Height := 48; // Altura fija para la vista de documento
+  Result.Height := 48; // Altura fija for the vista de documento
   Result.Align := TAlignLayout.Top;
   Result.Margins.Bottom := 8;
   Result.TagObject := AMediaFile;
@@ -432,7 +432,7 @@ begin
   If FDocIcons.TryGetValue(IconKey, BM) then
     Icon.Bitmap.Assign(BM);
 
-  // Crear etiqueta para el nombre del archivo
+  // Crear etiqueta for the nombre del archivo
   LblFileName := TLabel.Create(Result);
   LblFileName.Parent := Result;
   LblFileName.Align := TAlignLayout.Client;
@@ -556,7 +556,7 @@ procedure TChatBubble.LoadDocIconsFromResources;
           end;
         end;
       finally
-        // BM.Free;  //no se libera ya que queda en la lista
+        // BM.Free;  //no Is freed ya que queda in the list
       end;
     except
       // Manejar error si el recurso no se encuentra
@@ -616,9 +616,9 @@ begin
       begin
         if LMediaValue is TJSONObject then
         begin
-          LNewMediaFile := TAiMediaFile.Create; // Usa el constructor por defecto
+          LNewMediaFile := TAiMediaFile.Create; // Usa el constructor By default
           try
-            // Aqu� est� la otra parte de la magia: TAiMediaFile se carga desde el JSON
+            // Aqu� est� la otra parte de la magia: TAiMediaFile Is loaded desde el JSON
             LNewMediaFile.LoadFromJsonObject(LMediaValue as TJSONObject);
             LMediaFiles.Add(LNewMediaFile);
           except
@@ -728,13 +728,13 @@ begin
   begin
     for LMediaFile in AMediaFiles do
     begin
-      // Clonamos el media file para que la burbuja sea su due�a
+      // Clonamos el media file so that la burbuja sea su due�a
       NewMediaFile := TAiMediaFile.Create;
       try
         NewMediaFile.Assign(LMediaFile);
         FMediaFiles.Add(NewMediaFile);
 
-        // Creamos la vista visual para el archivo clonado
+        // Creamos la vista visual for the archivo clonado
         LContentControl := nil;
         if NewMediaFile.FileCategory = Tfc_Image then
         begin
@@ -763,7 +763,7 @@ begin
     LMemo.Align := TAlignLayout.Client;
     LMemo.WordWrap := True;
     LMemo.ReadOnly := True;
-    LMemo.HitTest := True; // Cambiado para que los clics pasen a la burbuja
+    LMemo.HitTest := True; // Cambiado so that los clics pasen a la burbuja
     LMemo.StyledSettings := [];
     LMemo.TextSettings.Font.Assign(FContentFont);
     LMemo.TextSettings.HorzAlign := TTextAlign.Leading;
@@ -794,7 +794,7 @@ begin
     else
     begin
       // CASO 2: Falla (flujo de carga desde stream).
-      // Programamos la modificaci�n para que se ejecute en el siguiente ciclo de la UI.
+      // Programamos la modificaci�n so that se ejecute en el siguiente ciclo de la UI.
       TThread.Queue(nil,
         procedure
         var
@@ -830,7 +830,7 @@ begin
 
   // Opcional: Para una mejor experiencia, si el memo tiene scroll,
   // y el usuario lo ha movido, podr�amos no hacer scroll al final.
-  // Por ahora, asumimos que siempre queremos ver el final.
+  // for now, asumimos que siempre queremos ver el final.
   // LShouldScrollToEnd := (LMemo.ViewportPosition.Y >= LMemo.ContentBounds.Height - LMemo.Height - 5);
 
   // 3. A�adimos el nuevo fragmento de texto.
@@ -840,11 +840,11 @@ begin
   // Si usas una versi�n de Delphi que lo soporte, podr�as usar LMemo.Text en lugar de LMemo.Lines.Text
   // LMemo.Text := LMemo.Text + ATextFragment;
 
-  // 4. Hacemos scroll dentro del memo para mostrar el texto nuevo si es necesario
+  // 4. Hacemos scroll dentro del memo to show the text nuevo si it is necessary
   LMemo.GoToTextEnd;
 
   // 5. �CRUCIAL! Notificamos al padre (TChatList) que nuestro contenido ha cambiado
-  // y que un rec�lculo de nuestro tama�o es necesario.
+  // y que un rec�lculo de nuestro tama�o it is necessary.
   // if Assigned(FOnRecalculateRequired) then
   // FOnRecalculateRequired(Self);
 end;
@@ -1008,11 +1008,11 @@ begin
 
   // 2. Dejar que el TMemo calcule su contenido. ContentBounds.Height nos dar� la
   // altura exacta del texto con el WordWrap aplicado.
-  // Le sumamos los paddings internos del TMemo para el tama�o total.
+  // Le sumamos los paddings internos del TMemo for the tama�o total.
   var
   LHeight := AMemo.ContentBounds.Height + AMemo.Padding.Top + AMemo.Padding.Bottom;
 
-  // 3. Devolvemos el tama�o. Para el ancho, usamos AMaxWidth para consistencia.
+  // 3. Devolvemos el tama�o. for the ancho, usamos AMaxWidth para consistencia.
   Result := TSizeF.Create(AMaxWidth, LHeight);
 end;
 
@@ -1583,7 +1583,7 @@ procedure TChatBubble.SetSizeByContent(const AContentSize: TSizeF);
 var
   LRequiredSize: TSizeF;
 begin
-  // 1. Calcular el tama�o total requerido para el bubble usando la funci�n de ayuda existente.
+  // 1. Calcular el tama�o total requerido for the bubble usando la funci�n de ayuda existente.
   // Esta funci�n ya considera si el header est� visible, los iconos de opciones,
   // los m�rgenes y el ancho de la cola (TailWidth).
   LRequiredSize := CalculateBubbleSizeForContent(AContentSize);
@@ -2063,7 +2063,7 @@ begin
   end
   else
   begin
-    // Si no hay avatar, limpiamos el brush para que no muestre el anterior
+    // Si no hay avatar, limpiamos el brush so that no muestre el anterior
     if Assigned(FAvatarBrush.Bitmap.Bitmap) then
       FAvatarBrush.Bitmap.Bitmap.SetSize(0, 0);
   end;

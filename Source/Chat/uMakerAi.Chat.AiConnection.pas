@@ -159,7 +159,7 @@ type
     procedure ApplyParamsToChat(AChat: TAiChat; AParams: TStrings);
     procedure ApplyEventsToChat(AChat: TAiChat; SetToNil: Boolean = False);
     Procedure OnInternalReceiveDataEnd(const Sender: TObject; aMsg: TAiChatMessage; aResponse: TJSonObject; aRole, aText: String);
-    // Adiciona los parametros de orgien a destino,  retorna destino si se necesita,  el resultado queda almacenado en destino
+    // Adiciona the parameters de orgien a destino,  retorna destino si Is needed,  the result queda almacenado en destino
     Function MergeParams(Origin, Destination: TStrings): TStrings;
     procedure Loaded; override;
 
@@ -279,7 +279,7 @@ begin
   FSystemPrompt := TStringList.Create;
   FMemory := TStringList.Create;
   FMessagesOwn := TAiChatMessages.Create;
-  FMessages := FMessagesOwn; // Por defecto, FMessages apunta a nuestra instancia
+  FMessages := FMessagesOwn; // By default, FMessages apunta a nuestra instancia
   FParams := TStringList.Create;
   TStringList(FParams).OnChange := ParamsChanged;
   TStringList(FSystemPrompt).OnChange := ParamsChanged;
@@ -310,7 +310,7 @@ begin
   FWebSearchParams.Free;
   FModelConfig.Free;
 
-  // FMessages es solo una referencia, NO se libera
+  // FMessages es solo una referencia, NO Is freed
   FMessagesOwn.Free;
   FParams.Free;
   inherited;
@@ -943,7 +943,7 @@ begin
   Result := Destination;
   for I := 0 to Origin.Count - 1 do
   begin
-    // Esto actualiza si existe o a�ade si no existe, sin duplicar la clave
+    // Esto actualiza si existe o a�ade si does not exist, without duplicating la clave
     Destination.Values[Origin.Names[I]] := Origin.ValueFromIndex[I];
   end;
 end;

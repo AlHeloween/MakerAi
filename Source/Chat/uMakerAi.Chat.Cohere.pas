@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -89,23 +89,23 @@ type
   private
     FStop_sequences: TStrings;
     FDocuments: TCohereDocuments;
-    FRerankModel: string; // Propiedad para el modelo de Rerank
+    FRerankModel: string; // Propiedad for the modelo de Rerank
 
     FStreamBuffer: string; // Buffer para acumular datos del stream SSE
-    FStreamLastRole: string; // Para guardar el rol ('assistant') recibido en message-start
+    FStreamLastRole: string; // to save el rol ('assistant') recibido en message-start
     FStreamResponseMsg: TAiChatMessage; // Para acumular los datos finales (usage, etc.)
     FStreamingToolCalls: TDictionary<string, TAiToolsFunction>; // Para construir tool calls en streaming
     FStreamingToolCallsByIndex: TDictionary<Integer, string>;   // Mapeo index → id para streaming
     FStreamingCitations: TAiMsgCitations; // Para construir citaciones
     FToolResultsForNextCall: TJSONArray;
 
-    procedure ProcessStreamBuffer; // Nuevo m?todo helper para procesar el buffer
+    procedure ProcessStreamBuffer; // Nuevo method helper to process el buffer
 
     procedure SetStop_sequences(const Value: TStrings);
     procedure SetDocuments(const Value: TCohereDocuments);
     procedure ExecuteAndRespondToToolCalls(ToolCalls: TEnumerable<TAiToolsFunction>; ResMsg: TAiChatMessage);
   protected
-    // --- Sobrescribimos los m?todos clave ---
+    // --- Sobrescribimos los methods clave ---
     function InitChatCompletions: String; override;
     procedure ParseChat(jObj: TJSonObject; ResMsg: TAiChatMessage); override;
     function InternalRunCompletions(ResMsg, AskMsg: TAiChatMessage): String; override;
@@ -115,21 +115,21 @@ type
     constructor Create(Sender: TComponent); override;
     destructor Destroy; override;
 
-    // --- Nuevo M?todo para Rerank ---
+    // --- Nuevo method para Rerank ---
     function Rerank(const AQuery: string; ADocuments: TStrings; ATopN: Integer = -1): TRerankResponse;
 
-    // --- M?todos de F?brica ---
+    // --- methods de factory ---
     class function GetDriverName: string; override;
     class procedure RegisterDefaultParams(Params: TStrings); override;
     class function CreateInstance(Sender: TComponent): TAiChat; override;
     class function GetModels(aApiKey: String; aUrl: String = ''): TStringList; override;
     function GetModels: TStringList; override;
   published
-    // Re-publicamos propiedades de TAiChat para que aparezcan en el inspector
+    // Re-publicamos propiedades de TAiChat so that aparezcan in the inspector
     property Temperature;
     property Top_p; // Se mapear? a 'p'
 
-    // --- Propiedades espec?ficas de Cohere ---
+    // --- Propiedades specifics de Cohere ---
     property Stop_sequences: TStrings read FStop_sequences write SetStop_sequences;
     property Documents: TCohereDocuments read FDocuments write SetDocuments;
     property RerankModel: string read FRerankModel write FRerankModel;
@@ -217,14 +217,14 @@ begin
   FStop_sequences := TStringList.Create;
   FDocuments := TCohereDocuments.Create(True);
 
-  // Valores por defecto para Chat
+  // Valores By default para Chat
   Self.ApiKey := '@COHERE_API_KEY';
   Self.Url := 'https://api.cohere.com/v2/';
   Self.Model := 'command-a-03-2025';
   Self.Temperature := 0.3;
   Self.Top_p := 0.75;
 
-  // Valores por defecto para Rerank
+  // Valores By default para Rerank
   Self.FRerankModel := 'rerank-english-v3.0';
   FStreamBuffer := '';
   FStreamResponseMsg := nil;
@@ -298,7 +298,7 @@ begin
       ToolCall.MediaFiles.OwnsObjects := False;
     end;
 
-    // 3. Volver a llamar a Run para obtener la respuesta final
+    // 3. Volver a llamar a Run to obtain/get the response final
     Self.Run(nil, nil);
 
   finally
@@ -350,10 +350,10 @@ begin
     FullUrl := FullUrl + '?endpoint=chat';
 
     // 3. Preparar las cabeceras correctamente
-    Headers := [TNetHeader.Create('Authorization', 'Bearer ' + aApiKey), TNetHeader.Create('accept', 'application/json') // A?adido para ser como cURL
+    Headers := [TNetHeader.Create('Authorization', 'Bearer ' + aApiKey), TNetHeader.Create('accept', 'application/json') // added para ser como cURL
       ];
 
-    // Se pasa el par?metro AHeaders a la llamada GET.
+    // Se pasa el parameter AHeaders a la llamada GET.
     HttpResponse := Client.Get(FullUrl, ResponseStream, Headers);
 
     // 4. Procesar la respuesta (sin cambios)
@@ -391,7 +391,7 @@ begin
   end;
 end;
 
-// Implementaci?n principal del m?todo
+// implementation principal del method
 function TCohereChat.InitChatCompletions: String;
 var
   LJsonObject: TJSonObject;
@@ -413,7 +413,7 @@ begin
   LStopList := TStringList.Create;
   HasToolResults := False; // Para saber si estamos en la fase 2 del tool-use
   try
-    // --- 1. CONFIGURACI?N DEL MODELO Y PAR?METROS DE GENERACI?N ---
+    // --- 1. configuration DEL MODELO Y parameterS DE generation ---
     LJsonObject.AddPair('model', Self.Model);
     if Self.Asynchronous then
       LJsonObject.AddPair('stream', TJSONBool.Create(True));
@@ -431,7 +431,7 @@ begin
     if Self.Seed > 0 then
       LJsonObject.AddPair('seed', TJSONNumber.Create(Self.Seed));
 
-    // --- 2. CONSTRUCCI?N DEL HISTORIAL DE MENSAJES ('messages') ---
+    // --- 2. construction DEL HISTORIAL DE MENSAJES ('messages') ---
     LMessagesArray := TJSONArray.Create;
     for LMessage in Self.Messages do
     begin
@@ -441,7 +441,7 @@ begin
 
       if (LRoleStr = 'assistant') and (not LMessage.Tool_calls.IsEmpty) then
       begin
-        // Mensaje del asistente que CONTIENE la petici?n de tool_calls.
+        // Mensaje del asistente que CONTIENE la request de tool_calls.
         LToolCallsValue := TJSONObject.ParseJSONValue(LMessage.Tool_calls, True);
         if Assigned(LToolCallsValue) and (LToolCallsValue is TJSONArray) then
           LMsgObj.AddPair('tool_calls', LToolCallsValue)
@@ -466,7 +466,7 @@ begin
       end
       else if (LMessage.MediaFiles.Count > 0) and (LRoleStr = 'user') then
       begin
-        // Mensaje multimodal (con im?genes).
+        // Mensaje multimodal (con imagees).
         LContentArray := TJSONArray.Create;
         LTextPart := TJSonObject.Create;
         LTextPart.AddPair('type', 'text');
@@ -497,7 +497,7 @@ begin
     end;
     LJsonObject.AddPair('messages', LMessagesArray);
 
-    // --- 3. INCLUSI?N DE HERRAMIENTAS ('tools' y 'tool_choice') ---
+    // --- 3. inclusion DE HERRAMIENTAS ('tools' y 'tool_choice') ---
     // Do not send the tool definition if you are already sending results.
     if not HasToolResults and Tool_Active and Assigned(AiFunctions) and (AiFunctions.Functions.Count > 0) then
     begin
@@ -522,7 +522,7 @@ begin
       end;
     end;
 
-    // --- 4. INCLUSI?N DE DOCUMENTOS PARA RAG ('documents') ---
+    // --- 4. inclusion DE DOCUMENTOS PARA RAG ('documents') ---
     if Assigned(Self.FDocuments) and (Self.FDocuments.Count > 0) then
     begin
       LDocsArray := TJSONArray.Create;
@@ -547,7 +547,7 @@ begin
     if FResponse_format = tiaChatRfJson then
       LJsonObject.AddPair('response_format', TJSonObject.Create.AddPair('type', 'json_object'));
 
-    // --- 7. GENERACI?N DEL STRING FINAL ---
+    // --- 7. generation DEL STRING FINAL ---
     Result := LJsonObject.ToJSon;
 
   finally
@@ -638,7 +638,7 @@ begin
   if FClient.Asynchronous = False then
     Exit;
 
-  // Heredamos la l?gica de aborto de la clase base
+  // Heredamos la logic de aborto de la clase base
   AAbort := Self.FAbort;
   if AAbort then
   begin
@@ -1051,7 +1051,7 @@ begin
 
               if (UpperCase(LFinishReason) = 'TOOL_CALL') and (FStreamingToolCalls.Count > 0) then
               begin
-                // Construir tool_calls JSON para el historial
+                // Construir tool_calls JSON for the historial
                 var jToolCallsArr := TJSONArray.Create;
                 try
                   for CurrentToolCall in FStreamingToolCalls.Values do

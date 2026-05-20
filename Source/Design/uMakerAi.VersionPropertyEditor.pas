@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -40,7 +40,7 @@ uses
   uMakerAi.Chat.AiConnection;
 
 type
-  // Property Editor personalizado para la propiedad Version
+  // Property Editor personalizado for the propiedad Version
   TVersionPropertyEditor = class(TStringProperty)
   public
     function GetAttributes: TPropertyAttributes; override;

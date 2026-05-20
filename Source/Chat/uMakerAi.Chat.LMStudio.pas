@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -99,7 +99,7 @@ end;
 constructor TAiLMStudioChat.Create(Sender: TComponent);
 begin
   inherited;
-  ApiKey := '1234'; // local, no se requiere autenticaci?n
+  ApiKey := '1234'; // local, no se requiere authentication
   Model := 'lmstudio-local';
   Url := GlLMStudioUrl;
 end;

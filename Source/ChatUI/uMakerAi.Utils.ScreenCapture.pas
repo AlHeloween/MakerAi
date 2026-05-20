@@ -311,7 +311,7 @@ begin
   Result := CaptureScreenAndroid;
   {$ENDIF}
   {$IFDEF IOS}
-  // iOS no permite captura de pantalla del sistema por seguridad
+  // iOS no permite captura de pantalla of the system por seguridad
   Result := nil;
   {$ENDIF}
 end;
@@ -459,7 +459,7 @@ begin
     // --- CASO 2: SELECCI�N PREVIA (Est�tica) ---
     else if HasSelection then
     begin
-      // No rellenamos nada (FillRect) para que sea transparente.
+      // No rellenamos nada (FillRect) so that sea transparente.
 
       // Solo dibujamos el borde Verde
       Canvas.Stroke.Color := TAlphaColors.Lime;
@@ -522,7 +522,7 @@ begin
     HasSelection := True;
 
     // Convertir Coordenadas Globales -> Locales del Formulario
-    // Restamos el inicio de la pantalla virtual para obtener la posici�n relativa dentro del form
+    // Restamos el inicio de la pantalla virtual to obtain/get la posici�n relativa dentro del form
     StartPoint := TPointF.Create(
       ASelectedRect.Left - VirtualScreenLeft,
       ASelectedRect.Top - VirtualScreenTop

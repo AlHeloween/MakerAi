@@ -249,7 +249,7 @@ begin
   // OPTIMIZACI�N: Calcular la magnitud del Query UNA SOLA VEZ fuera del bucle.
   QueryMag := Magnitude(Query);
 
-  // Si el Query es un vector cero, no se puede buscar similitud.
+  // Si el Query es un vector cero, no Can be buscar similitud.
   if QueryMag = 0 then Exit;
 
   for i := 0 to High(Candidates) do
@@ -329,7 +329,7 @@ begin
 
     // OPTIMIZACI�N DE MEMORIA:
     // En lugar de hacer Copy() sobre el array (que duplica memoria),
-    // recortamos la lista si es necesario y devolvemos su array directo.
+    // recortamos la lista si it is necessary y devolvemos su array directo.
     if K < AllResults.Count then
       AllResults.Count := K; // Esto elimina el exceso de elementos internamente
 
@@ -481,7 +481,7 @@ begin
   // 2. Separar los valores por la coma
   ValueStrings := CleanedString.Split([',']);
 
-  // 3. Preparar para la conversi�n de float insensible a la localizaci�n
+  // 3. Preparar for the conversi�n de float insensible a la localizaci�n
   // Esto asegura que el '.' siempre se interprete como el separador decimal.
   FormatSettings := TFormatSettings.Invariant;
 

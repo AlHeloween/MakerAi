@@ -1,4 +1,4 @@
-// MIT License
+﻿// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -110,8 +110,8 @@ begin
   if not IsActive then
     raise Exception.Create('Direct Connection is not active. Call Start first.');
 
-  // El due?o de AParams es este m?todo, se libera aqu?.
-  // Si AParams es nil, creamos uno vac?o.
+  // El owner de AParams es este method, se libera awhat.
+  // Si AParams es nil, creamos uno empty.
   if not Assigned(AParams) then
     AParams := TJSONObject.Create
   else
@@ -130,12 +130,12 @@ begin
     RequestObj.Free; // Libera RequestObj y AParams
   end;
 
-  // Ejecutar la petici?n
+  // Ejecutar la request
   ResponseStr := FLogicServer.ExecuteRequest(RequestStr, 'direct_connection');
 
   // Parse the response
   if ResponseStr = '' then
-    Exit; // Notificaci?n, sin resultado
+    Exit; // notification, sin resultado
 
   JsonValue := TJSONObject.ParseJSONValue(ResponseStr);
   if not(JsonValue is TJSONObject) then
@@ -190,7 +190,7 @@ function TAiMCPDirectConnection.CallTool(const AToolName: string; AArguments: TJ
 var
   Params: TJSONObject;
 begin
-  // AArguments es pasado al m?todo ExecuteDirectRequest, que tomar? posesi?n de ?l.
+  // AArguments es pasado al method ExecuteDirectRequest, que would take possession de ?l.
   // The caller must not free AArguments.
   if not Assigned(AArguments) then
     AArguments := TJSONObject.Create;
@@ -215,7 +215,7 @@ begin
       ArgsObject.AddPair(AArguments.Names[i], AArguments.ValueFromIndex[i]);
     end;
   end;
-  // Llamamos a la versi?n principal. A partir de aqu?, no debemos liberar ArgsObject.
+  // Llamamos a la version principal. A partir de awhat, no debemos liberar ArgsObject.
   Result := CallTool(AToolName, ArgsObject);
 end;
 

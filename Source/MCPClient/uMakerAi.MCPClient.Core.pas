@@ -1,4 +1,4 @@
-// MIT License
+﻿// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -87,12 +87,12 @@ type
     procedure SetEnvVars(const Value: TStrings);
     procedure SetURL(const Value: String);
   protected
-    // Propiedades de configuraci?n
+    // Propiedades de configuration
     // FCommand: string;
     // FArguments: string;
     // FRootDirectory: string;
 
-    // M?todos para disparar eventos
+    // methods para disparar eventos
     FLastError: String;
     FBusy: Boolean;
     procedure DoLog(const Msg: string); virtual;
@@ -113,15 +113,15 @@ type
     Function GetDefaultParams: TStringList; Virtual;
 
     // The initialization function will try to connect to the server and get the tool list (ListTools) and store it
-    // la informaci?n en la propiedad Tools : TStrings que es de solo lectura.  esto se hace para evitar hacer el llamado
+    // la information en la propiedad Tools : TStrings que es de solo lectura.  esto se hace para evitar hacer el llamado
     // to the function every time the tool list is needed, saving time and connection resources.
-    // Tambi?n marca la propiedad initialized en true para indicar que ya se prob?.
-    // si el servidor en el proceso de inicializaci?n falla asigna Enabled = False, de lo
+    // also marca la propiedad initialized en true para indicar que ya se tried.
+    // si el servidor en el proceso de initialization falla asigna Enabled = False, de lo
 
     Function Initialize: Boolean; Virtual;
 
-    // M?todos p?blicos principales (ciclo de vida completo)
-    // Son virtuales y abstractos porque su implementaci?n depende del protocolo
+    // methods publics principales (ciclo de vida completo)
+    // Son virtuales y abstractos porque su implementation depende del protocolo
     function ListTools: TJSONObject; virtual;
     function CallTool(const AToolName: string; AArguments: TJSONObject; AExtractedMedia: TObjectList<TAiMediaFile>): TJSONObject; overload; virtual;
     function CallTool(const AToolName: string; AArguments: TStrings; AExtractedMedia: TObjectList<TAiMediaFile>): TJSONObject; overload; virtual;
@@ -130,7 +130,7 @@ type
     // liberar recursos cuando ya no se necesite el servidor.
     procedure Disconnect; virtual;
 
-    // Propiedades p?blicas
+    // Propiedades public
     property Name: string read FName write FName;
     // property Command: string read FCommand write SetCommand;
     // property Arguments: string read FArguments write FArguments;
@@ -139,26 +139,26 @@ type
     // property URL: string read FURL write FURL;
     // property Timeout: Integer read FTimeout write FTimeout;
 
-    Property Tools: TStrings read FTools; // Propiedad de solo lectura que contiene ListTools despu?s de inicializado
+    Property Tools: TStrings read FTools; // Propiedad de solo lectura que contiene ListTools after de inicializado
     Property Initialized: Boolean read FInitialized write SetInitialized; // Indica que ya fue inicializado intentando obtener el ListTools
     Property Enabled: Boolean read FEnabled write SetEnabled; // Propiedad que indica que se utilizar? para construir el tools final
-    // Si est? disponible despu?s de inicializar, si fall? la inicializaci?n queda en false.
+    // Si is disponible after de inicializar, si fthere la initialization queda en false.
     Property Available: Boolean read FAvailable write SetAvailable;
 
-    Property Params: TStrings read GetParams write SetParams; // Par?metros adicionales en formato ParamName=ParamValue
+    Property Params: TStrings read GetParams write SetParams; // parameters adicionales en formato ParamName=ParamValue
     Property EnvVars: TStrings read GetEnvVars write SetEnvVars;
     Property URL: String read FURL write SetURL;
 
     // Property DisabledFunctions: TStrings read FDisabledFunctions write SetDisabledFunctions;
-    // Lista de funciones que no se ejecutar?n, por defecto todas son v?lidas   formato (ModuleName,FunctionName)
+    // Lista de functions que no se would executen, By default todas son valids   formato (ModuleName,FunctionName)
 
-    // Eventos p?blicos
+    // Eventos publics
     property OnLog: TMCPLogEvent read FOnLog write FOnLog;
     property OnStatusUpdate: TMCPStatusEvent read FOnStatusUpdate write FOnStatusUpdate;
     property OnStreamMessage: TMCPStreamMessageEvent read FOnStreamMessage write FOnStreamMessage;
   end;
 
-  // --- Implementaci?n del Protocolo STDI/O ---
+  // --- implementation del Protocolo STDI/O ---
 type
   TMCPClientStdIo = class(TMCPClientCustom)
   private
@@ -168,7 +168,7 @@ type
     FIsRunning: Boolean;
     FRequestIDCounter: Integer;
 
-    // M?todos internos que realizan las tareas individuales
+    // methods internos que realizan las tareas individuales
     procedure InternalStartServerProcess;
     procedure InternalStopServerProcess;
     function InternalInitialize: TJSONObject;
@@ -176,7 +176,7 @@ type
     function InternalListTools: TJSONObject;
     function InternalCallTool(const AToolName: string; AArguments: TJSONObject; AExtractedMedia: TObjectList<TAiMediaFile>): TJSONObject;
 
-    // Helpers de comunicaci?n
+    // Helpers de communication
     procedure InternalSendRawMessage(const AJsonString: string);
     function InternalReceiveJSONResponse(AExpectedID: Integer; ATimeoutMs: Cardinal = 10000): TJSONObject;
     function IsServerRunning: Boolean;
@@ -186,7 +186,7 @@ type
     destructor Destroy; override;
     procedure ReadProcessOutput; // Falta por implementar el uso
 
-    // Implementaci?n de los m?todos p?blicos (orquestan el ciclo de vida)
+    // implementation de los methods publics (orquestan el ciclo de vida)
     function ListTools: TJSONObject; override;
     function CallTool(const AToolName: string; AArguments: TJSONObject; AExtractedMedia: TObjectList<TAiMediaFile>): TJSONObject; overload; override;
     function CallTool(const AToolName: string; AArguments: TStrings; AExtractedMedia: TObjectList<TAiMediaFile>): TJSONObject; overload; override;
@@ -201,11 +201,11 @@ type
     FRequestIDCounter: Integer;
     FServerCapabilities: TJSONObject;
 
-    // M?todos para el handshake MCP
+    // methods for the handshake MCP
     procedure InternalPerformMCPInitialize;
     procedure InternalSendInitializedNotification;
 
-    // M?todo principal para enviar solicitudes JSON-RPC por HTTP
+    // method principal to send solicitudes JSON-RPC por HTTP
     function InternalSendRequest(const AMethod: string; AParams: TJSONObject): TJSONObject;
   public
     constructor Create(AOwner: TComponent); override;
@@ -221,29 +221,29 @@ type
   TMCPClientMakerAi = class(TMCPClientCustom)
   private
     // Campo privado para gestionar las peticiones HTTP.
-    // Ser? creado en el constructor y liberado autom?ticamente por el componente.
+    // will be creado en el constructor y liberado autookticamente por el componente.
     FHttpClient: TNetHTTPClient;
 
-    // M?todo de ayuda privado. Centraliza toda la l?gica de comunicaci?n con la API REST:
+    // method de ayuda privado. Centraliza toda la logic de communication con la API REST:
     // - Construye la URL.
-    // - Prepara la autenticaci?n HTTP Basic.
-    // - Realiza la petici?n GET o POST.
+    // - Prepara la authentication HTTP Basic.
+    // - Realiza la request GET o POST.
     // - Procesa la respuesta, incluyendo el "unwrap" del formato de DataSnap.
     function InternalSendRequest(const AMethodName, AHttpVerb: string; ABodyStream: TStream): TJSONObject;
 
   public
-    // Constructor y destructor est?ndar del componente.
+    // Constructor y destructor isndar of the component.
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    // Implementaci?n de los m?todos abstractos heredados de TMCPClientCustom.
-    // Estos son los m?todos p?blicos que el resto de la aplicaci?n usar?,
-    // garantizando que la interfaz sea id?ntica a los otros tipos de clientes.
+    // implementation de los methods abstractos heredados de TMCPClientCustom.
+    // Estos son los methods publics que el resto de la application would use,
+    // garantizando que la interfaz sea identical a los otros tipos de clientes.
 
-    // Sobrescribe ListTools para llamar al endpoint /listtools de la API.
+    // Sobrescribe ListTools para llamar al endpoint /listtools of the API.
     function ListTools: TJSONObject; override;
 
-    // Sobrescribe CallTool para llamar a los endpoints /calltool/{toolname} de la API.
+    // Sobrescribe CallTool para llamar a the endpoints /calltool/{toolname} of the API.
     // Acepta argumentos como un TJSONObject.
     function CallTool(const AToolName: string; AArguments: TJSONObject; AExtractedMedia: TObjectList<TAiMediaFile>): TJSONObject; overload; override;
 
@@ -262,7 +262,7 @@ type
 
     FBuffer: string;
 
-    // Eventos del componente TNetHTTPClient
+    // Eventos of the component TNetHTTPClient
 {$IF CompilerVersion >= 36}  // D12+ - OnReceiveDataEx no disponible en D11 y anteriores
     procedure DoReceiveDataEx(const Sender: TObject; AContentLength, AReadCount: Int64; AChunk: Pointer; AChunkLength: Cardinal; var ABort: Boolean);
 {$IFEND}
@@ -270,11 +270,11 @@ type
     procedure DoRequestError(const Sender: TObject; const AError: string); // Adaptado para simplificar Exception/Error
     procedure DoRequestException(const Sender: TObject; const AException: Exception);
 
-    // M?todos internos de procesamiento
+    // methods internos de procesamiento
     procedure ProcessBuffer;
     procedure ProcessSSELine(const ALine: string);
 
-    // M?todos de comunicaci?n interna
+    // methods de communication interna
     function InternalSendRequest(const AMethod: string; AParams: TJSONObject): TJSONObject;
     function InternalReceiveJSONResponse(AExpectedID: Integer; ATimeoutMs: Cardinal = 15000): TJSONObject;
     function WaitForInitialization(ATimeout: Integer): Boolean;
@@ -342,7 +342,7 @@ Var
 begin
   inherited Create(AOwner);
   FCallLock := TCriticalSection.Create;
-  FName := 'MCPClient'; // Valor por defecto
+  FName := 'MCPClient'; // Valor By default
   FTools := TStringList.Create;
   FParams := TStringList.Create;
   FEnvVars := TStringList.Create;
@@ -406,7 +406,7 @@ begin
   Try
     Result.Add('Command=npx');
     Result.Add('Arguments=@');
-    Result.Add('RootDir=' + TPath.GetHomePath); // Un directorio de inicio m?s sensato
+    Result.Add('RootDir=' + TPath.GetHomePath); // Un directorio de inicio more sensato
     Result.Add('PATH=C:\');
     Result.Add('ApiHeaderName=Authorization');
     Result.Add('ApiBearerToken=@MCPBearerToken');
@@ -417,9 +417,9 @@ begin
     Result.Add('OAuthURL=http://localhost:6274/oauth/callback');
     Result.Add('OAuthScope=Scope');
     Result.Add('Timeout=15000');
-    Result.Add('InitializeEndpointSuffix='); // Vac?o
-    Result.Add('NotificationEndpointSuffix='); // Vac?o
-    Result.Add('RpcEndpointSuffix='); // Vac?o
+    Result.Add('InitializeEndpointSuffix='); // empty
+    Result.Add('NotificationEndpointSuffix='); // empty
+    Result.Add('RpcEndpointSuffix='); // empty
   Finally
   End;
 end;
@@ -491,17 +491,17 @@ begin
   begin
     DoLog('Local server process is already running. This client will just connect.');
     Result := True;
-    // No establecer FOwnsServerProcess a true aqu? si ya est? corriendo.
-    // Esto significa que otro cliente (o proceso) ya lo inici?.
+    // No establecer FOwnsServerProcess a true awhat si ya is corriendo.
+    // Esto significa que otro cliente (o proceso) ya lo started.
     Exit;
   end;
 
-  // ... (c?digo para lanzar el proceso si no est? corriendo)
+  // ... (code para lanzar el proceso si no is corriendo)
 
   if Assigned(FServerProcess) and FServerProcess.IsRunning then
   begin
     Result := True;
-    FOwnsServerProcess := True; // ?ESTE cliente lo inici?!
+    FOwnsServerProcess := True; // it isTE cliente lo started!
     DoLog('Local MCP Server started successfully');
     DoStatusUpdate('Local Server running.');
     Sleep(2000);
@@ -516,11 +516,11 @@ begin
   if FOwnsServerProcess and Assigned(FServerProcess) then
   begin
     DoLog('Stopping local MCP server process because this client owns it...');
-    // Mensaje m?s claro
+    // Mensaje more claro
     DoStatusUpdate('Stopping local server...');
     try
       TUtilsSystem.StopInteractiveProcess(FServerProcess);
-      FServerProcess := nil; // Es importante ponerlo a nil despu?s de detenerlo
+      FServerProcess := nil; // Es importante ponerlo a nil after de detenerlo
       FOwnsServerProcess := False; // Ya no lo poseemos
       DoLog('Local MCP Server stopped.');
       DoStatusUpdate('Local Server stopped.');
@@ -536,8 +536,8 @@ begin
   else if Assigned(FServerProcess) then // Si no lo poseemos pero FServerProcess no es nil (ej. si falla el lanzamiento)
   begin
     // Si FServerProcess no es nil pero FOwnsServerProcess es false,
-    // significa que el proceso est? corriendo pero esta instancia no lo inici?.
-    // No lo detengas, solo limpia la referencia local si es necesario.
+    // significa que el proceso is corriendo pero esta instancia no lo started.
+    // No lo detengas, solo limpia la referencia local si it is necessary.
     FreeAndNil(FServerProcess); // Liberar solo el objeto TInteractiveProcessInfo, no el proceso real
   end;
 end;
@@ -552,7 +552,7 @@ begin
     SameText(ContentType, 'database') or // Para SQLite, etc.
     SameText(ContentType, 'ebook') or // Para EPUB, MOBI, etc.
     SameText(ContentType, 'certificate') or // Para certificados
-    SameText(ContentType, 'binary'); // Tipo gen?rico para binarios
+    SameText(ContentType, 'binary'); // Tipo generic para binarios
 end;
 
 function TMCPClientCustom.ListTools: TJSONObject;
@@ -603,11 +603,11 @@ begin
         // Intentar obtener los datos base64 y el tipo mime.
         if LContentItem.TryGetValue<string>('data', LBase64Data) and LContentItem.TryGetValue<string>('mimeType', LMimeType) and not LBase64Data.IsEmpty then
         begin
-          // -- Se encontr? un binario --
+          // -- Se found un binario --
           var
           MediaFile := TAiMediaFile.Create;
 
-          // Generar nombre de archivo con extensi?n apropiada
+          // Generar nombre de archivo con extension apropiada
           LFileName := Format('mcp-media-%d%s', [AExtractedMedia.Count + 1, GetFileExtensionFromMimeType(LMimeType)]);
 
           MediaFile.LoadFromBase64(LFileName, LBase64Data);
@@ -617,7 +617,7 @@ begin
           LContentItem.RemovePair('data');
           LContentItem.AddPair('dataExtracted', TJSONBool.Create(True));
           LContentItem.AddPair('mediaIdentifier', MediaFile.filename);
-          LContentItem.AddPair('originalSize', TJSONNumber.Create(Length(LBase64Data))); // Opcional: tama?o original
+          LContentItem.AddPair('originalSize', TJSONNumber.Create(Length(LBase64Data))); // Opcional: size original
         end;
       end;
     end;
@@ -705,7 +705,7 @@ var
   LJson: TJSONObject;
 begin
   // The persistent connection closes here automatically.
-  // No es necesario llamar Disconnect() antes de liberar el componente.
+  // No it is necessary llamar Disconnect() antes de liberar el componente.
   {$IFDEF DEBUG} MCPLog('TMCPClientStdIo.Destroy BEGIN name=' + Self.Name); {$ENDIF}
   {$IFDEF DEBUG} MCPLog('  InternalStopServerProcess...'); {$ENDIF}
   InternalStopServerProcess;
@@ -798,7 +798,7 @@ begin
   // Serializar llamadas concurrentes al mismo servidor (race condition cuando
   // ParseChat launches multiple TTask with tools from the same MCP server).
   // TCriticalSection en Delphi es reentrante: el overload TStrings que llama
-  // a este m?todo no genera deadlock.
+  // a este method no genera deadlock.
   FCallLock.Enter;
   try
     // If server is already running we reuse the connection
@@ -898,7 +898,7 @@ begin
       Exit;
     end;
 
-    // --- CORRECCI?N 1: Construcci?n robusta del comando ---
+    // --- correction 1: construction robusta del comando ---
     // Si la ruta tiene espacios y no tiene comillas, las agregamos.
     if (Pos(' ', Command) > 0) and (Command[1] <> '"') then
       FullCommand := AnsiQuotedStr(Command, '"')
@@ -929,7 +929,7 @@ begin
       FIsRunning := True;
       DoLog(Format('Server process started successfully (PID: %d).', [{$IFDEF MSWINDOWS}FInteractiveProcess.ProcessID{$ELSE}FInteractiveProcess.ProcessHandle{$ENDIF}]));
 
-      // --- CORRECCI?N 2: ARRANCAR EL HILO DE LECTURA ---
+      // --- correction 2: ARRANCAR EL HILO DE LECTURA ---
       // Sin esto, el cliente es sordo.
       FReadThread := TThread.CreateAnonymousThread(ReadProcessOutput);
       FReadThread.FreeOnTerminate := False; // Lo liberamos nosotros en el Stop
@@ -1030,7 +1030,7 @@ begin
     var
     LCapabilities := TJSONObject.Create;
     LParams.AddPair('capabilities', LCapabilities);
-    // A?adir capacidades vac?as
+    // add capacidades emptys
     LCapabilities.AddPair('tools', TJSONObject.Create);
     LCapabilities.AddPair('resources', TJSONObject.Create);
     LCapabilities.AddPair('roots', TJSONObject.Create);
@@ -1042,7 +1042,7 @@ begin
       try
         if (Response is TJSONObject) and TJSONObject(Response).TryGetValue('result', ResultPair) and (ResultPair is TJSONObject) then
         begin
-          Result := TJSONObject(ResultPair.Clone); // Clonamos el resultado para que el llamador sea due?o
+          Result := TJSONObject(ResultPair.Clone); // Clonamos the result so that el llamador sea owner
         end
         else
         begin
@@ -1098,7 +1098,7 @@ begin
       try
         if (Response is TJSONObject) and TJSONObject(Response).TryGetValue('result', ResultPair) and (ResultPair is TJSONObject) then
         begin
-          Result := TJSONObject(ResultPair.Clone); // Clonar para el llamador
+          Result := TJSONObject(ResultPair.Clone); // Clonar for the llamador
         end
         else
         begin
@@ -1155,7 +1155,7 @@ begin
       try
         if (Response is TJSONObject) and TJSONObject(Response).TryGetValue('result', ResultPair) and (ResultPair is TJSONObject) then
         begin
-          // Result := TJSONObject(ResultPair.Clone); // Clonar para el llamador
+          // Result := TJSONObject(ResultPair.Clone); // Clonar for the llamador
           // Separates the response from the binary files that will pass to the response as mediafiles in the response message
           Result := ProcessAndExtractMedia(TJSONObject(ResultPair), AExtractedMedia);
         end
@@ -1166,7 +1166,7 @@ begin
           if (Response is TJSONObject) and TJSONObject(Response).TryGetValue<TJSONObject>('error', LError) then
           begin
             DoLog(Format('Server error calling "%s": %s', [AToolName, LError.ToJSON]));
-            // Devolver el error como resultado para que el LLM pueda informar al usuario
+            // Devolver el error como resultado so that el LLM pueda informar al usuario
             Result := TJSONObject.Create;
             Result.AddPair('error', LError.ToString);
           end
@@ -1181,8 +1181,8 @@ begin
   end;
 end;
 
-// --- M?todos de bajo nivel (comunicaci?n) ---
-// (Estos m?todos son esencialmente los mismos que en el demo original,
+// --- methods de bajo nivel (communication) ---
+// (Estos methods son esencialmente los mismos que en el demo original,
 // solo que ahora usan DoLog para reportar)
 
 procedure TMCPClientStdIo.ReadProcessOutput;
@@ -1197,7 +1197,7 @@ begin
   SetLength(LineBuffer, 0);
   // DoLog('Read thread started.');
 
-  // Mantenemos el bucle mientras el proceso est? vivo y nosotros queramos correr
+  // Mantenemos el bucle mientras el proceso is vivo y nosotros queramos correr
   while FIsRunning and Assigned(FInteractiveProcess) and FInteractiveProcess.IsRunning do
   begin
     // Leer STDOUT
@@ -1205,12 +1205,12 @@ begin
 
     if BytesRead > 0 then
     begin
-      // A?adir al buffer acumulativo
+      // add al buffer acumulativo
       var OldLen := Length(LineBuffer);
       SetLength(LineBuffer, OldLen + BytesRead);
       Move(ReadBuffer[0], LineBuffer[OldLen], BytesRead);
 
-      // Procesar l?neas completas (buscando el #10)
+      // Procesar lines completas (buscando el #10)
       while True do
       begin
         LineFeedPos := -1;
@@ -1222,7 +1222,7 @@ begin
           end;
 
         if LineFeedPos = -1 then
-          Break; // No hay l?nea completa a?n
+          Break; // No hay line completa even
 
         // Extract line and convert to UTF8 String
         // Nota: LineFeedPos incluye hasta justo antes del LF.
@@ -1259,7 +1259,7 @@ begin
             DoLog('[STDOUT]: ' + CurrentLine);
         end;
 
-        // Eliminar la l?nea procesada del buffer (incluyendo el LF)
+        // Eliminar la line procesada del buffer (incluyendo el LF)
         var RemoveLen := LineFeedPos + 1;
         var NewLen := Length(LineBuffer) - RemoveLen;
         if NewLen > 0 then
@@ -1269,11 +1269,11 @@ begin
     end
     else
     begin
-      // Peque?a pausa para no quemar CPU si no hay datos
+      // small pausa para no quemar CPU si no hay datos
       Sleep(10);
     end;
 
-    // Aqu? podr?as leer ReadError tambi?n si quieres ver el STDERR
+    // Awhat coulds leer ReadError also si quieres ver el STDERR
   end;
 end;
 
@@ -1336,7 +1336,7 @@ begin
       DoLog('ERROR: Server stopped while waiting for a response.');
       Break;
     end;
-    Sleep(20); // Peque?a pausa para no consumir 100% de CPU
+    Sleep(20); // small pausa para no consumir 100% de CPU
   end;
 
   DoLog(Format('TIMEOUT: No response received for ID %d in %d ms.', [AExpectedID, ATimeoutMs]));
@@ -1358,7 +1358,7 @@ begin
     Exit;
   end;
 
-  // Si el objetivo (Target) es nulo, creamos un objeto base con un array de "tools" vac?o.
+  // Si el objetivo (Target) es nulo, creamos un objeto base con un array de "tools" empty.
   if not Assigned(ATargetJson) then
   begin
     ATargetJson := TJSONObject.Create;
@@ -1383,7 +1383,7 @@ begin
       Continue; // Saltar si el item no es un objeto
 
     LSourceTool := LSourceTools.Items[i] as TJSONObject;
-    LNewTool := TJSONObject.Create; // Crear un nuevo objeto para la herramienta transformada
+    LNewTool := TJSONObject.Create; // Crear un nuevo objeto for the herramienta transformada
 
     // 4. Transform the tool name with the prefix
     if LSourceTool.TryGetValue<string>('name', LToolName) then
@@ -1394,7 +1394,7 @@ begin
         LNewTool.AddPair('name', TJSONString.Create(Format('%s@%s', [ASourceName, LToolName])));
     end;
 
-    // 5. Copiar la descripci?n (com?n a todos los formatos)
+    // 5. Copiar la description (common a todos los formatos)
 
     Var
       Description: String;
@@ -1409,13 +1409,13 @@ begin
       begin
         LInputSchema := TJSONObject(LInputSchemaValue.Clone); // Clonamos para no modificar el original
 
-        // El formato de OpenAI tiene una propiedad extra 'type':'function' que debemos a?adir.
+        // El formato de OpenAI tiene una propiedad extra 'type':'function' que debemos add.
         if AFormat = tfOpenAI then
         begin
           LNewTool.AddPair('type', 'function');
           LNewTool.AddPair('parameters', LInputSchema); // OpenAI usa el nombre 'parameters'
         end
-        else // Anthropic y otros formatos est?ndar
+        else // Anthropic y otros formatos isndar
         begin
           LNewTool.AddPair('input_schema', LInputSchema); // Anthropic usa 'input_schema'
         end;
@@ -1423,7 +1423,7 @@ begin
     end
     else
     begin
-      // Si no hay schema, creamos uno vac?o para cumplir con el formato
+      // Si no hay schema, creamos uno empty para cumplir con el formato
       LInputSchema := TJSONObject.Create;
       LInputSchema.AddPair('type', 'object');
       LInputSchema.AddPair('properties', TJSONObject.Create);
@@ -1468,7 +1468,7 @@ end;
 
 function TMCPClientHttp.Initialize: Boolean;
 const
-  MAX_RETRIES_ON_FAIL = 2; // N?mero de reintentos de conexi?n si el servidor no responde
+  MAX_RETRIES_ON_FAIL = 2; // number de reintentos de connection si el servidor no responde
 var
   jTools: TJSONObject;
   jValue: TJSonValue;
@@ -1491,12 +1491,12 @@ begin
     try
       DoLog(Format('Attempting connection to server (Try %d/%d)...', [CurrentAttempt, MAX_RETRIES_ON_FAIL]));
 
-      // 1. Realizar el handshake de inicializaci?n de MCP
-      // Las excepciones de conexi?n se lanzar?n aqu? y ser?n capturadas abajo.
+      // 1. Realizar el handshake de initialization de MCP
+      // Las exceptions de connection se would launchn awhat y will ben capturadas abajo.
       InternalPerformMCPInitialize;
       DoLog('MCP Initialization successful.');
 
-      // 2. Enviar la notificaci?n de inicializado (no lanza excepci?n, solo logea warnings si falla la POST de la notificaci?n)
+      // 2. Enviar la notification de inicializado (no lanza exception, solo logea warnings si falla la POST de la notification)
       InternalSendInitializedNotification;
 
       // 3. Get the tool list
@@ -1507,15 +1507,15 @@ begin
         FTools.Text := jTools.Format;
         Enabled := True;
         Available := True;
-        Result := True; // ?xito
+        Result := True; // success
         Break; // Salir del bucle de reintentos
       End
       Else
       Begin
         FLastError := 'Failed to retrieve tools list after successful initialization. Server response incomplete.';
         DoLog(FLastError);
-        // Si el problema no es de conexi?n sino de la respuesta del protocolo, no relanzamos el servidor.
-        Break; // No reintentar relanzando el server, ya est? conectado.
+        // Si el problema no es de connection sino de la respuesta del protocolo, no relanzamos el servidor.
+        Break; // No reintentar relanzando el server, ya is conectado.
       End;
     except
       on E: Exception do
@@ -1524,16 +1524,16 @@ begin
         DoLog(FLastError);
         DoStatusUpdate('Initialization Failed: ' + E.Message);
 
-        // Si es un error de conexi?n (no 200 OK, timeout, etc.) y a?n quedan reintentos
+        // Si es un error de connection (no 200 OK, timeout, etc.) y even quedan reintentos
         if (CurrentAttempt < MAX_RETRIES_ON_FAIL) then
         begin
           DoLog(Format('Connection failed. Attempting to start local server and retry (Attempt %d).', [CurrentAttempt]));
           InternalStopLocalServerProcess; // Detener cualquier proceso anterior que hayamos podido iniciar y haya fallado
           if InternalStartLocalServerProcess then // Intentar lanzar el servidor local
           begin
-            // ?xito al lanzar el server, el bucle reintentar? la conexi?n
-            Sleep(2000); // Dar un tiempo extra al server para que est? listo para las conexiones
-            Continue; // Volver al inicio del bucle para reintentar la conexi?n
+            // success al lanzar el server, el bucle rewould try la connection
+            Sleep(2000); // Dar un tiempo extra al server so that is listo para las connections
+            Continue; // Volver al inicio del bucle para reintentar la connection
           end
           else
           begin
@@ -1544,7 +1544,7 @@ begin
         else
         begin
           DoLog('Max connection attempts reached. Initialization failed permanently.');
-          Break; // M?ximo de reintentos alcanzado
+          Break; // maximum de reintentos alcanzado
         end;
       end;
     end;
@@ -1601,7 +1601,7 @@ begin
     if Assigned(LResultRaw) then
     begin
       Result := ProcessAndExtractMedia(LResultRaw, AExtractedMedia);
-      FreeAndNil(LResultRaw); // Liberar el resultado RAW despu?s de procesarlo
+      FreeAndNil(LResultRaw); // Liberar the result RAW after de procesarlo
     end;
   except
     on E: Exception do
@@ -1701,7 +1701,7 @@ begin
         LHeaders := [];
 
       var
-        LResponseStream: TMemoryStream; // Usar MemoryStream para la respuesta
+        LResponseStream: TMemoryStream; // Usar MemoryStream for the respuesta
       LResponseStream := TMemoryStream.Create;
       try
         LHttpResponse := FHttpClient.Post(LURL, LRequestBodyStream, LResponseStream, LHeaders);
@@ -1805,8 +1805,8 @@ begin
       else
         LHeaders := [];
 
-      // Las notificaciones no esperan respuesta, pero el servidor puede responder con un 204 No Content o un 200 OK vac?o.
-      // Aqu? no se espera que lance excepciones al fallar el POST, solo logear un warning.
+      // Las notificaciones no esperan respuesta, pero el servidor puede responder con un 204 No Content o un 200 OK empty.
+      // Awhat no se espera que lance exceptions al fallar el POST, solo logear un warning.
       var
         LResponseStream: TMemoryStream;
       LResponseStream := TMemoryStream.Create;
@@ -1835,7 +1835,7 @@ begin
 end;
 
 // ********************************************************************************
-// LA FUNCI?N SOLICITADA: TMCPClientHttp.InternalSendRequest
+// LA function SOLICITADA: TMCPClientHttp.InternalSendRequest
 // ********************************************************************************
 function TMCPClientHttp.InternalSendRequest(const AMethod: string; AParams: TJSONObject): TJSONObject;
 var
@@ -1851,7 +1851,7 @@ begin
   FLastError := '';
   LRequestObj := TJSONObject.Create;
   try
-    // Generar un nuevo ID para la solicitud JSON-RPC
+    // Generar un nuevo ID for the solicitud JSON-RPC
     Inc(FRequestIDCounter);
 
     // Construir el objeto de solicitud JSON-RPC
@@ -1860,19 +1860,19 @@ begin
     LRequestObj.AddPair('method', AMethod);
     LRequestObj.AddPair('params', AParams); // AParams se convierte en propiedad de LRequestObj
 
-    // Crear un StringStream para el cuerpo de la solicitud HTTP
+    // Crear un StringStream for the cuerpo de the request HTTP
     LRequestBodyStream := TStringStream.Create(LRequestObj.ToJSON, TEncoding.UTF8);
     Try
       try
-        // Obtener la URL completa para la solicitud RPC
+        // Obtener the URL completa for the solicitud RPC
         LURL := GetParamByName('URL') + GetParamByName('RpcEndpointSuffix');
 
         DoLog(Format('CLIENT -> SERVER (HTTP POST to %s): %s', [LURL, LRequestBodyStream.DataString]));
 
 {$IFDEF APIDEBUG}
-        // Guardar la petici?n en un archivo para depuraci?n
+        // Guardar la request en un archivo para debugging
         LRequestBodyStream.SaveToFile('c:\temp\mcp_rpc_request_' + AMethod.Replace('/', '_') + '.txt');
-        LRequestBodyStream.Position := 0; // Resetear la posici?n para la lectura por el TNetHTTPClient
+        LRequestBodyStream.Position := 0; // Resetear la position for the lectura por el TNetHTTPClient
 {$ENDIF}
         // Configurar los timeouts del cliente HTTP
 {$IF CompilerVersion >= 35}
@@ -1897,27 +1897,27 @@ begin
           LHeaders := [TNetHeader.Create(HeaderName, 'Bearer ' + BearerToken)];
         end
         else
-          LHeaders := []; // Array vac?o si no hay token
+          LHeaders := []; // Array empty si no hay token
 
-        // Crear un MemoryStream para recibir la respuesta HTTP
+        // Crear un MemoryStream to receive the response HTTP
         var
           LResponseStream: TMemoryStream;
         LResponseStream := TMemoryStream.Create;
         try
           // Realizar la solicitud HTTP POST
           LHttpResponse := FHttpClient.Post(LURL, LRequestBodyStream, LResponseStream, LHeaders);
-          LResponseStream.Position := 0; // Resetear la posici?n para la lectura del contenido
+          LResponseStream.Position := 0; // Resetear la position for the lectura del contenido
 
 {$IFDEF APIDEBUG}
-          // Guardar la respuesta en un archivo para depuraci?n
+          // Guardar la respuesta en un archivo para debugging
           LResponseStream.SaveToFile('c:\temp\mcp_rpc_response_' + AMethod.Replace('/', '_') + '.txt');
-          LResponseStream.Position := 0; // Resetear la posici?n para la lectura del contenido
+          LResponseStream.Position := 0; // Resetear la position for the lectura del contenido
 {$ENDIF}
           // Leer el contenido de la respuesta HTTP
           LResponseContent := (LHttpResponse.ContentAsString(TEncoding.UTF8));
           DoLog(Format('SERVER -> CLIENT (HTTP %d): %s', [LHttpResponse.StatusCode, LResponseContent]));
 
-          // Verificar el c?digo de estado HTTP
+          // Verificar el code de estado HTTP
           if LHttpResponse.StatusCode <> 200 then
             raise EMCPClientException.CreateFmt('HTTP request failed with status code %d: %s', [LHttpResponse.StatusCode, LResponseContent]);
 
@@ -1958,18 +1958,18 @@ begin
       except
         on E: Exception do
         begin
-          // Capturar cualquier excepci?n durante el proceso HTTP/JSON, logearla y re-lanzarla
+          // Capturar cualquier exception durante el proceso HTTP/JSON, logearla y re-lanzarla
           FLastError := 'EXCEPTION during HTTP request: ' + E.Message;
           DoLog(FLastError);
           DoStatusUpdate('Network Error: ' + E.Message);
-          raise; // Re-lanzar la excepci?n para que el m?todo llamador (ej. Initialize) la maneje
+          raise; // Re-lanzar la exception so that el method llamador (ej. Initialize) la maneje
         end;
       end;
     Finally
       LRequestBodyStream.Free;
     End;
   finally
-    // Liberar el objeto de solicitud JSON-RPC (tambi?n liberar? AParams, del cual se hizo propietario)
+    // Liberar el objeto de solicitud JSON-RPC (also would free AParams, del cual se hizo propietario)
     LRequestObj.Free;
     // Liberar el StringStream del cuerpo de la solicitud
     // Restablecer el estado de ocupado
@@ -1982,17 +1982,17 @@ end;
 constructor TMCPClientMakerAi.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  // Creamos el cliente HTTP y lo asignamos al componente para su gesti?n autom?tica de memoria.
+  // Creamos el cliente HTTP y lo asignamos al componente para su management autooktica de memoria.
   FHttpClient := TNetHTTPClient.Create(Self);
-  // Asignamos el tipo de transporte para que la factor?a y otros mecanismos lo reconozcan.
+  // Asignamos el tipo de transporte so that la factory y otros mecanismos lo reconozcan.
   TransportType := tpMakerAi;
   DoLog('TMCPClientMakerAi instance created.');
 end;
 
 destructor TMCPClientMakerAi.Destroy;
 begin
-  // FHttpClient es propiedad del componente, por lo que se liberar? autom?ticamente.
-  // No se necesita c?digo expl?cito aqu?, pero mantenemos el destructor por si se a?ade algo en el futuro.
+  // FHttpClient es propiedad of the component, por lo que se would free autookticamente.
+  // No Is needed code explicit awhat, pero mantenemos el destructor in case se adds algo in the future.
   DoLog('TMCPClientMakerAi instance destroyed.');
   inherited;
 end;
@@ -2032,13 +2032,13 @@ begin
   DoLog(Format('Executing CallTool via MakerAI REST client: %s', [AToolName]));
   DoStatusUpdate(Format('Calling tool: %s...', [AToolName]));
 
-  // Construimos el nombre del m?todo para la URL, como en tu ejemplo: 'calltool/calculate'
+  // Construimos the name del method for the URL, como en tu ejemplo: 'calltool/calculate'
   LMethodName := 'calltool/' + AToolName;
 
-  // Creamos el cuerpo de la petici?n POST a partir de los argumentos JSON.
+  // Creamos el cuerpo de la request POST a partir de los argumentos JSON.
   LBodyStream := TStringStream.Create(AArguments.ToJSON, TEncoding.UTF8);
   try
-    // CallTool usa el verbo POST y env?a los argumentos en el cuerpo.
+    // CallTool usa el verbo POST y sends los argumentos en el cuerpo.
     LResultRaw := InternalSendRequest(LMethodName, 'POST', LBodyStream);
 
     // Una vez obtenida la respuesta cruda, la procesamos para extraer
@@ -2048,7 +2048,7 @@ begin
       try
         Result := ProcessAndExtractMedia(LResultRaw, AExtractedMedia);
       finally
-        FreeAndNil(LResultRaw); // Liberamos el resultado RAW despu?s de procesarlo.
+        FreeAndNil(LResultRaw); // Liberamos the result RAW after de procesarlo.
       end;
     end;
 
@@ -2084,14 +2084,14 @@ begin
         ArgsObject.AddPair(AArguments.Names[i], TJSONString.Create(AArguments.ValueFromIndex[i]));
       end;
     end;
-    // Llama a la versi?n principal de CallTool.
+    // Llama a la version principal de CallTool.
     Result := CallTool(AToolName, ArgsObject, AExtractedMedia);
   finally
-    ArgsObject.Free; // Liberamos el objeto JSON que creamos aqu?.
+    ArgsObject.Free; // Liberamos el objeto JSON que creamos awhat.
   end;
 end;
 
-// --- M?todo Privado de Ayuda (Coraz?n de la clase) ---
+// --- method Privado de Ayuda (heart de la clase) ---
 
 function TMCPClientMakerAi.InternalSendRequest(const AMethodName, AHttpVerb: string; ABodyStream: TStream): TJSONObject;
 var
@@ -2104,14 +2104,14 @@ var
   LDataSnapResultArray: TJSonArray;
   LResponseContent: string;
   LJsonRpcObject: TJSONObject; // Objeto JSON-RPC anidado
-  LResultPair: TJSonValue; // El resultado final del JSON-RPC
+  LResultPair: TJSonValue; // the result final del JSON-RPC
 begin
   FBusy := True;
   FLastError := '';
   LJsonRpcObject := nil;
   LDataSnapResultWrapper := nil;
 
-  // 1. Obtener par?metros de configuraci?n
+  // 1. Obtener parameters de configuration
   LURL := GetParamByName('URL') + '/' + AMethodName;
   var
   LUser := GetParamByName('Login');
@@ -2131,7 +2131,7 @@ begin
   FHttpClient.Accept := 'application/json';
   FHttpClient.ContentType := 'application/json';
 
-  // 3. Preparar la cabecera de autenticaci?n HTTP Basic
+  // 3. Preparar la cabecera de authentication HTTP Basic
   LAuthString := LUser + ':' + LPass;
   LBase64Auth := TNetEncoding.Base64.Encode(LAuthString);
   LHeaders := [TNetHeader.Create('Authorization', 'Basic ' + LBase64Auth)];
@@ -2175,7 +2175,7 @@ begin
       if not LDataSnapResultWrapper.TryGetValue<TJSonArray>('result', LDataSnapResultArray) or (LDataSnapResultArray.Count = 0) then
         raise EMCPClientException.Create('DataSnap "result" array not found or empty.');
 
-      // 8. CORRECCI?N: El primer elemento del array es un JSONString que contiene el JSON-RPC.
+      // 8. correction: El primer elemento del array es un JSONString que contiene el JSON-RPC.
       if not(LDataSnapResultArray.Items[0] is TJSONString) then
         raise EMCPClientException.Create('First element in DataSnap "result" array is not a JSON string.');
 
@@ -2191,17 +2191,17 @@ begin
       end;
       LJsonRpcObject := TJSONObject(LJsonRpcVal);
 
-      // 10. EXTRAER el resultado (el payload real) del JSON-RPC anidado
+      // 10. EXTRAER the result (el payload real) del JSON-RPC anidado
       if LJsonRpcObject.TryGetValue('result', LResultPair) then
       begin
         if LResultPair is TJSONObject then
         begin
-          // Clonamos el objeto resultado para que el llamador sea su due?o.
+          // Clonamos el objeto resultado so that el llamador sea su owner.
           Result := TJSONObject(LResultPair.Clone);
         end
         else
         begin
-          // Manejar el caso de que el resultado del JSON-RPC sea un valor simple (string, number, boolean)
+          // Manejar el caso de que the result del JSON-RPC sea un valor simple (string, number, boolean)
           // Lo envolvemos en un objeto JSON para mantener la consistencia con el contrato TMCPClientCustom
           Result := TJSONObject.Create;
           Result.AddPair('value', TJSONObject(LResultPair.Clone));
@@ -2245,18 +2245,18 @@ begin
   inherited Create(AOwner);
   FHttpClient := TNetHTTPClient.Create(Self);
 
-  // Configuraci?n As?ncrona
+  // configuration like thisncrona
   FHttpClient.Asynchronous := True;
   FHttpClient.SynchronizeEvents := False;
 
-  // --- ASIGNACI?N DE EVENTOS (Estilo Cl?sico) ---
+  // --- assignment DE EVENTOS (Estilo classic) ---
 {$IF CompilerVersion >= 36}  // D12+ - OnReceiveDataEx no disponible en D11 y anteriores
   FHttpClient.OnReceiveDataEx := DoReceiveDataEx;
 {$IFEND}
   FHttpClient.OnRequestCompleted := DoRequestCompleted;
 
-  // Aqu? asignamos directamente el m?todo de la clase.
-  // Ya no usamos "procedure ... begin end" (an?nimo).
+  // Awhat asignamos directamente el method de la clase.
+  // Ya no usamos "procedure ... begin end" (anonymous).
   FHttpClient.OnRequestError := DoRequestError;
   FHttpClient.OnRequestException := DoRequestException;
 
@@ -2275,7 +2275,7 @@ var
 begin
   StopEventStream;
 
-  // Dar un momento para que el abort surta efecto
+  // Dar un momento so that el abort surta efecto
   Sleep(100);
 
   if Assigned(FIncomingMessages) then
@@ -2291,7 +2291,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// L?GICA DE CONEXI?N Y STREAMING
+// logic DE connection Y STREAMING
 // -----------------------------------------------------------------------------
 
 procedure TMCPClientSSE.StartEventStream;
@@ -2314,7 +2314,7 @@ begin
   try
     FIsConnected := True;
 
-    // En tu versi?n, al ser Asynchronous := True, Get retorna inmediatamente
+    // En tu version, al ser Asynchronous := True, Get retorna inmediatamente
     // y el trabajo se hace en segundo plano. No necesitamos BeginGet.
     FHttpClient.Get(LURL);
 
@@ -2330,12 +2330,12 @@ end;
 
 procedure TMCPClientSSE.StopEventStream;
 begin
-  FStopRequested := True; // Esto causar? Abort := True en el pr?ximo evento OnReceiveData
+  FStopRequested := True; // Esto cawould use Abort := True en el next evento OnReceiveData
   FIsConnected := False;
 end;
 
 // -----------------------------------------------------------------------------
-// EVENTOS DEL COMPONENTE TNetHTTPClient
+// EVENTOS of the component TNetHTTPClient
 // -----------------------------------------------------------------------------
 
 procedure TMCPClientSSE.DoRequestCompleted(const Sender: TObject; const AResponse: IHTTPResponse);
@@ -2372,7 +2372,7 @@ var
   LBytes: TBytes;
   LChunkStr: string;
 begin
-  // 1. Mecanismo de cancelaci?n
+  // 1. Mecanismo de cancellation
   if FStopRequested then
   begin
     ABort := True;
@@ -2389,18 +2389,18 @@ begin
     Move(AChunk^, LBytes[0], AChunkLength);
 
     // 3. Convertir a String y acumular en el buffer
-    // TEncoding.UTF8.GetString es est?ndar en todas las versiones modernas.
+    // TEncoding.UTF8.GetString es isndar en todas las versions modernas.
     LChunkStr := TEncoding.UTF8.GetString(LBytes);
 
     FBuffer := FBuffer + LChunkStr;
 
-    // 4. Procesar l?neas completas
+    // 4. Procesar lines completas
     ProcessBuffer;
 
   except
     on E: Exception do
     begin
-      // Capturamos error de conversi?n silenciosamente para no romper el stream
+      // Capturamos error de conversion silenciosamente para no romper el stream
       // DoLog('SSE Stream Parse Error: ' + E.Message);
     end;
   end;
@@ -2408,7 +2408,7 @@ end;
 {$IFEND}
 
 // -----------------------------------------------------------------------------
-// PROCESAMIENTO DE BUFFER (Id?ntico a la versi?n anterior)
+// PROCESAMIENTO DE BUFFER (identical a la version anterior)
 // -----------------------------------------------------------------------------
 
 procedure TMCPClientSSE.ProcessBuffer;
@@ -2416,24 +2416,24 @@ var
   P: Integer;
   Line: string;
 begin
-  // Bucle para procesar TODAS las l?neas completas que tengamos en el buffer
+  // Bucle to process TODAS las lines completas que tengamos en el buffer
   while True do
   begin
-    P := Pos(#10, FBuffer); // Buscar salto de l?nea (LF)
+    P := Pos(#10, FBuffer); // Buscar salto de line (LF)
     if P = 0 then
-      Break; // No hay l?nea completa, salimos y esperamos el siguiente chunk
+      Break; // No hay line completa, salimos y esperamos el siguiente chunk
 
     // Extract the line (including the LF to delete it afterwards)
     Line := Copy(FBuffer, 1, P - 1);
 
-    // Eliminar la l?nea del buffer acumulador
+    // Eliminar la line del buffer acumulador
     Delete(FBuffer, 1, P);
 
     // Limpiar retorno de carro (CR) si existe al final
     if (Line <> '') and (Line[Length(Line)] = #13) then
       Delete(Line, Length(Line), 1);
 
-    // Procesar la l?nea limpia
+    // Procesar la line limpia
     if Line <> '' then
       ProcessSSELine(Line);
   end;
@@ -2460,8 +2460,8 @@ begin
   end
   else if SameText(LKey, 'data') then
   begin
-    // L?GICA ROBUSTA:
-    // Si a?n no tenemos la URL del POST (FPostEndpoint est? vac?o)...
+    // logic ROBUSTA:
+    // Si even no tenemos la URL del POST (FPostEndpoint is empty)...
     // Y el dato recibido NO parece un JSON (no empieza por '{')...
     // Entonces ASUMIMOS que es la URL que nos manda el servidor.
     if (FPostEndpoint = '') and (not LValue.StartsWith('{')) then
@@ -2501,7 +2501,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// INITIALIZE Y CICLO DE VIDA (Id?ntico a la versi?n anterior)
+// INITIALIZE Y CICLO DE VIDA (identical a la version anterior)
 // -----------------------------------------------------------------------------
 
 function TMCPClientSSE.WaitForInitialization(ATimeout: Integer): Boolean;
@@ -2592,7 +2592,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// ENV?O DE PETICIONES (Id?ntico a versi?n anterior, ajustado a componentes)
+// sending DE PETICIONES (identical a version anterior, ajustado a componentes)
 // -----------------------------------------------------------------------------
 
 function TMCPClientSSE.InternalSendRequest(const AMethod: string; AParams: TJSONObject): TJSONObject;
@@ -2624,9 +2624,9 @@ begin
     Source := TStringStream.Create(Req.ToJSON, TEncoding.UTF8);
     try
       // IMPORTANT: For the POST, we use a temporary SYNCHRONOUS client or reuse one.
-      // Si usamos FHttpClient que est? en modo Asynchronous=True, el Post retornar? inmediatamente
+      // Si usamos FHttpClient que is en modo Asynchronous=True, el Post would return inmediatamente
       // y no garantiza orden si se mezcla con el stream.
-      // Mejor pr?ctica: Crear un cliente ligero para el POST s?ncrono.
+      // Mejor practical: Crear un cliente ligero for the POST synchronous.
 
       LocalClient := TNetHTTPClient.Create(nil);
       try
@@ -2693,7 +2693,7 @@ begin
   end;
 end;
 
-// ListTools y CallTool son id?nticos a las versiones anteriores que ya ten?as
+// ListTools y CallTool son identicals a las versions anteriores que ya you had
 function TMCPClientSSE.ListTools: TJSONObject;
 begin
   var

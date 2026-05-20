@@ -122,7 +122,7 @@ Type
 
 
   /// ---------------------------------------------------------------------------
-  /// TAIEmbeddingIndex representa la clase base para la b�squeda con embeddings en memoria
+  /// TAIEmbeddingIndex representa the class base for the b�squeda con embeddings en memoria
   /// consiste en un vector de nodos y un indice de punteros a embeddings que permite la
   /// b�squeda y seleccion de los candidatos que cumplen la condici�n
   /// -------------------------------------------------------------------------
@@ -155,7 +155,7 @@ Type
 
   /// ---------------------------------------------------------------------------
   /// TAIBasicEmbeddingIndex implementaci�n sencilla de un Indice de embeddings
-  /// el cual se asigna por defecto al vector para realizar b�squedas en memoria
+  /// el cual Is assigned By default al vector para realizar b�squedas en memoria
   /// sin embargo hay maneras m�s eficientes de controlar esto en vectores de
   /// embeddings.
   /// -------------------------------------------------------------------------
@@ -326,7 +326,7 @@ begin
   FData := Value;
   FDim := Length(Value);
   Sum := 0;
-  // Calculamos la magnitud al vuelo para que MagnitudeValue no sea 0
+  // Calculamos la magnitud al vuelo so that MagnitudeValue no sea 0
   for i := 0 to High(FData) do
     Sum := Sum + (FData[i] * FData[i]);
   FMagnitude := Sqrt(Sum);
@@ -518,7 +518,7 @@ end;
 function TAIEmbeddingIndex.Add(Point: TAiEmbeddingNode): Integer;
 begin
   Result := -1;
-  // Esta funci�n se debe implementar en cada modelo solo cuando sea necesario
+  // Esta funci�n Must/Should implementar en cada modelo solo cuando sea necesario
 end;
 
 procedure TAIEmbeddingIndex.BuildIndex(Points: TRagItems);
@@ -1177,7 +1177,7 @@ begin
   FStopWords := TDictionary<string, Boolean>.Create;
 {$ENDIF}
   FAvgDocLength := 0;
-  Language := alSpanish; // Por defecto
+  Language := alSpanish; // By default
 end;
 
 destructor TAIBm25Index.Destroy;
@@ -1306,7 +1306,7 @@ begin
       end
       else
       begin
-        // CASO B: No existe.
+        // CASO B: does not exist.
         // Lo ADICIONAMOS expl�citamente con valor 1.
         WordCounts.Add(W, 1);
       end;

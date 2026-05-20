@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -61,18 +61,18 @@ type
   protected
     FApiKey: String;
     FUrl: String;
-    // Este m?todo es ahora 'override' para proporcionar la implementaci?n espec?fica.
+    // Este method es ahora 'override' para proporcionar la implementation specific.
   public
     constructor Create(aOwner: TComponent); override;
-    // Este m?todo es espec?fico de la implementaci?n de OpenAI
+    // Este method es specific de la implementation de OpenAI
     procedure ParseEmbedding(JObj: TJsonObject); Virtual;
     function CreateEmbedding(aInput, aUser: String; aDimensions: Integer = -1; aModel: String = ''; aEncodingFormat: String = 'float'): TAiEmbeddingData; override;
-    // Class methods para el patr?n Factory (TAiEmbeddingFactory)
+    // Class methods for the pattern Factory (TAiEmbeddingFactory)
     class function GetDriverName: string; virtual;
     class function CreateInstance(aOwner: TComponent): TAiEmbeddings; virtual;
     class procedure RegisterDefaultParams(Params: TStrings); virtual;
   published
-    // Propiedades espec?ficas de esta implementaci?n
+    // Propiedades specifics de esta implementation
     property ApiKey: String read GetApiKey write SetApiKey;
     property Url: String read FUrl write SetUrl;
   end;
@@ -99,7 +99,7 @@ var
   Usage: TJSONObject;
   i: Integer;
 begin
-  // Validaci?n inicial
+  // validation inicial
   if not Assigned(JObj) then
     Exit;
 
@@ -113,17 +113,17 @@ begin
     Usage.TryGetValue<Integer>('total_tokens', Ftotal_tokens);
   end;
 
-  // 3. Obtener el array 'data' con validaci?n
+  // 3. Obtener el array 'data' con validation
   if not JObj.TryGetValue<TJSONArray>('data', JArrData) then
     raise Exception.Create('API response does not contain the expected data array ("data").');
 
   if JArrData.Count = 0 then
     raise Exception.Create('El array de datos ("data") est? vac?o.');
 
-  // Preparar array para m?ltiples embeddings (aunque solo usemos el primero)
+  // Preparar array para multiples embeddings (aunque solo usemos el primero)
   SetLength(FData, JArrData.Count);
 
-  // 4. Procesar el primer embedding (compatibilidad con versi?n original)
+  // 4. Procesar el primer embedding (compatibilidad con version original)
   for JVal in JArrData do
   begin
     // Validar que sea un objeto
@@ -137,12 +137,12 @@ begin
     if JArrVector.Count = 0 then
       raise Exception.Create('The embedding vector is empty.');
 
-    // 6. Dimensionar y llenar el vector con validaci?n de tipo
+    // 6. Dimensionar y llenar el vector con validation de tipo
     SetLength(Emb, JArrVector.Count);
     for i := 0 to JArrVector.Count - 1 do
     begin
       if not JArrVector.Items[i].TryGetValue<Double>(Emb[i]) then
-        Emb[i] := 0.0; // Valor por defecto si falla la conversi?n
+        Emb[i] := 0.0; // Valor By default si falla la conversion
     end;
 
     // 7. Asignar el embedding procesado
@@ -163,7 +163,7 @@ var
   RequestStream: TStringStream;
   sUrl: String;
 begin
-  // Delegaci?n a evento si est? asignado
+  // delegation a evento si is asignado
   if Assigned(OnGetEmbedding) then
   begin
     Result := inherited CreateEmbedding(aInput, aUser, aDimensions, aModel, aEncodingFormat);
@@ -182,13 +182,13 @@ begin
     // Construir URL limpiando barras finales
     sUrl := FUrl.TrimRight(['/']) + '/embeddings';
 
-    // Configurar valores por defecto
+    // Configurar valores By default
     if aModel = '' then
       aModel := FModel;
     if aDimensions <= 0 then
       aDimensions := FDimensions;
 
-    // Construcci?n del JSON de petici?n
+    // construction del JSON de request
     RequestBody.AddPair('input', aInput);     // OpenAI
     RequestBody.AddPair('prompt', aInput);    // Compatibilidad con Ollama
     RequestBody.AddPair('model', aModel);
@@ -206,7 +206,7 @@ begin
 
     Client.ContentType := 'application/json';
 
-    // Realizar la petici?n
+    // Realizar la request
     Res := Client.Post(sUrl, RequestStream, ResponseStream, Headers);
     ResponseStream.Position := 0;
 

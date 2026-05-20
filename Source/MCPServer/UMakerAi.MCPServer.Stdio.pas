@@ -1,4 +1,4 @@
-// MIT License
+﻿// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -40,7 +40,7 @@ uses
   UMakerAi.MCPServer.Core;
 
 type
-  // Declaraci?n adelantada para el hilo
+  // declaration adelantada for the hilo
   TAiMCPStdioServer = class;
 
   { TStdioWorkerThread
@@ -59,7 +59,7 @@ type
   TAiMCPStdioServer = class(TAiMCPServer)
   private
     FWorkerThread: TStdioWorkerThread;
-    FOutputLock: TCriticalSection; // Para escrituras seguras a Stdout desde m?ltiples hilos
+    FOutputLock: TCriticalSection; // Para escrituras seguras a Stdout desde multiples hilos
 
     procedure ProcessRequest(const ARequestJson: string);
     procedure SendResponse(const AResponseJson: string);
@@ -87,7 +87,7 @@ end;
 
 constructor TStdioWorkerThread.Create(AServer: TAiMCPStdioServer);
 begin
-  inherited Create(True); // El hilo se crea suspendido
+  inherited Create(True); // El hilo Is created suspendido
   FServer := AServer;
   FreeOnTerminate := False;
 end;
@@ -100,15 +100,15 @@ begin
   while not Terminated do
   begin
     try
-      // Leemos una l?nea completa desde Standard Input.
-      // Esta llamada es bloqueante y esperar? hasta recibir un LF (#10).
+      // Leemos una line completa desde Standard Input.
+      // Esta llamada es bloqueante y would wait hasta recibir un LF (#10).
       System.ReadLn(JsonRequestLine);
 
-      // Si el hilo fue terminado mientras esperaba o la l?nea est? vac?a, continuamos.
+      // Si el hilo fue terminado mientras esperaba o la line is empty, continuamos.
       if Terminated or (JsonRequestLine = '') then
         Continue;
 
-      // Cada l?nea es un request JSON completo. Lo procesamos.
+      // Cada line es un request JSON completo. Lo procesamos.
       TThread.Queue(nil,
         procedure
         begin
@@ -186,7 +186,7 @@ begin
         try
           FServer.ProcessRequest(JsonRequestLine);
         except
-          // Capturamos excepciones para que un error de logica no mate al hilo de lectura
+          // Capturamos excepciones so that un error de logica no mate al hilo de lectura
         end;
       end;
     except
@@ -253,10 +253,10 @@ begin
   if not IsActive then
     Exit;
 
-  // Delegamos el trabajo pesado al servidor l?gico
-  ResponseBody := FLogicServer.ExecuteRequest(ARequestJson, ''); // La sesi?n no aplica en Stdio
+  // Delegamos el trabajo pesado al servidor logical
+  ResponseBody := FLogicServer.ExecuteRequest(ARequestJson, ''); // La session no aplica en Stdio
 
-  // Si hay una respuesta que enviar (no es una notificaci?n)
+  // Si hay una respuesta que enviar (no es una notification)
   if ResponseBody <> '' then
   begin
     SendResponse(ResponseBody);
@@ -293,7 +293,7 @@ end;
 procedure TAiMCPStdioServer.SetConsoleIOToUTF8;
 begin
 {$IFDEF MSWINDOWS}
-  // Forzar UTF-8 (Codepage 65001) para que los JSON no se rompan
+  // Forzar UTF-8 (Codepage 65001) so that los JSON no se rompan
   SetConsoleOutputCP(CP_UTF8);
   SetConsoleCP(CP_UTF8);
 {$ENDIF}

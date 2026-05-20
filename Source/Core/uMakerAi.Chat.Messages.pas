@@ -1,4 +1,4 @@
-// MIT License
+﻿// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -37,7 +37,7 @@ uses
 {$IF CompilerVersion < 35}
   uJSONHelper,
 {$ENDIF}
-  uMakerAi.Core; // Asumiendo que TAiMediaFiles, TAiWebSearch y TAiMetadata est?n aqu?
+  uMakerAi.Core; // Asumiendo que TAiMediaFiles, TAiWebSearch y TAiMetadata isn awhat
 
 Type
 
@@ -46,8 +46,8 @@ Type
   TAiChatMessage = Class;
 
   // Las citaciones relacionan el detalle de la respuesta con el texto origianl
-  // puede funcionar como detalles de b?squedas web,  dentro de un pdf, en RAG, etc.
-  // se utiliza especialmente como propiedad en TAiMessage.
+  // puede funcionar como detalles de searchs web,  dentro de un pdf, en RAG, etc.
+  // Is used especialmente como propiedad en TAiMessage.
 
   TAiCitationSourceType = (cstUnknown, cstDocument, cstWeb, cstFile, cstDatabase);
 
@@ -61,22 +61,22 @@ Type
     id: string;
     &Type: string;
     name: string;
-    Description: String; // Descripci?n de la funci?n
-    Arguments: string; // Par?metros en formato JSON (can?nico). Siempre usar este campo.
-    &Function: string; // Definici?n completa serializada de la funci?n (JFunc.Format)
-    Response: String; // Respuesta al LLM: texto plano o JSON string, ambos son v?lidos
-    Metadata: TAiMetadata; // Metadatos adicionales que se pueden enviar a la funci?n
+    Description: String; // description de la function
+    Arguments: string; // parameters en formato JSON (canunique). Siempre usar este campo.
+    &Function: string; // Defstartedn completa serializada de la function (JFunc.Format)
+    Response: String; // Respuesta al LLM: texto plano o JSON string, ambos son valid
+    Metadata: TAiMetadata; // Metadatos adicionales que se pueden enviar a la function
     AskMsg: TAiChatMessage; // TAiChatMessage que representa la pregunta
     ResMsg: TAiChatMessage; // TAiChatMessage que representa la respuesta
     MediaFiles: TAiMediaFiles; // Files extracted by the tool (e.g. images returned by MCP)
 
     Constructor Create;
     Destructor Destroy; Override;
-    Procedure ParseFunction(JObj: TJSONObject); // Esta funci?n se reemplazar? por estas dos seg?n la necesidad
+    Procedure ParseFunction(JObj: TJSONObject); // Esta function se reemplazar? por estas dos according to la necesidad
 
     Procedure Assign(aSource: TAiToolsFunction);
 
-    // Params: acceso f?cil a los argumentos del tool call como Name=Value.
+    // Params: acceso easy a los argumentos del tool call como Name=Value.
     // Se parsea desde Arguments (JSON) de forma lazy. Ejemplo: ToolCall.Params.Values['PDFFileName']
     property Params: TStringList read GetParams;
   end;
@@ -159,7 +159,7 @@ Type
     Function GetMediaTranscription: String; // Retorna las transcripciones de todos los archivos de medios
 
     Function StreamToBase64(Stream: TMemoryStream): String;
-    Function ToJSon: TJSonArray; // Convierte el Objeto en un json para enviar al api
+    Function ToJSon: TJSonArray; // Convierte el Objeto en un json to send al api
 
     Property id: Integer Read FId Write SetFId;
     Property Role: String read FRole write SetRole;
@@ -183,12 +183,12 @@ Type
     property Citations: TAiMsgCitations read FCitations write SetCitations;
     Property StopReason: String read FStopReason write SetStopReason;
     Property IsRefusal: Boolean read FIsRefusal write SetIsRefusal;
-    Property ThinkingSignature: String read FThinkingSignature write FThinkingSignature; // Por ahora es solo para Claude
-    Property CacheControl: Boolean read FCacheControl write FCacheControl; // Por ahora se usa solo en Claude para indicar mensajes que se mantengan en Cache
+    Property ThinkingSignature: String read FThinkingSignature write FThinkingSignature; // for now es solo para Claude
+    Property CacheControl: Boolean read FCacheControl write FCacheControl; // for now Is used solo en Claude para indicar mensajes que se mantengan en Cache
     Property FinishReason: String read FFinishReason write SetFinishReason;
   End;
 
-  TAiChatMessages = Class(TList<TAiChatMessage>) // futura actualizaci?n cambiar tlist por TObjectList
+  TAiChatMessages = Class(TList<TAiChatMessage>) // futura update cambiar tlist por TObjectList
   Private
     FModelCaps: TAiCapabilities;
     function GetAsText: String;
@@ -210,7 +210,7 @@ Type
   TAiSourceData = class
   public
     id: string; // ID interno (ej: 'doc-0', 'file-123')
-    Title: string; // T?tulo de la p?gina web, del documento, etc.
+    Title: string; // T?tulo de la page web, del documento, etc.
     Content: string; // Snippet, contenido del archivo, etc.
     Url: string; // URL si es una fuente web.
     Metadata: TAiMetadata; // Para cualquier otro dato (autor, fecha, etc.)
@@ -220,7 +220,7 @@ Type
     procedure Assign(Source: TAiSourceData);
   end;
 
-  // Representa una fuente espec?fica vinculada a una cita.
+  // Representa una fuente specific vinculada a una cita.
   TAiCitationSource = class
   public
     SourceType: TAiCitationSourceType;
@@ -234,8 +234,8 @@ Type
   // Representa una cita dentro del texto de respuesta del modelo.
   TAiMsgCitation = class
   public
-    StartIndex: Integer; // Posici?n inicial del texto citado en la respuesta.
-    EndIndex: Integer; // Posici?n final.
+    StartIndex: Integer; // position inicial del texto citado en la respuesta.
+    EndIndex: Integer; // position final.
     Text: String; // El fragmento de texto exacto que fue citado.
     Sources: TObjectList<TAiCitationSource>; // Lista de fuentes para este fragmento.
 
@@ -244,7 +244,7 @@ Type
     procedure Assign(Source: TAiMsgCitation);
   end;
 
-  // Una colecci?n de citas para un mensaje.
+  // Una collection de citas para un mensaje.
   TAiMsgCitations = class(TObjectList<TAiMsgCitation>)
   public
     procedure Assign(Source: TAiMsgCitations);
@@ -346,7 +346,7 @@ begin
     If Length(Trim(aBase64)) < 100 then
       Raise Exception.Create('El Base64 est? vac?o, no se cargar?');
 
-    If aFileName = '' then // Ver como se asigna un nombre a partir del contenido del stream
+    If aFileName = '' then // Ver como Is assigned un nombre a partir del contenido del stream
       aFileName := 'imagen.jpg';
 
     Media := TAiMediaFile.Create;
@@ -384,7 +384,7 @@ begin
     If Stream.Size <= 100 then
       Raise Exception.Create('El stream est? vac?o');
 
-    If aFileName = '' then // Ver como se asigna un nombre a partir del contenido del stream
+    If aFileName = '' then // Ver como Is assigned un nombre a partir del contenido del stream
       aFileName := 'imagen.jpg';
 
     Media := TAiMediaFile.Create;
@@ -415,10 +415,10 @@ begin
   Try
 
     // Always clean the destination list first.
-    // Como la lista es due?a de sus objetos, esto los destruir? correctamente.
+    // Como la lista es owner de sus objetos, esto los would destroy correctamente.
     FCitations.Clear;
 
-    // Si la lista de origen es nula o est? vac?a, ya hemos terminado.
+    // Si la lista de origen es nula o is empty, ya hemos terminado.
     if not Assigned(Value) or (Value.Count = 0) then
       Exit;
 
@@ -428,12 +428,12 @@ begin
       // 1. Crear una nueva instancia del objeto de cita.
       NewCitation := TAiMsgCitation.Create;
       try
-        // 2. Usar el m?todo Assign que acabamos de crear para clonar el contenido.
+        // 2. Usar el method Assign que acabamos de crear para clonar el contenido.
         NewCitation.Assign(SourceCitation);
-        // 3. A?adir el nuevo objeto clonado a nuestra lista.
+        // 3. add el nuevo objeto clonado a nuestra lista.
         FCitations.Add(NewCitation);
       except
-        // En caso de error durante la asignaci?n, asegurarse de liberar la memoria.
+        // En caso de error durante la assignment, asegurarse de liberar la memoria.
         NewCitation.Free;
         raise;
       end;
@@ -658,8 +658,8 @@ Var
   Base64, Mime: String;
   MediaArr: TAiMediaFilesArray;
 begin
-  // Esta funci?n solo toma el mensaje actual y una sola im?gen, la primera que encuentra en la lista
-  // Esto se hace especialmente para modelos que solo aceptan una im?gen por petici?n y no un chat completo
+  // Esta function solo toma el mensaje actual y una sola image, la primera que encuentra en la lista
+  // Esto se hace especialmente para modelos que solo aceptan una image por request y no un chat completo
 
   FLock.Enter;
   Try
@@ -676,8 +676,8 @@ begin
     If (Msg.FFunctionName <> '') then // and (Msg.FRole <> 'tool') then
       JObj.AddPair('name', Msg.FFunctionName);
 
-    // de todos los archivos de medios selecciona las im?genes que es lo que podemos manejar por ahora
-    // y las im?genes que no han sigo preprocesadas, por si el modelo no maneja imagenes, previamente
+    // de todos los archivos de medios selecciona las imagees que es lo que podemos manejar for now
+    // y las imagees que no han sigo preprocesadas, in case the model no maneja imagenes, previamente
     // se deben haber procesado en en el momendo de adicionar el mensaje al chat
     MediaArr := Msg.MediaFiles.GetMediaList([Tfc_Image], False);
 
@@ -1008,7 +1008,7 @@ begin
           TAiFileCategory.Tfc_Video:
             Begin
             end;
-          TAiFileCategory.Tfc_Pdf: // El completions no maneja pdf todav?a hay que usar el Responses
+          TAiFileCategory.Tfc_Pdf: // El completions no maneja pdf todavia hay que usar el Responses
             Begin
             end;
           TAiFileCategory.Tfc_Document:
@@ -1043,12 +1043,12 @@ begin
         End;
       End;
 
-      // TODO: Si hay im?genes + audio de usuario en el mismo mensaje, el JContent de im?genes
-      // se pierde porque el caso audio crea un nuevo JContent. Requiere redise?ar la l?gica de media mixta.
+      // TODO: Si hay imagees + audio de usuario en el mismo mensaje, el JContent de imagees
+      // se pierde porque el caso audio crea un nuevo JContent. Requiere redesign la logic de media mixta.
       JObj.AddPair('content', JContent);
 
     End
-    Else // Si no tiene archivos de medios simplemente env?a el prompt
+    Else // Si no tiene archivos de medios simplemente sends el prompt
     Begin
       JObj.AddPair('content', Msg.FPrompt);
     End;
@@ -1086,7 +1086,7 @@ begin
   Self.Metadata.Clear;
 
   // Iterar sobre cada par clave-valor en el diccionario de origen
-  // y a?adirlo al diccionario de destino. Esta es la forma correcta.
+  // y addlo al diccionario de destino. Esta es la forma correcta.
   for Pair in Source.Metadata do
   begin
     Self.Metadata.Add(Pair.Key, Pair.Value);
@@ -1125,9 +1125,9 @@ end;
 constructor TAiCitationSource.Create;
 begin
   inherited Create;
-  // Inicializamos el tipo de fuente a un valor por defecto seguro.
+  // Inicializamos el tipo de fuente a un valor By default seguro.
   SourceType := cstUnknown;
-  // Instanciamos el contenedor de datos para que est? listo para ser usado.
+  // Instanciamos el contenedor de datos so that is listo para ser usado.
   DataSource := TAiSourceData.Create;
 end;
 
@@ -1171,16 +1171,16 @@ begin
   StartIndex := 0;
   EndIndex := 0;
   Text := '';
-  // Creamos la lista de fuentes y le indicamos que es due?a de los objetos
-  // que contiene (el par?metro 'True'). Esto simplifica la gesti?n de memoria,
-  // ya que al liberar la lista, se liberar?n autom?ticamente todas las fuentes.
+  // Creamos la lista de fuentes y le indicamos que es owner de los objetos
+  // que contiene (el parameter 'True'). Esto simplifica la management de memoria,
+  // ya que al liberar la lista, se would freen autookticamente todas las fuentes.
   Sources := TObjectList<TAiCitationSource>.Create(True);
 end;
 
 destructor TAiMsgCitation.Destroy;
 begin
   // Liberamos la lista de fuentes. Gracias a AOwnsObjects=True,
-  // todos los TAiCitationSource en la lista se destruir?n autom?ticamente.
+  // todos los TAiCitationSource en la lista se would destroyn autookticamente.
   Sources.Free;
   inherited Destroy;
 end;
@@ -1192,15 +1192,15 @@ var
   SourceCitation: TAiMsgCitation;
   NewCitation: TAiMsgCitation;
 begin
-  // 1. Evitar la auto-asignaci?n
+  // 1. Evitar la auto-assignment
   if Source = Self then
     Exit;
 
   // 2. Limpiar la lista de destino. Como TObjectList es el propietario,
-  // esto liberar? cualquier objeto TAiMsgCitation que ya exista.
+  // esto would free cualquier objeto TAiMsgCitation que ya exista.
   Self.Clear;
 
-  // 3. Si la fuente es nula, no hay nada m?s que hacer.
+  // 3. Si la fuente es nula, no hay nada more que hacer.
   if not Assigned(Source) then
     Exit;
 
@@ -1210,9 +1210,9 @@ begin
     // 5. Crear una nueva instancia del objeto de destino
     NewCitation := TAiMsgCitation.Create;
     try
-      // 6. Usar el m?todo Assign del objeto individual para copiar los datos (copia profunda)
+      // 6. Usar el method Assign del objeto individual para copiar los datos (copia profunda)
       NewCitation.Assign(SourceCitation);
-      // 7. A?adir el objeto reci?n clonado a nuestra lista (Self)
+      // 7. add el objeto recently clonado a nuestra lista (Self)
       Self.Add(NewCitation);
     except
       // En caso de un error, asegurarse de liberar el objeto que acabamos de crear
@@ -1353,7 +1353,7 @@ Var
 begin
   Result := TJSonArray.Create;
 
-  For Clave in Self.Keys do // La clave es el nombre de la funci?n
+  For Clave in Self.Keys do // La clave es el nombre de la function
   Begin
     TObj := TJSONObject.Create;
     TObj.AddPair('tool_call_id', Self.Items[Clave].id);

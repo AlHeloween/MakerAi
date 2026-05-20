@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -40,8 +40,8 @@
 // Diferencias con TAiOllamaOcrTool:
 //   - Orientado a descripcion / comprension general de imagenes
 //   - Prompt libre configurable (no formato OCR especifico)
-//   - Temperature mayor (0.7 por defecto) para respuestas mas naturales
-//   - Modelo por defecto: gemma3:4b
+//   - Temperature mayor (0.7 By default) para respuestas mas naturales
+//   - Modelo By default: gemma3:4b
 //
 // Uso:
 //   AiChat.VisionTool := TAiOllamaVisionTool.Create(Self);

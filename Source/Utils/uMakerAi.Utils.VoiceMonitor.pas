@@ -146,22 +146,22 @@ type
   TAiMonitorState = (msIdle, msRequestingPermission, msCalibrating, msMonitoring, msError);
 
   // IMPORTANTE: El stream (aStream) es v�lido SOLO durante la ejecuci�n del evento.
-  // Si necesita retener los datos, debe copiar el stream a una instancia local.
+  // Si necesita retener the data, debe copiar el stream a una instancia local.
   // El stream ser� liberado autom�ticamente despu�s de que retorne el evento.
   TAIVoiceMonitorOnChange = procedure(Sender: TObject; aUserSpeak: Boolean; aIsValidForIA: Boolean; aStream: TMemoryStream) of object;
 
   // IMPORTANTE: El stream (aStream) es v�lido SOLO durante la ejecuci�n del evento.
-  // Si necesita retener los datos, debe copiar el stream a una instancia local.
+  // Si necesita retener the data, debe copiar el stream a una instancia local.
   // El stream ser� liberado autom�ticamente despu�s de que retorne el evento.
   TSpeechEndEvent = procedure(Sender: TObject; aIsValidForIA: Boolean; aStream: TMemoryStream) of object;
 
   // IMPORTANTE: El stream (aFragmentStream) es v�lido SOLO durante la ejecuci�n del evento.
-  // Si necesita retener los datos, debe copiar el stream a una instancia local.
+  // Si necesita retener the data, debe copiar el stream a una instancia local.
   // El stream ser� liberado autom�ticamente despu�s de que retorne el evento.
   TTranscriptionFragmentEvent = procedure(Sender: TObject; aFragmentStream: TMemoryStream) of object;
 
   // IMPORTANTE: El stream (aWakeWordStream) es v�lido SOLO durante la ejecuci�n del evento.
-  // Si necesita retener los datos, debe copiar el stream a una instancia local.
+  // Si necesita retener the data, debe copiar el stream a una instancia local.
 
   // TWakeWordCheckEvent = procedure(Sender: TObject; aWakeWordStream: TMemoryStream; var IsValid: Boolean) of object;
   // Se elimina el isvalid de aqu� para pasar a un evento as�ncrono
@@ -274,7 +274,7 @@ type
     class function GetWaveInDevices: TArray<TWaveInDeviceInfo>;
     procedure ConfirmWakeWord(AIsValid: Boolean);
 
-    // Functiones auxiliares para el espa�ol para detectar similitud entre palabras
+    // Functiones auxiliares for the espa�ol para detectar similitud entre palabras
     class function LevenshteinDistance(const s, t: string): Integer;
     class function RemoveAccents(const Text: string): string;
 
@@ -826,7 +826,7 @@ begin
               if CurrentLevel > FPeakLevelInFragment then
                 FPeakLevelInFragment := CurrentLevel;
 
-              // Verificar si ya pas� el intervalo m�nimo para enviar fragmento
+              // Verificar si ya pas� el intervalo m�nimo to send fragmento
               if not FWaitingForFragmentSplit and (FTranscriptionStopwatch.ElapsedMilliseconds >= FTranscriptionIntervalMs) then
                 FWaitingForFragmentSplit := True;
 
@@ -888,7 +888,7 @@ begin
                   FCS.Leave;
                   end;
 
-                  // Convertir a WAV para enviar al verificador
+                  // Convertir a WAV to send al verificador
                   WakeStreamWAV := TMemoryStream.Create;
                   try
                   ConvertPCMToWAV(WakeStreamPCM, WakeStreamWAV);
@@ -902,7 +902,7 @@ begin
                   end;
 
 
-                  // Guardar el resultado de la validaci�n
+                  // Guardar the result de la validaci�n
                   FCS.Enter;
                   try
                   FIsWakeWordValid := IsValid;
@@ -1134,7 +1134,7 @@ begin
   if PeakLevel < FSensitivity then
   begin
     // El fragmento es silencio. Lo descartamos, pero debemos actualizar
-    // la posici�n y reiniciar los contadores para el siguiente fragmento.
+    // la posici�n y reiniciar los contadores for the siguiente fragmento.
     FCS.Enter;
     try
       // Marcamos el audio silencioso como 'procesado' para no revisarlo de nuevo
@@ -1143,7 +1143,7 @@ begin
       FCS.Leave;
     end;
 
-    // Reiniciamos todo para el siguiente ciclo de detecci�n.
+    // Reiniciamos todo for the siguiente ciclo de detecci�n.
     FTranscriptionStopwatch.Reset;
     FTranscriptionStopwatch.Start;
     FPeakLevelInFragment := 0;
@@ -1157,7 +1157,7 @@ begin
   try
     FCS.Enter;
     try
-      // Comprobaci�n de seguridad: �hay datos nuevos para procesar?
+      // Comprobaci�n de seguridad: �hay datos nuevos to process?
       if FFileStream.Size <= FLastTranscriptionPosition then
         Exit;
 
@@ -1168,13 +1168,13 @@ begin
       FFileStream.Position := FLastTranscriptionPosition;
       FragmentPCM.CopyFrom(FFileStream, FragmentSize);
 
-      // Actualizar la posici�n para el pr�ximo fragmento
+      // Actualizar la posici�n for the pr�ximo fragmento
       FLastTranscriptionPosition := FFileStream.Size;
     finally
       FCS.Leave;
     end;
 
-    // Reiniciamos contadores para el *pr�ximo* fragmento.
+    // Reiniciamos contadores for the *pr�ximo* fragmento.
     FTranscriptionStopwatch.Reset;
     FTranscriptionStopwatch.Start;
     FPeakLevelInFragment := 0;
@@ -1190,7 +1190,7 @@ begin
       ConvertPCMToWAV(FragmentPCM, FragmentWAV);
       FragmentWAV.Position := 0;
 
-      // Enviar al hilo principal para que dispare el evento
+      // Enviar al hilo principal so that dispare el evento
       // IMPORTANTE: El manejador del evento DEBE copiar el stream si necesita
       // retener los datos, ya que ser� liberado inmediatamente despu�s del evento
       TThread.Queue(nil,
@@ -1268,7 +1268,7 @@ begin
   end;
 
   // Es posible que el habla haya terminado antes de la confirmaci�n as� que
-  // a futuro se puede implementar una rutina para disparar un evento con el audio aqu�
+  // a futuro Can be implementar una rutina para disparar un evento con el audio aqu�
   // Opcional: Si el habla ya termin� pero est�bamos esperando confirmaci�n,
   // podr�as disparar un evento extra aqu� si lo necesitas.
 end;
@@ -1380,7 +1380,7 @@ begin
 
   // 2. Abrir el dispositivo
   // FDeviceID debe contener el ID del dispositivo espec�fico (0, 1, 2...)
-  // O el valor WAVE_MAPPER ($FFFFFFFF) para el dispositivo por defecto.
+  // O el valor WAVE_MAPPER ($FFFFFFFF) for the dispositivo By default.
 
   // FDeviceID := WAVE_MAPPER;
 

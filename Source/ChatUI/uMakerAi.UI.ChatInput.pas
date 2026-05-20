@@ -156,7 +156,7 @@ type
     FMnuClear: TMenuItem;
 
     procedure LoadImageResources; // New procedure to load images
-    procedure CreateInternalControls; // Nuevo para crear la UI
+    procedure CreateInternalControls; // Nuevo to create la UI
     procedure Resize; Override;
     procedure Loaded; override;
 
@@ -256,7 +256,7 @@ begin
   FImagesVisible := False;
   FValidExtensions := 'jpg,jpeg,png,bmp,pdf,mp3,wav,mp4,avi';
   FWakeWordDetectedInSession := False;
-  Width := 400; // Un ancho por defecto razonable
+  Width := 400; // Un ancho By default razonable
   Height := 100; // MIN_FRAME_HEIGHT;; // An initial minimum height
 
   // --- 2. Crear y cargar los ImageLists desde recursos ---
@@ -288,7 +288,7 @@ begin
   FAnimationTimer := TTimer.Create(Self);
   FAnimationTimer.Interval := 50;
   FAnimationTimer.OnTimer := AnimationTimerTimer;
-  FAnimationTimer.Enabled := True; // Inicia deshabilitado si no se usa
+  FAnimationTimer.Enabled := True; // Inicia deshabilitado si no Is used
 
   // --- 5. L�GICA CLAVE: Crear objetos que no deben ser "streameados" ---
   // El PopupMenu y sus items se crean aqu� solo si el componente no est�
@@ -446,7 +446,7 @@ begin
   Check.Text := ExtractFileName(FileName);
   Check.IsChecked := True;
   Check.Opacity := 0.4;
-  Check.Visible := False; // Esta se oculta por ahora
+  Check.Visible := False; // Esta se oculta for now
 
   btnDelete := TSpeedButton.Create(Self);
   btnDelete.Width := 15;
@@ -679,7 +679,7 @@ begin
             end;
           end;
 
-          // --- NOTIFICAR AL COMPONENTE EL RESULTADO ---
+          // --- NOTIFICAR AL COMPONENTE the result ---
           FVoiceMonitor.ConfirmWakeWord(IsValidResult);
           FWakeWordDetectedInSession := IsValidResult;
 
@@ -817,7 +817,7 @@ begin
     for I := 0 to ExtList.Count - 1 do
       ExtList[I] := Trim(ExtList[I]);
 
-    // Construir la cadena de extensiones para el filtro
+    // Construir la cadena de extensiones for the filtro
     ExtensionsStr := '';
     for I := 0 to ExtList.Count - 1 do
     begin
@@ -873,7 +873,7 @@ begin
       Result.Assign(BitmapItem)
     else
     begin
-      // Si no se puede obtener del ImageList, crear un bitmap vac�o
+      // Si no Can be obtener del ImageList, crear un bitmap vac�o
       Result.SetSize(32, 32);
       Result.Clear($FFFFFFFF); // Blanco
     end;
@@ -983,7 +983,7 @@ begin
   FBtnMic.OnClick := BtnMicClick;
   FImageBtnMic := TImage.Create(FBtnMic);
   FImageBtnMic.Stored := False;
-  // OJO FImageBtnMic.Parent := FBtnMic;  //Se crea pero no se asigna para pruebas
+  // OJO FImageBtnMic.Parent := FBtnMic;  //Is created pero no Is assigned para pruebas
   FImageBtnMic.Align := TAlignLayout.Client;
 
   LoadImageFromResource(FImageBtnMic.BitMap, 'MIC_INACTIVO_PNG');
@@ -1005,7 +1005,7 @@ begin
   FImageBtnSend.Align := TAlignLayout.Client;
   FBtnSend.Visible := True;
 
-  // ya no se utiliza aqu� LoadImageFromResource(FImageBtnSend.BitMap, 'BTN_SEND_PNG');
+  // ya no Is used aqu� LoadImageFromResource(FImageBtnSend.BitMap, 'BTN_SEND_PNG');
   FImageBtnSend.HitTest := False;
 
   FBtnSound := TCornerButton.Create(Self);
@@ -1017,7 +1017,7 @@ begin
   FBtnSound.XRadius := 8;
   FBtnSound.YRadius := 8;
   FBtnSound.Margins.Bottom := 4;
-  FBtnSound.Visible := False; // Por defecto
+  FBtnSound.Visible := False; // By default
   FImageBtnSound := TImage.Create(FBtnSound);
   FImageBtnSound.Stored := False;
   FImageBtnSound.Parent := FBtnSound;
@@ -1131,7 +1131,7 @@ begin
   // En este punto, el componente est� completamente cargado desde el FMX.
   // Es el momento perfecto y seguro para capturar las dimensiones iniciales.
 
-  // La bandera FInitialHeightsCaptured sigue siendo �til por si alguna l�gica
+  // La bandera FInitialHeightsCaptured sigue siendo �til in case alguna l�gica
   // futura pudiera volver a llamar a esto, aunque con Loaded no es estrictamente necesario.
   if not FInitialHeightsCaptured then
   begin
@@ -1145,7 +1145,7 @@ begin
   end;
 
   // --- APLICAR LA FUENTE INICIAL ---
-  // Aplica la configuraci�n de FFont (ya sea la por defecto o la del dise�ador)
+  // Aplica la configuraci�n de FFont (ya sea la By default o la del dise�ador)
   // al TMemo interno.
   FontChanged(Self); // <-- NUEVO
 end;
@@ -1405,16 +1405,16 @@ var
   AspectRatio: Double;
 begin
 
-  // Inicialmente, los resultados son iguales a los valores originales
+  // Inicialmente, the results son iguales a the values originales
   ScaledX := X;
   ScaledY := Y;
 
-  // Si ambos lados son menores o iguales a 500, no se necesita escalar
+  // Si ambos lados son menores o iguales a 500, no Is needed escalar
   if (X <= MaxSize) and (Y <= MaxSize) then
   begin
     ScaledX := X;
     ScaledY := Y;
-    Result := False; // No se ha escalado
+    Result := False; // Has not been escalado
     Exit;
   end;
 
@@ -1664,7 +1664,7 @@ begin
   if not FInitialHeightsCaptured then
     Exit;
 
-  // --- Paso 1: Calcular la altura necesaria para el Memo ---
+  // --- Paso 1: Calcular la altura necesaria for the Memo ---
 
   // Definimos un peque�o colch�n de p�xeles para evitar la barra de scroll.
   // Un valor entre 2 y 5 suele ser suficiente.
@@ -1754,7 +1754,7 @@ begin
       for I := 0 to High(Data.Files) do
       begin
         FileName := Data.Files[I];
-        // Usamos TPath.GetExtension para obtener la extensi�n de forma segura
+        // Usamos TPath.GetExtension to obtain/get la extensi�n in a segura
         Ext := System.IOUtils.TPath.GetExtension(FileName).ToLower;
 
         // Validar con la lista de extensiones configurada
@@ -1803,7 +1803,7 @@ begin
       FileName := Data.Data.AsString;
       if FileName.StartsWith('http://', True) or FileName.StartsWith('https://', True) then
       begin
-        // Usamos TURI para analizar la URL y TPath para obtener la extensi�n de forma robusta.
+        // Usamos TURI para analizar the URL y TPath to obtain/get la extensi�n in a robusta.
         Uri := TURI.Create(FileName);
         try
           CleanPath := Uri.Path;
@@ -1898,7 +1898,7 @@ begin
   except
     on E: Exception do
     begin
-      // Mensaje de error gen�rico para el usuario
+      // Mensaje de error gen�rico for the usuario
       ShowMessage('Error al procesar el archivo: ' + E.Message);
     end;
   end;
@@ -1964,7 +1964,7 @@ end;
 
 procedure TChatInput.Resize;
 begin
-  // Heredamos el comportamiento por defecto
+  // Heredamos el comportamiento By default
   inherited;
 
 end;
@@ -1978,7 +1978,7 @@ begin
   // Inicializamos el array resultado con una longitud de 0
   SetLength(Result, 0);
 
-  // Verificaci�n de seguridad por si el layout no estuviera creado
+  // Verificaci�n de seguridad in case el layout no estuviera creado
   if not Assigned(FImageLayout) then
     Exit;
 
@@ -1990,7 +1990,7 @@ begin
     // Nos aseguramos que el hijo sea un TLayout y que su TagObject sea un TImageData
     if (Child is TLayout) and (Child.TagObject is TImageData) then
     begin
-      // Hacemos un typecast seguro del TagObject para obtener nuestra data
+      // Hacemos un typecast seguro del TagObject to obtain/get nuestra data
       ImageData := TImageData(Child.TagObject);
 
       // Aumentamos el tama�o del array resultado en 1
@@ -2236,7 +2236,7 @@ end;
   Begin
   Busy := True;
 
-  MediaFiles := TAiMediaFiles.Create; // Siempre se crea
+  MediaFiles := TAiMediaFiles.Create; // Siempre Is created
   Try
   If Assigned(FOnSendEvent) then
   Begin
@@ -2294,7 +2294,7 @@ begin
   // 1. Poner la UI en estado "Ocupado" INMEDIATAMENTE.
   Self.Busy := True; // Esto llama a SetBusy y actualiza la UI al instante.
 
-  // Si no hay un manejador para el evento, no podemos continuar.
+  // Si no hay un manejador for the evento, no podemos continuar.
   // Volvemos al estado normal.
   if not Assigned(FOnSendEvent) then
   begin
@@ -2338,7 +2338,7 @@ begin
     APrompt := Trim(FMemoPrompt.Lines.Text);
     FOnSendEvent(Self, APrompt, MediaFiles, aAudioFile);
 
-    // 4. Limpiar la UI para el siguiente mensaje.
+    // 4. Limpiar la UI for the siguiente mensaje.
     // Esto se ejecuta DESPU�S de que el manejador OnSendEvent del usuario retorne.
     FMemoPrompt.Lines.Clear;
     ClearSlides;

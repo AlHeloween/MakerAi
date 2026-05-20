@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -43,7 +43,7 @@ uses
   System.Net.HttpClientComponent;
 
 type
-  // Enums para los par?metros de Sora
+  // Enums para los parameters de Sora
   TSoraModel = (smSora2, smCustom);
   TSoraResolution = (srDefault, sr1280x720, sr720x1280, sr1920x1080, sr1080x1920);
 
@@ -68,7 +68,7 @@ type
     FOnSuccess: TGenerationSuccessEvent;
     FOnError: TGenerationErrorEvent;
 
-    // M?todos internos
+    // methods internos
     function GetEffectiveModelName: string;
     function GetResolutionString: string;
     procedure DoError(const AMessage: string);
@@ -85,7 +85,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    // M?todos P?blicos As?ncronos
+    // methods publics like thisncronos
     function GenerateFromText(const APrompt: string): ITask;
     function GenerateFromImage(const APrompt: string; AImage: TAiMediaFile): ITask;
     function RemixVideo(const APrompt: string; const AOriginalVideoId: string): ITask;

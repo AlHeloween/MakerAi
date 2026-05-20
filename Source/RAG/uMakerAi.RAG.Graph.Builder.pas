@@ -74,7 +74,7 @@ procedure Register;
 implementation
 
 uses
-  System.NetEncoding; // Para Base64 si es necesario
+  System.NetEncoding; // Para Base64 si it is necessary
 
 procedure Register;
 begin
@@ -115,7 +115,7 @@ begin
 
     case AStrategy of
       msOverwrite:
-        // La propiedad indexada por defecto realiza el AddOrSetValue autom�ticamente
+        // La propiedad indexada By default realiza el AddOrSetValue autom�ticamente
         AEdge.MetaData[Key] := Value;
 
       msAddNewOnly:
@@ -166,7 +166,7 @@ var
 begin
   ContextBuilder := TStringBuilder.Create;
   try
-    // 1. IDENTIFICACI�N: Formato estructurado para el modelo de embedding
+    // 1. IDENTIFICACI�N: Formato estructurado for the modelo de embedding
     ContextBuilder.AppendFormat('Entidad: %s. Categoria: %s.', [AName, ANodeLabel]);
 
     // 2. PROPIEDADES: Convertimos el JSON en oraciones descriptivas
@@ -259,7 +259,7 @@ begin
     // =========================================================
     // CASO A: NODO EXISTENTE
     // =========================================================
-    // Verificamos si es necesario recalcular el embedding de resumen
+    // Verificamos si it is necessary recalcular el embedding de resumen
     NeedEmbeddingUpdate := (LEmbeddings <> nil) and (Length(Result.Data) = 0);
 
     // Fusionar propiedades nuevas con las existentes usando el nuevo MetaData
@@ -307,7 +307,7 @@ begin
     if Assigned(NewProperties) then
       MergeNodeProperties(Result, NewProperties, msOverwrite);
 
-    // 3. Generar texto representativo para el motor sem�ntico
+    // 3. Generar texto representativo for the motor sem�ntico
     CurrentPropsJson := Result.Properties.ToJSON;
     try
       NodeText := GenerateTextForEmbedding(Result.Name, Result.NodeLabel, CurrentPropsJson, AdditionalText);
@@ -420,7 +420,7 @@ begin
             if PredicateProps <> nil then
             begin
               MergeEdgeProperties(ExistingEdge, PredicateProps, AMergeStrategy);
-              NeedEmbeddingUpdate := True; // Las propiedades cambiaron
+              NeedEmbeddingUpdate := True; // the properties cambiaron
             end;
 
             // Actualizar nombre si la estrategia lo permite
@@ -434,7 +434,7 @@ begin
             if (LEmbeddings <> nil) and (Length(ExistingEdge.Data) = 0) then
               NeedEmbeddingUpdate := True;
 
-            // Regenerar embedding si es necesario
+            // Regenerar embedding si it is necessary
             if NeedEmbeddingUpdate and (LEmbeddings <> nil) then
             begin
               TextToEmbed := SubjectNode.Name + ' ' + EdgeLabel + ' ' + ObjectNode.Name;
@@ -442,7 +442,7 @@ begin
             end;
 
             // CR�TICO: Si tu Core no sincroniza autom�ticamente, forzar UPDATE
-            // Descomenta si es necesario:
+            // Descomenta si it is necessary:
             // if NeedEmbeddingUpdate then
             // FGraph.UpdateEdge(ExistingEdge);
           end

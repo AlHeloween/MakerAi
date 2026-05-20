@@ -1,4 +1,4 @@
-unit uMakerAi.Utils.Python;
+﻿unit uMakerAi.Utils.Python;
 
 
 // IT License
@@ -23,7 +23,7 @@ unit uMakerAi.Utils.Python;
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -87,7 +87,7 @@ unit uMakerAi.Utils.Python;
   '    return primos_list' + sLineBreak + sLineBreak +
   'result = primos(param1)';
 
-  // Calcular los primeros 10 n?meros primos
+  // Calcular los primeros 10 numbers primos
   Resultado := TUtilsPython.ExecuteScript(ScriptPrimos, [10]);
   ShowMessage(Resultado); // Resultado: [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
   end;
@@ -165,7 +165,7 @@ Begin
   // Verificar arquitectura antes de inicializar
   TUtilsPython.CheckArchitecture;
 
-  GlPythonEngine.DllName := DllName; // Aseg?rate de usar la versi?n correcta de Python
+  GlPythonEngine.DllName := DllName; // make sure de usar la version correcta de Python
 
   If Not GlPythonEngine.Initialized then
     GlPythonEngine.LoadDll;
@@ -205,13 +205,13 @@ begin
   if not Is64BitApplication then
   begin
     raise EPythonArchitectureError.CreateFmt('ERROR DE ARQUITECTURA: La aplicaci?n est? compilada en %s pero Python generalmente se instala en 64 bits.' + sLineBreak + 'SOLUCIONES:' + sLineBreak +
-      '1. Recompile la aplicaci?n para 64 bits (Recomendado)' + sLineBreak + '2. Instale Python 32 bits desde https://www.python.org/downloads/' + sLineBreak + '3. Use la DLL de Python 32 bits (python310-32.dll)' + sLineBreak + sLineBreak +
+      '1. Recompile la application para 64 bits (Recomendado)' + sLineBreak + '2. Instale Python 32 bits desde https://www.python.org/downloads/' + sLineBreak + '3. Use la DLL de Python 32 bits (python310-32.dll)' + sLineBreak + sLineBreak +
       'Para compilar en 64 bits:' + sLineBreak + '- En Delphi: Project > Options > Building > Delphi Compiler > Target platforms > Win64' + sLineBreak + '- Seleccione "Win64" como plataforma de destino', [GetApplicationArchitecture]);
   end;
 end;
 
 class function TUtilsPython.ExecuteScript(Script: String): String;
-// En esta funci?n el script debe retornar el resultado en una variable llamada result
+// En esta function el script debe retornar the result en una variable llamada result
 var
   PyEngine: TPythonEngine;
   PyModule: TPythonModule;
@@ -226,7 +226,7 @@ begin
   PyEngine := GetPythonEngine; // Obtiene el engine global
 
   try
-    // Crear el m?dulo de Python
+    // Crear el module de Python
     PyModule := TPythonModule.Create(nil);
     PyModule.Engine := PyEngine;
     PyModule.ModuleName := 'mymodule';
@@ -239,10 +239,10 @@ begin
     // Ejecutar el script completo de Python
     PyEngine.ExecString(AnsiString(UTF8Script));
 
-    // Obtener el resultado de la ejecuci?n
+    // Obtener the result de la execution
     PyResult := PyEngine.EvalString('result');
 
-    // Convertir el resultado a una cadena
+    // Convertir the result a una cadena
     Result := PyEngine.PyObjectAsString(PyResult);
 
     // Decrementar la referencia del objeto Python
@@ -272,20 +272,20 @@ begin
 
   PyEngine := GetPythonEngine;
   try
-    // Crear el m?dulo de Python
+    // Crear el module de Python
     PyModule := TPythonModule.Create(nil);
     try
       PyModule.Engine := PyEngine;
       PyModule.ModuleName := 'mymodule';
 
-      // Construir el script de par?metros
+      // Construir el script de parameters
       ParameterScript := '';
       for i := 0 to High(Params) do
       begin
         ParameterScript := ParameterScript + Format('param%d = %s', [i + 1, VariantToPythonValue(Params[i])]) + sLineBreak;
       end;
 
-      // Si hay par?metros de tipo fecha, agregar import de datetime
+      // Si hay parameters de tipo fecha, agregar import de datetime
       for i := 0 to High(Params) do
       begin
         if VarType(Params[i]) = varDate then
@@ -304,10 +304,10 @@ begin
       // Ejecutar el script completo de Python
       PyEngine.ExecString(AnsiString(UTF8Script));
 
-      // Obtener el resultado de la ejecuci?n
+      // Obtener the result de la execution
       PyResult := PyEngine.EvalString('result');
       try
-        // Convertir el resultado a una cadena
+        // Convertir the result a una cadena
         Result := PyEngine.PyObjectAsString(PyResult);
       finally
         // Decrementar la referencia del objeto Python
@@ -344,7 +344,7 @@ begin
     varString, varUString, varOleStr:
       Result := QuotedStr(VarToStr(Value));
   else
-    Result := QuotedStr(VarToStr(Value)); // Por defecto como string
+    Result := QuotedStr(VarToStr(Value)); // By default como string
   end;
 end;
 

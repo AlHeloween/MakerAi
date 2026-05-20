@@ -52,7 +52,7 @@
   end;
 
   // Otros ejemplos:
-  // Est�reo 44.1kHz, 16 bits (valores por defecto)
+  // Est�reo 44.1kHz, 16 bits (valores By default)
   // ConvertPCMToWAV('audio.pcm', 'audio.wav');
 
   // Mono 8kHz, 16 bits (calidad telef�nica)

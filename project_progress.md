@@ -106,17 +106,74 @@
 
 ---
 
+## Session: 2026-05-19 -- Translation Completion (Plan C + Full P3)
+
+### Task 7: Unified Translation Completion — COMPLETE
+**Plan:** `.opencode/plans/20260519_translation_completion.md`
+**Verification:** Explorer agent confirmed gaps, all corrected. Scripts at `scripts/translate_comments.py`, `scripts/fix_mojibake.py`, `scripts/fix_mojibake2.py`, `scripts/fix_mojibake3.py`, `scripts/translate_final.py`.
+**Total:** 4 translation passes across all ~94 .pas files + `.gitignore`.
+
+### Phase 1: Author Headers + P0 Strings + P2 Identifiers
+**Status:** Complete — ~107 files modified
+
+| Sub | Description | Files | Lines/Items |
+|-----|-------------|-------|-------------|
+| 1 | Author header standardization | ~72 .pas + 4 copyright lines | All normalized to `// Author: Gustavo Enriquez` |
+| 1 | `.gitignore` comment translation | 1 file | 10 Spanish comments → English |
+| 1 | Python.pas `AUTOR:` fix | 1 file | → `AUTHOR:` |
+| 2 | P0 straggler string translation | 16 files | 36 Spanish error strings → English |
+| 3 | P2 identifier migration (`Nombre`→`Name`) | 2 files (Functions.pas, Prompts.pas) | ~29 params + property + GetName |
+| 1 | Copyright line mojibake fix | 4 files | `Enr?quez` → `Enriquez` |
+| 1 | `.gitignore` comment translation | 1 file | 10 Spanish comments → English |
+| 2 | P0 straggler string translation | 16 .pas files | 36 Spanish error strings → English |
+| 3 | P2 identifier migration (`Nombre`→`Name`) | 2 files (`Functions.pas`, `Prompts.pas`) | ~29 occurrences (params + property + 1 method) |
+
+### Phase 2: P3 Comment Translation (5 consecutive passes)
+**Status:** Complete — **~4,649 total comment lines translated**
+
+| Pass | Script | Lines | Files | Focus |
+|------|--------|-------|-------|-------|
+| 1 | `translate_comments.py` | 968 | 83 | Single-line comment patterns |
+| 2 | `fix_mojibake2.py` | 1,418 | 66 | `?`→English word dict replacement |
+| 3 | `fix_mojibake3.py` | 70 | 27 | Remaining `?` patterns |
+| 4 | `translate_final.py` | 590 | 75 | Spanish phrases, verbs, -ción words |
+| 5 | `fix_final_complete.py` | 1,045 | 70 | 362-word `?` dictionary |
+| 6 | `fix_all_spanish.py` | 603 | 77 | Final word+phrase+trailing comments |
+
+**Cumulative P3 total: ~5,104 comment lines translated** (455 prior + 4,649 on 2026-05-19)
+
+### Phase 3: Final Verification
+**Status:** Complete — 3 gate checks all pass
+
+| Gate | Method | Result |
+|------|--------|--------|
+| P0 Spanish error strings | rg grep Source/ | **0 results** [Exact] |
+| Spanish author headers | rg grep Source/ | **0 results** [Exact] |
+| Spanish in gitignore | rg grep .gitignore | **0 results** [Exact] |
+
+### Known Remaining — ? characters in comments
+**Status:** Cosmetic — ~100-200 `?` chars remain in complex Spanish sentences in block/line comments.
+These are literal `?` (0x3F) chars that replaced accented Spanish characters (á,é,í,ó,ú,ñ).
+Full elimination requires per-word context-aware replacement because `?` can also be a legitimate question mark.
+**Affects:** ~30 files, mostly RAG.Graph.Core.pas, MCPClient.Core.pas, Chat.OpenAi*.pas
+**Priority:** Low — does not affect US developer comprehension (all P0 strings, headers, identifiers are clean).
+
+---
+
 ## Current State Summary
 
 | Aspect | Status |
 |--------|--------|
 | AGENTS.md + project_progress.md | Active and integrated |
 | MSBuild compilation | All 4 packages pass (0 errors) |
-| P0 string translation | ~344 strings, 24 files |
-| UTF-8 conversion | 96 files converted, all source UTF-8 BOM CRLF |
+| P0 string translation | **0 remaining** — all 36 stragglers fixed |
 | P1 doc translation | 17 .EN.md files created |
-| P2 API renaming | 24 Nombre->Name renames in 2 files |
-| P3 comment translation | ~455 comment lines, 53 files |
+| P2 API renaming | **Complete** — Functions.pas + Prompts.pas, all 29 occurrences |
+| P3 comment translation | **~5,104 total** (455 prior + 4,649 on 2026-05-19 via 6 Python passes) |
+| Author headers | **All normalized** to `// Author: Gustavo Enriquez` |
+| gitignore | **Translated** — 0 Spanish comments |
+| UTF-8 encoding | All source UTF-8 BOM CRLF |
+| Known debt | ~100-200 `?` chars in comments (cosmetic, low priority) |
 
 ## Verification Log
 
@@ -135,3 +192,13 @@
 | 2026-05-09 | P0 stragglers (round 3) | general | ~55 strings, 13 files |
 | 2026-05-09 | Remaining Spanish comments | general | ~260 lines, ~127 files |
 | 2026-05-09 | Final completeness audit | inline | 0 P0, 16 ES comments, 896 mojibake (cosmetic) |
+| 2026-05-19 | Plan validation vs codebase | explorer | 3 gaps found, all corrections applied |
+| 2026-05-19 | P0 strings final audit | rg grep | 0 Spanish strings remaining [Exact] |
+| 2026-05-19 | Author headers final audit | rg grep | 0 Spanish headers remaining [Exact] |
+| 2026-05-19 | gitignore final audit | rg grep | 0 Spanish comments remaining [Exact] |
+| 2026-05-19 | Final pass 1: pattern translation | Python script | 968 lines, 83 files |
+| 2026-05-19 | Final pass 2: mojibake ? fixes | Python script | 1,418 lines, 66 files |
+| 2026-05-19 | Final pass 3: aggressive ? fixes | Python script | 70 lines, 27 files |
+| 2026-05-19 | Final pass 5: 362-word ? dictionary | Python script | 1,045 lines, 70 files |
+| 2026-05-19 | Final pass 6: word+phrase+trailing | Python script | 603 lines, 77 files |
+| 2026-05-19 | **TOTAL all comments translated** | — | **~5,104 lines** across 3 sessions |

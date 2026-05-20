@@ -1,21 +1,21 @@
 ﻿unit uMakerAi.RAG.Vector.Driver.SQLite;
 
 {
-  TAiRAGVectorSQLiteDriver — Driver SQLite para TAiRAGVector (MakerAI 3.3)
+  TAiRAGVectorSQLiteDriver  Driver SQLite para TAiRAGVector (MakerAI 3.3)
 
-  Características:
-  - Almacenamiento persistente en archivo .db (SQLite vía FireDAC)
-  - Búsqueda vectorial por similitud coseno calculada en Delphi
-  - Soporte opcional para sqlite-vec: si VecExtensionPath está definido se usa
-    vec_distance_cosine() nativo para búsqueda vectorial más rápida y escalable
-  - Búsqueda léxical BM25 vía FTS5 (nativo en SQLite 3.9+, sin extensiones)
-  - Búsqueda híbrida (vector + BM25) con fusión RRF o ponderada
-  - Filtrado de metadatos vía json_extract()
+  Caracteristicas:
+  - Almacenamiento persistente en archivo .db (SQLite via FireDAC)
+  - Busqueda vectorial por similitud coseno calculada en Delphi
+  - Soporte opcional para sqlite-vec: si VecExtensionPath esta definido se usa
+    vec_distance_cosine() nativo para busqueda vectorial mas rapida y escalable
+  - Busqueda lexical BM25 via FTS5 (nativo en SQLite 3.9+, sin extensiones)
+  - Busqueda hibrida (vector + BM25) con fusion RRF o ponderada
+  - Filtrado de metadatos via json_extract()
   - Upsert (DELETE+INSERT) con triggers que mantienen FTS5 sincronizado
 
   Esquema generado por CreateSchema():
-    <tabla>        — entidad, id, model, content, properties(JSON TEXT), embedding(TEXT)
-    <tabla>_fts    — virtual FTS5 sincronizada por triggers
+    <tabla>         entidad, id, model, content, properties(JSON TEXT), embedding(TEXT)
+    <tabla>_fts     virtual FTS5 sincronizada por triggers
 }
 
 interface
@@ -40,8 +40,8 @@ uses
 
 type
   // ---------------------------------------------------------------------------
-  // TSQLiteFilterBuilder — WHERE clause desde TAiFilterCriteria para SQLite
-  // Usa json_extract() en lugar de los operadores JSONB de PostgreSQL.
+  // TSQLiteFilterBuilder  WHERE clause desde TAiFilterCriteria para SQLite
+  // Usa json_extract() instead of los operadores JSONB de PostgreSQL.
   // ---------------------------------------------------------------------------
   TSQLiteFilterBuilder = class
   private
@@ -121,7 +121,7 @@ type
     property TableName: string read FTableName write SetTableName;
     property CurrentEntidad: string read FCurrentEntidad write FCurrentEntidad;
     property Language: TAiLanguage read FLanguage write FLanguage default alSpanish;
-    // Full path to sqlite_vec.dll/.so — empty = Delphi mode (brute-force cosine)
+    // Full path to sqlite_vec.dll/.so  empty = Delphi mode (brute-force cosine)
     property VecExtensionPath: string read FVecExtensionPath write FVecExtensionPath;
   end;
 
@@ -235,7 +235,7 @@ begin
         foLess:         begin Parts.Add(Format('(%s < :%s)',  [Path, PName])); AddParam(PName, Criterion.Value); end;
         foLessOrEqual:  begin Parts.Add(Format('(%s <= :%s)', [Path, PName])); AddParam(PName, Criterion.Value); end;
 
-        foLike, foILike: // SQLite LIKE es case-insensitive para ASCII por defecto
+        foLike, foILike: // SQLite LIKE es case-insensitive para ASCII By default
           begin Parts.Add(Format('(%s LIKE :%s)', [Path, PName])); AddParam(PName, Criterion.Value); end;
         foStartsWith:
           begin Parts.Add(Format('(%s LIKE :%s)', [Path, PName])); AddParam(PName, VarToStr(Criterion.Value) + '%'); end;
@@ -280,7 +280,7 @@ begin
         foIsNotNull: Parts.Add(Format('(%s IS NOT NULL)', [Path]));
 
         foExists:
-          // Verificar que la clave exista en el JSON properties
+          // Verify que la clave exista en el JSON properties
           Parts.Add(Format('(json_type(properties, ''$.%s'') IS NOT NULL)', [Criterion.Key]));
 
         foContains:
@@ -312,7 +312,7 @@ begin
 end;
 
 // =============================================================================
-// TAiRAGVectorSQLiteDriver — Infraestructura
+// TAiRAGVectorSQLiteDriver  Infraestructura
 // =============================================================================
 
 constructor TAiRAGVectorSQLiteDriver.Create(AOwner: TComponent);
@@ -391,7 +391,7 @@ begin
 end;
 
 // =============================================================================
-// Helpers: embedding ↔ string y metadata ↔ JSON
+// Helpers: embedding - string y metadata - JSON
 // =============================================================================
 
 function TAiRAGVectorSQLiteDriver.EmbeddingToStr(const AData: TAiEmbeddingData): string;
@@ -562,7 +562,7 @@ begin
     LEnt := IfThen(AEntidad = '', FCurrentEntidad, AEntidad);
 
     // Upsert: eliminar primero dispara trigger _ad en FTS5,
-    // then INSERT fires _ai — thus FTS5 stays always consistent.
+    // then INSERT fires _ai  thus FTS5 stays always consistent.
     Q.SQL.Text := 'DELETE FROM ' + FTableName + ' WHERE entidad=:ent AND id=:id';
     Q.ParamByName('ent').AsString := LEnt;
     Q.ParamByName('id').AsString  := ANode.Tag;
@@ -614,8 +614,8 @@ begin
 end;
 
 // =============================================================================
-// search vectorial — similitud coseno en Delphi (brute-force, O(n))
-// Suitable for small/medium collections (≤ 50K nodes).
+// search vectorial  similitud coseno en Delphi (brute-force, O(n))
+// Suitable for small/medium collections (? 50K nodes).
 // =============================================================================
 
 function TAiRAGVectorSQLiteDriver.VectorSearchDelphi(
@@ -725,7 +725,7 @@ begin
     end;
 
   finally
-    // Liberar nodos no transferidos al Result
+    // Free nodos no transferidos al Result
     for I := 0 to Candidates.Count - 1 do
       Candidates[I].Node.Free;
     Candidates.Free;
@@ -757,8 +757,8 @@ begin
     // sqlite-vec stores embeddings as BLOB; here we assume the column
     // 'embedding' ya fue creada como vec_f32 por el usuario, o usamos
     // the TEXT version with inline conversion.
-    // Distancia coseno sqlite-vec: vec_distance_cosine(a, b) ∈ [0, 2]
-    // Similitud coseno ≈ 1 - distancia (rango [−1, 1], usamos max(0, ...))
+    // Distancia coseno sqlite-vec: vec_distance_cosine(a, b) ? [0, 2]
+    // Similitud coseno ? 1 - distancia (rango [?1, 1], usamos max(0, ...))
     SQL :=
       'SELECT id, content, model, properties, embedding,' +
       '  max(0.0, 1.0 - vec_distance_cosine(embedding, vec_f32(:qvec))) AS final_score ' +
@@ -812,7 +812,7 @@ end;
 
 // =============================================================================
 // Lexical BM25 search via FTS5
-// FTS5 bm25() returns values ≤ 0 (more negative = more relevant).
+// FTS5 bm25() returns values ? 0 (more negative = more relevant).
 // Convertimos a score positivo normalizado al rango [0, 1].
 // =============================================================================
 
@@ -837,8 +837,8 @@ begin
   Candidates := TList<TAiEmbeddingNode>.Create;
   Q := NewQuery;
   try
-    // JOIN FTS5 con tabla principal para recuperar todos los campos.
-    // bm25() negativo → usamos -bm25() para tener valor positivo (mayor = mejor).
+    // JOIN FTS5 con tabla principal para recuperar all the campos.
+    // bm25() negativo > usamos -bm25() para tener valor positivo (mayor = mejor).
     SQL :=
       'SELECT t.id, t.content, t.model, t.properties, t.embedding,' +
       '  (-bm25(' + FtsTableName + ')) AS raw_score ' +
@@ -859,7 +859,7 @@ begin
     try
       Q.Open;
     except
-      // Invalid FTS query (special characters unescaped) — return empty
+      // Invalid FTS query (special characters unescaped)  return empty
       Exit;
     end;
 
@@ -875,7 +875,7 @@ begin
         Node.Tag   := Q.FieldByName('id').AsString;
         Node.Text  := Q.FieldByName('content').AsString;
         Node.Model := Q.FieldByName('model').AsString;
-        Node.Idx   := RawScore; // temporal — normalized later
+        Node.Idx   := RawScore; // temporal  normalized later
         Node.Data  := StrToEmbedding(Q.FieldByName('embedding').AsString);
         if Length(Node.Data) > 0 then Node.SetDataLength(Length(Node.Data));
         PropStr := Q.FieldByName('properties').AsString;
@@ -1019,7 +1019,7 @@ begin
 end;
 
 // =============================================================================
-// Search — orquestador principal
+// Search  orquestador principal
 // =============================================================================
 
 function TAiRAGVectorSQLiteDriver.Search(
@@ -1090,7 +1090,7 @@ begin
           FreeAndNil(VecRes);
           if FVecExtLoaded then
           begin
-            FVecExtLoaded := False; // sqlite-vec failed at runtime → fallback
+            FVecExtLoaded := False; // sqlite-vec failed at runtime > fallback
             VecRes := VectorSearchDelphi(ATarget, LEnt, ALimit * 3, MinVec, FilterSQL, FB);
           end
           else raise;

@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -32,7 +32,7 @@
 // - GitHub: https://github.com/gustavoeenriquez/
 
 // Registers TSelectionEditor so that when dropping a MakerAI component on a
-// formulario se a?adan autom?ticamente las units que el usuario necesita
+// formulario se add autookticamente las units que el usuario necesita
 // (tipos de eventos, tipos base, etc.) sin tener que agregarlas a mano.
 
 unit uAiEditors.RequiresUnits;
@@ -189,7 +189,7 @@ type
   end;
 
   // =========================================================================
-  // Tools gen?ricos (Shell, TextEditor, ComputerUse, Whisper, Dalle, etc.)
+  // Tools generics (Shell, TextEditor, ComputerUse, Whisper, Dalle, etc.)
   // Necesitan: uMakerAi.Core
   // =========================================================================
 

@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -52,7 +52,7 @@ type
     function AddPair(const AKey: string; const AValue: string): TJSONObject; overload;
     {$IFEND}
 
-    // M�todos de navegaci�n segura (estos no existen nativamente en ninguna versi�n con esta firma)
+    // M�todos de navegaci�n segura (estos do not exist nativamente en ninguna versi�n con esta firma)
     function GetValueSafe(const Name: string): TJSONValue;
     function GetValueAsString(const Name: string; const DefaultValue: string = ''): string;
     function GetValueAsInteger(const Name: string; const DefaultValue: Integer = 0): Integer;
@@ -116,7 +116,7 @@ end;
 
 function TJSONObjectHelper.GetValueSafe(const Name: string): TJSONValue;
 begin
-  // En 10.3 GetValue retorna nil si no existe.
+  // En 10.3 GetValue retorna nil si does not exist.
   // En versiones nuevas es igual, pero este helper asegura consistencia.
   Result := Self.GetValue(Name);
 end;

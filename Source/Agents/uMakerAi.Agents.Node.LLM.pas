@@ -314,12 +314,12 @@ begin
   end;
 
   // Enrutar al siguiente link (equivalente al bloque de DoExecute del base class
-  // que no se ejecuta porque TLLMNode sobreescribe DoExecute sin llamar inherited).
+  // que no Is executed porque TLLMNode sobreescribe DoExecute sin llamar inherited).
   DoTraverseLinks(aBeforeNode, aLink);
 end;
 
 initialization
-  // Necesario para que el DFM streaming encuentre TLLMNode en runtime
+  // Necesario so that el DFM streaming encuentre TLLMNode en runtime
   // (RegisterComponents solo aplica en el IDE; RegisterClass aplica siempre)
   RegisterClass(TLLMNode);
 

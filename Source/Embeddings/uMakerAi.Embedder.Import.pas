@@ -148,7 +148,7 @@ var
 
 begin
 {$IFDEF MSWINDOWS}
-  // Agrega el directorio de makerai.embedder.dll al search path para que
+  // Agrega el directorio de makerai.embedder.dll al search path so that
   // Windows encuentre las dependencias (ggml-cuda.dll, cublas*.dll, etc.)
   LDir := ExtractFilePath(ExpandFileName(DLLPath));
   if LDir <> '' then

@@ -1,4 +1,4 @@
-// MIT License
+﻿// MIT License
 //
 // Copyright (c) 2013 Gustavo Enr?quez - CimaMaker
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -71,9 +71,9 @@ type
   TAiFileWriteEvent = procedure(Sender: TObject; const Path: string; const Content: string; var Handled: Boolean) of object;
   // Evento para verificar existencia
   TAiFileCheckEvent = procedure(Sender: TObject; const Path: string; var Exists: Boolean; var Handled: Boolean) of object;
-  // Evento para gesti?n de directorios
+  // Evento para management de directorios
   TAiDirEvent = procedure(Sender: TObject; const Path: string; var Handled: Boolean) of object;
-  // Evento gen?rico antes de ejecutar un comando (permite override total de la l?gica)
+  // Evento generic antes de ejecutar un comando (permite override total de la logic)
   TAiCommandEvent = procedure(Sender: TObject; const Command, Path: string; Args: TJSONObject; var Result: string; var Handled: Boolean) of object;
 
   TAiTextEditorTool = class(TComponent)
@@ -86,14 +86,14 @@ type
 
     function CountOccurrences(const Text, SubText: string): Integer;
   protected
-    // --- M?todos Virtuales con soporte de Eventos ---
+    // --- methods Virtuales con soporte de Eventos ---
     function LoadFileContent(const Path: string): string; virtual;
     procedure SaveFileContent(const Path: string; const Content: string); virtual;
     function FileExists(const Path: string): Boolean; virtual;
     function EnsureDirectory(const Path: string): Boolean; virtual;
     function ValidatePath(const APath: string): Boolean; virtual;
 
-    // --- Comandos Espec?ficos ---
+    // --- Comandos specifics ---
     function Cmd_View(const Path: string; const jArgs: TJSONObject): string; virtual;
     function Cmd_Create(const Path: string; const jArgs: TJSONObject): string; virtual;
     function Cmd_StrReplace(const Path: string; const jArgs: TJSONObject): string; virtual;
@@ -151,9 +151,9 @@ begin
         FOnBeforeCommand(Self, Cmd, Path, jArgs, Result, Handled);
 
       if Handled then
-        Exit; // El usuario ya gener? el Result
+        Exit; // El usuario ya generated el Result
 
-      // 2. Validar ruta (Seguridad b?sica)
+      // 2. Validar ruta (Seguridad basic)
       if not ValidatePath(Path) then
         Exit('Error: Ruta inv?lida o vac?a.');
 
@@ -183,7 +183,7 @@ begin
   end;
 end;
 
-// --- Implementaci?n de I/O con Eventos ---
+// --- implementation de I/O con Eventos ---
 
 function TAiTextEditorTool.LoadFileContent(const Path: string): string;
 var
@@ -240,7 +240,7 @@ var
   Dir: string;
 begin
   Handled := False;
-  Result := True; // Asumimos ?xito por defecto
+  Result := True; // Asumimos success By default
 
   // 1. Intentar evento
   if Assigned(FOnEnsureDirectory) then
@@ -263,7 +263,7 @@ end;
 
 function TAiTextEditorTool.ValidatePath(const APath: string): Boolean;
 begin
-  // Validaci?n b?sica. Se puede sobrecargar para l?gica m?s compleja de seguridad.
+  // validation basic. Can be sobrecargar para logic more compleja de seguridad.
   Result := Trim(APath) <> '';
 end;
 
@@ -285,7 +285,7 @@ begin
   end;
 end;
 
-// --- Comandos Espec?ficos ---
+// --- Comandos specifics ---
 
 function TAiTextEditorTool.Cmd_View(const Path: string; const jArgs: TJSONObject): string;
 var
@@ -298,9 +298,9 @@ begin
   FullText := LoadFileContent(Path);
   Lines := TStringList.Create;
   try
-    Lines.Text := FullText; // TStringList maneja saltos de l?nea autom?ticamente
+    Lines.Text := FullText; // TStringList maneja saltos de line autookticamente
 
-    // Verificar si piden un rango espec?fico [start_line, end_line]
+    // Verificar si piden un rango specific [start_line, end_line]
     if jArgs.TryGetValue<TJSonArray>('view_range', ViewRange) and (ViewRange.Count = 2) then
     begin
       StartL := ViewRange.Items[0].GetValue<Integer> - 1; // Claude usa base 1 -> TStringList base 0
@@ -360,23 +360,23 @@ begin
   // Cargar contenido (Dispara OnLoadFile -> Lee del Memo)
   FileContent := LoadFileContent(Path);
 
-  // 1. VALIDACI?N SEG?N DOCS: Conteo exacto
+  // 1. validation according to DOCS: Conteo exacto
   Occurrences := CountOccurrences(FileContent, OldStr);
 
   if Occurrences = 0 then
-    // Mensaje oficial de la documentaci?n para "No matches"
+    // Mensaje oficial de la documentation para "No matches"
     Exit('Error: No match found for replacement. Please check your text and try again.')
   else if Occurrences > 1 then
-    // Mensaje oficial de la documentaci?n para "Multiple matches"
+    // Mensaje oficial de la documentation para "Multiple matches"
     Exit('Error: Found ' + IntToStr(Occurrences) + ' matches for replacement text. Please provide more context to make a unique match.');
 
-  // 2. EJECUCI?N: Reemplazo en memoria
+  // 2. execution: Reemplazo en memoria
   FileContent := StringReplace(FileContent, OldStr, NewStr, []);
 
   // 3. PERSISTENCIA: Dispara OnSaveFile -> Actualiza el Memo
   SaveFileContent(Path, FileContent);
 
-  // Respuesta de ?xito est?ndar
+  // Respuesta de success isndar
   Result := 'Successfully replaced text at exactly one location.';
 end;
 
@@ -386,12 +386,12 @@ var
   InsertLine: Integer;
   Lines: TStringList;
 begin
-  // Intentar leer 'insert_text' primero, si no existe, probar 'new_str'
+  // Intentar leer 'insert_text' primero, si does not exist, probar 'new_str'
   if not jArgs.TryGetValue<string>('insert_text', NewStr) then
     if not jArgs.TryGetValue<string>('new_str', NewStr) then
       Exit('Error: No insert text provided.');
 
-  // Claude env?a la l?nea DESPU?S de la cual insertar (base 0 o 1 dependiendo del modelo, usualmente 0 es inicio)
+  // Claude sends la line after de la cual insertar (base 0 o 1 dependiendo del modelo, usualmente 0 es inicio)
   InsertLine := jArgs.GetValue<Integer>('insert_line');
 
   FileContent := LoadFileContent(Path);
@@ -399,7 +399,7 @@ begin
   try
     Lines.Text := FileContent;
 
-    // Validaci?n de seguridad para evitar crashes
+    // validation de seguridad para evitar crashes
     if (InsertLine < 0) or (InsertLine > Lines.Count) then
       Exit('Error: N?mero de l?nea ' + IntToStr(InsertLine) + ' fuera de rango.');
 

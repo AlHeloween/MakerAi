@@ -92,7 +92,7 @@ end;
 procedure TDataModuleGenerator.CalculateOptimalSize;
 const
   // Asumimos un tama�o m�ximo para cualquier componente (nodo, link, tool)
-  // para el c�lculo. Es mejor que sobre un poco de espacio.
+  // for the c�lculo. Es mejor que sobre un poco de espacio.
   ComponentMaxWidth = 100;
   ComponentMaxHeight = 150; // Tools can be taller
   Margin = 50; // Extra space around the last component
@@ -105,12 +105,12 @@ begin
   maxY := 0;
 
   if FComponentList.Count = 0 then
-    Exit; // No hay componentes, usar los valores por defecto
+    Exit; // No hay componentes, usar the values By default
 
   for var CompInfo in FComponentList do
   begin
-    // Leemos las propiedades Left y Top, convirti�ndolas a Integer
-    // Usamos StrToIntDef para evitar errores si la propiedad no existe (devuelve 0)
+    // Leemos the properties Left y Top, convirti�ndolas a Integer
+    // Usamos StrToIntDef to avoid errores si la propiedad does not exist (devuelve 0)
     LLeft := StrToIntDef(CompInfo.Properties.Values['Left'], 0);
     LTop := StrToIntDef(CompInfo.Properties.Values['Top'], 0);
 
@@ -122,7 +122,7 @@ begin
       maxY := LTop;
   end;
 
-  // Calculamos el tama�o final a�adiendo el tama�o del componente y un margen
+  // Calculamos el tama�o final a�adiendo el tama�o of the component y un margen
   FCalculatedWidth := maxX + ComponentMaxWidth + Margin;
   FCalculatedHeight := maxY + ComponentMaxHeight + Margin;
 
@@ -197,7 +197,7 @@ begin
   if not Assigned(LNodesArray) then
     raise Exception.Create('JSON graph must contain a "nodes" array.');
 
-  // --- PASO 1: Encontrar las coordenadas m�nimas para la normalizaci�n ---
+  // --- PASO 1: Encontrar las coordenadas m�nimas for the normalizaci�n ---
   minX := MaxSingle;
   minY := MaxSingle;
   for var LJsonValue in LNodesArray do
@@ -527,7 +527,7 @@ end;
 
 function TDataModuleGenerator.FindEngineObject(JsonObj: TJSONObject): TJSONObject;
 begin
-  // Esta funci�n es id�ntica a la de tu TGraphBuilder, se puede copiar y pegar aqu�.
+  // Esta funci�n es id�ntica a la de tu TGraphBuilder, Can be copiar y pegar aqu�.
   // ... implementaci�n completa ...
   Result := nil;
   if JsonObj = nil then
@@ -542,7 +542,7 @@ end;
 
 function TDataModuleGenerator.FindPortJsonByTerminalId(ANodeJson: TJSONObject; const APortTerminalId: string): TJSONObject;
 begin
-  // Esta funci�n es id�ntica a la de tu TGraphBuilder, se puede copiar y pegar aqu�.
+  // Esta funci�n es id�ntica a la de tu TGraphBuilder, Can be copiar y pegar aqu�.
   // ... implementaci�n completa ...
   Result := nil;
   var
@@ -749,7 +749,7 @@ begin
   Result := ALabel;
   // Elimina espacios y caracteres no v�lidos.
   Result := TRegEx.Replace(Result, '[^a-zA-Z0-9_]', '');
-  // Si est� vac�o despu�s de limpiar, genera un nombre por defecto.
+  // Si est� vac�o despu�s de limpiar, genera un nombre By default.
   if Result.IsEmpty then
     Result := 'Component' + TGuid.NewGuid.ToString.Substring(1, 8);
   // Asegurarse de que no empiece con un n�mero.
@@ -764,7 +764,7 @@ begin
   Result.ComponentName := AName;
   Result.ComponentType := AType;
   Result.FProperties := TStringList.Create;
-  // TStringList usado para propiedades es case-insensitive por defecto, lo cual es bueno para .dfm
+  // TStringList usado para propiedades es case-insensitive By default, lo cual es bueno para .dfm
   Result.FProperties.CaseSensitive := False;
 end;
 

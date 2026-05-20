@@ -54,7 +54,7 @@ type
     FLastBubble: TChatBubble;
     FLastUserName: string;
 
-    // Campos para las propiedades publicadas
+    // Campos para the properties publicadas
     FInboundColor: TAlphaColor;
     FOutboundColor: TAlphaColor;
     FAutoScroll: Boolean;
@@ -80,7 +80,7 @@ type
     FRecalcQueued: Boolean;
     FRecalcPendingBubble: TChatBubble;
 
-    // Setters para las propiedades
+    // Setters para the properties
     procedure SetInboundColor(const Value: TAlphaColor);
     procedure SetOutboundColor(const Value: TAlphaColor);
     procedure SetMaxBubbleWidthPercent(const Value: Single);
@@ -190,7 +190,7 @@ begin
   // FContentLayout.Anchors := [TAnchorKind.akLeft, TAnchorKind.akTop, TAnchorKind.akRight];
   // FContentLayout.Width := Self.Width;
 
-  // Inicializaci�n de propiedades por defecto
+  // Inicializaci�n de propiedades By default
   FInboundColor := TAlphaColors.LightGray;
   FOutboundColor := TAlphaColors.LightGreen;
   FAutoScroll := True;
@@ -344,7 +344,7 @@ begin
   end;
 
   // 3. Despu�s de que todas las burbujas tienen su nuevo tama�o (alto y ancho),
-  // recalculamos la altura total del FContentLayout para que el scrollbar sea correcto.
+  // recalculamos la altura total del FContentLayout so that el scrollbar sea correcto.
   UpdateContentLayoutHeight;
 end;
 
@@ -427,7 +427,7 @@ begin
   // Estilos recomendados para un memo en un chat:
   LMemo.StyledSettings := LMemo.StyledSettings - [TStyledSetting.Style, TStyledSetting.Other];
   LMemo.ReadOnly := True;
-  LMemo.HitTest := True; // Para que el clic pase a la burbuja
+  LMemo.HitTest := True; // so that el clic pase a la burbuja
   LMemo.GoToTextBegin;
   LMemo.SelectionFill.Color := TAlphaColors.Null; // Hide selection color
   LMemo.HideSelectionOnExit := True;
@@ -616,12 +616,12 @@ begin
   // Estos est�n definidos por la propiedad FBubbleMargins del TChatList.
   LBubbleHorzMargins := FBubbleMargins.Left + FBubbleMargins.Right;
 
-  // 2. Calcular el ancho m�ximo disponible para la burbuja,
+  // 2. Calcular el ancho m�ximo disponible for the burbuja,
   // Y RESTARLE el espacio que ocupar�n sus propios m�rgenes.
   if Self.ClientWidth > 0 then
     LMaxWidthForBubble := (Self.ClientWidth * FMaxBubbleWidthPercent) - LBubbleHorzMargins
   else
-    LMaxWidthForBubble := 200; // Un valor por defecto
+    LMaxWidthForBubble := 200; // Un valor By default
 
   // Asegurarnos de que el ancho no sea negativo si la ventana es muy peque�a.
   if LMaxWidthForBubble < 0 then
@@ -681,7 +681,7 @@ end;
   CalculateAndSetBubbleSize(FLastBubble);
   UpdateContentLayoutHeight;
   Result := True;
-  // No es necesario Exit aqu� porque es la �ltima comprobaci�n.
+  // No it is necessary Exit aqu� porque es la �ltima comprobaci�n.
   end;
   end;
 }
@@ -807,13 +807,13 @@ begin
   if Assigned(FAttachmentPopupMenu) then
   begin
     // OPCIONAL pero RECOMENDADO: Dar al usuario la oportunidad de preparar el men�
-    // (por ejemplo, habilitar/deshabilitar items) a trav�s de un evento.
+    // (for example, habilitar/deshabilitar items) a trav�s de un evento.
     // FAttachmentPopupMenu.TagObject := AMediaFile; // Otra forma de pasar la info
     FAttachmentPopupMenu.Popup(MousePos.X, MousePos.Y);
   end;
 
   // 3. Importante: Limpiamos la referencia despu�s de que el men� se cierre.
-  // Lo hacemos con un TThread.ForceQueue para que se ejecute despu�s de la acci�n del men�.
+  // Lo hacemos con un TThread.ForceQueue so that se ejecute despu�s de la acci�n del men�.
   TThread.ForceQueue(nil,
     procedure
     begin
@@ -844,7 +844,7 @@ var
   ViewportHeight: Single;
   BubbleTop: Single;
 begin
-  // Primero, disparamos el evento p�blico para que el usuario del componente
+  // Primero, disparamos el evento p�blico so that el usuario of the component
   // pueda ejecutar su propia l�gica si lo necesita.
   if Assigned(FOnBubbleExpandCollapseClick) then
     FOnBubbleExpandCollapseClick(Self, Sender as TChatBubble);
@@ -860,9 +860,9 @@ begin
   if not Assigned(ABubble) then
     Exit;
 
-  // Usamos TThread.Queue para que la l�gica de c�lculo de posici�n se ejecute
+  // Usamos TThread.Queue so that la l�gica de c�lculo de posici�n se ejecute
   // DESPU�S de que el motor de FMX haya actualizado visualmente el layout.
-  // Esto es crucial para obtener las coordenadas correctas de ABubble.Position.
+  // Esto es crucial to obtain/get las coordenadas correctas de ABubble.Position.
   TThread.Queue(nil,
     procedure
     begin
@@ -877,7 +877,7 @@ begin
       // Optimizaci�n: Si la burbuja ya est� completamente visible, no hacemos nada.
       if (BubbleTop >= Self.ViewportPosition.Y) and ((BubbleTop + ABubble.Height) <= (Self.ViewportPosition.Y + ViewportHeight)) then
       begin
-        Exit; // Ya es visible, no se necesita scroll.
+        Exit; // Ya es visible, no Is needed scroll.
       end;
 
       // Calculamos la posici�n Y de destino para centrar la burbuja en el viewport.

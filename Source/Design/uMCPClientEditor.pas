@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -188,24 +188,24 @@ begin
       MCPClient.OnLog := MCPLogEvent;
       MCPClient.OnStatusUpdate := MCPStatusEvent;
 
-      // 3. Obtener Configuraci?n de la UI
+      // 3. Obtener configuration de la UI
       GetProperties(Properties, VarEnv);
 
-      // Validaci?n r?pida para SSE
+      // validation fast para SSE
       if (MCPClient is TMCPClientSSE) and (Pos('http', Properties.Values['URL']) = 0) then
       begin
         ShowMessage('Error: For SSE the "URL" parameter is required (e.g., http://localhost:3000/sse)');
         Exit;
       end;
 
-      // 4. Inyectar Par?metros
+      // 4. Inyectar parameters
       MCPClient.Params.Assign(Properties);
       MCPClient.EnvVars.Assign(VarEnv);
 
       MemoLog.Lines.Add(Format('Protocolo: %s', [GetEnumName(TypeInfo(TToolTransportType), Ord(MCPClient.TransportType))]));
 
       // 5. Inicializar (Conecta, hace Handshake y verifica capacidades)
-      // Nota: Si usaste el fix de "CheckSynchronize" en WaitForInitialization, esto no bloquear? la UI.
+      // Nota: Si usaste el fix de "CheckSynchronize" en WaitForInitialization, esto no would block la UI.
       if MCPClient.Initialize then
       begin
         MemoLog.Lines.Add('>> Inicializaci?n Exitosa. Solicitando herramientas...');
@@ -316,7 +316,7 @@ Var
   I, Idx: Integer;
 begin
 
-  sgProperties.RowCount := Properties.Count + VarEnv.Count + 1; // +1 para el encabezado
+  sgProperties.RowCount := Properties.Count + VarEnv.Count + 1; // +1 for the encabezado
   Idx := 0;
 
   if Properties.Count > 0 then
@@ -354,7 +354,7 @@ begin
   for I := 1 to sgProperties.RowCount - 1 do
   begin
     PropName := Trim(sgProperties.Cells[0, I]);
-    PropValue := sgProperties.Cells[1, I]; // No trim del valor por si tiene espacios intencionados
+    PropValue := sgProperties.Cells[1, I]; // No trim del valor in case tiene espacios intencionados
 
     if PropName <> '' then
     Begin

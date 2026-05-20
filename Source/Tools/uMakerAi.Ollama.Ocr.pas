@@ -30,7 +30,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    { M?todos Est?ticos }
+    { methods isticos }
     class function ExtractText(AMediaFile: TAiMediaFile; const APrompt: string = ''; const AUrl: string = ''): string;
     class function ExtractTextFromFile(const AFilePath: string; const APrompt: string = ''; const AUrl: string = ''): string;
     class function ExtractTextFromStream(AStream: TStream; const AFileName: string; const APrompt: string = ''; const AUrl: string = ''): string;
@@ -59,7 +59,7 @@ end;
 constructor TAiOllamaOcrTool.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  // Importante: La URL base. El InternalRun se encargar? de asegurar el endpoint /api/chat
+  // Importante: La URL base. El InternalRun se will handle de asegurar el endpoint /api/chat
   FUrl := 'http://localhost:11434/';
   FModel := 'deepseek-ocr:latest';
   FPrompt := '<|grounding|>Convert the document to markdown';
@@ -115,14 +115,14 @@ begin
   LFinalPrompt := IfThen(AOverridePrompt.IsEmpty, FPrompt, AOverridePrompt);
   if LFinalPrompt.IsEmpty then LFinalPrompt := '<|grounding|>Convert the document to markdown';
 
-  //El prompt para DeepSeek OCR es muy estricto,  debe ir un #10 y luego el texto sin espacio
-  //El texto del prompt debe ser en chino o en ingl?s no acepta prompts en otro idioma
-  //El texto del pdf o im?gen si puede estar en espa?ol o en otros idiomas
-  //se utiliza por defecto <|grounding|>  para que extraiga tambi?n los boundings de los textos
-  //Los boundings son proporcionales, no corresponden al valor real, es necesario escalarlos de acuerdo
-  //al tama?o de la imagen
+  //El prompt para DeepSeek OCR es muy estricto,  debe ir un #10 y luego the text sin espacio
+  //El texto del prompt debe ser en chino o en English no acepta prompts en otro idioma
+  //El texto del pdf o image si puede estar en Spanish o en otros idiomas
+  //Is used By default <|grounding|>  so that extraiga also los boundings de los textos
+  //Los boundings son proporcionales, no corresponden al valor real, it is necessary escalarlos de acuerdo
+  //al size de la imagen
   //LFinalPrompt := ' Free OCR';  //Ok algunos documentos
-  //LFinalPrompt := #10+'<|grounding|>Convert the document to markdown'; //el m?s preciso extrae los boundings y los textos con presici?n
+  //LFinalPrompt := #10+'<|grounding|>Convert the document to markdown'; //el more preciso extrae los boundings y los textos con precision
 
   LFinalPrompt := #10 + LFinalPrompt;
 
@@ -131,7 +131,7 @@ begin
   try
     LActualApiKey := GetApiKey;
 
-    // A. Payload Ra?z
+    // A. Payload root
     LRequestJson.AddPair('model', FModel);
     LRequestJson.AddPair('stream', TJSONBool.Create(FStream));
     LRequestJson.AddPair('keep_alive', FKeepAlive);
@@ -214,7 +214,7 @@ begin
     FTimeout := Value;
 end;
 
-{ --- M?TODOS EST?TICOS --- }
+{ --- methodS isTICOS --- }
 
 class function TAiOllamaOcrTool.ExtractText(AMediaFile: TAiMediaFile; const APrompt, AUrl: string): string;
 var

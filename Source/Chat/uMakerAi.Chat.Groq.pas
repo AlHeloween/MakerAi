@@ -58,7 +58,7 @@ uses
   uMakerAi.ParamsRegistry, uMakerAi.Chat, uMakerAi.Embeddings, uMakerAi.Core, uMakerAi.Embeddings.Core, uMakerAi.Chat.Messages;
 
 Type
-  // Este modelo de reasoning por ahora solo se ha detectado en Groq, as� que se implementa solo aqu�
+  // Este modelo de reasoning for now solo se ha detectado en Groq, as� que se implementa solo aqu�
 
   TAiReasoningFormat = (rfAuto, rfParsed, rfRaw, rfHidden);
   TAiReasoningEffort = (reAuto, reNone, reDefault);
@@ -282,7 +282,7 @@ begin
           // El esquema va dentro de 'schema'
           JSchemaWrapper.AddPair('schema', JInnerSchema);
 
-          // NOTA: No enviamos "strict": true por defecto para maximizar compatibilidad
+          // NOTA: No enviamos "strict": true By default para maximizar compatibilidad
           // con modelos Groq que no soportan constrained decoding completo a�n.
 
           JResponseFormat.AddPair('json_schema', JSchemaWrapper);
@@ -301,7 +301,7 @@ begin
       AJSONObject.AddPair('response_format', JResponseFormat);
     end
 
-    // 3. Text Mode (Solo si se especifica expl�citamente, o dejar por defecto)
+    // 3. Text Mode (Solo si se especifica expl�citamente, o dejar By default)
     else if (FResponse_format = tiaChatRfText) then
     begin
       var

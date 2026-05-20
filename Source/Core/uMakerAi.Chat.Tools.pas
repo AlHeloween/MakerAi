@@ -8,7 +8,7 @@ uses
   uMakerAi.Chat.Messages; // Ahora usamos la unidad de mensajes directamente
 
 type
-  { IAiToolContext: Interfaz para que la Tool reporte eventos al Chat principal.
+  { IAiToolContext: Interfaz so that la Tool reporte eventos al Chat principal.
     Permite la comunicaci?n bidireccional sin dependencia circular. }
   IAiToolContext = interface
     ['{E1D2C3B4-A5F6-4B7C-9D8E-F0A1B2C3D4E5}']
@@ -70,7 +70,7 @@ type
 
   { --- CLASES BASE --- }
 
-  { TAiCustomTool: Gesti?n b?sica de contexto y eventos reportados al hilo principal }
+  { TAiCustomTool: management basic de contexto y eventos reportados al hilo principal }
   TAiCustomTool = class(TComponent)
   protected
     FContext: IAiToolContext;
@@ -84,7 +84,7 @@ type
     procedure SetContext(AContext: IAiToolContext); virtual;
   end;
 
-  { Especializaciones para el Object Inspector }
+  { Especializaciones for the Object Inspector }
 
   TAiSpeechToolBase = class(TAiCustomTool, IAiSpeechTool)
   Protected
@@ -138,10 +138,10 @@ implementation
 
 destructor TAiCustomTool.Destroy;
 begin
-  // FContext es una referencia d?bil (TAiChat es TComponent, sin ref-counting).
-  // Si el chat que lo asign? ya fue liberado, FContext apunta a memoria liberada.
-  // Delphi's CleanupInstance llamar?a _Release a trav?s de esa vtable corrupta → AV.
-  // Soluc?n: zerear el campo directamente, sin pasar por la gesti?n de interfaz.
+  // FContext es una referencia weak (TAiChat es TComponent, sin ref-counting).
+  // Si el chat que lo assigned ya fue liberado, FContext apunta a memoria liberada.
+  // Delphi's CleanupInstance would calla _Release a through de esa vtable corrupta → AV.
+  // solution: zerear el campo directamente, sin pasar por la management de interfaz.
   PPointer(@FContext)^ := nil;
   inherited;
 end;

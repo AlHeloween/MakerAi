@@ -199,7 +199,7 @@ type
     FParams: TStrings;
     FEnvVars: TStrings;
     FName: string;
-    // Propiedades "proxy" para facilitar la configuraci�n en el Inspector de Objetos
+    // Propiedades "proxy" para facilitar la configuraci�n in the inspector de Objetos
     function GetName: string;
     function GetTransportType: TToolTransportType;
     procedure SetName(const Value: string);
@@ -335,7 +335,7 @@ type
     function GetTools(aToolFormat: TToolFormat): String; Virtual;
     Function DoCallFunction(ToolCall: TAiToolsFunction): Boolean; Virtual;
 
-    // InitAutoMCP: instala mcp-ppm como bootstrap del sistema AutoMCP.
+    // InitAutoMCP: instala mcp-ppm como bootstrap of the system AutoMCP.
     // Called automatically from Loaded if AutoMCP=True.
     // Puede llamarse manualmente si AutoMCP se activa en runtime.
     procedure InitAutoMCP;
@@ -387,7 +387,7 @@ type
 
     // GetAutoMCPSystemPrompt: retorna un system prompt listo para usar que instruye
     // to the LLM to use PPM tools (ppm_search, ppm_install, call_mcp_tool).
-    // El desarrollador debe asignarlo manualmente al SystemPrompt del componente de chat.
+    // El desarrollador debe asignarlo manualmente al SystemPrompt of the component de chat.
     // Includes the list of already installed tools if any.
     function GetAutoMCPSystemPrompt: String;
   Published
@@ -402,13 +402,13 @@ type
     // Expandible en el Object Inspector con (+).
     property AutoMCPConfig: TAutoMCPConfig read FAutoMCPConfig write SetAutoMCPConfig;
     // OnAutoMCPRequest: dynamic callback to approve/deny installations at runtime.
-    // Tiene prioridad sobre Allowed/Blocked. AAllow=True por defecto.
+    // Tiene prioridad sobre Allowed/Blocked. AAllow=True By default.
     property OnAutoMCPRequest: TAutoMCPRequestEvent read FOnAutoMCPRequest write FOnAutoMCPRequest;
 
   End;
 
 
-  // Es necesario normalizar los formatos de llamado a las funciones seg�n el driver
+  // it is necessary normalizar los formatos de llamado a las funciones seg�n el driver
   // ya que Antrhopic, Openai y Gemini tienen sutiles diferencias.
 
   // Internal class to represent a tool in normalized (neutral) form
@@ -655,7 +655,7 @@ Var
   Fun, Params: TJSonObject;
 
 begin
-  // M�s adelante pueden crear otro tipo de tools, por ahora solo hay funciones
+  // M�s adelante pueden crear otro tipo de tools, for now solo hay funciones
   Result := Nil;
 
   If (Self.Enabled) and (Self.ToolType = tt_function) then
@@ -1233,18 +1233,18 @@ end;
   aMCPClient.OnStatusUpdate := FOnStatusUpdate;
 
   // 2. Crear un nuevo item en la colecci�n.
-  // Este Add crea un TMCPClientItem que, a su vez, crea un TMCPClientStdIo por defecto.
+  // Este Add crea un TMCPClientItem que, a su vez, crea un TMCPClientStdIo By default.
   NewItem := FMCPClients.Add;
 
-  // 3. Reemplazar el cliente por defecto con el que nos ha pasado el usuario.
+  // 3. Reemplazar el cliente By default con el que nos ha pasado el usuario.
   // Primero, liberamos el que se cre� autom�ticamente.
   FreeAndNil(NewItem.FMCPClient);
 
   // Ahora, asignamos el cliente del usuario. El NewItem se convierte en el propietario.
   NewItem.FMCPClient := aMCPClient;
 
-  // 4. Sincronizar las propiedades del wrapper con el estado del cliente.
-  // Las propiedades como Name, Params, etc., ya funcionan como proxies,
+  // 4. Sincronizar the properties del wrapper con el estado del cliente.
+  // the properties como Name, Params, etc., ya funcionan como proxies,
   // pero Enabled es una propiedad directa del TMCPClientItem.
   NewItem.Enabled := aMCPClient.Enabled;
   NewItem.Connected := False; // Always added as not connected. Connection is a subsequent action.
@@ -1273,7 +1273,7 @@ begin
   aMCPClient.OnLog := FOnLog;
   aMCPClient.OnStatusUpdate := FOnStatusUpdate;
 
-  // 2. Crear nuevo item (este crea su propio FMCPClient nulo o por defecto y FParams VAC�OS)
+  // 2. Crear nuevo item (este crea su propio FMCPClient nulo o By default y FParams VAC�OS)
   NewItem := FMCPClients.Add;
 
   // 3. Reemplazar cliente interno
@@ -1283,7 +1283,7 @@ begin
 
   // 4. --- [CORRECCI�N CR�TICA] SINCRONIZACI�N INVERSA ---
   // Debemos copiar la configuraci�n del cliente real HACIA el wrapper (Item)
-  // para que el wrapper tenga la "verdad" y no sobrescriba con vac�os despu�s.
+  // so that el wrapper tenga la "verdad" y no sobrescriba con vac�os despu�s.
 
   NewItem.FParams.Assign(aMCPClient.Params); // <--- ESTO FALTABA
   NewItem.FEnvVars.Assign(aMCPClient.EnvVars); // <--- ESTO FALTABA
@@ -1291,7 +1291,7 @@ begin
   NewItem.Enabled := aMCPClient.Enabled; // Sincroniza enabled
 
   // Importante: Sincronizar el TransportType en el wrapper sin disparar la recreaci�n del cliente
-  // Accedemos a la variable privada o usamos un cast si es necesario,
+  // Accedemos a the variable privada o usamos un cast si it is necessary,
   // pero al usar la propiedad TransportType del Item, este verificar� que el objeto interno
   // ya tiene ese tipo y no lo destruir�.
   NewItem.TransportType := aMCPClient.TransportType;
@@ -1408,8 +1408,8 @@ begin
             If AExtractedMedia.Count > 0 then
             Begin
               // Extracted files → ToolCall.MediaFiles (drivers transfer them
-              // al ToolMsg para que el LLM los vea en el siguiente turno).
-              // Adicionalmente, se clonan al ResMsg para que el app los reciba
+              // al ToolMsg so that el LLM los vea en el siguiente turno).
+              // Adicionalmente, se clonan al ResMsg so that el app los reciba
               // en OnReceiveDataEnd sin conflictos de ownership.
               For MF In AExtractedMedia do
               Begin
@@ -1440,14 +1440,14 @@ begin
         except
           on E: Exception do
           begin
-            // ArgsObject no se libera aqui�: CallTool toma ownership del objeto.
+            // ArgsObject no Is freed aqui�: CallTool toma ownership del objeto.
             // Si la excepci�n ocurre ANTES de CallTool, ArgsObject se pierde,
             // pero es preferible a un double-free si ocurre DESPU�S.
             FreeAndNil(ResultObject);
             ClientItem.MCPClient.Available := False;
             ToolCall.Response := Format('{"error":"%s"}',
               [StringReplace(E.Message, '"', '\"', [rfReplaceAll])]);
-            Result := True; // Devolver True para que el LLM reciba el mensaje de error
+            Result := True; // Devolver True so that el LLM reciba el mensaje de error
           end;
         end;
       end
@@ -1632,7 +1632,7 @@ end;
   // 2. Create the final JSON object that will contain all tools
   MergedToolsObj := TJSonObject.Create;
   // We add local tools to the new tools array.
-  // Usamos Clone para que MergedToolsObj sea el due�o de los datos.
+  // Usamos Clone so that MergedToolsObj sea el due�o de the data.
   MergedToolsObj.AddPair('tools', TJSonObject(LocalToolsArray.Clone));
 
   // 3. Iterate over MCP clients and merge their tools
@@ -1662,7 +1662,7 @@ end;
   SourceJson := TJSonObject(JsonValue);
   try
   // Use the helper function to merge the tools
-  // Asumimos el formato OpenAI como un est�ndar com�n para la salida
+  // Asumimos el formato OpenAI como un est�ndar com�n for the salida
 
   // TJsonToolUtils.MergeToolLists(ClientItem.Name, SourceJson, MergedToolsObj, TToolFormat.tfOpenAI);
   TJsonToolUtils.MergeToolLists(ClientItem.Name, SourceJson, MergedToolsObj, aToolFormat);
@@ -1807,7 +1807,7 @@ begin
   Result := 0;
   LFinalPath := AJsonFilePath;
 
-  // Si no se especifica ruta, usar la ruta efectiva del componente
+  // Si no se especifica ruta, usar la ruta efectiva of the component
   if LFinalPath.IsEmpty then
     LFinalPath := GetEffectiveMCPConfigPath;
 
@@ -1941,7 +1941,7 @@ end;
   for I := 0 to ArgsArray.Count - 1 do
   begin
   ArgValStr := ArgsArray.Items[I].Value;
-  // Manejo de espacios en argumentos: Envolver en comillas si es necesario
+  // Manejo de espacios en argumentos: Envolver en comillas si it is necessary
   if (Pos(' ', ArgValStr) > 0) and (not ArgValStr.StartsWith('"')) then
   ArgValStr := '"' + ArgValStr + '"';
 
@@ -2057,7 +2057,7 @@ begin
         LClientItem.Params.Values['Arguments'] := LArgsString.Trim;
       end;
 
-      // RootDir por defecto
+      // RootDir By default
       LClientItem.Params.Values['RootDir'] := TPath.GetHomePath;
     end
     // --- CASO B: Servidor Remoto (URL / SSE) ---
@@ -2373,7 +2373,7 @@ end;
 
 procedure TAiFunctions.InitAutoMCP;
 // Forces creation of the 3 internal PPM functions at runtime.
-// Normalmente NO es necesario llamarlo — las funciones se crean de forma lazy
+// Normalmente NO it is necessary llamarlo — las funciones se crean in a lazy
 // en el primer GetTools() o DoCallFunction() cuando Active=True.
 // Useful if the developer needs the functions to exist before the first chat
 // (ej: para mostrar el system prompt con las funciones ya listadas).
@@ -2504,7 +2504,7 @@ begin
 
       if LShown > 0 then
       begin
-        // Insertar encabezado al inicio del resultado
+        // Insertar encabezado at the beginning del resultado
         var LHeader := Format('Se encontraron %d herramientas para "%s":', [LShown, LQuery]);
         if LFiltered > 0 then
           LHeader := LHeader + Format(' (%d blocked by policy)', [LFiltered]);
@@ -3009,7 +3009,7 @@ procedure TAutoMCPConfig.SetActive(const Value: Boolean);
 begin
   if FActive = Value then Exit;
   FActive := Value;
-  // Notificar a TAiFunctions para que cree o limpie las funciones internas
+  // Notificar a TAiFunctions so that cree o limpie las funciones internas
   if Assigned(FOnActiveChanged) then
     FOnActiveChanged(Self);
 end;
@@ -3141,7 +3141,7 @@ begin
       LServers.AddPair(LItem.Name, LServerObj);
     end;
 
-    // Crear directorio si no existe
+    // Crear directorio si does not exist
     var LDir2 := TPath.GetDirectoryName(LPath);
     if (LDir2 <> '') and not TDirectory.Exists(LDir2) then
       TDirectory.CreateDirectory(LDir2);
@@ -3313,12 +3313,12 @@ begin
   FParams := TStringList.Create;
   FEnvVars := TStringList.Create;
 
-  // Por defecto, creamos un cliente StdIo
+  // By default, creamos un cliente StdIo
   FMCPClient := Nil; // TMCPClientStdIo.Create(nil); // Sin Owner para controlarlo nosotros
   FName := 'MCPClient';
   // FMCPClient.Name := 'NewMCPClient';
 
-  // CORRECCI�N: Crear siempre el cliente por defecto (StdIo).
+  // CORRECCI�N: Crear siempre el cliente By default (StdIo).
   // Esto asegura que si SetParams se llama antes que SetTransportType,
   // haya un objeto donde guardar los datos.
   FMCPClient := TMCPClientStdIo.Create(nil);
@@ -3408,14 +3408,14 @@ end;
 
 function TMCPClientItem.GetTransportType: TToolTransportType;
 begin
-  Result := tpStdIo; // Valor por defecto
+  Result := tpStdIo; // Valor By default
   if Assigned(FMCPClient) then
     Result := FMCPClient.TransportType;
 end;
 
 procedure TMCPClientItem.SetConfiguration(const Value: string);
 begin
-  // No se necesita hacer nada aqu�. solo debe existir.
+  // No Is needed hacer nada aqu�. solo debe existir.
 end;
 
 procedure TMCPClientItem.SetConnected(const Value: Boolean);
@@ -3506,7 +3506,7 @@ begin
   begin
     FName := Value;
 
-    // Sincronizamos con el m�todo est�ndar de colecciones para que se vea en el TreeView
+    // Sincronizamos con el m�todo est�ndar de colecciones so that se vea en el TreeView
     inherited SetDisplayName(Value);
 
     // Si el cliente interno existe, le pasamos el nombre
@@ -3550,7 +3550,7 @@ end;
 
 procedure TMCPClientItem.SetTransportType(const Value: TToolTransportType);
 begin
-  // Verificamos si realmente cambi� o si el objeto no existe
+  // Verificamos si realmente cambi� o si el objeto does not exist
   if not Assigned(FMCPClient) or (FMCPClient.TransportType <> Value) then
   begin
     // Liberamos el cliente anterior
@@ -3773,7 +3773,7 @@ begin
     else if AJsonTool.FindValue('name') <> nil then
       Exit(tfOpenAIResponses);
 
-    // Por defecto si es ambiguo, asumimos el nuevo est�ndar si tiene nombre
+    // By default si es ambiguo, asumimos el nuevo est�ndar si tiene nombre
     Exit(tfOpenAIResponses);
   end;
 

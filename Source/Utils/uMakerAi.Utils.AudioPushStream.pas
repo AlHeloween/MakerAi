@@ -107,7 +107,7 @@ type
     FPendingSize: Integer;
     FBufferSize : Integer;
     FOnFinished   : TNotifyEvent;
-    FOutputDevice : Integer;   // -1 = dispositivo predeterminado del sistema
+    FOutputDevice : Integer;   // -1 = dispositivo predeterminado of the system
 
 {$IFDEF MSWINDOWS}
     FDevice : HWAVEOUT;
@@ -167,7 +167,7 @@ type
     procedure PushPCMData(const PCMBytes: TBytes); overload;
 
     /// <summary>
-    /// Pausa la reproduccion. Se puede reanudar con Resume.
+    /// Pausa la reproduccion. Can be reanudar con Resume.
     /// </summary>
     procedure Pause;
 
@@ -192,8 +192,8 @@ type
     property OnFinished   : TNotifyEvent read FOnFinished  write FOnFinished;
 
     /// <summary>
-    /// Indice del dispositivo de salida. -1 = predeterminado del sistema.
-    /// Usar EnumerateDevices para obtener la lista. Asignar antes de Start.
+    /// Indice del dispositivo de salida. -1 = predeterminado of the system.
+    /// Usar EnumerateDevices to obtain/get la lista. Asignar antes de Start.
     /// </summary>
     property OutputDevice : Integer      read FOutputDevice write FOutputDevice;
   end;
@@ -688,7 +688,7 @@ begin
     FLock.Leave;
   end;
 
-  { Realimentar buffers por si llegaron datos durante la pausa }
+  { Realimentar buffers in case llegaron datos durante la pausa }
   InternalFeedBuffers;
 end;
 
@@ -1073,7 +1073,7 @@ const
   kMAI_AudioDevicePropertyStreams   = UInt32($73746D23); // 'stm#'
   kMAI_CFStringEncodingUTF8         = UInt32($08000100);
 
-{ CoreAudio hardware API ? no esta en Macapi.AudioToolbox }
+{ CoreAudio hardware API ? is not en Macapi.AudioToolbox }
 function _AO_GetPropertyDataSize(inObjectID: UInt32; inAddress: Pointer;
   inQualifierDataSize: UInt32; inQualifierData: Pointer;
   out outDataSize: UInt32): Integer; cdecl;

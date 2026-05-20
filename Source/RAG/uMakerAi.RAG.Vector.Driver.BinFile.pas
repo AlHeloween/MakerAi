@@ -820,7 +820,7 @@ begin
       end;
     end;
 
-    // FASE 2: Cargar texto completo solo para el Top-K
+    // FASE 2: Cargar texto completo solo for the Top-K
     for I := 0 to Candidates.Count - 1 do
     begin
       CK := CompKey(AEntidad, Candidates[I].ID);

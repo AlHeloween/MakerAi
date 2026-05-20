@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -249,12 +249,12 @@ function TAiVeoGenerator.ExtendVideo(const APrompt: string; AVideoToExtend: TAiM
 Var
   VideoUrlMedia: String;
 begin
-  // --- VALIDACI?N ---
+  // --- validation ---
   // Validamos que el objeto TAiMediaFile tenga la URI del activo de VEO.
   if (not Assigned(AVideoToExtend)) or (AVideoToExtend.UrlMedia.IsEmpty) then
     raise Exception.Create('To extend a video, you must provide a TAiMediaFile object with its original UrlMedia property set from a previous VEO generation.');
 
-  // Verificaci?n simple de que parece una URL v?lida
+  // verification simple de que parece una URL valid
   if not AVideoToExtend.UrlMedia.StartsWith('https') then
     raise Exception.Create('The UrlMedia property does not appear to be a valid VEO asset URI. It should start with "https".');
 
@@ -268,7 +268,7 @@ begin
     begin
       DoProgress('Starting extension for existing VEO video asset: ' + TPath.GetFileName(AVideoToExtend.UrlMedia));
 
-      // --- Construir el cuerpo de la petici?n directamente ---
+      // --- Construir el cuerpo de la request directamente ---
       LRequest := TJSONObject.Create;
       try
         LInstances := TJSONArray.Create;
@@ -286,7 +286,7 @@ begin
         LParams := BuildParametersJson;
         LRequest.AddPair('parameters', LParams);
 
-        // --- Ejecutar la generaci?n ---
+        // --- Ejecutar la generation ---
         InternalExecuteGeneration(LRequest);
       except
         LRequest.Free;
@@ -303,7 +303,7 @@ begin
   if not Assigned(AFirstFrame) or AFirstFrame.Base64.IsEmpty or not Assigned(ALastFrame) or ALastFrame.Base64.IsEmpty then
     raise Exception.Create('Both a first and a last frame are required for interpolation.');
 
-  // Clonamos para la tarea as?ncrona
+  // Clonamos for the tarea like thisncrona
   LFirstFrameClone := TAiMediaFile.Create;
   LFirstFrameClone.Assign(AFirstFrame);
   LLastFrameClone := TAiMediaFile.Create;
@@ -325,23 +325,23 @@ begin
           LInstances.AddElement(LInstance);
           LInstance.AddPair('prompt', TJSONString.Create(APrompt));
 
-          // --- INICIO DE LA CORRECCI?N ---
-          // 1. Creamos y a?adimos la primera imagen AL INSTANCE
+          // --- INICIO DE LA correction ---
+          // 1. Creamos y we add la primera imagen AL INSTANCE
           LImagePart := TJSONObject.Create;
           LImagePart.AddPair('mimeType', LFirstFrameClone.MimeType);
           LImagePart.AddPair('bytesBase64Encoded', LFirstFrameClone.Base64);
           LInstance.AddPair('image', LImagePart);
 
-          // 2. Creamos y a?adimos la segunda imagen (lastFrame) TAMBI?N AL INSTANCE
+          // 2. Creamos y we add la segunda imagen (lastFrame) also AL INSTANCE
           LLastFramePart := TJSONObject.Create;
           LLastFramePart.AddPair('mimeType', LLastFrameClone.MimeType);
           LLastFramePart.AddPair('bytesBase64Encoded', LLastFrameClone.Base64);
           LInstance.AddPair('lastFrame', LLastFramePart);
 
-          // 3. El objeto de par?metros ahora solo contiene la configuraci?n general
+          // 3. El objeto de parameters ahora solo contiene la configuration general
           LParams := BuildParametersJson;
           LRequest.AddPair('parameters', LParams);
-          // --- FIN DE LA CORRECCI?N ---
+          // --- FIN DE LA correction ---
 
           InternalExecuteGeneration(LRequest);
         except
@@ -362,7 +362,7 @@ function TAiVeoGenerator.GenerateFromImage(const APrompt: string; AImage: TAiMed
 var
   LImageClone: TAiMediaFile;
 begin
-  // Validaci?n b?sica antes de crear el hilo
+  // validation basic antes de crear el hilo
   if not Assigned(AImage) then
     raise Exception.Create('An image object is required.');
 
@@ -370,7 +370,7 @@ begin
     raise Exception.Create('The image must have either a Cloud URI (UrlMedia) or Base64 content.');
 
   // Clonamos el objeto de imagen para garantizar la seguridad de hilos (Thread Safety)
-  // ya que la TTask se ejecutar? en paralelo.
+  // ya que la TTask se would execute en paralelo.
   LImageClone := TAiMediaFile.Create;
   LImageClone.Assign(AImage);
 
@@ -396,7 +396,7 @@ begin
           // 2. Agregar la Imagen
           LImagePart := TJSONObject.Create;
 
-          // ESTRATEGIA H?BRIDA:
+          // ESTRATEGIA hybrid:
           // Preferimos usar la URI de la File API si existe (mejor rendimiento para Veo).
           if not LImageClone.UrlMedia.IsEmpty then
           begin
@@ -407,27 +407,27 @@ begin
           end
           else
           begin
-            // Fallback: Si no est? subido, usamos Base64 (Inline)
-            // Nota: Esto solo funciona para im?genes peque?as (<20MB en total request)
+            // Fallback: Si no is subido, usamos Base64 (Inline)
+            // Nota: Esto solo funciona para imagees smalls (<20MB en total request)
             LImagePart.AddPair('bytesBase64Encoded', LImageClone.Base64);
             LImagePart.AddPair('mimeType', LImageClone.MimeType);
           end;
 
           LInstance.AddPair('image', LImagePart);
 
-          // 3. Agregar los par?metros de configuraci?n (Resoluci?n, FPS, etc.)
+          // 3. Agregar los parameters de configuration (Resolution, FPS, etc.)
           // Nota: BuildParametersJson devuelve un objeto nuevo, AddPair toma propiedad.
           LRequest.AddPair('parameters', BuildParametersJson);
 
-          // Ejecutar la petici?n (InternalExecuteGeneration se encarga de liberar LRequest)
+          // Ejecutar la request (InternalExecuteGeneration se encarga de liberar LRequest)
           InternalExecuteGeneration(LRequest);
         except
-          // Si ocurre un error antes de entrar a InternalExecuteGeneration, liberamos aqu?.
+          // Si ocurre un error antes de entrar a InternalExecuteGeneration, liberamos awhat.
           LRequest.Free;
           raise;
         end;
       finally
-        // Liberamos el clon creado espec?ficamente para esta tarea
+        // Liberamos el clon creado specificmente para esta tarea
         LImageClone.Free;
       end;
     end);
@@ -457,7 +457,7 @@ end;
 
 function TAiVeoGenerator.GenerateWithReferences(const APrompt: string; AReferenceImages: TAiMediaFilesArray): ITask;
 var
-  LClonedImages: TArray<TAiMediaFile>; // Un array para guardar los clones
+  LClonedImages: TArray<TAiMediaFile>; // Un array to save los clones
   i: Integer;
 begin
   if Length(AReferenceImages) = 0 then
@@ -521,14 +521,14 @@ end;
 
 function TAiVeoGenerator.GetApiKey: string;
 Begin
-  // Si est? en modo de dise?o, simplemente retorna el valor tal cual
+  // Si is en modo de design, simplemente retorna el valor tal cual
   if (csDesigning in ComponentState) or (csDestroying in ComponentState) then
   begin
     Result := FApiKey;
     Exit;
   end;
 
-  // En modo de ejecuci?n
+  // En modo de execution
   if (FApiKey <> '') and (Copy(FApiKey, 1, 1) = '@') then
     // Retorna el valor de la variable de entorno, quitando el '@'
     Result := GetEnvironmentVariable(Copy(FApiKey, 2, Length(FApiKey)))
@@ -576,12 +576,12 @@ begin
   LHttpClient := TNetHTTPClient.Create(nil);
   try
     try
-      // --- PASO 1: Iniciar la operaci?n de larga duraci?n ---
+      // --- PASO 1: Iniciar la operation de larga duration ---
       LModelName := GetEffectiveModelName;
       LUrl := TPath.Combine(GEMINI_API_BASE_URL, 'models/' + LModelName + ':predictLongRunning');
 
-      // --- L?NEA CORREGIDA AQU? ---
-      // Si los par?metros no fueron a?adidos por un m?todo espec?fico, los a?adimos ahora.
+      // --- line CORREGIDA Awhat ---
+      // Si los parameters no fueron addeds por un method specific, los we add ahora.
       if ARequestBody.FindValue('parameters') = nil then
         ARequestBody.AddPair('parameters', BuildParametersJson);
 
@@ -747,7 +747,7 @@ begin
       if Result = '' then
         raise Exception.Create('The API uploaded the file but did not return a URI.');
     finally
-      // El stream no se libera aqu? porque es propiedad de TAiMediaFile
+      // El stream no Is freed awhat porque es propiedad de TAiMediaFile
     end;
   finally
     LHttpClient.Free;
@@ -780,12 +780,12 @@ begin
     if LNumBytes = 0 then
       raise Exception.Create('Cannot upload an empty file.');
 
-    // La petici?n de inicio NO LLEVA CUERPO. La metadata va en los headers.
+    // La request de inicio NO LLEVA CUERPO. La metadata va en los headers.
     LHttpClient.ContentType := 'application/json'; // El ContentType sigue siendo necesario
     LHeaders := [TNetHeader.Create('X-Goog-Upload-Protocol', 'resumable'), TNetHeader.Create('X-Goog-Upload-Command', 'start'), TNetHeader.Create('X-Goog-Upload-Header-Content-Length', LNumBytes.ToString),
       TNetHeader.Create('X-Goog-Upload-Header-Content-Type', aMediaFile.MimeType)];
 
-    // Enviamos la petici?n POST con un cuerpo NIL
+    // Enviamos la request POST con un cuerpo NIL
     LResponse := LHttpClient.Post(LStartUrl, TStream(nil), nil, LHeaders);
 
     if LResponse.StatusCode <> 200 then
@@ -805,12 +805,12 @@ begin
     if LResponse.StatusCode <> 200 then
       raise Exception.CreateFmt('Error uploading file bytes: %d %s'#13#10'%s', [LResponse.StatusCode, LResponse.StatusText, LResponse.ContentAsString]);
 
-    // --- PASO 3: Procesar la respuesta final (con la correcci?n) ---
+    // --- PASO 3: Procesar la respuesta final (con la correction) ---
     LUploadResponseObj := TJSONObject.ParseJSONValue(LResponse.ContentAsString) as TJSONObject;
     if Assigned(LUploadResponseObj) then
       try
         var
-          LFileObj: TJSONObject; // Variable para el objeto anidado "file"
+          LFileObj: TJSONObject; // Variable for the objeto anidado "file"
 
           // Obtenemos el objeto anidado que se llama "file"
         if LUploadResponseObj.TryGetValue<TJSONObject>('file', LFileObj) then
@@ -943,7 +943,7 @@ begin
 
   LHttpClient := TNetHTTPClient.Create(Nil);
   try
-    // --- PASO 1: Iniciar la sesi?n de subida (Handshake) ---
+    // --- PASO 1: Iniciar la session de subida (Handshake) ---
     LStartUrl := GEMINI_API_UPLOAD_URL + 'files?key=' + Self.ApiKey;
 
     LFileStream := aMediaFile.Content;
@@ -953,7 +953,7 @@ begin
     if LNumBytes = 0 then
       raise Exception.Create('Cannot upload an empty file.');
 
-    // Construir el JSON de metadatos para el inicio
+    // Construir el JSON de metadatos for the inicio
     LJsonBody := TJSONObject.Create;
     try
       LFileMeta := TJSONObject.Create;
@@ -994,14 +994,14 @@ begin
     // --- PASO 2: Subir los bytes del archivo (Payload) ---
     LFileStream.Position := 0;
 
-    // Headers para la transferencia de bytes
+    // Headers for the transferencia de bytes
     LHeaders := [
       TNetHeader.Create('Content-Length', LNumBytes.ToString),
       TNetHeader.Create('X-Goog-Upload-Offset', '0'),
       TNetHeader.Create('X-Goog-Upload-Command', 'upload, finalize')
     ];
 
-    LHttpClient.ContentType := aMediaFile.MimeType; // Importante: el tipo real del archivo aqu?
+    LHttpClient.ContentType := aMediaFile.MimeType; // Importante: el tipo real del archivo awhat
     LResponse := LHttpClient.Post(LUploadUrl, LFileStream, nil, LHeaders);
 
     if LResponse.StatusCode <> 200 then
@@ -1063,9 +1063,9 @@ begin
   LHttpClient := TNetHTTPClient.Create(nil);
   try
     // La URL para consultar el estado de un archivo es /v1beta/files/ID
-    // ACloudName tiene el formato "files/ID", as? que lo usamos directamente.
+    // ACloudName tiene el formato "files/ID", like this que lo usamos directamente.
     LUrl := TPath.Combine(GEMINI_API_BASE_URL, ACloudName) + '?key=' + Self.ApiKey;
-    LHeaders := []; // No se necesitan headers especiales para un GET simple
+    LHeaders := []; // No are needed headers especiales para un GET simple
 
     LRetryCount := 0;
     while LRetryCount < MAX_RETRIES do
@@ -1089,7 +1089,7 @@ begin
               begin
                 DoProgress('File is now active and ready to use.');
                 Result := True;
-                Exit; // Salimos del bucle y de la funci?n con ?xito
+                Exit; // Salimos del bucle y de la function con success
               end
               else if LState.Equals('FAILED') then
               begin

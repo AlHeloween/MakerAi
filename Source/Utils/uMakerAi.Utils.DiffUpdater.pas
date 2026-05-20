@@ -1,4 +1,4 @@
-// MIT License
+﻿// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -109,13 +109,13 @@ begin
   Hunk := nil;
 
   // Formato esperado: @@ -start,count +start,count @@
-  // Pero GPT-5 a veces env?a solo "@@" o "@@ context @@"
+  // Pero GPT-5 a veces sends solo "@@" o "@@ context @@"
   if not Line.StartsWith('@@') then Exit;
 
   try
     Hunk := TDiffHunk.Create;
 
-    // VALORES POR DEFECTO (Si el parsing falla, asumimos inicio de archivo o b?squeda difusa)
+    // VALORES By default (Si el parsing falla, asumimos inicio de archivo o search difusa)
     Hunk.OriginalStart := 1;
     Hunk.OriginalCount := 0;
     Hunk.NewStart := 1;
@@ -168,9 +168,9 @@ begin
       end;
     end;
 
-    // IMPORTANTE: Incluso si el parsing de n?meros fall? (ej. la l?nea era solo "@@"),
-    // devolvemos True porque hemos creado un Hunk v?lido con valores por defecto (0,0).
-    // El TDiffApplier usar? el contenido (contexto) para encontrar d?nde aplicarlo.
+    // IMPORTANTE: Incluso si el parsing de numbers fthere (ej. la line era solo "@@"),
+    // devolvemos True porque hemos creado un Hunk valid con valores By default (0,0).
+    // El TDiffApplier would use el contenido (contexto) para encontrar where aplicarlo.
     Result := True;
 
   except
@@ -195,7 +195,7 @@ begin
     CurrentHunk := nil;
     HasHeaders := False;
 
-    // 1. Detecci?n r?pida de cabeceras
+    // 1. detection fast de cabeceras
     for I := 0 to Lines.Count - 1 do
       if Lines[I].StartsWith('@@') then
       begin
@@ -221,15 +221,15 @@ begin
       end
       else
       begin
-        // L?GICA DE RECUPERACI?N (FALLBACK):
-        // Si encontramos l?neas de contenido (+/-) pero NO tenemos un Hunk activo
-        // (y especialmente si no se detectaron cabeceras en todo el archivo),
-        // creamos un "Hunk Virtual" que asume inicio en l?nea 0.
+        // logic DE retrieval (FALLBACK):
+        // Si encontramos lines de contenido (+/-) pero NO tenemos un Hunk activo
+        // (y especialmente si no se detectaron cabeceras en todo the file),
+        // creamos un "Hunk Virtual" que asume inicio en line 0.
         if (CurrentHunk = nil) and not HasHeaders and
            (Line.StartsWith('+') or Line.StartsWith('-') or Line.StartsWith(' ')) then
         begin
           CurrentHunk := TDiffHunk.Create;
-          CurrentHunk.OriginalStart := 0; // Asumimos creaci?n o inicio de archivo
+          CurrentHunk.OriginalStart := 0; // Asumimos creation o inicio de archivo
           CurrentHunk.OriginalCount := 0;
           CurrentHunk.NewStart := 1;
           CurrentHunk.NewCount := 0;
@@ -258,7 +258,7 @@ begin
           end
           else if Line = '' then
           begin
-             // L?nea vac?a suele interpretarse como contexto vac?o
+             // line empty suele interpretarse como contexto empty
              DiffLine.Operation := doContext;
              DiffLine.Content := '';
              CurrentHunk.Lines.Add(DiffLine);
@@ -315,7 +315,7 @@ begin
     Exit(True);
   end;
 
-  // 2. B?squeda difusa (+/- 20 l?neas)
+  // 2. search difusa (+/- 20 lines)
   SearchRadius := 20;
   for Offset := 1 to SearchRadius do
   begin

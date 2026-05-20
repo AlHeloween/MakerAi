@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -33,13 +33,13 @@
 
 
 // --- Modificaciones ----
-// 30/08/2024 -- Mejora en la funci?n Edit
+// 30/08/2024 -- Mejora en la function Edit
 
 // --------- CAMBIOS --------------------
-// 4/11/2025 - Refactorizaci?n completa para soportar dall-e-2, dall-e-3, y gpt-image-1.
-// 4/11/2025 - A?adido soporte para streaming con eventos (OnPartialImageReceived, OnStreamCompleted).
-// 4/11/2025 - Integraci?n con uMakerAi.Core: Edit y Variation ahora usan TAiMediaFile.
-// 4/11/2025 - Modernizaci?n de enums y nombres de propiedades para mayor claridad.
+// 4/11/2025 - refactoring completa para soportar dall-e-2, dall-e-3, y gpt-image-1.
+// 4/11/2025 - added soporte para streaming con eventos (OnPartialImageReceived, OnStreamCompleted).
+// 4/11/2025 - integration con uMakerAi.Core: Edit y Variation ahora usan TAiMediaFile.
+// 4/11/2025 - modernization de enums y nombres de propiedades for greater claridad.
 
 unit uMakerAi.OpenAi.Dalle;
 
@@ -55,7 +55,7 @@ uses
 {$IF CompilerVersion < 35}
   uJSONHelper,
 {$ENDIF}
-  // Dependencia clave de la librer?a central
+  // Dependencia clave de la library central
   uMakerAi.Core, uMakerAi.Chat.Messages, uMakerAi.Chat.Tools;
 
 const
@@ -95,12 +95,12 @@ type
 
   TAiDalleImages = array of TAiDalleImage;
 
-  // Eventos para el streaming
+  // Eventos for the streaming
   TOnPartialImageReceived = procedure(Sender: TObject; const APartialImage: TAiDalleImage; AIndex: Integer) of object;
   TOnStreamCompleted = procedure(Sender: TObject; const AFinalImage: TAiDalleImage) of object;
   TOnStreamError = procedure(Sender: TObject; const AErrorMessage: string) of object;
 
-  // Enums para los par?metros de la API
+  // Enums para los parameters de la API
   TAiImageModel = (imDallE2, imDallE3, imGptImage1, imSDXL);
 
   TAiImageQuality = (iqAuto, iqStandard, iqHD, iqHigh, iqMedium, iqLow);
@@ -222,7 +222,7 @@ type
     { Referencia al componente TAiDalle configurado en el formulario.
       Debe asignarse antes de usar el tool. }
     property Dalle: TAiDalle read FDalle write SetDalle;
-    { Tama?o de imagen que se solicitar? a la API. Default: 1024x1024 }
+    { size de imagen que se would request a la API. Default: 1024x1024 }
     property ImageSize: TAiImageSize read FImageSize write FImageSize default is1024x1024;
   end;
 
@@ -460,7 +460,7 @@ var
   ContentStream: TStringStream;
   ResponseStream: TMemoryStream; // Usado solo para llamadas no-streaming
   sUrl: string;
-  AbortFlag: Boolean; // Variable para el par?metro 'var'
+  AbortFlag: Boolean; // Variable for the parameter 'var'
   StreamReader: TStreamReader; // Para leer la respuesta de forma robusta
 begin
   Result := nil;
@@ -583,7 +583,7 @@ begin
 
       Client.Post(sUrl, ContentStream, FActiveResponseStream);
 
-      // Llamada final para procesar los datos restantes
+      // Llamada final to process the data restantes
       if Assigned(FActiveResponseStream) and (FActiveResponseStream.Size > FBytesProcessed) then
       begin
         AbortFlag := False;
@@ -640,8 +640,8 @@ begin
       FActiveResponseStream := nil;
     end;
 
-    // El JObj de la petici?n se libera aqu? solo si no es streaming,
-    // porque en streaming ya se habr?a liberado antes del bloque finally.
+    // El JObj de la request se libera awhat solo si no es streaming,
+    // porque en streaming ya se there will bea liberado antes del bloque finally.
     // if not(FStream and (FModel = imGptImage1)) then
     // JObj.Free;
   end;
@@ -662,7 +662,7 @@ var
   NewBytes: TBytes;
   NewDataSize: Int64;
 begin
-  // Verificaci?n de seguridad: solo proceder si tenemos un stream activo
+  // verification de seguridad: solo proceder si tenemos un stream activo
   if not Assigned(FActiveResponseStream) then
     Exit;
 
@@ -1023,7 +1023,7 @@ end;
 procedure TAiDalleImageTool.ExecuteImageGeneration(const APrompt: string; ResMsg, AskMsg: TAiChatMessage);
 begin
   // Si IsAsync=True ya estamos en el hilo background del chat: ejecutar directo
-  // para evitar un TTask anidado que causar?a dangling pointer sobre ResMsg.
+  // para evitar un TTask anidado que cawould usea dangling pointer sobre ResMsg.
   // Si IsAsync=False estamos en el hilo principal: lanzar task para no bloquearlo.
   if IsAsync then
     InternalRunDalleGeneration(APrompt, ResMsg)
@@ -1046,7 +1046,7 @@ begin
 
   if Assigned(LDalleImage) then
   begin
-    // Determinar extensi?n seg?n el formato de salida configurado en TAiDalle
+    // Determinar extension according to el formato de salida configurado en TAiDalle
     case FDalle.OutputFormat of
       ifJpeg: LExt := '.jpg';
       ifWebp: LExt := '.webp';
@@ -1062,7 +1062,7 @@ begin
         LMediaFile.LoadFromStream('generated_image' + LExt, LDalleImage.Image);
       end;
       ResMsg.MediaFiles.Add(LMediaFile);
-      // Usar el prompt revisado por el modelo si est? disponible
+      // Usar el prompt revisado por el modelo si is disponible
       if LDalleImage.RevisedPrompt <> '' then
         ResMsg.Prompt := LDalleImage.RevisedPrompt
       else

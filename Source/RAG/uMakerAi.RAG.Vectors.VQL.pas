@@ -1555,12 +1555,12 @@ begin
       else
         raise EVGQLParserError.CreateFmt('Se esperaba un nombre de campo en ORDER BY, posicion %d', [FCurrent.Position]);
 
-      // Direccion opcional (por defecto ASC)
+      // Direccion opcional (By default ASC)
       if Match(tkDesc) then
         OBField.Direction := odDesc
       else
       begin
-        Match(tkAsc); // opcional, por defecto ASC
+        Match(tkAsc); // opcional, By default ASC
         OBField.Direction := odAsc;
       end;
 
@@ -1729,7 +1729,7 @@ begin
   if Assigned(AClause.Expression) then
   begin
     FRequest.Filter.Clear;
-    FRequest.Filter.LogicalOp := loAnd; // Raiz por defecto AND
+    FRequest.Filter.LogicalOp := loAnd; // Raiz By default AND
     BuildFilter(AClause.Expression, FRequest.Filter);
   end;
 end;

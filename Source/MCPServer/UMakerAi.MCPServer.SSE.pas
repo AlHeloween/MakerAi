@@ -1,4 +1,4 @@
-// MIT License
+﻿// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -41,7 +41,7 @@ uses
   UMakerAi.MCPServer.Core;
 
 type
-  // Representa una sesi?n SSE activa
+  // Representa una session SSE activa
   TMCPSSESession = class
   public
     SessionID: string;
@@ -58,9 +58,9 @@ type
     FSessions: TObjectDictionary<string, TMCPSSESession>;
     FSessionsLock: TCriticalSection;
 
-    // Configuraci?n de endpoints
-    FSseEndpoint: string; // por defecto '/sse'
-    FMessagesEndpoint: string; // por defecto '/messages'
+    // configuration de endpoints
+    FSseEndpoint: string; // By default '/sse'
+    FMessagesEndpoint: string; // By default '/messages'
 
     // Eventos de Indy
     procedure OnCommandGet(AContext: TIdContext; ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo);
@@ -82,7 +82,7 @@ type
     procedure Start; override;
     procedure Stop; override;
 
-    // Propiedades de configuraci?n
+    // Propiedades de configuration
   published
     property SseEndpoint: string read FSseEndpoint write FSseEndpoint;
     property MessagesEndpoint: string read FMessagesEndpoint write FMessagesEndpoint;
@@ -109,8 +109,8 @@ begin
   inherited Create;
   SessionID := AID;
   // Capacidad: 1000 mensajes.
-  // PushTimeout: INFINITE (El productor espera si est? lleno)
-  // PopTimeout: 1000ms (IMPORTANTE: No usar INFINITE aqu? para permitir el heartbeat)
+  // PushTimeout: INFINITE (El productor espera si is lleno)
+  // PopTimeout: 1000ms (IMPORTANTE: No usar INFINITE awhat para permitir el heartbeat)
   Outbox := TThreadedQueue<string>.Create(1000, INFINITE, 1000);
   LastActivity := Now;
 end;
@@ -136,11 +136,11 @@ begin
   FHttpServer.OnCommandGet := OnCommandGet;
   FHttpServer.OnCommandOther := OnCommandOther;
 
-  // Configuraci?n vital para SSE
+  // configuration vital para SSE
   FHttpServer.KeepAlive := True;
   FHttpServer.AutoStartSession := False;
 
-  // Endpoints por defecto
+  // Endpoints By default
   FSseEndpoint := '/sse';
   FMessagesEndpoint := '/messages';
 end;
@@ -285,7 +285,7 @@ begin
 end;
 
 // =============================================================================
-// L?GICA CR?TICA SSE
+// logic critical SSE
 // =============================================================================
 
 procedure TAiMCPSSEHttpServer.HandleSSEConnection(AContext: TIdContext; AResponseInfo: TIdHTTPResponseInfo);
@@ -297,7 +297,7 @@ var
   HandshakeStr: string;
   BytesToSend: TIdBytes;
 begin
-  // 1. Configurar Sesi?n
+  // 1. Configurar session
   SessionID := GenerateSessionID;
   Session := GetOrCreateSession(SessionID);
 
@@ -310,12 +310,12 @@ begin
     AResponseInfo.CacheControl := 'no-cache';
     AResponseInfo.Connection := 'keep-alive';
 
-    // IMPORTANTE: Forzar que Indy env?e las cabeceras AHORA MISMO
-    // Esto impide que Indy bufferice la respuesta esperando que termine el m?todo.
+    // IMPORTANTE: Forzar que Indy send las cabeceras AHORA MISMO
+    // Esto impide que Indy bufferice la respuesta esperando que termine el method.
     AResponseInfo.WriteHeader;
 
     // 3. Enviar Handshake MCP (Protocolo)
-    // Indica al cliente d?nde mandar los comandos POST
+    // Indica al cliente where mandar los comandos POST
     var
     FullMsgUrl := Format('%s?session_id=%s', [FMessagesEndpoint, SessionID]);
 
@@ -332,12 +332,12 @@ begin
 
       if PopResult = wrSignaled then
       begin
-        // --- CASO A: Hay mensaje para enviar ---
+        // --- CASO A: Hay mensaje to send ---
         // Formato SSE: "data: <contenido>\n\n"
         var
         Payload := 'data: ' + Msg + #10#10;
 
-        // Escribimos Bytes directamente para evitar corrupci?n de caracteres
+        // Escribimos Bytes directamente para evitar corruption de caracteres
         BytesToSend := ToBytes(Payload, IndyTextEncoding_UTF8);
         AContext.Connection.IOHandler.Write(BytesToSend);
 
@@ -346,7 +346,7 @@ begin
       else if PopResult = wrTimeout then
       begin
         // --- CASO B: No hay mensajes (Idle) ---
-        // Enviamos un comentario "ping" para mantener la conexi?n viva
+        // Enviamos un comentario "ping" para mantener la connection viva
         // y evitar timeouts de antivirus/proxies.
         var
         Ping := ': keep-alive' + #10#10;
@@ -354,12 +354,12 @@ begin
       end
       else if PopResult = wrAbandoned then
       begin
-        // La cola se destruy? (Servidor deteni?ndose)
+        // La cola se destroyed (Servidor stopping)
         Break;
       end;
 
-      // Verificaci?n proactiva de desconexi?n
-      // Si el cliente cerr? el socket, esto lanzar? una excepci?n segura.
+      // verification proactiva de desconnection
+      // Si el cliente closed el socket, esto would launch una exception segura.
       // AContext.Connection.CheckForDisconnect(True, True);
 
       if AContext.Connection.IOHandler <> nil then
@@ -371,7 +371,7 @@ begin
     on E: Exception do
     begin
       // Es normal ver "Connection Closed Gracefully" o "Socket Error" cuando el cliente cierra.
-      // No lo tratamos como error cr?tico.
+      // No lo tratamos como error critical.
     end;
   end;
 
@@ -388,7 +388,7 @@ begin
 end;
 
 // =============================================================================
-// L?GICA POST (MESSAGES)
+// logic POST (MESSAGES)
 // =============================================================================
 
 procedure TAiMCPSSEHttpServer.HandlePostMessage(AContext: TIdContext; ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo; const AAuthContext: TAiAuthContext);
@@ -408,7 +408,7 @@ begin
     Exit;
   end;
 
-  // 2. Buscar Sesi?n Activa
+  // 2. Buscar session Activa
   FSessionsLock.Enter;
   try
     if not FSessions.TryGetValue(SessionID, Session) then
@@ -440,7 +440,7 @@ begin
     Stream.Free;
   end;
 
-  // 4. Ejecutar L?gica (Core)
+  // 4. Ejecutar logic (Core)
   try
     // ExecuteRequest devuelve el JSON de respuesta (con contexto de autenticaci�n)
     ResponseJson := FLogicServer.ExecuteRequest(JsonBody, SessionID, AAuthContext);
@@ -450,7 +450,7 @@ begin
       Session.Outbox.PushItem(ResponseJson);
 
     // 6. Responder al POST con "202 Accepted"
-    // Esto le dice al cliente: "Recib? tu orden, espera la respuesta por el stream".
+    // Esto le dice al cliente: "received tu orden, espera la respuesta por el stream".
     AResponseInfo.ResponseNo := 202;
     AResponseInfo.ContentText := 'Accepted';
     AResponseInfo.ContentType := 'text/plain';

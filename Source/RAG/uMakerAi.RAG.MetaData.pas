@@ -44,7 +44,7 @@ type
     foBetween, // Rango (requiere dos valores)
 
     // Existencia y Estructura
-    foIsNull, // Valor es nulo o clave no existe
+    foIsNull, // Valor es nulo o clave does not exist
     foIsNotNull, // Valor no es nulo y clave existe
     foExists, // La clave existe (independiente del valor)
 
@@ -419,7 +419,7 @@ begin
     D1 := Double(A);
     D2 := Double(B);
   except
-    // Si no se puede convertir a n�mero, retornamos falso
+    // Si no Can be convertir a n�mero, retornamos falso
     Exit(False);
   end;
 
@@ -548,7 +548,7 @@ begin
       Exit(Exists and not VarIsNull(PropValue));
   end;
 
-  // Si la propiedad no existe o es nula, no puede cumplir criterios de comparaci�n
+  // Si la propiedad does not exist o es nula, no puede cumplir criterios de comparaci�n
   if not Exists or VarIsNull(PropValue) then
     Exit(False);
 
@@ -562,7 +562,7 @@ begin
     // Solo soportamos si la propiedad es un Array (ej: Tags: ["A", "B"])
     if VarIsArray(PropValue) then
     begin
-      // Si el valor buscado es un array (�Alguna de estas etiquetas existe?)
+      // Si el valor buscado es un array (�Alguna de estas etiquetas exists)
       if VarIsArray(Value) then
       begin
         if Op = foExistsAny then
@@ -645,7 +645,7 @@ begin
     Exit(CompareNumbers(PropValue, Value, Op));
   end;
 
-  // 8. COMPARACI�N POR DEFECTO (STRINGS / TEXTO)
+  // 8. COMPARACI�N By default (STRINGS / TEXTO)
   // Fallback final para strings
   if Op = foBetween then
   begin

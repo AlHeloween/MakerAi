@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -162,7 +162,7 @@ class procedure TAiGeminiChat.RegisterDefaultParams(Params: TStrings);
 Begin
   Params.Clear;
   Params.Add('ApiKey=@GEMINI_API_KEY');
-  // [V3 UPDATE] Modelo recomendado por defecto actualizado (gemini-2.0-flash deprecado 31 Mar 2026)
+  // [V3 UPDATE] Modelo recomendado By default actualizado (gemini-2.0-flash deprecado 31 Mar 2026)
   Params.Add('Model=gemini-2.5-flash');
   Params.Add('MaxTokens=8192');
   Params.Add('URL=' + GlAIUrl);
@@ -251,7 +251,7 @@ begin
   Model := 'gemini-2.5-flash';
   Url := GlAIUrl;
 
-  // [V3 UPDATE] Gemini 3 recomienda Temperature 1.0 por defecto para razonamiento
+  // [V3 UPDATE] Gemini 3 recomienda Temperature 1.0 By default para razonamiento
   Top_p := 0.95;
   Temperature := 1.0;
 
@@ -422,7 +422,7 @@ begin
 
   SL := TStringList.Create;
   try
-    // 1. Separar por comas (esto suele funcionar bien para la lista principal)
+    // 1. Separar por comas (esto suele funcionar bien for the lista principal)
     // Ej: "Sol=Kore, Gustavo=Puck"
     SL.CommaText := TtsParams.Voice;
 
@@ -943,7 +943,7 @@ begin
                     Result.Add(sModel);
 
                     // *AQUI* tienes todas las variables (LThinking, LInputTokenLimit, etc)
-                    // listas para guardar en una estructura si lo deseas.
+                    // listas to save en una estructura si lo deseas.
                   end;
                 end;
               End;
@@ -1050,7 +1050,7 @@ begin
 
     // B. Code Execution (Only if explicitly in the Set)
     // Nota: codeExecution es incompatible con response_mime_type=application/json
-    // Nota: codeExecution no se puede combinar con function declarations de usuario
+    // Nota: codeExecution no Can be combinar con function declarations de usuario
     if (cap_CodeInterpreter in ModelConfig.ModelCaps) and
        not (Response_format in [tiaChatRfJson, tiaChatRfJsonSchema]) and
        not LHasUserFunctions then
@@ -1062,7 +1062,7 @@ begin
 
     // C. Google Search (Only if explicitly in the Set)
     // Nota: googleSearch es incompatible con response_mime_type=application/json
-    // Nota: googleSearch no se puede combinar con function declarations de usuario
+    // Nota: googleSearch no Can be combinar con function declarations de usuario
     if (cap_WebSearch in ModelConfig.ModelCaps) and
        not (Response_format in [tiaChatRfJson, tiaChatRfJsonSchema]) and
        not LHasUserFunctions then
@@ -1439,7 +1439,7 @@ begin
         LPartObj := jValPart as TJSONObject;
 
         // [V3] CAPTURAR THOUGHT SIGNATURE (De cualquier parte)
-        // Se guarda temporalmente en ResMsg. Si luego resulta ser un ToolCall,
+        // Is saved temporalmente en ResMsg. Si luego resulta ser un ToolCall,
         // transferiremos estas firmas al mensaje intermedio.
         if LPartObj.TryGetValue<string>('thoughtSignature', LPartSig) then
         begin
@@ -1561,7 +1561,7 @@ begin
     var
     Msg := TAiChatMessage.Create(LRespuesta, LRole);
 
-    // Construir el JSON de tool_calls para el historial
+    // Construir el JSON de tool_calls for the historial
     var
     JToolsArr := TJSonArray.Create;
     for Clave in LFunciones.Keys do
@@ -1621,7 +1621,7 @@ begin
       for var Sig in SrcList do
         AddThoughtSignature(Msg, Sig);
 
-      // Limpiamos las firmas de ResMsg para que no se dupliquen cuando se llene con la respuesta final
+      // Limpiamos las firmas de ResMsg so that no se dupliquen cuando se llene con the response final
       FThoughtSignatures.Remove(ResMsg);
     end;
 
@@ -1638,7 +1638,7 @@ begin
       For Clave in LFunciones.Keys do
       Begin
         ToolCall := LFunciones[Clave];
-        ToolCall.ResMsg := ResMsg; // Pasamos referencias para que la tool pueda escribir si quiere
+        ToolCall.ResMsg := ResMsg; // Pasamos referencias so that la tool pueda escribir si quiere
         ToolCall.AskMsg := AskMsg;
 
         _CreateTask(ToolCall, I); // subrutina local garantiza captura por valor
@@ -1680,12 +1680,12 @@ begin
         FMessages.Add(ToolMsg);
       End;
 
-      // Llamada recursiva para obtener la respuesta final del modelo
+      // Llamada recursiva to obtain/get the response final del modelo
       // The final result will fill 'ResMsg' correctly.
       Self.Run(Nil, ResMsg);
 
       // Cosmetic cleanup: Sometimes recursion adds text at the end,
-      // limpiamos si es necesario o dejamos que ParseChat recursivo maneje el Prompt.
+      // limpiamos si it is necessary o dejamos que ParseChat recursivo maneje el Prompt.
       // ResMsg.Content := '';
 
     Finally
@@ -2434,7 +2434,7 @@ begin
     // 3. Build "parameters" (Veo Configuration)
     LParams := TJSONObject.Create;
 
-    // Valores por defecto si no existen en VideoParams
+    // Valores By default si do not exist en VideoParams
     if VideoParams.Params.IndexOfName('aspectRatio') = -1 then
       LParams.AddPair('aspectRatio', '16:9'); // Default seguro
 
@@ -2704,7 +2704,7 @@ begin
   LModelName := TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model);
   LUrl := Format('%smodels/%s:generateContent?key=%s', [Self.Url, LModelName, ApiKey]);
 
-  // 2. Construir Payload (siempre en el hilo principal: accede a propiedades del componente)
+  // 2. Construir Payload (siempre in the main thread: accede a propiedades of the component)
   LRequestJson := TJSONObject.Create;
   try
     LContentsArray := TJSonArray.Create;
@@ -2888,7 +2888,7 @@ begin
         end;
       end); // TTask.Run
 
-    Exit; // Retorna inmediatamente; el resultado llega por FOnReceiveDataEnd
+    Exit; // Retorna inmediatamente; the result llega por FOnReceiveDataEnd
   end;
 
   // =========================================================================
@@ -2987,7 +2987,7 @@ end;
 // Gemini 3 Pro Image usa generateContent con imageConfig, a diferencia de Veo.
 // Since the InternalRunImageGeneration method currently derives to Completions,
 // debemos asegurarnos de que InitChatCompletions soporte imageConfig.
-// Por ahora, InternalRunCompletions cubre Gemini 3 Image si se pasan los params correctos en CustomParams si fuese necesario,
+// for now, InternalRunCompletions cubre Gemini 3 Image si se pasan los params correctos en CustomParams si fuese necesario,
 // but here we add basic support if the model is gemini-3-pro-image-preview.
 
 function TAiGeminiChat.InternalRunNativeImageGeneration(ResMsg, AskMsg: TAiChatMessage): String;
@@ -3019,7 +3019,7 @@ Var
   JThoughtVal: TJSONValue;
   IsThought, IsStreamFinished: Boolean;
   LPartSig: String;
-  InString, Escape: Boolean; // Para el parser inteligente
+  InString, Escape: Boolean; // for the parser inteligente
 
   // Variables for completion logic
   ResMsg, AskMsg: TAiChatMessage;
@@ -3085,7 +3085,7 @@ begin
       begin
         // Detect escape for next iteration (e.g. \")
         if FTmpResponseText[I] = '\' then
-          Escape := not Escape // Toggle por si es doble barra \\
+          Escape := not Escape // Toggle in case es doble barra \\
         else
           Escape := False;
       end

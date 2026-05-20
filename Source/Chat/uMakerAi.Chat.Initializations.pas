@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -80,7 +80,7 @@ Begin
   // https://ollama.com/library
   // Ultima actualizacion: Feb 2026
   // ===================================================================
-  // Por defecto: texto puro, sin tools nativos (conservador)
+  // By default: texto puro, sin tools nativos (conservador)
   TAiChatFactory.Instance.RegisterUserParam('Ollama', 'Max_Tokens',   '8000');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', 'Temperature',  '0.7');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', 'Asynchronous', 'True');
@@ -160,7 +160,7 @@ Begin
   // Ultima actualizacion: Feb 2026
   // ------------------------- OPENAI ----------------------------------
 
-  // --- Valores globales por defecto para todos los modelos OpenAI ---
+  // --- Valores globales By default para todos los modelos OpenAI ---
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', 'Max_Tokens', '16000');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', 'Tool_Active', 'True');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', 'Temperature', '1');
@@ -331,7 +331,7 @@ Begin
   // Ultima actualizacion: Feb 2026
   // ------------------------- GEMINI ----------------------------------
 
-  // --- Valores globales por defecto para todos los modelos Gemini ---
+  // --- Valores globales By default para todos los modelos Gemini ---
   TAiChatFactory.Instance.RegisterUserParam('Gemini', 'Max_Tokens',  '32768');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', 'Tool_Active', 'True');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', 'ModelCaps',   '[cap_Image]');
@@ -493,7 +493,7 @@ Begin
   // Ultima actualizacion: Abr 2026
   // ------------------------- GROQ ----------------------------------
 
-  // --- Valores globales por defecto para todos los modelos Groq ---
+  // --- Valores globales By default para todos los modelos Groq ---
   TAiChatFactory.Instance.RegisterUserParam('Groq', 'Max_Tokens',    '8192');
   TAiChatFactory.Instance.RegisterUserParam('Groq', 'Tool_Active',   'True');
   TAiChatFactory.Instance.RegisterUserParam('Groq', 'ModelCaps',     '[]');
@@ -801,8 +801,8 @@ Begin
   // Ultima actualizacion: Feb 2026
   // ------------------------- MISTRAL ----------------------------------
 
-  // --- Valores globales por defecto para todos los modelos Mistral ---
-  // La mayoria soporta vision nativa -> ModelCaps=[cap_Image] por defecto
+  // --- Valores globales By default para todos los modelos Mistral ---
+  // La mayoria soporta vision nativa -> ModelCaps=[cap_Image] By default
   TAiChatFactory.Instance.RegisterUserParam('Mistral', 'Max_Tokens',  '16000');
   TAiChatFactory.Instance.RegisterUserParam('Mistral', 'Tool_Active', 'True');
   TAiChatFactory.Instance.RegisterUserParam('Mistral', 'ModelCaps',   '[cap_Image]');
@@ -881,7 +881,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Mistral', Model, 'Tool_Active', 'False');
 
   // ------- OCR: mistral-ocr ------
-  // ModelCaps=[] intencionalmente: crea Gap=[cap_Pdf] para que RunNew active la Fase 1
+  // ModelCaps=[] intencionalmente: crea Gap=[cap_Pdf] so that RunNew active la Fase 1
   // (InternalRunPDFDescription → endpoint /v1/ocr). TAiMistralChat.InternalRunCompletions
   // detecta el modelo OCR-only y omite la Fase 3 (chat completions no soportado).
   // https://docs.mistral.ai/capabilities/document
@@ -901,7 +901,7 @@ Begin
   // Ultima actualizacion: Abr 2026
   // ------------------------- GROK ----------------------------------
 
-  // --- Valores globales por defecto para todos los modelos Grok ---
+  // --- Valores globales By default para todos los modelos Grok ---
   TAiChatFactory.Instance.RegisterUserParam('Grok', 'Max_Tokens',  '16000');
   TAiChatFactory.Instance.RegisterUserParam('Grok', 'Tool_Active', 'True');
   TAiChatFactory.Instance.RegisterUserParam('Grok', 'ModelCaps',   '[]');
@@ -1026,7 +1026,7 @@ Begin
   // Ultima actualizacion: Feb 2026
   // ------------------------- COHERE ----------------------------------
 
-  // --- Valores globales por defecto para todos los modelos Cohere ---
+  // --- Valores globales By default para todos los modelos Cohere ---
   TAiChatFactory.Instance.RegisterUserParam('Cohere', 'Max_Tokens',  '8000');
   TAiChatFactory.Instance.RegisterUserParam('Cohere', 'Tool_Active', 'True');
   TAiChatFactory.Instance.RegisterUserParam('Cohere', 'Asynchronous', 'False');
@@ -1079,7 +1079,7 @@ Begin
   // Ultima actualizacion: Feb 2026
   // ------------------------- DEEPSEEK ----------------------------------
 
-  // --- Valores globales por defecto para todos los modelos DeepSeek ---
+  // --- Valores globales By default para todos los modelos DeepSeek ---
   TAiChatFactory.Instance.RegisterUserParam('DeepSeek', 'Max_Tokens',  '8192');
   TAiChatFactory.Instance.RegisterUserParam('DeepSeek', 'Tool_Active', 'True');
   TAiChatFactory.Instance.RegisterUserParam('DeepSeek', 'ModelCaps',   '[]');
@@ -1099,7 +1099,7 @@ Begin
   // Ultima actualizacion: Feb 2026
   // ------------------------- KIMI ----------------------------------
 
-  // --- Valores globales por defecto para todos los modelos Kimi ---
+  // --- Valores globales By default para todos los modelos Kimi ---
   TAiChatFactory.Instance.RegisterUserParam('Kimi', 'Max_Tokens',  '16000');
   TAiChatFactory.Instance.RegisterUserParam('Kimi', 'Tool_Active', 'True');
   TAiChatFactory.Instance.RegisterUserParam('Kimi', 'Temperature', '1');
@@ -1222,7 +1222,7 @@ End;
 
 Procedure InitEmbeddingModels;
 Begin
-  // OpenAI - modelos adicionales con dimensiones espec?ficas
+  // OpenAI - modelos adicionales con dimensions specifics
   TAiEmbeddingFactory.Instance.RegisterUserParam('OpenAi', 'text-embedding-3-large', 'Dimensions', '3072');
   TAiEmbeddingFactory.Instance.RegisterUserParam('OpenAi', 'text-embedding-ada-002', 'Dimensions', '1536');
 

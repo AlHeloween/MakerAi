@@ -53,7 +53,7 @@ type
   end;
 
   // --- CHANGE 1: New structure to store the class AND its unit name. ---
-  // Esto enriquece el registro para que el generador de c�digo sepa qu� unidades incluir.
+  // Esto enriquece el registro so that el generador de c�digo sepa qu� unidades incluir.
   TToolInfo = record
     ToolClass: TClass;
     UnitName: string;
@@ -76,7 +76,7 @@ type
 
     function FindToolClass(const AToolClassName: string): TClass;
 
-    // --- CAMBIO 4: Nuevo m�todo para que el generador consulte el nombre de la unidad. ---
+    // --- CAMBIO 4: Nuevo m�todo so that el generador consulte the name de la unidad. ---
     function GetUnitForToolClass(const AToolClassName: string): string;
 
     function GetToolBlueprints: TArray<TToolBlueprint>;
@@ -104,7 +104,7 @@ implementation
 
 uses System.Rtti;
 
-// Helper interno para generar los esquemas JSON de los par�metros.
+// Helper interno to generate the JSON schemas de los par�metros.
 // No requiere cambios.
 type
   TSchemaGen_Internal = class
@@ -120,7 +120,7 @@ type
 constructor TEngineRegistry.Create;
 begin
   inherited;
-  // --- CAMBIO 5: Se crea el diccionario con el nuevo tipo de valor (TToolInfo). ---
+  // --- CAMBIO 5: Is created el diccionario con el nuevo tipo de valor (TToolInfo). ---
   FRegisteredTools := TDictionary<string, TToolInfo>.Create;
 end;
 
@@ -141,7 +141,7 @@ begin
     Result := nil;
 end;
 
-// --- CAMBIO 7: Implementaci�n del nuevo m�todo para obtener la unidad. ---
+// --- CAMBIO 7: Implementaci�n del nuevo m�todo to obtain/get la unidad. ---
 function TEngineRegistry.GetUnitForToolClass(const AToolClassName: string): string;
 var
   LToolInfo: TToolInfo;
@@ -183,7 +183,7 @@ begin
     // --- CAMBIO 9: El bucle itera sobre los valores TToolInfo del diccionario. ---
     for LToolInfo in FRegisteredTools.Values do
     begin
-      // Se extrae la clase del registro para que el resto del c�digo funcione sin cambios.
+      // Se extrae the class del registro so that el resto del c�digo funcione without changes.
       ToolClass := LToolInfo.ToolClass;
 
       LRttiType := LContext.GetType(ToolClass);

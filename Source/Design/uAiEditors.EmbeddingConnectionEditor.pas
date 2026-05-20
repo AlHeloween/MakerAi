@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -40,7 +40,7 @@ uses
   uMakerAi.Embeddings.Connection;
 
 type
-  // Property Editor para la propiedad DriverName de TAiEmbeddingConnection
+  // Property Editor for the propiedad DriverName de TAiEmbeddingConnection
   TAiEmbeddingDriverNamePropertyEditor = class(TStringProperty)
   public
     procedure GetValues(Proc: TGetStrProc); override;

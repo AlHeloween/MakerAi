@@ -261,7 +261,7 @@ begin
       FOnAddMessage(Self, AskMsg, Nil, AskMsg.Role, AskMsg.Prompt);
   end;
 
-  // 2. Preparar par�metros para la API de DALL-E
+  // 2. Preparar par�metros for the API de DALL-E
   LUrl := Url + 'images/generations'; // Asume que 'Url' es la URL base de OpenAI
   LJsonObject := TJSonObject.Create;
   LBodyStream := nil;
@@ -417,7 +417,7 @@ begin
       FOnAddMessage(Self, AskMsg, Nil, AskMsg.Role, AskMsg.Prompt);
   end;
 
-  // 2. Preparar par�metros para la API de DALL-E
+  // 2. Preparar par�metros for the API de DALL-E
   LUrl := Url + 'images/generations'; // Asume que 'Url' es la URL base de OpenAI
   LJsonObject := TJSonObject.Create;
   LBodyStream := nil;
@@ -543,12 +543,12 @@ begin
       FOnAddMessage(Self, AskMsg, Nil, AskMsg.Role, AskMsg.Prompt);
   end;
 
-  // 2. Preparar par�metros para la API de TTS
+  // 2. Preparar par�metros for the API de TTS
   LUrl := Url + 'audio/speech';
   LModel := TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model);
-  // 'tts-1'; // O podr�as tener una propiedad espec�fica para el modelo TTS
-  LVoice := TtsParams.Voice; // Usamos la propiedad del componente
-  LResponseFormat := TtsParams.VoiceFormat; // Usamos la propiedad del componente
+  // 'tts-1'; // O podr�as tener una propiedad espec�fica for the modelo TTS
+  LVoice := TtsParams.Voice; // Usamos la propiedad of the component
+  LResponseFormat := TtsParams.VoiceFormat; // Usamos la propiedad of the component
 
   // 3. Construir y ejecutar la petici�n
   LJsonObject := TJSonObject.Create;
@@ -620,7 +620,7 @@ var
   LResponseStream: TMemoryStream;
   LTempStream: TMemoryStream;
   LResponseObj: TJSonObject;
-  Granularities: TStringList; // Para procesar las granularidades
+  Granularities: TStringList; // to process las granularidades
   I: integer;
   LModel: String;
 begin
@@ -741,7 +741,7 @@ end;
 
 function TAiOpenChat.InternalRunNativeWebSearch(ResMsg, AskMsg: TAiChatMessage): String;
 Var
-  // Para la petici�n
+  // for the petici�n
   LBodyJson: TJSonObject;
   LToolsArray: TJSonArray;
   LToolObject: TJSonObject;
@@ -751,7 +751,7 @@ Var
   LHeaders: TNetHeaders;
   LastMessage: TAiChatMessage;
 
-  // Para la respuesta
+  // for the respuesta
   LResponse: IHTTPResponse;
   LResponseJson: TJSonObject;
 
@@ -778,14 +778,14 @@ begin
   LBodyStream := TStringStream.Create('', TEncoding.UTF8);
 
   try
-    // --- 1. CONSTRUCCI�N DEL CUERPO JSON PARA LA API DE /v1/responses ---
+    // --- 1. CONSTRUCCI�N DEL CUERPO JSON for the API DE /v1/responses ---
 
     // Par�metro 'model' (requerido)
     LBodyJson.AddPair('model', LModel); // Debe ser un modelo compatible
 
     // Par�metro 'input' - La API de 'Responses' usa 'input' con el prompt del usuario
     // A diferencia de 'messages', aqu� solo se env�a el �ltimo prompt.
-    // Esta API es m�s "sin estado" (stateless) para la conversaci�n.
+    // Esta API es m�s "sin estado" (stateless) for the conversaci�n.
     LBodyJson.AddPair('input', LastMessage.Prompt);
 
     // Par�metro 'tools' - Aqu� activamos la b�squeda web
@@ -801,10 +801,10 @@ begin
     // LBodyJson.AddPair('temperature', TJSONNumber.Create(Temperature));
     // LBodyJson.AddPair('max_tokens', TJSONNumber.Create(Max_tokens));
 
-    // La API de 'responses' puede no soportar streaming. Asumimos que no por ahora.
+    // La API de 'responses' puede no soportar streaming. Asumimos que no for now.
     // Si lo soportara, se a�adir�a aqu�: LBodyJson.AddPair('stream', TJSONBool.Create(True));
 
-    // Convertir el JSON a string y prepararlo para el env�o
+    // Convertir el JSON a string y prepararlo for the env�o
 
     Res := UTF8ToString(UTF8Encode(LBodyJson.ToJson));
 
@@ -878,7 +878,7 @@ begin
   Voice := 'alloy';
   voice_format := 'mp3';
   FStore := False; // do not store info for distillation or evaluation models
-  FParallel_ToolCalls := True; // Por defecto realiza el llamado en paralelo, esto ahorra tiempo en las respuestas
+  FParallel_ToolCalls := True; // By default realiza el llamado en paralelo, esto ahorra tiempo en las respuestas
   FService_Tier := 'auto'; // posibles valore auto y default  ver API documentation.
 end;
 
@@ -1072,14 +1072,14 @@ Var
   LastMessageJson, JTextObj, JImageObj: TJSonObject;
   LModel: String;
 begin
-  // Inicializaci�n de variables y valores por defecto
+  // Inicializaci�n de variables y valores By default
   If User = '' then
     User := 'user';
 
   LModel := TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model);
 
   If LModel = '' then
-    LModel := 'gpt-4o'; // Un buen modelo por defecto que maneja multimodalidad
+    LModel := 'gpt-4o'; // Un buen modelo By default que maneja multimodalidad
 
   // Las funciones y la generaci�n de audio contextual no suelen funcionar en modo stream
   LAsincronico := Self.Asynchronous; // Self.Asynchronous and (not Self.Tool_Active) and (Not(Tfc_Audio in NativeOutputFiles)) and (Not(Tfc_Image in NativeOutputFiles)) and (Not(Tfc_Video in NativeOutputFiles));
@@ -1113,7 +1113,7 @@ begin
     begin
       LastMessageJson := MessagesJson.Items[MessagesJson.Count - 1] as TJSonObject;
 
-      // Creamos un nuevo array de 'content' para el formato multimodal
+      // Creamos un nuevo array de 'content' for the formato multimodal
       NewContentArray := TJSonArray.Create;
 
       // 1. A�adimos el texto del prompt original
@@ -1231,7 +1231,7 @@ begin
           jResponseFormatObj.AddPair('type', 'json_object');
         tiaChatRfJsonSchema:
           jResponseFormatObj.AddPair('type', 'json_schema');
-      else // tiaChatRfText y por defecto
+      else // tiaChatRfText y By default
         jResponseFormatObj.AddPair('type', 'text');
       end;
       AJSONObject.AddPair('response_format', jResponseFormatObj);
@@ -1309,7 +1309,7 @@ begin
     if FileExists(FilePath) then
       Append(LogFile) // Abrimos en modo "append"
     else
-      Rewrite(LogFile); // Creamos el archivo si no existe
+      Rewrite(LogFile); // Creamos the file si does not exist
 
     // Escribimos el texto al final del archivo
     WriteLn(LogFile, TextToAppend);
@@ -1379,7 +1379,7 @@ begin
     If Copy(FTmpResponseText, 1, 5) = 'data:' then
       FTmpResponseText := Copy(FTmpResponseText, 6, Length(FTmpResponseText));
 
-    // Bucle para procesar cada l�nea "data: {...}"
+    // Bucle to process cada l�nea "data: {...}"
     Repeat
       P := Pos('data:', FTmpResponseText);
       If P > 0 then
@@ -1440,7 +1440,7 @@ begin
           FakeResponseObj.AddPair('id', 'stream-' + IntToStr(TThread.GetTickCount));
           FakeResponseObj.AddPair('model', Model);
 
-          // Usage ficticio (necesario para evitar Access Violation en ParseChat)
+          // Usage ficticio (necesario to avoid Access Violation en ParseChat)
           FakeUsage := TJSonObject.Create;
           FakeUsage.AddPair('prompt_tokens', TJSONNumber.Create(0));
           FakeUsage.AddPair('completion_tokens', TJSONNumber.Create(0));
@@ -1470,7 +1470,7 @@ begin
 
           // 3. LLAMADA A PARSECHAT
           // ParseChat se encargar� de:
-          // A) Si es Tool Call: Ejecutar DoCallFunction -> Agregar resultado -> Llamar Run() de nuevo autom�ticamente.
+          // A) Si es Tool Call: Ejecutar DoCallFunction -> Agregar resultado -> Llamar Run() again autom�ticamente.
           // B) Si es Texto: Simplemente procesarlo y poblar TempMsg.
           TempMsg := TAiChatMessage.Create('', FTmpRole);
           try
@@ -1650,7 +1650,7 @@ var
   aPrompt_tokens, aCompletion_tokens, aTotal_tokens: integer;
 
   // Objetos del Framework
-  ToolMsg, AskMsg: TAiChatMessage; // ResMsg es el mensaje de resultado, AskMsg es el mensaje del usuario con la solicitud
+  ToolMsg, AskMsg: TAiChatMessage; // ResMsg es el mensaje de resultado, AskMsg es el mensaje of the user con the request
   MediaFile: TAiMediaFile;
   LFunciones: TAiToolsFunctions;
   ToolCall: TAiToolsFunction;
@@ -1704,7 +1704,7 @@ begin
 
   // Creamos el mensaje que representar� la respuesta del asistente.
   // Se poblar� a medida que analicemos el JSON.
-  // Msg := TAiChatMessage.Create('', ''); //Se crea en el run
+  // Msg := TAiChatMessage.Create('', ''); //Is created en el run
   try
     // Normalmente solo procesamos la primera 'choice' (index 0), pero un bucle es m�s robusto.
     for JVal in choices do
@@ -1768,7 +1768,7 @@ begin
           // Ahora, procesamos las anotaciones (los enlaces encontrados)
           if jWebSearch.TryGetValue<TJSonArray>('annotations', jAnnotations) then
           begin
-            ResMsg.WebSearchResponse.annotations.Clear; // Limpiamos por si acaso
+            ResMsg.WebSearchResponse.annotations.Clear; // Limpiamos in case acaso
             for jAnnotationItemValue in jAnnotations do
             begin
               if not(jAnnotationItemValue is TJSonObject) then
@@ -1797,7 +1797,7 @@ begin
     // --- 3. CONSTRUCCI�N Y ALMACENAMIENTO DEL MENSAJE DE RESPUESTA ---
     Respuesta := Trim(Respuesta);
 
-    // Actualizamos los contadores de tokens globales del componente.
+    // Actualizamos los contadores de tokens globales of the component.
     Self.Prompt_tokens := Self.Prompt_tokens + aPrompt_tokens;
     Self.Completion_tokens := Self.Completion_tokens + aCompletion_tokens;
     Self.Total_tokens := Self.Total_tokens + aTotal_tokens;
@@ -1814,7 +1814,7 @@ begin
       ResMsg.Total_tokens := ResMsg.Total_tokens + aTotal_tokens;
       DoProcessResponse(AskMsg, ResMsg, Respuesta);
     End
-    Else // Si tiene toolcall lo adiciona y ejecuta nuevamente el run para obtener la respuesta
+    Else // Si tiene toolcall lo adiciona y ejecuta nuevamente el run to obtain/get the response
     Begin
       Var
       Msg := TAiChatMessage.Create(Respuesta, Role);
@@ -1870,7 +1870,7 @@ begin
           FMessages.Add(ToolMsg);
         end;
 
-        // Volvemos a llamar a la API para que procese los resultados de las funciones.
+        // Volvemos a llamar a la API so that procese the results de las funciones.
         Self.Run(Nil, ResMsg);
       end
       else
@@ -1983,13 +1983,13 @@ begin
     end;
   end;
 
-  // --- 4. ACTUALIZACI�N DEL ESTADO DEL COMPONENTE ---
+  // --- 4. ACTUALIZACI�N DEL ESTADO of the component ---
   // Actualizamos los contadores de tokens globales, sumando los de esta llamada.
   Self.Total_tokens := Self.Total_tokens + aTotal_tokens;
   Self.Prompt_tokens := Self.Prompt_tokens + aInput_tokens; // 'input' equivale a 'prompt'
   Self.Completion_tokens := Self.Completion_tokens + aOutput_tokens; // 'output' equivale a 'completion'
 
-  // Guardamos el resultado principal
+  // Guardamos the result principal
   // Self.FLastContent := sTextoTranscrito;
 
   If Trim(sTextoWords + sLineBreak + sTextoSegments) <> '' then
@@ -2009,7 +2009,7 @@ begin
   ResMsg.Prompt_tokens := ResMsg.Prompt_tokens + aInput_tokens;
   ResMsg.Completion_tokens := ResMsg.Completion_tokens + aOutput_tokens;
   ResMsg.Total_tokens := ResMsg.Total_tokens + aTotal_tokens;
-  ResMsg.Model := Self.Model; // Se asigna el mismo del llamado ya que no retorna un modelo diferente
+  ResMsg.Model := Self.Model; // Is assigned el mismo del llamado ya que no retorna un modelo diferente
 end;
 
 procedure TAiOpenChat.ParseResponse(jObj: TJSonObject; ResMsg: TAiChatMessage);
@@ -2119,9 +2119,9 @@ begin
           begin
             MediaFile := TAiMediaFile.Create;
             try
-              // La API devuelve un PNG por defecto. El nombre no es crucial.
+              // La API devuelve un PNG By default. the name no es crucial.
               MediaFile.LoadFromBase64('generated_image.png', ImageBase64);
-              // Usamos la propiedad 'Detail' para guardar el prompt revisado, una buena pr�ctica.
+              // Usamos la propiedad 'Detail' to save el prompt revisado, una buena pr�ctica.
               MediaFile.Detail := RevisedPrompt;
               ResMsg.AddMediaFile(MediaFile);
             except
@@ -2135,7 +2135,7 @@ begin
 
     // --- 3. Poblar el objeto de mensaje de respuesta (ResMsg) ---
     FLastContent := Trim(FLastContent);
-    // Si no se gener� texto (solo una imagen), FLastContent estar� vac�o, lo cual es correcto.
+    // Si no se gener� texto (solo una imagen), FLastContent estar� vac�o, lo cual is correct.
     ResMsg.Prompt := FLastContent;
     ResMsg.Content := FLastContent;
 
@@ -2151,7 +2151,7 @@ begin
     Self.Completion_tokens := Self.Completion_tokens + aOutput_tokens;
     Self.Total_tokens := Self.Total_tokens + aTotal_tokens;
 
-    // Asignar los resultados de la b�squeda web
+    // Asignar the results de la b�squeda web
     if Assigned(WebSearch) then
     begin
 

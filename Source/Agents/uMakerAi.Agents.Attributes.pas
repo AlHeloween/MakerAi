@@ -62,7 +62,7 @@ type
   end;
 
   // ---------------------------------------------------------------------------
-  // 2. ATRIBUTO PARA LOS PAR�METROS (PROPIEDADES) DE LA HERRAMIENTA ([ToolParameter])
+  // 2. ATRIBUTO PARA LOS PAR�METROS (PROPIEDADES) DE the tool ([ToolParameter])
   // Define c�mo se muestra un par�metro en el di�logo de configuraci�n.
   // ---------------------------------------------------------------------------
   // Nota de estilo: Renombrado a TToolParameterAttribute por convenci�n de Delphi.

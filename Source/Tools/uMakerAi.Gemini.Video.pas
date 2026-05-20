@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -64,10 +64,10 @@ type
     function BuildParametersJson: TJSONObject;
     function DownloadVideo(const AVideoUri: string): TAiMediaFile;
   protected
-    { Implementaci?n de IAiVideoTool }
+    { implementation de IAiVideoTool }
     procedure ExecuteVideoGeneration(ResMsg, AskMsg: TAiChatMessage); override;
 
-    { L?gica interna de ejecuci?n y Polling }
+    { logic interna de execution y Polling }
     procedure InternalRunVeo(AResMsg, AAskMsg: TAiChatMessage);
   public
     constructor Create(AOwner: TComponent); override;
@@ -76,7 +76,7 @@ type
     property Model: string read FModel write FModel;
     property Url: string read FUrl write FUrl;
 
-    { Propiedades de configuraci?n de Veo }
+    { Propiedades de configuration de Veo }
     property AspectRatio: TVeoAspectRatio read FAspectRatio write FAspectRatio default ar16_9;
     property Resolution: TVeoResolution read FResolution write FResolution default vr720p;
     property DurationSeconds: Integer read FDurationSeconds write FDurationSeconds default 8;
@@ -154,9 +154,9 @@ procedure TAiGeminiVideoTool.ExecuteVideoGeneration(ResMsg, AskMsg: TAiChatMessa
 var
   LTaskMsg: TAiChatMessage;
 begin
-  // Veo SIEMPRE es as?ncrono (tarda minutos). NO usamos ResMsg directamente
+  // Veo SIEMPRE es like thisncrono (tarda minutos). NO usamos ResMsg directamente
   // porque TAiChat.Run puede liberarlo antes de que el polling termine.
-  // Creamos un mensaje propio y encolamos su liberaci?n despu?s de ReportDataEnd
+  // Creamos un mensaje propio y encolamos su release after de ReportDataEnd
   // para respetar el orden FIFO de TThread.Queue.
   LTaskMsg := TAiChatMessage.Create('', 'assistant');
   TTask.Run(procedure
@@ -166,8 +166,8 @@ begin
     except
       on E: Exception do ReportError('Error en Veo Tool: ' + E.Message, E);
     end;
-    // ReportDataEnd ya encol? DoDataEnd(LTaskMsg,...) al hilo principal.
-    // Encolamos el Free despu?s para ejecutarse en orden FIFO.
+    // ReportDataEnd ya queued DoDataEnd(LTaskMsg,...) al hilo principal.
+    // Encolamos el Free after para ejecutarse en orden FIFO.
     TThread.Queue(nil, procedure begin LTaskMsg.Free; end);
   end);
 end;
@@ -188,7 +188,7 @@ begin
   HTTP := TNetHTTPClient.Create(nil);
   LRequest := TJSONObject.Create;
   try
-    // 1. Construir Petici?n Inicial
+    // 1. Construir request Inicial
     LInstances := TJSONArray.Create;
     LInstance := TJSONObject.Create;
     LInstance.AddPair('prompt', AAskMsg.Prompt);
@@ -211,7 +211,7 @@ begin
     LRequest.AddPair('instances', LInstances);
     LRequest.AddPair('parameters', BuildParametersJson);
 
-    // 2. Iniciar Operaci?n (predictLongRunning)
+    // 2. Iniciar operation (predictLongRunning)
     LUrl := Format('%smodels/%s:predictLongRunning?key=%s', [FUrl, FModel, GetApiKey]);
     LBody := TStringStream.Create(LRequest.ToJSON, TEncoding.UTF8);
     HTTP.ContentType := 'application/json';

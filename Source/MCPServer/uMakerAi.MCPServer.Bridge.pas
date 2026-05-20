@@ -43,13 +43,13 @@ end;
 
 destructor TTAiFunctionToolProxy.Destroy;
 begin
-  // No liberamos FFunctionItem ni FAiFunctions porque no somos sus due?os
+  // No liberamos FFunctionItem ni FAiFunctions porque no somos sus owners
   inherited;
 end;
 
 function TTAiFunctionToolProxy.GetName: string;
 begin
-  // Devolvemos el nombre completo (incluyendo el prefijo _99_ si es una funci?n externa)
+  // Devolvemos el nombre completo (incluyendo el prefijo _99_ si es una function externa)
   Result := FFunctionItem.FunctionName;
 end;
 
@@ -64,7 +64,7 @@ var
 begin
   Result := nil;
 
-  // 1. Obtenemos la definici?n completa que ya genera tu componente local.
+  // 1. Obtenemos la defstartedn completa que ya genera tu componente local.
   // El formato es: {"type": "function", "function": {"name": "...", "parameters": {...}}}
   LFullOpenAiJson := FFunctionItem.ToJSon(False);
 
@@ -72,19 +72,19 @@ begin
     Exit(TJSONObject.Create);
 
   try
-    // 2. El servidor MCP solo necesita el esquema de par?metros (InputSchema),
+    // 2. El servidor MCP solo necesita el esquema de parameters (InputSchema),
     // no toda la envoltura de OpenAI.
     if LFullOpenAiJson.TryGetValue<TJSONObject>('function', LFuncObj) then
     begin
       if LFuncObj.TryGetValue<TJSONObject>('parameters', LParams) then
       begin
-        // 3. Clonamos el objeto de par?metros.
-        // El servidor MCP se encargar? de liberar este objeto despu?s de usarlo.
+        // 3. Clonamos el objeto de parameters.
+        // El servidor MCP se will handle de liberar este objeto after de usarlo.
         Result := LParams.Clone as TJSONObject;
       end;
     end;
 
-    // 4. Si el esquema no existe o est? vac?o, devolvemos un objeto de esquema v?lido pero vac?o.
+    // 4. Si el esquema does not exist o is empty, devolvemos un objeto de esquema valid pero empty.
     if not Assigned(Result) then
     begin
       Result := TJSONObject.Create;
@@ -117,11 +117,11 @@ begin
     if Assigned(Arguments) then
       LToolCall.Arguments := Arguments.ToJSON;
 
-    // Asignamos el mensaje para que DoCallFunction pueda depositar mediafiles ah?
+    // Asignamos el mensaje so that DoCallFunction pueda depositar mediafiles there
     LToolCall.ResMsg := LResMsg;
 
     // 2. Ejecutar el motor central de TAiFunctions
-    // Esto disparar? OnAction si es local, o llamar? a otro servidor si es remoto.
+    // Esto would trigger OnAction si es local, o would call a otro servidor si es remoto.
     if FAiFunctions.DoCallFunction(LToolCall) then
     begin
       // 3. Procesar la respuesta de texto
@@ -141,13 +141,13 @@ begin
         end
         else
         begin
-          // Si es texto plano (lo m?s com?n), lo a?adimos al builder
+          // Si es texto plano (lo more common), lo we add al builder
           LResponseBuilder.AddText(LToolCall.Response);
         end;
       end;
 
-      // 4. PROCESAR MEDIAFILES (Im?genes, Audio, etc.)
-      // Si la funci?n gener? archivos (ej. un gr?fico o un PDF), los incluimos en la respuesta MCP
+      // 4. PROCESAR MEDIAFILES (imagees, Audio, etc.)
+      // Si la function generated archivos (ej. un graphic o un PDF), los incluimos en la respuesta MCP
       if Assigned(LResMsg.MediaFiles) and (LResMsg.MediaFiles.Count > 0) then
       begin
         for I := 0 to LResMsg.MediaFiles.Count - 1 do
@@ -160,7 +160,7 @@ begin
         end;
       end;
 
-      // Si a?n no tenemos resultado (porque era texto plano + media), lo construimos
+      // Si even no tenemos resultado (porque era texto plano + media), lo construimos
       if not Assigned(Result) then
         Result := LResponseBuilder.Build;
     end

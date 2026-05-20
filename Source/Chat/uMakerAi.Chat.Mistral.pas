@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -73,11 +73,11 @@
   - Se necesitan propiedades para que el usuario pueda definir los esquemas JSON
   y los par?metros de la anotaci?n.
 
-  property OcrDocumentAnnotationSchema: TStrings; // Almacena el schema JSON para la anotaci?n del documento.
-  property OcrBboxAnnotationSchema: TStrings;   // Almacena el schema JSON para la anotaci?n de BBoxes.
-  property OcrAnnotationPages: string;          // String con n?meros de p?gina separados por coma (ej: "0,1,2")
-  // para `document_annotation`. Si est? vac?o, se aplica a todo
-  // (respetando el l?mite de 8 p?ginas de la API).
+  property OcrDocumentAnnotationSchema: TStrings; // Almacena el schema JSON for the anotaci?n del documento.
+  property OcrBboxAnnotationSchema: TStrings;   // Almacena el schema JSON for the anotaci?n de BBoxes.
+  property OcrAnnotationPages: string;          // String con numbers de page separados por coma (ej: "0,1,2")
+  // para `document_annotation`. Si is empty, se aplica a todo
+  // (respetando el limit de 8 pages de la API).
 
   2. MODIFICAR `InternalRunOcr`:
   - Dentro de esta funci?n, antes de construir el TJSONObject de la petici?n:
@@ -104,7 +104,7 @@
 
   property DocumentAnnotation: string;     // Guarda el JSON resultante de la anotaci?n del documento.
   property BboxAnnotations: TStrings;    // Guarda una lista de JSONs, uno por cada anotaci?n de BBox.
-  // O podr?a ser un TJSONArray directamente.
+  // O could ser un TJSONArray directamente.
 
   -----------------------------------------------------------------------------
 }
@@ -232,7 +232,7 @@ var
   LUrl: string;
   LResponseObj: TJSONObject;
   LSignedUrl: string;
-  LHeaders: TNetHeaders; // A?adido
+  LHeaders: TNetHeaders; // added
 begin
   Result := '';
   // MODIFICADO: Comprobar el campo correcto.
@@ -241,8 +241,8 @@ begin
 
   // MODIFICADO: Usar el campo correcto para construir la URL.
   LUrl := Url + 'files/' + aMediaFile.IDFile + '/url';
-  LHeaders := [TNetHeader.Create('Authorization', 'Bearer ' + ApiKey)]; // A?adir el Header de autorizaci?n
-  LResponse := FClient.Get(LUrl, nil, LHeaders); // A?adir el header a la petici?n
+  LHeaders := [TNetHeader.Create('Authorization', 'Bearer ' + ApiKey)]; // add el Header de authorization
+  LResponse := FClient.Get(LUrl, nil, LHeaders); // add el header a la request
 
   if LResponse.StatusCode = 200 then
   begin
@@ -297,7 +297,7 @@ var
   LResponse: IHTTPResponse;
   LUrl: string;
 begin
-  Result := nil; // Por defecto, devolvemos nil si algo falla.
+  Result := nil; // By default, devolvemos nil si algo falla.
   if aFileId.IsEmpty then
     raise Exception.Create('A file ID is required to retrieve it.');
 
@@ -326,7 +326,7 @@ begin
       try
         Result.LoadFromStream(LMetadata.Filename, LContentStream);
         // Guardamos el ID de Mistral para futuras referencias.
-        // Reutilizamos IdAudio como en otras partes del c?digo.
+        // Reutilizamos IdAudio como en otras partes del code.
         Result.IDFile := aFileId;
       except
         // Si hay un error al crear o cargar, liberamos y devolvemos nil.
@@ -361,7 +361,7 @@ var
   LUrl: string;
   LFileObj: TJSONObject;
 begin
-  // Inicializa el resultado
+  // Inicializa the result
   FillChar(Result, SizeOf(TMistralFile), 0);
   Result.Id := '';
 
@@ -434,7 +434,7 @@ var
   LResponse: IHTTPResponse;
   LUrl: string;
   LResponseObj: TJSONObject;
-  LHeaders: TNetHeaders; // A?adido
+  LHeaders: TNetHeaders; // added
 begin
   Result := '';
   if not Assigned(aMediaFile) or (aMediaFile.Content.Size = 0) then
@@ -448,7 +448,7 @@ begin
     LTempStream.LoadFromStream(aMediaFile.Content);
     LTempStream.Position := 0;
 
-    // Se debe especificar el prop?sito, para OCR es 'ocr'
+    // Must/Should especificar el purpose, para OCR es 'ocr'
     LBody.AddField('purpose', 'ocr');
 
 {$IF CompilerVersion >= 35}
@@ -456,7 +456,7 @@ begin
 {$ELSE}
     LBody.AddStream('file', LTempStream, aMediaFile.Filename, aMediaFile.MimeType);
 {$ENDIF}
-    LHeaders := [TNetHeader.Create('Authorization', 'Bearer ' + ApiKey)]; // A?adir el Header de autorizaci?n
+    LHeaders := [TNetHeader.Create('Authorization', 'Bearer ' + ApiKey)]; // add el Header de authorization
 
     Var
     LResponseStream := TMemoryStream.Create;
@@ -489,12 +489,12 @@ var
   FileId: string;
 begin
   Result := '';
-  // Llama a la funci?n de subida que ya implementamos
+  // Llama a la function de subida que ya implementamos
   FileId := Self.UploadFile(aMediaFile);
 
   if not FileId.IsEmpty then
   begin
-    // ?xito. El ID ya est? en aMediaFile.IDFile gracias a UploadFile.
+    // success. El ID ya is en aMediaFile.IDFile gracias a UploadFile.
     // Usamos CacheName como una bandera para indicar que este archivo
     // debe ser usado como contexto persistente.
     aMediaFile.CacheName := FileId; // El valor puede ser el propio FileId para referencia.
@@ -650,7 +650,7 @@ begin
         Self.OnReceiveThinking(Self, nil, jObj, FTmpRole, ThinkText);
       end;
     end;
-    // Otros tipos futuros (ej: "tool_use") se ignorar?n hasta que Mistral los documente.
+    // Otros tipos futuros (ej: "tool_use") se they will ignore hasta que Mistral los documente.
   end;
 end;
 
@@ -661,7 +661,7 @@ var
   Lista: TStringList;
   I: integer;
   Res: String;
-  // --- Variables para la l?gica de Document QnA ---
+  // --- Variables for the logic de Document QnA ---
   ActiveFileId: string;
   SignedUrl: string;
   MessagesJson: TJSonArray;
@@ -673,7 +673,7 @@ var
   JTextObj, JDocObj: TJSONObject;
   LModel: String;
 begin
-  // 1. --- Inicializaci?n de variables ---
+  // 1. --- initialization de variables ---
   AJSONObject := TJSONObject.Create;
   Lista := TStringList.Create;
   ActiveFileId := '';
@@ -681,9 +681,9 @@ begin
   LModel := TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model);
 
   try
-    // 2. --- Detecci?n de "Cach? Activa" para Document QnA ---
-    // Recorremos el historial de mensajes desde el m?s reciente al m?s antiguo.
-    // El primer archivo que encontremos con un 'CacheName' se usar? como contexto.
+    // 2. --- detection de "cache Activa" para Document QnA ---
+    // Recorremos el historial de mensajes desde el more reciente al more antiguo.
+    // El primer archivo que encontremos con un 'CacheName' se would use como contexto.
     for I := FMessages.Count - 1 downto 0 do
     begin
       Msg := FMessages[I];
@@ -700,22 +700,22 @@ begin
         end;
       end;
       if not ActiveFileId.IsEmpty then
-        Break; // Encontramos la cach?, salimos del bucle de Mensajes.
+        Break; // Encontramos la cache, salimos del bucle de Mensajes.
     end;
 
-    // 3. --- Construcci?n del Array de Mensajes ---
-    // Obtenemos el JSON de mensajes est?ndar generado por la clase base.
+    // 3. --- construction del Array de Mensajes ---
+    // Obtenemos el JSON de mensajes isndar generado por la clase base.
     MessagesJson := GetMessages;
 
-    // Si encontramos un archivo en cach? y hay mensajes, modificamos el ?ltimo mensaje
+    // Si encontramos un archivo en cache y hay mensajes, modificamos el last mensaje
     // para inyectarle la referencia al documento.
     if (not ActiveFileId.IsEmpty) and (MessagesJson.Count > 0) then
     begin
-      // Obtenemos una URL firmada y temporal para el archivo.
+      // Obtenemos una URL firmada y temporal for the archivo.
       SignedUrl := Self.GetSignedUrlById(ActiveFileId);
       if not SignedUrl.IsEmpty then
       begin
-        // a. Obtenemos el ?ltimo objeto de mensaje del array JSON.
+        // a. Obtenemos el last objeto de mensaje del array JSON.
         LastMessageObj := MessagesJson.Items[MessagesJson.Count - 1] as TJSONObject;
 
         // b. Extraemos el texto original (el prompt del usuario).
@@ -730,13 +730,13 @@ begin
         // c. Creamos el nuevo 'content' como un array [ {type: text}, {type: document_url} ].
         NewContentArray := TJSonArray.Create;
 
-        // c.1. Creamos el objeto para el texto
+        // c.1. Creamos el objeto for the texto
         JTextObj := TJSONObject.Create;
         JTextObj.AddPair('type', 'text');
         JTextObj.AddPair('text', PromptText);
         NewContentArray.Add(JTextObj);
 
-        // c.2. Creamos el objeto para el documento
+        // c.2. Creamos el objeto for the documento
         JDocObj := TJSONObject.Create;
         JDocObj.AddPair('type', 'document_url');
         JDocObj.AddPair('document_url', SignedUrl);
@@ -749,7 +749,7 @@ begin
     end;
     AJSONObject.AddPair('messages', MessagesJson);
 
-    // 4. --- A?adir Par?metros Est?ndar a la Petici?n ---
+    // 4. --- add parameters isndar a la request ---
     AJSONObject.AddPair('model', LModel);
 
     if Tool_Active and (Trim(GetTools(TToolFormat.tfOpenAi).Text) <> '') then
@@ -791,7 +791,7 @@ begin
     if Seed > 0 then
       AJSONObject.AddPair('random_seed', TJSONNumber.Create(Seed));
 
-    // 5. --- A?adir Par?metros Espec?ficos de Mistral ---
+    // 5. --- add parameters specifics de Mistral ---
     if not ActiveFileId.IsEmpty then
     begin
       if DocumentImageLimit > 0 then
@@ -835,7 +835,7 @@ begin
       AJSONObject.AddPair('stop', JStop);
     end;
 
-    // 6. --- Configuraci?n de Streaming ---
+    // 6. --- configuration de Streaming ---
     FClient.Asynchronous := Self.Asynchronous;
     AJSONObject.AddPair('stream', TJSONBool.Create(FClient.Asynchronous));
 
@@ -843,7 +843,7 @@ begin
     if ModelConfig.ThinkingLevel <> tlDefault then
       AJSONObject.AddPair('prompt_mode', 'reasoning');
 
-    // 7. --- Finalizaci?n y Devoluci?n del JSON ---
+    // 7. --- completion y return del JSON ---
 
     Res := UTF8ToString(UTF8Encode(AJSONObject.ToJSON));
     Res := StringReplace(Res, '\/', '/', [rfReplaceAll]);
@@ -966,14 +966,14 @@ begin
               end;
             end;
           end;
-          // 'reference' chunks se ignoran por ahora (citations futuro)
+          // 'reference' chunks se ignoran for now (citations futuro)
         end;
 
-        // Reemplazar content del message con el texto extraido para que inherited funcione
+        // Reemplazar content del message con the text extraido so that inherited funcione
         jMessage.RemovePair('content');
         jMessage.AddPair('content', sText);
 
-        // Guardar reasoning content para que el base class lo procese
+        // Guardar reasoning content so that el base class lo procese
         if sThinking <> '' then
         begin
           jMessage.RemovePair('reasoning_content');
@@ -1026,10 +1026,10 @@ begin
   LDocumentAnnotationFormatObj := nil;
 
   try
-    // 1. Construir el cuerpo de la petici?n JSON
+    // 1. Construir el cuerpo de la request JSON
     if LModel.IsEmpty then
     begin
-      // Si el modelo base esta vacio, utilizar el modelo por defecto.
+      // Si the model base esta vacio, utilizar the model By default.
       LJsonObject.AddPair('model', TJSONString.Create('mistral-ocr-latest'));
     end
     else
@@ -1041,8 +1041,8 @@ begin
     // 2. Determinar el tipo y origen del documento
     aMediaFile.CloudState := 'ocr-processing'; // Actualizar estado
 
-    // **NUEVA L?GICA DE SUBIDA AUTOM?TICA**
-    if aMediaFile.IDFile.IsEmpty then // Si no tiene un ID es porque no se ha subido.
+    // **NUEVA logic DE SUBIDA AUtookTICA**
+    if aMediaFile.IDFile.IsEmpty then // Si no tiene un ID es porque Has not been subido.
     begin
       // Subir el archivo.
       FileId := UploadFile(aMediaFile); // Subir el archivo al API
@@ -1055,19 +1055,19 @@ begin
       aMediaFile.IDFile := FileId; // Asignar el ID al objeto MediaFile.
     end;
 
-    // A partir de aqu? el archivo est? subido, sea que ven?a as? o se acaba de subir.
+    // A partir de awhat el archivo is subido, sea que came like this o se acaba de subir.
     LJsonObject.AddPair('id', TJSONString.Create(aMediaFile.IDFile)); // Se adiciona luego de subir el archivo al API
 
     // if not aMediaFile.IDFile.IsEmpty then
     begin
       // Escenario A: El archivo ya fue subido a Mistral.
-      // Necesitamos una URL firmada para que el servicio de OCR pueda acceder a ?l.
+      // Necesitamos una URL firmada so that el servicio de OCR pueda acceder a ?l.
       aMediaFile.CloudState := 'ocr-getting-signed-url';
-      LDataUri := GetSignedUrl(aMediaFile); // Esta funci?n actualiza aMediaFile.CloudUri
+      LDataUri := GetSignedUrl(aMediaFile); // Esta function actualiza aMediaFile.CloudUri
 
       if LDataUri.IsEmpty then
       begin
-        // GetSignedUrl ya habr? reportado el error.
+        // GetSignedUrl ya there will be reportado el error.
         DoError('Could not obtain signed URL for file with ID: ' + aMediaFile.IDFile, nil);
         aMediaFile.CloudState := 'ocr-failed: signed-url';
         Exit;
@@ -1082,32 +1082,32 @@ begin
 
     LJsonObject.AddPair('document', LDocumentObj);
 
-    // Par?metros Opcionales
+    // parameters Opcionales
     LJsonObject.AddPair('include_image_base64', TJSONBool.Create(FOcrIncludeImages));
 
     // Pages
     LPagesArray := TJSonArray.Create;
     try
-      // Verifica si OcrAnnotationPages est? vac?o
+      // Verifica si OcrAnnotationPages is empty
       if not OcrAnnotationPages.IsEmpty then
       begin
-        // Divide el string OcrAnnotationPages por comas para obtener los n?meros de p?gina
+        // Divide el string OcrAnnotationPages por comas to obtain/get los numbers de page
         PageNumbers := SplitString(OcrAnnotationPages, ',');
 
-        // Itera sobre los n?meros de p?gina y a??delos al array JSON
+        // Itera sobre los numbers de page y add them to al array JSON
         for PageNumber in PageNumbers do
         begin
-          // Elimina espacios en blanco al principio y al final del n?mero de p?gina
+          // Elimina espacios en blanco al principio y al final del number de page
 
-          // Verifica si el n?mero de p?gina es un entero v?lido
+          // Verifica si el number de page es un entero valid
           if TryStrToInt(Trim(PageNumber), PageIndex) then
           begin
-            // A?ade el n?mero de p?gina al array JSON
+            // adds el number de page al array JSON
             LPagesArray.Add(PageIndex);
           end
           else
           begin
-            // Manejar el caso en que el n?mero de p?gina no es v?lido (opcional)
+            // Manejar el caso en que el number de page no es valid (opcional)
             DoError('N?mero de p?gina no v?lido: ' + PageNumber, nil);
           end;
         end;
@@ -1139,8 +1139,8 @@ begin
     // document_annotation_format
     // Solo soportan jSon_schema
 
-    // 3. Realizar la petici?n POST a la API
-    ResMsg.Prompt := LJsonObject.ToString; // Guardamos la petici?n
+    // 3. Realizar la request POST a la API
+    ResMsg.Prompt := LJsonObject.ToString; // Guardamos la request
     LBodyStream.WriteString(LJsonObject.ToString);
     LBodyStream.Position := 0;
 
@@ -1199,7 +1199,7 @@ var
 begin
   // mistral-ocr-latest no soporta el endpoint /v1/chat/completions.
   // If Phase 1 (InternalRunPDFDescription) already executed OCR successfully
-  // (CloudState = 'ocr-completed'), devolvemos el resultado directamente.
+  // (CloudState = 'ocr-completed'), devolvemos the result directamente.
   LBaseModel := TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model);
   if LBaseModel = 'mistral-ocr-latest' then
   begin
@@ -1233,7 +1233,7 @@ begin
   // The aMediaFile object already exists, let us clean it in case it has previous data.
   // aMediaFile.Transcription := '';
   // aMediaFile.Detail := '';
-  // Limpiamos los MediaFiles anidados (im?genes extra?das del OCR)
+  // Limpiamos los MediaFiles anidados (imagees extracteds del OCR)
   // aMediaFile.MediaFiles.Clear;
 
   sb := TStringBuilder.Create;
@@ -1247,7 +1247,7 @@ begin
       Exit;
     end;
 
-    // Iteramos por cada p?gina del documento.
+    // Iteramos por cada page del documento.
 
     for pageValue in jPages do
     begin
@@ -1256,17 +1256,17 @@ begin
         continue;
       jPage := pageValue as TJSONObject;
 
-      // Cada p?gina tiene un campo "markdown" con el Markdown ya formateado.
-      // Esta es la forma m?s r?pida y sencilla de obtener el texto.
+      // Cada page tiene un campo "markdown" con el Markdown ya formateado.
+      // Esta es la forma more fast y sencilla de obtener el texto.
       if jPage.TryGetValue('markdown', blockValue) then // MODIFICADO de content a markdown
       begin
         sb.AppendLine(blockValue.Value);
-        sb.AppendLine('--- Page Break ---'); // A?adir un separador de p?gina.
+        sb.AppendLine('--- Page Break ---'); // add un separador de page.
       end;
 
-      // Adem?s, podemos procesar los datos estructurados si es necesario,
-      // como las im?genes incrustadas en el documento.
-      jImagesArray := TJSonArray.Create; // Se crea el objeto
+      // Ademore, podemos procesar the data estructurados si it is necessary,
+      // como las imagees incrustadas en el documento.
+      jImagesArray := TJSonArray.Create; // Is created el objeto
 
       if jPage.TryGetValue<TJSonArray>('images', jImagesArray) then
       begin
@@ -1296,32 +1296,32 @@ begin
               Base64Data := Copy(imageB64, PosBase64 + Length(';base64,'), Length(imageB64))
             else
               Base64Data := imageB64; // Si no se encuentra el prefijo, usar el string
-            // Creamos un nuevo TAiMediaFile para la imagen extra?da.
+            // Creamos un nuevo TAiMediaFile for the imagen extracted.
             embeddedImage := TAiMediaFile.Create;
             try
               // Le damos un nombre descriptivo.
-              embeddedImage.LoadFromBase64(imageId, Base64Data); // Se usa el id de la imagen como nombre
+              embeddedImage.LoadFromBase64(imageId, Base64Data); // Is used el id de la imagen como nombre
               // embeddedImage.MimeType := imageMimeType;
 
-              // A?adir informaci?n adicional a la descripci?n de la imagen
+              // add information adicional a la description de la imagen
               embeddedImage.Detail := Format('top_left_x: %d, top_left_y: %d, bottom_right_x: %d, bottom_right_y: %d', [topLeftX, topLeftY, bottomRightX, bottomRightY]);
 
-              // A?adimos la imagen extra?da a la lista de media files del documento principal.
+              // we add la imagen extracted a la lista de media files del documento principal.
               ResMsg.MediaFiles.Add(embeddedImage);
             except
               embeddedImage.Free;
-              // Manejar el error si es necesario.
+              // Manejar el error si it is necessary.
             end;
           end;
         end;
       end;
     end;
 
-    // El resultado principal es el contenido Markdown concatenado de todas las p?ginas.
+    // the result principal es the content Markdown concatenado de todas las pages.
     Result := sb.ToString;
 
-    // Guardamos el texto en las propiedades correspondientes de TAiMediaFile.
-    // Usamos 'Transcription' para el texto principal.
+    // Guardamos the text en the properties correspondientes de TAiMediaFile.
+    // Usamos 'Transcription' for the texto principal.
     ResMsg.Prompt := Result;
 
   finally

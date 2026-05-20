@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -54,7 +54,7 @@ type
 
     FCustomModels: TDictionary<string, String>; // DriverName -> TStringList
 
-    // Funci?n interna para crear la clave compuesta.
+    // function interna to create la clave compuesta.
     class function GetCompositeKey(const DriverName, ModelName: string): string; static;
 
   public
@@ -62,24 +62,24 @@ type
     destructor Destroy; override;
     class function Instance: TAiChatFactory;
 
-    // M?todos existentes (algunos con nueva firma)
+    // methods existentes (algunos con nueva firma)
     procedure RegisterDriver(AClass: TAiChatClass); overload;
     procedure RegisterDriver(AClass: TAiChatClass; const ADriverName: string); overload;
-    // Ahora acepta un ModelName opcional para obtener los par?metros jer?rquicos.
+    // Ahora acepta un ModelName opcional to obtain/get los parameters hierarchicals.
     procedure GetDriverParams(const DriverName, ModelName: string; Params: TStrings; ExpandVariables: Boolean = True);
     function CreateDriver(const DriverName: string): TAiChat;
     function GetRegisteredDrivers: TArray<string>;
     function HasDriver(const DriverName: string): Boolean;
 
-    // Versi?n principal para registrar un par?metro de un modelo espec?fico.
+    // version principal para registrar un parameter de un modelo specific.
     procedure RegisterUserParam(const DriverName, ModelName, ParamName, ParamValue: string); Overload;
-    // Sobrecarga para registrar un par?metro a nivel de Driver (compatibilidad y conveniencia).
+    // Sobrecarga para registrar un parameter a nivel de Driver (compatibilidad y conveniencia).
     procedure RegisterUserParam(const DriverName, ParamName, ParamValue: string); Overload;
 
-    // Limpia los par?metros (con sobrecarga para modelo).
+    // Limpia los parameters (con sobrecarga para modelo).
     procedure ClearRegisterParams(const DriverName: String; ModelName: string = '');
 
-    // --- Nuevos m?todos para manejar modelos personalizados ---
+    // --- Nuevos methods para manejar modelos personalizados ---
     procedure RegisterCustomModel(const DriverName, CustomModelName, ModelBaseName: string);
     function GetBaseModel(const DriverName, CustomModel: string): string;
     function GetCustomModels(const DriverName: string): TArray<string>;
@@ -118,7 +118,7 @@ implementation
 
 { TAiChatFactory }
 
-// Funci?n interna para crear la clave
+// function interna to create la clave
 class function TAiChatFactory.GetCompositeKey(const DriverName, ModelName: string): string;
 begin
   if ModelName.IsEmpty then
@@ -172,13 +172,13 @@ var
 begin
   Params.Clear;
 
-  // Nivel 1: Cargar par?metros por defecto desde la clase del driver
+  // Nivel 1: Cargar parameters By default desde the class del driver
   if FRegisteredClasses.TryGetValue(DriverName, DriverClass) then
     DriverClass.RegisterDefaultParams(Params);
 
-  Params.Text := Trim(Params.Text); // Elimina el ?ltimo LineBreak
+  Params.Text := Trim(Params.Text); // Elimina el last LineBreak
 
-  // Nivel 2: Fusionar con par?metros personalizados del DRIVER
+  // Nivel 2: Fusionar con parameters personalizados del DRIVER
   Key := GetCompositeKey(DriverName, '');
   if FUserParams.TryGetValue(Key, UserParamList) then
   begin
@@ -186,7 +186,7 @@ begin
       Params.Values[UserParamList.Names[I]] := UserParamList.ValueFromIndex[I];
   end;
 
-  // Nivel 3: Fusionar con par?metros personalizados del MODELO (si se especifica)
+  // Nivel 3: Fusionar con parameters personalizados del MODELO (si se especifica)
   if not ModelName.IsEmpty then
   begin
     Key := GetCompositeKey(DriverName, ModelName);
@@ -199,7 +199,7 @@ begin
 
   If ExpandVariables = True then // Debe expandir las variable con las de entorno
   Begin
-    // Expansi?n de Variables de Entorno
+    // expansion de Variables de Entorno
     for I := Params.Count - 1 downto 0 do
     begin
 
@@ -247,7 +247,7 @@ begin
   end;
 end;
 
-// Versi?n principal para registrar un par?metro de un modelo espec?fico.
+// version principal para registrar un parameter de un modelo specific.
 procedure TAiChatFactory.RegisterUserParam(const DriverName, ModelName, ParamName, ParamValue: string);
 var
   UserParamList: TStringList;
@@ -262,24 +262,24 @@ begin
   UserParamList.Values[ParamName] := ParamValue;
 end;
 
-// Sobrecarga para registrar un par?metro a nivel de Driver.
+// Sobrecarga para registrar un parameter a nivel de Driver.
 procedure TAiChatFactory.RegisterUserParam(const DriverName, ParamName, ParamValue: string);
 begin
-  // Llama a la versi?n principal con un ModelName vac?o.
+  // Llama a la version principal con un ModelName empty.
   RegisterUserParam(DriverName, '', ParamName, ParamValue);
 end;
 
 
-// Implementaci?n de los nuevos m?todos para modelos personalizados
-// Implementaci?n de los nuevos m?todos para modelos personalizados
-// Implementaci?n de los nuevos m?todos para modelos personalizados
+// implementation de los nuevos methods para modelos personalizados
+// implementation de los nuevos methods para modelos personalizados
+// implementation de los nuevos methods para modelos personalizados
 
 
 procedure TAiChatFactory.RegisterCustomModel(const DriverName, CustomModelName, ModelBaseName: string);
 var
   Key : String;
 begin
-  // Verifica que ModelName no est? vac?o
+  // Verifica que ModelName no is empty
   if CustomModelName.IsEmpty then
     raise Exception.Create('CustomModelName cannot be empty when registering a custom model.');
 
@@ -299,9 +299,9 @@ begin
   // Crea la clave compuesta
   CompositeKey := GetCompositeKey(DriverName, CustomModel);
 
-  // Intenta obtener el ModeloBase para el CustomModel
+  // Intenta obtener el ModeloBase for the CustomModel
   if not FCustomModels.TryGetValue(CompositeKey, Result) then
-    Result := CustomModel; // Valor por defecto si no se encuentra
+    Result := CustomModel; // Valor By default si no se encuentra
 end;
 
 
@@ -311,7 +311,7 @@ var
   CustomModel: string;
   CompositeKey: string;
 begin
-  // Recorre el diccionario y filtra los CustomModels para el DriverName dado
+  // Recorre el diccionario y filtra los CustomModels for the DriverName dado
   var List: TList<string> := TList<string>.Create;
   try
     for CompositeKey in FCustomModels.Keys do
@@ -320,7 +320,7 @@ begin
       if CompositeKey.StartsWith(DriverName + '@') then
       begin
         // Extrae el CustomModel de la clave compuesta
-        CustomModel := Copy(CompositeKey, Length(DriverName) + 2, Length(CompositeKey)); // +2 para el @
+        CustomModel := Copy(CompositeKey, Length(DriverName) + 2, Length(CompositeKey)); // +2 for the @
         List.Add(CustomModel);
       end;
     end;
@@ -356,7 +356,7 @@ begin
       // Verifica si el DriverName coincide con el inicio de la clave compuesta
       if CompositeKey.StartsWith(DriverName + '@') then
       begin
-        // A?ade la clave a la lista de claves a eliminar
+        // adds la clave a la lista de claves a eliminar
         KeysToRemove.Add(CompositeKey);
       end;
     end;
@@ -425,13 +425,13 @@ var
 begin
   Params.Clear;
 
-  // Nivel 1: Par?metros por defecto desde la clase del driver
+  // Nivel 1: parameters By default desde the class del driver
   if FRegisteredClasses.TryGetValue(DriverName, DriverClass) then
     DriverClass.RegisterDefaultParams(Params);
 
   Params.Text := Trim(Params.Text);
 
-  // Nivel 2: Par?metros personalizados del DRIVER
+  // Nivel 2: parameters personalizados del DRIVER
   Key := GetCompositeKey(DriverName, '');
   if FUserParams.TryGetValue(Key, UserParamList) then
   begin
@@ -439,7 +439,7 @@ begin
       Params.Values[UserParamList.Names[I]] := UserParamList.ValueFromIndex[I];
   end;
 
-  // Nivel 3: Par?metros personalizados del MODELO
+  // Nivel 3: parameters personalizados del MODELO
   if not ModelName.IsEmpty then
   begin
     Key := GetCompositeKey(DriverName, ModelName);
@@ -450,7 +450,7 @@ begin
     end;
   end;
 
-  // Expansi?n de Variables de Entorno
+  // expansion de Variables de Entorno
   if ExpandVariables then
   begin
     for I := Params.Count - 1 downto 0 do
@@ -516,7 +516,7 @@ end;
 
 initialization
 
-// La instancia se crea bajo demanda
+// La instancia Is created bajo demanda
 finalization
 
 if Assigned(TAiChatFactory.FInstance) then

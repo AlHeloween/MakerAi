@@ -1,4 +1,4 @@
-unit uMakerAi.Embeddings.Cohere;
+﻿unit uMakerAi.Embeddings.Cohere;
 
 // IT License
 //
@@ -139,7 +139,7 @@ begin
     begin
       // Optional: Throw a warning or error if user specifies a dimension
       // that is not valid for this model, to avoid confusion.
-      // Por ahora, simplemente lo ignoramos.
+      // for now, simplemente lo ignoramos.
     end;
 
     BodyStream.WriteString(jObj.ToString);

@@ -1,4 +1,4 @@
-// MIT License
+﻿// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -40,18 +40,18 @@ uses
   System.SysUtils, System.Classes, System.Generics.Collections;
 
 type
-  // Registro para almacenar informaci?n del archivo extra?do
+  // Registro para almacenar information del archivo extracted
   TCodeFile = record
     FileName : String;
     FileType: string;
     Code: string;
-    LineNumber: Integer; // L?nea donde se encontr? el bloque
+    LineNumber: Integer; // line donde se found el bloque
   end;
 
-  // Lista de archivos de c?digo
+  // Lista de archivos de code
   TCodeFileList = TList<TCodeFile>;
 
-  // Clase principal para extraer archivos de c?digo
+  // Clase principal para extraer archivos de code
   TMarkdownCodeExtractor = class
   private
     FCodeFiles: TCodeFileList;
@@ -62,13 +62,13 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    // M?todo principal para extraer archivos de c?digo del texto markdown
+    // method principal para extraer archivos de code del texto markdown
     function ExtractCodeFiles(const AMarkdownText: string): TCodeFileList;
 
     // Method to clean the file list
     procedure Clear;
 
-    // Propiedad para acceder a los archivos extra?dos
+    // Propiedad para acceder a los archivos extracteds
     property CodeFiles: TCodeFileList read FCodeFiles;
   end;
 
@@ -184,7 +184,7 @@ begin
       Rest := Trim(Copy(Rest, SpacePos + 1, MaxInt));
       if Rest.StartsWith('title="') then
       begin
-        QuoteStart := 8; // despu?s de title="
+        QuoteStart := 8; // after de title="
         QuoteEnd := Pos('"', Copy(Rest, QuoteStart, MaxInt));
         if QuoteEnd > 0 then
           AFileName := Copy(Rest, QuoteStart, QuoteEnd - 1);
@@ -203,7 +203,7 @@ begin
     Exit;
   end;
 
-  // No matchea ning?n patr?n conocido
+  // does not match no pattern conocido
 end;
 
 function TMarkdownCodeExtractor.ExtractCodeFiles(const AMarkdownText: string): TCodeFileList;
@@ -243,7 +243,7 @@ begin
         if TryParseFenceOpen(CurrentLine, ParsedLang, ParsedFileName) then
         begin
           InCodeBlock := True;
-          StartLineNumber := i + 1; // +1 porque las l?neas se cuentan desde 1
+          StartLineNumber := i + 1; // +1 porque las lines se cuentan desde 1
           CodeContent.Clear;
           CurrentLanguage := NormalizeLanguage(ParsedLang);
           CurrentFileName := ParsedFileName;
@@ -255,7 +255,7 @@ begin
         begin
           InCodeBlock := False;
 
-          // Crear el registro del archivo de c?digo
+          // Crear el registro del archivo de code
           CodeFile.FileName := CurrentFileName;
           CodeFile.FileType := CurrentLanguage;
           CodeFile.Code := CodeContent.ToString;
@@ -272,7 +272,7 @@ begin
         end
         else
         begin
-          // L?nea dentro del bloque de c?digo
+          // line dentro del bloque de code
           if CodeContent.Length > 0 then
             CodeContent.AppendLine;
           CodeContent.Append(CurrentLine);
@@ -280,7 +280,7 @@ begin
       end;
     end;
 
-    // Si qued? un bloque abierto al final del texto
+    // Si remained un bloque abierto al final del texto
     if InCodeBlock and (CodeContent.Length > 0) then
     begin
       CodeFile.FileName := CurrentFileName;

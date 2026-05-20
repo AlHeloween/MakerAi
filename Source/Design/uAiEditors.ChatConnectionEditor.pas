@@ -39,7 +39,7 @@ uses
   System.Classes, System.SysUtils, DesignIntf, DesignEditors, uMakerAi.Chat.AiConnection;
 
 type
-  // Property Editor para la propiedad DriverName
+  // Property Editor for the propiedad DriverName
   TAiChatDriverNamePropertyEditor = class(TStringProperty)
   public
     procedure GetValues(Proc: TGetStrProc); override;
@@ -77,7 +77,7 @@ var
   Drivers: TArray<string>;
   Driver: string;
 begin
-  // Obtener la instancia del componente
+  // Obtener la instancia of the component
   Connection := GetComponent(0) as TAiChatConnection;
   if not Assigned(Connection) then
     Exit;
@@ -142,14 +142,14 @@ begin
   // Register the Property Editor for the DriverName property
   RegisterPropertyEditor(
     TypeInfo(string),              // Tipo de la propiedad
-    TAiChatConnection,             // Clase del componente
+    TAiChatConnection,             // Clase of the component
     'DriverName',                  // Nombre de la propiedad
     TAiChatDriverNamePropertyEditor // Clase del Property Editor
   );
 
   // Register the Component Editor (optional)
   RegisterComponentEditor(
-    TAiChatConnection,                    // Clase del componente
+    TAiChatConnection,                    // Clase of the component
     TAiChatConnectionComponentEditor      // Clase del Component Editor
   );
 end;

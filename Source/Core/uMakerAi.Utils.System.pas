@@ -1,4 +1,4 @@
-// MIT License
+﻿// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -49,13 +49,13 @@ Posix.String_, Posix.Unistd, Posix.Base, Posix.Errno, Posix.SysWait, Posix.Signa
 type
 {$IFDEF MSWINDOWS}
   TProcessHandle = THandle;
-  // TProcessHandle es ahora id?ntico a THandle en Windows
-  TPipeHandle = THandle; // TPipeHandle es ahora id?ntico a THandle en Windows
+  // TProcessHandle es ahora identical a THandle en Windows
+  TPipeHandle = THandle; // TPipeHandle es ahora identical a THandle en Windows
 {$ENDIF}
 {$IFDEF POSIX}
   TProcessHandle = pid_t;
-  // TProcessHandle es id?ntico a pid_t (que es un Integer)
-  TPipeHandle = Integer; // TPipeHandle es id?ntico a Integer (file descriptor)
+  // TProcessHandle es identical a pid_t (que es un Integer)
+  TPipeHandle = Integer; // TPipeHandle es identical a Integer (file descriptor)
 {$ENDIF}
 
   TPipeHandles = record
@@ -435,7 +435,7 @@ begin
     CreationFlags := CREATE_NO_WINDOW;
     if Assigned(AEnvironment) and (AEnvironment.Count > 0) then
     begin
-      // Fusionar con el entorno del sistema (consistente con POSIX que usa setenv)
+      // Fusionar con el entorno of the system (consistente con POSIX que usa setenv)
       var SysEnv := GetSystemEnvironment;
       try
         for i := 0 to AEnvironment.Count - 1 do
@@ -811,7 +811,7 @@ begin
   Result := '';
   Output := TStringBuilder.Create;
   try
-    // CORRECCI?N: Usar .ToPointer para obtener el puntero crudo del wrapper.
+    // correction: Usar .ToPointer to obtain/get el puntero crudo del wrapper.
     Handle := popen(M.AsAnsi(ACommand).ToPointer, 'r');
     if Handle = nil then
       raise Exception.CreateFmt('Failed to popen command: %s', [ACommand]);
@@ -820,7 +820,7 @@ begin
       begin
         Output.Append(Buffer);
       end;
-      // La salida de popen/fgets ya est? en la codificaci?n de la consola (a menudo UTF-8 en Linux).
+      // La salida de popen/fgets ya is en la encoding de la consola (a menudo UTF-8 en Linux).
       // El paso UTF8ToString es correcto si el buffer es AnsiChar y contiene UTF-8.
       Result := Trim(UTF8ToString(Output.ToString));
     finally

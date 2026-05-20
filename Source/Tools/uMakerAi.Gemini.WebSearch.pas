@@ -27,7 +27,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    { Uso est?tico }
+    { Uso istico }
     class function Search(const AApiKey, AQuery: string; const AModel: string = 'gemini-2.0-flash'; const ADynamicThreshold: Single = 0.7): TAiChatMessage;
   published
     property ApiKey: string read GetApiKey write FApiKey;
@@ -68,7 +68,7 @@ end;
 procedure TAiGeminiWebSearchTool.ExecuteSearch(const AQuery: string; ResMsg, AskMsg: TAiChatMessage);
 begin
   // Si IsAsync=True ya estamos en el hilo background del chat: ejecutar directo
-  // para evitar un TTask anidado que causar?a dangling pointer sobre ResMsg.
+  // para evitar un TTask anidado que cawould usea dangling pointer sobre ResMsg.
   // Si IsAsync=False estamos en el hilo principal: lanzar task para no bloquearlo.
   if IsAsync then
     InternalRunGeminiSearch(AQuery, ResMsg)
@@ -76,7 +76,7 @@ begin
     TTask.Run(procedure begin InternalRunGeminiSearch(AQuery, ResMsg); end);
 end;
 
-{ --- IMPLEMENTACI?N DE B?SQUEDA --- }
+{ --- implementation DE search --- }
 
 function TAiGeminiWebSearchTool.InternalRunGeminiSearch(const AQuery: string; ResMsg: TAiChatMessage): string;
 var
@@ -110,7 +110,7 @@ begin
     // 3. Tool Configuration (Grounding)
     if FDynamicThreshold > 0 then
     begin
-      // MODO DIN?MICO: El modelo decide si buscar en Google o no
+      // MODO dynamic: El modelo decide si buscar en Google o no
       LDynamicConfig := TJSONObject.Create;
       LDynamicConfig.AddPair('mode', 'MODE_DYNAMIC');
       LDynamicConfig.AddPair('dynamic_threshold', TJSONNumber.Create(FDynamicThreshold));
@@ -122,13 +122,13 @@ begin
     end
     else
     begin
-      // MODO FORZADO: Siempre realiza b?squeda en Google
+      // MODO FORZADO: Siempre realiza search en Google
       LTool := TJSONObject.Create.AddPair('google_search', TJSONObject.Create);
     end;
 
     LRequestJson.AddPair('tools', TJSONArray.Create.Add(LTool));
 
-    // 4. Ejecuci?n del POST
+    // 4. execution del POST
     LBody := TStringStream.Create(LRequestJson.ToJSON, TEncoding.UTF8);
     try
       HTTP.ContentType := 'application/json';
@@ -147,7 +147,7 @@ begin
         Result := LResponseJson.GetValue<string>('candidates[0].content.parts[0].text', '');
         LMsg.Prompt := Result;
 
-        // B. Actualizar Estad?sticas de Tokens
+        // B. Actualizar statistics de Tokens
         if LResponseJson.TryGetValue<TJSONObject>('usageMetadata', LUsage) then
         begin
           var LPt: Integer := 0;
@@ -219,13 +219,13 @@ begin
   end;
 end;
 
-{ --- CLASE FUNCI?N EST?TICA --- }
+{ --- CLASE function isTICA --- }
 
 class function TAiGeminiWebSearchTool.Search(const AApiKey, AQuery, AModel: string; const ADynamicThreshold: Single): TAiChatMessage;
 var
   LInstance: TAiGeminiWebSearchTool;
 begin
-  // Creamos el mensaje que retornar? con la respuesta y las citas
+  // Creamos el mensaje que would return con la respuesta y las citas
   Result := TAiChatMessage.Create('', 'assistant');
 
   // We create a temporary instance of the tool to perform the task
@@ -235,7 +235,7 @@ begin
     LInstance.Model := AModel;
     LInstance.DynamicThreshold := ADynamicThreshold;
 
-    // Ejecuci?n s?ncrona
+    // execution synchronous
     LInstance.InternalRunGeminiSearch(AQuery, Result);
   finally
     LInstance.Free;

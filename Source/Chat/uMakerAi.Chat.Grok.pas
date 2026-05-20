@@ -1,4 +1,4 @@
-// IT License
+﻿// IT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
+// Nombre: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -438,18 +438,18 @@ begin
   FLastContent := '';
   FLastPrompt := AskMsg.Prompt;
 
-  // 1. Validaciones y configuraci?n
+  // 1. Validaciones y configuration
   if AskMsg.Prompt.IsEmpty then
     raise Exception.Create('A prompt is required to generate an image.');
 
   LModel := TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model);
 
   if LModel = '' then
-    LModel := 'grok-2-image'; // Asignar un modelo de imagen por defecto
+    LModel := 'grok-2-image'; // Asignar un modelo de imagen By default
 
   LUrl := Url + 'images/generations'; // Url base + endpoint
 
-  // 2. Construir el cuerpo de la petici?n JSON
+  // 2. Construir el cuerpo de la request JSON
   LBodyJson := TJSonObject.Create;
   LBodyStream := TStringStream.Create('', TEncoding.UTF8);
   try
@@ -469,7 +469,7 @@ begin
     LBodyStream.SaveToFile('c:\temp\grok_image_request.json');
     LBodyStream.Position := 0;
 {$ENDIF}
-    // Grok usa Bearer token para la autorizaci?n
+    // Grok usa Bearer token for the authorization
     LHeaders := [TNetHeader.Create('Authorization', 'Bearer ' + ApiKey)];
     FClient.ContentType := 'application/json';
     FResponse.Clear;
@@ -506,8 +506,8 @@ begin
               if LImageObject.TryGetValue<string>('url', LImageUrl) then
               begin
                 // Descargamos la imagen desde la URL y la cargamos en el MediaFile
-                // Necesitar?s una funci?n para descargar, por ejemplo:
-                LNewMediaFile.LoadFromUrl(LImageUrl); // Asumiendo que tienes esta funci?n
+                // will need una function para descargar, for example:
+                LNewMediaFile.LoadFromUrl(LImageUrl); // Asumiendo que tienes esta function
               end
               // CASO B: La respuesta es Base64
               else if LImageObject.TryGetValue<string>('b64_json', LBase64Data) then
@@ -515,7 +515,7 @@ begin
                 LNewMediaFile.LoadFromBase64('generated_image.png', LBase64Data);
               end;
 
-              // A?adir el MediaFile al mensaje de respuesta
+              // add el MediaFile al mensaje de respuesta
               ResMsg.MediaFiles.Add(LNewMediaFile);
             except
               LNewMediaFile.Free;
@@ -524,7 +524,7 @@ begin
           end;
         end;
 
-        // Disparamos el evento de finalizaci?n
+        // Disparamos el evento de completion
         if Assigned(FOnReceiveDataEnd) then
           FOnReceiveDataEnd(Self, ResMsg, LResponseJson, 'model', '');
 
