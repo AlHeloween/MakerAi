@@ -1,6 +1,8 @@
-# MakerAI Suite v3.3 â€” The AI Ecosystem for Delphi
+# MakerAI Suite v3.3 — The AI Ecosystem for Delphi
 
-ðŸŒ **Official Website:** [https://makerai.cimamaker.com](https://makerai.cimamaker.com)
+🌐 **Official Website:** [https://makerai.cimamaker.com](https://makerai.cimamaker.com)
+
+> 📂 **Repository navigation:** [index.md](index.md) — folder-by-folder map | [DOCINDEX.md](DOCINDEX.md) — documentation index | [CLAUDE.md](CLAUDE.md) — architecture reference
 
 [![GitHub Stars](https://img.shields.io/github/stars/gustavoeenriquez/MakerAi?style=social)](https://github.com/gustavoeenriquez/MakerAi)
 [![GitHub Issues](https://img.shields.io/github/issues/gustavoeenriquez/MakerAi)](https://github.com/gustavoeenriquez/MakerAi/issues)

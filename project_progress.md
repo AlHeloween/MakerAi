@@ -106,6 +106,34 @@
 
 ---
 
+## Session: 2026-05-20 — Project Organization + Doc Fixes
+
+### Task 8: Repository Structure Cleanup
+**Status:** Complete  
+**Plan:** `plans/20260520_project_organization.md`
+
+| Action | Detail |
+|--------|--------|
+| `index.md` | Created — folder-by-folder repo map |
+| `DOCINDEX.md` | Created — 60+ documentation entries |
+| `_progress_log.md` | Created — session activity log |
+| `_application_workflow_diagram.md` | Created — module/function catalog |
+| `scripts/` reorganization | 19 scripts → 6 subdirs by purpose |
+| Build scripts | 5 `build_*.bat` moved root → `scripts/build/` |
+| `plans/` cleanup | 2 old plans → `plans_completed/` |
+| Workspace lanes | `experiments/`, `futures/`, `obsolete/`, `makeups/` |
+
+### Task 9: Doc Spanish Fragment Fix
+**Status:** Complete — commit `daf6905`  
+**Script:** `scripts/docs/fix_docs_spanish.py`
+
+| Action | Detail |
+|--------|--------|
+| 8 EN .docx | Spanish fragments → English, 0 leaks verified |
+| 2 .xlsx | Sheet names + cell values translated |
+
+---
+
 ## Session: 2026-05-19 -- Translation Completion (Plan C + Full P3)
 
 ### Task 7: Unified Translation Completion — COMPLETE
@@ -172,8 +200,11 @@ Full elimination requires per-word context-aware replacement because `?` can als
 | P3 comment translation | **~5,104 total** (455 prior + 4,649 on 2026-05-19 via 6 Python passes) |
 | Author headers | **All normalized** to `// Author: Gustavo Enriquez` |
 | gitignore | **Translated** — 0 Spanish comments |
-| UTF-8 encoding | All source UTF-8 BOM CRLF |
-| Known debt | ~100-200 `?` chars in comments (cosmetic, low priority) |
+| index.md / DOCINDEX.md | **Created** — folder map + 60+ doc entries |
+| Workspace lanes | **Created** — experiments, futures, obsolete, makeups |
+| scripts/ organization | **6 subdirs** — translation, mojibake, spanish_fix, audit, docs, build |
+| EN documentation | **0 Spanish leaks** across 15 EN docs (8 .docx + 2 .xlsx fixed) |
+| Build scripts | **Moved to scripts/build/** from root |
 
 ## Verification Log
 
@@ -201,4 +232,6 @@ Full elimination requires per-word context-aware replacement because `?` can als
 | 2026-05-19 | Final pass 3: aggressive ? fixes | Python script | 70 lines, 27 files |
 | 2026-05-19 | Final pass 5: 362-word ? dictionary | Python script | 1,045 lines, 70 files |
 | 2026-05-19 | Final pass 6: word+phrase+trailing | Python script | 603 lines, 77 files |
-| 2026-05-19 | **TOTAL all comments translated** | — | **~5,104 lines** across 3 sessions |
+| 2026-05-20 | EN doc Spanish audit | Python script | 8 .docx + 2 .xlsx fixed |
+| 2026-05-20 | Project organization | mkdir + git mv | 10 new dirs, 19 scripts moved |
+| 2026-05-20 | Index files created | Manual | index.md, DOCINDEX.md |
