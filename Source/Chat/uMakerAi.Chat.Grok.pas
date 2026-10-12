@@ -1,18 +1,18 @@
-﻿// IT License
+﻿// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// o use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 //
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// HE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
-// Social Networks:
+// Nombre: Gustavo Enr?quez
+// Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -54,10 +54,12 @@ Type
 
   TAiGrokChat = Class(TAiChat)
   Private
+    FVideoDurationSeconds: Integer;
   Protected
     Function InitChatCompletions: String; Override;
     function InternalRunCompletions(ResMsg, AskMsg: TAiChatMessage): String; Override;
     function InternalRunNativeImageGeneration(ResMsg, AskMsg: TAiChatMessage): String; Override;
+    function InternalRunNativeVideoGeneration(ResMsg, AskMsg: TAiChatMessage): String; Override;
 
   Public
     Constructor Create(Sender: TComponent); Override;
@@ -66,6 +68,8 @@ Type
     class procedure RegisterDefaultParams(Params: TStrings); Override;
     class function CreateInstance(Sender: TComponent): TAiChat; Override;
   Published
+    // Duracion del video generado con grok-imagine-video (max 15 seg segun docs xAI)
+    property VideoDurationSeconds: Integer read FVideoDurationSeconds write FVideoDurationSeconds default 5;
   End;
 
 procedure Register;
@@ -91,8 +95,8 @@ class procedure TAiGrokChat.RegisterDefaultParams(Params: TStrings);
 Begin
   Params.Clear;
   Params.Add('ApiKey=@GROK_API_KEY');
-  Params.Add('Model=grok-3');
-  Params.Add('MaxTokens=4096');
+  Params.Add('Model=grok-4.3');
+  Params.Add('Max_Tokens=4096');
   Params.Add('URL=https://api.x.ai/v1/');
 End;
 
@@ -105,7 +109,9 @@ constructor TAiGrokChat.Create(Sender: TComponent);
 begin
   inherited;
   ApiKey := '@GROK_API_KEY';
-  Model := 'grok-3';
+  // grok-3 fue retirado del API (ago 2026); grok-4.3 es el modelo de produccion
+  Model := 'grok-4.3';
+  FVideoDurationSeconds := 5;
   Url := GlAIUrl;
 end;
 
@@ -124,7 +130,7 @@ Var
   I: Integer;
   LAsincronico: Boolean;
   Res, LModel: String;
-  LIsRestrictedModel, LSupportsReasoningEffort: Boolean;
+  LIsRestrictedModel, LSupportsReasoningEffort, LLegacyReasoningEffort: Boolean;
 begin
 
   If User = '' then
@@ -133,12 +139,20 @@ begin
   LModel := TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model);
 
   If LModel = '' then
-    LModel := 'grok-3';
+    LModel := 'grok-4.3';
 
-  // grok-4 series, grok-3-mini y grok-code-fast-1 prohiben frequency/presence/stop
-  LIsRestrictedModel       := LModel.StartsWith('grok-4') or LModel.StartsWith('grok-3-mini') or (LModel = 'grok-code-fast-1');
-  // reasoning_effort solo es valido en grok-3-mini / grok-3-mini-fast (valores: low, high)
-  LSupportsReasoningEffort := LModel.StartsWith('grok-3-mini');
+  // Toda la familia actual (grok-4.x, grok-build) prohibe frequency/presence/stop.
+  // grok-3-mini/grok-code-fast-1 se mantienen por si el usuario apunta a un
+  // endpoint compatible con modelos antiguos.
+  LIsRestrictedModel       := LModel.StartsWith('grok-4') or LModel.StartsWith('grok-build') or
+                              LModel.StartsWith('grok-3-mini') or (LModel = 'grok-code-fast-1');
+  // reasoning_effort. Medido contra api.x.ai el 2026-10-01: grok-4.3, 4.6 y 4.7
+  // aceptan low / medium / high / xhigh; grok-build-0.1 lo RECHAZA con 400
+  // ("does not support parameter reasoningEffort"). Antes solo se enviaba a
+  // grok-3-mini y el nivel que pedia el cliente para un grok-4 se perdia en
+  // silencio. grok-3-mini (retirado) solo conocia low/high.
+  LLegacyReasoningEffort   := LModel.StartsWith('grok-3-mini');
+  LSupportsReasoningEffort := LModel.StartsWith('grok-4') or LLegacyReasoningEffort;
 
   LAsincronico := Self.Asynchronous;
 
@@ -150,6 +164,16 @@ begin
   Try
 
     AJSONObject.AddPair('stream', TJSONBool.Create(LAsincronico));
+
+    // En streaming xAI solo manda el bloque usage si se pide (medido el
+    // 2026-09-28): sin esto el turno terminaba con Prompt_tokens =
+    // Completion_tokens = 0 y quien facture por tokens cobraba cero.
+    if LAsincronico then
+    begin
+      var jStreamOpts := TJSonObject.Create;
+      jStreamOpts.AddPair('include_usage', TJSONBool.Create(True));
+      AJSONObject.AddPair('stream_options', jStreamOpts);
+    end;
 
     If Tool_Active and (Trim(GetTools(TToolFormat.tfOpenAI).Text) <> '') then
     Begin
@@ -195,15 +219,26 @@ begin
     if ModelConfig.Format <> '' then
       AJSONObject.AddPair('reasoning_format', ModelConfig.Format); // 'parsed, raw, hidden';
 
-    // reasoning_effort: solo valido en grok-3-mini / grok-3-mini-fast (valores: 'low', 'high')
-    // grok-4 series tiene reasoning siempre activo y NO acepta este parametro
+    // reasoning_effort (ver LSupportsReasoningEffort). Escalera de xAI:
+    // low / medium / high (default) / xhigh. tlNone no existe en xAI (los grok-4
+    // razonan siempre): se manda el minimo, low. tlDefault no envia nada.
     if LSupportsReasoningEffort and (ModelConfig.ThinkingLevel <> tlDefault) then
     begin
-      case ModelConfig.ThinkingLevel of
-        tlLow:  AJSONObject.AddPair('reasoning_effort', 'low');
-        tlHigh: AJSONObject.AddPair('reasoning_effort', 'high');
-        // tlMedium no tiene mapeo en xAI: no enviar, la API usa su default
-      end;
+      if LLegacyReasoningEffort then
+      begin
+        // grok-3-mini solo conocia low/high
+        case ModelConfig.ThinkingLevel of
+          tlNone, tlMinimal, tlLow, tlMedium: AJSONObject.AddPair('reasoning_effort', 'low');
+          tlHigh, tlXHigh, tlMax:             AJSONObject.AddPair('reasoning_effort', 'high');
+        end;
+      end
+      else
+        case ModelConfig.ThinkingLevel of
+          tlNone, tlMinimal, tlLow: AJSONObject.AddPair('reasoning_effort', 'low');
+          tlMedium:                 AJSONObject.AddPair('reasoning_effort', 'medium');
+          tlHigh:                   AJSONObject.AddPair('reasoning_effort', 'high');
+          tlXHigh, tlMax:           AJSONObject.AddPair('reasoning_effort', 'xhigh');
+        end;
     end;
 
     AJSONObject.AddPair('user', User);
@@ -220,22 +255,20 @@ begin
 
     if FResponse_format = tiaChatRfJsonSchema then
     begin
+      // ParseJsonSchemaProperty acepta el schema puro o el wrapper {name, strict,
+      // schema} y falla con error claro si JsonSchema esta vacio.
+      var sSchemaName := 'structured_response';
+      var bStrict := True;
+      var JInnerSchema := ParseJsonSchemaProperty(sSchemaName, bStrict);
+
+      var JSchemaObj := TJSONObject.Create;
+      JSchemaObj.AddPair('name', sSchemaName);
+      JSchemaObj.AddPair('schema', JInnerSchema);
+      JSchemaObj.AddPair('strict', TJSONBool.Create(bStrict));
+
       var JFormatConfig := TJSONObject.Create;
       JFormatConfig.AddPair('type', 'json_schema');
-      var sSchema := Trim(JsonSchema.Text);
-      if sSchema <> '' then
-      begin
-        var JSchemaObj := TJSONObject.Create;
-        var JInnerSchema := TJSONObject.ParseJSONValue(sSchema) as TJSONObject;
-        if Assigned(JInnerSchema) then
-        begin
-          JSchemaObj.AddPair('schema', JInnerSchema);
-          JSchemaObj.AddPair('strict', TJSONBool.Create(True));
-          JFormatConfig.AddPair('json_schema', JSchemaObj);
-        end
-        else
-          JSchemaObj.Free;
-      end;
+      JFormatConfig.AddPair('json_schema', JSchemaObj);
       AJSONObject.AddPair('response_format', JFormatConfig);
     end
     else if FResponse_format = tiaChatRfJson then
@@ -268,6 +301,10 @@ begin
     If Seed > 0 then
       AJSONObject.AddPair('seed', TJSONNumber.Create(Seed));
 
+    // Como la clase base: sin esto ModelConfig.ModelExtraBodyParams no llegaba
+    // nunca a Grok porque este override no lo llamaba.
+    ApplyExtraBodyParams(AJSONObject);
+
     Res := UTF8ToString(UTF8Encode(AJSONObject.ToJSON));
 
     Res := StringReplace(Res, '\/', '/', [rfReplaceAll]);
@@ -278,10 +315,10 @@ begin
   End;
 end;
 
-// xAI API responses for web search
+// Respuestas API de xAI para búsqueda web
 // search_parameters fue deprecado enero 2026 (devuelve 410 "Live search is deprecated").
 // Nueva API: POST /v1/responses  con tools=[{type:"web_search"}]
-// Formato respuesta: output[].type="message" ? content[].type="output_text" ? text
+// Formato respuesta: output[].type="message" → content[].type="output_text" → text
 function TAiGrokChat.InternalRunCompletions(ResMsg, AskMsg: TAiChatMessage): String;
 var
   ABody, sUrl, SType, SVal, sRole, sContent: String;
@@ -294,14 +331,14 @@ var
   LModel: String;
   I, K: Integer;
 begin
-  // Sin web search activo ? flujo normal de chat/completions
+  // Sin web search activo → flujo normal de chat/completions
   if not (cap_WebSearch in ModelConfig.ModelCaps) then
   begin
     Result := inherited InternalRunCompletions(ResMsg, AskMsg);
     Exit;
   end;
 
-  // Web search activo ? xAI Agent Tools API (POST /v1/responses)
+  // Web search activo → xAI Agent Tools API (POST /v1/responses)
   FBusy        := True;
   FAbort       := False;
   FLastError   := '';
@@ -309,7 +346,7 @@ begin
 
   LModel := TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model);
   if LModel = '' then
-    LModel := 'grok-3';
+    LModel := 'grok-4.3';
 
   sUrl := Url;
   if not sUrl.EndsWith('/') then
@@ -323,7 +360,7 @@ begin
   jReq      := nil;
   St        := nil;
   try
-    // Construir input: mensajes del historial con "system" ? "developer"
+    // Construir input: mensajes del historial con "system" → "developer"
     jInput    := TJSonArray.Create;
     jMessages := GetMessages;
     for I := 0 to jMessages.Count - 1 do
@@ -366,9 +403,12 @@ begin
     FClient.ContentType  := 'application/json';
     FClient.Asynchronous := False;
     FResponse.Clear;
-    DoStateChange(acsConnecting, 'Sending web search...');
+    DoStateChange(acsConnecting, 'Enviando búsqueda web...');
 
     Res := FClient.Post(sUrl, St, FResponse, FHeaders);
+
+    if not Assigned(Res) then
+      raise Exception.CreateFmt('Connection failed: no response from %s', [sUrl]);
 
     if Res.StatusCode = 200 then
     begin
@@ -376,7 +416,7 @@ begin
       if not (LParsed is TJSonObject) then
       begin
         LParsed.Free;
-        raise Exception.CreateFmt('Invalid JSON response: %s', [Res.ContentAsString]);
+        raise Exception.CreateFmt('Respuesta JSON inválida: %s', [Res.ContentAsString]);
       end;
       jRes := TJSonObject(LParsed);
       try
@@ -438,18 +478,18 @@ begin
   FLastContent := '';
   FLastPrompt := AskMsg.Prompt;
 
-  // 1. Validaciones y configuration
+  // 1. Validaciones y configuraci?n
   if AskMsg.Prompt.IsEmpty then
-    raise Exception.Create('A prompt is required to generate an image.');
+    raise Exception.Create('Se requiere un prompt para generar una imagen.');
 
   LModel := TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model);
 
   if LModel = '' then
-    LModel := 'grok-2-image'; // Asignar un modelo de imagen By default
+    LModel := 'grok-imagine-image'; // Default de imagen (grok-2-image fue retirado)
 
   LUrl := Url + 'images/generations'; // Url base + endpoint
 
-  // 2. Construir el cuerpo de la request JSON
+  // 2. Construir el cuerpo de la petici?n JSON
   LBodyJson := TJSonObject.Create;
   LBodyStream := TStringStream.Create('', TEncoding.UTF8);
   try
@@ -469,7 +509,7 @@ begin
     LBodyStream.SaveToFile('c:\temp\grok_image_request.json');
     LBodyStream.Position := 0;
 {$ENDIF}
-    // Grok usa Bearer token for the authorization
+    // Grok usa Bearer token para la autorizaci?n
     LHeaders := [TNetHeader.Create('Authorization', 'Bearer ' + ApiKey)];
     FClient.ContentType := 'application/json';
     FResponse.Clear;
@@ -496,7 +536,7 @@ begin
             LImageObject := LJsonValue as TJSonObject;
             LNewMediaFile := TAiMediaFile.Create;
             try
-              // Extract the revised prompt and save it (it is useful information)
+              // Extraer el prompt revisado y guardarlo (es informaci?n ?til)
               LImageObject.TryGetValue<string>('revised_prompt', LRevisedPrompt);
               LNewMediaFile.Transcription := LRevisedPrompt;
               FLastContent := LRevisedPrompt;
@@ -506,8 +546,8 @@ begin
               if LImageObject.TryGetValue<string>('url', LImageUrl) then
               begin
                 // Descargamos la imagen desde la URL y la cargamos en el MediaFile
-                // will need una function para descargar, for example:
-                LNewMediaFile.LoadFromUrl(LImageUrl); // Asumiendo que tienes esta function
+                // Necesitar?s una funci?n para descargar, por ejemplo:
+                LNewMediaFile.LoadFromUrl(LImageUrl); // Asumiendo que tienes esta funci?n
               end
               // CASO B: La respuesta es Base64
               else if LImageObject.TryGetValue<string>('b64_json', LBase64Data) then
@@ -515,7 +555,7 @@ begin
                 LNewMediaFile.LoadFromBase64('generated_image.png', LBase64Data);
               end;
 
-              // add el MediaFile al mensaje de respuesta
+              // A?adir el MediaFile al mensaje de respuesta
               ResMsg.MediaFiles.Add(LNewMediaFile);
             except
               LNewMediaFile.Free;
@@ -524,7 +564,7 @@ begin
           end;
         end;
 
-        // Disparamos el evento de completion
+        // Disparamos el evento de finalizaci?n
         if Assigned(FOnReceiveDataEnd) then
           FOnReceiveDataEnd(Self, ResMsg, LResponseJson, 'model', '');
 
@@ -538,6 +578,137 @@ begin
       DoError(FLastError, nil);
     end;
 
+  finally
+    LBodyJson.Free;
+    LBodyStream.Free;
+    FBusy := False;
+  end;
+end;
+
+function TAiGrokChat.InternalRunNativeVideoGeneration(ResMsg, AskMsg: TAiChatMessage): String;
+// grok-imagine-video (ago 2026): job asincrono con polling.
+// POST /v1/videos/generations {model, prompt, duration} -> request_id
+// GET  /v1/videos/{request_id} -> status pending|done|failed|expired + video.url
+// El video final se descarga y se adjunta como TAiMediaFile (mp4) en ResMsg.
+const
+  POLL_INTERVAL_MS = 3000;
+  TIMEOUT_MS       = 300000; // 5 min: un video de 15 seg tarda ~1-3 min
+var
+  LModel, LUrl, LRequestId, LStatus, LVideoUrl: string;
+  LBodyJson, LRespJson, LVideoObj: TJSonObject;
+  LBodyStream: TStringStream;
+  LHeaders: TNetHeaders;
+  LResponse: IHTTPResponse;
+  LNewMediaFile: TAiMediaFile;
+  LElapsed: Integer;
+begin
+  Result := '';
+  FBusy := True;
+  FAbort := False;
+  FLastError := '';
+  FLastContent := '';
+  FLastPrompt := AskMsg.Prompt;
+
+  if AskMsg.Prompt.IsEmpty then
+    raise Exception.Create('Se requiere un prompt para generar un video.');
+
+  LModel := TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model);
+  if (LModel = '') or (not LModel.StartsWith('grok-imagine-video')) then
+    LModel := 'grok-imagine-video';
+
+  LHeaders := [TNetHeader.Create('Authorization', 'Bearer ' + ApiKey)];
+  FClient.ContentType := 'application/json';
+
+  LBodyJson := TJSonObject.Create;
+  LBodyStream := TStringStream.Create('', TEncoding.UTF8);
+  try
+    try
+      // 1. Iniciar el job
+      LBodyJson.AddPair('model', LModel);
+      LBodyJson.AddPair('prompt', AskMsg.Prompt);
+      if FVideoDurationSeconds > 0 then
+        LBodyJson.AddPair('duration', TJSONNumber.Create(FVideoDurationSeconds));
+
+      LBodyStream.WriteString(LBodyJson.ToJSON);
+      LBodyStream.Position := 0;
+
+      FResponse.Clear;
+      LResponse := FClient.Post(Url + 'videos/generations', LBodyStream, FResponse, LHeaders);
+      if LResponse.StatusCode <> 200 then
+        raise Exception.CreateFmt('Error iniciando video con Grok: %d, %s',
+          [LResponse.StatusCode, LResponse.ContentAsString(TEncoding.UTF8)]);
+
+      LRespJson := TJSonObject.ParseJSONValue(LResponse.ContentAsString(TEncoding.UTF8)) as TJSonObject;
+      try
+        if not LRespJson.TryGetValue<string>('request_id', LRequestId) then
+          raise Exception.Create('La respuesta de videos/generations no contiene request_id');
+      finally
+        LRespJson.Free;
+      end;
+
+      // 2. Polling hasta done/failed/expired
+      DoStateChange(acsToolExecuting, 'Generando video (job ' + LRequestId + ')...');
+      LElapsed := 0;
+      LStatus := 'pending';
+      LVideoUrl := '';
+      while (LElapsed < TIMEOUT_MS) and not FAbort do
+      begin
+        TThread.Sleep(POLL_INTERVAL_MS);
+        Inc(LElapsed, POLL_INTERVAL_MS);
+
+        FResponse.Clear;
+        LResponse := FClient.Get(Url + 'videos/' + LRequestId, FResponse, LHeaders);
+        if LResponse.StatusCode <> 200 then
+          Continue; // error transitorio de polling: reintentar hasta el timeout
+
+        LRespJson := TJSonObject.ParseJSONValue(LResponse.ContentAsString(TEncoding.UTF8)) as TJSonObject;
+        try
+          if Assigned(LRespJson) then
+          begin
+            LRespJson.TryGetValue<string>('status', LStatus);
+            if (LStatus = 'done') and LRespJson.TryGetValue<TJSonObject>('video', LVideoObj) then
+              LVideoObj.TryGetValue<string>('url', LVideoUrl);
+          end;
+        finally
+          LRespJson.Free;
+        end;
+
+        if (LStatus = 'done') or (LStatus = 'failed') or (LStatus = 'expired') then
+          Break;
+      end;
+
+      if FAbort then
+        Exit;
+      if LStatus <> 'done' then
+        raise Exception.CreateFmt('Generacion de video no completada (status=%s tras %d seg)',
+          [LStatus, LElapsed div 1000]);
+      if LVideoUrl = '' then
+        raise Exception.Create('El job termino en done pero no incluye video.url');
+
+      // 3. Descargar el video y adjuntarlo al mensaje
+      LNewMediaFile := TAiMediaFile.Create;
+      try
+        LNewMediaFile.LoadFromUrl(LVideoUrl);
+        LNewMediaFile.Transcription := AskMsg.Prompt;
+        ResMsg.MediaFiles.Add(LNewMediaFile);
+      except
+        LNewMediaFile.Free;
+        raise;
+      end;
+
+      FLastContent := LVideoUrl;
+      ResMsg.Prompt := LVideoUrl;
+      Result := LVideoUrl;
+
+      if Assigned(FOnReceiveDataEnd) then
+        FOnReceiveDataEnd(Self, ResMsg, nil, 'model', FLastContent);
+    except
+      on E: Exception do
+      begin
+        FLastError := E.Message;
+        DoError(FLastError, E);
+      end;
+    end;
   finally
     LBodyJson.Free;
     LBodyStream.Free;

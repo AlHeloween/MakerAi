@@ -175,7 +175,10 @@ begin
   inherited;
   FNGPULayers  := 99;
   FNCtx        := 4096;
-  FDLLPath     := {$IFDEF MSWINDOWS}'makerai.gen.dll'{$ELSE}'makerai.gen.so'{$ENDIF};
+  FDLLPath     :=
+    {$IFDEF MSWINDOWS}'makerai.gen.dll'
+    {$ELSEIF DEFINED(ANDROID) or DEFINED(ANDROID64)}'libmakerai_gen.so'
+    {$ELSE}'makerai.gen.so'{$ENDIF};
   FSamplerMode := smTempTopP;
   FParam1      := 0;
   FParam2      := 0;
@@ -343,7 +346,7 @@ begin
           SB.Append(Msg.Prompt).Append(FUserSuffix);
         end
         else if SameText(Msg.Role, 'assistant') then
-          SB.Append(FAsstPrefix).Append(Msg.Content).Append(FAsstSuffix);
+          SB.Append(FAsstPrefix).Append(Msg.Prompt).Append(FAsstSuffix);
       end;
     end
     else
@@ -357,7 +360,7 @@ begin
         if SameText(Msg.Role, 'user') then
           SB.Append(FUserPrefix).Append(Msg.Prompt).Append(FUserSuffix)
         else if SameText(Msg.Role, 'assistant') then
-          SB.Append(FAsstPrefix).Append(Msg.Content).Append(FAsstSuffix);
+          SB.Append(FAsstPrefix).Append(Msg.Prompt).Append(FAsstSuffix);
         // tool / function / system roles are skipped for local inference
       end;
     end;
@@ -396,7 +399,7 @@ begin
         if IsLast then
         begin
           FTmpResponseText := Full.ToString;
-          ResMsg.Content   := FTmpResponseText;
+          ResMsg.Prompt    := FTmpResponseText;
           DoDataEnd(ResMsg, 'assistant', FTmpResponseText);
         end
         else
@@ -437,7 +440,10 @@ begin
   Params.Values['ModelPath']    := '';
   Params.Values['NGPULayers']   := '99';
   Params.Values['NCtx']         := '4096';
-  Params.Values['DLLPath']      := 'makerai.gen.dll';
+  Params.Values['DLLPath']      :=
+    {$IFDEF MSWINDOWS}'makerai.gen.dll'
+    {$ELSEIF DEFINED(ANDROID) or DEFINED(ANDROID64)}'libmakerai_gen.so'
+    {$ELSE}'makerai.gen.so'{$ENDIF};
   Params.Values['Temperature']  := '0.8';
   Params.Values['Top_p']        := '0.95';
   Params.Values['Max_tokens']   := '512';

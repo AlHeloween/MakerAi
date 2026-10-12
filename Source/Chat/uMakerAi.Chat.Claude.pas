@@ -1,18 +1,18 @@
-﻿// IT License
+﻿// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// o use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 //
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// HE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
-// Social Networks:
+// Nombre: Gustavo Enr?quez
+// Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -33,16 +33,16 @@
 
 
 // -----------------------------------------------------------------------------
-// CITATIONS (RAG Nativo) - Estado de implementation
+// CITATIONS (RAG Nativo) - Estado de implementaci?n
 // -----------------------------------------------------------------------------
 // 1. Core: TAiMediaFile.EnableCitations, Title, Context  [COMPLETADO]
 // 2. Core: TAiMsgCitation, TAiMsgCitations en TAiChatMessage  [COMPLETADO]
 // 3. Claude.GetMessages: Inyectar "citations": {"enabled": true}  [COMPLETADO]
 // 4. Claude.ProcessStreamChunk: Captura citations_delta  [YA FUNCIONABA]
-// 5. Claude.ParseChat: Parse char_location, page_location, etc.  [COMPLETED]
+// 5. Claude.ParseChat: Parsear char_location, page_location, etc.  [COMPLETADO]
 // Ref: https://docs.anthropic.com/en/docs/build-with-claude/citations
 // -----------------------------------------------------------------------------
-// ------ Tools that will not be implemented for now --------------------
+// ------ Herramientas que no se implementar?n por ahora --------------------
 // 1. https://platform.claude.com/docs/es/agents-and-tools/tool-use/code-execution-tool
 // 2. https://platform.claude.com/docs/es/agents-and-tools/tool-use/fine-grained-tool-streaming
 // 3.
@@ -51,7 +51,7 @@
 
 
 // https://platform.claude.com/docs/en/intro
-// https://platform.claude.com/docs/en/api/beta/messages/create  //api de la last implementation {/beta/}
+// https://platform.claude.com/docs/en/api/beta/messages/create  //api de la ?ltima implementaci?n {/beta/}
 
 unit uMakerAi.Chat.Claude;
 
@@ -71,11 +71,11 @@ uses
 
 type
 
-  // --- Clases para management de Contexto (Context Editing) ---
+  // --- Clases para Gesti?n de Contexto (Context Editing) ---
 
   TClaudeContextTrigger = class
   public
-    TriggerType: string; // By default 'input_tokens'
+    TriggerType: string; // Por defecto 'input_tokens'
     Value: Integer;
     constructor Create(aValue: Integer; aType: string = 'input_tokens');
   end;
@@ -97,14 +97,14 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    // Adds a rule to clean tools when X tokens are reached
+    // Agrega una regla para limpiar herramientas cuando se alcanzan X tokens
     procedure AddRule_ClearTools(TriggerTokens: Integer; KeepCount: Integer = 0; ClearAtLeast: Integer = 0);
     function ToJSONObject: TJSONObject;
     function IsEmpty: Boolean;
     procedure Clear;
   end;
 
-  // --- Clase auxiliar to process bloques en Streaming ---
+  // --- Clase auxiliar para procesar bloques en Streaming ---
 
   TClaudeStreamContentBlock = class
   public
@@ -126,7 +126,10 @@ type
   TAiClaudeChat = Class(TAiChat)
   Private
     FStreamResponseMsg: TAiChatMessage;
-    FStreamContentBlocks: TDictionary<Integer, TClaudeStreamContentBlock>;
+    // Cache del message_start del stream (ver el comentario en su lectura)
+    FStreamCacheRead: Integer;
+    FStreamCacheWrite: Integer;
+    FStreamContentBlocks: TObjectDictionary<Integer, TClaudeStreamContentBlock>;
     FStreamBuffer: TStringBuilder;
     FStreamLastEventType: string;
 
@@ -136,10 +139,20 @@ type
     FThinkingBudget: Integer;
     FContextConfig: TClaudeContextConfig;
     FCacheSystemPrompt: Boolean;
+    FCacheTTL: String;
+    // Fase ago 2026
+    FFastMode: Boolean;             // speed:"fast" — solo opus-5/opus-4-8
+    FEnableCompaction: Boolean;     // compaction server-side (beta)
+    FRefusalFallbackModel: string;  // fallbacks server-side ante refusal
+    // Bloques compaction recibidos, por mensaje assistant: deben reenviarse
+    // integros para que el API reemplace el historial compactado
+    FCompactionBlocks: TDictionary<TAiChatMessage, string>;
+    FCacheCount: Integer; // breakpoints cache_control usados en el request actual (max 4 en la API)
+    FCacheCtxActive: Boolean; // cacheo de contexto activo en este request (system/tools/ultimo turno)
     FServiceTier: String;
 
     function GetToolJson(aToolFormat: TToolFormat): TJSonArray;
-    function GetDynamicHeaders: TNetHeaders; // Construye headers Beta dynamicmente
+    function GetDynamicHeaders: TNetHeaders; // Construye headers Beta din?micamente
     function GetFileHeaders: TNetHeaders;
     procedure ClearStreamState;
     procedure ProcessStreamChunk(const AChunk: string);
@@ -168,7 +181,7 @@ type
     Class Function GetModels(aApiKey: String; aUrl: String = ''): TStringList; Override;
     Function GetMessages: TJSonArray; Override;
 
-    // --- management de Archivos (File API) ---
+    // --- Gesti?n de Archivos (File API) ---
     Function UploadFile(aMediaFile: TAiMediaFile): String; Override;
     Function DownLoadFile(aMediaFile: TAiMediaFile): String; Override;
     Function CheckFileState(aMediaFile: TAiMediaFile): String; Override;
@@ -182,49 +195,69 @@ type
     class procedure RegisterDefaultParams(Params: TStrings); Override;
     class function CreateInstance(Sender: TComponent): TAiChat; Override;
 
-    // method easy para configurar la limpieza autooktica de contexto
-    // TriggerTokens: A partir de how muchs tokens de entrada se activa la limpieza (ej. 20000)
-    // KeepLast: How many recent tool interactions to keep (e.g. 3)
+    // M?todo f?cil para configurar la limpieza autom?tica de contexto
+    // TriggerTokens: A partir de cu?ntos tokens de entrada se activa la limpieza (ej. 20000)
+    // KeepLast: Cu?ntas interacciones de herramientas recientes conservar (ej. 3)
     procedure ConfigureAutoContextClearing(TriggerTokens: Integer; KeepLast: Integer = 3);
 
-    // Acceso a la configuration de contexto
+    // Acceso a la configuraci?n de contexto
     property ContextConfig: TClaudeContextConfig read FContextConfig;
 
     // Permite cachear el System Prompt para ahorrar costos en instrucciones largas
     property CacheSystemPrompt: Boolean read FCacheSystemPrompt write FCacheSystemPrompt;
+    property CacheTTL: String read FCacheTTL write FCacheTTL;
 
   Published
     property EnableMemory: Boolean read FEnableMemory write SetEnableMemory default False;
     property EnableThinking: Boolean read FEnableThinking write SetEnableThinking default False;
     property ThinkingBudget: Integer read FThinkingBudget write SetThinkingBudget default 1024;
     Property ServiceTier: String read FServiceTier write FServiceTier;
+    // Fast mode (research preview): ~2.5x mas tokens/segundo a 2x precio.
+    // Solo claude-opus-5 / claude-opus-4-8 (en otros modelos se ignora)
+    property FastMode: Boolean read FFastMode write FFastMode default False;
+    // Compaction server-side (beta): al acercarse al limite de contexto el
+    // API resume el historial antiguo automaticamente. El driver preserva y
+    // reenvia los bloques compaction en los turnos siguientes
+    property EnableCompaction: Boolean read FEnableCompaction
+      write FEnableCompaction default False;
+    // Si los clasificadores declinan (stop_reason refusal en opus-5/fable),
+    // el API reintenta la MISMA peticion en este modelo dentro de la misma
+    // llamada (ej: 'claude-opus-4-8'). Vacio = sin fallback
+    property RefusalFallbackModel: string read FRefusalFallbackModel
+      write FRefusalFallbackModel;
   End;
 
 procedure Register;
 
 implementation
 
+
 Const
   GlAIUrl = 'https://api.anthropic.com/v1/';
   CLAUDE_API_VERSION = '2023-06-01';
 
   // --- HEADERS BETA ACTUALIZADOS ---
-  // General tools (kept)
+  // Herramientas generales (se mantiene)
   BETA_HDR_TOOLS = 'tools-2024-05-16';
   // API de Archivos (se mantiene)
   BETA_HDR_FILES = 'files-api-2025-04-14';
-  // management de Contexto / Memoria (se mantiene)
+  // Gesti?n de Contexto / Memoria (se mantiene)
   BETA_HDR_MEMORY = 'context-management-2025-06-27';
   // Thinking (se mantiene)
   BETA_HDR_THINKING = 'interleaved-thinking-2025-05-14';
-  // Code Execution (Actualizado according to lista de headers de la doc)
+  // Fase ago 2026
+  BETA_HDR_FASTMODE = 'fast-mode-2026-02-01';             // speed:"fast" (opus-5/4.8, research preview)
+  BETA_HDR_COMPACT  = 'compact-2026-01-12';               // compaction server-side
+  BETA_HDR_FALLBACK = 'server-side-fallback-2026-06-01';  // fallbacks ante refusal
+  // Code Execution (Actualizado seg?n lista de headers de la doc)
   BETA_HDR_CODE = 'code-execution-2025-05-22';
-  // Computer Use (Actualizado a la last version disponible en doc)
-  BETA_HDR_COMPUTER = 'computer-use-2025-01-24';
-  // PDFs (Nuevo: Para asegurar soporte nativo si se sends base64)
+  // Computer Use: OBSOLETO. El tool actual es computer_toolset_20260801, que no
+  // necesita beta header (el API acepta este y lo ignora). El anterior,
+  // computer_20251124, ya no existe: el API lo rechaza para todos los modelos.
+  // La constante se conserva por compatibilidad de codigo externo; no se envia.
+  BETA_HDR_COMPUTER = 'computer-use-2025-11-24';
+  // PDFs (Nuevo: Para asegurar soporte nativo si se env?a base64)
   BETA_HDR_PDFS = 'pdfs-2024-09-25';
-  // Prompt Caching (useful para CacheSystemPrompt)
-  BETA_HDR_PROMPT_CACHING = 'prompt-caching-2024-07-31';
   // Header para Structured Outputs (JSON Schema & Strict Tools)
   BETA_HDR_STRUCTURED_OUTPUTS = 'structured-outputs-2025-11-13';
 
@@ -379,7 +412,7 @@ Begin
   Params.Clear;
   Params.Add('ApiKey=@CLAUDE_API_KEY');
   Params.Add('Model=claude-haiku-4-5-20251001');
-  Params.Add('MaxTokens=4096');
+  Params.Add('Max_Tokens=4096');
   Params.Add('URL=https://api.anthropic.com/v1/');
 End;
 
@@ -401,7 +434,7 @@ begin
 
   Client := TNetHTTPClient.Create(Nil);
   try
-    // Headers specifics para Batches
+    // Headers espec?ficos para Batches
     Headers := [TNetHeader.Create('x-api-key', ApiKey), TNetHeader.Create('anthropic-version', CLAUDE_API_VERSION), TNetHeader.Create('anthropic-beta', 'message-batches-2024-09-24'), // Header obligatorio para Batches
     TNetHeader.Create('content-type', 'application/json')];
 
@@ -442,15 +475,20 @@ constructor TAiClaudeChat.Create(Sender: TComponent);
 begin
   inherited;
   ApiKey := '@CLAUDE_API_KEY';
-  FClient.OnReceiveData := Self.OnInternalReceiveData;
-  FClient.ResponseTimeOut := 60000;
+  // OnReceiveData lo asigna la base (TAiChat.ClientReceiveData -> OnInternalReceiveData
+  // virtual); reasignarlo aqui saltaba la marca de peticion en vuelo del destructor
+  // Vía propiedad (no FClient directo) para que FResponseTimeOut quede consistente.
+  // 300s: con code_execution nativo Anthropic ejecuta server-side y no envía ni un
+  // byte hasta terminar (generar un Office tarda 50-70s; 60s cortaba a la mitad).
+  ResponseTimeOut := 300000;
 
-  FStreamContentBlocks := TDictionary<Integer, TClaudeStreamContentBlock>.Create;
+  FStreamContentBlocks := TObjectDictionary<Integer, TClaudeStreamContentBlock>.Create([doOwnsValues]);
   FStreamBuffer := TStringBuilder.Create;
   FStreamResponseMsg := nil;
   FContextConfig := TClaudeContextConfig.Create;
+  FCompactionBlocks := TDictionary<TAiChatMessage, string>.Create;
 
-  // Valores By default
+  // Valores por defecto
   Model := 'claude-haiku-4-5-20251001';
   Max_tokens := 4096;
   Url := GlAIUrl;
@@ -468,6 +506,7 @@ begin
   FStreamContentBlocks.Free;
   FStreamBuffer.Free;
   FContextConfig.Free;
+  FCompactionBlocks.Free;
   inherited;
 end;
 
@@ -494,6 +533,59 @@ end;
 
 // --- Header Generation ---
 
+// Familias de modelos segun la superficie de thinking del API (ago 2026):
+// - Adaptive-only (opus 4.7/4.8, familia 5: opus/sonnet/fable/mythos):
+//   budget_tokens y temperature/top_p/top_k devuelven 400. Thinking se pide
+//   con {type:"adaptive"} y la profundidad con output_config.effort.
+// - 4.6 (opus/sonnet): adaptive recomendado (budget deprecado pero funcional),
+//   sampling permitido, effort GA.
+// - Legacy (<=4.5, haiku): thinking {enabled, budget_tokens} clasico.
+function IsClaudeAdaptiveOnly(const AModel: string): Boolean;
+begin
+  Result := AModel.StartsWith('claude-opus-4-7') or
+            AModel.StartsWith('claude-opus-4-8') or
+            AModel.StartsWith('claude-opus-5') or
+            AModel.StartsWith('claude-sonnet-5') or
+            AModel.StartsWith('claude-fable') or
+            AModel.StartsWith('claude-mythos');
+end;
+
+function IsClaude46(const AModel: string): Boolean;
+begin
+  Result := AModel.StartsWith('claude-opus-4-6') or
+            AModel.StartsWith('claude-sonnet-4-6');
+end;
+
+// Fast mode (speed:"fast") solo existe en opus-5 y opus-4-8
+function IsClaudeFastCapable(const AModel: string): Boolean;
+begin
+  Result := AModel.StartsWith('claude-opus-5') or
+            AModel.StartsWith('claude-opus-4-8');
+end;
+
+// Mensajes {role:"system"} dentro de messages[] (mid-conversation, preservan
+// el prompt cache): opus-5 (y 5.5), opus-4-8, fable, mythos y sonnet-5-5.
+// NO sonnet-5 a secas.
+function IsClaudeMidSystemCapable(const AModel: string): Boolean;
+begin
+  Result := AModel.StartsWith('claude-opus-5') or
+            AModel.StartsWith('claude-opus-4-8') or
+            AModel.StartsWith('claude-fable') or
+            AModel.StartsWith('claude-mythos') or
+            AModel.StartsWith('claude-sonnet-5-5');
+end;
+
+// Forzar una tool (tool_choice "any" o {type:"tool"}) devuelve 400 en la
+// generacion de sep 2026: opus-5-5, sonnet-5-5, fable-5-1 y mythos-5-1.
+// Ahi se manda "auto" (el modelo sigue pudiendo llamarla) en lugar del error.
+function IsClaudeNoForcedTool(const AModel: string): Boolean;
+begin
+  Result := AModel.StartsWith('claude-opus-5-5') or
+            AModel.StartsWith('claude-sonnet-5-5') or
+            AModel.StartsWith('claude-fable-5-1') or
+            AModel.StartsWith('claude-mythos-5-1');
+end;
+
 function TAiClaudeChat.GetDynamicHeaders: TNetHeaders;
 var
   BetaFeatures: TList<string>;
@@ -503,7 +595,7 @@ begin
 
   BetaFeatures := TList<string>.Create;
   try
-    // 1. Tools (General) - Added if there are active tools
+    // 1. Tools (General) - Se a?ade si hay herramientas activas
     if Tool_Active then
       BetaFeatures.Add(BETA_HDR_TOOLS);
 
@@ -515,37 +607,45 @@ begin
     if cap_CodeInterpreter in ModelConfig.ModelCaps then
       BetaFeatures.Add(BETA_HDR_CODE);
 
-    // 4. Computer Use (NUEVO)
-    if cap_ComputerUse in ModelConfig.ModelCaps then
-      BetaFeatures.Add(BETA_HDR_COMPUTER);
+    // 4. Computer Use: computer_toolset_20260801 ya no requiere header beta.
+    //    El antiguo 'computer-use-2025-11-24' se sigue aceptando pero se ignora.
 
-    // 5. Thinking / Output Config
-    // Se activa si is habilitado manualmente O si hay un nivel de pensamiento definido
-    if FEnableThinking or (ModelConfig.ThinkingLevel <> tlDefault) then
+    // 5. Thinking: el header interleaved-thinking solo aplica al camino legacy
+    // con budget_tokens (<=4.5). En 4.6+ el thinking adaptativo integra el
+    // interleaving automaticamente y el header sobra.
+    var LBaseModel := TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model);
+    if (FEnableThinking or (ModelConfig.ThinkingLevel <> tlDefault)) and
+       (not IsClaudeAdaptiveOnly(LBaseModel)) and (not IsClaude46(LBaseModel)) then
       BetaFeatures.Add(BETA_HDR_THINKING);
 
-    // 6. Prompt Caching
-    // Siempre useful agregarlo si vamos a usar cache_control
-    BetaFeatures.Add(BETA_HDR_PROMPT_CACHING);
+    // 5b. Fase ago 2026: fast mode, compaction y fallbacks (betas)
+    if FFastMode and IsClaudeFastCapable(LBaseModel) then
+      BetaFeatures.Add(BETA_HDR_FASTMODE);
+    if FEnableCompaction then
+      BetaFeatures.Add(BETA_HDR_COMPACT);
+    if FRefusalFallbackModel <> '' then
+      BetaFeatures.Add(BETA_HDR_FALLBACK);
+
+    // 6. Prompt Caching: GA, ya no requiere beta header (antes 'prompt-caching-2024-07-31').
 
     // 7. PDFs
-    // Agregamos soporte explicit para PDFs
+    // Agregamos soporte expl?cito para PDFs
     if (cap_Pdf in ModelConfig.ModelCaps) then
       BetaFeatures.Add(BETA_HDR_PDFS);
 
-    // 8. Files API (critical)
-    // Siempre anunciamos soporte de Files for the Auto-Upload
+    // 8. Files API (CR?TICO)
+    // Siempre anunciamos soporte de Files para el Auto-Upload
     BetaFeatures.Add(BETA_HDR_FILES);
 
-    // Structured Outputs: Se activa si pedimos JSON Schema explicit
-    // Opcionalmente also si Tool_Active es true para permitir "strict: true" en tools.
+    // Structured Outputs: Se activa si pedimos JSON Schema expl?cito
+    // Opcionalmente tambi?n si Tool_Active es true para permitir "strict: true" en tools.
     if (Response_format = tiaChatRfJsonSchema) or Tool_Active then
       BetaFeatures.Add(BETA_HDR_STRUCTURED_OUTPUTS);
 
     // Construir header acumulado separando por comas
     if BetaFeatures.Count > 0 then
     begin
-      // Eliminar duplicados in case acaso
+      // Eliminar duplicados por si acaso
       var
       UniqueBetas := TStringList.Create;
       try
@@ -584,19 +684,24 @@ Var
   I: Integer;
   LAsincronico: Boolean;
   Res, LModel: String;
+  LIsAdaptiveThinking: Boolean;
   SystemPrompt: String;
 
-  // Variables para iteration de mensajes (Auto-Upload)
+  // Variables para iteraci?n de mensajes (Auto-Upload)
   LMsg: TAiChatMessage;
   LMedia: TAiMediaFile;
 
   // Variables para nuevas funcionalidades
   jOutputFormat, jMetaData: TJSONObject;
   jSchemaParsed: TJSONValue;
+  LOutputConfig: TJSONObject; // output_config: format (json_schema) y/o effort
 
   // Variables auxiliares para Thinking
   LActualThinkingBudget: Integer;
+  LIs46: Boolean;
 begin
+  LActualThinkingBudget := 0;
+  LOutputConfig := nil;
   if User = '' then
     User := 'user';
 
@@ -626,32 +731,38 @@ begin
   if LModel = '' then
     LModel := 'claude-haiku-4-5-20251001';
 
+  // Clasificacion por familia (ver IsClaudeAdaptiveOnly / IsClaude46 arriba):
+  // adaptive-only = 4.7/4.8/5 (budget y sampling devuelven 400); 4.6 = adaptive
+  // recomendado; resto = camino legacy con budget_tokens.
+  LIsAdaptiveThinking := IsClaudeAdaptiveOnly(LModel);
+  LIs46 := IsClaude46(LModel);
+
   // ---------------------------------------------------------------------------
-  // 2. calculation DE THINKING BUDGET (Nuevo enfoque sin output_config)
+  // 2. C?LCULO DE THINKING BUDGET (solo camino legacy <=4.5)
   // ---------------------------------------------------------------------------
   if ModelConfig.ThinkingLevel <> tlDefault then
     FEnableThinking := True;
 
-  if FEnableThinking then
+  if FEnableThinking and (not LIsAdaptiveThinking) and (not LIs46) then
   begin
-    // Asignar presupuesto according to el nivel elegido o usar el manual
+    // Asignar presupuesto seg?n el nivel elegido o usar el manual
     case ModelConfig.ThinkingLevel of
       tlLow:
-        LActualThinkingBudget := 2048; // fast, poco profundo
+        LActualThinkingBudget := 2048; // R?pido, poco profundo
       tlMedium:
-        LActualThinkingBudget := 8192; // isndar razonable
+        LActualThinkingBudget := 8192; // Est?ndar razonable
       tlHigh:
         LActualThinkingBudget := 16384; // Profundo (Cuidado con costos)
     else
       LActualThinkingBudget := FThinkingBudget; // Valor manual
     end;
 
-    // validation de minimal API (1024)
+    // Validaci?n de m?nimos API (1024)
     if LActualThinkingBudget < 1024 then
       LActualThinkingBudget := 1024;
 
-    // validation de MaxTokens: Debe ser estrictamente mayor que el budget
-    // Le damos un margen so that pueda escribir the response final
+    // Validaci?n de MaxTokens: Debe ser estrictamente mayor que el budget
+    // Le damos un margen para que pueda escribir la respuesta final
     if Max_tokens <= LActualThinkingBudget then
       Max_tokens := LActualThinkingBudget + 4096;
   end;
@@ -665,10 +776,19 @@ begin
     AJSONObject.AddPair('model', LModel);
 
     // 3. SYSTEM PROMPT
+    // Contador de breakpoints cache_control para este request (la API permite max 4).
+    // Orden de prefijo: tools -> system -> messages. Reservamos los slots de system y
+    // tools antes de construir messages para que tengan prioridad sobre los mensajes.
+    FCacheCount := 0;
+    // Caching del contexto estable activo si el usuario puso CacheSystemPrompt (Claude)
+    // o el flag portable CacheContext (base).
+    var
+    LDoCache: Boolean := FCacheSystemPrompt or CacheContext;
+    FCacheCtxActive := LDoCache; // visible para GetMessages (auto-cache del ultimo turno)
     SystemPrompt := Self.PrepareSystemMsg;
     if SystemPrompt <> '' then
     begin
-      if FCacheSystemPrompt then
+      if LDoCache then
       begin
         var
         jSysArr := TJSonArray.Create;
@@ -680,7 +800,10 @@ begin
         var
         jCache := TJSONObject.Create;
         jCache.AddPair('type', 'ephemeral');
+        if FCacheTTL <> '' then
+          jCache.AddPair('ttl', FCacheTTL);
         jSysBlock.AddPair('cache_control', jCache);
+        Inc(FCacheCount); // breakpoint de system (cachea tools+system por el orden de prefijo)
 
         jSysArr.Add(jSysBlock);
         AJSONObject.AddPair('system', jSysArr);
@@ -688,6 +811,12 @@ begin
       else
         AJSONObject.AddPair('system', SystemPrompt);
     end;
+
+    // Reserva del slot de tools: si el cacheo esta activo, las definiciones de tools
+    // se cachean (breakpoint en el ultimo tool, mas abajo). Se reserva aqui para que
+    // los mensajes no consuman ese slot.
+    if LDoCache then
+      Inc(FCacheCount);
 
     AJSONObject.AddPair('max_tokens', TJSONNumber.Create(Max_tokens));
     AJSONObject.AddPair('messages', GetMessages);
@@ -706,8 +835,8 @@ begin
             var
             jRootSchema := jSchemaParsed as TJSONObject;
 
-            // --- correction AUtookTICA PARA CLAUDE ---
-            // Claude exige "additionalProperties": false en el nivel root si es type object.
+            // --- CORRECCI?N AUTOM?TICA PARA CLAUDE ---
+            // Claude exige "additionalProperties": false en el nivel ra?z si es type object.
             // Verificamos si es type object y si falta la propiedad, la agregamos.
             if (jRootSchema.GetValue<string>('type') = 'object') and (jRootSchema.GetValue('additionalProperties') = nil) then
             begin
@@ -718,7 +847,10 @@ begin
             jOutputFormat := TJSONObject.Create;
             jOutputFormat.AddPair('type', 'json_schema');
             jOutputFormat.AddPair('schema', jRootSchema); // Usamos el objeto ya modificado
-            AJSONObject.AddPair('output_format', jOutputFormat);
+            // output_format (top-level) esta deprecado API-wide: el canonico
+            // es output_config.format (se agrega al final junto con effort)
+            LOutputConfig := TJSONObject.Create;
+            LOutputConfig.AddPair('format', jOutputFormat);
           end
           else if Assigned(jSchemaParsed) then
             jSchemaParsed.Free;
@@ -729,10 +861,61 @@ begin
     end;
 
     // -------------------------------------------------------------------------
-    // 5. THINKING PARAMETERS (Solo budget, sin output_config)
+    // 5. THINKING PARAMETERS por familia de modelo
     // -------------------------------------------------------------------------
-    if FEnableThinking then
+    if LIsAdaptiveThinking or LIs46 then
     begin
+      // Familia 4.6+ : thinking adaptativo (auto-interleaved, sin beta header).
+      // La profundidad se pide con output_config.effort (GA desde 4.6).
+      // En opus-5/fable el thinking ya viene activo por defecto; enviar
+      // {type:"adaptive"} explicito es equivalente e inofensivo.
+      if FEnableThinking then
+      begin
+        var
+        jThink := TJSONObject.Create;
+        jThink.AddPair('type', 'adaptive');
+        AJSONObject.AddPair('thinking', jThink);
+      end;
+
+      if ModelConfig.ThinkingLevel <> tlDefault then
+      begin
+        if not Assigned(LOutputConfig) then
+          LOutputConfig := TJSONObject.Create;
+        // Escalera ampliada (v3.8): xhigh existe desde opus-4-7 (en 4.6 no:
+        // se lleva a high) y max desde 4.6. minimal/none no existen en
+        // Claude: se piden como low (en la familia 5.5 no se puede apagar).
+        case ModelConfig.ThinkingLevel of
+          tlLow, tlMinimal, tlNone:
+            LOutputConfig.AddPair('effort', 'low');
+          tlMedium:
+            LOutputConfig.AddPair('effort', 'medium');
+          tlHigh:
+            LOutputConfig.AddPair('effort', 'high');
+          tlXHigh:
+            if LIsAdaptiveThinking then
+              LOutputConfig.AddPair('effort', 'xhigh')
+            else
+              LOutputConfig.AddPair('effort', 'high');
+          tlMax:
+            LOutputConfig.AddPair('effort', 'max');
+        end;
+      end;
+
+      // Sampling: en 4.7+/5 temperature/top_p/top_k devuelven 400 — nunca se
+      // envian. En 4.6 siguen permitidos, pero solo sin thinking activo.
+      if LIs46 and (not LIsAdaptiveThinking) and (not FEnableThinking) then
+      begin
+        if Self.Temperature > 0 then
+          AJSONObject.AddPair('temperature', TJSONNumber.Create(Self.Temperature))
+        Else if Top_p > 0 then
+          AJSONObject.AddPair('top_p', TJSONNumber.Create(Top_p));
+        if K > 0 then
+          AJSONObject.AddPair('top_k', TJSONNumber.Create(K));
+      end;
+    end
+    else if FEnableThinking then
+    begin
+      // Camino legacy (<=4.5): thinking manual con budget_tokens
       var
       jThink := TJSONObject.Create;
       jThink.AddPair('type', 'enabled');
@@ -744,7 +927,7 @@ begin
     end
     else
     begin
-      // Modo isndar
+      // Modo Est?ndar legacy
       if Self.Temperature > 0 then
         AJSONObject.AddPair('temperature', TJSONNumber.Create(Self.Temperature))
       Else if Top_p > 0 then
@@ -753,6 +936,10 @@ begin
       if K > 0 then
         AJSONObject.AddPair('top_k', TJSONNumber.Create(K));
     end;
+
+    // output_config acumulado (format de structured outputs y/o effort)
+    if Assigned(LOutputConfig) then
+      AJSONObject.AddPair('output_config', LOutputConfig);
 
     // 6. METADATA & SERVICE TIER
     if (Self.User <> '') and (Self.User <> 'user') then
@@ -765,12 +952,47 @@ begin
     if (FServiceTier <> '') then
       AJSONObject.AddPair('service_tier', FServiceTier);
 
+    // context_management: configuracion del usuario (FContextConfig) y/o
+    // compaction server-side (edits.compact_20260112)
+    var jContext: TJSONObject := nil;
     if not FContextConfig.IsEmpty then
-    begin
-      var
       jContext := FContextConfig.ToJSONObject;
-      if Assigned(jContext) then
-        AJSONObject.AddPair('context_management', jContext);
+    if FEnableCompaction then
+    begin
+      if not Assigned(jContext) then
+        jContext := TJSONObject.Create;
+      var jEdits: TJSonArray := nil;
+      jContext.TryGetValue<TJSonArray>('edits', jEdits);
+      if not Assigned(jEdits) then
+      begin
+        jEdits := TJSonArray.Create;
+        jContext.AddPair('edits', jEdits);
+      end;
+      var jCompact := TJSONObject.Create;
+      jCompact.AddPair('type', 'compact_20260112');
+      jEdits.Add(jCompact);
+    end;
+    if Assigned(jContext) then
+      AJSONObject.AddPair('context_management', jContext);
+
+    // Fast mode (research preview): solo opus-5/opus-4-8; en otros se ignora
+    if FFastMode then
+    begin
+      if IsClaudeFastCapable(LModel) then
+        AJSONObject.AddPair('speed', 'fast')
+      else
+        LogDebug('FastMode ignorado: ' + LModel + ' no lo soporta');
+    end;
+
+    // Fallbacks server-side: si los clasificadores declinan, el API reintenta
+    // la misma peticion en el modelo indicado dentro de la misma llamada
+    if FRefusalFallbackModel <> '' then
+    begin
+      var jFallbacks := TJSonArray.Create;
+      var jFb := TJSONObject.Create;
+      jFb.AddPair('model', FRefusalFallbackModel);
+      jFallbacks.Add(jFb);
+      AJSONObject.AddPair('fallbacks', jFallbacks);
     end;
 
     // 7. TOOLS
@@ -788,15 +1010,34 @@ begin
       end;
     end;
 
+    // El filtrado dinamico de web_search_20260209 se ejecuta con codigo, asi que
+    // Anthropic AUTO-INYECTA su propio 'code_execution' cuando esa variante esta
+    // presente. Si ademas lo declaramos nosotros, rechaza la peticion entera con
+    // 'Auto-injecting tools would conflict with existing tool names:
+    // [''code_execution'']'. Se anota aqui para no declararlo dos veces.
+    var LAutoInjectsCodeExec := False;
+
     if cap_WebSearch in ModelConfig.ModelCaps then
     begin
       JTools := TJSONObject.Create;
-      JTools.AddPair('type', 'web_search_20250305');
+      // Desde la familia 4.6 existe web_search_20260209 con filtrado dinamico
+      // (el modelo filtra resultados con codigo antes de que entren al
+      // contexto); los modelos previos siguen con la variante basica
+      if LIsAdaptiveThinking or LIs46 then
+      begin
+        JTools.AddPair('type', 'web_search_20260209');
+        LAutoInjectsCodeExec := True;
+      end
+      else
+        JTools.AddPair('type', 'web_search_20250305');
       JTools.AddPair('name', 'web_search');
       jArrTools.Add(JTools);
     end;
 
-    if cap_CodeInterpreter in ModelConfig.ModelCaps then
+    // Solo se declara si nadie lo va a auto-inyectar. Cuando se omite por eso,
+    // la capacidad NO se pierde: la tool que inyecta Anthropic es un
+    // code_execution real y la cabecera beta se sigue enviando igual.
+    if (cap_CodeInterpreter in ModelConfig.ModelCaps) and (not LAutoInjectsCodeExec) then
     begin
       JTools := TJSONObject.Create;
       JTools.AddPair('type', 'code_execution_20250522');
@@ -822,11 +1063,19 @@ begin
 
     if cap_ComputerUse in ModelConfig.ModelCaps then
     begin
+      // computer_toolset_20260801 (ago 2026) reemplaza a computer_20251124,
+      // que el API ya rechaza. Es una entrada de tipo 'toolset': NO admite
+      // 'name' ni 'display_width_px'/'display_height_px' ni 'enable_zoom'
+      // (responde "Extra inputs are not permitted"). El modelo deduce las
+      // dimensiones del propio screenshot; ScreenWidth/ScreenHeight del
+      // TAiComputerUseTool siguen usandose, pero solo en local, para
+      // normalizar a 0-999 las coordenadas en pixeles que devuelve Claude.
+      // El toolset sirve 17 herramientas con nombre propio (left_click, key,
+      // scroll, zoom, screenshot...) en vez de un unico tool 'computer' con
+      // campo 'action': el despacho se hace en DoCallFunction por ToolCall.Name.
+      // Nota: zoom ahora esta siempre disponible, ya no depende de EnableZoom.
       JTools := TJSONObject.Create;
-      JTools.AddPair('type', 'computer_20250124');
-      JTools.AddPair('name', 'computer');
-      JTools.AddPair('display_width_px', TJSONNumber.Create(1024));
-      JTools.AddPair('display_height_px', TJSONNumber.Create(768));
+      JTools.AddPair('type', 'computer_toolset_20260801');
       jArrTools.Add(JTools);
     end;
 
@@ -842,21 +1091,85 @@ begin
     begin
       AJSONObject.AddPair('tools', jArrTools);
 
+      // Cache de las definiciones de tools: cache_control en el ultimo tool cachea
+      // todo el bloque de tools (orden de prefijo tools->system->messages). El slot
+      // ya fue reservado en FCacheCount junto al system.
+      if LDoCache then
+      begin
+        var
+        jToolCache := TJSONObject.Create;
+        jToolCache.AddPair('type', 'ephemeral');
+        if FCacheTTL <> '' then
+          jToolCache.AddPair('ttl', FCacheTTL);
+        (jArrTools.Items[jArrTools.Count - 1] as TJSONObject).AddPair('cache_control', jToolCache);
+      end;
+
       if (Trim(Tool_choice) <> '') then
       begin
+        // Anthropic exige tool_choice como OBJETO: {"type":"auto"|"any"|"none"}
+        // o {"type":"tool","name":"x"}. La propiedad suele llegar en formato
+        // OpenAI: "auto"/"none"/"required" (a veces JSON-quoted como '"auto"')
+        // o {"type":"function","function":{"name":"x"}} — aqu? se traduce.
+        // Enviarla cruda produce 400 "tool_choice: Input should be an object".
+        var LChoiceObj: TJSONObject := nil;
+        var LRaw := Trim(Tool_choice);
+        var LVal := TJSONObject.ParseJSONValue(LRaw);
         try
-          jToolChoice := TJSONObject.ParseJSONValue(Tool_choice) as TJSONObject;
-          if Assigned(jToolChoice) then
-            AJSONObject.AddPair('tool_choice', TJSONObject(jToolChoice.Clone));
-        except
-          AJSONObject.AddPair('tool_choice', Tool_choice);
+          if LVal is TJSONObject then
+          begin
+            var LType := TJSONObject(LVal).GetValue<string>('type', '');
+            if SameText(LType, 'function') then
+            begin
+              // Formato OpenAI con funci?n espec?fica → {"type":"tool","name":...}
+              var LName := '';
+              var LFn := TJSONObject(LVal).GetValue<TJSONObject>('function', nil);
+              if Assigned(LFn) then
+                LName := LFn.GetValue<string>('name', '');
+              if LName <> '' then
+              begin
+                LChoiceObj := TJSONObject.Create;
+                LChoiceObj.AddPair('type', 'tool');
+                LChoiceObj.AddPair('name', LName);
+              end;
+            end
+            else
+              LChoiceObj := TJSONObject(LVal.Clone); // ya viene en formato Anthropic
+          end
+          else
+          begin
+            // String simple (con o sin comillas JSON): auto | none | required
+            var LWord := LRaw.Replace('"', '').Trim.ToLower;
+            if LWord = 'required' then
+              LWord := 'any';
+            if (LWord = 'auto') or (LWord = 'any') or (LWord = 'none') then
+            begin
+              LChoiceObj := TJSONObject.Create;
+              LChoiceObj.AddPair('type', LWord);
+            end;
+          end;
+        finally
+          LVal.Free;
         end;
+        // Los modelos de sep 2026 rechazan forzar una tool: se degrada a auto
+        if Assigned(LChoiceObj) and IsClaudeNoForcedTool(LModel) then
+        begin
+          var LForced := LChoiceObj.GetValue<string>('type', '');
+          if SameText(LForced, 'any') or SameText(LForced, 'tool') then
+          begin
+            LogDebug('tool_choice "' + LForced + '" no admitido por ' + LModel + ': se envia "auto"');
+            LChoiceObj.Free;
+            LChoiceObj := TJSONObject.Create;
+            LChoiceObj.AddPair('type', 'auto');
+          end;
+        end;
+        if Assigned(LChoiceObj) then
+          AJSONObject.AddPair('tool_choice', LChoiceObj);
       end;
     end
     else
       jArrTools.Free;
 
-    // 8. completion
+    // 8. FINALIZACI?N
     Lista.CommaText := Stop;
     if Lista.Count > 0 then
     begin
@@ -868,6 +1181,7 @@ begin
 
     AJSONObject.AddPair('stream', TJSONBool.Create(LAsincronico));
 
+    ApplyExtraBodyParams(AJSONObject);
     Res := UTF8ToString(UTF8Encode(AJSONObject.ToJSON));
     Res := StringReplace(Res, '\/', '/', [rfReplaceAll]);
     Result := StringReplace(Res, '\r\n', '', [rfReplaceAll]);
@@ -907,7 +1221,12 @@ begin
     FClient.Asynchronous := Self.Asynchronous;
 
     if FClient.Asynchronous then
+    begin
+      // ISSUE #105/#118: el mensaje del assistant se acumula en FStreamResponseMsg durante
+      // el stream y se archiva en FMessages al cerrar (message_stop, ver OnInternalReceiveData).
+      // En async RunNew libera su propio ResMsg tras el POST, por lo que NO lo referenciamos.
       FStreamResponseMsg := TAiChatMessage.Create('', 'assistant');
+    end;
 
     ABody := InitChatCompletions;
 
@@ -924,6 +1243,9 @@ begin
       FResponse.Clear;
 
       Res := FClient.Post(sUrl, St, FResponse, FHeaders);
+
+      if not Assigned(Res) then
+        raise Exception.CreateFmt('Connection failed: no response from %s', [sUrl]);
 
       if not FClient.Asynchronous then
       begin
@@ -950,7 +1272,13 @@ begin
       end;
     finally
       if not FClient.Asynchronous then
-        St.Free;
+        St.Free
+      else
+      begin
+        if Assigned(FCurrentPostStream) then
+          FreeAndNil(FCurrentPostStream);
+        FCurrentPostStream := St;
+      end;
     end;
   finally
     if not FClient.Asynchronous then
@@ -985,14 +1313,13 @@ Var
   jCitObj: TJSONObject;
   SearchItem: TAiWebSearchItem;
 
-  // Variables para navigation de Archivos (Code Execution)
+  // Variables para Navegaci?n de Archivos (Code Execution)
   jInnerContent, jResultContent: TJSONObject;
-  jInnerArray, jResultArray: TJSonArray;
+  jResultArray: TJSonArray;
   NewFile: TAiMediaFile;
-  ToolUseID, Cmd, FoundFileName: string;
+  ToolUseID, FoundFileName: string;
   ScanItem: TJSONValue;
   ScanObj, InputObj: TJSONObject;
-  CmdParts: TArray<string>;
 
   // Subrutina local: garantiza captura independiente por valor en Delphi 10.4+
   procedure _CreateTask(TC: TAiToolsFunction; AIdx: Integer);
@@ -1000,50 +1327,18 @@ Var
     TaskList[AIdx] := TTask.Create(
       procedure
       begin
-        // Outer try: guarantees no exception (not even from logging)
-        // escape al TTask system y cause EAggregateException en WaitForAll.
         try
-          try
-            TFile.AppendAllText('makerai_tools.log',
-              FormatDateTime('hh:nn:ss.zzz', Now) +
-              Format(' [Tool] Ejecutando: "%s" (id=%s)'#13#10, [TC.Name, TC.Id]),
-              TEncoding.UTF8);
-          except
-            // Ignorar fallos de log (path inaccesible, OneDrive lock, etc.)
-          end;
-          try
-            DoCallFunction(TC);
-            try
-              TFile.AppendAllText('makerai_tools.log',
-                FormatDateTime('hh:nn:ss.zzz', Now) +
-                Format(' [Tool] Completado: "%s" -> %s'#13#10,
-                  [TC.Name, IfThen(TC.Response = '', '(empty)', Copy(TC.Response, 1, 120))]),
-                TEncoding.UTF8);
-            except
-            end;
-          except
-            on E: Exception do
-            begin
-              var LErrorMsg := 'Error en herramienta "' + TC.Name + '": ' + E.Message;
-              try
-                TFile.AppendAllText('makerai_tools.log',
-                  FormatDateTime('hh:nn:ss.zzz', Now) +
-                  ' [Tool] ERROR: ' + LErrorMsg + #13#10, TEncoding.UTF8);
-              except
-              end;
-              TC.Response := '{"error": "' + E.Message.Replace('"', '''') + '"}';
-              TThread.Queue(nil,
-                procedure
-                begin
-                  DoError(LErrorMsg, nil);
-                end);
-            end;
-          end;
+          DoCallFunction(TC);
         except
           on E: Exception do
           begin
-            // Fallback: catches any unexpected exception (should never reach here)
-            TC.Response := '{"error": "unexpected: ' + E.Message.Replace('"', '''') + '"}';
+            var LErrorMsg := 'Error en herramienta "' + TC.Name + '": ' + E.Message;
+            TC.Response := '{"error": "' + E.Message.Replace('"', '''') + '"}';
+            TThread.Queue(nil,
+              procedure
+              begin
+                DoError(LErrorMsg, nil);
+              end);
           end;
         end;
       end);
@@ -1060,7 +1355,25 @@ begin
 
   ResMsg.StopReason := StopR;
   if StopR = 'refusal' then
+  begin
+    // Los clasificadores de seguridad (opus-5/fable-5) declinan con HTTP 200 +
+    // stop_reason:"refusal" y un objeto stop_details {category, explanation}.
+    // El content puede venir vacio (pre-output) o parcial (mid-stream).
     ResMsg.IsRefusal := True;
+    var LRefusalMsg := 'La peticion fue declinada por los clasificadores de seguridad del modelo';
+    var jStopDetails: TJSONObject := nil;
+    jObj.TryGetValue<TJSONObject>('stop_details', jStopDetails);
+    if Assigned(jStopDetails) then
+    begin
+      var LCategory := jStopDetails.GetValue<string>('category', '');
+      var LExplanation := jStopDetails.GetValue<string>('explanation', '');
+      if LCategory <> '' then
+        LRefusalMsg := LRefusalMsg + ' (categoria: ' + LCategory + ')';
+      if LExplanation <> '' then
+        LRefusalMsg := LRefusalMsg + ': ' + LExplanation;
+    end;
+    DoError(LRefusalMsg, nil);
+  end;
 
   // 2. Parse Usage (CORREGIDO)
   aPrompt_tokens := 0;
@@ -1075,10 +1388,14 @@ begin
 
     // Captura de tokens cacheados (Beta Prompt Caching)
     aCached_tokens := uso.GetValue<Integer>('cache_read_input_tokens', 0);
+    ResMsg.Cache_write_tokens := uso.GetValue<Integer>('cache_creation_input_tokens', 0);
 
-    // Nota: Total tokens en Claude suele ser input + output.
-    // Cache creation tokens ya isn incluidos en input_tokens according to la doc.
-    aTotal_tokens := aPrompt_tokens + aCompletion_tokens;
+    // OJO: input_tokens, cache_read_input_tokens y cache_creation_input_tokens
+    // son DISJUNTOS en la API de Anthropic — los cacheados NO estan incluidos en
+    // input_tokens (el comentario anterior afirmaba lo contrario y es falso).
+    // El prompt real del turno es la suma de los tres; quien facture debe sumarlos.
+    aTotal_tokens := aPrompt_tokens + aCompletion_tokens
+                   + aCached_tokens + ResMsg.Cache_write_tokens;
   end;
 
   // 3. Parse Content (Interleaved Blocks)
@@ -1112,7 +1429,7 @@ begin
 
       end;
 
-      // C. Citations (search Web / RAG / Documentos)
+      // C. Citations (B?squeda Web / RAG / Documentos)
       if jContentItem.TryGetValue<TJSonArray>('citations', jCitationsArr) then
       begin
         for jCitVal in jCitationsArr do
@@ -1164,7 +1481,7 @@ begin
             SearchItem.Url := jCitObj.GetValue<string>('url', '');
             ResMsg.WebSearchResponse.annotations.Add(SearchItem);
 
-            // also agregar a Citations para unification
+            // Tambi?n agregar a Citations para unificaci?n
             var LCitation := TAiMsgCitation.Create;
             LCitation.Text := jCitObj.GetValue<string>('cited_text', '');
             var LSource := TAiCitationSource.Create;
@@ -1177,13 +1494,19 @@ begin
         end;
       end;
 
+      // C2. Bloque de compaction (beta compact-2026-01-12): se guarda integro
+      // asociado al mensaje de respuesta; GetMessages lo reenvia en los
+      // turnos siguientes para que el API reemplace el historial compactado
+      if cType = 'compaction' then
+        FCompactionBlocks.AddOrSetValue(ResMsg, jContentItem.ToJSON);
+
       // D. Code Execution Output
       if (cType = 'tool_result') or (cType = 'code_execution_tool_result') then
       begin
 
         if jContentItem.TryGetValue<TJSONObject>('content', jInnerContent) then
         begin
-          // Verificamos que sea un resultado de execution de code
+          // Verificamos que sea un resultado de ejecuci?n de c?digo
           if jInnerContent.GetValue<string>('type') = 'code_execution_result' then
           begin
             // 2. Buscamos el array interno 'content' que contiene los outputs (archivos)
@@ -1196,13 +1519,13 @@ begin
                 // 3. Verificamos si hay un file_id
                 if jResultContent.TryGetValue<string>('file_id', Clave) then
                 begin
-                  // --- logic DE retrieval DE NOMBRE ---
+                  // --- L?GICA DE RECUPERACI?N DE NOMBRE ---
                   FoundFileName := 'generated_file_' + Copy(Clave, 1, 8) + '.bin';
                   ToolUseID := jContentItem.GetValue<string>('tool_use_id', '');
 
                   if ToolUseID <> '' then
                   begin
-                    // Escanear hacia backward para encontrar el input y deducir el nombre
+                    // Escanear hacia atr?s para encontrar el input y deducir el nombre
                     for ScanItem in choices do
                     begin
                       if not(ScanItem is TJSONObject) then
@@ -1215,13 +1538,13 @@ begin
                       begin
                         if ScanObj.TryGetValue<TJSONObject>('input', InputObj) then
                         begin
-                          // Buscamos en el code Python el nombre del archivo generado
+                          // Buscamos en el c?digo Python el nombre del archivo generado
                           var
                           CodeStr := InputObj.GetValue<string>('code', '');
 
-                          // heuristic simple: buscar 'output_path = ...' o strings con extensiones
-                          // Esto es more complejo en Python que en Bash, pero intentamos algo basic
-                          // Si el code define output_path = ... 'archivo.wav'
+                          // Heur?stica simple: buscar 'output_path = ...' o strings con extensiones
+                          // Esto es m?s complejo en Python que en Bash, pero intentamos algo b?sico
+                          // Si el c?digo define output_path = ... 'archivo.wav'
                           var
                           PosExt := Pos('.wav', CodeStr);
                           if PosExt = 0 then
@@ -1261,12 +1584,12 @@ begin
 
                           if PosExt > 0 then
                           begin
-                            // Intentar extraer el nombre buscando hacia backward desde la extension
+                            // Intentar extraer el nombre buscando hacia atr?s desde la extensi?n
                             var
                             StartPos := LastDelimiter('''"', Copy(CodeStr, 1, PosExt));
                             if StartPos > 0 then
                             begin
-                              // Calcular longitud real de la extension (avanzar desde el punto)
+                              // Calcular longitud real de la extensi?n (avanzar desde el punto)
                               var
                               EndPos := PosExt + 1;
                               while (EndPos <= Length(CodeStr)) and CharInSet(CodeStr[EndPos], ['a'..'z','A'..'Z','0'..'9']) do
@@ -1317,19 +1640,24 @@ begin
 
   LFunciones := ExtractToolCallFromJson(choices);
 
-  // 5. Update Component State & Response Message (Awhat is LA correction)
+  // 5. Update Component State & Response Message (AQU? EST? LA CORRECCI?N)
   Self.FLastContent := Respuesta;
 
-  // Actualizar contadores globales of the component
+  // Actualizar contadores globales del componente.
+  // Los de cache se acumulan IGUAL que los de input/output: en un bucle de tool
+  // calling cada ronda es una llamada facturable y el consumidor solo ve el
+  // ultimo mensaje, asi que sin acumular aqui se perdian las rondas 1..N-1.
   Self.Prompt_tokens := Self.Prompt_tokens + aPrompt_tokens;
   Self.Completion_tokens := Self.Completion_tokens + aCompletion_tokens;
   Self.Total_tokens := Self.Total_tokens + aTotal_tokens;
+  Self.Cached_tokens := Self.Cached_tokens + aCached_tokens;
+  Self.Cache_write_tokens := Self.Cache_write_tokens + ResMsg.Cache_write_tokens;
 
   // Actualizar contadores del Mensaje de Respuesta
   ResMsg.Prompt_tokens := aPrompt_tokens;
   ResMsg.Completion_tokens := aCompletion_tokens;
   ResMsg.Total_tokens := aTotal_tokens;
-  ResMsg.Cached_tokens := aCached_tokens; // Nuevo: Soporte de cache
+  ResMsg.Cached_tokens := aCached_tokens; // Nuevo: Soporte de cach?
 
   if sToolCalls.IsEmpty then
   begin
@@ -1347,13 +1675,21 @@ begin
     Msg.Tool_calls := sToolCalls;
     Msg.ReasoningContent := ResMsg.ReasoningContent;
     Msg.ThinkingSignature := ResMsg.ThinkingSignature;
-    // Asignar tokens also al mensaje temporal si it is necessary,
-    // aunque generalmente se quedan en el ResMsg principal
+    // Los contadores DEBEN copiarse: este mensaje temporal es el que devuelve
+    // GetLastMessage cuando la respuesta trae tool_calls, y es de ahi de donde
+    // el consumidor (broker/facturacion) lee el usage del turno. Sin esto, toda
+    // llamada que termina en tool_calls se facturaba con cache_read/cache_write
+    // en cero aunque Anthropic los hubiera reportado.
+    Msg.Prompt_tokens := aPrompt_tokens;
+    Msg.Completion_tokens := aCompletion_tokens;
+    Msg.Total_tokens := aTotal_tokens;
+    Msg.Cached_tokens := aCached_tokens;
+    Msg.Cache_write_tokens := ResMsg.Cache_write_tokens;
     Msg.Id := FMessages.Count + 1;
     FMessages.Add(Msg);
   end;
 
-  // 6. Tool Execution
+  // 6. Ejecuci?n de Herramientas
   try
     if LFunciones.Count > 0 then
     begin
@@ -1369,8 +1705,19 @@ begin
         _CreateTask(ToolCall, I); // subrutina local garantiza captura por valor
         Inc(I);
       end;
-      TTask.WaitForAll(TaskList);
+      // Bombear Synchronize/Queue mientras se espera, para no colgar la app si un
+      // tool call accede a la VCL/FMX via TThread.Synchronize (issue #103).
+      // OJO: CheckSynchronize SOLO es valido en el hilo principal; en hilos
+      // secundarios (workers Indy de un servicio headless, TTask de agentes)
+      // LANZA excepcion "CheckSynchronize called from thread X". Fuera del main
+      // thread solo esperamos. Mismo criterio que TMCPClientSSE.WaitForInitialization.
+      while not TTask.WaitForAll(TaskList, 10) do
+        if TThread.CurrentThread.ThreadID = MainThreadID then
+          CheckSynchronize(0)
+        else
+          TThread.Sleep(10);
 
+      var LStopLoop := False;
       for Clave in LFunciones.Keys do
       begin
         ToolCall := LFunciones[Clave];
@@ -1380,9 +1727,33 @@ begin
         ToolCall.MediaFiles.OwnsObjects := False;
         ToolMsg.Id := FMessages.Count + 1;
         FMessages.Add(ToolMsg);
+        LStopLoop := LStopLoop or ToolCall.StopAgenticLoop;
       end;
 
-      Self.Run(Nil, ResMsg);
+      if LStopLoop then
+      begin
+        // Un handler pidi? detener el loop agentico (tool passthrough: lo
+        // ejecuta el cliente final). Se finaliza el turno con los tool_calls
+        // en ResMsg en vez de reenviar el resultado sint?tico al modelo.
+        ResMsg.Tool_calls := sToolCalls;
+        DoProcessResponse(AskMsg, ResMsg, Respuesta);
+        FBusy := False;
+        DoStateChange(acsFinished, 'Done');
+        if Assigned(FOnReceiveDataEnd) then
+          FOnReceiveDataEnd(Self, ResMsg, jObj, Role, Respuesta);
+      end
+      else
+      begin
+        // ISSUE #100: en async este ParseChat corre DENTRO del callback de recepción
+        // (OnInternalReceiveData -> message_stop). Reentrar con Self.Run inicia un POST
+        // nuevo cuyo finally libera el FCurrentPostStream de la petición aún en vuelo -> AV
+        // en THTTPClient.ExecuteHTTPInternal. Se difiere la continuación a
+        // OnRequestCompletedEvent (base), que corre cuando la petición ya liberó su stream.
+        if FClient.Asynchronous then
+          FPendingToolRun := True
+        else
+          Self.Run(Nil, ResMsg);
+      end;
     end
     else
     begin
@@ -1427,27 +1798,46 @@ end;
 
 procedure TAiClaudeChat.OnInternalReceiveData(const Sender: TObject; AContentLength, AReadCount: Int64; var AAbort: Boolean);
 var
-  line: string;
+  line, Chunk: string;
 begin
 
   if not FClient.Asynchronous then
     Exit;
 
   LogDebug('-- OnInternalReceiveData--');
-  LogDebug(FResponse.DataString);
+
+  // ISSUE #124 (extiende #108): FResponse acumula bytes TCP crudos en UTF-8; si un
+  // chunk parte un caracter multibyte, DataString lanza EEncodingError. Se decodifica
+  // una sola vez ANTES de limpiar: si falla, los bytes parciales quedan en FResponse
+  // (sin Clear) y el proximo chunk completa el caracter.
+  try
+    Chunk := FResponse.DataString;
+  except
+    on EEncodingError do
+    begin
+      LogDebug('[chunk UTF-8 parcial - reintento con el proximo chunk]');
+      Chunk := '';
+    end;
+  end;
+
+  LogDebug(Chunk);
 
   AAbort := FAbort;
   if FAbort then
   begin
     FBusy := False;
+    FPendingToolRun := False;
     if Assigned(FOnReceiveDataEnd) then
       FOnReceiveDataEnd(Self, nil, nil, 'system', 'abort');
     ClearStreamState;
     Exit;
   end;
 
-  FStreamBuffer.Append(FResponse.DataString);
-  FResponse.Clear;
+  if Chunk <> '' then
+  begin
+    FStreamBuffer.Append(Chunk);
+    FResponse.Clear;
+  end;
 
   var
   bufferContent := FStreamBuffer.ToString;
@@ -1477,14 +1867,14 @@ var
   blockIndex: Integer;
   streamBlock: TClaudeStreamContentBlock;
 begin
-  // 1. Procesar line de evento (event: ...)
+  // 1. Procesar l?nea de evento (event: ...)
   if AChunk.StartsWith('event:') then
   begin
     FStreamLastEventType := Trim(Copy(AChunk, 7, Length(AChunk)));
     Exit;
   end;
 
-  // 2. Procesar line de datos (data: ...)
+  // 2. Procesar l?nea de datos (data: ...)
   if AChunk.StartsWith('data:') then
   begin
     if FStreamLastEventType = '' then
@@ -1515,7 +1905,21 @@ begin
           FStreamResponseMsg.Model := jMessage.GetValue<string>('model');
           FStreamResponseMsg.Role := jMessage.GetValue<string>('role');
 
-          // Notificar inicio de reception
+          // Leer input_tokens desde message_start (Claude streaming no incluye usage en message_stop).
+          // Y los de cache: en streaming input_tokens es SOLO lo no cacheado
+          // (con un prefijo de 4.681 tokens cacheados llega input_tokens=6), asi
+          // que sin cache_read/cache_creation el usage del cierre sintetico
+          // decia 6 tokens de entrada y ParseChat no veia ni un token de cache
+          // (medido en MKAIServer el 2026-09-05: prompt_tokens=6 sin details).
+          var jStartUsage: TJSONObject;
+          if jMessage.TryGetValue<TJSONObject>('usage', jStartUsage) then
+          begin
+            Self.Prompt_tokens := jStartUsage.GetValue<Integer>('input_tokens', 0);
+            FStreamCacheRead   := jStartUsage.GetValue<Integer>('cache_read_input_tokens', 0);
+            FStreamCacheWrite  := jStartUsage.GetValue<Integer>('cache_creation_input_tokens', 0);
+          end;
+
+          // Notificar inicio de recepci?n
           if Assigned(OnReceiveData) then
             OnReceiveData(Self, FStreamResponseMsg, jData, 'assistant', '');
         end;
@@ -1540,7 +1944,7 @@ begin
             streamBlock.ExtraData.AddPair(Pair.JsonString.Value, Pair.JsonValue.Clone as TJSONValue);
         end;
 
-        // If it is a tool, we initialize the structure
+        // Si es una herramienta, inicializamos la estructura
         if streamBlock.BlockType = 'tool_use' then
         begin
           streamBlock.ToolFunction := TAiToolsFunction.Create;
@@ -1582,14 +1986,9 @@ begin
 
           else if deltaType = 'citations_delta' then
           begin
-            var
-            jCitation := jDelta.GetValue<TJSONObject>('citation');
-            if Assigned(jCitation) then
-            begin
-              // Acumulamos el JSON en el buffer del bloque.
-              // TClaudeStreamContentBlock debe tener: CitationsBuffer: TJSonArray;
+            var jCitation: TJSONObject;
+            if jDelta.TryGetValue<TJSONObject>('citation', jCitation) then
               streamBlock.CitationsBuffer.Add(jCitation.Clone as TJSONObject);
-            end;
           end
 
           // Delta de JSON (Argumentos de Tool)
@@ -1619,14 +2018,14 @@ begin
 
       // =======================================================================
       // EVENTO: content_block_stop
-      // Fin de un bloque specific
+      // Fin de un bloque espec?fico
       // =======================================================================
       Else If AnsiLowerCase(eventType) = 'content_block_stop' then
       begin
         blockIndex := jData.GetValue<Integer>('index');
         if FStreamContentBlocks.TryGetValue(blockIndex, streamBlock) then
         begin
-          // If a tool block ended, we parse the accumulated JSON arguments
+          // Si termin? un bloque de herramienta, parseamos los argumentos JSON acumulados
           if streamBlock.BlockType = 'tool_use' then
           begin
             try
@@ -1638,7 +2037,7 @@ begin
                 jInput.Free;
               end;
             except
-              // Ignorar error de parseo JSON en este punto, se would handle globalmente si falla
+              // Ignorar error de parseo JSON en este punto, se manejar? globalmente si falla
             end;
           end;
         end;
@@ -1666,7 +2065,7 @@ begin
 
       // =======================================================================
       // EVENTO: message_stop
-      // Fin del mensaje completo. Reconstruction y execution.
+      // Fin del mensaje completo. Reconstrucci?n y ejecuci?n.
       // =======================================================================
       Else If AnsiLowerCase(eventType) = 'message_stop' then
       begin
@@ -1678,8 +2077,8 @@ begin
 
             // 2. IMPORTANTE: Desvinculamos la variable global ANTES de llamar a ParseChat.
             // Esto es vital porque ParseChat puede disparar recursividad (DoCallFunction -> Run)
-            // y 'Run' would create un NUEVO FStreamResponseMsg. Si hacemos el nil after,
-            // we would delete ese nuevo objeto creado por la recursividad.
+            // y 'Run' crear? un NUEVO FStreamResponseMsg. Si hacemos el nil despu?s,
+            // borrar?amos ese nuevo objeto creado por la recursividad.
           FStreamResponseMsg := nil;
 
           var
@@ -1700,6 +2099,14 @@ begin
             jUsage := TJSONObject.Create;
             jUsage.AddPair('input_tokens', TJSONNumber.Create(Prompt_tokens));
             jUsage.AddPair('output_tokens', TJSONNumber.Create(MsgToProcess.Completion_tokens));
+            // Cache del message_start, con los mismos nombres que la API real:
+            // asi ParseChat los lee por el camino de siempre y los acumula.
+            if FStreamCacheRead > 0 then
+              jUsage.AddPair('cache_read_input_tokens', TJSONNumber.Create(FStreamCacheRead));
+            if FStreamCacheWrite > 0 then
+              jUsage.AddPair('cache_creation_input_tokens', TJSONNumber.Create(FStreamCacheWrite));
+            FStreamCacheRead  := 0;
+            FStreamCacheWrite := 0;
             jSyntheticResponse.AddPair('usage', jUsage);
 
             var
@@ -1763,7 +2170,7 @@ begin
                   jContentArr.Add(jBlockObj);
                 end
 
-                // --- CASO 4: BLOQUES genericS (Code Execution Results, etc.) ---
+                // --- CASO 4: BLOQUES GEN?RICOS (Code Execution Results, etc.) ---
                 // Captura 'bash_code_execution_tool_result' donde viene el file_id
                 else
                 begin
@@ -1785,7 +2192,7 @@ begin
                       if Assigned(jCont) then
                         jBlockObj.AddPair('content', jCont); // Generalmente es un objeto o array
                     except
-                      // Fallback si no es JSON valid
+                      // Fallback si no es JSON v?lido
                     end;
                   end;
 
@@ -1798,17 +2205,45 @@ begin
             end;
 
             // 3. Llamamos a ParseChat con la referencia local.
-            // Si esto dispara un nuevo Run, FStreamResponseMsg (Global) ya will be libre.
+            // Si esto dispara un nuevo Run, FStreamResponseMsg (Global) ya estar? libre.
             ParseChat(jSyntheticResponse, MsgToProcess);
 
           finally
             jSyntheticResponse.Free;
 
-            // Limpieza de buffers locales
-            FStreamBuffer.Clear;
-            FStreamContentBlocks.Clear;
-            FStreamLastEventType := '';
-            FBusy := False;
+            // ISSUE #105/#118: en async, TAiChat.RunNew LIBERA su ResMsg justo despues de
+            // disparar el POST (ver rama "if FClient.Asynchronous then ResMsg.Free" en
+            // uMakerAi.Chat.pas) y NO lo deja en FMessages. Por eso el intento previo de
+            // reconciliar con FAsyncResMsg nunca funcionaba: apuntaba a un objeto ya
+            // liberado. El mensaje del assistant se construye AQUI en MsgToProcess, asi
+            // que lo archivamos directamente cuando es la respuesta FINAL (sin tool-loop
+            // en curso: FBusy=False y sin tool_calls). Mismo patron que TAiChat/TAiOpenChat.
+            // Si hubo tool_use, ParseChat ya agrego su propio mensaje (assistant + tool),
+            // por lo que aqui MsgToProcess es descartable. Fix propuesto por @martijntonies.
+            if Assigned(MsgToProcess) and (FMessages.IndexOf(MsgToProcess) = -1) then
+            begin
+              if (not FBusy) and (MsgToProcess.Tool_calls = '') then
+              begin
+                MsgToProcess.Id := FMessages.Count + 1;
+                FMessages.Add(MsgToProcess);
+                MsgToProcess := nil; // propiedad transferida a FMessages; no liberar abajo
+              end;
+              if Assigned(MsgToProcess) then
+                MsgToProcess.Free;
+            end;
+
+            // Si ParseChat disparó un Run recursivo por tool calls, FBusy quedó True
+            // (puesto por el InternalRunCompletions del nuevo round) y ya llamó
+            // ClearStreamState antes de iniciar la nueva petición HTTP.
+            // Limpiar aquí en ese caso crea una race con los callbacks del nuevo round.
+            // Solo limpiamos cuando NO hay un run recursivo en curso (FBusy=False,
+            // que es lo que hace el path sin tools en ParseChat antes de retornar).
+            if not FBusy then
+            begin
+              FStreamBuffer.Clear;
+              FStreamContentBlocks.Clear;
+              FStreamLastEventType := '';
+            end;
           end;
         end;
       end
@@ -1828,6 +2263,7 @@ begin
         DoError('Claude Stream Error: ' + ErrMsg, nil);
         ClearStreamState;
         FBusy := False;
+        FPendingToolRun := False;
       end;
 
     finally
@@ -1850,10 +2286,10 @@ begin
   // Limpia configuraciones previas para evitar duplicados
   FContextConfig.Clear;
 
-  // Add the tool cleanup rule
-  // TriggerTokens: Cuando el prompt supere este size
-  // KeepLast: Keep the last N tool uses (to not lose immediate context)
-  // ClearAtLeast: 0 (Default, deja que Claude decida how much borrar)
+  // Agregar la regla de limpieza de herramientas
+  // TriggerTokens: Cuando el prompt supere este tama?o
+  // KeepLast: Mantener los ?ltimos N usos de herramientas (para no perder contexto inmediato)
+  // ClearAtLeast: 0 (Default, deja que Claude decida cu?nto borrar)
   FContextConfig.AddRule_ClearTools(TriggerTokens, KeepLast, 0);
 end;
 
@@ -1877,17 +2313,17 @@ begin
     End;
 
     // Procesamiento de archivos adjuntos (MediaFiles)
-    // Si hay archivos que requieren pre-procesamiento (ej: OCR local, conversion), se hace awhat.
+    // Si hay archivos que requieren pre-procesamiento (ej: OCR local, conversi?n), se hace aqu?.
     For MF in aMsg.MediaFiles do
     Begin
       Procesado := False;
-      DoProcessMediaFile(aMsg.Prompt, MF, Respuesta, Procesado); // sends the file in case lo quiere procesar otra AI especializada
+      DoProcessMediaFile(aMsg.Prompt, MF, Respuesta, Procesado); // Env?a el archivo por si lo quiere procesar otra AI especializada
       MF.Procesado := Procesado;
       MF.Transcription := Respuesta;
       // Guarda las transcripciones en los MediaFile
     End;
 
-    FLastPrompt := aMsg.Prompt; // Actualiza el last prompt registrado
+    FLastPrompt := aMsg.Prompt; // Actualiza el ?ltimo prompt registrado
 
     If Assigned(FOnBeforeSendMessage) then
       FOnBeforeSendMessage(Self, aMsg);
@@ -1910,13 +2346,22 @@ var
   bHasContent: Boolean;
   IsCodeExecutionEnabled: Boolean;
   TargetCategories: TAiFileCategories;
+  LLastContent: TJSonArray;
+  LSupportsMidSystem: Boolean;
 begin
   Result := TJSonArray.Create;
+  LLastContent := nil; // contenido del ultimo mensaje emitido (auto-cache del ultimo turno)
 
-  // Verificamos si el Code Interpreter is activo
+  // Mensajes {role:"system"} dentro del historial (mid-conversation): solo
+  // opus-5/4.8/fable/mythos. En modelos sin soporte se degradan a un turno
+  // user envuelto en <system-reminder> (mismo perfil de cache, sin 400)
+  LSupportsMidSystem := IsClaudeMidSystemCapable(
+    TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model));
+
+  // Verificamos si el Code Interpreter est? activo
   IsCodeExecutionEnabled := cap_CodeInterpreter in ModelConfig.ModelCaps;
 
-  // --- logic DE FILTRADO dynamic ---
+  // --- L?GICA DE FILTRADO DIN?MICO ---
   if IsCodeExecutionEnabled then
     // Si hay Code Execution, permitimos TODO (Excel, Zip, Code, etc.)
     // Construimos un set con todos los valores posibles del enum
@@ -1928,13 +2373,20 @@ begin
   for LMessage in Self.Messages do
   begin
     LMessageObj := TJSONObject.Create;
-    LMessageObj.AddPair('role', LMessage.Role);
+    // Anthropic no acepta role 'tool' (convenci?n OpenAI usada por historiales
+    // externos): los tool_result van dentro de un mensaje 'user'.
+    if SameText(LMessage.Role, 'tool') then
+      LMessageObj.AddPair('role', 'user')
+    else if SameText(LMessage.Role, 'system') and (not LSupportsMidSystem) then
+      LMessageObj.AddPair('role', 'user') // fallback <system-reminder> (caso 3)
+    else
+      LMessageObj.AddPair('role', LMessage.Role);
     LContentArray := TJSonArray.Create;
 
     // -------------------------------------------------------------------------
-    // CASE 1: Tool Result (Role: User)
+    // CASO 1: Resultado de Herramienta (Role: User o 'tool' estilo OpenAI)
     // -------------------------------------------------------------------------
-    if (LMessage.Role = 'user') and (not LMessage.ToolCallId.IsEmpty) then
+    if ((LMessage.Role = 'user') or SameText(LMessage.Role, 'tool')) and (not LMessage.ToolCallId.IsEmpty) then
     begin
       LPartObj := TJSONObject.Create;
       LPartObj.AddPair('type', 'tool_result');
@@ -1990,6 +2442,18 @@ begin
     // -------------------------------------------------------------------------
     else if (LMessage.Role = 'assistant') then
     begin
+      // 0. Bloque de compaction preservado (si este turno lo trajo): debe ir
+      // primero — el API lo usa para reemplazar el historial compactado
+      var LCompactRaw: string;
+      if FCompactionBlocks.TryGetValue(LMessage, LCompactRaw) then
+      begin
+        var LCompactVal := TJSONObject.ParseJSONValue(LCompactRaw);
+        if LCompactVal is TJSONObject then
+          LContentArray.Add(TJSONObject(LCompactVal))
+        else
+          LCompactVal.Free;
+      end;
+
       // A. Thinking Block
       if (FEnableThinking) and (LMessage.ReasoningContent <> '') and (LMessage.ThinkingSignature <> '') then
       begin
@@ -2007,12 +2471,15 @@ begin
         LPartObj.AddPair('type', 'text');
         LPartObj.AddPair('text', LMessage.Prompt);
 
-        if LMessage.CacheControl then
+        if (LMessage.CacheControl) and (FCacheCount < 4) then
         begin
           var
           jCache := TJSONObject.Create;
           jCache.AddPair('type', 'ephemeral');
+          if FCacheTTL <> '' then
+            jCache.AddPair('ttl', FCacheTTL);
           LPartObj.AddPair('cache_control', jCache);
+          Inc(FCacheCount);
         end;
 
         LContentArray.Add(LPartObj);
@@ -2033,7 +2500,33 @@ begin
           if Assigned(LToolUseArray) then
           begin
             for var Val in LToolUseArray do
-              LContentArray.Add(Val.Clone as TJSONObject);
+            begin
+              var JTC := Val as TJSONObject;
+              if SameText(JTC.GetValue<string>('type', ''), 'function') then
+              begin
+                // Formato OpenAI {"type":"function","function":{name,arguments}}
+                // (historiales multi-turn externos) → bloque tool_use Anthropic.
+                var JUse := TJSONObject.Create;
+                JUse.AddPair('type', 'tool_use');
+                JUse.AddPair('id', JTC.GetValue<string>('id', ''));
+                var JFn := JTC.GetValue<TJSONObject>('function', nil);
+                if Assigned(JFn) then
+                begin
+                  JUse.AddPair('name', JFn.GetValue<string>('name', ''));
+                  var JArgs := TJSONObject.ParseJSONValue(JFn.GetValue<string>('arguments', '{}'));
+                  if JArgs is TJSONObject then
+                    JUse.AddPair('input', JArgs)
+                  else
+                  begin
+                    JArgs.Free;
+                    JUse.AddPair('input', TJSONObject.Create);
+                  end;
+                end;
+                LContentArray.Add(JUse);
+              end
+              else
+                LContentArray.Add(Val.Clone as TJSONObject);
+            end;
             LToolUseArray.Free;
           end;
         except
@@ -2043,7 +2536,7 @@ begin
     end
 
     // -------------------------------------------------------------------------
-    // CASO 3: Mensaje isndar de Usuario (Texto + Archivos)
+    // CASO 3: Mensaje Est?ndar de Usuario (Texto + Archivos)
     // -------------------------------------------------------------------------
     else
     begin
@@ -2054,28 +2547,37 @@ begin
       begin
         LPartObj := TJSONObject.Create;
         LPartObj.AddPair('type', 'text');
-        LPartObj.AddPair('text', LMessage.Prompt);
+        // Mensaje system en modelo sin soporte mid-conversation: degradar a
+        // turno user con envoltura <system-reminder> (fallback documentado)
+        if SameText(LMessage.Role, 'system') and (not LSupportsMidSystem) then
+          LPartObj.AddPair('text', '<system-reminder>' + sLineBreak +
+            LMessage.Prompt + sLineBreak + '</system-reminder>')
+        else
+          LPartObj.AddPair('text', LMessage.Prompt);
 
-        if LMessage.CacheControl then
+        if (LMessage.CacheControl) and (FCacheCount < 4) then
         begin
           var
           jCache := TJSONObject.Create;
           jCache.AddPair('type', 'ephemeral');
+          if FCacheTTL <> '' then
+            jCache.AddPair('ttl', FCacheTTL);
           LPartObj.AddPair('cache_control', jCache);
+          Inc(FCacheCount);
         end;
 
         LContentArray.Add(LPartObj);
         bHasContent := True;
       end;
 
-      // B. Archivos (MediaFiles) - USANDO EL FILTRO dynamic
+      // B. Archivos (MediaFiles) - USANDO EL FILTRO DIN?MICO
       MediaArr := LMessage.MediaFiles.GetMediaList(TargetCategories, False);
 
       for LMediaFile in MediaArr do
       begin
         LPartObj := TJSONObject.Create;
 
-        // --- SUB-CASO 3.1: imageES ---
+        // --- SUB-CASO 3.1: IM?GENES ---
         if LMediaFile.FileCategory = Tfc_Image then
         begin
           LPartObj.AddPair('type', 'image');
@@ -2089,7 +2591,7 @@ begin
           else
           begin
             LSourceObj.AddPair('type', 'base64');
-            // detection autooktica de MimeType (Como corregimos antes)
+            // Detecci?n autom?tica de MimeType (Como corregimos antes)
             var
               RealMime: string := LMediaFile.MimeType;
             var
@@ -2110,14 +2612,14 @@ begin
         end
 
         // --- SUB-CASO 3.2: CONTAINER UPLOAD (Code Interpreter + Data Files) ---
-        // Awhat would enter el Excel, CSV, etc.
+        // Aqu? entrar? el Excel, CSV, etc.
         else if IsCodeExecutionEnabled and (not LMediaFile.IdFile.IsEmpty) then
         begin
           LPartObj.AddPair('type', 'container_upload');
           LPartObj.AddPair('file_id', LMediaFile.IdFile);
         end
 
-        // --- SUB-CASO 3.3: DOCUMENTOS (PDFs para vision) ---
+        // --- SUB-CASO 3.3: DOCUMENTOS (PDFs para visi?n) ---
         else
         begin
           LPartObj.AddPair('type', 'document');
@@ -2127,6 +2629,19 @@ begin
           begin
             LSourceObj.AddPair('type', 'file');
             LSourceObj.AddPair('file_id', LMediaFile.IdFile);
+          end
+          else if not LMediaFile.UrlMedia.IsEmpty then
+          begin
+            // URL directa — Claude descarga el documento sin necesidad de subida previa
+            LSourceObj.AddPair('type', 'url');
+            LSourceObj.AddPair('url', LMediaFile.UrlMedia);
+          end
+          else if LMediaFile.FileCategory = Tfc_Text then
+          begin
+            // Texto plano — enviar decodificado, no como base64
+            var LBytes := TNetEncoding.Base64.DecodeStringToBytes(LMediaFile.Base64);
+            LSourceObj.AddPair('type', 'text');
+            LSourceObj.AddPair('data', TEncoding.UTF8.GetString(LBytes));
           end
           else
           begin
@@ -2156,12 +2671,15 @@ begin
           end;
         end;
 
-        if LMediaFile.CacheControl then
+        if (LMediaFile.CacheControl) and (FCacheCount < 4) then
         begin
           var
           jCache := TJSONObject.Create;
           jCache.AddPair('type', 'ephemeral');
+          if FCacheTTL <> '' then
+            jCache.AddPair('ttl', FCacheTTL);
           LPartObj.AddPair('cache_control', jCache);
+          Inc(FCacheCount);
         end;
 
         LContentArray.Add(LPartObj);
@@ -2179,6 +2697,27 @@ begin
 
     LMessageObj.AddPair('content', LContentArray);
     Result.Add(LMessageObj);
+    LLastContent := LContentArray; // referencia al contenido del ultimo mensaje emitido
+  end;
+
+  // Conveniencia multi-turn: cachea el ultimo turno (su ultimo bloque) para que el
+  // siguiente request lea TODO el historial previo desde cache. Solo si el cacheo de
+  // contexto esta activo, queda presupuesto (<4 breakpoints) y el bloque no fue marcado
+  // manualmente (CacheControl) para no duplicar el breakpoint.
+  if FCacheCtxActive and (FCacheCount < 4) and Assigned(LLastContent) and (LLastContent.Count > 0) then
+  begin
+    var
+    LLastBlock := LLastContent.Items[LLastContent.Count - 1] as TJSONObject;
+    if LLastBlock.GetValue('cache_control') = nil then
+    begin
+      var
+      jCacheLT := TJSONObject.Create;
+      jCacheLT.AddPair('type', 'ephemeral');
+      if FCacheTTL <> '' then
+        jCacheLT.AddPair('ttl', FCacheTTL);
+      LLastBlock.AddPair('cache_control', jCacheLT);
+      Inc(FCacheCount);
+    end;
   end;
 end;
 
@@ -2195,6 +2734,7 @@ var
   I: Integer;
 begin
   Result := TStringList.Create;
+  try // ISSUE #114: si el cuerpo lanza, liberar Result para no fugarlo
 
   // 1. Determinar la URL base
   if aUrl <> '' then
@@ -2206,11 +2746,11 @@ begin
 
   Client := TNetHTTPClient.Create(Nil);
   try
-    // 2. Configurar Headers specifics de Claude
-    // Nota: Claude requiere 'x-api-key' en lugar de Bearer token, y la version de la API
+    // 2. Configurar Headers espec?ficos de Claude
+    // Nota: Claude requiere 'x-api-key' en lugar de Bearer token, y la versi?n de la API
     Headers := [TNetHeader.Create('x-api-key', aApiKey), TNetHeader.Create('anthropic-version', CLAUDE_API_VERSION), TNetHeader.Create('content-type', 'application/json')];
 
-    // 3. Ejecutar request GET
+    // 3. Ejecutar Petici?n GET
     Res := Client.Get(sUrl, nil, Headers);
 
     if Res.StatusCode = 200 then
@@ -2218,7 +2758,7 @@ begin
       jRes := TJSONObject.ParseJSONValue(Res.ContentAsString) as TJSONObject;
       if Assigned(jRes) then
         try
-          // 4. Parse the JSON response
+          // 4. Parsear la respuesta JSON
           // La estructura es: { "data": [ {"id": "...", ...}, ... ] }
           if jRes.TryGetValue<TJSonArray>('data', jArr) then
           begin
@@ -2226,7 +2766,7 @@ begin
             begin
               if JVal is TJSONObject then
               begin
-                // Extract the model ID (e.g: "claude-sonnet-4-5-20250514")
+                // Extraer el ID del modelo (ej: "claude-sonnet-4-5-20250514")
                 sModel := (JVal as TJSONObject).GetValue<string>('id', '');
                 if sModel <> '' then
                   Result.Add(sModel);
@@ -2238,7 +2778,7 @@ begin
         end;
 
       // 5. Agregar modelos personalizados registrados localmente (si existen)
-      // Esto es useful si la API no devuelve modelos finetuned o nuevos que even no lista
+      // Esto es ?til si la API no devuelve modelos finetuned o nuevos que a?n no lista
       CustomModels := TAiChatFactory.Instance.GetCustomModels(GetDriverName);
       for I := Low(CustomModels) to High(CustomModels) do
       begin
@@ -2255,6 +2795,10 @@ begin
 
   finally
     Client.Free;
+  end;
+  except // ISSUE #114: el camino de error no debe dejar huerfano el Result
+    Result.Free;
+    raise;
   end;
 end;
 
@@ -2273,7 +2817,6 @@ Var
   Arg: TJSONObject;
   JVal1: TJSONValue;
   Fun: TAiToolsFunction;
-  I: Integer;
 begin
   Result := TAiToolsFunctions.Create;
   For JVal1 in jChoices do
@@ -2340,7 +2883,7 @@ begin
     TempStream.LoadFromStream(aMediaFile.Content);
     TempStream.Position := 0;
 
-{$IF CompilerVersion >= 35}
+{$IF CompilerVersion >= 36}
     Body.AddStream('file', TempStream, False, aMediaFile.FileName, aMediaFile.MimeType);
 {$ELSE}
     Body.AddStream('file', TempStream, aMediaFile.FileName, aMediaFile.MimeType);
@@ -2437,11 +2980,66 @@ begin
   end;
 end;
 
-procedure TAiClaudeChat.DoCallFunction(ToolCall: TAiToolsFunction);
+function IsClaudeComputerToolName(const AName: string): Boolean;
+// Miembros de computer_toolset_20260801. El toolset sustituyo al tool unico
+// 'computer' (que discriminaba por el campo 'action') por 17 herramientas con
+// nombre propio. Se acepta ademas 'computer' para historiales anteriores.
+const
+  CComputerTools: array [0 .. 17] of string = ('computer', 'left_click',
+    'right_click', 'middle_click', 'double_click', 'triple_click',
+    'left_click_drag', 'left_mouse_down', 'left_mouse_up', 'mouse_move',
+    'cursor_position', 'key', 'hold_key', 'type', 'scroll', 'wait',
+    'screenshot', 'zoom');
+var
+  I: Integer;
 begin
+  Result := False;
+  for I := Low(CComputerTools) to High(CComputerTools) do
+    if SameText(AName, CComputerTools[I]) then
+      Exit(True);
+end;
+
+procedure TAiClaudeChat.DoCallFunction(ToolCall: TAiToolsFunction);
+var
+  LScreenshot: TAiMediaFile;
+begin
+  // 0. Computer Use nativo de Claude. Con computer_toolset_20260801 el nombre del
+  //    tool ES la accion (left_click, key, scroll, zoom...), asi que se despacha
+  //    por nombre. Se exige cap_ComputerUse para que nombres genericos como 'type'
+  //    o 'wait' no secuestren funciones de usuario con el mismo nombre.
+  if IsClaudeComputerToolName(ToolCall.Name) and
+     (cap_ComputerUse in ModelConfig.ModelCaps) and
+     Assigned(ChatTools.ComputerUseTool) then
+  begin
+    if Assigned(FOnCallToolFunction) then
+      FOnCallToolFunction(Self, ToolCall);
+
+    if ToolCall.Response = '' then
+    begin
+      LScreenshot := nil;
+      try
+        ChatTools.ComputerUseTool.TranslateClaudeToolCall(ToolCall);
+        ToolCall.Response := ChatTools.ComputerUseTool.ProcessToolCall(ToolCall, LScreenshot);
+        if Assigned(LScreenshot) then
+          // El screenshot debe ir en ToolCall.MediaFiles: ParseChat lo copia al
+          // ToolMsg ('user' + tool_use_id) que se serializa como tool_result con
+          // bloque image. (Antes iba a ResMsg —mensaje del assistant— y nunca
+          // llegaba al modelo, dejando a Claude "ciego".)
+          ToolCall.MediaFiles.Add(LScreenshot);
+      except
+        on E: Exception do
+        begin
+          FreeAndNil(LScreenshot);
+          ToolCall.Response := Format('{"output":"error: %s","url":"%s"}',
+            [E.Message, ChatTools.ComputerUseTool.CurrentUrl]);
+        end;
+      end;
+    end;
+    Exit;
+  end;
 
   // ---------------------------------------------------------------------------
-  // 1. Intercept BASH / SHELL Tool
+  // 1. Interceptar Herramienta BASH / SHELL
   // ---------------------------------------------------------------------------
   if (ToolCall.Name = 'bash') then
   begin
@@ -2450,24 +3048,24 @@ begin
     if Assigned(FOnCallToolFunction) then
       FOnCallToolFunction(Self, ToolCall);
 
-    // B. execution Autooktica (Componente TAiShell)
-    // Si el usuario no filled la respuesta en el evento anterior y tenemos el componente:
+    // B. Ejecuci?n Autom?tica (Componente TAiShell)
+    // Si el usuario no llen? la respuesta en el evento anterior y tenemos el componente:
     if (ToolCall.Response = '') and Assigned(ChatTools.ShellTool) then
     begin
-      // Asegurar que is activo
+      // Asegurar que est? activo
       if not ChatTools.ShellTool.Active then
         ChatTools.ShellTool.Active := True;
 
-      // Ejecutar el comando en la session persistente
+      // Ejecutar el comando en la sesi?n persistente
       ToolCall.Response := ChatTools.ShellTool.Execute(ToolCall.Id, ToolCall.Arguments);
     end;
 
-    // Si no hay componente ni evento, Claude would receive una respuesta empty o error,
-    // lo cual is bien, pero idealmente ChatTools.ShellTool should estar asignado.
+    // Si no hay componente ni evento, Claude recibir? una respuesta vac?a o error,
+    // lo cual est? bien, pero idealmente ChatTools.ShellTool deber?a estar asignado.
     Exit;
   end;
 
-  // 2. Intercept Native Editing Tool
+  // 2. Interceptar Herramienta de Edici?n Nativa
   if ((ToolCall.Name = 'str_replace_based_edit_tool') or (ToolCall.Name = 'str_replace_editor')) and Assigned(ChatTools.TextEditorTool) then
   begin
     ToolCall.Response := ChatTools.TextEditorTool.Execute(ToolCall.Arguments);
@@ -2512,7 +3110,53 @@ begin
       aMediaFile.Content.CopyFrom(MemStream, 0);
       aMediaFile.Content.Position := 0;
 
-      // Intentar determinar la extension si no la tiene
+      // El nombre REAL que el codigo le dio al archivo esta en los metadatos
+      // (GET files/{id} -> "filename"). La heuristica que lo deduce del codigo
+      // Python falla a menudo y deja "generated_file_<id>.ext". Un GET extra
+      // por archivo es despreciable frente a la ejecucion; si falla, queda la
+      // heuristica y el fallback por Content-Type de abajo.
+      try
+        var MetaRes := Client.Get(Url + 'files/' + aMediaFile.IdFile, nil, Headers);
+        if MetaRes.StatusCode = 200 then
+        begin
+          var jMeta := TJSONObject.ParseJSONValue(MetaRes.ContentAsString) as TJSONObject;
+          if Assigned(jMeta) then
+          try
+            var RealName := jMeta.GetValue<string>('filename', '');
+            // Solo el nombre: nunca una ruta del sandbox.
+            var SlashPos := RealName.LastDelimiter('/\');
+            if SlashPos >= 0 then
+              RealName := RealName.Substring(SlashPos + 1);
+            if RealName <> '' then
+              aMediaFile.FileName := RealName;
+          finally
+            jMeta.Free;
+          end;
+        end;
+      except
+        // sin metadatos: se conserva el nombre heuristico
+      end;
+
+      // Use HTTP Content-Type header to fix extension when filename is a .bin fallback
+      var ContentType := Res.GetHeaderValue('Content-Type');
+      // Strip charset/boundary suffix: "audio/wav; charset=utf-8" → "audio/wav"
+      var SemiPos := Pos(';', ContentType);
+      if SemiPos > 0 then
+        ContentType := Trim(Copy(ContentType, 1, SemiPos - 1));
+      if (ContentType <> '') and
+         (not SameText(ContentType, 'application/octet-stream')) and
+         (aMediaFile.FileName.EndsWith('.bin') or aMediaFile.FileName.IsEmpty) then
+      begin
+        var Ext := GetFileExtensionFromMimeType(ContentType);
+        if Ext <> '' then
+        begin
+          if aMediaFile.FileName.IsEmpty then
+            aMediaFile.FileName := aMediaFile.IdFile + '.' + Ext
+          else
+            aMediaFile.FileName := ChangeFileExt(aMediaFile.FileName, '.' + Ext);
+        end;
+      end;
+
       if aMediaFile.FileName.IsEmpty then
         aMediaFile.FileName := aMediaFile.IdFile + '.bin'; // Default
 

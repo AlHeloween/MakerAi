@@ -1,18 +1,18 @@
-﻿// IT License
+﻿// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// o use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 //
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// HE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -39,6 +39,9 @@ interface
 uses
   System.SysUtils, System.Classes, System.Generics.Collections, System.Threading,
   System.JSON, System.Net.HttpClient, System.Net.URLClient,
+{$IF CompilerVersion < 35}
+  uJSONHelper, // Delphi 10.4: helpers genéricos GetValue<T>/TryGetValue<T> de TJSONObject
+{$ENDIF}
   uMakerAi.chat.Gemini,
   uMakerAi.Core, System.Net.HttpClientComponent;
 
@@ -549,6 +552,9 @@ begin
       Result := 'veo-3.1-generate-preview';
     vmVeo3_1_Fast:
       Result := 'veo-3.1-fast-generate-preview';
+    // RETIRADOS por Google el 30 jun 2026: veo-2.0 y veo-3.0 devuelven error
+    // del API. Se conservan en el enum por compatibilidad de DFMs; migrar a
+    // vmVeo3_1 / vmVeo3_1_Fast.
     vmVeo3_0:
       Result := 'veo-3.0-generate-001';
     vmVeo3_0_Fast:
@@ -677,7 +683,7 @@ begin
   Result := '';
   LHttpClient := TNetHTTPClient.Create(Nil);
 
-{$IF CompilerVersion >= 35}
+{$IF CompilerVersion >= 34}
   LHttpClient.SynchronizeEvents := False;
 {$ENDIF}
   try
@@ -708,12 +714,6 @@ begin
       if LResponse.StatusCode <> 200 then
         raise Exception.CreateFmt('Error starting file upload: %d %s', [LResponse.StatusCode, LResponse.StatusText]);
 
-      Var
-      St := TMemoryStream.Create;
-      St.LoadFromStream(LResponse.ContentStream);
-
-      St.Position := 0;
-      St.SaveToFile('c:\temp\responses.txt');
 
       LUploadUrl := LResponse.HeaderValue['X-Goog-Upload-Url'];
       if LUploadUrl = '' then

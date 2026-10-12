@@ -9,28 +9,30 @@ The Chat module contains LLM provider drivers for the MakerAI framework. Each dr
 ## Module Structure
 
 ### Universal Connector
-- `uMakerAi.Chat.AiConnection.pas` - `TAiChatConnection` component that abstracts all provider differences. Set `DriverName` property to switch providers without code changes. Manages tool integration (Shell, TextEditor, ComputerUse, Speech, Video, Vision, WebSearch, Image).
+- `uMakerAi.Chat.AiConnection.pas` - `TAiChatConnection` component that abstracts all provider differences. Set `DriverName` property to switch providers without code changes. Manages tool integration (Shell, TextEditor, ComputerUse, Speech, Video, Vision, WebSearch, Image). `Params` se aplica por RTTI al chat **y a sus sub-objetos** (por eso `Voice` llega a `TtsParams.Voice`); `Voice_Format` (clave del catálogo de OpenAI TTS y del demo 012) es alias de `VoiceFormat` — antes se ignoraba en silencio porque la propiedad no lleva guion bajo. Los sub-objetos de medios (`TtsParams`, `TranscriptionParams`, `ImageParams`, `VideoParams`, `WebSearchParams`) se copian al chat en cada `Run` / `AddMessageAndRun` (`SyncMediaParams`, fix sep 28 2026): antes, editar `C.VideoParams.Params.Values[...]` o `C.TtsParams.Voice` después de crear el chat no llegaba al driver (solo se copiaban al asignar el objeto entero o al cambiar `Params`).
 
 ### Provider Drivers
 Each inherits from `TAiChat` (defined in Core):
 
 | File | Class | Provider |
 |------|-------|----------|
-| `uMakerAi.Chat.OpenAi.pas` | `TAiOpenChat` | OpenAI (GPT-4.1, o3, o4-mini, Sora) |
-| `uMakerAi.Chat.Claude.pas` | `TAiClaudeChat` | Anthropic Claude (claude-opus/sonnet/haiku-4-x) |
-| `uMakerAi.Chat.Gemini.pas` | `TAiGeminiChat` | Google Gemini (2.5-flash/pro, 3-pro, Veo) |
+| `uMakerAi.Chat.OpenAi.pas` | `TAiOpenChat` | OpenAI (GPT-5.5, GPT-5.4, GPT-5.4-mini — familia GPT-5.x) |
+| `uMakerAi.Chat.Claude.pas` | `TAiClaudeChat` | Anthropic Claude (claude-opus-4-7, claude-sonnet-4-6, claude-haiku-4-5) |
+| `uMakerAi.Chat.Gemini.pas` | `TAiGeminiChat` | Google Gemini (gemini-3.1-pro, gemini-3-flash, gemini-3.1-flash-lite — familia 3.x) |
 | `uMakerAi.Chat.Ollama.pas` | `TAiOllamaChat` | Ollama (local models) |
 | `uMakerAi.Chat.LMStudio.pas` | `TAiLMStudioChat` | LM Studio (local OpenAI-compatible) |
 | `uMakerAi.Chat.Groq.pas` | `TAiGroqChat` | Groq inference (llama, qwen, deepseek, voxtral) |
-| `uMakerAi.Chat.DeepSeek.pas` | `TAiDeepSeekChat` | DeepSeek (deepseek-chat, deepseek-reasoner) |
+| `uMakerAi.Chat.DeepSeek.pas` | `TAiDeepSeekChat` | DeepSeek (deepseek-flash, deepseek-v4-pro) |
 | `uMakerAi.Chat.Mistral.pas` | `TAiMistralChat` | Mistral (large, magistral, devstral, voxtral) |
-| `uMakerAi.Chat.Kimi.pas` | `TAiKimiChat` | Kimi/Moonshot (kimi-k2, kimi-k2.5) |
-| `uMakerAi.Chat.Grok.pas` | `TAiGrokChat` | xAI Grok (grok-3, grok-4-fast) |
+| `uMakerAi.Chat.Kimi.pas` | `TAiKimiChat` | Kimi/Moonshot (kimi-k3, kimi-k2.6/k2.7) |
+| `uMakerAi.Chat.GLM.pas` | `TAiGLMChat` | GLM / Zhipu Z.ai (glm-4.7, glm-4.7-flash, glm-5.x, glm-5v/4.6v vision) |
+| `uMakerAi.Chat.Qwen.pas` | `TAiQwenChat` | Qwen / Alibaba Model Studio (qwen3.8-flash/max, qwen3.7-plus, qwq-plus, qwen3-coder, qwen3-vl) |
+| `uMakerAi.Chat.Grok.pas` | `TAiGrokChat` | xAI Grok (grok-4.3, grok-4.5, grok-build) |
 | `uMakerAi.Chat.Cohere.pas` | `TCohereChat` | Cohere (command-a, aya-vision) |
 | `uMakerAi.Chat.GenericLLM.pas` | `TAiGenericChat` | Any OpenAI-compatible API |
 
 ### Configuration
-- `uMakerAi.Chat.Initializations.pas` - Driver registration and model capabilities. Uses `TAiChatFactory` to configure `ModelCaps`, `SessionCaps`, `Tool_Active`, `ThinkingLevel` per model. **Ãšltima actualizaciÃ³n: Feb 2026.**
+- `uMakerAi.Chat.Initializations.pas` - Driver registration and model capabilities. Uses `TAiChatFactory` to configure `ModelCaps`, `SessionCaps`, `Tool_Active`, `ThinkingLevel` per model. **Última actualización: May 2026.**
 
 ### Legacy (Deprecated)
 - `uMakerAi.Chat.OpenAi_Deprecated.pas`
@@ -39,38 +41,38 @@ Each inherits from `TAiChat` (defined in Core):
 
 ---
 
-## Capability System (v3.3 â€” nuevo)
+## Capability System (v3.3 — nuevo)
 
 ### Concepto central
 Dos propiedades de tipo `TAiCapabilities` (set de `TAiCapability`) reemplazan los cuatro params legacy:
 
-| Propiedad | DescripciÃ³n | Sincroniza a (legacy) |
+| Propiedad | Descripción | Sincroniza a (legacy) |
 |-----------|-------------|----------------------|
-| `ModelCaps` | Capacidades nativas del modelo vÃ­a completions | `NativeInputFiles` + `ChatMediaSupports` |
-| `SessionCaps` | Capacidades deseadas en la sesiÃ³n | `NativeOutputFiles` + `EnabledFeatures` |
+| `ModelCaps` | Capacidades nativas del modelo vía completions | `NativeInputFiles` + `ChatMediaSupports` |
+| `SessionCaps` | Capacidades deseadas en la sesión | `NativeOutputFiles` + `EnabledFeatures` |
 
-**Gap = SessionCaps âˆ’ ModelCaps** â†’ determina quÃ© bridge/tool activa `RunNew` automÃ¡ticamente.
+**Gap = SessionCaps − ModelCaps** → determina qué bridge/tool activa el orquestador interno automáticamente.
 
 ### TAiCapability enum
 ```delphi
 TAiCapability = (
-  // Entrada / ComprensiÃ³n
+  // Entrada / Comprensión
   cap_Image, cap_Audio, cap_Video, cap_Pdf,
   cap_WebSearch, cap_Reasoning, cap_CodeInterpreter,
   cap_Memory, cap_TextEditor, cap_ComputerUse, cap_Shell,
-  // Salida / GeneraciÃ³n (gap â†’ activa bridge)
+  // Salida / Generación (gap → activa bridge)
   cap_GenImage, cap_GenAudio, cap_GenVideo, cap_GenReport, cap_ExtractCode
 );
 ```
 
-### Patrones de configuraciÃ³n frecuentes
+### Patrones de configuración frecuentes
 
 ```delphi
-// Modelo de texto + tools (default para la mayorÃ­a)
+// Modelo de texto + tools (default para la mayoría)
 RegisterUserParam('Driver', 'ModelCaps',   '[]');
 RegisterUserParam('Driver', 'SessionCaps', '[]');
 
-// Modelo con visiÃ³n nativa
+// Modelo con visión nativa
 RegisterUserParam('Driver', 'ModelCaps',   '[cap_Image]');
 RegisterUserParam('Driver', 'SessionCaps', '[cap_Image]');
 
@@ -79,19 +81,19 @@ RegisterUserParam('Driver', Model, 'ModelCaps',    '[cap_Reasoning]');
 RegisterUserParam('Driver', Model, 'SessionCaps',  '[cap_Reasoning]');
 RegisterUserParam('Driver', Model, 'ThinkingLevel', 'tlMedium');
 
-// TTS via endpoint dedicado (Gap=[cap_GenAudio] â†’ InternalRunSpeechGeneration)
+// TTS via endpoint dedicado (Gap=[cap_GenAudio] → InternalRunSpeechGeneration)
 RegisterUserParam('Driver', Model, 'ModelCaps',   '[]');
 RegisterUserParam('Driver', Model, 'SessionCaps', '[cap_GenAudio]');
 RegisterUserParam('Driver', Model, 'Tool_Active', 'False');
 
-// GeneraciÃ³n de imagen via endpoint dedicado (Gap=[cap_GenImage])
+// Generación de imagen via endpoint dedicado (Gap=[cap_GenImage])
 RegisterUserParam('Driver', Model, 'ModelCaps',   '[]');
 RegisterUserParam('Driver', Model, 'SessionCaps', '[cap_GenImage]');
 RegisterUserParam('Driver', Model, 'Tool_Active', 'False');
 ```
 
 ### Compatibilidad con sistema legacy
-`EnsureNewSystemConfig` traduce automÃ¡ticamente los params legacy (`NativeInputFiles`, `ChatMediaSupports`, `EnabledFeatures`, `NativeOutputFiles`) al nuevo sistema en el primer `Run`. Los modelos con configuraciÃ³n antigua siguen funcionando sin cambios. Si se asignan `ModelCaps`/`SessionCaps` explÃ­citamente, `FNewSystemConfigured=True` y la traducciÃ³n automÃ¡tica se omite.
+`EnsureNewSystemConfig` traduce automáticamente los params legacy (`NativeInputFiles`, `ChatMediaSupports`, `EnabledFeatures`, `NativeOutputFiles`) al nuevo sistema en el primer `Run`. Los modelos con configuración antigua siguen funcionando sin cambios. Si se asignan `ModelCaps`/`SessionCaps` explícitamente, `FNewSystemConfigured=True` y la traducción automática se omite.
 
 ---
 
@@ -99,7 +101,7 @@ RegisterUserParam('Driver', Model, 'Tool_Active', 'False');
 
 ### Driver Implementation
 All drivers implement these core methods:
-- `Run()` - Execute chat completion (sync or async based on `Asynchronous` property). Calls `EnsureNewSystemConfig` then `RunNew`.
+- `Run()` - Execute chat completion (sync or async). Calls `EnsureNewSystemConfig`, aplica el sanitizador de prompts, luego delega al orquestador privado `RunNew()`. Cadena completa: `AddMessageAndRun → Run → RunNew`.
 - `GetMessages()` - Serialize message history to provider-specific JSON format
 - `ParseChat()` - Parse provider response into `TAiChatMessage`
 - `GetModels()` - Retrieve available models from API
@@ -122,18 +124,18 @@ TAiChatFactory.Instance.RegisterUserParam('Ollama', 'qwen3:latest', 'ThinkingLev
 ```
 
 Key parameters:
-- `ModelCaps` / `SessionCaps` â€” **sistema nuevo v3.3** (preferido)
-- `NativeInputFiles` / `NativeOutputFiles` â€” fÃ­sico, legacy (aÃºn soportado)
-- `ChatMediaSupports` / `EnabledFeatures` â€” lÃ³gico, legacy (aÃºn soportado)
-- `Tool_Active` â€” habilita function calling
-- `ThinkingLevel` â€” nivel de razonamiento (`tlLow`, `tlMedium`, `tlHigh`)
-- `Max_Tokens` â€” tokens mÃ¡ximos de respuesta
-- `Temperature` â€” temperatura de sampling
+- `ModelCaps` / `SessionCaps` — **sistema nuevo v3.3** (preferido)
+- `NativeInputFiles` / `NativeOutputFiles` — físico, legacy (aún soportado)
+- `ChatMediaSupports` / `EnabledFeatures` — lógico, legacy (aún soportado)
+- `Tool_Active` — habilita function calling
+- `ThinkingLevel` — nivel de razonamiento (`tlLow`, `tlMedium`, `tlHigh`)
+- `Max_Tokens` — tokens máximos de respuesta
+- `Temperature` — temperatura de sampling
 
 ### Chat State Machine
 Drivers follow states in `TAiChatState`:
 ```text
-acsIdle â†’ acsConnecting â†’ acsReasoning â†’ acsWriting â†’ acsToolCalling â†’ acsFinished/acsError
+acsIdle → acsConnecting → acsReasoning → acsWriting → acsToolCalling → acsFinished/acsError
 ```
 
 ### Tool Calling Flow
@@ -148,7 +150,7 @@ acsIdle â†’ acsConnecting â†’ acsReasoning â†’ acsWriting â†�
 ## Dependencies
 
 - `uMakerAi.Core.pas` - Base types (`TAiMediaFile`, `TAiFileCategory`, `TAiChatState`, `TAiCapability`)
-- `uMakerAi.Chat.pas` - Abstract `TAiChat` base class (`ModelCaps`, `SessionCaps`, `RunNew`, `RunLegacy`)
+- `uMakerAi.Chat.pas` - Abstract `TAiChat` base class (`ModelCaps`, `SessionCaps`). API pública: `AddMessageAndRun`, `Run`. `RunNew` es privado (orquestador interno de las 3 fases).
 - `uMakerAi.Chat.Messages.pas` - `TAiChatMessage`, `TAiChatMessages`
 - `uMakerAi.Tools.Functions.pas` - `TAiFunctions`, `TAiToolsFunction`
 - `uMakerAi.ParamsRegistry.pas` - `TAiChatFactory` for model configuration
@@ -175,86 +177,249 @@ acsIdle â†’ acsConnecting â†’ acsReasoning â†’ acsWriting â†�
 
 ### Claude (Anthropic)
 - `x-anthropic-version` header + beta features via dynamic headers
-- Thinking/reasoning via `EnableThinking` + `ThinkingBudget`; `ThinkingLevel` mapea a presupuesto automÃ¡tico
+- **Thinking por familia (ago 2026, probado runtime):** el driver clasifica el modelo con `IsClaudeAdaptiveOnly` (4.7/4.8/5: budget_tokens y temperature/top_p/top_k devuelven 400) e `IsClaude46` (4.6). En 4.6+ envía `thinking:{type:"adaptive"}` y mapea `ThinkingLevel` → `output_config.effort` (low/medium/high); en ≤4.5 mantiene `{enabled, budget_tokens}`. El header `interleaved-thinking` solo se envía en el camino legacy.
+- `output_format` migrado a `output_config.format` (deprecado API-wide); format y effort comparten el mismo objeto `output_config`
+- Web search: `web_search_20260209` (filtrado dinámico) en 4.6+; `web_search_20250305` en legacy
+- `stop_reason:"refusal"` (clasificadores de opus-5/fable-5): marca `IsRefusal`, parsea `stop_details` (category/explanation) y dispara `OnError`
+- **Fase ago 2026 (probada runtime salvo Fast mode):**
+  - `FastMode` — `speed:"fast"` + beta `fast-mode-2026-02-01`, solo opus-5/4.8 (en otros se ignora con log). OJO: research preview con rate limit propio; requiere cupo del org (la org de prueba tiene 0 TPM asignados → 429)
+  - Mensajes `{role:"system"}` mid-conversation en el historial (preservan el prompt cache): pasan directo en opus-5/4.8/fable/mythos; en modelos sin soporte (sonnet-5, 4.6…) se degradan automáticamente a turno `user` envuelto en `<system-reminder>`. Uso: `AddMessage(texto, 'system')` tras un turno user + `Run(nil)`
+  - `EnableCompaction` — beta `compact-2026-01-12` + `context_management.edits[compact_20260112]` (se fusiona con `FContextConfig` si existe); los bloques `compaction` recibidos se preservan (`FCompactionBlocks`) y se reenvían íntegros al inicio del mensaje assistant correspondiente
+  - `RefusalFallbackModel` — beta `server-side-fallback-2026-06-01` + `fallbacks:[{model}]`: ante un refusal el API reintenta en ese modelo en la misma llamada (único target soportado hoy: `claude-opus-4-8`)
 - Citations (RAG nativo): soporte parcial implementado
-- Modelos actuales: `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-haiku-4-5`
+
+**Generación sep 2026 (revisada sep 29/2026 contra la referencia oficial y probada en vivo):** `claude-opus-5-5` ($4/$20, sucesor MÁS BARATO de Opus 5; effort por defecto **medium**), `claude-sonnet-5-5` ($2/$10) y `claude-fable-5-1` ($10/$50, retención 30 días igual que Fable 5). Cambios que rompen, manejados por el driver: el thinking **no se puede apagar** (el driver nunca manda `disabled`), y **forzar una tool (`tool_choice` any/tool) da 400** → `IsClaudeNoForcedTool` lo baja a `auto` con un `LogDebug`. `claude-sonnet-5-5` sí acepta mensajes `system` a mitad de conversación. Escalera de effort: `tlXHigh` → `xhigh` (solo 4.7+; en 4.6 se pide `high`), `tlMax` → `max`, `tlMinimal`/`tlNone` → `low`. **No hay Haiku 5**: `claude-haiku-4-5` sigue siendo el Haiku actual y queda como default del driver.
+
+**Modelos activos (ago 2026, todos registrados):**
+- `claude-opus-5` — **RECOMENDADO**, sucesor de 4.8 al mismo precio ($5/$25), thinking activo por defecto, 1M ctx / 128K out
+- `claude-sonnet-5` — mejor precio/calidad, casi-Opus en código/agentes ($3/$15; intro $2/$10 hasta ago 31/2026); tokenizer nuevo ~30% más tokens que 4.6. PROBADO runtime
+- `claude-fable-5` — tope de capacidad ($10/$50); **requiere retención de datos 30 días** (ZDR → 400 en toda petición); thinking siempre activo
+- `claude-opus-4-8`, `claude-opus-4-7` — generaciones Opus 4.x (misma superficie adaptive-only)
+- `claude-sonnet-4-6`, `claude-opus-4-6` — generación anterior (adaptive recomendado, budget deprecado). Opus 4.6 PROBADO runtime con adaptive
+- `claude-haiku-4-5-20251001` — velocidad/costo, 200K ctx; camino legacy budget PROBADO runtime
+
+**Retirados/deprecados:** `claude-opus-4-1` y `claude-opus-4-1-20250805` **RETIRADOS el 5 ago 2026** → alias de `claude-opus-5-5`; `claude-sonnet-4-20250514` / `claude-opus-4-20250514` (TBD)
 
 ### OpenAI
-- GPT-4.1 (32K output, vision), o3/o4-mini (reasoning + vision), GPT-4o (audio multimodal)
-- GeneraciÃ³n de imagen: `gpt-image-1` (calidad HD), `dall-e-3/2` â†’ `SessionCaps=[cap_GenImage]`
-- TTS: `gpt-4o-mini-tts` â†’ `SessionCaps=[cap_GenAudio]`
-- Video: Sora â†’ `SessionCaps=[cap_GenVideo]`
-- Web search: `gpt-4o-search-preview` â†’ `ModelCaps=[cap_WebSearch]`, `Tool_Active=False`
-- Modelos de reasoning usan `ThinkingLevel` para controlar esfuerzo
+**Familia GPT-6 (revisada sep 29/2026 contra la doc oficial y probada en vivo):** `gpt-6-astra` ($10/$50, el "general-purpose" de OpenAI), `gpt-6-sol` ($2/$10, código y agentes) y `gpt-6-luna` ($0.10/$0.50, alto volumen). 1.05M ctx / 128K out, texto+imagen, `reasoning.effort` none/low/medium/high/xhigh/max (default medium) — **sin `minimal`**: `OpenAiEffort` lo pide como `low`. **Default del driver: `gpt-6-sol`** (antes `gpt-5.1` en `TAiChatConnection` y, por un bug, **`gpt-5` en el componente directo**: el constructor de `TAiChat` deja `gpt-5` y el `if Model = ''` de `TAiOpenChat` nunca se cumplía; `gpt-5` se apaga el 11 dic 2026). `TAiMakerAiChat` hereda de `TAiOpenChat`: su constructor fija `mk-gpt-oss-20b`, igual que `RegisterDefaultParams`. `gpt-5.1` sigue activo. `ModelRequiresDefaultSampling`/`ModelUsesMaxCompletionTokens` cubren `gpt-6` (camino Chat Completions de Azure/GenericLLM).
+
+**Familia GPT-5.6 (julio 2026 — producción actual):** 1.05M contexto, 128K output, visión + reasoning + tools + prompt caching en toda la familia. El alias `gpt-5.6` enruta a Sol.
+- `gpt-5.6-sol` — Flagship. `ModelCaps=[cap_Image, cap_Reasoning]`, `ThinkingLevel=tlHigh`
+- `gpt-5.6-terra` — Balance costo/capacidad. `ThinkingLevel=tlMedium`
+- `gpt-5.6-luna` — Tier económico (probado runtime ago 2026). `ThinkingLevel=tlLow`
+- Precios jul 30/2026: Luna −80%, Terra −20%; "Fast mode" reemplaza Priority Processing (2.5× velocidad, 2× precio, solo Sol)
+
+**Familia GPT-5.x (mayo 2026):**
+- `gpt-5.4` — Producción estándar, visión + tools, 1M contexto. `ModelCaps=[cap_Image]`
+- `gpt-5.4-mini` — Rápido y económico, visión + tools. `ModelCaps=[cap_Image]`
+- `gpt-5.5` — visión + reasoning. `ModelCaps=[cap_Image, cap_Reasoning]`, `ThinkingLevel=tlMedium`
+- `gpt-5.5-pro` — Reasoning intensivo. `ModelCaps=[cap_Image, cap_Reasoning]`, `ThinkingLevel=tlHigh`
+
+**Capacidades multimedia (sin cambios en nombres de modelos):**
+- Generación de imagen: `gpt-image-1` (y `gpt-image-1.5` / `gpt-image-2`) → `SessionCaps=[cap_GenImage]`
+- TTS: `gpt-4o-mini-tts` → `SessionCaps=[cap_GenAudio]`
+- Transcripción: `gpt-transcribe` (recomendado, WER 8.98%), `gpt-live-transcribe` (vivo/Realtime), `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`, `whisper-1` → `ModelCaps=[cap_Audio]`
+- Video: Sora → `SessionCaps=[cap_GenVideo]`
+- Web search: `gpt-4o-search-preview` → `ModelCaps=[cap_WebSearch]`, `Tool_Active=False`
+
+**Deprecated (feb 2026):** GPT-4.1, GPT-4o (chat), o3, o4-mini — mantenidos en el código por backward compatibility pero no recomendados para proyectos nuevos.
 
 ### Gemini (Google)
-- Gemini 2.5-flash/pro: vision + audio + video + PDF + web search + code interpreter + reasoning
-- Gemini 3-pro-preview / 3.1-pro-preview: capacidades completas + `ThinkingLevel=tlHigh`
-- GeneraciÃ³n de imagen nativa vÃ­a completions: `gemini-2.5-flash-image-preview` â†’ `ModelCaps=[cap_Image, cap_GenImage]`
-- TTS: `gemini-2.5-flash-tts` / `gemini-2.5-pro-tts` â†’ `SessionCaps=[cap_GenAudio]`
-- Video: Veo 2.0/3.0/3.1 â†’ `SessionCaps=[cap_GenVideo]`
-- Grounding nativo: el driver gestiona `groundingSupports` automÃ¡ticamente
 
-### Groq (inferencia rÃ¡pida)
-- Modelos populares: llama-4-scout/maverick (vision), kimi-k2, compound-beta, deepseek-r1, qwen3
-- TTS: `playai-tts`, `playai-tts-arabic`, `voxtral-mini/small` â†’ `SessionCaps=[cap_GenAudio]`
-- TranscripciÃ³n: `whisper-large-v3/turbo` â†’ `ModelCaps=[cap_Audio]`, `Tool_Active=False`
-- compound-beta/mini: web search + code interpreter nativos, `Tool_Active=False`
+**Revisión sep 29/2026 contra la doc oficial (SIN prueba runtime: no hay API key).** Default del driver, de `TAiGeminiSpeechTool` (transcripción) y de `TAiGeminiWebSearchTool`: **`gemini-3.8-flash`**; TTS por defecto: **`gemini-3.8-flash-tts`**.
+- `gemini-3.8-flash` (estable, sep 2026) y `gemini-3.7-flash` (estable, ago 2026, orientado a código): 1M ctx / 65K out, entrada texto/imagen/video/audio/PDF, tools, search, code execution, computer use (preview). **Thinking solo low/medium/high: `minimal` da error y no se puede apagar** — el driver lleva `tlMinimal`/`tlNone` a `LOW` y `tlXHigh`/`tlMax` a `HIGH`
+- TTS `gemini-3.8-flash-tts` y `gemini-3.8-flash-lite-tts` (estables, sep 22/2026; reemplazo oficial de `gemini-2.5-flash-preview-tts`). La doc presenta la API nueva `/v1beta/interactions`; la guía de migración sigue cubriendo `generateContent`, que es lo que usan el driver y `TAiGeminiSpeechTool`. **Verificar en runtime cuando haya key**
+- El gate de sampling compara la **versión** (`GeminiModelVersion` ≥ 3.5), no una lista de nombres: cubre 3.7, 3.8 y los que vengan
+- Sin registrar todavía (API distinta o sin uso en el driver): `gemini-3.5-transcribe`, `gemini-3.8-live`, `gemini-3.5-live-translate-preview`, `gemini-embedding-2-preview`, Lyria, Deep Research, `antigravity-preview-09-2026`
+
+**Familia 3.5/3.6 (jul 2026, registrados SIN prueba runtime):**
+- `gemini-3.5-flash` (GA may 19/2026, alias `gemini-flash-latest`) — flash flagship, frontier agentic/coding; Computer Use tool en public preview para este modelo. `ThinkingLevel=tlMedium`
+- `gemini-3.6-flash` (GA jul 21/2026) — mejor eficiencia de tokens y planificación agéntica, más barato que 3.5 Flash. `ThinkingLevel=tlMedium`
+- `gemini-3.5-flash-lite` (GA jul 21/2026) — baja latencia, subagentes. `ThinkingLevel=tlLow`
+- **Sampling params deprecados en 3.5+/3.6/omni** (jul 21/2026): el driver omite `temperature`/`topP` automáticamente para esos modelos
+- `gemini-3.5-pro` NO existe aún (anunciado en I/O, retrasado — Reuters jul 16)
+
+**Familia 3.x anterior (siguen activos):**
+- `gemini-3.1-pro-preview` — flagship pro, 2M contexto. `ThinkingLevel=tlHigh`
+- `gemini-3-flash-preview`, `gemini-3.1-flash-lite` — generación previa
+
+**Modelos especializados:**
+- Imagen (familia **Nano Banana**, GA may-jun 2026): `gemini-3.1-flash-image` (NB 2, con video-to-image), `gemini-3-pro-image` (NB Pro), `gemini-3.1-flash-lite-image` (NB 2 Lite, ultra-rápido). Los `-preview` previos siguen registrados
+- `gemini-3.1-flash-tts-preview` — TTS; desde jun 17/2026 soporta streaming (`streamGenerateContent`)
+- `veo-3.1-generate-preview` — video. **veo-2.0 y veo-3.0 APAGADOS el 30 jun 2026** (enum del tool conservado por compat de DFMs)
+- `gemini-omni-flash-preview` — video 3-10s 720p (preview jun 30/2026)
+- `gemini-embedding-2` (GA abr 2026) — embedding multimodal, 3072 dims
+
+**Apagados/deprecados:**
+- **Imagen 4.0 (`imagen-4.0-*-generate-001`): SHUTDOWN 17 ago 2026** — los tres nombres quedan como **alias** de `gemini-3.1-flash-image` (Nano Banana 2) con sus caps: pasan de `:predict` a completions con imagen
+- `gemini-3-pro-preview`: **apagado** — alias de `gemini-3.1-pro-preview` (y `aa_gemini-3-pro-fast` apunta directo al sucesor: `GetBaseModel` no encadena alias)
+- `gemini-2.0-flash(-lite)`: apagados 1 jun 2026 (eran el default de las tools de transcripción y búsqueda)
+- **Familia 2.5 (`gemini-2.5-flash`, `-lite`, `-pro`, TTS): NO está apagada, está LIMITADA** a cuentas que ya la usaban (la nota anterior decía "cerrados 17 jun 2026", era incorrecta). Para un usuario nuevo falla, por eso dejó de ser el default. Siguen registrados, con perfiles `aa_gemini-3.8-flash-pdf/-code-interpreter/-web-search` como reemplazo de los `aa_gemini-2.5-*`
+- `gemini-2.5-flash-image`: se apaga el **2 oct 2026** (reemplazo: `gemini-3.1-flash-image`); convertirlo en alias después de esa fecha
+- **Ojo con DFMs existentes**: guardan `Model` con el valor viejo (`gemini-2.0-flash` en las tools); el cambio de default solo afecta a componentes nuevos
+
+**Otros:**
+- Grounding nativo: el driver gestiona `groundingSupports` automáticamente
+
+### Groq (inferencia rápida)
+**Actualizado ago 2026, probado runtime 4/4.** Dos sistemas de reasoning MUTUAMENTE excluyentes (gating por prefijo en el driver): `openai/gpt-oss-*` usa `include_reasoning` + `reasoning_effort` low/medium/high; `qwen/*` usa `reasoning_format` parsed/raw/hidden + `reasoning_effort` default/none (sin `parsed` el `<think>` llega crudo en content).
+- Texto: `openai/gpt-oss-20b` (default del driver desde sep 2026), `openai/gpt-oss-120b`, `qwen/qwen3.8-27b`. **Retirados sep 2026** (`model_not_found`): `llama-3.1-8b-instant` y `llama-3.3-70b-versatile`, con alias hacia `gpt-oss-20b` y `gpt-oss-120b` para no romper código previo. Los `qwen/qwen3.6|3.8-27b` aceptan como máximo `Max_Tokens=16384` (la API rechaza más con 400); `qwen3.6` estaba registrado con 40960 y no respondía
+- Reasoning: `openai/gpt-oss-120b/20b` (probado), `qwen/qwen3.6-27b` (nuevo ago 2026, reemplaza a qwen3-32b — alias registrado; probado)
+- **Groq NO tiene visión actualmente**: llama-4-scout/maverick retirados y gpt-oss-120b es solo texto ("content must be a string" con imágenes — verificado; cap_Image eliminado del registry)
+- RETIRADOS ago 2026: `qwen/qwen3-32b`, `llama-4-scout`, `moonshotai/kimi-k2-instruct(-0905)`
+- Agénticos: `groq/compound`/`-mini` **no disponibles** (sep 2026: `model_not_found` y fuera de `GET /models`); sin alias a propósito, porque no hay reemplazo con web search
+- TTS: `canopylabs/orpheus-v1-english`/`-arabic-saudi` → `SessionCaps=[cap_GenAudio]` (playai-tts eliminado 12/31/25)
+- STT: `whisper-large-v3/turbo` → `ModelCaps=[cap_Audio]`, `Tool_Active=False`
+- Árabe: `allam-2-7b` (4K ctx, sin tools); prompt-guard-2 son clasificadores, no chat
 
 ### Mistral
-- Vision: todos los modelos hereden el global `ModelCaps=[cap_Image]` (Mistral Large/Medium/Small 3.x)
-- Reasoning: magistral-medium/small â†’ `ModelCaps=[cap_Reasoning]`, `ThinkingLevel=tlMedium`
-- CÃ³digo: devstral-latest / devstral-small-latest â†’ `ModelCaps=[]` (sin visiÃ³n)
-- TTS: voxtral-mini/small-latest â†’ `ModelCaps=[cap_Audio]`, `Tool_Active=False`
-- OCR: mistral-ocr-latest â†’ `ModelCaps=[cap_Pdf]`, `Tool_Active=False`
+**Modelos activos (jun 2026):**
+- `mistral-large-latest` → Large 3 (v25.12), 256K ctx, vision + tools. Hereda defaults `[cap_Image]`
+- `mistral-medium-latest` → **Medium 3.5** (v26.04), 256K ctx, vision + reasoning_effort + tools. `ModelCaps=[cap_Image,cap_Reasoning]`, `ThinkingLevel=tlMedium`
+- `mistral-small-latest` → **Small 4** (v26.03), 256K ctx, vision + reasoning_effort + tools. `ModelCaps=[cap_Image,cap_Reasoning]`, `ThinkingLevel=tlMedium`
+- Ministral: `ministral-14b/8b/3b-latest` → 262K ctx, vision + tools. Hereda defaults
+- Reasoning dedicado: `magistral-medium/small-latest` → `ModelCaps=[cap_Reasoning]`, `ThinkingLevel=tlMedium` (usa `prompt_mode: 'reasoning'`)
+- Código: `devstral-latest` / `devstral-small-latest` → `ModelCaps=[]` (sin visión)
+- STT: `voxtral-mini/small-latest` → `ModelCaps=[cap_Audio]`, `Tool_Active=False`
+- **TTS: `voxtral-mini-tts-2603`** (mar 2026, PROBADO runtime ago 2026) → `SessionCaps=[cap_GenAudio]` activa `InternalRunNativeSpeechGeneration` (POST `/v1/audio/speech`). El API **exige** `voice` (slug del catálogo `GET /v1/audio/voices`: `en_paul_neutral`/happy/sad…, `gb_oliver_neutral`, `gb_jane_sarcasm`) o `ref_audio`; propiedades `TtsVoice` (default `en_paul_neutral`) y `TtsFormat` (mp3/wav/pcm/flac/opus). Modelo multilingüe con cualquier voz
+- OCR: `mistral-ocr-latest` → endpoint `/v1/ocr`, `SessionCaps=[cap_Pdf]`, `Tool_Active=False`. **OCR 4** (`mistral-ocr-4-0`, jun 2026): el alias ya apunta a él; nueva propiedad `OcrIncludeBlocks` (bloques estructurales con bounding boxes por página) y `pages` acepta rangos (`"0-5"`)
+- Devstral 2 (`devstral-2512`) y Magistral 1.2 (`magistral-*-2509`) cubiertos por los alias `-latest`
+
+**Reasoning en el driver:**
+- Magistral → `prompt_mode: 'reasoning'` (chain-of-thought visible en respuesta)
+- Small 4 / Medium 3.5 → `reasoning_effort: 'low'|'medium'|'high'` según `ThinkingLevel`
 
 ### xAI Grok
-- grok-3: texto + tools (default)
-- grok-3-mini: reasoning ligero (`ThinkingLevel=tlLow`)
-- grok-4-fast-reasoning / grok-4-1-fast-reasoning: vision + reasoning, 2M ctx
-- grok-code-fast-1: reasoning para cÃ³digo, sin visiÃ³n
-- Imagen: grok-2-image-1212, grok-imagine-image/pro â†’ `SessionCaps=[cap_GenImage]`
-- Video: grok-imagine-video â†’ `SessionCaps=[cap_GenVideo]`
+**Actualizado ago 2026, probado runtime 6/6.** Recambio total del catálogo: la familia actual (grok-4.x, grok-build) **razona siempre** (`reasoning_content` capturado por la base) y NO acepta `frequency/presence/stop` ni `reasoning_effort` (gate por prefijo en el driver); logprobs no soportado en 4.20+.
+- `grok-4.3` [default del driver]: 1M ctx, visión + reasoning (probados). $1.25/$2.50 por M (<200K; 2x sobre 200K)
+- `grok-4.5` [premium]: 500K ctx, visión + reasoning (probados). $2/$6 por M
+- `grok-4.20-0309-reasoning`/`-non-reasoning`/`-multi-agent-0309`: 1M ctx
+- `grok-build-0.1`: coding con reasoning (probado), 256K ctx. $1/$2 por M
+- Imagen: `grok-imagine-image` ($0.02) / `-image-quality` ($0.05) → `SessionCaps=[cap_GenImage]`
+- Video: `grok-imagine-video` ($0.05/s) / `-video-1.5` ($0.08/s) → `SessionCaps=[cap_GenVideo]`. **Implementado y probado**: `InternalRunNativeVideoGeneration` (job asíncrono `POST /videos/generations` + polling `GET /videos/{id}` + descarga del mp4 como `TAiMediaFile`); duración vía propiedad `VideoDurationSeconds` (default 5, máx 15)
+- **RETIRADOS ago 2026**: familia grok-3 completa, grok-4-0709, grok-4-fast-*, grok-4-1*, grok-code-fast-1, grok-2-vision, grok-2-image, grok-imagine-image-pro. Aliases registrados: grok-3/grok-4/grok-4-0709 → grok-4.3; grok-code-fast-1 → grok-build-0.1; grok-2-image(-1212) → grok-imagine-image; -image-pro → -image-quality (probado vía alias)
 
 ### DeepSeek
-- `deepseek-chat` (V3.2): texto + tools, 128K ctx, 32K output
-- `deepseek-reasoner` (R1): reasoning + tools, `ThinkingLevel=tlMedium`
-- Sin visiÃ³n en la API pÃºblica (DeepSeek-VL2 no disponible vÃ­a api.deepseek.com)
+**Actualizado ago 2026, probado runtime 4/4 (incl. tools en modo thinking).** V4 (abr 2026) son los únicos modelos en `/v1/models`: 1M ctx / 384K output. El API activa thinking **por defecto** (effort=high); el driver lo controla explícitamente en `InitChatCompletions`: `cap_Reasoning` en `ModelCaps` → `thinking:{type:enabled}` + `reasoning_effort` (tlLow=low, tlMedium=high, tlHigh=max); sin el cap → `thinking:{type:disabled}` (modo rápido/económico). En modo thinking el API ignora temperature/top_p/penalties sin error. Con tools, `reasoning_content` DEBE reenviarse en el historial (400 si falta) — el override `GetMessages` del driver ya lo hace.
+- **RENOMBRE sep 2026 (verificado runtime):** `/v1/models` ya solo lista `deepseek-flash` y `deepseek-v4-pro`. `deepseek-v4-flash` (y `deepseek-v4-flash-vision-exp`) siguen aceptados como alias pero esos modelos **fueron retirados** y enrutan al nuevo flash. El default del driver es ahora `deepseek-flash`; el alias legacy queda registrado para configuraciones viejas.
+  - **TRAMPA:** el gate del bloque `thinking` estaba en `StartsText('deepseek-v4', LModel)`, así que con el nombre canónico `deepseek-flash` NO se enviaba `thinking` y mandaba el default del API (thinking ON) → se facturaban tokens de razonamiento con `ModelCaps=[]`. Ahora se decide en `ModelSupportsThinking()`, que cubre `deepseek-v4*`, `deepseek-flash*` y los alias en gracia
+- `deepseek-flash` [default del driver]: pico $0.30/M in miss / $0.003 hit / $1.20/M out
+- `deepseek-v4-pro`: 1.6T (49B act), razonamiento por defecto vía registry. Pico $1.32/M in miss / $3.96/M out. **CONTINÚA después del 14 sep 2026** (aviso oficial, facturación sin cambios). Nota: effort low→high (mínimo soportado, ago 2026)
+- `deepseek-chat` y `deepseek-reasoner`: **RETIRADOS oficialmente 24 jul 2026** — aún enrutan a `deepseek-flash` en gracia (verificado sep 2026); no depender de ellos
+- Sin visión en la API pública
+- OJO: la tarifa **pico/valle ya está vigente**: fuera de pico se paga la mitad; horas pico 01:00-04:00 y 06:00-10:00 **UTC** (L-V)
 
 ### Kimi (Moonshot AI)
-- `kimi-k2`: texto + tools, 256K ctx (default del driver)
-- `kimi-k2.5`: vision + PDF + reasoning + tools, MoE 1T params activos 32B
-- `kimi-k2-thinking`: reasoning + tools, sin visiÃ³n
-- `moonshot-v1-*`: legacy, sin tools (`Tool_Active=False`)
-- `moonshot-v1-*-vision-preview`: visiÃ³n vÃ­a base64, sin tools
+**Actualizado ago 2026, probado runtime 4/4.** REGLA CRÍTICA descubierta empíricamente: la familia nueva (k3/k2.6/k2.7) devuelve **400 si el request incluye `top_p`** (solo acepta `temperature`) — el default global `top_p` se eliminó del registry y el constructor fija `Top_p := 0`. Todos los modelos nuevos devuelven `reasoning_content` y necesitan `max_tokens` amplio (con presupuesto corto el razonamiento lo consume y `content` llega vacío con `finish=length`).
+- `kimi-k3` (jul 16/2026): **flagship y default del driver**, 1M ctx, visión + reasoning (probado). Precio plano: $3/M input, $0.30/M cache-hit, $15/M output
+- `kimi-k2.7-code` / `-highspeed`: coding multimodal (probado — genera Delphi correcto)
+- `kimi-k2.6`: visión + texto + tools (probado)
+- `kimi-latest`: alias móvil
+- `kimi-k2.5`: **RETIRA 31 ago 2026** → migrar a kimi-k3
+- `kimi-k2` y `kimi-k2-thinking`: **YA RETIRADOS** del API (entradas eliminadas del registry)
+- `moonshot-v1-*` (+vision-preview): **SUNSET TOTAL 31 ago 2026**
+
+### GLM (Zhipu AI / Z.ai)
+**Registrado ago 2026, capacidades verificadas contra docs oficiales; SIN prueba runtime todavía.** API OpenAI-compatible; endpoint internacional `https://api.z.ai/api/paas/v4/` (China continental: `open.bigmodel.cn/api/paas/v4/` — cambiar `URL`). Key: `@GLM_API_KEY`.
+- **Thinking ACTIVADO por defecto en el API** (glm-4.7/5.x): el driver lo controla explícitamente como DeepSeek V4 — `cap_Reasoning` → `thinking:{enabled}`; sin el cap → `disabled` (modo rápido). **EXCEPCIÓN: `glm-5.3` usa forced thinking y NO acepta disabled** (el driver siempre manda enabled para 5.3, patrón command-a-plus).
+- `reasoning_effort`: valores **low/high/max** (default del API: max), documentado SOLO en glm-5.2/5.3 — el driver lo envía únicamente ahí (mapeo tlLow→low, tlMedium→high, tlHigh→max, igual que DeepSeek).
+- **Z.ai EXIGE reenviar `reasoning_content` en el historial multi-turno** ("remember to return the historical reasoning_content") — el override `GetMessages` del driver lo hace. Captura en parse/streaming: la base.
+- `tool_choice`: el API **solo soporta `'auto'`**. Sampling acotado (clamp en el driver): `temperature` [0,1], `top_p` [0.01,1], `max_tokens` ≤131072 (salida real máx 128K; 16K en 4.5v). No se envían penalties/n/logprobs/seed.
+- Texto: `glm-4.7` [default del driver] (200K ctx, $0.60/$2.20); `glm-4.7-flash` **GRATIS**; `glm-4.7-flashx` ($0.07/$0.40); `glm-5.3` (1M ctx, flagship coding, $1.40/$4.40), `glm-5.2` (1M ctx), `glm-5.1` (agentes 8h), `glm-5` (200K, $1.00/$3.20) → todos `[cap_Reasoning]` `tlMedium`; `glm-5-turbo` (200K, $1.20/$4.00, sin cap = rápido)
+- Visión (image/video/file input, formato OpenAI `image_url`; `video_url`/`file_url` no cableados aún): `glm-5v-turbo` (200K, con tools), `glm-4.6v` ($0.30/$0.90, **primera familia V con function calling nativo**), `glm-4.6v-flash` **GRATIS**, `glm-4.6v-flashx` ($0.04/$0.40) → `[cap_Image]`; `glm-4.5v` → `[cap_Image]` + **`Tool_Active=False`** (sin FC, salida máx 16K)
+- Fase 2 pendiente: GLM-Image (gen), GLM-OCR, GLM-ASR (STT), CogVideoX-3 (video) — endpoints dedicados
+
+### Qwen (Alibaba Model Studio / DashScope)
+**Nuevo sep 28 2026, probado runtime (sync, async, razonamiento on/off, tools sync y async, visión, qwq-plus; fase 2: imagen, TTS, ASR, audio nativo, embeddings y rerank).** API OpenAI-compatible; endpoint internacional (Singapur) `https://dashscope-intl.aliyuncs.com/compatible-mode/v1/` (EE.UU. `dashscope-us…`, China `dashscope.aliyuncs.com…` — cambiar `URL`). Key: `@DASHSCOPE_API_KEY`, **atada a la región donde se creó** (otra región → 401). Cobro pay-as-you-go contra la tarjeta: no hay recarga de saldo.
+- **Razonamiento ACTIVADO por defecto en el API** en los híbridos (qwen3.x, qwen-plus/flash/turbo, qwen3-max, VL, omni). El driver manda SIEMPRE `enable_thinking`: `cap_Reasoning` → true; sin el cap → false (rápido, sin tokens de razonar). Los híbridos se registran sin el cap. `ThinkingLevel` → `thinking_budget` (tlLow 1024, tlMedium 4096, tlHigh 16384; tlDefault sin límite). `reasoning_content` lo captura la base (sync y streaming).
+- Solo-razonamiento (`qwq-*`, `*-thinking-*`): no se les manda `enable_thinking`. **`qwq-plus` solo responde en streaming** (sin stream devuelve vacío y sin error) → registrado `Asynchronous=True`.
+- Pesos abiertos (`qwen3-32b`, `qwen3.6-27b`, `qwen3-235b-a22b…`, detectados por el tamaño en el nombre): `enable_thinking=true` solo en streaming (400 en síncrono) → en síncrono el driver manda false.
+- Streaming: `stream_options.include_usage` para que lleguen los tokens. Tools + stream funcionan. `temperature` acotada a [0, 2).
+- Catálogo (solo lo probado; cualquier otro id de los ~170 de la cuenta funciona con los globales): visión `[cap_Image]` → `qwen3.8-flash` [default], `qwen3.8-max`, `qwen3.7-plus`, `qwen3-vl-flash`, `qwen3.8-omni-flash` (probado solo imagen); texto → `qwen3-max`, `qwen-plus`, `qwen-flash`, `qwen-turbo`; código → `qwen3-coder-plus/flash`; razonamiento `[cap_Reasoning]` → `qwq-plus`, `qwen3-235b-a22b-thinking-2507`.
+- `Model` vacío (fix general sep 28 2026): antes una conexión sin `Model` usaba el modelo por defecto del driver **sin** sus parámetros del catálogo (Qwen sin `cap_Image`: la imagen no se enviaba). Ahora `GetDriverParams` resuelve el nivel del modelo con el default; ver la sección del registro en `Source/Core/CLAUDE.md`.
+- **Audio de entrada: el API exige data URI** en `input_audio.data` (`data:audio/wav;base64,…`); el base64 pelado del serializador común da 400 *"URL does not appear to be valid"*. `InitChatCompletions` lo reescribe (`FixAudioDataUris`). Con eso `qwen3.8-omni-flash` (`[cap_Image, cap_Audio]`) entiende audio nativo, sync y stream.
+- **Fase 2 (sep 28 2026), probada runtime desde Delphi** — por gap de capacidades, como el resto de drivers. Las tres usan cliente HTTP propio (síncronas aunque `Asynchronous=True`; en asíncrono el resultado llega por `OnReceiveDataEnd` con los media, igual que Grok/Mistral). Si el `Model` de la sesión no es de la familia, se usa el default de la tarea (`ModelFor`), así el puente funciona desde un modelo de chat:
+  - `[cap_GenImage]` → API nativa `api/v1/services/aigc/multimodal-generation/generation` (síncrona, devuelve URLs que expiran en 24 h; el driver las descarga como `qwen_image_N.png`). Registrados: `qwen-image-3.0` [default de la tarea], `qwen-image-3.0-pro`, `qwen-image-2.0(-pro)`, `qwen-image-max`, `z-image-turbo` (~6 s), `wan2.7-image(-pro)`. `qwen-image-3.0` tarda ~50 s. Tamaño en `ImageParams.Params.Values['size']` (default `1024*1024`, acepta `1024x1024`); `qwen-image-plus` solo admite 1328*1328, 1664*928, 928*1664, 1472*1104, 1104*1472. También `negative_prompt` y `watermark` en `ImageParams.Params`; `N` > 1 pide varias.
+  - **Edición de imagen** (misma API y mismo gap): las imágenes adjuntas al prompt (**1 a 3**; 4 → error antes de llamar) son la entrada y viajan como data URI. Llegan intactas a la generación porque `cap_Image` no está en el gap de un modelo de imagen. Registrados `qwen-image-edit-plus` [default al editar, ~9 s], `qwen-image-edit` (~17 s), `qwen-image-edit-max` (~40 s); también editan `qwen-image-2.0/3.0` y `wan2.7-image`. **`z-image-turbo` no edita** (el driver falla con un mensaje claro). **Sin `size` explícito no se envía tamaño al editar**: el modelo conserva la proporción (1024×576 → 1376×768); forzar 1024*1024 la deformaría. Desde un modelo de chat (`SessionCaps` `[cap_Image, cap_GenImage]`) adjuntar una imagen y pedir el cambio edita con el default. El cuerpo lo arma `BuildImageRequest` (protegido; la suite lo prueba sin red).
+  - `[cap_GenAudio]` → misma API nativa con `input {text, voice, language_type}` → WAV (`qwen_tts.wav`). `qwen3-tts-flash` [default], `qwen3-tts-instruct-flash`. Voz en `TtsParams.Voice` (default `Cherry`; también `Ethan`…), idioma en `TtsParams.Language` (`es` o `Spanish`; vacío = `Auto`).
+  - Transcripción → `qwen3-asr-flash` por `chat/completions` con `input_audio` (data URI) y `asr_options`. En **`cmTranscription`** la transcripción es la respuesta (`ParseJsonTranscript`) y el `Prompt` viaja como **contexto** del reconocedor (nombres propios: "MakerAI" en vez de "MakeItAI"); `TranscriptionParams.Language` → `asr_options.language`. Como **puente de Fase 1** (un modelo de texto con `SessionCaps` `[cap_Audio]`) solo llena `MediaFile.Transcription` y no dispara eventos: la respuesta final la da el modelo de chat. `qwen3-asr-flash` en `cmConversation` también transcribe (audio nativo por chat).
+  - `uMakerAi.Embeddings.Qwen` — `TAiQwenEmbeddings` (driver `Qwen` en `TAiEmbeddingConnection`): hereda de `TAiOpenAiEmbeddings` (el endpoint compatible acepta el mismo cuerpo). `text-embedding-v4` [default, 1024 dims; admite 64–2048], `text-embedding-v3`, `qwen3.7-text-embedding`.
+  - `Source/Tools/uMakerAi.Qwen.Rerank.pas` — `TAiQwenRAGReranker` para `TAiRAGVector.Reranker`: `qwen3-rerank` por la API nativa, puntaje 0..1 por pasaje. Hasta 500 documentos por llamada (501 → 400), por encima parte en lotes (`BatchSize`). `Instruct` describe la tarea y afina el puntaje (0.85 → 0.91 en el pasaje correcto). `gte-rerank-v2` no existe en la región internacional y `gte-rerank` da AccessDenied.
+  - **Video (wan)** `[cap_GenVideo]`: tarea asíncrona del API (`X-DashScope-Async: enable` → `task_id`; consulta a `api/v1/tasks/{id}` cada 5 s, timeout 10 min, respeta `Abort`). Según las imágenes adjuntas al prompt: **0** = texto a video (`wan2.6-t2v` [default], `wan2.7-t2v`, `wan2.5-t2v-preview`, `wan2.2-t2v-plus`, `wan2.1-t2v-turbo/plus`); **1** = imagen a video (`img_url` como data URI; un modelo `-t2v` pasa solo a su `-i2v`; default `wan2.6-i2v-flash`); **2** = primer y último cuadro (`first_frame_url`/`last_frame_url`, **otro endpoint** `image2video/video-synthesis`; `wan2.2-kf2v-flash` [default], `wan2.1-kf2v-plus`); 3 o más → error. `VideoParams.Params` pasa tal cual a `parameters` con su tipo (número, bool, texto; `negative_prompt` va en `input`). **Sin tamaño explícito el API entrega 1080P (lo más caro)**: el driver pide 720P, por `size=1280*720` en los t2v de wan2.5/2.6 (ignoran `resolution`) y por `resolution=720P` en el resto. `duration`: 2–15 s en wan2.6/2.7, 3–10 en wan2.5-i2v, no admitido en wan2.1/2.2 (5 s fijos). wan2.5+ trae audio AAC. Tiempos medidos: wan2.6 ~45–55 s, wan2.7 ~95 s, kf2v ~60 s por 5 s de video. Resultado: `qwen_video.mp4` en `MediaFiles` (URL de 24 h). **Ojo al sondear el API: un cuerpo inválido crea igual una tarea (HTTP 200) que falla después, y un parámetro desconocido se ignora y la tarea corre (y se cobra); las tareas en curso no se pueden cancelar.** El cuerpo lo arma `BuildVideoRequest` (protegido; probado sin red).
+  - Realtime (voz a voz, STT en vivo, traducción simultánea): drivers `Qwen`/`QwenSTT`/`QwenTranslate` en `Source/Realtime/uMakerAi.Realtime.Qwen.pas`; TTS en vivo (texto → audio mientras se genera, p.ej. leer la respuesta de un LLM): componente `TAiQwenRealtimeTTS` en `Source/Realtime/uMakerAi.Realtime.QwenTTS.pas` (ver `Source/Realtime/CLAUDE.md`). `qwen3-s2s-flash-realtime` no está habilitado en la cuenta probada.
+  - **Traducción de texto (`qwen-mt-plus/flash/turbo/lite`)**: el API acepta **un solo mensaje `user`** (system → 400 *"Role must be in [user, assistant]"*, historial → 400 *"only one"*, tools → 400) y **sin `translation_options` no traduce: conversa**. Con un modelo `qwen-mt` el driver arma su propio request (`BuildTranslationRequest`): solo el último mensaje del usuario + `translation_options` desde propiedades publicadas (asignables por `Params`): `TranslateTo` (nombre en inglés o código; vacío = English), `TranslateFrom` (vacío = auto), `TranslateDomain` (contexto en inglés) y `TranslateTerms` (glosario `origen=destino`, TStrings: asignarlo en `AiChat` como `TAiQwenChat`). El historial se sigue guardando, así que una conversación de traducciones funciona turno a turno. Calidad medida: `qwen-mt-plus` traduce "caja menor" como *petty cash fund*; `flash` como *smaller box*, y bien con `TranslateDomain` o `TranslateTerms`. **Streaming: `qwen-mt-plus` y `qwen-mt-turbo` mandan el texto ACUMULADO en cada chunk** (`incremental_output` no lo cambia); el parser común los concatenaba y el texto salía repetido. El driver sobrescribe `OnInternalReceiveData` y reescribe cada línea SSE al incremento antes de pasarla a la base (maneja líneas partidas entre chunks). `flash`/`lite` ya son incrementales.
+  - **Voces propias** — `Source/Tools/uMakerAi.Qwen.Voices.pas`, `TAiQwenVoices`: `CloneVoice` (muestra de audio → `qwen-voice-enrollment`, modelo destino `qwen3-tts-vc-2026-01-22`), `DesignVoice` (descripción en texto → `qwen-voice-design`, destino `qwen3-tts-vd-2026-01-26`; devuelve preview WAV y `LastDesignFallback` si la descripción no se pudo seguir, p.ej. `wer_too_high`), `ListVoices`, `DeleteVoice` (elige el servicio por el prefijo del id). API `api/v1/services/audio/tts/customization`. El id se usa como `TtsParams.Voice` en el TTS normal (`cap_GenAudio`). **Una voz propia solo funciona con su modelo destino** (`qwen3-tts-flash` la rechaza con *"voice does not exist or is not licensed"*): `TtsModelFor` elige `qwen3-tts-vc-…` / `qwen3-tts-vd-…` por el prefijo `qwen-tts-vc-` / `qwen-tts-vd-` si la sesión no lo fija. Probado en vivo: clonar, diseñar, listar, sintetizar con ambas (el audio retranscrito coincide con el texto) y borrar. Clonar solo con consentimiento del dueño de la voz.
+  - Sin cubrir: (`qwen-mt-*`, `livetranslate`), clonado de voz (`qwen3-tts-vc/vd`).
 
 ### Cohere
-- `command-a-03-2025`: texto + tools (flagship, 256K ctx)
-- `command-a-reasoning-08-2025`: reasoning + tools, 32K output
-- `command-a-vision-07-2025`: visiÃ³n, **sin tools** (`Tool_Active=False`)
-- `command-a-translate-08-2025`: traducciÃ³n especializada, sin tools
-- `c4ai-aya-vision-8b/32b`: visiÃ³n multilingual, sin tools
+**Actualizado ago 2026, probado runtime 5/5 (incl. tools).** Los modelos nuevos (a-plus, north, a-reasoning) razonan por defecto: el content trae bloque `type:'thinking'` antes del `text`. El driver lo controla en `InitChatCompletions`: `cap_Reasoning` → `thinking:{enabled}`; sin el cap → `disabled` (modo rápido), EXCEPTO command-a-plus que **no permite disabled** (falla con `INVALID_TOOL_GENERATION`). `ParseChat` y streaming capturan el thinking a `ReasoningContent` / `OnReceiveThinking`. FIX ago 2026: el retorno síncrono con tool calling llegaba vacío — `ExecuteAndRespondToToolCalls` ahora reutiliza el mismo `ResMsg` en el round 2 (patrón de la base `Run(Nil, ResMsg)`).
+- `command-a-plus-05-2026` [FLAGSHIP]: MoE 218B/25B, Apache 2.0, 436K ctx, visión + reasoning siempre activo (probados). $2.5/$10 por M
+- `north-mini-code-1-0`: coding, 436K ctx, razona por defecto (driver manda disabled sin cap_Reasoning; probado)
+- `command-a-03-2025`: texto + tools (288K ctx, default del driver)
+- `command-a-reasoning-08-2025`: reasoning + tools
+- `command-a-vision-07-2025`: visión, **sin tools** (`Tool_Active=False`)
+- `command-a-translate-08-2025`: traducción especializada, sin tools
+- `c4ai-aya-expanse-32b` / `c4ai-aya-vision-32b`: multilingual, sin tools (los 8b YA NO están en el API)
+- `tiny-aya-global/earth/fire/water`: ligeros 8K ctx, sin tools
+- `cohere-transcribe-03-2026`: STT (endpoint transcriptions)
+- Rerank v4.0: `rerank-v4.0-fast`/`-pro` (32K ctx) vía `RerankModel` + método `Rerank()`
 
 ### Ollama
 - Default global: texto puro, sin tools (`Tool_Active=False`, `ModelCaps=[]`)
 - Modelos con tools: llama3.3, qwen2.5, qwen3, qwen2.5vl
 - Modelos con reasoning: qwen3 (`ThinkingLevel=tlMedium`), deepseek-r1 (via `<think>` tags)
-- Modelos con visiÃ³n: llama3.2-vision, qwen2.5vl, gemma3 (todos los tamaÃ±os: 1b/4b/12b/27b)
-- Gemma 3: visiÃ³n en todos los tamaÃ±os; **sin function calling** vÃ­a Ollama (`Tool_Active=False`)
-- Gemma 4 (e2b/e4b): visiÃ³n + audio nativo + reasoning + **function calling** (`Tool_Active=True`)
+- Modelos con visión: llama3.2-vision, qwen2.5vl, gemma3 (todos los tamaños: 1b/4b/12b/27b)
+- Gemma 3: visión en todos los tamaños; **sin function calling** vía Ollama (`Tool_Active=False`)
+- Gemma 4 (e2b/e4b): visión + audio nativo + reasoning + **function calling** (`Tool_Active=True`)
 
 ### LM Studio
 - Default global conservador: texto puro, sin tools, `Max_Tokens=4096`
-- IDs de modelo segÃºn nombre/alias configurado en la app (no son fijos)
+- IDs de modelo según nombre/alias configurado en la app (no son fijos)
 - Modelos configurados: llama-3.3-70b, qwen2.5-7b, deepseek-r1-7b, llama-3.2-11b-vision, mistral-7b, gemma-3-4b/12b/27b-it
 
 ### GenericLLM
 - Driver catch-all para cualquier API OpenAI-compatible
 - Defaults conservadores: texto, sin tools, `Max_Tokens=4096`
 - Configurar: `DriverName='GenericLLM'`, `URL='http://host/v1/'`, `Model='nombre'`
-- El usuario activa caps segÃºn las capacidades reales de su endpoint
+- El usuario activa caps según las capacidades reales de su endpoint
 
 ---
+
+## Cadena de llamada pública
+
+```
+AddMessageAndRun(prompt, role, files)  ← punto de entrada recomendado (public)
+  └── Run(AskMsg, ResMsg)              ← sanitizador de prompts (public, virtual)
+        └── RunNew(AskMsg, ResMsg)     ← orquestador interno: 3 fases + ChatMode (PRIVATE)
+```
+
+- **`AddMessageAndRun`** — crea el mensaje, lo agrega al historial y llama a `Run`.
+- **`Run`** — aplica el sanitizador de prompts; si pasa, delega a `RunNew`.
+- **`RunNew`** — hace el trabajo real: gap analysis, Fase 1 (bridges entrada), Fase 2 (web), Fase 3 (despacho por `ChatMode`). Es `private` — nunca llamar directamente.
+
+## Eventos — tipo `of object`
+
+Todos los eventos de `TAiChat` / `TAiChatConnection` son del tipo `of object`:
+
+```delphi
+TAiChatOnDataEvent = procedure(const Sender: TObject; aMsg: TAiChatMessage;
+  aResponse: TJSonObject; aRole, aText: String) of object;
+```
+
+**No aceptan métodos anónimos.** Asignar siempre un método de clase:
+
+```delphi
+// Correcto — método del formulario o clase
+Conn.OnReceiveDataEnd := Self.HandleDataEnd;
+
+// NO compila — of object no acepta lambdas
+Conn.OnReceiveDataEnd := procedure(...) begin ... end;
+```
+
+Para código sin clase (consola), usar el valor de retorno síncrono de `AddMessageAndRun`:
+```delphi
+Resp := Conn.AddMessageAndRun(prompt, 'user', []);
+```
 
 ## Navigation
 

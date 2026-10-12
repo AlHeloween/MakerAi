@@ -1,4 +1,4 @@
-﻿// Pendiente [TODO] //Estimar el costo de la generation ya que no retorna el consumo
+﻿// Pendiente [TODO] //Estimar el costo de la generaci?n ya que no retorna el consumo
 // https://ai.google.dev/gemini-api/docs/pricing
 
 unit uMakerAi.Gemini.Speech;
@@ -61,7 +61,7 @@ type
     property Completion_tokens: Integer read FCompletion_tokens write FCompletion_tokens;
     property Total_tokens: Integer read FTotal_tokens write FTotal_tokens;
 
-    { Speech-to-Text: modelo multimodal que acepta audio (ej: gemini-2.0-flash) }
+    { Speech-to-Text: modelo multimodal que acepta audio (ej: gemini-3.8-flash) }
     property TranscriptionModel: string read FTranscriptionModel write FTranscriptionModel;
     { Instruccion enviada junto al audio para guiar la transcripcion }
     property TranscriptionPrompt: string read FTranscriptionPrompt write FTranscriptionPrompt;
@@ -83,12 +83,17 @@ begin
   inherited Create(AOwner);
   FApiKey := '@GEMINI_API_KEY';
   FUrl := 'https://generativelanguage.googleapis.com/v1beta/';
-  FModel := 'gemini-2.5-flash-preview-tts';
+  // gemini-3.8-flash-tts (estable, sep 2026). La 2.5 TTS quedó limitada a
+  // cuentas que ya la usaban. Sin prueba runtime: la doc de 3.8 aún admite la
+  // API generateContent que usa este componente (y documenta además la nueva
+  // /interactions).
+  FModel := 'gemini-3.8-flash-tts';
   FVoice := 'Puck';
   FAudioProfile := TStringList.Create;
   FScene := TStringList.Create;
   FDirectorsNotes := TStringList.Create;
-  FTranscriptionModel := 'gemini-2.0-flash';
+  // gemini-2.0-flash se apagó el 1 jun 2026; 3.8 Flash acepta audio de entrada
+  FTranscriptionModel := 'gemini-3.8-flash';
   FTranscriptionPrompt := 'Transcribe this audio accurately.';
 end;
 
@@ -171,7 +176,7 @@ begin
   end;
 end;
 
-{ --- logic DE execution --- }
+{ --- L?GICA DE EJECUCI?N --- }
 
 function TAiGeminiSpeechTool.InternalRunGeminiTTS(const AText: string; ResMsg: TAiChatMessage): string;
 var
@@ -200,7 +205,7 @@ begin
     // 1. Prompt de Director
     LRequestJson.AddPair('contents', TJSONArray.Create.Add(TJSONObject.Create.AddPair('parts', TJSONArray.Create.Add(TJSONObject.Create.AddPair('text', BuildFullPrompt(AText))))));
 
-    // 2. configuration de generation
+    // 2. Configuraci?n de Generaci?n
     LGenConfig := TJSONObject.Create;
 
     LRespModalities := TJSONArray.Create;
@@ -223,7 +228,7 @@ begin
       LBody.Free;
     end;
 
-    // 4. Respuesta y conversion
+    // 4. Respuesta y Conversi?n
     if LResponse.StatusCode = 200 then
     begin
       LResponseJson := TJSONObject.ParseJSONValue(LResponse.ContentAsString) as TJSONObject;
@@ -247,7 +252,7 @@ begin
           FTotal_tokens := FTotal_tokens + LTt;
         end;
 
-        // --- EXTRaction DEL AUDIO ---
+        // --- EXTRACCI?N DEL AUDIO ---
         LBase64 := LResponseJson.GetValue<string>('candidates[0].content.parts[0].inlineData.data', '');
         if not LBase64.IsEmpty then
         begin
@@ -265,7 +270,7 @@ begin
               LMsg.MediaFiles.Add(LNewFile);
 
               Result := '[Audio Generado]';
-              // Sincronizamos el Prompt del mensaje con the result
+              // Sincronizamos el Prompt del mensaje con el resultado
               LMsg.Prompt := Result;
 
               ReportDataEnd(ResMsg, 'assistant', Result);
@@ -292,7 +297,7 @@ begin
   end;
 end;
 
-{ --- methodS DE APOYO --- }
+{ --- M?TODOS DE APOYO --- }
 
 function TAiGeminiSpeechTool.BuildFullPrompt(const AText: string): string;
 var
@@ -384,17 +389,17 @@ procedure TAiGeminiSpeechTool.ExecuteTranscription(aMediaFile: TAiMediaFile; Res
 var
   LText: string;
 begin
-  // Direct call always — never TTask.Run here:
+  // Llamada directa siempre — nunca TTask.Run aquí:
   // - IsAsync=True:  ya estamos en hilo background del chat → sin problema.
   // - IsAsync=False: modo sync → bloquear es correcto (igual que la llamada HTTP al LLM).
-  //   With TTask.Run in sync mode, the caller read ResMsg.Prompt empty and aMediaFile
-  //   could be freed before the TTask finished → access violation.
+  //   Con TTask.Run en sync mode, el caller leía ResMsg.Prompt vacío y aMediaFile
+  //   podía liberarse antes de que el TTask terminara → access violation.
   try
     ReportState(acsReasoning, 'Transcribiendo audio con Gemini...');
     LText := InternalRunGeminiTranscription(aMediaFile);
     aMediaFile.Transcription := LText;
     aMediaFile.Procesado := True;
-    ResMsg.Prompt := LText;  // direct assignment so InternalRunTranscription reads it in sync
+    ResMsg.Prompt := LText;  // asignación directa para que InternalRunTranscription lo lea en sync
     ReportDataEnd(ResMsg, 'assistant', LText);
   except
     on E: Exception do
@@ -404,10 +409,17 @@ end;
 
 procedure TAiGeminiSpeechTool.ExecuteSpeechGeneration(const AText: string; ResMsg, AskMsg: TAiChatMessage);
 begin
-  // Llamada directa siempre — mismo razonamiento que ExecuteTranscription:
-  // InternalRunGeminiTTS asigna ResMsg.Prompt y ResMsg.MediaFiles directamente,
-  // por lo que el caller debe esperar a que termine to read the result.
-  InternalRunGeminiTTS(AText, ResMsg);
+  // Si IsAsync=True ya estamos en un hilo background del chat: llamar directo
+  // para evitar un TTask anidado que causaría dangling pointer sobre ResMsg.
+  // Si IsAsync=False estamos en el hilo principal: lanzar task para no bloquearlo.
+  if IsAsync then
+    InternalRunGeminiTTS(AText, ResMsg)
+  else
+    TTask.Run(
+      procedure
+      begin
+        InternalRunGeminiTTS(AText, ResMsg);
+      end);
 end;
 
 function TAiGeminiSpeechTool.GetApiKey: string;
@@ -452,7 +464,7 @@ class function TAiGeminiSpeechTool.GenerateSpeech(const AApiKey, AText, AVice: s
       LInstance.ApiKey := AApiKey;
       LInstance.Voice := AVice;
 
-      // Asignamos los parameters de direction si se proveen
+      // Asignamos los par?metros de direcci?n si se proveen
       if Assigned(AAudioProfile) then
         LInstance.AudioProfile.Assign(AAudioProfile);
       if Assigned(AScene) then
@@ -460,15 +472,15 @@ class function TAiGeminiSpeechTool.GenerateSpeech(const AApiKey, AText, AVice: s
       if Assigned(ADirectorsNotes) then
         LInstance.DirectorsNotes.Assign(ADirectorsNotes);
 
-      // 4. Ejecutamos la logic interna (synchronousmente)
-      // Llamamos a InternalRunGeminiTTS que es donde is la logic de red y tokens
+      // 4. Ejecutamos la l?gica interna (S?ncronamente)
+      // Llamamos a InternalRunGeminiTTS que es donde est? la l?gica de red y tokens
       LInstance.InternalRunGeminiTTS(AText, LDummyMsg);
 
       // 5. Extraemos el archivo resultante
       if LDummyMsg.MediaFiles.Count > 0 then
       begin
         Result := LDummyMsg.MediaFiles[0];
-        // Important: Extract so it is not freed when destroying LDummyMsg
+        // Importante: Extraer para que no se libere al destruir LDummyMsg
         LDummyMsg.MediaFiles.Extract(Result);
       end;
     finally

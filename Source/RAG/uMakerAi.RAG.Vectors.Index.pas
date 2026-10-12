@@ -1,19 +1,19 @@
 ﻿
-// IT License
+// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// o use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 //
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// HE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -22,7 +22,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr�quez
-// Social Networks:
+// Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -62,7 +62,7 @@ Type
     FModel: String;
     FMetaData: TAiEmbeddingMetaData;
 
-    FTag: string; // GUID or DB ID (more versatile than Integer)
+    FTag: string; // GUID o ID de DB (m�s vers�til que Integer)
     FTagObject: TObject; // Referencia a objetos externos
     FOrden: Integer;
     FMagnitude: Double;
@@ -122,7 +122,7 @@ Type
 
 
   /// ---------------------------------------------------------------------------
-  /// TAIEmbeddingIndex representa the class base for the b�squeda con embeddings en memoria
+  /// TAIEmbeddingIndex representa la clase base para la b�squeda con embeddings en memoria
   /// consiste en un vector de nodos y un indice de punteros a embeddings que permite la
   /// b�squeda y seleccion de los candidatos que cumplen la condici�n
   /// -------------------------------------------------------------------------
@@ -155,16 +155,18 @@ Type
 
   /// ---------------------------------------------------------------------------
   /// TAIBasicEmbeddingIndex implementaci�n sencilla de un Indice de embeddings
-  /// el cual Is assigned By default al vector para realizar b�squedas en memoria
+  /// el cual se asigna por defecto al vector para realizar b�squedas en memoria
   /// sin embargo hay maneras m�s eficientes de controlar esto en vectores de
   /// embeddings.
   /// -------------------------------------------------------------------------
 
   TAIBasicEmbeddingIndex = class(TAIEmbeddingIndex)
-  private
-    procedure BuildIndex(Points: TRagItems);
-    function Search(Target: TAiEmbeddingNode; aLimit: Integer; aPrecision: Double): TRagItems;
+  protected
+    procedure InternalClear; override;
   public
+    procedure BuildIndex(Points: TRagItems); override;
+    function Search(Target: TAiEmbeddingNode; aLimit: Integer; aPrecision: Double): TRagItems; override;
+
     /// <summary>
     /// Versi�n thread-safe que NO modifica los nodos originales
     /// </summary>
@@ -174,7 +176,7 @@ Type
     /// Versi�n legacy para compatibilidad (DEPRECATED)
     /// </summary>
     class function InternalSearch(Target: TAiEmbeddingNode; aLimit: Integer; aPrecision: Double; Source: TRagItems): TRagItems; static;
-    constructor Create;
+    constructor Create; override;
     destructor Destroy; override;
   end;
 
@@ -182,6 +184,8 @@ Type
 
 
   TAIEuclideanDistanceIndex = class(TAIEmbeddingIndex)
+  protected
+    procedure InternalClear; override;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -263,7 +267,7 @@ Type
     FDocLengths: TDictionary<TAiEmbeddingNode, Integer>;
     FAvgDocLength: Double;
     FLanguage: TAiLanguage;
-{$IF CompilerVersion >= 35}
+{$IF CompilerVersion >= 36}
     FStopWords: THashSet<string>;
 {$ELSE}
     FStopWords: TDictionary<string, Boolean>;
@@ -273,14 +277,14 @@ Type
   public
     constructor Create;
     destructor Destroy; override;
-    procedure AddNode(aNode: TAiEmbeddingNode); // For indexing when adding
+    procedure AddNode(aNode: TAiEmbeddingNode); // Para indexar al a�adir
     function Search(const aQuery: string; aLimit: Integer; aFilter: TAiFilterCriteria = nil): TList<TPair<Double, TAiEmbeddingNode>>;
 
     procedure Clear;
 
     property Language: TAiLanguage read FLanguage write SetLanguage;
-{$IF CompilerVersion >= 35}
-    property StopWords: THashSet<string> read FStopWords; // Allows adding custom words
+{$IF CompilerVersion >= 36}
+    property StopWords: THashSet<string> read FStopWords; // Permite a�adir palabras personalizadas
 {$ELSE}
     property StopWords: TDictionary<string, Boolean> read FStopWords;
 {$ENDIF}
@@ -305,7 +309,7 @@ begin
   FDim := aDim;
   SetLength(FData, FDim);
   FMetaData := TAiEmbeddingMetaData.Create;
-  FTag := TGuid.NewGuid.ToString; // Unique ID by default
+  FTag := TGuid.NewGuid.ToString; // ID �nico por defecto
   FOrden := 0;
   FTagObject := nil;
   FMagnitude := 0;
@@ -326,7 +330,7 @@ begin
   FData := Value;
   FDim := Length(Value);
   Sum := 0;
-  // Calculamos la magnitud al vuelo so that MagnitudeValue no sea 0
+  // Calculamos la magnitud al vuelo para que MagnitudeValue no sea 0
   for i := 0 to High(FData) do
     Sum := Sum + (FData[i] * FData[i]);
   FMagnitude := Sqrt(Sum);
@@ -518,7 +522,7 @@ end;
 function TAIEmbeddingIndex.Add(Point: TAiEmbeddingNode): Integer;
 begin
   Result := -1;
-  // Esta funci�n Must/Should implementar en cada modelo solo cuando sea necesario
+  // Esta funci�n se debe implementar en cada modelo solo cuando sea necesario
 end;
 
 procedure TAIEmbeddingIndex.BuildIndex(Points: TRagItems);
@@ -544,8 +548,13 @@ end;
 procedure TAIBasicEmbeddingIndex.BuildIndex(Points: TRagItems);
 begin
   if not Assigned(Points) then
-    Exit; // <- Protection
+    Exit; // <- Protecci�n
   inherited;
+end;
+
+procedure TAIBasicEmbeddingIndex.InternalClear;
+begin
+  // Sin estructura interna propia — la base de datos de nodos la gestiona TAiRAGVector
 end;
 
 constructor TAIBasicEmbeddingIndex.Create;
@@ -555,7 +564,6 @@ end;
 
 destructor TAIBasicEmbeddingIndex.Destroy;
 begin
-
   inherited;
 end;
 
@@ -655,9 +663,14 @@ end;
 
 { TAIEuclideanDistanceIndex }
 
+procedure TAIEuclideanDistanceIndex.InternalClear;
+begin
+  // Sin estructura interna propia — la base de datos de nodos la gestiona TAiRAGVector
+end;
+
 procedure TAIEuclideanDistanceIndex.BuildIndex(Points: TRagItems);
 begin
-  Inherited; // The base implementation is sufficient
+  Inherited; // La implementaci�n base es suficiente
 end;
 
 constructor TAIEuclideanDistanceIndex.Create;
@@ -742,7 +755,7 @@ begin
       if Assigned(FConnections[i]) then
         FConnections[i].Free;
     end;
-    raise; // Re-throw the exception
+    raise; // Re-lanzamos la excepci�n
   end;
 end;
 
@@ -812,7 +825,7 @@ end;
 
 destructor THNSWIndex.Destroy;
 begin
-  // Centralized cleanup
+  // Limpieza centralizada
   Clear;
 
   // Liberar el diccionario contenedor
@@ -999,7 +1012,7 @@ begin
   try
     FNodes.Add(NodeID, Node);
   except
-    Node.Free; // If dictionary insertion fails, clean up
+    Node.Free; // Si falla la inserci�n en el diccionario, limpiamos
     raise;
   end;
 
@@ -1171,13 +1184,13 @@ begin
   inherited Create;
   FInvertedIndex := TDictionary < string, TList < TWordOccurrence >>.Create;
   FDocLengths := TDictionary<TAiEmbeddingNode, Integer>.Create;
-{$IF CompilerVersion >= 35}
+{$IF CompilerVersion >= 36}
   FStopWords := THashSet<string>.Create;
 {$ELSE}
   FStopWords := TDictionary<string, Boolean>.Create;
 {$ENDIF}
   FAvgDocLength := 0;
-  Language := alSpanish; // By default
+  Language := alSpanish; // Por defecto
 end;
 
 destructor TAIBm25Index.Destroy;
@@ -1223,7 +1236,7 @@ begin
     begin
       CleanWord := W.Trim.ToLower;
       if CleanWord <> '' then
-{$IF CompilerVersion >= 35}
+{$IF CompilerVersion >= 36}
         FStopWords.Add(CleanWord);
 {$ELSE}
         FStopWords.AddOrSetValue(CleanWord, True);
@@ -1253,13 +1266,13 @@ begin
     Exit;
 
   // Split con separadores extendidos (incluyendo caracteres especiales de espa�ol)
-  Words := aText.ToLower.Split([' ', '.', ',', ';', ':', '-', '_', '(', ')', '[', ']', '{', '}', '"', 'á', '?', 'á', '!', '/', '\', '|', #13, #10, #9], // Added TAB (#9)
+  Words := aText.ToLower.Split([' ', '.', ',', ';', ':', '-', '_', '(', ')', '[', ']', '{', '}', '"', '�', '?', '�', '!', '/', '\', '|', #13, #10, #9], // A�ad� TAB (#9)
   TStringSplitOptions.ExcludeEmpty);
 
   for W in Words do
   begin
     // Filtro de longitud m�nima y stop words (usando el HashSet para O(1))
-{$IF CompilerVersion >= 35}
+{$IF CompilerVersion >= 36}
     if (W.Length > 2) and not FStopWords.Contains(W) then
 {$ELSE}
     if (W.Length > 2) and not FStopWords.ContainsKey(W) then
@@ -1306,13 +1319,13 @@ begin
       end
       else
       begin
-        // CASO B: does not exist.
+        // CASO B: No existe.
         // Lo ADICIONAMOS expl�citamente con valor 1.
         WordCounts.Add(W, 1);
       end;
     end;
 
-    // 2. Register document length
+    // 2. Registrar longitud del documento
     FDocLengths.Add(aNode, Tokens.Count);
 
     // 3. Actualizar el �ndice invertido
@@ -1341,8 +1354,8 @@ end;
 
 function TAIBm25Index.Search(const aQuery: string; aLimit: Integer; aFilter: TAiFilterCriteria = nil): TList<TPair<Double, TAiEmbeddingNode>>;
 const
-  k1 = 1.2; // Frequency saturation
-  B = 0.75; // Length penalty
+  k1 = 1.2; // Saturaci�n de frecuencia
+  B = 0.75; // Penalizaci�n por longitud
 var
   QueryTokens: TStringList;
   QW: string;
@@ -1387,7 +1400,7 @@ begin
           // --- PRE-FILTERING CON CRITERIA ---
           if Assigned(aFilter) and (aFilter.Count > 0) then
           begin
-            // New centralized method
+            // Nuevo m�todo centralizado
             if not Occur.Node.MetaData.Matches(aFilter) then
               Continue;
           end;

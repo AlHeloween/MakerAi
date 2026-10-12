@@ -10,11 +10,12 @@ This is the documentation root for MakerAI v3.2 - an AI orchestration framework 
 
 ```text
 Docs/
-â””â”€â”€ Version 3/           â† Current version documentation
-    â”œâ”€â”€ Agents/          â† Agent orchestration (graph-based workflows)
-    â”œâ”€â”€ MCPServer/       â† Model Context Protocol server implementation
-    â”œâ”€â”€ RAG/             â† Retrieval-Augmented Generation (vector + graph)
-    â””â”€â”€ PDF/             â† Distribution-ready consolidated PDFs
+├── Version 3/           ← Current version documentation
+│   ├── Agents/          ← Agent orchestration (graph-based workflows)
+│   ├── MCPServer/       ← Model Context Protocol server implementation
+│   ├── RAG/             ← Retrieval-Augmented Generation (vector + graph)
+│   └── PDF/             ← Distribution-ready consolidated PDFs
+└── Reportes/            ← Informes de campo desde consumidores del framework
 ```
 
 ## Language
@@ -29,7 +30,7 @@ Specialized guidance exists in subdirectories:
 - `Version 3/MCPServer/CLAUDE.md` - MCP protocol patterns, testing commands
 - `Version 3/RAG/CLAUDE.md` - pgvector reference, RAG implementation patterns
 
-## Key Documentation â†’ Source Mapping
+## Key Documentation → Source Mapping
 
 | Documentation | Source Code |
 |---------------|-------------|
@@ -40,6 +41,22 @@ Specialized guidance exists in subdirectories:
 | `uMakerAI-RAGGraph.docx` | `Source/RAG/uMakerAi.RAG.Graph.Core.pas` |
 | `uMakerAi-MCP.Server.*.docx` | `Source/MCPServer/uMakerAi.MCPServer.Core.pas` |
 | `uMakerAi.ToolFuncions.docx` | `Source/Tools/uMakerAi.Tools.Functions.pas` |
+| `uMakerAi-AudioBridge.md` | `Source/Utils/uMakerAi.Utils.AudioCapture.pas`, `Source/Utils/uMakerAi.Utils.AudioPlayback.pas` |
+| `uMakerAi-Skills.md` / `uMakerAi-Skills.EN.md` | `Source/Tools/uMakerAi.Tools.Skills.pas`, `Source/Core/uMakerAi.Skills.Format.pas`, `Source/Agents/uMakerAi.Agents.Skill.pas` |
+
+## Reportes de campo
+
+`Reportes/` recoge informes escritos desde aplicaciones que consumen el
+framework en produccion. No son documentacion de uso: son hallazgos medidos,
+con su evidencia y como reproducirlos. Utiles porque cazan fallos que el
+compilador no ve y que los demos no ejercitan. Tambien van aqui los informes en
+sentido contrario: lo que MakerAi le debe avisar a esas aplicaciones.
+
+| Informe | Origen -> destino | Estado |
+|---------|-------------------|--------|
+| `REPORTE_MKAISERVER_2026-08-29.md` | MKAIServer -> MakerAi | Atendido en 36b4379 y aa77522, salvo la verificacion runtime del usage de DeepSeek |
+| `REPORTE_PARA_MKAISERVER_2026-09-16.md` | MakerAi -> MKAIServer | Entregado: acciones tras ca175d0 (gpt-image-2.5) y fca6aba (deepseek-flash); pendiente del lado del broker |
+| `REPORTE_PARA_MKAISERVER_2026-09-20.md` | MakerAi -> MKAIServer | Entregado: como delegar Computer Use a un cliente remoto ahora que OpenAI y Gemini respetan la intercepcion (38eeacf), mas el ejecutor Linux (2e3e3be). Responde al analisis que llego del broker: sus dos puntos eran correctos. Pendiente del lado del broker |
 
 ## File Formats
 

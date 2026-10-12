@@ -1,18 +1,18 @@
-// IT License
+﻿// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// o use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 //
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// HE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr�quez
-// Social Networks:
+// Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -78,8 +78,8 @@ class procedure TAiKimiChat.RegisterDefaultParams(Params: TStrings);
 begin
   Params.Clear;
   Params.Add('ApiKey=@KIMI_API_KEY');
-  Params.Add('Model=kimi-k2');
-  Params.Add('MaxTokens=4096');
+  Params.Add('Model=kimi-k3');
+  Params.Add('Max_Tokens=16000');
   Params.Add('URL=' + GlAIUrl);
 end;
 
@@ -92,7 +92,11 @@ constructor TAiKimiChat.Create(Sender: TComponent);
 begin
   inherited;
   ApiKey := '@KIMI_API_KEY';
-  Model := 'kimi-k2';
+  // kimi-k2 fue retirado del API (jul 2026); kimi-k3 es el flagship actual
+  Model := 'kimi-k3';
+  // La familia k3/k2.6/k2.7 devuelve 400 si el request incluye top_p (solo
+  // acepta temperature). Top_p=0 hace que la base no lo serialice.
+  Top_p := 0;
   Url := GlAIUrl;
 end;
 

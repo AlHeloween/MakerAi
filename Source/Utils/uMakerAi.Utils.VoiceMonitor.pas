@@ -1,18 +1,18 @@
-﻿// IT License
+﻿// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// o use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 //
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// HE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -92,11 +92,24 @@ uses
   System.IOUtils, System.SyncObjs, System.Math, System.Permissions,
   System.Threading, System.Diagnostics,
 
+uMakerAi.Realtime,  uMakerAi.Realtime.OpenAI
+
 {$IFDEF MSWINDOWS}
-  Winapi.Windows, Winapi.MMSystem;
+  , Winapi.Windows, Winapi.MMSystem
 {$ENDIF}
 {$IFDEF ANDROID}
-AndroidApi.JNI.Media, AndroidApi.JNIBridge, AndroidApi.Helpers, FMX.Helpers.Android, AndroidApi.JNI.JavaTypes;
+  , AndroidApi.JNI.Media, AndroidApi.JNIBridge, AndroidApi.Helpers, FMX.Helpers.Android, AndroidApi.JNI.JavaTypes
+{$ENDIF}
+  ;
+
+{$IFNDEF MSWINDOWS}
+// Fuera de Windows no hay captura WaveIn: se declaran los tipos para que la
+// interfaz publica (DeviceID, GetWaveInDevices) sea la misma en todas las plataformas.
+type
+  UINT = Cardinal;
+
+const
+  WAVE_MAPPER = UINT(-1);
 {$ENDIF}
 
 const
@@ -113,13 +126,11 @@ const
 
 type
 
-{$IFDEF MSWINDOWS}
   // Listar los dispositivos de windows disponibles para captura de audio
   TWaveInDeviceInfo = record
     DeviceID: UINT;
     DeviceName: string;
   end;
-{$ENDIF}
 
   TRiffHeader = packed record
     ChunkID: array [0 .. 3] of AnsiChar;
@@ -199,6 +210,8 @@ type
     FBufferSize: Integer;
     FSensitivityMultiplier: Double;
     FStopSensitivityMultiplier: Double;
+    FMinSensitivity: Integer;
+    FMinStopSensitivity: Integer;
 
     FTranscriptionStopwatch: TStopwatch;
     FTranscriptionIntervalMs: Integer;
@@ -212,6 +225,7 @@ type
     FPreBufferDurationMs: Integer; // Pre-buffer duration (e.g. 500ms)
     FPreBufferMaxSize: Int64; // Maximum pre-buffer size
 
+    FRealtimeSTT: TAiRealtimeBase; // Destino de audio para Realtime STT (opcional)
     FOnTranscriptionFragment: TTranscriptionFragmentEvent;
     FOnChangeState: TAIVoiceMonitorOnChange;
     FOnCalibrated: TAIVoiceMonitorOnCalibrated;
@@ -219,14 +233,14 @@ type
     FOnError: TAIVoiceMonitorOnError;
     FOnWakeWordCheck: TWakeWordCheckEvent;
 
-{$IFDEF MSWINDOWS}
-    FhWaveIn: HWAVEIN;
-    FWaveHdr: TWaveHdr;
     FNoiseLevel: Integer;
     FDeviceID: UINT;
     FWakeWordActive: Boolean;
     FWakeWord: String;
     FOnSpeechEnd: TSpeechEndEvent;
+{$IFDEF MSWINDOWS}
+    FhWaveIn: HWAVEIN;
+    FWaveHdr: TWaveHdr;
 {$ENDIF}
 {$IFDEF ANDROID}
     FAudioRecord: JAudioRecord;
@@ -234,6 +248,7 @@ type
 {$ENDIF}
     procedure SetActive(const Value: Boolean);
     procedure SetSilenceDuration(const Value: Integer);
+    procedure SetRealtimeSTT(const Value: TAiRealtimeBase);
     procedure DoError(const aMessage: string);
 
     procedure StartCapture;
@@ -290,6 +305,8 @@ type
     property SilenceDuration: Integer read FSilenceDuration write SetSilenceDuration default DEFAULT_SILENCE_DURATION_MS;
     property SensitivityMultiplier: Double read FSensitivityMultiplier write FSensitivityMultiplier;
     property StopSensitivityMultiplier: Double read FStopSensitivityMultiplier write FStopSensitivityMultiplier;
+    property MinSensitivity: Integer read FMinSensitivity write FMinSensitivity default 500;
+    property MinStopSensitivity: Integer read FMinStopSensitivity write FMinStopSensitivity default 250;
     property WakeWordDurationMs: Integer read FWakeWordDurationMs write FWakeWordDurationMs default DEFAULT_WAKE_WORD_DURATION_MS;
     property TranscriptionIntervalMs: Integer read FTranscriptionIntervalMs write FTranscriptionIntervalMs default DEFAULT_TRANSCRIPTION_INTERVAL_MS;
     property TranscriptionMaxWaitMs: Integer read FTranscriptionMaxWaitMs write FTranscriptionMaxWaitMs default DEFAULT_TRANSCRIPTION_MAX_WAIT_MS;
@@ -309,6 +326,9 @@ type
     property PreBufferDurationMs: Integer read FPreBufferDurationMs write SetPreBufferDurationMs default 500;
     property DeviceID: UINT read FDeviceID write SetDeviceID default WAVE_MAPPER;
     property CurrentDeviceName: string read GetCurrentDeviceName;
+    // Cuando asignado, cada buffer PCM capturado se reenvía al componente Realtime STT.
+    // El componente Realtime gestiona su propio VAD (server_vad) y transcripción en streaming.
+    property RealtimeSTT: TAiRealtimeBase read FRealtimeSTT write SetRealtimeSTT;
   end;
 
 {$IFDEF MSWINDOWS}
@@ -375,6 +395,16 @@ begin
   end;
 end;
 
+{$ELSE}
+
+class function TAIVoiceMonitor.GetWaveInDevices: TArray<TWaveInDeviceInfo>;
+begin
+  // Sin API WaveIn: solo el dispositivo predeterminado
+  SetLength(Result, 1);
+  Result[0].DeviceID := WAVE_MAPPER;
+  Result[0].DeviceName := 'Predeterminado del Sistema';
+end;
+
 {$ENDIF}
 { TAIVoiceMonitor }
 
@@ -393,6 +423,8 @@ begin
   FBitsPerSample := DEFAULT_BITS_PER_SAMPLE;
   FSensitivityMultiplier := 2.0;
   FStopSensitivityMultiplier := 1.5;
+  FMinSensitivity := 500;
+  FMinStopSensitivity := 250;
   FWakeWordDurationMs := DEFAULT_WAKE_WORD_DURATION_MS;
   FCalibrationDurationSec := DEFAULT_CALIBRATION_DURATION_SEC;
   FSilenceDuration := DEFAULT_SILENCE_DURATION_MS;
@@ -414,9 +446,7 @@ begin
   FWakeWordActive := False;
   FWakeWord := 'andrea';
 
-{$IFDEF MSWINDOWS}
   FDeviceID := WAVE_MAPPER;
-{$ENDIF}
   UpdateAudioBuffers;
 end;
 
@@ -568,9 +598,8 @@ begin
     if Integer(Value) >= NumDevs then
       raise EArgumentOutOfRangeException.CreateFmt('Invalid DeviceID: %d. Valid range is 0 to %d, or WAVE_MAPPER.', [Value, NumDevs - 1]);
   end;
-
-  FDeviceID := Value;
 {$ENDIF}
+  FDeviceID := Value;
 end;
 
 procedure TAIVoiceMonitor.SetOnSpeechEnd(const Value: TSpeechEndEvent);
@@ -591,6 +620,14 @@ begin
 
   FPreBufferDurationMs := Value;
   UpdatePreBufferSize;
+end;
+
+procedure TAIVoiceMonitor.SetRealtimeSTT(const Value: TAiRealtimeBase);
+begin
+  FRealtimeSTT := Value;
+  // Sincronizar el sample rate para que el resampler interno sepa el formato de entrada
+  if Assigned(FRealtimeSTT) then
+    FRealtimeSTT.InputSampleRate := FSampleRate;
 end;
 
 procedure TAIVoiceMonitor.SetSampleRate(const Value: Integer);
@@ -676,7 +713,10 @@ begin
     FNoiseLevel := 0;
     FIsSpeaking := False;
     FWakeWordChecked := False;
-    FIsWakeWordValid := False;
+    // Sin verificador de wake word, todo el habla es valida para la IA.
+    // (antes quedaba False y OnSpeechEnd/OnChangeState entregaban el audio
+    // con aIsValidForIA=False, que los consumidores descartan)
+    FIsWakeWordValid := not Assigned(FOnWakeWordCheck);
     if Length(FArrBuf) > 0 then
       FillChar(FArrBuf[0], Length(FArrBuf) * SizeOf(Boolean), 0);
     FFileStream.Clear;
@@ -735,6 +775,12 @@ begin
   if NumSamples = 0 then
     Exit;
 
+  // Reenviar audio crudo al componente Realtime STT si esta conectado.
+  // Se envia antes de cualquier procesamiento: el VAD del servidor se encarga
+  // de detectar habla/silencio en el lado del proveedor.
+  if Assigned(FRealtimeSTT) and FRealtimeSTT.IsConnected then
+    FRealtimeSTT.SendAudioChunk(Copy(aBuffer, 0, aSize));
+
   // Calcular el nivel de audio actual
   for I := 0 to NumSamples - 1 do
   begin
@@ -761,8 +807,8 @@ begin
             begin
               NoiseLevel := FCalibrationAccumulator div FCalibrationSamples;
               FNoiseLevel := NoiseLevel;
-              FSensitivity := Max(500, Round(NoiseLevel * FSensitivityMultiplier));
-              FStopSensitivity := Max(250, Round(NoiseLevel * FStopSensitivityMultiplier));
+              FSensitivity := Max(FMinSensitivity, Round(NoiseLevel * FSensitivityMultiplier));
+              FStopSensitivity := Max(FMinStopSensitivity, Round(NoiseLevel * FStopSensitivityMultiplier));
 
               if FStopSensitivity >= FSensitivity then
                 FStopSensitivity := FSensitivity - 1;
@@ -1050,7 +1096,7 @@ begin
     FCS.Enter;
     try
       FWakeWordChecked := False;
-      FIsWakeWordValid := False;
+      FIsWakeWordValid := not Assigned(FOnWakeWordCheck);  // sin wake word: valido
       FFileStream.Clear;
 
       // *** COPIAR PRE-BUFFER AL INICIO DEL FILESTREAM ***

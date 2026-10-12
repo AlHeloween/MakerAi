@@ -1,18 +1,18 @@
-﻿// IT License
+﻿// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// o use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 //
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// HE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -79,6 +79,21 @@ type
     property DefaultValue: string read FDefaultValue;
   end;
 
+  // ---------------------------------------------------------------------------
+  // 3. ATRIBUTO PARA PROPIEDADES SECRETAS ([TSecret])
+  // Marca una propiedad como secreta: nunca se serializa a disco y cualquier
+  // valor entrante para ella se ignora al deserializar, de modo que un archivo
+  // manipulado no pueda inyectar credenciales. El valor se provee en ejecucion
+  // (almacen de credenciales o variable de entorno con sintaxis @ENV_VAR).
+  // ---------------------------------------------------------------------------
+  TSecretAttribute = class(TCustomAttribute)
+  private
+    FCredentialType: string; // 'apiKey' | 'basic' | 'bearer' | 'hmac' | 'custom'
+  public
+    constructor Create(const ACredentialType: string = 'apiKey');
+    property CredentialType: string read FCredentialType;
+  end;
+
 implementation
 
 { TToolAttribute }
@@ -99,6 +114,14 @@ begin
   FDisplayName := ADisplayName;
   FHint := AHint;
   FDefaultValue := ADefaultValue;
+end;
+
+{ TSecretAttribute }
+
+constructor TSecretAttribute.Create(const ACredentialType: string);
+begin
+  inherited Create;
+  FCredentialType := ACredentialType;
 end;
 
 end.

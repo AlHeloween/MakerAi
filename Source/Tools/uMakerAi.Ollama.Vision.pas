@@ -1,4 +1,4 @@
-﻿// IT License
+﻿// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -44,7 +44,7 @@
 //   - Modelo By default: gemma3:4b
 //
 // Uso:
-//   AiChat.VisionTool := TAiOllamaVisionTool.Create(Self);
+//   AiChat.ChatTools.VisionTool := TAiOllamaVisionTool.Create(Self);
 //   (TAiOllamaVisionTool(AiChat.VisionTool)).Model := 'llava:latest';
 // -------------------------------------------------------------------------
 
@@ -147,12 +147,7 @@ begin
   if Assigned(AskMsg) then
     LPrompt := AskMsg.Prompt;
 
-  // Si IsAsync=True ya estamos en el hilo background del chat: ejecutar directo.
-  // Si IsAsync=False estamos en el hilo principal: lanzar task para no bloquearlo.
-  if IsAsync then
-    InternalRunVision(aMediaFile, ResMsg, LPrompt)
-  else
-    TTask.Run(procedure begin InternalRunVision(aMediaFile, ResMsg, LPrompt); end);
+  InternalRunVision(aMediaFile, ResMsg, LPrompt);
 end;
 
 function TAiOllamaVisionTool.InternalRunVision(aMediaFile: TAiMediaFile; ResMsg: TAiChatMessage; const AOverridePrompt: string): string;
@@ -228,7 +223,7 @@ begin
         else
           LContent := LResponseJson.GetValue<string>('response', '');
 
-        ResMsg.Content := LContent;
+        ResMsg.Prompt := LContent;
         ResMsg.Role := 'assistant';
         ResMsg.Model := FModel;
 

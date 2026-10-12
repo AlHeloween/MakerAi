@@ -2,27 +2,27 @@
 // Version Information
 const
   MAKERAI_VERSION_MAJOR    = 3;
-  MAKERAI_VERSION_MINOR    = 3;
+  MAKERAI_VERSION_MINOR    = 9;
   MAKERAI_VERSION_RELEASE  = 0;
   MAKERAI_VERSION_BUILD    = 0;
 
 // Version String Formats
 const
-  MAKERAI_VERSION_SHORT    = '3.3';
-  MAKERAI_VERSION_FULL     = '3.3.0.0';
-  MAKERAI_VERSION_STRING   = 'MakerAi Suite v3.3.0.0';
-  MAKERAI_VERSION_DISPLAY  = 'MakerAi Suite Library v3.3 - TAiCapabilities, Agents Checkpoints & Updated Models (Feb 2026)';
+  MAKERAI_VERSION_SHORT    = '3.9';
+  MAKERAI_VERSION_FULL     = '3.9.0.0';
+  MAKERAI_VERSION_STRING   = 'MakerAi Suite v3.9.0.0';
+  MAKERAI_VERSION_DISPLAY  = 'MakerAi Suite Library v3.9 - OpenAI GPT-Live full-duplex voice, Jev on local Ollama models & MCP leak fixes (Oct 2026)';
 
 // Product Information
 const
   MAKERAI_PRODUCT_NAME     = 'MakerAi Library';
-  MAKERAI_COMPANY_NAME     = 'Gustavo Enrï¿½quez';
-  MAKERAI_COPYRIGHT        = 'Copyright ï¿½ 2024-2026 Gustavo Enrï¿½quez - CimaMaker';
+  MAKERAI_COMPANY_NAME     = 'Gustavo Enr�quez';
+  MAKERAI_COPYRIGHT        = 'Copyright � 2024-2026 Gustavo Enr�quez - CimaMaker';
   MAKERAI_DESCRIPTION      = 'Advanced AI Integration Library for Delphi';
 
 // Build Information
 const
-  MAKERAI_BUILD_DATE       = '2026-02-26';
+  MAKERAI_BUILD_DATE       = '2026-10-05';
   MAKERAI_BUILD_TIME       = '12:00:00';
   MAKERAI_BUILD_PLATFORM   = {$IFDEF WIN32}'Win32'{$ENDIF}
                             {$IFDEF WIN64}'Win64'{$ENDIF}
@@ -34,12 +34,12 @@ const
 // Compatibility Information
 const
   MAKERAI_MIN_DELPHI_VERSION = '10.4';  // Minimum Delphi version required (10.4 Sydney)
-  MAKERAI_TESTED_DELPHI      = '13.0';  // Latest tested Delphi version (Delphi 13 Athens)
+  MAKERAI_TESTED_DELPHI      = '13.1';  // Latest tested Delphi version (Delphi 13.1 Florence)
 
 // API Compatibility
 const
-  MAKERAI_API_LEVEL        = 33;        // Internal API level for compatibility
-  MAKERAI_BREAKING_CHANGE  = False;     // True if this version has breaking changes
+  MAKERAI_API_LEVEL        = 39;        // Internal API level for compatibility
+  MAKERAI_BREAKING_CHANGE  = True;      // True if this version has breaking changes (v3.9: IAiMCPTool.GetInputSchema ownership, OpenAI audio defaults)
   MAKERAI_LEGACY_SUPPORT   = True;      // True = Support for v2.x components
 
 {******************************************************************************}
@@ -119,6 +119,249 @@ const
   - FIX: Double-add/double-free in RunNew+RunLegacy (Cohere tool calls)
   - FIX: Mistral json_schema.name field required by API
 
+  Version 3.4.0 (2026-05-18)
+  - Tested with Delphi 13.1 Florence (CompilerVersion 37.1)
+  - FIX: Selective driver registration restored — TAiChatConnection no longer force-loads
+         all drivers via uMakerAi.Chat.Initializations. Each driver self-registers only
+         when explicitly imported. To load all drivers at once, add
+         uMakerAi.Chat.Initializations to your uses clause explicitly.
+  - FIX: Agent jmAll join node — FJoinInputs now cleared after each execution, restoring
+         correct barrier semantics. Previous behavior (not clearing) caused premature
+         firing on retries/loops because stale inputs from prior execution satisfied
+         the Count >= InEdges.Count condition immediately.
+  - FIX: TAiAgentManager.Run declared virtual to allow proper subclassing
+  - FIX: TChatBubble — TMemo ShowScrollBars := False eliminates spurious vertical bars
+  - FIX: TChatInput — StyledSettings removes Size so Font.Size property is respected
+  - FIX: Claude Opus 4.7 Adaptive Thinking — temperature, top_p, top_k and thinking block
+         now correctly omitted for claude-opus-4-7 models; Anthropic manages sampling
+         internally. Sending these parameters caused HTTP 400 errors.
+  - FIX: RegisterDefaultParams Max_Tokens key — corrected in 10 drivers (Claude, Gemini,
+         Mistral, Groq, DeepSeek, Grok, Kimi, LMStudio, GenericLLM, Ollama). The wrong
+         key "MaxTokens" was never resolved by RTTI to the Max_tokens property.
+  - FIX: ApplyParamsToChat TryStrToFloat — now locale-independent: tries invariant format
+         (dot decimal) first, then system locale fallback. Both "0.7" and "0,7" are valid
+         regardless of regional settings.
+  - NEW: TChatInput.EnterAsSend property (default False) — Enter sends prompt,
+         Shift+Enter / Ctrl+Enter inserts line break
+  - NEW: TAiRealtimeConnection — universal connector for real-time STT (OpenAI WebSocket)
+  - NEW: cmSmartDispatch chat mode — two-pass routing with automatic capability bridging
+  - NEW: Demo 08-DriverRegistration illustrating driver registration behavior
+
+  Version 3.5.0 (2026-08-01)
+  - NEW: Typed ModelConfig channel — ModelCaps/SessionCaps/Tool_Active/ThinkingLevel
+         moved out of Params/RTTI into a typed surface with per-field user pins
+         (UserFields) and transparent compatibility migration. Single source of
+         truth for capability configuration.
+  - NEW: Full-duplex voice suite — TAiRealtimeVoiceBase shared base;
+         TAiGrokRealtimeChat (xAI Grok Voice speech-to-speech: function calling,
+         session resumption with replay, binary audio, ephemeral tokens);
+         TAiOpenAiRealtimeTranslate (continuous streaming speech translation);
+         gpt-transcribe / gpt-live-transcribe (Whisper successors)
+  - NEW: Grok native video generation — grok-imagine async job (POST
+         /videos/generations + polling + mp4 download as TAiMediaFile),
+         VideoDurationSeconds property; image generation via grok-imagine-image
+  - NEW: August 2026 provider refresh, runtime-tested per provider:
+         Claude 5 family (adaptive thinking, output_config.effort, FastMode,
+         compaction, server-side fallbacks, web_search_20260209), Gemini 3.5/3.6
+         + Nano Banana GA, Mistral Voxtral TTS + OCR 4, Kimi K3 (top_p fix),
+         DeepSeek V4 (explicit thinking control), Cohere Command A+ /
+         north-mini-code (thinking capture), Groq qwen3.6-27b, xAI grok-4.3/4.5/
+         build with full catalog turnover and compatibility aliases
+  - NEW: MSSQL driver for RAG Vector (FireDAC SQL Server)
+  - NEW: Agents hardening (from MakerFlow review): strict JSON graph validation,
+         public RTTI mapper TAiToolParams, [TSecret] attribute, out_failure in
+         conditional mode, Compile no longer clears the Blackboard
+  - NEW: ChatTools single surface with OnChange propagation; ToolCall.ResMsg
+         available in streaming; media delivered at OnReceiveDataEnd
+  - FIX: LastError now populated on every error path (DoError assigns
+         FLastError) — synchronous callers can diagnose HTTP 4xx/5xx
+  - FIX: Cohere synchronous tool-calling returned empty (second round now
+         reuses the same ResMsg, base pattern)
+  - FIX: FreeNotification audit across components; TAiMemory usable without
+         Connection
+
+  Version 3.6.0 (2026-08-02)
+  - NEW: MCP specification 2026-07-28 (stateless) with dual-era support.
+         Server implements server/discover, per-request _meta (protocol
+         version, client identity and capabilities), resultType + serverInfo
+         on every result, ttlMs/cacheScope cache hints and the reserved error
+         codes -32020 (HeaderMismatch) / -32022 (UnsupportedProtocolVersion).
+         Modern stateless requests bypass the session gate with per-request
+         OnClientConnect vetting, while the legacy initialize handshake and
+         Mcp-Session-Id gating keep working unchanged. Clients probe with
+         server/discover and fall back automatically (NegotiatedProtocol)
+  - NEW: MRTR (Multi Round-Trip Requests) — tools can request user input via
+         elicitation: server plumbs params.inputResponses / params.requestState
+         into TAiAuthContext; the client's OnInputRequired event drives the
+         retry loop (max 3 rounds, opaque requestState echoed verbatim)
+  - NEW: OpenTelemetry tracing — TAiTelemetry, opt-in OTLP/HTTP JSON exporter
+         (standard collector endpoint localhost:4318; works with Jaeger,
+         Grafana Tempo, Langfuse, Arize Phoenix). Spans follow the GenAI
+         semantic conventions and cover chat turns (model, provider, token
+         usage; sync and async), tool executions, agent graphs and nodes, RAG
+         retrieval and MCP client/server requests, with W3C traceparent
+         propagated through MCP _meta so client and server share one
+         distributed trace. Zero overhead when no instance is enabled
+  - NEW: A2A protocol (Agent-to-Agent, Linux Foundation) — first Delphi
+         implementation of spec 1.0. TAiA2AServer exposes any TAIAgentManager
+         graph as an A2A agent (Agent Card at /.well-known/agent-card.json,
+         JSON-RPC SendMessage/GetTask/CancelTask with 0.x aliases; graph
+         suspension maps to TASK_STATE_INPUT_REQUIRED). TAiA2AClient consumes
+         remote agents, and TAiA2ARemoteAgentTool federates: any graph node can
+         delegate its input to a remote A2A agent
+  - NEW: Guardrails — TAiGuardrails intercepts every tool call before
+         execution at the single choke point (TAiFunctions.DoCallFunction), so
+         it covers local functions, MCP tools and AutoMCP alike. Allowlist and
+         blocklist with wildcard masks, forbidden argument patterns and a
+         programmatic OnCheckToolCall veto; blocked calls never execute and the
+         LLM receives the reason so it can replan
+  - NEW: Evals — TAiEvalRunner, fluent evaluation cases against a generic
+         target function, with deterministic checks plus optional
+         LLM-as-judge; ToText / ToJSON reports and an eval.case span per case
+  - NEW: Regression suite (Tests/RegressionSuite) — 17 in-process cases, no
+         API keys, under a second; the framework's first automated safety net,
+         built on TAiEvalRunner
+  - NEW: Demo 072-A2AFederation showcasing the full A2A stack without an LLM
+  - NOTE: the legacy HTTP+SSE MCP transport is formally Deprecated by spec
+         2026-07-28 (earliest removal July 2027). Prefer HTTP or StdIO
+
+  Version 3.9.0 (2026-10-05)
+  - BEHAVIOUR: TAiOpenAiAudio and TAiOpenAiSpeechTool default to
+         gpt-transcribe and gpt-4o-mini-tts (were whisper-1 and tts-1, which
+         OpenAI shuts down on 2027-02-26 and 2027-01-06). gpt-transcribe returns
+         JSON only: srt/vtt/verbose_json, timestamps and logprobs downgrade and
+         are reported in TTranscriptionResult.Warning; set tmWhisper1 to keep
+         them until the shutdown. TAIWhisper is unchanged
+  - BEHAVIOUR (custom MCP tools only): IAiMCPTool.GetInputSchema returns a new
+         object owned by the caller, as both built-in implementations already
+         did; tools/list no longer clones it. A custom tool that returned a
+         cached field must return a copy
+  - BEHAVIOUR: the OpenAI Responses driver now sends max_output_tokens from
+         Max_Tokens (it was silently ignored); response.incomplete,
+         response.failed and stream 'error' events now end the turn
+  - NEW: TAiOpenAiLiveChat - OpenAI GPT-Live (gpt-live-1, DriverName
+         'OpenAiLive'): full-duplex voice that listens while it speaks and
+         delegates reasoning to a Responses model (web search, local
+         TAiFunctions and MCP tools) or to any TAiChatConnection (DelegateChat).
+         Turns rebuilt from the session timeline; tested live
+  - NEW: Jev on local models - Ollama 0.35+ serves the same /v1/systemone
+         contract (nimble, tev1, Cloudflare clef/clef-flash). Url on the eight
+         Jev adapters, TAiJev.Ask with images for Clef (PNG/JPEG/WebP), and the
+         TypeSafe default price is no longer charged on other servers
+  - CHANGED: the default PPM registry is https://registry.cimamaker.com
+         (was registry.pascalai.org) in TAiFunctions, TAiPrompts, TAiSkill
+         and the SKILL.md client
+  - NEW: TAiMCPServer.BindAddress (or MCP_BIND_ADDRESS) for SSE/HTTP servers
+  - NEW: palette icons for all 108 components; each package links its own .res
+  - NEW: demo 092-GPTLiveVoice (voice, local functions, RAG over MCP with a
+         read-only guardrail); demo 037 MCP RAG server also runs on PostgreSQL
+  - FIX: memory leaks - an MCP server leaked each tool schema on every
+         tools/list; the MCP client leaked the tools/list response on every
+         Initialize; TAiRealtimeFactory never freed its driver dictionary
+  - FIX: parallel tools/call on a shared TMCPClientSSE lost responses (180 s
+         timeouts); Grok reasoning_effort for grok-4 and usage when streaming;
+         EnforceStrictSchema with union types; Claude code_execution file
+         names; TAiOpenAiAudio.Transcribe left raw JSON in Text; TAiMemory
+         Delete/Link/Unlink return Boolean; no debug logs in C:\Temp
+  - DEPRECATED (OpenAI): whisper-1, gpt-4o-transcribe, gpt-4o-mini-transcribe,
+         gpt-4o-transcribe-diarize, tts-1, tts-1-hd and gpt-4o-mini-tts
+  - Regression suite: 117 cases (from 101 in 3.8.0)
+
+  Version 3.8.0 (2026-09-29)
+  - BREAKING: TOpenSSLTransport (Realtime on Linux/macOS) now verifies the
+         server certificate chain AND the hostname; it used SSL_VERIFY_NONE.
+         Self-signed endpoints need InsecureSkipVerify := True. It also never
+         sent SNI (SSL_set_tlsext_host_name is a macro, not an export), so it
+         could not reach any host behind a CDN
+  - BREAKING (custom storages only): TAiMemory enforces the namespace on
+         every id-based operation (Get/Update/Delete/Link/Unlink); ids are
+         sequential, so another namespace's memories could be read, changed
+         or deleted, also through the memory_delete/memory_link MCP tools.
+         ImportFromJSON always imports into the active namespace. The
+         id-based methods of IAiMemoryStorage now take the namespace (#127)
+  - BEHAVIOUR: TAiGeminiChat executed no user functions at all (its
+         DoCallFunction answered 'Command X not found'); they now run
+  - BEHAVIOUR: a connection with DriverName and no Model now gets its
+         default model's catalog parameters (caps, Max_Tokens, ThinkingLevel)
+  - BEHAVIOUR: TLLMNode.DriverName defaults to '' and resolves node ->
+         skill -> 'Claude' (the old 'Claude' default overrode every skill)
+  - NEW: Jev (TypeSafe AI) - TAiJev, calibrated typed decisions (Choice /
+         Score / Noul) instead of an LLM round-trip, plus adapters for agent
+         routing (TAiJevRouterTool), SmartDispatch, tool-call and input
+         guardrails, eval scoring, RAG reranking with injection filtering,
+         bulk labeling and model routing; usage metering for billing
+  - NEW: Qwen driver (Alibaba Model Studio) - chat, vision, image generation
+         and editing, Wan video, TTS, ASR, qwen-mt translation, custom voices,
+         embeddings, rerank and three realtime drivers + TAiQwenRealtimeTTS
+  - NEW: Skills in SKILL.md format - uMakerAi.Skills.Format (single parser +
+         PPM registry client), TAiSkills (on-demand skills for any chat via
+         use_skill / read_skill_file), TAiSkill.FromPPM fixed (wrong URL and
+         format), TLLMNode.ResolveConfig, TAiPrompts local skills + ApplySkill
+  - NEW: Computer Use on Linux (TAiLinuxExecutor, X11) and delegation to a
+         remote client honoured by OpenAI and Gemini
+  - NEW: TAiThinkingLevel covers the full effort ladder (minimal..max) and
+         async tool calling (IsAsync); gpt-image-2.5 flare/sunburst;
+         TAiRealtimeConnection.DriverParams; EAiDalleHTTPError
+  - FIX: TAiShell died on non-English Windows (OEM codepage), streaming
+         answers duplicated in OnReceiveDataEnd, Groq executed_tools lost when
+         streaming, freeing an async chat mid-request, TMCPClientSSE
+         destructor spinning forever, embeddings leaking the request JSON,
+         deepseek-flash billed reasoning with ModelCaps=[], Claude coordinates
+         sent as a string, otel.scope.version hardcoded
+  - FIX: Gemini defaults - driver, web search and transcription moved to
+         gemini-3.8-flash and TTS to gemini-3.8-flash-tts (2.5 is restricted
+         to existing accounts, 2.0 is shut down); 3.7/3.8 registered,
+         shut-down models aliased, sampling gated by version. Docs-based,
+         not runtime-tested
+  - FIX: a forced tool_choice (required / named function) was re-sent on
+         every tool round and the agentic loop never ended; it now applies
+         to the first call only (TAiChat.Tool_choice, all drivers)
+  - FIX: TAiOpenChat defaulted to gpt-5 (base constructor); OpenAI default
+         is now gpt-6-sol, gpt-6-sol/luna registered, TAiMakerAiChat keeps
+         mk-gpt-oss-20b. Claude Opus 5.5 / Sonnet 5.5 / Fable 5.1 registered
+         (forced tools sent as auto), claude-opus-4-1 aliased to opus-5-5
+  - Regression suite: 101 cases (from 38 in 3.7.0)
+
+  Version 3.7.0 (2026-09-10)
+  - FIX: Claude Computer Use was broken, not merely outdated. The driver still
+         declared computer_20251124, a tool type the Anthropic API now rejects
+         for every model. Replaced by computer_toolset_20260801, which also
+         changed shape: it is a toolset entry taking no parameters at all (no
+         name, no display_width_px/display_height_px, no enable_zoom) and needs
+         no beta header. The single computer tool with an action discriminator
+         was exploded into 17 individually named tools, so dispatch now goes by
+         tool_use.name and several arrive per turn. Coordinates come as pixels
+         of the submitted screenshot. Supported only on claude-opus-4-8,
+         claude-opus-5, claude-sonnet-5 and claude-fable-5
+  - NEW: OpenAI Computer Use with gpt-6-astra — Responses API tool "computer"
+         (no parameters), replacing computer_use_preview whose dedicated model
+         was shut down on 2026-07-23. astra sends a BATCH: one computer_call
+         carrying an actions array; the driver runs them in order and answers
+         with a single computer_call_output holding the final screenshot.
+         Implemented on both the synchronous and the streaming paths
+  - FIX: the agentic loop stalled after the first Computer Use step on OpenAI.
+         The continuation condition required an empty FLastContent, but astra
+         emits commentary text in the same turn as the computer_call
+  - NEW: gpt-6-astra registered — 1.05M context, 128K output, vision +
+         reasoning + tools. Note: it accepts xhigh/max reasoning efforts, which
+         TAiThinkingLevel cannot express yet; capped at tlHigh
+  - NEW: GLM driver (Zhipu AI / Z.ai) — TAiGLMChat, OpenAI-compatible endpoint,
+         explicit thinking control and reasoning_content round-tripping.
+         Capabilities verified against the docs; not runtime-tested yet
+  - FIX: RAG on pgvector — OFFSET was trimming instead of paginating, and the
+         vector did not survive the round trip back from the database
+  - FIX: token accounting — cache_write_tokens read on OpenAI with the cache
+         counters kept disjoint; cache_read/cache_creation preserved from
+         message_start when streaming Claude; synthetic stream close no longer
+         discards usage and finish_reason
+  - FIX: race condition where the model travelled through the global registry
+         (TAiChatConnection), with a regression case covering it
+  - FIX: tool-calling continuation off the main thread, reasoning no longer
+         leaking into the user-visible answer, and tool-result attachments no
+         longer lost in the OpenAI family
+  - Removed: TAiClaudeChat.TranslateClaudeComputerArgs (dead private code that
+         had diverged from the live translator)
+
 }
 {******************************************************************************}
 
@@ -137,6 +380,12 @@ const
   MAKERAI_HAS_AGENTS           = True;
   MAKERAI_HAS_CHECKPOINTS      = True;  // NEW v3.3: Durable agent execution
   MAKERAI_HAS_CHAT_TOOLS       = True;  // NEW v3.2: ChatTools framework
+  MAKERAI_HAS_TELEMETRY        = True;  // NEW v3.6: OpenTelemetry tracing (TAiTelemetry)
+  MAKERAI_HAS_A2A              = True;  // NEW v3.6: Agent-to-Agent protocol (spec 1.0)
+  MAKERAI_HAS_GUARDRAILS       = True;  // NEW v3.6: Tool-call policy (TAiGuardrails)
+  MAKERAI_HAS_EVALS            = True;  // NEW v3.6: Evaluation framework (TAiEvalRunner)
+  MAKERAI_HAS_JEV              = True;  // NEW v3.8: Calibrated decisions with Jev (TAiJev)
+  MAKERAI_HAS_SKILLS           = True;  // NEW v3.8: SKILL.md skills (TAiSkills, TAiSkill)
 
 // Platform Support
 const
@@ -192,7 +441,7 @@ begin
   else if SameText(FeatureName, 'Agents') then Result := MAKERAI_HAS_AGENTS;
 end;
 
-//Mostrar en el versiï¿½n about dialog
+//Mostrar en el versi�n about dialog
 procedure TFormAbout.FormShow(Sender: TObject);
 begin
   lblVersion.Caption := MAKERAI_VERSION_STRING;

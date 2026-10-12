@@ -1,18 +1,18 @@
-﻿// IT License
+﻿// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// o use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 //
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// HE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -119,6 +119,7 @@ type
     FFont: TFont;
     FOnCancel: TNotifyEvent;
     FBusy: Boolean;
+    FEnterAsSend: Boolean;
 
     FSendBitmap: TBitMap;
     FCancelBitmap: TBitMap;
@@ -200,6 +201,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     Destructor Destroy; Override;
+    procedure SetFocus; reintroduce;
     Procedure AddImageToSlide(FullFileName: String; BitMap: TBitMap; aStream: TMemoryStream);
     Procedure AddStatus(Msg: String);
     function GetAttachments: TArray<TImageData>;
@@ -217,8 +219,10 @@ type
     Property OnCancel: TNotifyEvent read FOnCancel write SetOnCancel;
     Property OnSlideChange: TChatSlideImageEvent read FOnSlideChange write SetOnSlideChange;
     Property Busy: Boolean read FBusy write SetBusy;
-  end;
+    Property EnterAsSend: Boolean read FEnterAsSend write FEnterAsSend default False;
+  end deprecated 'Use TAIChatInput (AIChat.Input)';
 
+{$WARN SYMBOL_DEPRECATED OFF}
 var
   ChatInputFrame: TChatInput;
 
@@ -238,6 +242,8 @@ const
 procedure Register;
 
 implementation
+
+{$WARN SYMBOL_DEPRECATED OFF}
 
 uses uMakerAi.Utils.ScreenCapture;
 
@@ -961,6 +967,7 @@ begin
   FMemoPrompt.StyleLookup := '';
   FMemoPrompt.TextSettings.WordWrap := True;
   FMemoPrompt.TextSettings.Font.Size := 16;
+  FMemoPrompt.StyledSettings := FMemoPrompt.StyledSettings - [TStyledSetting.Size];
 
   // Layout inferior (contiene botones, etc.)
   FLayoutSend := TLayout.Create(Self);
@@ -1254,11 +1261,24 @@ end;
 
 procedure TChatInput.MemoPromptKeyUp(Sender: TObject; var Key: Word; var KeyChar: WideChar; Shift: TShiftState);
 begin
-  If (ssCtrl in Shift) and (Key = vkReturn) then
-  Begin
-    DoSendEvent(Nil);
-    Key := 0;
-  End;
+  if FEnterAsSend then
+  begin
+    // Enter = enviar; Shift+Enter o Ctrl+Enter = salto de línea
+    if (Key = vkReturn) and (Shift = []) then
+    begin
+      DoSendEvent(nil);
+      Key := 0;
+    end;
+  end
+  else
+  begin
+    // Comportamiento clásico: Ctrl+Enter = enviar
+    if (ssCtrl in Shift) and (Key = vkReturn) then
+    begin
+      DoSendEvent(nil);
+      Key := 0;
+    end;
+  end;
 end;
 
 procedure TChatInput.MenuItem2Click(Sender: TObject);
@@ -1727,6 +1747,11 @@ begin
   FSendBitmap.Free;
   FCancelBitmap.Free;
   inherited;
+end;
+
+procedure TChatInput.SetFocus;
+begin
+  FMemoPrompt.SetFocus;
 end;
 
 procedure TChatInput.DoChangeImage(ImageData: TImageData);

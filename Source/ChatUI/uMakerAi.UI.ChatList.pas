@@ -1,18 +1,18 @@
-﻿// IT License
+﻿// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// o use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 //
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// HE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -42,6 +42,7 @@ uses
   FMX.Memo, FMX.Objects, FMX.Ani, FMX.Styles.Objects, FMX.Menus,
   uMakerAi.UI.ChatBubble, uMakerAi.Core; // Make sure this unit is in your project path
 
+{$WARN SYMBOL_DEPRECATED OFF}
 type
   // Tipos de eventos definidos en la especificaci�n (req. 11)
   TChatListBubbleEvent = procedure(Sender: TObject; ABubble: TChatBubble) of object;
@@ -160,11 +161,15 @@ type
     property Enabled;
     property OnClick;
     property OnDblClick;
-  end;
+  end deprecated 'Use TAIChatView (AIChat.Control.FMX)';
 
 procedure Register;
 
 implementation
+
+{$R ..\Resources\uMakerAiUIIcons.res}  // iconos de paleta del paquete
+
+{$WARN SYMBOL_DEPRECATED OFF}
 
 procedure Register;
 begin

@@ -866,6 +866,7 @@ var
   V, P: string;
   Negate: Boolean;
 begin
+  Negate := False;
   case FCurrent.Kind of
     tkLParen: // grouping: (expression)
       begin

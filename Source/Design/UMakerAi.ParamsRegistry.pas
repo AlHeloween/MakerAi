@@ -1,18 +1,18 @@
-﻿// IT License
+﻿// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// o use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 //
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// HE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
-// Social Networks:
+// Nombre: Gustavo Enr?quez
+// Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -37,7 +37,7 @@ interface
 
 uses
   System.Classes, System.SysUtils, System.Generics.Collections,
-  System.Generics.Defaults,
+  System.Generics.Defaults, System.SyncObjs,
   UMakerAi.Chat, uMakerAi.Embeddings;
 
 type
@@ -54,32 +54,41 @@ type
 
     FCustomModels: TDictionary<string, String>; // DriverName -> TStringList
 
-    // function interna to create la clave compuesta.
+    // Contador que sube en CADA mutacion del registro. Permite a los
+    // consumidores cachear la vista del registro y saber, con una comparacion
+    // de enteros, si su copia sigue vigente. Se toca poquisimo: las
+    // registraciones ocurren al arrancar.
+    FVersion: Integer;
+
+    // Funci?n interna para crear la clave compuesta.
     class function GetCompositeKey(const DriverName, ModelName: string): string; static;
+    procedure BumpVersion;
 
   public
+    // Version actual del registro (ver FVersion).
+    function Version: Integer;
     constructor Create;
     destructor Destroy; override;
     class function Instance: TAiChatFactory;
 
-    // methods existentes (algunos con nueva firma)
+    // M?todos existentes (algunos con nueva firma)
     procedure RegisterDriver(AClass: TAiChatClass); overload;
     procedure RegisterDriver(AClass: TAiChatClass; const ADriverName: string); overload;
-    // Ahora acepta un ModelName opcional to obtain/get los parameters hierarchicals.
+    // Ahora acepta un ModelName opcional para obtener los par?metros jer?rquicos.
     procedure GetDriverParams(const DriverName, ModelName: string; Params: TStrings; ExpandVariables: Boolean = True);
     function CreateDriver(const DriverName: string): TAiChat;
     function GetRegisteredDrivers: TArray<string>;
     function HasDriver(const DriverName: string): Boolean;
 
-    // version principal para registrar un parameter de un modelo specific.
+    // Versi?n principal para registrar un par?metro de un modelo espec?fico.
     procedure RegisterUserParam(const DriverName, ModelName, ParamName, ParamValue: string); Overload;
-    // Sobrecarga para registrar un parameter a nivel de Driver (compatibilidad y conveniencia).
+    // Sobrecarga para registrar un par?metro a nivel de Driver (compatibilidad y conveniencia).
     procedure RegisterUserParam(const DriverName, ParamName, ParamValue: string); Overload;
 
-    // Limpia los parameters (con sobrecarga para modelo).
+    // Limpia los par?metros (con sobrecarga para modelo).
     procedure ClearRegisterParams(const DriverName: String; ModelName: string = '');
 
-    // --- Nuevos methods para manejar modelos personalizados ---
+    // --- Nuevos m?todos para manejar modelos personalizados ---
     procedure RegisterCustomModel(const DriverName, CustomModelName, ModelBaseName: string);
     function GetBaseModel(const DriverName, CustomModel: string): string;
     function GetCustomModels(const DriverName: string): TArray<string>;
@@ -118,13 +127,23 @@ implementation
 
 { TAiChatFactory }
 
-// function interna to create la clave
+// Funci?n interna para crear la clave
 class function TAiChatFactory.GetCompositeKey(const DriverName, ModelName: string): string;
 begin
   if ModelName.IsEmpty then
     Result := DriverName
   else
     Result := DriverName + '@' + ModelName;
+end;
+
+procedure TAiChatFactory.BumpVersion;
+begin
+  TInterlocked.Increment(FVersion);
+end;
+
+function TAiChatFactory.Version: Integer;
+begin
+  Result := TInterlocked.CompareExchange(FVersion, 0, 0); // lectura atomica
 end;
 
 constructor TAiChatFactory.Create;
@@ -155,16 +174,19 @@ end;
 procedure TAiChatFactory.RegisterDriver(AClass: TAiChatClass);
 begin
   FRegisteredClasses.AddOrSetValue(AClass.GetDriverName, AClass);
+  BumpVersion; // invalida las vistas cacheadas del registro
 end;
 
 procedure TAiChatFactory.RegisterDriver(AClass: TAiChatClass; const ADriverName: string);
 begin
   if ADriverName <> '' then
     FRegisteredClasses.AddOrSetValue(ADriverName, AClass);
+  BumpVersion; // invalida las vistas cacheadas del registro
 end;
 
 procedure TAiChatFactory.GetDriverParams(const DriverName, ModelName: string; Params: TStrings; ExpandVariables: Boolean);
 var
+  LModel: string;
   DriverClass: TAiChatClass;
   UserParamList: TStringList;
   I: Integer;
@@ -172,13 +194,13 @@ var
 begin
   Params.Clear;
 
-  // Nivel 1: Cargar parameters By default desde the class del driver
+  // Nivel 1: Cargar par?metros por defecto desde la clase del driver
   if FRegisteredClasses.TryGetValue(DriverName, DriverClass) then
     DriverClass.RegisterDefaultParams(Params);
 
-  Params.Text := Trim(Params.Text); // Elimina el last LineBreak
+  Params.Text := Trim(Params.Text); // Elimina el ?ltimo LineBreak
 
-  // Nivel 2: Fusionar con parameters personalizados del DRIVER
+  // Nivel 2: Fusionar con par?metros personalizados del DRIVER
   Key := GetCompositeKey(DriverName, '');
   if FUserParams.TryGetValue(Key, UserParamList) then
   begin
@@ -186,10 +208,17 @@ begin
       Params.Values[UserParamList.Names[I]] := UserParamList.ValueFromIndex[I];
   end;
 
-  // Nivel 3: Fusionar con parameters personalizados del MODELO (si se especifica)
-  if not ModelName.IsEmpty then
+  // Nivel 3: Fusionar con par?metros personalizados del MODELO
+  // Sin ModelName se usa el modelo que resolvieron los niveles 1 y 2 (el default
+  // del driver o el del catalogo). Antes el nivel 3 se saltaba y una conexion sin
+  // Model usaba ese modelo SIN sus parametros (p.ej. Qwen sin cap_Image, Groq sin
+  // razonamiento ni Max_Tokens): Model vacio y Model = default daban otro chat.
+  LModel := ModelName;
+  if LModel.IsEmpty then
+    LModel := Params.Values['Model'];
+  if not LModel.IsEmpty then
   begin
-    Key := GetCompositeKey(DriverName, ModelName);
+    Key := GetCompositeKey(DriverName, LModel);
     if FUserParams.TryGetValue(Key, UserParamList) then
     begin
       For I := 0 to UserParamList.Count - 1 do
@@ -199,7 +228,7 @@ begin
 
   If ExpandVariables = True then // Debe expandir las variable con las de entorno
   Begin
-    // expansion de Variables de Entorno
+    // Expansi?n de Variables de Entorno
     for I := Params.Count - 1 downto 0 do
     begin
 
@@ -220,9 +249,17 @@ function TAiChatFactory.CreateDriver(const DriverName: string): TAiChat;
 var
   DriverClass: TAiChatClass;
 begin
-  Result := nil;
-  if FRegisteredClasses.TryGetValue(DriverName, DriverClass) then
-    Result := DriverClass.CreateInstance(Nil);
+  // Driver no registrado: error diagnosticable que lista los drivers disponibles.
+  // La busqueda es case-insensitive; si el driver esperado no aparece en la lista,
+  // suele faltar 'uMakerAi.Chat.Initializations' en el uses (registra todos los drivers).
+  if not FRegisteredClasses.TryGetValue(DriverName, DriverClass) then
+    raise Exception.CreateFmt(
+      'Driver "%s" no esta registrado. Drivers disponibles: [%s]. ' +
+      'Sugerencia: agrega la unidad uMakerAi.Chat.Initializations al uses para ' +
+      'registrar todos los drivers.',
+      [DriverName, String.Join(', ', GetRegisteredDrivers)]);
+
+  Result := DriverClass.CreateInstance(Nil);
 end;
 
 function TAiChatFactory.GetRegisteredDrivers: TArray<string>;
@@ -245,9 +282,10 @@ begin
   begin
     UserParamList.Clear;
   end;
+  BumpVersion; // invalida las vistas cacheadas del registro
 end;
 
-// version principal para registrar un parameter de un modelo specific.
+// Versi?n principal para registrar un par?metro de un modelo espec?fico.
 procedure TAiChatFactory.RegisterUserParam(const DriverName, ModelName, ParamName, ParamValue: string);
 var
   UserParamList: TStringList;
@@ -260,26 +298,28 @@ begin
     FUserParams.Add(Key, UserParamList);
   end;
   UserParamList.Values[ParamName] := ParamValue;
+  BumpVersion; // invalida las vistas cacheadas del registro
 end;
 
-// Sobrecarga para registrar un parameter a nivel de Driver.
+// Sobrecarga para registrar un par?metro a nivel de Driver.
 procedure TAiChatFactory.RegisterUserParam(const DriverName, ParamName, ParamValue: string);
 begin
-  // Llama a la version principal con un ModelName empty.
+  // Llama a la versi?n principal con un ModelName vac?o.
   RegisterUserParam(DriverName, '', ParamName, ParamValue);
+  BumpVersion; // invalida las vistas cacheadas del registro
 end;
 
 
-// implementation de los nuevos methods para modelos personalizados
-// implementation de los nuevos methods para modelos personalizados
-// implementation de los nuevos methods para modelos personalizados
+// Implementaci?n de los nuevos m?todos para modelos personalizados
+// Implementaci?n de los nuevos m?todos para modelos personalizados
+// Implementaci?n de los nuevos m?todos para modelos personalizados
 
 
 procedure TAiChatFactory.RegisterCustomModel(const DriverName, CustomModelName, ModelBaseName: string);
 var
   Key : String;
 begin
-  // Verifica que ModelName no is empty
+  // Verifica que ModelName no est? vac?o
   if CustomModelName.IsEmpty then
     raise Exception.Create('CustomModelName cannot be empty when registering a custom model.');
 
@@ -290,6 +330,7 @@ begin
 
   FCustomModels.AddOrSetValue(Key, ModelBaseName);  //Adiciona o actualiza el modelo asociado
 
+  BumpVersion; // invalida las vistas cacheadas del registro
 end;
 
 function TAiChatFactory.GetBaseModel(const DriverName, CustomModel: string): string;
@@ -299,9 +340,9 @@ begin
   // Crea la clave compuesta
   CompositeKey := GetCompositeKey(DriverName, CustomModel);
 
-  // Intenta obtener el ModeloBase for the CustomModel
+  // Intenta obtener el ModeloBase para el CustomModel
   if not FCustomModels.TryGetValue(CompositeKey, Result) then
-    Result := CustomModel; // Valor By default si no se encuentra
+    Result := CustomModel; // Valor por defecto si no se encuentra
 end;
 
 
@@ -311,7 +352,7 @@ var
   CustomModel: string;
   CompositeKey: string;
 begin
-  // Recorre el diccionario y filtra los CustomModels for the DriverName dado
+  // Recorre el diccionario y filtra los CustomModels para el DriverName dado
   var List: TList<string> := TList<string>.Create;
   try
     for CompositeKey in FCustomModels.Keys do
@@ -320,7 +361,7 @@ begin
       if CompositeKey.StartsWith(DriverName + '@') then
       begin
         // Extrae el CustomModel de la clave compuesta
-        CustomModel := Copy(CompositeKey, Length(DriverName) + 2, Length(CompositeKey)); // +2 for the @
+        CustomModel := Copy(CompositeKey, Length(DriverName) + 2, Length(CompositeKey)); // +2 para el @
         List.Add(CustomModel);
       end;
     end;
@@ -356,7 +397,7 @@ begin
       // Verifica si el DriverName coincide con el inicio de la clave compuesta
       if CompositeKey.StartsWith(DriverName + '@') then
       begin
-        // adds la clave a la lista de claves a eliminar
+        // A?ade la clave a la lista de claves a eliminar
         KeysToRemove.Add(CompositeKey);
       end;
     end;
@@ -369,6 +410,7 @@ begin
   finally
     KeysToRemove.Free;
   end;
+  BumpVersion; // invalida las vistas cacheadas del registro
 end;
 
 
@@ -418,6 +460,7 @@ end;
 
 procedure TAiEmbeddingFactory.GetDriverParams(const DriverName, ModelName: string; Params: TStrings; ExpandVariables: Boolean);
 var
+  LModel: string;
   DriverClass: TAiEmbeddingsClass;
   UserParamList: TStringList;
   I: Integer;
@@ -425,13 +468,13 @@ var
 begin
   Params.Clear;
 
-  // Nivel 1: parameters By default desde the class del driver
+  // Nivel 1: Par?metros por defecto desde la clase del driver
   if FRegisteredClasses.TryGetValue(DriverName, DriverClass) then
     DriverClass.RegisterDefaultParams(Params);
 
   Params.Text := Trim(Params.Text);
 
-  // Nivel 2: parameters personalizados del DRIVER
+  // Nivel 2: Par?metros personalizados del DRIVER
   Key := GetCompositeKey(DriverName, '');
   if FUserParams.TryGetValue(Key, UserParamList) then
   begin
@@ -439,10 +482,17 @@ begin
       Params.Values[UserParamList.Names[I]] := UserParamList.ValueFromIndex[I];
   end;
 
-  // Nivel 3: parameters personalizados del MODELO
-  if not ModelName.IsEmpty then
+  // Nivel 3: Par?metros personalizados del MODELO
+  // Sin ModelName se usa el modelo que resolvieron los niveles 1 y 2 (el default
+  // del driver o el del catalogo). Antes el nivel 3 se saltaba y una conexion sin
+  // Model usaba ese modelo SIN sus parametros (p.ej. Qwen sin cap_Image, Groq sin
+  // razonamiento ni Max_Tokens): Model vacio y Model = default daban otro chat.
+  LModel := ModelName;
+  if LModel.IsEmpty then
+    LModel := Params.Values['Model'];
+  if not LModel.IsEmpty then
   begin
-    Key := GetCompositeKey(DriverName, ModelName);
+    Key := GetCompositeKey(DriverName, LModel);
     if FUserParams.TryGetValue(Key, UserParamList) then
     begin
       for I := 0 to UserParamList.Count - 1 do
@@ -450,7 +500,7 @@ begin
     end;
   end;
 
-  // expansion de Variables de Entorno
+  // Expansi?n de Variables de Entorno
   if ExpandVariables then
   begin
     for I := Params.Count - 1 downto 0 do
@@ -516,7 +566,7 @@ end;
 
 initialization
 
-// La instancia Is created bajo demanda
+// La instancia se crea bajo demanda
 finalization
 
 if Assigned(TAiChatFactory.FInstance) then

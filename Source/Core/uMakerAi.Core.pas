@@ -1,6 +1,6 @@
 ﻿// MIT License
 //
-// Copyright (c) <year> <copyright holders>
+// Copyright (c) 2024 Gustavo Enríquez - CimaMaker
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
-// Social Networks:
+// Nombre: Gustavo Enr?quez
+// Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -33,7 +33,7 @@
 //
 // --------- CAMBIOS --------------------
 // 04/11/2024 - adiciona el manejo de TAiMediaFile.detail para identificar la calidad de analisis de una imagen
-// 04/11/2024 - Se corrige error de assignment en TAiMediaFile.LoadFromBase64
+// 04/11/2024 - Se corrige error de asignaci?n en TAiMediaFile.LoadFromBase64
 // 15/10/2025 - Code Cleanup
 
 unit uMakerAi.Core;
@@ -47,16 +47,16 @@ uses
 
 Type
 
-  { A. File Layers (Physical) - Defines binary/physical data types }
+  { A. Capas de Archivos (F?sica) - Define tipos de datos binarios/f?sicos }
   TAiFileCategory = (Tfc_Text, Tfc_Image, Tfc_Audio, Tfc_Video, Tfc_Pdf, Tfc_Document, Tfc_CalcSheet, Tfc_Presentation, Tfc_CompressFile, Tfc_Web, Tfc_GraphicDesign, Tfc_ExtractTextFile,
     Tfc_Report, // Reporte generado (PDF, HTML, XLSX) por herramienta externa o code_interpreter
     Tfc_Any, Tfc_Unknown);
 
   TAiFileCategories = set of TAiFileCategory;
 
-  { B. Skill Layers (Logical) - Defines intellectual capabilities or tools }
+  { B. Capas de Habilidades (L?gica) - Define capacidades intelectuales o herramientas }
   TAiChatMediaSupport = (Tcm_Text, Tcm_Image, Tcm_Audio, Tcm_Video, Tcm_Pdf, Tcm_WebSearch, Tcm_CodeInterpreter, Tcm_Memory, Tcm_TextEditor, Tcm_ComputerUse, Tcm_Shell, Tcm_Reasoning, // Capacidad de CoT (Chain of Thought)
-    Tcm_ReportGeneration, // Report generation (native via code_interpreter or external tool)
+    Tcm_ReportGeneration, // Generaci�n de reportes (nativo v�a code_interpreter o herramienta externa)
     Tcm_Any, Tcm_Unknown);
 
   TAiChatMediaSupports = set of TAiChatMediaSupport;
@@ -64,13 +64,13 @@ Type
   { C. Capa Unificada de Capacidades (nuevo sistema v3.3) }
   TAiCapability = (
     // Entrada / Comprensi�n (cubierto por completions nativo)
-    cap_Image,            // model understands incoming images
+    cap_Image,            // modelo entiende im�genes entrantes
     cap_Audio,            // modelo entiende/transcribe audio entrante
     cap_Video,            // modelo entiende video entrante
     cap_Pdf,              // modelo entiende PDFs entrantes
     cap_WebSearch,        // modelo puede buscar en la web
     cap_Reasoning,        // modelo tiene razonamiento extendido (CoT)
-    cap_CodeInterpreter,  // model can execute code
+    cap_CodeInterpreter,  // modelo puede ejecutar código
     cap_Memory,           // modelo tiene memoria persistente
     cap_TextEditor,       // modelo puede editar archivos
     cap_ComputerUse,      // modelo puede controlar el ordenador
@@ -80,21 +80,29 @@ Type
     cap_GenAudio,         // producir audio como output (TTS)
     cap_GenVideo,         // producir video como output
     cap_GenReport,        // producir reporte (PDF, HTML, XLSX)
-    cap_ExtractCode       // post-process: extract code blocks from response
+    cap_ExtractCode       // post-procesar: extraer bloques de c�digo de la respuesta
   );
   TAiCapabilities = set of TAiCapability;
 
   // Tipo de evento para manejar errores
   TAiErrorEvent = procedure(Sender: TObject; const ErrorMsg: string; Exception: Exception; const AResponse: IHTTPResponse) of object;
 
-  TAiThinkingLevel = (tlDefault, tlLow, tlMedium, tlHigh); // Default es medium en la mayor?a de los casos
+  // Los cuatro primeros son los historicos y NO se reordenan: hay codigo que
+  // compara contra tlDefault y persistencia que guarda el ordinal.
+  // Los cuatro de la cola llegaron con la escalera completa de OpenAI
+  // (none < minimal < low < medium < high < xhigh < max). gpt-6-astra acepta
+  // de low a max y devuelve 400 ante 'none'.
+  // Cada driver CLAMPA lo que su proveedor no conoce (xhigh/max -> su tope,
+  // minimal -> su minimo): un mismo reasoning_effort tiene que sobrevivir al
+  // fallback a otro proveedor sin romper la peticion.
+  TAiThinkingLevel = (tlDefault, tlLow, tlMedium, tlHigh, tlNone, tlMinimal, tlXHigh, tlMax); // Default es medium en la mayor?a de los casos
   TAiMediaResolution = (mrDefault, mrLow, mrMedium, mrHigh);
 
-  // Is used especialmente en OpenAi en la transcription
+  // Se utiliza especialmente en OpenAi en la transcripci?n
 
   TAiTranscriptionResponseFormat = (trfText, trfJson, trfSrt, trfVtt, trfVerboseJson);
 
-  // Enum for the granularidad de los timestamps
+  // Enum para la granularidad de los timestamps
   TAiTimestampGranularity = (tsgNone, tsgWord, tsgSegment);
   TAiTimestampGranularities = set of TAiTimestampGranularity;
 
@@ -104,7 +112,7 @@ Type
   // Evento para notificar cambios de estado del servidor (iniciado, detenido, etc.)
   TMCPStatusEvent = procedure(Sender: TObject; const StatusMsg: string) of object;
 
-  // event for the developer to approve or deny installation of an MCP package via AutoMCP.
+  // Evento para que el desarrollador apruebe o deniegue la instalación de un paquete MCP vía AutoMCP.
   // AAllow = True (default) para permitir, False para bloquear.
   TAutoMCPRequestEvent = procedure(Sender: TObject; const APkgName: string; var AAllow: Boolean) of object;
 
@@ -118,19 +126,19 @@ Type
     acsWriting, // Escribiendo respuesta visible
     acsToolCalling, // El modelo pide usar una herramienta
     acsToolExecuting, // Ejecutando la herramienta (Local o Remota)
-    acsFinished, // Completado con success
+    acsFinished, // Completado con ?xito
     acsAborted, // Abortado por el usuario
     acsLoading,
     acsProcessing,
     acsError // Error
     );
 
-  // Defstartedn del evento
+  // Definici?n del evento
   TAiStateChangeEvent = procedure(Sender: TObject; State: TAiChatState; const Description: string) of object;
 
   TAiMediaFiles = Class;
 
-  // Clase utilizada for the manejo de archivos de medios como audio, imagees, pdf, text, etc.
+  // Clase utilizada para el manejo de archivos de medios como audio, im?genes, pdf, text, etc.
 
   TAiMediaFile = Class
   Private
@@ -195,29 +203,29 @@ Type
     Property UrlMedia: String read FUrlMedia write SetUrlMedia;
 
     Property CloudState: String read FCloudState write FCloudState;
-    // Nombre del archivo con que fue guardado dentro del modelo disponible for the API
+    // Nombre del archivo con que fue guardado dentro del modelo disponible para la API
     Property CloudName: String read FCloudName write FCloudName;
-    // Nombre del archivo guardado como cache dentro de la api, es posible preguntar entre varias iteracciones del chat
+    // Nombre del archivo guardado como cach? dentro de la api, es posible preguntar entre varias iteracciones del chat
     Property CacheName: String read FCacheName write SetCacheName;
 
     // El Id con el que se identifica el archivo en el servidor
     Property IdFile: String read FIdFile write SetIdFile;
-    // Guarda la URI de archivo generado por la API para almacenar el audio que ya generated el modelo
+    // Guarda la URI de archivo generado por la API para almacenar el audio que ya gener? el modelo
     Property IdAudio: String read FIdAudio write SetIdAudio;
     Property Base64: String read GetBase64 write SetBase64;
     Property FullFileName: String read FFullFileName write SetFullFileName;
     Property MimeType: String read GetMimeType;
-    // Propiedad que se pasa con el archivo de media, en la imagen con OpenAi  indica si se analiza en detalle o "high" o en baja resolution "low"
-    // En la transcription va el otro formato si lo hay,  ej.  el json que genera el formato VTS
+    // Propiedad que se pasa con el archivo de media, en la imagen con OpenAi  indica si se analiza en detalle o "high" o en baja resoluci?n "low"
+    // En la transcripci?n va el otro formato si lo hay,  ej.  el json que genera el formato VTS
     Property Detail: String read FDetail write SetDetail;
-    // Transcription- Si the file adjunto se procesa por separado awhat Is saved lo que retorna the model correspondiente
+    // Transcription- Si el archivo adjunto se procesa por separado aqu? se guarda lo que retorna el modelo correspondiente
     Property Transcription: String read FTranscription write SetTranscription;
     Property Procesado: Boolean read FProcesado write SetProcesado;
     Property MediaFiles: TAiMediaFiles read FMediaFiles write SetMediaFiles;
     Property CacheControl: Boolean read FCacheControl write FCacheControl;
 
     Property Title: string read FTitle write FTitle; // Titulo del documento
-    Property Context: string read FContext write FContext; // information adicional del documento es solo contexto
+    Property Context: string read FContext write FContext; // Informaci?n adicional del documento es solo contexto
     Property EnableCitations: Boolean read FEnableCitations write FEnableCitations; // Si este documento se incluye para ser citado por la IA
   End;
 
@@ -229,7 +237,7 @@ Type
   Protected
   Public
     // Si el modelo no maneja este tipo de media files, se pueden preprocesar en el evento del chat
-    // y the text del proceso se adiciona al prompt, y awhat ya no se will havean en cuenta
+    // y el texto del proceso se adiciona al prompt, y aqu? ya no se tendr?an en cuenta
     Function GetMediaList(aFilters: TAiFileCategories; aProcesado: Boolean = False): TAiMediaFilesArray;
     Function ToMediaFileArray: TAiMediaFilesArray; // Retrona una lista con clones de los objetos
   End;
@@ -267,10 +275,10 @@ Type
     Destructor Destroy; override;
   End;
 
-  // Partiendo de la extension del archivo obtiene la categoria TAiFileCategori
+  // Partiendo de la extensi?n del archivo obtiene la categoria TAiFileCategori
 function GetContentCategory(FileExtension: string): TAiFileCategory;
 
-// Obtiene el mime de un archivo basado en la extension .mp3 o mp3
+// Obtiene el mime de un archivo basado en la extensi?n .mp3 o mp3
 function GetMimeTypeFromFileName(FileExtension: string): string;
 function GetFileExtensionFromMimeType(MimeType: string): string;
 
@@ -279,6 +287,12 @@ function StreamToBase64(Stream: TMemoryStream): String;
 
 // convierte una lista de valores Key1=Value1  en una lista de parametros de query de una URL
 function GetParametrosURL(Parametros: TStringList): string;
+
+// Vocabulario canonico de reasoning effort. Devuelve False si la cadena no es
+// uno de los siete niveles conocidos, para que quien lo reciba pueda
+// rechazarla en vez de tragarsela y aplicar el default en silencio.
+function StrToThinkingLevel(const S: String; out ALevel: TAiThinkingLevel): Boolean;
+function ThinkingLevelToStr(ALevel: TAiThinkingLevel): String;
 
 implementation
 
@@ -290,6 +304,39 @@ uses
   ;
 {$REGION 'Utilidades varias' }
 {$I uMakerAi.Version.inc}
+
+function StrToThinkingLevel(const S: String; out ALevel: TAiThinkingLevel): Boolean;
+var
+  V: String;
+begin
+  ALevel := tlDefault;
+  V := LowerCase(Trim(S));
+  Result := True;
+  if V = '' then Exit;         // vacio = default del driver, no es un error
+  if V = 'none' then ALevel := tlNone
+  else if V = 'minimal' then ALevel := tlMinimal
+  else if V = 'low' then ALevel := tlLow
+  else if V = 'medium' then ALevel := tlMedium
+  else if V = 'high' then ALevel := tlHigh
+  else if V = 'xhigh' then ALevel := tlXHigh
+  else if V = 'max' then ALevel := tlMax
+  else Result := False;
+end;
+
+function ThinkingLevelToStr(ALevel: TAiThinkingLevel): String;
+begin
+  case ALevel of
+    tlNone:    Result := 'none';
+    tlMinimal: Result := 'minimal';
+    tlLow:     Result := 'low';
+    tlMedium:  Result := 'medium';
+    tlHigh:    Result := 'high';
+    tlXHigh:   Result := 'xhigh';
+    tlMax:     Result := 'max';
+  else
+    Result := '';             // tlDefault
+  end;
+end;
 
 function GetParametrosURL(Parametros: TStringList): string;
 var
@@ -314,7 +361,7 @@ begin
   Stream.Position := 0;
   Result := TNetEncoding.Base64.EncodeBytesToString(Stream.Memory, Stream.Size);
   // TBase64Encoding inserta CRLF cada 76 chars. Todos los endpoints REST
-  // (Gemini, OpenAI, Claude, Ollama) require base64 without line breaks.
+  // (Gemini, OpenAI, Claude, Ollama) requieren base64 sin saltos de línea.
   Result := StringReplace(Result, #13#10, '', [rfReplaceAll]);
   Result := StringReplace(Result, #10,   '', [rfReplaceAll]);
 end;
@@ -573,6 +620,10 @@ begin
     Result := 'ogg'
   else if SameText(MimeType, 'audio/wav') then
     Result := 'wav'
+  else if SameText(MimeType, 'audio/x-wav') then
+    Result := 'wav'
+  else if SameText(MimeType, 'audio/wave') then
+    Result := 'wav'
   else if SameText(MimeType, 'audio/flac') then
     Result := 'flac'
   else if SameText(MimeType, 'audio/aac') then
@@ -624,7 +675,7 @@ begin
   else if SameText(MimeType, 'image/heif') then
     Result := 'heif'
 
-    // Binary document formats
+    // Document formats binarios
   else if SameText(MimeType, 'application/pdf') then
     Result := 'pdf'
   else if SameText(MimeType, 'application/msword') then
@@ -736,7 +787,7 @@ begin
   else if SameText(MimeType, 'application/xml') then
     Result := 'xml'
 
-    // Formatos de datos scientific/technical
+    // Formatos de datos cient?ficos/t?cnicos
   else if SameText(MimeType, 'application/x-hdf') then
     Result := 'hdf'
   else if SameText(MimeType, 'application/x-netcdf') then
@@ -760,7 +811,7 @@ begin
   else if SameText(MimeType, 'application/pkcs8') then
     Result := 'p8'
 
-    // Formatos specifics de aplicaciones
+    // Formatos espec?ficos de aplicaciones
   else if SameText(MimeType, 'application/vnd.adobe.photoshop') then
     Result := 'psd'
   else if SameText(MimeType, 'application/postscript') then
@@ -768,7 +819,7 @@ begin
   else if SameText(MimeType, 'application/vnd.sketchup.skp') then
     Result := 'skp'
 
-    // Binario generic
+    // Binario gen?rico
   else if SameText(MimeType, 'application/octet-stream') then
     Result := 'bin'
 
@@ -807,7 +858,7 @@ begin
   // Plain text
   else if MatchStr(FileExtension, ['txt', 'md', 'log', 'readme']) then
     Result := Tfc_Text
-  // Web (Archivos physicals HTML/JSON/JS)
+  // Web (Archivos f?sicos HTML/JSON/JS)
   else if MatchStr(FileExtension, ['html', 'htm', 'xml', 'json', 'css', 'js', 'jsx', 'ts', 'tsx', 'vue', 'php']) then
     Result := Tfc_Web
   // Compressed
@@ -827,16 +878,16 @@ end;
 
 procedure TAiMediaFile.Assign(Source: TAiMediaFile);
 begin
-  // 1. protection contra auto-assignment y fuentes nulas.
+  // 1. Protecci?n contra auto-asignaci?n y fuentes nulas.
   if (Source = nil) or (Source = Self) then
     Exit;
 
-  // 2. Copiar todas the properties "planas" (campos de valor).
-  // Usamos los campos privados (F...) para evitar disparar logic
-  // innecesaria que could estar en los setters.
+  // 2. Copiar todas las propiedades "planas" (campos de valor).
+  // Usamos los campos privados (F...) para evitar disparar l?gica
+  // innecesaria que podr?a estar en los setters.
   Self.Ffilename := Source.Ffilename;
   Self.FUrlMedia := Source.FUrlMedia;
-  Self.FFileType := Source.FFileType; // No tiene setter, like this que copiamos el campo.
+  Self.FFileType := Source.FFileType; // No tiene setter, as? que copiamos el campo.
   Self.FFullFileName := Source.FFullFileName;
   Self.FTranscription := Source.FTranscription;
   Self.FProcesado := Source.FProcesado;
@@ -852,38 +903,38 @@ begin
   Self.FTitle := Source.FTitle;
 
   // 3. Copia profunda (Deep Copy) del contenido del TMemoryStream.
-  // Este es el paso more critical para evitar que ambos objetos compartan
+  // Este es el paso m?s cr?tico para evitar que ambos objetos compartan
   // el mismo stream de memoria.
   if Assigned(Source.Content) and (Source.Content.Size > 0) then
   begin
-    // Si nuestro propio stream does not exist, lo creamos.
+    // Si nuestro propio stream no existe, lo creamos.
     if not Assigned(Self.FContent) then
       Self.FContent := TMemoryStream.Create;
 
-    // Preparamos los streams for the copia.
+    // Preparamos los streams para la copia.
     Self.FContent.Clear;
     Source.Content.Position := 0; // Aseguramos que leemos el origen desde el principio.
 
     // Copiamos el contenido.
     Self.FContent.CopyFrom(Source.Content, 0);
 
-    // Buena practical: Dejar ambos streams en su position inicial.
+    // Buena pr?ctica: Dejar ambos streams en su posici?n inicial.
     Self.FContent.Position := 0;
     Source.Content.Position := 0;
     Self.FContentLoaded := True;
   end
   else
   begin
-    // Si el stream de origen is empty o does not exist, nos aseguramos
-    // de que nuestro propio stream also is empty.
+    // Si el stream de origen est? vac?o o no existe, nos aseguramos
+    // de que nuestro propio stream tambi?n est? vac?o.
     if Assigned(Self.FContent) then
       Self.FContent.Clear;
   end;
 
   // 4. Propiedades que NO se copian.
   // Self.FMediaFiles: Esta es una referencia al contenedor padre.
-  // El nuevo objeto clonado will be added a una nueva lista,
-  // y esa lista le would assign su propia referencia. No la tocamos awhat.
+  // El nuevo objeto clonado ser? a?adido a una nueva lista,
+  // y esa lista le asignar? su propia referencia. No la tocamos aqu?.
 
 end;
 
@@ -916,7 +967,7 @@ begin
   FMediaFiles := TAiMediaFiles.Create;
   FProcesado := False;
   FContentLoaded := False;
-  FDetail := ''; // By default utiliza empty para no enviar nada y hacerlo compatible con otros modelos, detallado = "high" or "low"
+  FDetail := ''; // por defecto utiliza vac?o para no enviar nada y hacerlo compatible con otros modelos, detallado = "high" or "low"
 end;
 
 destructor TAiMediaFile.Destroy;
@@ -974,7 +1025,8 @@ begin
   FContent.Position := 0;
   Result := TNetEncoding.Base64.EncodeBytesToString(FContent.Memory, FContent.Size);
   Result := StringReplace(Result, sLineBreak, '', [rfReplaceAll]);
-  Result := StringReplace(Result, #10, '', [rfReplaceAll]); // #10 es LF (\n)
+  Result := StringReplace(Result, #13, '', [rfReplaceAll]); // CR que queda en Linux (CRLF → sLineBreak sólo elimina LF ahí)
+  Result := StringReplace(Result, #10, '', [rfReplaceAll]); // LF
 end;
 
 function TAiMediaFile.GetBytes: Integer;
@@ -989,7 +1041,7 @@ begin
     DownloadFileFromUrl(FUrlMedia);
     FContentLoaded := True;
   end;
-  FContent.Position := 0; // siempre at the beginning so that los lectores lean correctamente
+  FContent.Position := 0; // siempre al inicio para que los lectores lean correctamente
   Result := FContent;
 end;
 
@@ -1016,7 +1068,7 @@ begin
     Begin
       FContent.Clear;
       FContent.LoadFromStream(St);
-      FContent.Position := 0; // resetear so that los lectores lean desde el inicio
+      FContent.Position := 0; // resetear para que los lectores lean desde el inicio
       FContentLoaded := True;
       FFullFileName := aFileName;
       Ffilename := ExtractFileName(aFileName);
@@ -1060,7 +1112,7 @@ begin
   AObject.TryGetValue<string>('cacheName', Self.FCacheName);
   AObject.TryGetValue<string>('idFile', Self.FIdFile);
 
-  // Cargamos el contenido usando el method existente
+  // Cargamos el contenido usando el m?todo existente
   if AObject.TryGetValue<string>('base64', LBase64) and (LBase64 <> '') then
   begin
     AObject.TryGetValue<string>('filename', LFilename);
@@ -1226,7 +1278,7 @@ var
   Item, NewItem: TAiMediaFile;
   Len: Integer;
 begin
-  SetLength(Result, 0); // Inicializamos the result to avoid basura
+  SetLength(Result, 0); // Inicializamos el resultado para evitar basura
   for i := 0 to Self.Count - 1 do
   begin
     Item := Self.Items[i];

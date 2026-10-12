@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Nombre: Gustavo Enr�quez
-// Social Networks:
+// Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -37,7 +37,7 @@ interface
 
 uses
   System.SysUtils, System.StrUtils, System.Classes, System.Generics.Collections,
-  System.JSON, Rest.JSON, System.IOUtils,
+  System.JSON, Rest.JSON, System.IOUtils, uMakerAi.Guardrails,
   System.Net.HttpClient, System.NetEncoding,
   System.SyncObjs,
   Data.Db,
@@ -48,7 +48,7 @@ uses
   uMakerAi.Core, uMakerAi.MCPClient.Core, uMakerAi.Chat.Messages;
 
 const
-  // Internal separator between MCP server name and tool name.
+  // Separador interno entre nombre de servidor MCP y nombre de herramienta.
   // NO puede aparecer en el nombre de un TMCPClientItem (validado en SetName).
   MCP_TOOL_SEP = '_99_';
 
@@ -82,6 +82,7 @@ type
     constructor Create(Collection: TCollection); Override;
     Destructor Destroy; Override;
     function GetNamePath: string; override;
+    procedure Assign(Source: TPersistent); override;
     Function ToJSon(Detail: Boolean = False): TJSonObject;
     procedure SetJSon(Value: TJSonObject);
 
@@ -126,10 +127,16 @@ type
     FParams: TFunctionParamsItems;
     FToolType: TToolstype;
     FScript: TStrings;
-    // Complete schema in JSON (not decomposed). When assigned,
+    // Schema completo en JSON (no descompuesto). Cuando está asignado,
     // ToJSon lo usa directamente en lugar de reconstruir desde TFunctionParamsItems.
-    // Useful for tools with complex schemas (anyOf, nested objects, etc.)
+    // Útil para herramientas con schemas complejos (anyOf, nested objects, etc.)
     FRawSchemaJson: String;
+    // Async tool calling (Responses API, gpt-6-astra en adelante): el modelo
+    // sigue razonando, llamando otras tools o contestando partes
+    // independientes mientras la aplicacion ejecuta ESTA. El resultado se
+    // devuelve despues con su call_id original. Los proveedores que no lo
+    // soportan simplemente no ven el campo.
+    FIsAsync: Boolean;
     procedure SetEnabled(const Value: Boolean);
     procedure SetOnAction(const Value: TFunctionEvent);
     procedure SetDefault(const Value: Boolean);
@@ -146,6 +153,7 @@ type
     constructor Create(Collection: TCollection); Override;
     Destructor Destroy; Override;
     function GetNamePath: string; override;
+    procedure Assign(Source: TPersistent); override;
 
     Function ToJSon(Detail: Boolean = False): TJSonObject;
     Procedure SetJSon(Value: TJSonObject);
@@ -153,6 +161,8 @@ type
     Property TagObject: TObject read FTagObject write SetTagObject;
     // Schema JSON completo (alternativa a TFunctionParamsItems para schemas complejos)
     property RawSchemaJson: String read FRawSchemaJson write FRawSchemaJson;
+    // Declara la tool como asincrona ante los proveedores que lo soportan.
+    property IsAsync: Boolean read FIsAsync write FIsAsync;
   published
     property Enabled: Boolean read FEnabled write SetEnabled default True;
     property FunctionName: string read GetDisplayName write SetDisplayName;
@@ -195,11 +205,12 @@ type
   private
     FEnabled: Boolean;
     FMCPClient: TMCPClientCustom;
+    FOwned: Boolean;   // False = client is externally managed; destructor will not free it
     FConnected: Boolean;
     FParams: TStrings;
     FEnvVars: TStrings;
     FName: string;
-    // Propiedades "proxy" para facilitar la configuraci�n in the inspector de Objetos
+    // Propiedades "proxy" para facilitar la configuraci�n en el Inspector de Objetos
     function GetName: string;
     function GetTransportType: TToolTransportType;
     procedure SetName(const Value: string);
@@ -214,7 +225,7 @@ type
     procedure SetConfiguration(const Value: string);
     function GetEnvVars: TStrings;
     procedure SetEnvVars(const Value: TStrings);
-    // Automatic propagation to the real client when edited in-place
+    // Propagación automática al cliente real cuando se editan in-place
     procedure OnFParamsChanged(Sender: TObject);
     procedure OnFEnvVarsChanged(Sender: TObject);
   protected
@@ -222,6 +233,7 @@ type
   public
     constructor Create(Collection: TCollection); override;
     destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;
     procedure UpdateClientProperties;
     // Propiedad para acceder al objeto cliente real
     property MCPClient: TMCPClientCustom read FMCPClient;
@@ -258,13 +270,14 @@ type
     property Items[Index: Integer]: TMCPClientItem read GetClient write SetClient; default;
   end;
 
-  // TAutoMCPConfig: grouped configuration of AutoMCP / PPM subsystem.
+  // TAutoMCPConfig: configuración agrupada del subsistema AutoMCP / PPM.
   // Aparece en el Object Inspector como propiedad expandible (+).
-  // Note: OnAutoMCPRequest remains in TAiFunctions (Events tab of the OI).
+  // Nota: OnAutoMCPRequest se mantiene en TAiFunctions (pestaña Events del OI).
   TAutoMCPConfig = class(TPersistent)
   private
     FActive: Boolean;
     FRegistryUrl: String;
+    FWorkingDir: String;
     FAllowed: TStringList;
     FBlocked: TStringList;
     FConfigFile: String;
@@ -285,14 +298,17 @@ type
     property Active: Boolean read FActive write SetActive default False;
     // RegistryUrl: URL base del registry PPM.
     property RegistryUrl: String read FRegistryUrl write FRegistryUrl;
-    // Allowed: whitelist of permitted packages. If it has entries, only those can be installed.
+    // Allowed: whitelist de paquetes permitidos. Si tiene entradas, solo esos pueden instalarse.
     property Allowed: TStrings read GetAllowed write SetAllowed;
-    // Blocked: blacklist of blocked packages. If Allowed is empty, everything is allowed except these.
+    // Blocked: blacklist de paquetes bloqueados. Si Allowed está vacío, se permite todo excepto estos.
     property Blocked: TStrings read GetBlocked write SetBlocked;
+    // WorkingDir: directorio base donde se instalan los paquetes PPM.
+    // Vacío = ~/.ppm/mcp/<nombre_paquete>/ (valor por defecto del sistema).
+    property WorkingDir: String read FWorkingDir write FWorkingDir;
     // ConfigFile: ruta al archivo JSON con servidores MCP (formato Claude Desktop).
-    // Empty = automatically detects Claude Desktop default path according to OS.
+    // Vacío = detecta automáticamente la ruta por defecto de Claude Desktop según el SO.
     property ConfigFile: String read FConfigFile write FConfigFile;
-    // AutoLoad: if True, imports ConfigFile automatically when component loads (Loaded).
+    // AutoLoad: si True, importa ConfigFile automáticamente al cargar el componente (Loaded).
     property AutoLoad: Boolean read FAutoLoad write FAutoLoad default False;
   end;
 
@@ -305,15 +321,18 @@ type
     FOnMCPStreamMessage: TMCPStreamMessageEvent;
     FAutoMCPConfig: TAutoMCPConfig;
     FOnAutoMCPRequest: TAutoMCPRequestEvent;
-    FInstalledPackages: TStringList; // packages already installed in this session
+    FInstalledPackages: TStringList; // paquetes ya instalados en esta sesión
     // AutoMCP: funciones internas (invisibles al developer, no en FFunctions)
     FAutoMCPFunctions: TFunctionActionItems;
     FAutoMCPLock: TCriticalSection; // serializa llamadas a call_mcp_tool
+    // Guardrails: politica de seguridad de tool calls (opt-in)
+    FGuardrails: TAiGuardrails;
+    procedure SetGuardrails(const Value: TAiGuardrails);
     procedure SetOnMCPStreamMessage(const Value: TMCPStreamMessageEvent);
     procedure SetAutoMCPConfig(const Value: TAutoMCPConfig);
     function IsAutoMCPAllowed(const APkgName: string): Boolean;
-    // Returns the effective MCP config file path:
-    // ConfigFile if assigned, otherwise <exedir>\mcp_servers.json
+    // Retorna la ruta efectiva del archivo de configuración MCP:
+    // ConfigFile si está asignado, sino <exedir>\mcp_servers.json
     function GetEffectiveMCPConfigPath: String;
     // AutoMCP: crea ppm_search, ppm_install, call_mcp_tool como funciones internas
     procedure CreateInternalPPMFunctions;
@@ -327,6 +346,7 @@ type
 
     procedure DoLog(const Msg: string); virtual;
     procedure DoStatusUpdate(const StatusMsg: string); virtual;
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
   Public
     Constructor Create(AOwner: TComponent); Override;
@@ -335,8 +355,8 @@ type
     function GetTools(aToolFormat: TToolFormat): String; Virtual;
     Function DoCallFunction(ToolCall: TAiToolsFunction): Boolean; Virtual;
 
-    // InitAutoMCP: instala mcp-ppm como bootstrap of the system AutoMCP.
-    // Called automatically from Loaded if AutoMCP=True.
+    // InitAutoMCP: instala mcp-ppm como bootstrap del sistema AutoMCP.
+    // Se llama automáticamente desde Loaded si AutoMCP=True.
     // Puede llamarse manualmente si AutoMCP se activa en runtime.
     procedure InitAutoMCP;
     // SetFunctionEnable  Retorna True si encuentra la funci�n y puede actualizar el estado
@@ -346,49 +366,51 @@ type
 
     // IMPORTANTE: el par�metro aMCPClient debe ser creado con owner = Nil  aMCPClient:= TMCPClientCustom(NIL);
     procedure AddMCPClient(aMCPClient: TMCPClientCustom);
+    // Like AddMCPClient but does NOT take ownership — client is managed by an external pool.
+    procedure AddBorrowedMCPClient(aMCPClient: TMCPClientCustom);
 
     // Sobrecarga 1: Recibe el objeto JSON ya parseado (ideal si el JSON viene de una API o stream)
     function ImportClaudeMCPConfiguration(AConfig: TJSonObject): Integer; overload;
 
-    // Overload 2: Receives the file path (or uses GetEffectiveMCPConfigPath if empty)
+    // Sobrecarga 2: Recibe la ruta del archivo (o usa GetEffectiveMCPConfigPath si está vacía)
     function ImportClaudeMCPConfiguration(const AJsonFilePath: string = ''): Integer; overload;
 
     // SaveMCPConfiguration: serializa los MCPClients actuales al archivo JSON.
-    // AFilePath empty = uses GetEffectiveMCPConfigPath.
-    // Returns True if saved correctly.
+    // AFilePath vacío = usa GetEffectiveMCPConfigPath.
+    // Retorna True si guardó correctamente.
     function SaveMCPConfiguration(const AFilePath: string = ''): Boolean;
 
-    // Integration with PPM (public MCP tools registry)
-    // SearchPPMMCP: searches for MCP tools in the registry. Caller frees the TJSONObject.
+    // Integración con PPM (registry público de herramientas MCP)
+    // SearchPPMMCP: busca herramientas MCP en el registry. El llamador libera el TJSONObject.
     function SearchPPMMCP(const AQuery: String; APage: Integer = 1; APerPage: Integer = 20;
-      const ARegistryUrl: String = 'https://registry.pascalai.org'): TJSONObject;
+      const ARegistryUrl: String = 'https://registry.cimamaker.com'): TJSONObject;
 
-    // ImportMCPFromPPM: registers an MCP tool from PPM as a StdIo stub without downloading.
-    // Useful when the binary is already manually installed; the caller must assign
+    // ImportMCPFromPPM: registra una herramienta MCP desde PPM como stub StdIo sin descargar.
+    // Útil cuando el binario ya está instalado manualmente; el llamador debe asignar
     // Params['Command'] con la ruta al ejecutable antes de habilitar el item.
-    // Empty AVersion = resolves the latest available version.
+    // AVersion vacío = resuelve la última versión disponible.
     function ImportMCPFromPPM(const AName: String; const AVersion: String = '';
-      const ARegistryUrl: String = 'https://registry.pascalai.org'): TMCPClientItem;
+      const ARegistryUrl: String = 'https://registry.cimamaker.com'): TMCPClientItem;
 
     // InstallMCPFromPPM: descarga el .paipkg desde el registry, extrae el binario y
     // registra el cliente StdIo listo para usar.
-    // Empty AVersion    = resolves the latest available version.
-    // Empty AInstallDir = ~/.ppm/mcp/<AName>/
+    // AVersion vacío    = resuelve la última versión disponible.
+    // AInstallDir vacío = ~/.ppm/mcp/<AName>/
     // Retorna el TMCPClientItem configurado, o nil si falla.
     function InstallMCPFromPPM(const AName: String; const AVersion: String = '';
       const AInstallDir: String = '';
-      const ARegistryUrl: String = 'https://registry.pascalai.org'): TMCPClientItem;
+      const ARegistryUrl: String = 'https://registry.cimamaker.com'): TMCPClientItem;
 
-    // GetMCPSchema: returns the JSON Schema of an MCP tool from the registry.
-    // The caller is responsible for freeing the returned TJSONObject.
-    // Empty AVersion = resolves the latest available version.
+    // GetMCPSchema: retorna el JSON Schema de una herramienta MCP del registry.
+    // El llamador es responsable de liberar el TJSONObject devuelto.
+    // AVersion vacío = resuelve la última versión disponible.
     function GetMCPSchema(const AName: String; const AVersion: String = '';
-      const ARegistryUrl: String = 'https://registry.pascalai.org'): TJSONObject;
+      const ARegistryUrl: String = 'https://registry.cimamaker.com'): TJSONObject;
 
     // GetAutoMCPSystemPrompt: retorna un system prompt listo para usar que instruye
-    // to the LLM to use PPM tools (ppm_search, ppm_install, call_mcp_tool).
-    // El desarrollador debe asignarlo manualmente al SystemPrompt of the component de chat.
-    // Includes the list of already installed tools if any.
+    // al LLM a utilizar las herramientas PPM (ppm_search, ppm_install, call_mcp_tool).
+    // El desarrollador debe asignarlo manualmente al SystemPrompt del componente de chat.
+    // Incluye la lista de herramientas ya instaladas si las hay.
     function GetAutoMCPSystemPrompt: String;
   Published
     Property Functions: TFunctionActionItems read FFunctions write FFunctions;
@@ -398,31 +420,40 @@ type
     property OnStatusUpdate: TMCPStatusEvent read FOnStatusUpdate write FOnStatusUpdate;
     property OnMCPStreamMessage: TMCPStreamMessageEvent read FOnMCPStreamMessage write SetOnMCPStreamMessage;
 
-    // AutoMCPConfig: grouped configuration of AutoMCP / PPM subsystem.
+    // AutoMCPConfig: configuración agrupada del subsistema AutoMCP / PPM.
     // Expandible en el Object Inspector con (+).
     property AutoMCPConfig: TAutoMCPConfig read FAutoMCPConfig write SetAutoMCPConfig;
-    // OnAutoMCPRequest: dynamic callback to approve/deny installations at runtime.
-    // Tiene prioridad sobre Allowed/Blocked. AAllow=True By default.
+    // OnAutoMCPRequest: callback dinámico para aprobar/denegar instalaciones en runtime.
+    // Tiene prioridad sobre Allowed/Blocked. AAllow=True por defecto.
     property OnAutoMCPRequest: TAutoMCPRequestEvent read FOnAutoMCPRequest write FOnAutoMCPRequest;
+
+    // Guardrails: si se asigna, cada tool call (local, MCP o AutoMCP) pasa por
+    // la politica ANTES de ejecutarse; un bloqueo se reporta al LLM como error
+    // JSON sin ejecutar el tool.
+    property Guardrails: TAiGuardrails read FGuardrails write SetGuardrails;
 
   End;
 
 
-  // it is necessary normalizar los formatos de llamado a las funciones seg�n el driver
+  // Es necesario normalizar los formatos de llamado a las funciones seg�n el driver
   // ya que Antrhopic, Openai y Gemini tienen sutiles diferencias.
 
-  // Internal class to represent a tool in normalized (neutral) form
+  // Clase interna para representar una herramienta de forma normalizada (neutral)
   TNormalizedTool = class
   private
     FName: string;
     FDescription: string;
     FInputSchema: TJSonObject; // Siempre clonado y de nuestra propiedad
+    FIsAsync: Boolean;
   public
     constructor Create(const AName, ADescription: string; AInputSchema: TJSonObject);
     destructor Destroy; override;
     property Name: string read FName;
     property Description: string read FDescription;
     property InputSchema: TJSonObject read FInputSchema;
+    // Sobrevive a la normalizacion para poder reemitirse en los formatos que
+    // lo entienden (hoy solo tfOpenAIResponses). Los demas lo ignoran.
+    property IsAsync: Boolean read FIsAsync write FIsAsync;
   end;
 
   TJsonToolUtils = class
@@ -456,10 +487,10 @@ type
     // Sobrecarga con detecci�n autom�tica del formato de entrada
     class function MergeToolLists(const ASourceName: string; ASourceJson: TJSonObject; ATargetJson: TJSonObject; AOutputFormat: TToolFormat): TJSonObject; overload;
 
-// Normalizes tools from a source JSON object and adds them to a list.
+    // Normaliza las herramientas de un objeto JSON fuente y las a�ade a una lista.
     class procedure NormalizeToolsFromSource(const ASourceName: string; ASourceJson: TJSonObject; ANormalizedList: TList<TNormalizedTool>);
 
-    // Formats a list of normalized tools to the desired output format.
+    // Formatea una lista de herramientas normalizadas al formato de salida deseado.
     class function FormatToolList(ANormalizedList: TList<TNormalizedTool>; AOutputFormat: TToolFormat): TJSonObject;
 
   end;
@@ -468,7 +499,7 @@ procedure Register;
 
 implementation
 
-uses uMakerAi.Chat, System.Zip, System.IniFiles;
+uses uMakerAi.Chat, System.Zip, System.IniFiles, uMakerAi.Telemetry;
 
 procedure Register;
 begin
@@ -493,6 +524,32 @@ begin
   FParams.Free;
   FScript.Free;
   inherited;
+end;
+
+// ISSUE #125: ver nota en TFunctionParamsItem.Assign.
+procedure TFunctionActionItem.Assign(Source: TPersistent);
+var
+  Src: TFunctionActionItem;
+begin
+  if Source is TFunctionActionItem then
+  begin
+    Src := TFunctionActionItem(Source);
+    FEnabled := Src.FEnabled;
+    FName := Src.FName;
+    FOnAction := Src.FOnAction;
+    FDefault := Src.FDefault;
+    FDescription.Assign(Src.FDescription);
+    FTagObject := Src.FTagObject;
+    FTag := Src.FTag;
+    FToolType := Src.FToolType;
+    FScript.Assign(Src.FScript);
+    FParams.Assign(Src.FParams);
+    FRawSchemaJson := Src.FRawSchemaJson;
+    FIsAsync := Src.FIsAsync;
+    Changed(False);
+  end
+  else
+    inherited;
 end;
 
 function TFunctionActionItem.GetDisplayName: string;
@@ -534,7 +591,7 @@ begin
       begin
         Action := TFunctionActionItem(FCollection.Items[I]);
         if (Action <> Self) and (Action is TFunctionActionItem) and (CompareText(Value, Action.FunctionName) = 0) then
-          raise Exception.Create('Duplicate action name');
+          raise Exception.Create('nombre de la acci�n duplicado');
       end;
     FName := Value;
     Changed(False);
@@ -555,7 +612,7 @@ end;
 procedure TFunctionActionItem.SetFunctionDoc(const Value: TStrings);
 begin
   If Length(Value.Text) > 1024 then
-    Raise Exception.Create('Description exceeds maximum limit of 1024 characters');
+    Raise Exception.Create('Supera el l�mite m�ximo de la descripci�n de 1024 caracteres');
 
   FDescription.Text := Value.Text;
 end;
@@ -655,7 +712,7 @@ Var
   Fun, Params: TJSonObject;
 
 begin
-  // M�s adelante pueden crear otro tipo de tools, for now solo hay funciones
+  // M�s adelante pueden crear otro tipo de tools, por ahora solo hay funciones
   Result := Nil;
 
   If (Self.Enabled) and (Self.ToolType = tt_function) then
@@ -672,7 +729,7 @@ begin
       Fun.AddPair('default', FDefault);
     End;
 
-    // Prefer RawSchemaJson (complete schema) over reconstruction from TFunctionParamsItems
+    // Preferir RawSchemaJson (schema completo) sobre la reconstrucción desde TFunctionParamsItems
     if FRawSchemaJson <> '' then
       Params := TJSonObject(TJSonObject.ParseJSONValue(FRawSchemaJson))
     else
@@ -680,6 +737,11 @@ begin
 
     If Assigned(Params) then
       Fun.AddPair('parameters', Params);
+
+    // Solo se escribe cuando es True: un "async": false explicito no aporta
+    // nada y ensuciaria el schema de los proveedores que no lo conocen.
+    If FIsAsync then
+      Fun.AddPair('async', TJSONBool.Create(True));
 
     Result.AddPair('type', 'function');
     Result.AddPair('function', Fun);
@@ -752,7 +814,7 @@ begin
   begin
     CurItem := Items[I] as TFunctionActionItem;
 
-    If (CurItem.Default and CurItem.Enabled) then // If there is a default item it is found here
+    If (CurItem.Default and CurItem.Enabled) then // Si hay alg�n item por defecto lo encuentra aqu�
       DefItem := CurItem;
 
     if (CompareText(CurItem.FunctionName, aTagName) = 0) and CurItem.Enabled then
@@ -763,7 +825,7 @@ begin
     Inc(I);
   end;
 
-  If Result = Nil then // If no match is found, the default event is used
+  If Result = Nil then // Si no se encuentra una coincidencia se env�a al evento por defecto
     Result := DefItem;
 
 end;
@@ -800,7 +862,7 @@ Var
   Item: TFunctionActionItem;
 begin
   If Not TFile.Exists(FileName) then
-    Raise Exception.Create('No se encuentra el archivo "' + FileName + '"');
+    Raise Exception.Create('No se encuentra el archivo "' + FileName + '" en el sistema');
 
   Lista := TStringStream.Create('', TEncoding.UTF8);
   try
@@ -809,7 +871,7 @@ begin
     if not (LParsed is TJSonArray) then
     begin
       LParsed.Free;
-      Raise Exception.Create('File does not contain a valid JSON array');
+      Raise Exception.Create('El archivo no contiene un array JSON v�lido');
     end;
     Funcs := TJSonArray(LParsed);
     try
@@ -922,6 +984,27 @@ begin
   inherited;
 end;
 
+// ISSUE #125: los items de coleccion necesitan Assign para el streaming de
+// formularios/datamodules heredados; sin el, TPersistent.Assign lanza
+// "Cannot assign TFunctionParamsItem to TFunctionParamsItem".
+procedure TFunctionParamsItem.Assign(Source: TPersistent);
+var
+  Src: TFunctionParamsItem;
+begin
+  if Source is TFunctionParamsItem then
+  begin
+    Src := TFunctionParamsItem(Source);
+    FName := Src.FName;
+    FParamType := Src.FParamType;
+    FRequired := Src.FRequired;
+    FDescription.Assign(Src.FDescription);
+    FEnum := Src.FEnum;
+    Changed(False);
+  end
+  else
+    inherited;
+end;
+
 function TFunctionParamsItem.GetDisplayName: string;
 begin
   Inherited GetDisplayName;
@@ -951,7 +1034,7 @@ begin
       begin
         Param := TFunctionParamsItem(FCollection.Items[I]);
         if (Param <> Self) and (Param is TFunctionParamsItem) and (CompareText(Value, Param.FName) = 0) then
-          raise Exception.Create('Duplicate parameter name');
+          raise Exception.Create('El nombre del par�metro est� duplicado');
       end;
     FName := Value;
     Changed(False);
@@ -1217,10 +1300,10 @@ end;
   NewItem: TMCPClientItem;
   begin
   if not Assigned(aMCPClient) then
-  raise Exception.Create('Attempted to add a null TMCPClient object.');
+  raise Exception.Create('Se intent� a�adir un objeto TMCPClient nulo.');
 
   if aMCPClient.Name.Trim.IsEmpty then
-  raise Exception.Create('TMCPClient must have a Name property assigned before being added.');
+  raise Exception.Create('El TMCPClient debe tener una propiedad Name asignada antes de ser a�adido.');
 
   // 1. Verificar si ya existe un cliente con el mismo nombre para evitar duplicados.
   if Assigned(FMCPClients.GetClientByName(aMCPClient.Name)) then
@@ -1233,24 +1316,24 @@ end;
   aMCPClient.OnStatusUpdate := FOnStatusUpdate;
 
   // 2. Crear un nuevo item en la colecci�n.
-  // Este Add crea un TMCPClientItem que, a su vez, crea un TMCPClientStdIo By default.
+  // Este Add crea un TMCPClientItem que, a su vez, crea un TMCPClientStdIo por defecto.
   NewItem := FMCPClients.Add;
 
-  // 3. Reemplazar el cliente By default con el que nos ha pasado el usuario.
+  // 3. Reemplazar el cliente por defecto con el que nos ha pasado el usuario.
   // Primero, liberamos el que se cre� autom�ticamente.
   FreeAndNil(NewItem.FMCPClient);
 
   // Ahora, asignamos el cliente del usuario. El NewItem se convierte en el propietario.
   NewItem.FMCPClient := aMCPClient;
 
-  // 4. Sincronizar the properties del wrapper con el estado del cliente.
-  // the properties como Name, Params, etc., ya funcionan como proxies,
+  // 4. Sincronizar las propiedades del wrapper con el estado del cliente.
+  // Las propiedades como Name, Params, etc., ya funcionan como proxies,
   // pero Enabled es una propiedad directa del TMCPClientItem.
   NewItem.Enabled := aMCPClient.Enabled;
-  NewItem.Connected := False; // Always added as not connected. Connection is a subsequent action.
+  NewItem.Connected := False; // Siempre se a�ade como no conectado. La conexi�n es una acci�n posterior.
 
   // Opcional: registrar el evento
-  DoLog(Format('MCP Client "%s" added programmatically.', [aMCPClient.Name]));
+  DoLog(Format('Cliente MCP "%s" a�adido program�ticamente.', [aMCPClient.Name]));
   end;
 }
 
@@ -1259,10 +1342,10 @@ var
   NewItem: TMCPClientItem;
 begin
   if not Assigned(aMCPClient) then
-    raise Exception.Create('Attempted to add a null TMCPClient object.');
+    raise Exception.Create('Se intent� a�adir un objeto TMCPClient nulo.');
 
   if aMCPClient.Name.Trim.IsEmpty then
-    raise Exception.Create('TMCPClient must have a Name property assigned before being added.');
+    raise Exception.Create('El TMCPClient debe tener una propiedad Name asignada antes de ser a�adido.');
 
   // 1. Verificar duplicados
   if Assigned(FMCPClients.GetClientByName(aMCPClient.Name)) then
@@ -1273,7 +1356,7 @@ begin
   aMCPClient.OnLog := FOnLog;
   aMCPClient.OnStatusUpdate := FOnStatusUpdate;
 
-  // 2. Crear nuevo item (este crea su propio FMCPClient nulo o By default y FParams VAC�OS)
+  // 2. Crear nuevo item (este crea su propio FMCPClient nulo o por defecto y FParams VAC�OS)
   NewItem := FMCPClients.Add;
 
   // 3. Reemplazar cliente interno
@@ -1283,7 +1366,7 @@ begin
 
   // 4. --- [CORRECCI�N CR�TICA] SINCRONIZACI�N INVERSA ---
   // Debemos copiar la configuraci�n del cliente real HACIA el wrapper (Item)
-  // so that el wrapper tenga la "verdad" y no sobrescriba con vac�os despu�s.
+  // para que el wrapper tenga la "verdad" y no sobrescriba con vac�os despu�s.
 
   NewItem.FParams.Assign(aMCPClient.Params); // <--- ESTO FALTABA
   NewItem.FEnvVars.Assign(aMCPClient.EnvVars); // <--- ESTO FALTABA
@@ -1291,14 +1374,44 @@ begin
   NewItem.Enabled := aMCPClient.Enabled; // Sincroniza enabled
 
   // Importante: Sincronizar el TransportType en el wrapper sin disparar la recreaci�n del cliente
-  // Accedemos a the variable privada o usamos un cast si it is necessary,
+  // Accedemos a la variable privada o usamos un cast si es necesario,
   // pero al usar la propiedad TransportType del Item, este verificar� que el objeto interno
   // ya tiene ese tipo y no lo destruir�.
   NewItem.TransportType := aMCPClient.TransportType;
 
   NewItem.Connected := False;
 
-  DoLog(Format('MCP Client "%s" added and synced.', [aMCPClient.Name]));
+  DoLog(Format('Cliente MCP "%s" a�adido y sincronizado.', [aMCPClient.Name]));
+end;
+
+procedure TAiFunctions.AddBorrowedMCPClient(aMCPClient: TMCPClientCustom);
+var
+  NewItem: TMCPClientItem;
+begin
+  if not Assigned(aMCPClient) then
+    raise Exception.Create('Se intent� a�adir un objeto TMCPClient nulo.');
+  if aMCPClient.Name.Trim.IsEmpty then
+    raise Exception.Create('El TMCPClient debe tener Name asignado.');
+  if Assigned(FMCPClients.GetClientByName(aMCPClient.Name)) then
+    raise Exception.CreateFmt('Ya existe un cliente MCP con el nombre "%s".', [aMCPClient.Name]);
+
+  // Do NOT overwrite the client's existing event handlers — the pooled client
+  // already has its log bridge wired from initialization.
+
+  NewItem := FMCPClients.Add;
+  if Assigned(NewItem.FMCPClient) then
+    FreeAndNil(NewItem.FMCPClient);
+  NewItem.FMCPClient := aMCPClient;
+  NewItem.FOwned     := False;   // pool owns the client; this item is just a reference
+
+  NewItem.FParams.Assign(aMCPClient.Params);
+  NewItem.FEnvVars.Assign(aMCPClient.EnvVars);
+  NewItem.Name          := aMCPClient.Name;
+  NewItem.Enabled       := aMCPClient.Enabled;
+  NewItem.TransportType := aMCPClient.TransportType;
+  NewItem.Connected     := False;
+
+  DoLog(Format('Cliente MCP "%s" a�adido (borrowed, no ownership).', [aMCPClient.Name]));
 end;
 
 constructor TAiFunctions.Create(AOwner: TComponent);
@@ -1333,19 +1446,48 @@ var
   ArgsObject, ResultObject: TJSonObject;
   AExtractedMedia: TObjectList<TAiMediaFile>; // Lista temporal
   MF: TAiMediaFile;
+  LSpan: TAiSpan;
 begin
   Result := False;
 
   AExtractedMedia := TObjectList<TAiMediaFile>.Create;
 
+  // Telemetria: span por ejecucion de tool (GenAI semconv). Se anida
+  // automaticamente al span del turno de chat cuando corre en el mismo hilo.
+  LSpan := AiSpanStart('execute_tool ' + ToolCall.Name);
+  AiSpanAttr(LSpan, 'gen_ai.operation.name', 'execute_tool');
+  AiSpanAttr(LSpan, 'gen_ai.tool.name', ToolCall.Name);
+
   try
     if SameText(Copy(ToolCall.Name, 1, Length('local' + MCP_TOOL_SEP)), 'local' + MCP_TOOL_SEP) then
       ToolCall.Name := Copy(ToolCall.Name, Length('local' + MCP_TOOL_SEP) + 1, Length(ToolCall.Name));
 
+    // Guardrails: politica de seguridad previa a CUALQUIER ejecucion de tool
+    // (local, MCP o AutoMCP). Si bloquea, el tool NO se ejecuta y el LLM
+    // recibe el motivo como error para que pueda replantear su plan.
+    if Assigned(FGuardrails) then
+    begin
+      var LGuardReason: string;
+      if not FGuardrails.CheckToolCall(ToolCall.Name, ToolCall.Arguments, LGuardReason) then
+      begin
+        var LErrObj := TJSonObject.Create;
+        try
+          LErrObj.AddPair('error', 'Blocked by guardrails: ' + LGuardReason);
+          ToolCall.Response := LErrObj.ToJSON;
+        finally
+          LErrObj.Free;
+        end;
+        AiSpanAttr(LSpan, 'guardrail.blocked', True);
+        DoLog('Guardrails bloqueo el tool "' + ToolCall.Name + '": ' + LGuardReason);
+        Result := True; // atendido: se reporta al LLM sin ejecutar el tool
+        Exit;
+      end;
+    end;
+
     PosAt := Pos(MCP_TOOL_SEP, ToolCall.Name);
 
     // AutoMCP: despachar a handlers internos antes de buscar en FFunctions.
-    // Lazy init: creates functions if Active=True but do not exist yet.
+    // Lazy init: crea las funciones si Active=True pero aún no existen.
     if FAutoMCPConfig.Active and (PosAt = 0) then
     begin
       if FAutoMCPFunctions.Count = 0 then
@@ -1370,7 +1512,7 @@ begin
       end;
     end;
 
-    if PosAt = 0 then // --- Is a local function ---
+    if PosAt = 0 then // --- Es una función local ---
     begin
       Funcion := FFunctions.GetFunction(ToolCall.Name);
       if Assigned(Funcion) and Assigned(Funcion.OnAction) then
@@ -1384,7 +1526,6 @@ begin
       ClientItem := FMCPClients.GetClientByName(ServerName);
       if Assigned(ClientItem) and ClientItem.Enabled and ClientItem.MCPClient.Available then
       begin
-        ArgsObject := nil;
         ResultObject := nil;
         try
           ClientItem.MCPClient.OnLog := FOnLog;
@@ -1396,7 +1537,7 @@ begin
           else
           begin
             LParsedArgs.Free;
-            ArgsObject := TJSonObject.Create; // Fallback: empty object if Arguments is ''
+            ArgsObject := TJSonObject.Create; // Fallback: objeto vac�o si Arguments es ''
           end;
           ResultObject := ClientItem.MCPClient.CallTool(ActualToolName, ArgsObject, AExtractedMedia);
 
@@ -1407,13 +1548,13 @@ begin
 
             If AExtractedMedia.Count > 0 then
             Begin
-              // Extracted files → ToolCall.MediaFiles (drivers transfer them
-              // al ToolMsg so that el LLM los vea en el siguiente turno).
-              // Adicionalmente, se clonan al ResMsg so that el app los reciba
+              // Archivos extraídos → ToolCall.MediaFiles (los drivers los transfieren
+              // al ToolMsg para que el LLM los vea en el siguiente turno).
+              // Adicionalmente, se clonan al ResMsg para que el app los reciba
               // en OnReceiveDataEnd sin conflictos de ownership.
               For MF In AExtractedMedia do
               Begin
-                ToolCall.MediaFiles.Add(MF); // original → ToolMsg (via driver)
+                ToolCall.MediaFiles.Add(MF); // original → ToolMsg (vía driver)
 
                 If Assigned(ToolCall.ResMsg) then
                 Begin
@@ -1440,32 +1581,53 @@ begin
         except
           on E: Exception do
           begin
-            // ArgsObject no Is freed aqui�: CallTool toma ownership del objeto.
+            // ArgsObject no se libera aqui�: CallTool toma ownership del objeto.
             // Si la excepci�n ocurre ANTES de CallTool, ArgsObject se pierde,
             // pero es preferible a un double-free si ocurre DESPU�S.
             FreeAndNil(ResultObject);
             ClientItem.MCPClient.Available := False;
             ToolCall.Response := Format('{"error":"%s"}',
               [StringReplace(E.Message, '"', '\"', [rfReplaceAll])]);
-            Result := True; // Devolver True so that el LLM reciba el mensaje de error
+            Result := True; // Devolver True para que el LLM reciba el mensaje de error
           end;
         end;
       end
       else
       begin
-        // Cliente no encontrado, deshabilitado o no disponible.
-        // Set Response so the driver can send a valid tool result to the LLM.
-        if not Assigned(ClientItem) then
-          ToolCall.Response := Format('{"error":"MCP server ''%s'' not found"}', [ServerName])
-        else if not ClientItem.Enabled then
-          ToolCall.Response := Format('{"error":"MCP server ''%s'' is disabled"}', [ServerName])
+        // El nombre contiene MCP_TOOL_SEP pero NO hay servidor MCP que lo
+        // respalde. Antes de dar el error, se busca por nombre COMPLETO en las
+        // funciones registradas: '_99_' es una convencion interna nuestra, no
+        // una secuencia reservada, y quien declara una tool tiene todo el
+        // derecho a llamarla 'alfa_99_beta'. Sin esta salida, una tool asi
+        // quedaba muda: se respondia 'MCP server not found' y el modelo se
+        // inventaba una explicacion sobre un servidor caido en vez de emitir
+        // el tool_call.
+        Funcion := FFunctions.GetFunction(ToolCall.Name);
+        if Assigned(Funcion) and Assigned(Funcion.OnAction) then
+          Funcion.OnAction(Self, Funcion, ToolCall.Name, ToolCall, Result)
         else
-          ToolCall.Response := Format('{"error":"MCP server ''%s'' is not available"}', [ServerName]);
-        Result := True;
+        begin
+          // Cliente no encontrado, deshabilitado o no disponible.
+          // Setear Response para que el driver pueda enviar un tool result válido al LLM.
+          if not Assigned(ClientItem) then
+            ToolCall.Response := Format('{"error":"MCP server ''%s'' not found"}', [ServerName])
+          else if not ClientItem.Enabled then
+            ToolCall.Response := Format('{"error":"MCP server ''%s'' is disabled"}', [ServerName])
+          else
+            ToolCall.Response := Format('{"error":"MCP server ''%s'' is not available"}', [ServerName]);
+          Result := True;
+        end;
       end;
     end;
 
   finally
+    // Telemetria: un ToolCall.Response con '"error"' marca el span como fallido
+    if Result and Assigned(LSpan) and (Pos('"error"', ToolCall.Response) > 0) then
+      AiSpanEnd(LSpan, 'tool returned error response')
+    else if not Result then
+      AiSpanEnd(LSpan, 'tool not found or not handled')
+    else
+      AiSpanEnd(LSpan);
     // Liberamos la lista temporal.
     // Si transferimos los archivos, OwnsObjects estar� en False y no los borrar�.
     // Si fall� algo, OwnsObjects estar� en True y borrar� los temporales para no dejar fugas.
@@ -1479,6 +1641,23 @@ begin
   if Assigned(FOnLog) then
     FOnLog(Self, Msg);
 
+end;
+
+procedure TAiFunctions.SetGuardrails(const Value: TAiGuardrails);
+begin
+  if FGuardrails <> Value then
+  begin
+    FGuardrails := Value;
+    if Assigned(FGuardrails) then
+      FGuardrails.FreeNotification(Self);
+  end;
+end;
+
+procedure TAiFunctions.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+  if (Operation = opRemove) and (AComponent = FGuardrails) then
+    FGuardrails := nil;
 end;
 
 procedure TAiFunctions.DoStatusUpdate(const StatusMsg: string);
@@ -1501,12 +1680,12 @@ begin
   try
     JsonString := GetTools(TToolFormat.tfOpenAI);
 
-    // Parse the JSON as an array
+    // Parsear el JSON como array
     var LParsedVal := TJSonObject.ParseJSONValue(JsonString);
     if not (LParsedVal is TJSonArray) then
     begin
       LParsedVal.Free;
-      raise Exception.Create('Invalid JSON or not an array');
+      raise Exception.Create('JSON inv�lido o no es un array');
     end;
     JsonArray := TJSonArray(LParsedVal);
 
@@ -1531,7 +1710,7 @@ begin
                 if NameValue <> nil then
                 begin
                   FunctionName := NameValue.Value;
-                  // Replace MCP separator with --> for display
+                  // Reemplazar separador MCP por --> para visualización
                   FunctionName := StringReplace(FunctionName, MCP_TOOL_SEP, '-->', [rfReplaceAll]);
                   Result.Add(FunctionName);
                 end;
@@ -1572,11 +1751,11 @@ end;
   Exit;
 
 
-  // Parse the JSON
+  // Parsear el JSON
   JsonObj := TJSonObject.ParseJSONValue(JsonString) as TJSonObject;
 
   if JsonObj = nil then
-  raise Exception.Create('Invalid JSON');
+  raise Exception.Create('JSON inv�lido');
 
   try
   // Obtener el array "tools"
@@ -1629,13 +1808,13 @@ end;
   // 1. Obtener las funciones locales
   LocalToolsArray := FFunctions.ToJSon;
 
-  // 2. Create the final JSON object that will contain all tools
+  // 2. Crear el objeto JSON final que contendr� todas las herramientas
   MergedToolsObj := TJSonObject.Create;
-  // We add local tools to the new tools array.
-  // Usamos Clone so that MergedToolsObj sea el due�o de the data.
+  // Agregamos las herramientas locales al nuevo array de herramientas.
+  // Usamos Clone para que MergedToolsObj sea el due�o de los datos.
   MergedToolsObj.AddPair('tools', TJSonObject(LocalToolsArray.Clone));
 
-  // 3. Iterate over MCP clients and merge their tools
+  // 3. Iterar sobre los clientes MCP y fusionar sus herramientas
 
   if not(csDesigning in ComponentState) then
   Begin
@@ -1646,7 +1825,7 @@ end;
 
   if ClientItem.Enabled then
   begin
-  // Initialize the client if not already done. This gets the tool list.
+  // Inicializar el cliente si no lo ha sido ya. Esto obtiene la lista de herramientas.
   if not ClientItem.MCPClient.Initialized then
   ClientItem.MCPClient.Initialize;
 
@@ -1661,8 +1840,8 @@ end;
   begin
   SourceJson := TJSonObject(JsonValue);
   try
-  // Use the helper function to merge the tools
-  // Asumimos el formato OpenAI como un est�ndar com�n for the salida
+  // Usar la funci�n de ayuda para fusionar las herramientas
+  // Asumimos el formato OpenAI como un est�ndar com�n para la salida
 
   // TJsonToolUtils.MergeToolLists(ClientItem.Name, SourceJson, MergedToolsObj, TToolFormat.tfOpenAI);
   TJsonToolUtils.MergeToolLists(ClientItem.Name, SourceJson, MergedToolsObj, aToolFormat);
@@ -1725,11 +1904,16 @@ begin
     LocalToolsObj := TJSonObject.Create;
     var LLocalTools := FFunctions.ToJSon;
     LocalToolsObj.AddPair('tools', LLocalTools);
-    TJsonToolUtils.NormalizeToolsFromSource('local', LocalToolsObj, LAllNormalizedTools); // Use 'local' or an empty name
+    // Fuente vacia = SIN prefijo: las funciones locales viajan al proveedor con su
+    // nombre real. El prefijo 'local_99_' confundia a Claude en continuaciones
+    // multi-turn (con el tool_use del historial renombrado, re-ejecutaba la tool en
+    // vez de responder). El dispatch no lo necesita: DoCallFunction resuelve nombres
+    // sin separador como funcion local, y sigue aceptando 'local_99_' legado.
+    TJsonToolUtils.NormalizeToolsFromSource('', LocalToolsObj, LAllNormalizedTools);
 
     // 1b. FUNCIONES INTERNAS DE AUTOMCP (ppm_search, ppm_install, call_mcp_tool)
-    // Lazy init: if Active=True but functions do not exist yet (e.g. Active activated
-    // at runtime after Loaded), creates them now.
+    // Lazy init: si Active=True pero las funciones aún no existen (ej: Active activado
+    // en runtime después de Loaded), las crea ahora.
     if FAutoMCPConfig.Active and not (csDesigning in ComponentState) then
     begin
       if FAutoMCPFunctions.Count = 0 then
@@ -1737,7 +1921,9 @@ begin
       var LAutoObj := TJSonObject.Create;
       try
         LAutoObj.AddPair('tools', FAutoMCPFunctions.ToJSon);
-        TJsonToolUtils.NormalizeToolsFromSource('local', LAutoObj, LAllNormalizedTools);
+        // Igual que las locales: sin prefijo (ppm_search/ppm_install/call_mcp_tool
+        // se despachan por nombre limpio en DoCallFunction).
+        TJsonToolUtils.NormalizeToolsFromSource('', LAutoObj, LAllNormalizedTools);
       finally
         LAutoObj.Free;
       end;
@@ -1779,7 +1965,7 @@ begin
     // 3. FORMATEAR LA LISTA MAESTRA COMPLETA AL FINAL
     FinalToolsObj := TJsonToolUtils.FormatToolList(LAllNormalizedTools, aToolFormat);
 
-    // Extract the 'tools' array for the final result
+    // Extraer el array 'tools' para el resultado final
     Var
       LResultArray: TJSonArray;
     if FinalToolsObj.TryGetValue<TJSonArray>('tools', LResultArray) then
@@ -1807,7 +1993,7 @@ begin
   Result := 0;
   LFinalPath := AJsonFilePath;
 
-  // Si no se especifica ruta, usar la ruta efectiva of the component
+  // Si no se especifica ruta, usar la ruta efectiva del componente
   if LFinalPath.IsEmpty then
     LFinalPath := GetEffectiveMCPConfigPath;
 
@@ -1824,7 +2010,7 @@ begin
 
     if LJsonContent.Trim.IsEmpty then
     begin
-      DoLog('ImportClaude: File is empty.');
+      DoLog('ImportClaude: El archivo est� vac�o.');
       Exit;
     end;
 
@@ -1847,7 +2033,7 @@ begin
     begin
       if Assigned(LJsonValue) then
         LJsonValue.Free;
-      DoLog('ImportClaude: Content is not a valid JSON object.');
+      DoLog('ImportClaude: El contenido no es un objeto JSON v�lido.');
     end;
 
   except
@@ -1873,16 +2059,16 @@ begin
     end;
   end;
 
-  // Automatic loading of MCP servers from JSON file (Claude Desktop format)
+  // Carga automática de servidores MCP desde archivo JSON (formato Claude Desktop)
   if FAutoMCPConfig.AutoLoad and not (csDesigning in ComponentState) then
   begin
     var LCount := ImportClaudeMCPConfiguration(FAutoMCPConfig.ConfigFile);
     if LCount > 0 then
-      DoLog(Format('AutoLoad: %d MCP server(s) loaded from config.', [LCount]));
+      DoLog(Format('AutoLoad: %d servidor(es) MCP cargado(s) desde configuración.', [LCount]));
   end;
 
   // AutoMCP: las funciones internas se crean de forma lazy en GetTools/DoCallFunction.
-  // InitAutoMCP can be called manually to force initialization at runtime.
+  // InitAutoMCP puede llamarse manualmente para forzar la inicialización en runtime.
 end;
 
 // =============================================================================
@@ -1941,7 +2127,7 @@ end;
   for I := 0 to ArgsArray.Count - 1 do
   begin
   ArgValStr := ArgsArray.Items[I].Value;
-  // Manejo de espacios en argumentos: Envolver en comillas si it is necessary
+  // Manejo de espacios en argumentos: Envolver en comillas si es necesario
   if (Pos(' ', ArgValStr) > 0) and (not ArgValStr.StartsWith('"')) then
   ArgValStr := '"' + ArgValStr + '"';
 
@@ -1962,7 +2148,7 @@ end;
   end;
   end;
 
-// Default root directory (optional)
+  // Directorio ra�z por defecto (opcional)
   NewClient.Params.Values['RootDir'] := TPath.GetHomePath;
 
   // 3. Agregar a la colecci�n central
@@ -2016,7 +2202,7 @@ begin
   // Intentamos encontrar el nodo ra�z
   if not AConfig.TryGetValue<TJSonObject>('mcpServers', LMcpServers) then
   begin
-    DoLog('ImportClaude: Node "mcpServers" not found.');
+    DoLog('ImportClaude: No se encontr� el nodo "mcpServers".');
     Exit;
   end;
 
@@ -2057,13 +2243,13 @@ begin
         LClientItem.Params.Values['Arguments'] := LArgsString.Trim;
       end;
 
-      // RootDir By default
+      // RootDir por defecto
       LClientItem.Params.Values['RootDir'] := TPath.GetHomePath;
     end
     // --- CASO B: Servidor Remoto (URL / SSE) ---
     else if LServerObj.TryGetValue<string>('url', LUrl) then
     begin
-      LClientItem.TransportType := tpSSE; // Standard for remote MCP
+      LClientItem.TransportType := tpSSE; // Est�ndar para MCP remoto
       LClientItem.Params.Values['URL'] := LUrl;
     end;
 
@@ -2083,7 +2269,7 @@ begin
     LClientItem.UpdateClientProperties;
 
     Inc(Result);
-    DoLog(Format('ImportClaude: Server "%s" loaded successfully.', [LServerName]));
+    DoLog(Format('ImportClaude: Servidor "%s" cargado exitosamente.', [LServerName]));
   end;
 end;
 
@@ -2144,7 +2330,7 @@ begin
       if LResponse.StatusCode = 200 then
         Result := LResponse.ContentAsString(TEncoding.UTF8);
     except
-      // Network error: returns empty
+      // Error de red: retorna vacío
     end;
   finally
     LClient.Free;
@@ -2180,8 +2366,8 @@ begin
   end;
 end;
 
-// Resolves the version to use: if AVersion is not empty returns it directly;
-// if empty queries /v1/packages/:name and returns the latest non-yanked version.
+// Resuelve la versión a usar: si AVersion no está vacío la retorna directamente;
+// si está vacío consulta /v1/packages/:name y devuelve la última versión no-yanked.
 function PPMResolveVersion(const ARegistryUrl, AName, AVersion: String): String;
 var
   LBody: String;
@@ -2223,9 +2409,9 @@ end;
 
 // Extrae el contenido de un .paipkg (ZIP) a ADestDir y devuelve la ruta
 // completa del entrypoint declarado en pai.package [mcp] entrypoint=...
-// If no manifest, tries to find the first .exe (Windows) or binary
-// without extension (Linux) in the ZIP root.
-// Returns '' if could not extract or entrypoint not found.
+// Si no hay manifiesto, intenta encontrar el primer .exe (Windows) o binario
+// sin extensión (Linux) en la raíz del ZIP.
+// Retorna '' si no se pudo extraer o no se encontró el entrypoint.
 function PPMExtractBinary(const APaipkgPath, ADestDir: String): String;
 var
   LZip       : TZipFile;
@@ -2247,7 +2433,7 @@ begin
   try
     LZip.Open(APaipkgPath, zmRead);
     try
-      // Extract all files to the destination directory preserving structure
+      // Extraer todos los archivos al directorio de destino preservando estructura
       for I := 0 to LZip.FileCount - 1 do
       begin
         LFileName := LZip.FileName[I];
@@ -2278,7 +2464,7 @@ begin
           on E: EFCreateError do
           begin
             // Archivo en uso (proceso MCP corriendo) — saltear y continuar.
-            // If the entrypoint already exists we will use it in the manifest step.
+            // Si el entrypoint ya existe lo usaremos en el paso de manifiesto.
           end;
         end;
       end;
@@ -2289,7 +2475,7 @@ begin
     LZip.Free;
   end;
 
-  // Read entrypoint from pai.package manifest
+  // Leer entrypoint del manifiesto pai.package
   LManifest := TPath.Combine(ADestDir, 'pai.package');
   LEntrypoint := '';
   if TFile.Exists(LManifest) then
@@ -2323,8 +2509,8 @@ begin
     end;
   end;
 
-  // Fallback: first .exe on Windows, or first file without extension on Linux
-  // Recursive search to support packages with bin/win64/ structure
+  // Fallback: primer .exe en Windows, o primer archivo sin extensión en Linux
+  // Búsqueda recursiva para soportar paquetes con estructura bin/win64/
   if TDirectory.Exists(ADestDir) then
   begin
 {$IFDEF MSWINDOWS}
@@ -2354,7 +2540,7 @@ end;
 
 procedure TAiFunctions.OnAutoMCPActiveChanged(Sender: TObject);
 // Llamado cuando AutoMCPConfig.Active cambia en runtime.
-// Active=True  → creates functions if they do not exist yet (lazy).
+// Active=True  → crea las funciones si aún no existen (lazy).
 // Active=False → limpia FAutoMCPFunctions para un estado limpio al reactivar.
 begin
   if csDesigning in ComponentState then Exit;
@@ -2372,10 +2558,10 @@ begin
 end;
 
 procedure TAiFunctions.InitAutoMCP;
-// Forces creation of the 3 internal PPM functions at runtime.
-// Normalmente NO it is necessary llamarlo — las funciones se crean in a lazy
+// Fuerza la creación de las 3 funciones internas PPM en runtime.
+// Normalmente NO es necesario llamarlo — las funciones se crean de forma lazy
 // en el primer GetTools() o DoCallFunction() cuando Active=True.
-// Useful if the developer needs the functions to exist before the first chat
+// Útil si el developer necesita que las funciones existan antes del primer chat
 // (ej: para mostrar el system prompt con las funciones ya listadas).
 begin
   if csDesigning in ComponentState then Exit;
@@ -2397,7 +2583,7 @@ begin
   LFn := TFunctionActionItem(FAutoMCPFunctions.Add);
   LFn.FunctionName := 'ppm_search';
   LFn.Description.Text :=
-    'Search for MCP tools in the PPM registry (registry.pascalai.org). ' +
+    'Search for MCP tools in the PPM registry (registry.cimamaker.com). ' +
     'Returns a list of available tools matching the query with their names, ' +
     'descriptions and available functions. Call this before ppm_install.';
   LFn.Enabled := True;
@@ -2475,7 +2661,7 @@ begin
   LResult := SearchPPMMCP(LQuery, 1, 20, FAutoMCPConfig.RegistryUrl);
   if not Assigned(LResult) then
   begin
-    ToolCall.Response := 'Could not connect to PPM registry. Check your internet connection.';
+    ToolCall.Response := 'No se pudo conectar con el registry PPM. Verifica la conexión a Internet.';
     Exit;
   end;
 
@@ -2492,7 +2678,7 @@ begin
         LTool.TryGetValue<string>('name', LName);
         LTool.TryGetValue<string>('description', LDesc);
         LTool.TryGetValue<string>('version', LVer);
-        // Apply Allowed/Blocked policy before showing to LLM
+        // Aplicar política Allowed/Blocked antes de mostrar al LLM
         if not IsAutoMCPAllowed(LName) then
         begin
           Inc(LFiltered);
@@ -2504,19 +2690,19 @@ begin
 
       if LShown > 0 then
       begin
-        // Insertar encabezado at the beginning del resultado
+        // Insertar encabezado al inicio del resultado
         var LHeader := Format('Se encontraron %d herramientas para "%s":', [LShown, LQuery]);
         if LFiltered > 0 then
-          LHeader := LHeader + Format(' (%d blocked by policy)', [LFiltered]);
+          LHeader := LHeader + Format(' (%d bloqueadas por política)', [LFiltered]);
         ToolCall.Response := LHeader + sLineBreak + LSb.ToString +
           sLineBreak + 'Para usar una herramienta: llama ppm_install("<nombre>"), luego call_mcp_tool.';
       end
       else if LFiltered > 0 then
         ToolCall.Response := Format(
-          'Found %d tools for "%s" but all are blocked by AutoMCP policy.',
+          'Se encontraron %d herramientas para "%s" pero todas están bloqueadas por la política AutoMCP.',
           [LFiltered, LQuery])
       else
-        ToolCall.Response := Format('No tools found for "%s" in the PPM registry.', [LQuery]);
+        ToolCall.Response := Format('No se encontraron herramientas para "%s" en el registry PPM.', [LQuery]);
     end
     else
       ToolCall.Response := Format('No se encontraron herramientas para "%s" en el registry PPM.', [LQuery]);
@@ -2551,7 +2737,7 @@ begin
     Exit;
   end;
 
-  // Check whitelist/blacklist policy
+  // Verificar política de whitelist/blacklist
   if not IsAutoMCPAllowed(LToolName) then
   begin
     ToolCall.Response := Format(
@@ -2563,11 +2749,11 @@ begin
   DoLog('[AutoMCP] ppm_install: "' + LToolName + '"' + IfThen(LForce, ' (force)', ''));
   DoStatusUpdate('Instalando "' + LToolName + '" desde PPM...');
 
-  // Register the attempt BEFORE installing to avoid infinite loops in case of error
+  // Registrar el intento ANTES de instalarlo para evitar bucles infinitos en caso de error
   if FInstalledPackages.IndexOf(LowerCase(LToolName)) < 0 then
     FInstalledPackages.Add(LowerCase(LToolName));
 
-  // If already registered: reuse unless force=true
+  // Si ya está registrado: reutilizar salvo que force=true
   LItem := FMCPClients.GetClientByName(LToolName);
   if Assigned(LItem) and not LForce then
     DoLog('[AutoMCP] "' + LToolName + '" ya instalado, reutilizando.')
@@ -2579,13 +2765,13 @@ begin
       DoLog('[AutoMCP] "' + LToolName + '" force reinstall — deteniendo proceso previo.');
       LItem.MCPClient.Disconnect;
     end;
-    LItem := InstallMCPFromPPM(LToolName, '', '', FAutoMCPConfig.RegistryUrl);
+    LItem := InstallMCPFromPPM(LToolName, '', FAutoMCPConfig.WorkingDir, FAutoMCPConfig.RegistryUrl);
   end;
 
   if not Assigned(LItem) then
   begin
     ToolCall.Response := Format(
-      '{"ok":false,"error":"Could not install ''%s''. Check the package name on PPM and your internet connection. Do not attempt to install this package again in this session."}',
+      '{"ok":false,"error":"No se pudo instalar ''%s''. Verifica el nombre del paquete en PPM y la conexión a internet. No intentes instalar este paquete nuevamente en esta sesión."}',
       [LToolName]);
     Exit;
   end;
@@ -2621,7 +2807,7 @@ begin
 
     if LFuncList <> '' then
       ToolCall.Response := Format(
-        '{"ok":true,"message":"''%s'' ready. REQUIRED ACTION: call call_mcp_tool NOW with tool_name=''%s'' y function_name=uno de [%s] con los argumentos originales. NO llames ppm_search."}',
+        '{"ok":true,"message":"''%s'' listo. ACCIÓN REQUERIDA: llama AHORA call_mcp_tool con tool_name=''%s'' y function_name=uno de [%s] con los argumentos originales. NO llames ppm_search."}',
         [LToolName, LToolName, LFuncList])
     else
       ToolCall.Response := Format(
@@ -2660,7 +2846,7 @@ begin
   end;
 
   // Normalizar LFuncName: el LLM puede enviar el nombre combinado "server_99_func"
-  // (result of normalization in GetTools). Extract the part after the last MCP_TOOL_SEP.
+  // (resultado de la normalización en GetTools). Extraemos la parte después del último MCP_TOOL_SEP.
   if Pos(MCP_TOOL_SEP, LFuncName) > 0 then
   begin
     var LSepIdx := Pos(MCP_TOOL_SEP, LFuncName);
@@ -2680,7 +2866,7 @@ begin
   if not Assigned(LClientItem) then
   begin
     ToolCall.Response := Format(
-      '{"error":"Tool ''%s'' is not installed. Use ppm_install first."}',
+      '{"error":"Herramienta ''%s'' no está instalada. Usa ppm_install primero."}',
       [LToolName]);
     Exit;
   end;
@@ -2691,14 +2877,14 @@ begin
   if not LClientItem.MCPClient.Available then
   begin
     ToolCall.Response := Format(
-      '{"error":"MCP server ''%s'' is not available. It may require reinstallation."}',
+      '{"error":"MCP server ''%s'' no está disponible. Puede requerir reinstalación."}',
       [LToolName]);
     Exit;
   end;
 
   // Resolver el nombre exacto del tool en el servidor (dash vs underscore).
-  // If name does not match any known function, return error with the
-  // list of valid names for the LLM to use directly.
+  // Si el nombre no coincide con ninguna función conocida, devuelve error con la
+  // lista de nombres válidos para que el LLM los use directamente.
   if LFuncName <> '' then
   begin
     var LFuncFound := False;
@@ -2728,11 +2914,11 @@ begin
       finally
         LToolsRoot.Free;
       end;
-      // If name not found and we have the list, return error with valid names
+      // Si el nombre no se encontró y tenemos la lista, devolver error con nombres válidos
       if not LFuncFound and (LValidFuncs.Count > 0) then
       begin
         ToolCall.Response := Format(
-          '{"error":"Function ''%s'' does not exist in ''%s''. Valid names: [%s]. Use one of these exactly."}',
+          '{"error":"La función ''%s'' no existe en ''%s''. Nombres válidos: [%s]. Usa uno de estos exactamente."}',
           [LFuncName, LToolName, LValidFuncs.CommaText]);
         Exit;
       end;
@@ -2746,7 +2932,7 @@ begin
   try
     LArgsJson := TJSONObject.ParseJSONValue(LArgStr) as TJSONObject;
     if not Assigned(LArgsJson) then
-      LArgsJson := TJSONObject.Create; // fallback: empty object
+      LArgsJson := TJSONObject.Create; // fallback: objeto vacío
 
     LExtractedMedia := TObjectList<TAiMediaFile>.Create;
     try
@@ -2756,10 +2942,10 @@ begin
           ToolCall.Response := LResult.ToJson
         else
           ToolCall.Response := Format(
-            '{"error":"MCP server ''%s'' did not respond to call ''+LFuncName+''"}',
+            '{"error":"MCP server ''%s'' no respondió a la llamada ''+LFuncName+''"}',
             [LToolName]);
 
-        // Propagate extracted media files to ToolCall (images, audio, etc.)
+        // Propagar archivos media extraídos al ToolCall (imágenes, audio, etc.)
         for MF in LExtractedMedia do
         begin
           ToolCall.MediaFiles.Add(MF);
@@ -2791,28 +2977,28 @@ begin
   LSb := TStringBuilder.Create;
   try
     LSb.AppendLine(
-      'You have access to the PPM registry (PascalAI Package Manager) with over 150 ' +
-      'MCP tools covering GitHub, PostgreSQL, Slack, Jira, Stripe, DuckDB, ' +
-      'Kubernetes, AWS S3, Azure, Kafka, GraphQL and many more.');
+      'Tienes acceso al registry PPM (PascalAI Package Manager) con más de 150 ' +
+      'herramientas MCP que cubren GitHub, PostgreSQL, Slack, Jira, Stripe, DuckDB, ' +
+      'Kubernetes, AWS S3, Azure, Kafka, GraphQL y muchas más.');
     LSb.AppendLine;
-    LSb.AppendLine('When the user asks you for something that requires access to external services, ' +
-      'act AUTONOMOUSLY following this flow without asking for permission:');
-    LSb.AppendLine('  1. Call ppm_search with keywords to find the right tool.');
-    LSb.AppendLine('  2. Call ppm_install with the exact package name to install it.');
-    LSb.AppendLine('  3. Call call_mcp_tool with the tool name, function name, and JSON arguments.');
+    LSb.AppendLine('Cuando el usuario te pida algo que requiere acceso a servicios externos, ' +
+      'actúa de forma AUTÓNOMA siguiendo este flujo sin pedir permiso:');
+    LSb.AppendLine('  1. Llama a ppm_search con palabras clave para encontrar la herramienta adecuada.');
+    LSb.AppendLine('  2. Llama a ppm_install con el nombre exacto del paquete para instalarlo.');
+    LSb.AppendLine('  3. Llama a call_mcp_tool con el nombre del tool, la función y los argumentos JSON.');
     LSb.AppendLine;
-    LSb.AppendLine('Conventions:');
-    LSb.AppendLine('- Package names follow the pattern mcp-<service> (e.g., mcp-github, mcp-postgres).');
-    LSb.AppendLine('- call_mcp_tool arguments must be valid JSON as a string.');
-    LSb.AppendLine('- Respond in the same language as the user.');
-    LSb.AppendLine('- For audio/TTS tools: always request WAV format if the tool supports it (parameter format="wav" or similar). Only use MP3 or other formats if WAV is not available.');
+    LSb.AppendLine('Convenciones:');
+    LSb.AppendLine('- Los nombres de paquetes siguen el patrón mcp-<servicio> (ej: mcp-github, mcp-postgres).');
+    LSb.AppendLine('- Los argumentos de call_mcp_tool deben ser un JSON válido como string.');
+    LSb.AppendLine('- Responde en el mismo idioma que el usuario.');
+    LSb.AppendLine('- Para herramientas de audio/TTS: solicita siempre formato WAV si el tool lo soporta (parámetro format="wav" o similar). Solo usa MP3 u otros formatos si WAV no está disponible.');
     LSb.AppendLine;
-    LSb.AppendLine('CRITICAL EXECUTION RULES (mandatory):');
-    LSb.AppendLine('- Execute tools SEQUENTIALLY, one at a time. Always wait for the result of call_mcp_tool before calling any other tool.');
-    LSb.AppendLine('- If you already have an ACTIVE tool that can solve the task, use it DIRECTLY. Do NOT call ppm_search or ppm_install in parallel while call_mcp_tool is running.');
-    LSb.AppendLine('- NEVER call ppm_search after call_mcp_tool has executed the operation (successful or with error). ppm_search is only for discovering new tools, not for retrying.');
-    LSb.AppendLine('- If call_mcp_tool returns a network, authentication, credentials, or permissions error: report the error directly to the user. Do NOT look for alternative tools.');
-    LSb.AppendLine('- If call_mcp_tool returns "function not found": use the valid names indicated in the error and retry ONCE. If it still fails, report to the user.');
+    LSb.AppendLine('REGLAS CRÍTICAS DE EJECUCIÓN (obligatorias):');
+    LSb.AppendLine('- Ejecuta las herramientas de forma SECUENCIAL, una a la vez. Espera siempre el resultado de call_mcp_tool antes de llamar a cualquier otra herramienta.');
+    LSb.AppendLine('- Si ya tienes una herramienta ACTIVA que puede resolver la tarea, úsala DIRECTAMENTE. NO llames a ppm_search ni ppm_install en paralelo mientras call_mcp_tool está en ejecución.');
+    LSb.AppendLine('- NUNCA llames ppm_search después de que call_mcp_tool ejecutó la operación (exitosa o con error). ppm_search solo sirve para descubrir herramientas nuevas, no para reintentar.');
+    LSb.AppendLine('- Si call_mcp_tool devuelve un error de red, autenticación, credenciales o permisos: reporta el error directamente al usuario. NO busques herramientas alternativas.');
+    LSb.AppendLine('- Si call_mcp_tool devuelve "función no encontrada": usa los nombres válidos que indica el error y reintenta UNA vez. Si sigue fallando, reporta al usuario.');
 
     // Clasificar clientes habilitados: activos (proceso corriendo) vs registrados (proceso no iniciado)
     var LHasActive := False;
@@ -2826,16 +3012,16 @@ begin
           LHasRegistered := True;
       end;
 
-    // Active servers: skip ppm_search and ppm_install; include exact list of tools with parameters
+    // Servidores activos: saltar ppm_search y ppm_install; incluir lista exacta de tools con parámetros
     if LHasActive then
     begin
       LSb.AppendLine;
-      LSb.AppendLine('ACTIVE MCP TOOLS (process already running — skip ppm_search and ppm_install, go directly to step 3):');
-      LSb.AppendLine('IMPORTANT: use EXCLUSIVELY the function names and parameters indicated here. Do not invent names.');
+      LSb.AppendLine('HERRAMIENTAS MCP ACTIVAS (proceso ya corriendo — omite ppm_search y ppm_install, ve directo al paso 3):');
+      LSb.AppendLine('IMPORTANTE: usa EXCLUSIVAMENTE los nombres de función y parámetros indicados aquí. No inventes nombres.');
       for I := 0 to FMCPClients.Count - 1 do
         if FMCPClients[I].Enabled and FMCPClients[I].MCPClient.Available then
         begin
-          // If the tools cache is empty (server loaded from config without Initialize),
+          // Si el cache de tools está vacío (servidor cargado desde config sin Initialize),
           // llamar Initialize ahora para poblar el cache antes de construir el prompt
           if FMCPClients[I].MCPClient.Tools.Text.IsEmpty then
             FMCPClients[I].MCPClient.Initialize;
@@ -2856,7 +3042,7 @@ begin
                   if TJSONObject(LTool).TryGetValue<string>('name', LName) then
                   begin
                     LSb.Append('  ' + FMCPClients[I].Name + ' / ' + LName);
-                    // Extract parameters from inputSchema
+                    // Extraer parámetros del inputSchema
                     var LSchema: TJSONObject;
                     if TJSONObject(LTool).TryGetValue<TJSONObject>('inputSchema', LSchema) then
                     begin
@@ -2903,7 +3089,7 @@ begin
         end;
     end;
 
-    // Registered servers but process not yet started: skip ppm_search, call ppm_install to start
+    // Servidores registrados pero proceso aún no iniciado: saltar ppm_search, llamar ppm_install para arrancar
     if LHasRegistered then
     begin
       LSb.AppendLine;
@@ -2920,14 +3106,14 @@ begin
 end;
 
 function TAiFunctions.IsAutoMCPAllowed(const APkgName: string): Boolean;
-// Evaluates if a package can be installed according to AutoMCP policy.
-// Order: OnAutoMCPRequest → Whitelist (if not empty) → Blacklist → allow.
+// Evalúa si un paquete puede instalarse según la política AutoMCP.
+// Orden: OnAutoMCPRequest → Whitelist (si no vacía) → Blacklist → permitir.
 var
   LAllow: Boolean;
 begin
   LAllow := True;
 
-  // 1. Dynamic callback (highest priority)
+  // 1. Callback dinámico (máxima prioridad)
   if Assigned(FOnAutoMCPRequest) then
   begin
     FOnAutoMCPRequest(Self, APkgName, LAllow);
@@ -2935,14 +3121,14 @@ begin
     Exit;
   end;
 
-  // 2. Whitelist: if it has entries, only those packages are allowed
+  // 2. Whitelist: si tiene entradas, solo esos paquetes se permiten
   if FAutoMCPConfig.FAllowed.Count > 0 then
   begin
     Result := FAutoMCPConfig.FAllowed.IndexOf(APkgName) >= 0;
     Exit;
   end;
 
-  // 3. Blacklist: always-blocked packages
+  // 3. Blacklist: paquetes siempre bloqueados
   if FAutoMCPConfig.FBlocked.IndexOf(APkgName) >= 0 then
   begin
     Result := False;
@@ -2965,7 +3151,7 @@ constructor TAutoMCPConfig.Create;
 begin
   inherited Create;
   FActive := False;
-  FRegistryUrl := 'https://registry.pascalai.org';
+  FRegistryUrl := 'https://registry.cimamaker.com';
   FAllowed := TStringList.Create;
   FBlocked := TStringList.Create;
 end;
@@ -2986,6 +3172,7 @@ begin
     Src := TAutoMCPConfig(Source);
     FActive      := Src.FActive;
     FRegistryUrl := Src.FRegistryUrl;
+    FWorkingDir  := Src.FWorkingDir;
     FAllowed.Assign(Src.FAllowed);
     FBlocked.Assign(Src.FBlocked);
     FConfigFile  := Src.FConfigFile;
@@ -3009,7 +3196,7 @@ procedure TAutoMCPConfig.SetActive(const Value: Boolean);
 begin
   if FActive = Value then Exit;
   FActive := Value;
-  // Notificar a TAiFunctions so that cree o limpie las funciones internas
+  // Notificar a TAiFunctions para que cree o limpie las funciones internas
   if Assigned(FOnActiveChanged) then
     FOnActiveChanged(Self);
 end;
@@ -3038,7 +3225,7 @@ end;
 
 function TAiFunctions.SaveMCPConfiguration(const AFilePath: string): Boolean;
 
-  // Splits an argument line respecting double quotes.
+  // Divide una línea de argumentos respetando comillas dobles.
   // Ej: '-y "path con espacios" --flag' → ['-y', 'path con espacios', '--flag']
   function SplitArgs(const AArgs: string): TArray<string>;
   var
@@ -3082,7 +3269,7 @@ var
   LArgsArray: TJSONArray;
   LItem: TMCPClientItem;
   LArgs: TArray<string>;
-  LArg, LCmd, LUrl, LArgsStr, LDir: string;
+  LCmd, LUrl, LArgsStr, LDir: string;
   I, J: Integer;
 begin
   Result := False;
@@ -3141,14 +3328,14 @@ begin
       LServers.AddPair(LItem.Name, LServerObj);
     end;
 
-    // Crear directorio si does not exist
+    // Crear directorio si no existe
     var LDir2 := TPath.GetDirectoryName(LPath);
     if (LDir2 <> '') and not TDirectory.Exists(LDir2) then
       TDirectory.CreateDirectory(LDir2);
 
     TFile.WriteAllText(LPath, LRoot.Format(2), TEncoding.UTF8);
     Result := True;
-    DoLog('SaveMCPConfig: ' + IntToStr(FMCPClients.Count) + ' server(s) saved to ' + LPath);
+    DoLog('SaveMCPConfig: ' + IntToStr(FMCPClients.Count) + ' servidor(es) guardados en ' + LPath);
   except
     on E: Exception do
       DoLog('SaveMCPConfig: Error al guardar: ' + E.Message);
@@ -3175,8 +3362,8 @@ begin
 end;
 
 function TAiFunctions.ImportMCPFromPPM(const AName, AVersion, ARegistryUrl: String): TMCPClientItem;
-// Registers a StdIo stub without downloading. Useful if the binary is already installed.
-// The caller must assign Params['Command'] with the exe path before enabling.
+// Registra un stub StdIo sin descargar. Útil si el binario ya está instalado.
+// El llamador debe asignar Params['Command'] con la ruta al exe antes de habilitar.
 var
   LVersion: String;
   LClientItem: TMCPClientItem;
@@ -3194,7 +3381,7 @@ begin
   LVersion := PPMResolveVersion(ARegistryUrl, AName, AVersion);
   if LVersion = '' then
   begin
-    DoLog(Format('ImportPPM: Could not resolve version for "%s".', [AName]));
+    DoLog(Format('ImportPPM: No se pudo resolver la versión de "%s".', [AName]));
     Exit;
   end;
 
@@ -3220,24 +3407,24 @@ var
 begin
   Result := nil;
 
-  // If already registered, return existing without reinstalling
+  // Si ya está registrado, retornar el existente sin reinstalar
   LClientItem := FMCPClients.GetClientByName(AName);
   if Assigned(LClientItem) then
   begin
     Result := LClientItem;
-    DoLog(Format('InstallPPM: "%s" is already registered.', [AName]));
+    DoLog(Format('InstallPPM: "%s" ya está registrado.', [AName]));
     Exit;
   end;
 
-  // Resolve version
+  // Resolver versión
   LVersion := PPMResolveVersion(ARegistryUrl, AName, AVersion);
   if LVersion = '' then
   begin
-    DoLog(Format('InstallPPM: Could not resolve version for "%s".', [AName]));
+    DoLog(Format('InstallPPM: No se pudo resolver la versión de "%s".', [AName]));
     Exit;
   end;
 
-  // Determine installation directory
+  // Determinar directorio de instalación
   if AInstallDir <> '' then
     LInstallDir := TPath.Combine(AInstallDir, AName)
   else
@@ -3245,24 +3432,24 @@ begin
       '.ppm' + TPath.DirectorySeparatorChar +
       'mcp' + TPath.DirectorySeparatorChar + AName);
 
-  // Download .paipkg to a temporary file
+  // Descargar .paipkg a un archivo temporal
   LDownloadUrl := Format('%s/v1/packages/%s/%s/download', [ARegistryUrl, AName, LVersion]);
   LTempFile    := TPath.Combine(TPath.GetTempPath, AName + '-' + LVersion + '.paipkg');
 
   DoLog(Format('InstallPPM: Descargando "%s" v%s...', [AName, LVersion]));
   if not PPMHttpDownload(LDownloadUrl, LTempFile) then
   begin
-    DoLog(Format('InstallPPM: Error downloading "%s".', [AName]));
+    DoLog(Format('InstallPPM: Error al descargar "%s".', [AName]));
     Exit;
   end;
 
   try
-    // Extract the binary for the current platform
+    // Extraer el binario de la plataforma actual
     DoLog(Format('InstallPPM: Extrayendo en "%s"...', [LInstallDir]));
     LExePath := PPMExtractBinary(LTempFile, LInstallDir);
     if LExePath = '' then
     begin
-      DoLog(Format('InstallPPM: No compatible binary found in package "%s".', [AName]));
+      DoLog(Format('InstallPPM: No se encontró binario compatible en el paquete de "%s".', [AName]));
       Exit;
     end;
   finally
@@ -3270,7 +3457,7 @@ begin
       TFile.Delete(LTempFile);
   end;
 
-  // Register as a ready-to-use StdIo client
+  // Registrar como cliente StdIo listo para usar
   LClientItem := FMCPClients.Add;
   LClientItem.Name            := AName;
   LClientItem.TransportType   := tpStdIo;
@@ -3281,9 +3468,9 @@ begin
   LClientItem.UpdateClientProperties;
 
   Result := LClientItem;
-  DoLog(Format('InstallPPM: "%s" v%s installed in "%s".', [AName, LVersion, LExePath]));
+  DoLog(Format('InstallPPM: "%s" v%s instalado en "%s".', [AName, LVersion, LExePath]));
 
-  // Persist in config file so AutoLoad loads it in next session
+  // Persistir en el archivo de configuración para que AutoLoad lo cargue en la próxima sesión
   SaveMCPConfiguration;
 end;
 
@@ -3309,16 +3496,17 @@ constructor TMCPClientItem.Create(Collection: TCollection);
 begin
   inherited Create(Collection);
   FEnabled := True;
+  FOwned := True;
   FConnected := False;
   FParams := TStringList.Create;
   FEnvVars := TStringList.Create;
 
-  // By default, creamos un cliente StdIo
+  // Por defecto, creamos un cliente StdIo
   FMCPClient := Nil; // TMCPClientStdIo.Create(nil); // Sin Owner para controlarlo nosotros
   FName := 'MCPClient';
   // FMCPClient.Name := 'NewMCPClient';
 
-  // CORRECCI�N: Crear siempre el cliente By default (StdIo).
+  // CORRECCI�N: Crear siempre el cliente por defecto (StdIo).
   // Esto asegura que si SetParams se llama antes que SetTransportType,
   // haya un objeto donde guardar los datos.
   FMCPClient := TMCPClientStdIo.Create(nil);
@@ -3335,12 +3523,35 @@ end;
 
 destructor TMCPClientItem.Destroy;
 begin
-  FParams.Free;;
+  FParams.Free;
   FEnvVars.Free;
-
-  If Assigned(FMCPClient) then
+  if FOwned and Assigned(FMCPClient) then
     FreeAndNil(FMCPClient);
   inherited;
+end;
+
+// ISSUE #125: ver nota en TFunctionParamsItem.Assign. No se copia FMCPClient:
+// cada item es propietario de su cliente interno (FOwned) y copiar el puntero
+// causaria una doble liberacion; se copian las propiedades proxy y
+// UpdateClientProperties las propaga al cliente real.
+procedure TMCPClientItem.Assign(Source: TPersistent);
+var
+  Src: TMCPClientItem;
+begin
+  if Source is TMCPClientItem then
+  begin
+    Src := TMCPClientItem(Source);
+    FEnabled := Src.FEnabled;
+    FConnected := Src.FConnected;
+    FName := Src.FName;
+    SetTransportType(Src.GetTransportType); // recrea el cliente interno si el tipo difiere
+    FParams.Assign(Src.FParams);   // OnChange propaga a FMCPClient.Params
+    FEnvVars.Assign(Src.FEnvVars); // OnChange propaga a FMCPClient.EnvVars
+    UpdateClientProperties;        // sincroniza nombre/enabled al cliente interno
+    Changed(False);
+  end
+  else
+    inherited;
 end;
 
 function TMCPClientItem.GetConfiguration: string;
@@ -3408,14 +3619,14 @@ end;
 
 function TMCPClientItem.GetTransportType: TToolTransportType;
 begin
-  Result := tpStdIo; // Valor By default
+  Result := tpStdIo; // Valor por defecto
   if Assigned(FMCPClient) then
     Result := FMCPClient.TransportType;
 end;
 
 procedure TMCPClientItem.SetConfiguration(const Value: string);
 begin
-  // No Is needed hacer nada aqu�. solo debe existir.
+  // No se necesita hacer nada aqu�. solo debe existir.
 end;
 
 procedure TMCPClientItem.SetConnected(const Value: Boolean);
@@ -3442,13 +3653,13 @@ begin
 
   try
     try
-      // We try to get the tool list. This is the "live" test.
+      // Intentamos obtener la lista de herramientas. Esta es la prueba "en vivo".
       ClientTools := Self.MCPClient.ListTools;
 
       if Not Assigned(ClientTools) then
       begin
         // Si ListTools devuelve nil, es un error de conexi�n o protocolo.
-        Raise Exception.Create(Format('[ERR] Connection failure for "%s".'#13#10#13#10'Check configuration (Command, URL, etc.) and server logs.', [Self.Name]));
+        Raise Exception.Create(Format('[ERR] Fallo de conexi�n para "%s".'#13#10#13#10'Revise la configuraci�n (Command, URL, etc.) y los logs del servidor.', [Self.Name]));
       end
       Else
       Begin
@@ -3461,7 +3672,7 @@ begin
       on E: Exception do
       begin
         // Capturamos cualquier otra excepci�n
-        Raise Exception.Create(Format('[ERR] An exception occurred while validating "%s".'#13#10#13#10'%s: %s', [Self.Name, E.ClassName, E.Message]));
+        Raise Exception.Create(Format('[ERR] Ocurri� una excepci�n al validar "%s".'#13#10#13#10'%s: %s', [Self.Name, E.ClassName, E.Message]));
       end;
     end;
   finally
@@ -3491,7 +3702,7 @@ end;
 procedure TMCPClientItem.SetEnvVars(const Value: TStrings);
 begin
   FEnvVars.Assign(Value);
-  // OnFEnvVarsChanged fires automatically from FEnvVars OnChange
+  // OnFEnvVarsChanged se dispara automáticamente por el OnChange de FEnvVars
   Changed(False);
 end;
 
@@ -3506,7 +3717,7 @@ begin
   begin
     FName := Value;
 
-    // Sincronizamos con el m�todo est�ndar de colecciones so that se vea en el TreeView
+    // Sincronizamos con el m�todo est�ndar de colecciones para que se vea en el TreeView
     inherited SetDisplayName(Value);
 
     // Si el cliente interno existe, le pasamos el nombre
@@ -3544,13 +3755,13 @@ end;
 procedure TMCPClientItem.SetParams(const Value: TStrings);
 begin
   FParams.Assign(Value);
-  // OnFParamsChanged fires automatically from FParams OnChange
+  // OnFParamsChanged se dispara automáticamente por el OnChange de FParams
   Changed(False);
 end;
 
 procedure TMCPClientItem.SetTransportType(const Value: TToolTransportType);
 begin
-  // Verificamos si realmente cambi� o si el objeto does not exist
+  // Verificamos si realmente cambi� o si el objeto no existe
   if not Assigned(FMCPClient) or (FMCPClient.TransportType <> Value) then
   begin
     // Liberamos el cliente anterior
@@ -3700,7 +3911,7 @@ end;
 
 class procedure TJsonToolUtils.CleanInputSchema(ASchema: TJSonObject);
 begin
-  // Calls the recursive worker function to clean the entire tree.
+  // Llama a la funci�n de trabajo recursiva para limpiar el �rbol completo.
   CleanJsonTree(ASchema);
 end;
 
@@ -3773,7 +3984,7 @@ begin
     else if AJsonTool.FindValue('name') <> nil then
       Exit(tfOpenAIResponses);
 
-    // By default si es ambiguo, asumimos el nuevo est�ndar si tiene nombre
+    // Por defecto si es ambiguo, asumimos el nuevo est�ndar si tiene nombre
     Exit(tfOpenAIResponses);
   end;
 
@@ -3793,6 +4004,7 @@ var
   PropName: string;
   I: Integer;
   ExistsInReq: Boolean;
+  TypeV: TJSONValue;
 begin
   if not(ASchema is TJSonObject) then
     Exit;
@@ -3800,7 +4012,13 @@ begin
   JObj := TJSonObject(ASchema);
 
   // Verificamos si es un objeto (tiene propiedades o es type object expl�cito)
-  if (JObj.TryGetValue<TJSonObject>('properties', JProps)) or (JObj.GetValue<string>('type') = 'object') then
+  // 'type' puede ser un ARRAY en JSON Schema (p.ej. ["integer","string"]):
+  // GetValue<string> revienta con TJSONArray (visto 2026-09-30 con las tools
+  // de memoria de MKAIServer contra gpt-6). Lectura tolerante: aqui solo
+  // interesa saber si el nodo es un objeto.
+  TypeV := JObj.GetValue('type');
+  if (JObj.TryGetValue<TJSonObject>('properties', JProps)) or
+     ((TypeV is TJSONString) and (TJSONString(TypeV).Value = 'object')) then
   begin
     // REGLA 1: additionalProperties: false es OBLIGATORIO
     if JObj.GetValue('additionalProperties') <> nil then
@@ -3861,7 +4079,7 @@ begin
     CleanInputSchema(LInputSchema);
   End
   else
-    LInputSchema := TJSonObject.Create; // Create empty schema if none exists
+    LInputSchema := TJSonObject.Create; // Crear schema vac�o si no existe
 
   AToolList.Add(TNormalizedTool.Create(LName, LDescription, LInputSchema));
 end;
@@ -3914,7 +4132,7 @@ var
   LName, LDescription: string;
   LInputSchema: TJSonObject;
   LSchemaValue: TJSONValue;
-  LFunctionObject, LDataSource: TJSonObject; // LDataSource will point to the correct object
+  LFunctionObject, LDataSource: TJSonObject; // LDataSource apuntar� al objeto correcto
 begin
   // Primero, determinamos de d�nde leer los datos.
   // Intentamos encontrar el objeto anidado 'function'.
@@ -3931,7 +4149,7 @@ begin
 
   // Ahora extraemos los datos usando LDataSource, que apunta al lugar correcto.
   if not LDataSource.TryGetValue<string>('name', LName) then
-    Exit; // If no name, not a valid tool.
+    Exit; // Si no hay nombre, no es una herramienta v�lida.
 
   LDataSource.TryGetValue<string>('description', LDescription);
 
@@ -3948,7 +4166,11 @@ begin
     LInputSchema.AddPair('properties', TJSonObject.Create);
   end;
 
-  AToolList.Add(TNormalizedTool.Create(LName, LDescription, LInputSchema));
+  var LNorm := TNormalizedTool.Create(LName, LDescription, LInputSchema);
+  // 'async' puede venir en la raiz (formato plano de Responses) o dentro de
+  // 'function' (formato clasico); LDataSource ya apunta al sitio correcto.
+  LNorm.IsAsync := LDataSource.GetValue<Boolean>('async', False);
+  AToolList.Add(LNorm);
 end;
 
 class procedure TJsonToolUtils.NormalizeToolsFromSource(const ASourceName: string; ASourceJson: TJSonObject; ANormalizedList: TList<TNormalizedTool>);
@@ -3961,21 +4183,21 @@ begin
   if not Assigned(ASourceJson) or not ASourceJson.TryGetValue<TJSonArray>('tools', LSourceToolsArray) or (LSourceToolsArray.Count = 0) then
     Exit; // No hay herramientas que procesar
 
-  // Detect format from the first tool
+  // Detectar formato a partir de la primera herramienta
   if not(LSourceToolsArray.Items[0] is TJSonObject) then
     Exit;
   LDetectedFormat := DetectInputFormat(LSourceToolsArray.Items[0] as TJSonObject);
   if LDetectedFormat = tfUnknown then
     Exit; // Formato no reconocido
 
-  // Normalize each tool
+  // Normalizar cada herramienta
   for I := 0 to LSourceToolsArray.Count - 1 do
   begin
     if not(LSourceToolsArray.Items[I] is TJSonObject) then
       Continue;
     LSourceTool := LSourceToolsArray.Items[I] as TJSonObject;
 
-    // Save the current count to know which tools were added
+    // Guardar el recuento actual para saber qu� herramientas se a�adieron
     var
     LInitialCount := ANormalizedList.Count;
 
@@ -3992,7 +4214,7 @@ begin
         NormalizeFromGemini(LSourceTool, ANormalizedList);
     end;
 
-    // Apply the source prefix to the newly added tools
+    // Aplicar el prefijo de fuente a las herramientas reci�n a�adidas
     if not ASourceName.IsEmpty then
     begin
       for var J := LInitialCount to ANormalizedList.Count - 1 do
@@ -4139,7 +4361,7 @@ begin
   // 3. Crear el objeto externo principal.
   Result := TJSonObject.Create;
   Result.AddPair('type', 'function');
-  Result.AddPair('function', LFunctionObject); // <-- Add the inner object
+  Result.AddPair('function', LFunctionObject); // <-- A�adir el objeto interno
 end;
 
 class function TJsonToolUtils.FormatAsOpenAIResponses(ANormalizedTool: TNormalizedTool): TJSonObject;
@@ -4158,6 +4380,13 @@ begin
   Result := TJSonObject.Create;
   Result.AddPair('type', 'function');
   Result.AddPair('name', ANormalizedTool.Name);
+
+  // Async tool calling: el modelo sigue trabajando mientras la aplicacion
+  // ejecuta esta tool, y el resultado se entrega despues con su call_id.
+  // Solo lo entiende la Responses API de gpt-6-astra en adelante; por eso se
+  // emite aqui y no en los otros formateadores.
+  if ANormalizedTool.IsAsync then
+    Result.AddPair('async', TJSONBool.Create(True));
 
   if not ANormalizedTool.Description.IsEmpty then
     Result.AddPair('description', ANormalizedTool.Description);
@@ -4204,7 +4433,7 @@ begin
 
   if AOutputFormat = tfGemini then
   begin
-// --- STANDARD LOGIC FOR OTHER FORMATS: One tool per object ---
+    // --- L�GICA ESPECIAL PARA GEMINI: Agrupar todo en un solo bloque ---
     var
     LDeclarationsArray := TJSonArray.Create;
     for LNormTool in ANormalizedList do
@@ -4219,7 +4448,7 @@ begin
   end
   else
   begin
-// --- STANDARD LOGIC FOR OTHER FORMATS: One tool per object ---
+    // --- L�GICA EST�NDAR PARA OTROS FORMATOS: Una herramienta por objeto ---
     for LNormTool in ANormalizedList do
     begin
       LFormattedTool := nil;
@@ -4284,7 +4513,7 @@ var
   LFirstTool: TJSonObject;
   LDetectedFormat: TToolFormat;
 begin
-  // 1. Try to detect the format from the first tool in the array
+  // 1. Intentar detectar el formato a partir de la primera herramienta en el array
   LDetectedFormat := tfUnknown;
   if Assigned(ASourceJson) and ASourceJson.TryGetValue<TJSonArray>('tools', LSourceToolsArray) and (LSourceToolsArray.Count > 0) and (LSourceToolsArray.Items[0] is TJSonObject) then
   begin
@@ -4333,7 +4562,7 @@ begin
   if not ATargetJson.TryGetValue<TJSonArray>('tools', LFinalToolsArray) then
     raise Exception.Create('Target JSON object does not contain a "tools" array.');
 
-  // 2. Normalize tools from the source to an internal list
+  // 2. Normalizar las herramientas de la fuente a una lista interna
   LNormalizedTools := TObjectList<TNormalizedTool>.Create(True);
   try
     for I := 0 to LSourceToolsArray.Count - 1 do
@@ -4359,14 +4588,14 @@ begin
       end;
     end;
 
-// If no tools were normalized, there is nothing more to do.
+    // Si no se normaliz� ninguna herramienta, no hay nada m�s que hacer.
     if LNormalizedTools.Count = 0 then
     begin
       Result := ATargetJson;
       Exit;
     end;
 
-    // 3. Pre-process the names of all normalized tools
+    // 3. Pre-procesar los nombres de todas las herramientas normalizadas
     for LNormTool in LNormalizedTools do
     begin
       if not ASourceName.IsEmpty then
@@ -4390,12 +4619,12 @@ begin
       LGeminiToolWrapper := TJSonObject.Create;
       LGeminiToolWrapper.AddPair('functionDeclarations', LDeclarationsArray);
 
-      // Add this single object to the final tools array
+      // A�adir este �nico objeto al array final de herramientas
       LFinalToolsArray.Add(LGeminiToolWrapper);
     end
     else
     begin
-      // --- STANDARD LOGIC FOR OTHER FORMATS: One tool per object ---
+      // --- L�GICA EST�NDAR PARA OTROS FORMATOS: Una herramienta por objeto ---
       for LNormTool in LNormalizedTools do
       begin
         LFormattedTool := nil;

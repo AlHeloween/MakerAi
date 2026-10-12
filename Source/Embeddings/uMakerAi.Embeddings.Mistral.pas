@@ -1,20 +1,20 @@
 unit uMakerAi.Embeddings.Mistral;
 
-// IT License
+// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// o use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 //
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// HE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -82,6 +82,7 @@ Var
   Client: TNetHTTPClient;
   Headers: TNetHeaders;
   jObj: TJSONObject;
+  jResp: TJSONObject; // respuesta aparte: reusar jObj perdia el request (fuga por llamada)
   Res: IHTTPResponse;
   Response: TStringStream;
   St: TStringStream;
@@ -90,7 +91,7 @@ Var
 begin
 
   Client := TNetHTTPClient.Create(Nil);
-{$IF CompilerVersion >= 35}
+{$IF CompilerVersion >= 34}
   Client.SynchronizeEvents := False;
 {$ENDIF}
   St := TStringStream.Create('', TEncoding.UTF8);
@@ -116,7 +117,7 @@ begin
     St.WriteString(jObj.Format);
     St.Position := 0;
 
-    Headers := [TNetHeader.Create('Authorization', 'Bearer ' + FApiKey)];
+    Headers := [TNetHeader.Create('Authorization', 'Bearer ' + ApiKey)];
     Client.ContentType := 'application/json';
 
     Res := Client.Post(sUrl, St, Response, Headers);
@@ -127,8 +128,12 @@ begin
 {$ENDIF}
     if Res.StatusCode = 200 then
     Begin
-      jObj := TJSONObject(TJSONObject.ParseJSONValue(Res.ContentAsString));
-      ParseEmbedding(jObj);
+      jResp := TJSONObject(TJSONObject.ParseJSONValue(Res.ContentAsString));
+      try
+        ParseEmbedding(jResp);
+      finally
+        jResp.Free;
+      end;
       Result := Self.FData;
 
     End

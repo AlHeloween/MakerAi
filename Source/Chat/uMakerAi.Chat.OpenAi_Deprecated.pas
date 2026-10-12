@@ -1,18 +1,18 @@
-﻿// IT License
+﻿// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// o use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 //
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// HE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -650,7 +650,7 @@ begin
     LTempStream.Position := 0;
 
     // --- 1. CONSTRUCCI�N DEL BODY MULTIPART CON PAR�METROS GEN�RICOS ---
-{$IF CompilerVersion >= 35}
+{$IF CompilerVersion >= 36}
     Body.AddStream('file', LTempStream, False, aMediaFile.FileName, aMediaFile.MimeType);
 {$ELSE}
     Body.AddStream('file', LTempStream, aMediaFile.FileName, aMediaFile.MimeType);
@@ -1997,13 +1997,11 @@ begin
     aMediaFile.Transcription := Trim(sTextoWords + sLineBreak + sTextoSegments);
     aMediaFile.Detail := Trim(sTextoTranscrito);
     ResMsg.Prompt := Trim(ResMsg.Prompt + aMediaFile.Transcription);
-    ResMsg.Content := ResMsg.Content + sLineBreak + aMediaFile.Detail;
   End
   Else
   Begin
     aMediaFile.Transcription := sTextoTranscrito;
     ResMsg.Prompt := Trim(ResMsg.Prompt + sLineBreak + sTextoTranscrito);
-    ResMsg.Content := Trim(ResMsg.Content + sLineBreak + sTextoTranscrito);
   End;
 
   ResMsg.Prompt_tokens := ResMsg.Prompt_tokens + aInput_tokens;
@@ -2137,7 +2135,6 @@ begin
     FLastContent := Trim(FLastContent);
     // Si no se gener� texto (solo una imagen), FLastContent estar� vac�o, lo cual is correct.
     ResMsg.Prompt := FLastContent;
-    ResMsg.Content := FLastContent;
 
     ResMsg.Role := 'assistant';
     ResMsg.PreviousResponseId := ResponseId;
@@ -2276,7 +2273,7 @@ begin
     LTempStream.LoadFromStream(aMediaFile.Content);
     LTempStream.Position := 0;
 
-{$IF CompilerVersion >= 35}
+{$IF CompilerVersion >= 36}
     Body.AddStream('file', LTempStream, False, aMediaFile.FileName, aMediaFile.MimeType);
 {$ELSE}
     Body.AddStream('file', LTempStream, aMediaFile.FileName, aMediaFile.MimeType);

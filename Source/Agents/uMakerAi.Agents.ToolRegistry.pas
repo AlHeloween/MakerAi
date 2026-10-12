@@ -306,7 +306,7 @@ constructor TAiToolRegistry.Create;
 begin
   inherited Create;
   FEntries := TList<TAiRegistryEntry>.Create;
-  FPPMBase := 'https://registry.pascalai.org';
+  FPPMBase := 'https://registry.cimamaker.com';
 end;
 
 destructor TAiToolRegistry.Destroy;
@@ -666,7 +666,6 @@ begin
 
   // Download the .paipkg (ZIP) - URL may redirect (302)
   PkgPath := TPath.Combine(DestDir, APkg.Name + '.paipkg');
-  Ok      := False;
   Http    := TNetHTTPClient.Create(nil);
   try
     Http.HandleRedirects := True;
@@ -826,7 +825,6 @@ begin
   if not TFile.Exists(ManifestPath) then
   begin
     PkgPath := TPath.Combine(DestDir, FullPkg.Name + '.paipkg');
-    Ok      := False;
     Http    := TNetHTTPClient.Create(nil);
     try
       Http.HandleRedirects := True;

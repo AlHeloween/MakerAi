@@ -7,7 +7,7 @@ unit uMakerAi.Embeddings.OpenAi;
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// o use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 //
@@ -35,6 +35,7 @@ interface
 
 uses
   System.SysUtils, System.Classes, System.JSON,
+  System.Generics.Collections,
   System.Net.URLClient, System.Net.HttpClient,
   System.Net.Mime, System.Net.HttpClientComponent,
 {$IF CompilerVersion < 35}
@@ -82,6 +83,7 @@ Var
   Client: TNetHTTPClient;
   Headers: TNetHeaders;
   jObj: TJSonObject;
+  jResp: TJSONObject; // respuesta aparte: reusar jObj perdia el request (fuga por llamada)
   Res: IHTTPResponse;
   Response: TStringStream;
   St: TStringStream;
@@ -89,7 +91,7 @@ Var
 begin
 
   Client := TNetHTTPClient.Create(Nil);
-{$IF CompilerVersion >= 35}
+{$IF CompilerVersion >= 34}
   Client.SynchronizeEvents := False;
 {$ENDIF}
   St := TStringStream.Create('', TEncoding.UTF8);
@@ -126,8 +128,12 @@ begin
 {$ENDIF}
     if Res.StatusCode = 200 then
     Begin
-      jObj := TJSonObject(TJSonObject.ParseJSONValue(Res.ContentAsString));
-      ParseEmbedding(jObj);
+      jResp := TJSONObject(TJSONObject.ParseJSONValue(Res.ContentAsString));
+      try
+        ParseEmbedding(jResp);
+      finally
+        jResp.Free;
+      end;
       Result := Self.FData;
 
     End

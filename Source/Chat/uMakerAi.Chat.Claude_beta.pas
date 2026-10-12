@@ -1,18 +1,18 @@
-﻿// IT License
+﻿// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// o use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 //
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// HE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -427,7 +427,7 @@ begin
   inherited;
   ApiKey := '@CLAUDE_API_KEY';
   FClient.OnReceiveData := Self.OnInternalReceiveData;
-  FClient.ResponseTimeOut := 60000;
+  ResponseTimeOut := 300000; // code_execution server-side puede tardar >60s sin enviar bytes
 
   FStreamContentBlocks := TDictionary<Integer, TClaudeStreamContentBlock>.Create;
   FStreamBuffer := TStringBuilder.Create;
@@ -2375,7 +2375,7 @@ begin
     TempStream.LoadFromStream(aMediaFile.Content);
     TempStream.Position := 0;
 
-{$IF CompilerVersion >= 35}
+{$IF CompilerVersion >= 36}
     Body.AddStream('file', TempStream, False, aMediaFile.FileName, aMediaFile.MimeType);
 {$ELSE}
     Body.AddStream('file', TempStream, aMediaFile.FileName, aMediaFile.MimeType);
