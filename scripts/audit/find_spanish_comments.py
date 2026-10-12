@@ -4,8 +4,10 @@
 import os
 import re
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SOURCE_DIR = os.path.join(ROOT, 'Source')
+if not os.path.isdir(SOURCE_DIR):
+    raise SystemExit(f'Source directory not found: {SOURCE_DIR}')
 
 # Words that are clear Spanish indicators (not false positives in English)
 SPANISH_WORDS = {
