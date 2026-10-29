@@ -105,7 +105,7 @@ Plan follows repo conventions: `plans/[ISO8601]_`. Merging on `local` (fork's wo
 
 ## Demo pass (2026-10-29, after the core sync)
 
-**Status:** PARTIAL — 8398 → 1432 flagged hits (−82.9%) across `Demos`, `Demos-V3_1`, `Demos-V3_4`, `Demos-Book`, `Apps`; ~260 files translated under the skeleton gate. Seven passes; the last two unlocked continuation lines of multi-line strings.
+**Status:** PARTIAL — measured with the corrected detector (`.temp/inv10.txt`, `.temp/audit10.txt`): **1403 flagged hits in 245 files, of which 472 are classified REAL Spanish (33.6%)** and 931 are word-list false positives on English text. ~263 files translated under the skeleton gate across eight passes. The three files the marker pipeline refused are closed; the `.fmx`/`.dfm` interface text is untouched and measured.
 
 | Step | Result | Evidence |
 |------|--------|----------|
