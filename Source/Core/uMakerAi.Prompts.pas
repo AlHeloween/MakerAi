@@ -1,38 +1,4 @@
-﻿// MIT License
-//
-// Copyright (c) <year> <copyright holders>
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
-// Nombre: Gustavo Enríquez
-// Redes Sociales:
-// - Email: gustavoeenriquez@gmail.com
-
-// - Telegram: https://t.me/MakerAi_Suite_Delphi
-// - Telegram: https://t.me/MakerAi_Delphi_Suite_English
-
-// - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
-// - Youtube: https://www.youtube.com/@cimamaker3945
-// - GitHub: https://github.com/gustavoeenriquez/
-
-
-unit uMakerAi.Prompts;
+﻿unit uMakerAi.Prompts;
 
 interface
 
@@ -64,13 +30,13 @@ type
     Property Nombre     : String  read fNombre      Write fNombre;
     Property Descripcion: String  read fDescripcion Write fDescripcion;
     Property Strings    : TStrings Read GetString   Write SetStrings;
-    // Metadatos del skill (vacíos si el item es un prompt, no un skill)
-    // Modelo recomendado por el skill (frontmatter YAML: model: claude-opus-4-6)
+    // Skill metadata (empty if the item is a prompt, not a skill)
+    // Model recommended by the skill (frontmatter YAML: model: claude-opus-4-6)
     Property SkillModel      : String read FSkillModel       write FSkillModel;
-    // Herramientas permitidas, separadas por coma (frontmatter: allowed-tools)
+    // Allowed tools, comma-separated (frontmatter: allowed-tools)
     Property SkillAllowedTools: String read FSkillAllowedTools write FSkillAllowedTools;
-    // Cuándo usar el skill (frontmatter: description). Descripcion, en cambio,
-    // dice de dónde se cargó el item.
+    // When to use the skill (frontmatter: description). Descripcion, on the other hand,
+    // tells where the item was loaded from.
     Property SkillDescription: String read FSkillDescription write FSkillDescription;
   End;
 
@@ -81,7 +47,7 @@ type
     function PPMHttpGet(const AUrl: String): String;
     function ConvertPPMTemplate(const AText: String): String;
     function ResolvePPMVersion(const AName, AVersion: String): String;
-    // Crea o actualiza el item AName con el contenido de un skill parseado
+    // Creates or updates the item AName with the content of a parsed skill
     function StoreSkill(const AName, ADescripcion: String; ADoc: TAiSkillDoc): TAiPromptItem;
   protected
   public
@@ -96,44 +62,44 @@ type
     Function GetTemplate(Nombre: String; Params: TStringList): String; Overload;
     Function GetTemplate(Nombre: String; Params: TJSonObject): String; Overload;
 
-    // Integración con PPM (registry público de prompts y skills)
-    // SearchPPM: busca en el registry. El llamador es responsable de liberar el TJSONObject.
-    // AType puede ser 'prompt', 'skill', 'pai', etc.
+    // Integration with PPM (public registry of prompts and skills)
+    // SearchPPM: searches the registry. The caller is responsible for freeing the TJSONObject.
+    // AType can be 'prompt', 'skill', 'pai', etc.
     function SearchPPM(const AQuery: String; const AType: String = 'prompt';
       APage: Integer = 1; APerPage: Integer = 20): TJSONObject;
 
-    // LoadFromPPM: descarga un prompt (/raw) y lo agrega a Items.
-    // Convierte placeholders {{var}} → <#var>. Si ya existe, lo actualiza.
-    // AVersion vacío = resuelve la última versión disponible.
+    // LoadFromPPM: downloads a prompt (/raw) and adds it to Items.
+    // Converts placeholders {{var}} → <#var>. If it already exists, updates it.
+    // AVersion empty = resolves the latest available version.
     function LoadFromPPM(const AName: String; const AVersion: String = ''): TAiPromptItem;
 
-    // LoadSkillFromPPM: descarga un skill (/skill), parsea el frontmatter YAML
-    // y almacena el cuerpo Markdown en Strings.Text (sin frontmatter).
-    // SkillModel y SkillAllowedTools quedan disponibles en el item resultante.
-    // AVersion vacío = resuelve la última versión disponible.
+    // LoadSkillFromPPM: downloads a skill (/skill), parses the YAML frontmatter
+    // and stores the Markdown body in Strings.Text (without frontmatter).
+    // SkillModel and SkillAllowedTools are available in the resulting item.
+    // AVersion empty = resolves the latest available version.
     function LoadSkillFromPPM(const AName: String; const AVersion: String = ''): TAiPromptItem;
 
-    // Skills locales (formato SKILL.md, el mismo de PPM y de las Agent Skills).
-    // LoadSkillFromFile: APath es el archivo .md o la carpeta que contiene
-    //   SKILL.md. El item se llama como el 'name' del frontmatter (o la
-    //   carpeta). A diferencia de los métodos PPM, lanza EAiSkillError si el
-    //   archivo no existe: es un error de configuración, no de red.
-    // LoadSkillsFromFolder: carga <AFolder>/SKILL.md y <AFolder>/<sub>/SKILL.md
-    //   (la forma habitual de un directorio de skills). Devuelve cuántos cargó.
+    // Local skills (SKILL.md format, same as PPM and Agent Skills).
+    // LoadSkillFromFile: APath is the .md file or the folder containing
+    //   SKILL.md. The item is named after the 'name' in frontmatter (or the
+    //   folder). Unlike PPM methods, raises EAiSkillError if the file does not
+    //   exist: it is a configuration error, not a network error.
+    // LoadSkillsFromFolder: loads <AFolder>/SKILL.md and <AFolder>/<sub>/SKILL.md
+    //   (the usual form of a skills directory). Returns how many were loaded.
     function LoadSkillFromFile(const APath: String): TAiPromptItem;
     function LoadSkillsFromFolder(const AFolder: String): Integer;
 
-    // Copia las instrucciones del item ANombre a un SystemPrompt:
+    // Copies the instructions of the item ANombre to a SystemPrompt:
     //   Prompts.ApplySkill('revisor', AiConnection.SystemPrompt);
-    // AAppend=False reemplaza el contenido; True lo agrega al final (separado
-    // por una línea en blanco). Sirve para TAiChat, TAiChatConnection o
-    // cualquier TStrings. Devuelve False si no existe el item.
+    // AAppend=False replaces content; True appends it at the end (separated
+    // by a blank line). Works for TAiChat, TAiChatConnection or
+    // any TStrings. Returns False if the item does not exist.
     function ApplySkill(const ANombre: String; ASystemPrompt: TStrings;
       AAppend: Boolean = False): Boolean;
 
   published
     Property Items: TCollection Read FItems Write FItems;
-    // URL del registry PPM. Por defecto: https://registry.cimamaker.com
+    // URL of the PPM registry. Default: https://registry.cimamaker.com
     property PPMRegistryUrl: String read FPPMRegistryUrl write FPPMRegistryUrl;
   end;
 
@@ -236,7 +202,7 @@ begin
     S := Params[I];
     P := Pos('=',S);
     If  p <= 0 then
-      Raise Exception.Create('Los parámetros deben tener la forma Nombre=Valor');
+      Raise Exception.Create('Parameters must have the form Name=Value');
 
     Nom := Copy(S, 1, P - 1);
     Val := Copy(S, P + 1, Length(S));
@@ -315,7 +281,7 @@ begin
       if LResponse.StatusCode = 200 then
         Result := LResponse.ContentAsString(TEncoding.UTF8);
     except
-      // Error de red: retorna vacío
+      // Network error: returns empty
     end;
   finally
     LClient.Free;
@@ -324,7 +290,7 @@ end;
 
 function TAiPrompts.ConvertPPMTemplate(const AText: String): String;
 begin
-  // Convierte placeholders PPM {{varname}} → formato MakerAI <#varname>
+  // Converts PPM placeholders {{varname}} → MakerAI format <#varname>
   Result := TRegEx.Replace(AText, '\{\{(\w+)\}\}', '<#$1>');
 end;
 
@@ -333,8 +299,8 @@ begin
   Result := AVersion;
   if Result <> '' then
     Exit;
-  // Mayor versión no retirada por semver (antes: la primera de la lista).
-  // Los errores de red se callan: la API de TAiPrompts devuelve nil/'' en fallo.
+  // Highest non-retracted version by semver (formerly: the first in the list).
+  // Network errors are silenced: TAiPrompts API returns nil/'' on failure.
   try
     Result := TAiPPMClient.ResolveVersion(FPPMRegistryUrl, AName);
   except
@@ -374,7 +340,7 @@ begin
   if LBody = '' then
     Exit;
 
-  // Reusar item existente si ya hay uno con el mismo nombre
+  // Reuse existing item if one with the same name already exists
   LIdx := IndexOf(AName);
   if LIdx >= 0 then
     Result := TAiPromptItem(FItems.Items[LIdx])
@@ -388,8 +354,8 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// LoadSkillFromPPM — el formato SKILL.md lo entiende uMakerAi.Skills.Format
-// (parser único del framework)
+// LoadSkillFromPPM — the SKILL.md format is understood by uMakerAi.Skills.Format
+// (single parser for the framework)
 // ---------------------------------------------------------------------------
 function TAiPrompts.LoadSkillFromPPM(const AName: String;
   const AVersion: String): TAiPromptItem;
@@ -399,7 +365,7 @@ begin
   Result := nil;
   Doc := TAiSkillDoc.Create;
   try
-    // Contrato histórico de TAiPrompts: nil ante cualquier fallo, sin excepción
+    // Historical contract of TAiPrompts: nil on any failure, no exception
     try
       Doc.LoadFromPPM(AName, AVersion, FPPMRegistryUrl);
     except
@@ -417,7 +383,7 @@ function TAiPrompts.StoreSkill(const AName, ADescripcion: String;
 var
   LIdx: Integer;
 begin
-  // Reusar item existente o crear uno nuevo
+  // Reuse existing item or create a new one
   LIdx := IndexOf(AName);
   if LIdx >= 0 then
     Result := TAiPromptItem(FItems.Items[LIdx])
@@ -434,7 +400,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Skills locales
+// Local Skills
 // ---------------------------------------------------------------------------
 function TAiPrompts.LoadSkillFromFile(const APath: String): TAiPromptItem;
 var

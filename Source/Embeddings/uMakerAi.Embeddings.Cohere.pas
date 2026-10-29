@@ -125,12 +125,12 @@ begin
     JTexts.Add(aInput);
     jObj.AddPair('texts', JTexts);
 
-    // Solicitamos solo embeddings de tipo 'float'
+    // Request only embeddings of type 'float'
     JEmbeddingTypes := TJSONArray.Create;
     JEmbeddingTypes.Add('float');
     jObj.AddPair('embedding_types', JEmbeddingTypes);
 
-    // Opcional: Cohere no usa 'dimensions' como OpenAI, sino 'output_dimension'.
+    // Optional: Cohere does not use 'dimensions' like OpenAI, but 'output_dimension'.
     // Add it if it is a valid value for Cohere.
     if (aDimensions = 256) or (aDimensions = 512) or (aDimensions = 1024) or (aDimensions = 1536) then
     begin
@@ -140,20 +140,20 @@ begin
     begin
       // Optional: Throw a warning or error if user specifies a dimension
       // that is not valid for this model, to avoid confusion.
-      // for now, simplemente lo ignoramos.
+      // for now, we simply ignore it.
     end;
 
     BodyStream.WriteString(jObj.ToString);
     BodyStream.Position := 0;
 
-    // 2. Ejecutar la llamada a la API
+    // 2. Execute the API call
     Headers := [TNetHeader.Create('Authorization', 'Bearer ' + ApiKey)];
     Client.ContentType := 'application/json';
 
     Res := Client.Post(sUrl, BodyStream, ResponseStream, Headers);
     ResponseStream.Position := 0;
 
-    // 3. Procesar la respuesta
+    // 3. Process the response
     if Res.StatusCode = 200 then
     begin
       // 1. Parse the response string and cast it to a TJSONObject.
@@ -163,13 +163,13 @@ begin
         ParseCohereEmbedding(LResponseJson);
         Result := Self.FData;
       finally
-        // 3. Liberar la memoria del objeto JSON que creamos.
+        // 3. Free the memory of the JSON object we created.
         LResponseJson.Free;
       end;
     end
     Else
     begin
-      raise Exception.CreateFmt('Error en Cohere Embed API: %d, %s', [Res.StatusCode, Res.ContentAsString]);
+      raise Exception.CreateFmt('Error in Cohere Embed API: %d, %s', [Res.StatusCode, Res.ContentAsString]);
     end;
 
   finally
@@ -192,7 +192,7 @@ begin
     citClustering:
       Result := 'clustering';
   else
-    Result := 'search_query'; // Default seguro
+    Result := 'search_query'; // Safe default
   end;
 end;
 
@@ -204,7 +204,7 @@ var
   J: Integer;
   JMeta, JBilledUnits: TJSonObject;
 begin
-  // Limpiar datos anteriores
+  // Clear previous data
   SetLength(FData, 0);
   Fprompt_tokens := 0;
   Ftotal_tokens := 0;
@@ -214,21 +214,21 @@ begin
     if JMeta.TryGetValue<TJSonObject>('billed_units', JBilledUnits) then
       JBilledUnits.TryGetValue<Integer>('input_tokens', Fprompt_tokens);
 
-  Ftotal_tokens := Fprompt_tokens; // En embeddings, total = prompt
+  Ftotal_tokens := Fprompt_tokens; // In embeddings, total = prompt
 
-  // Navegar la estructura de respuesta de Cohere
+  // Navigate the Cohere response structure
   if jObj.TryGetValue<TJSonObject>('embeddings', JEmbeddingsObj) then
   begin
-    // Buscamos el array de embeddings de tipo 'float'
+    // Look for the embeddings array of type 'float'
     if JEmbeddingsObj.TryGetValue<TJSONArray>('float', JFloatEmbeddingsArray) then
     begin
-      // Como solo pedimos un texto, solo nos interesa el primer vector
+      // Since we only request one text, we only care about the first vector
       if JFloatEmbeddingsArray.Count > 0 then
       begin
         JFirstEmbedding := JFloatEmbeddingsArray.Items[0] as TJSONArray;
         if Assigned(JFirstEmbedding) then
         begin
-          // Convertir el TJSONArray a nuestro TAiEmbeddingData (TArray<Double>)
+          // Convert the TJSONArray to our TAiEmbeddingData (TArray<Double>)
           SetLength(FData, JFirstEmbedding.Count);
           for J := 0 to JFirstEmbedding.Count - 1 do
             FData[J] := JFirstEmbedding.Items[J].GetValue<Double>;

@@ -1,4 +1,5 @@
-﻿// MIT License
+﻿//
+// MIT License
 //
 // Copyright (c) <year> <copyright holders>
 //
@@ -20,13 +21,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr�quez
-// Redes Sociales:
+// Name: Gustavo Enriquez
+// Social Media:
 // - Email: gustavoeenriquez@gmail.com
-
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - Telegram: https://t.me/MakerAi_Delphi_Suite_English
-
 // - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
 // - Youtube: https://www.youtube.com/@cimamaker3945
 // - GitHub: https://github.com/gustavoeenriquez/
@@ -92,10 +91,10 @@ constructor TAiKimiChat.Create(Sender: TComponent);
 begin
   inherited;
   ApiKey := '@KIMI_API_KEY';
-  // kimi-k2 fue retirado del API (jul 2026); kimi-k3 es el flagship actual
+  // kimi-k2 was removed from the API (July 2026); kimi-k3 is the current flagship
   Model := 'kimi-k3';
-  // La familia k3/k2.6/k2.7 devuelve 400 si el request incluye top_p (solo
-  // acepta temperature). Top_p=0 hace que la base no lo serialice.
+  // The k3/k2.6/k2.7 family returns 400 if the request includes top_p (only
+  // accepts temperature). Top_p=0 makes the base not serialize it.
   Top_p := 0;
   Url := GlAIUrl;
 end;
@@ -122,7 +121,7 @@ begin
   if LModel = '' then
     LModel := 'kimi-k2';
 
-  // Streaming permitido solo si no hay tool-calling activo
+  // Streaming allowed only if there is no active tool-calling
   LAsincronico := Self.Asynchronous and (not Self.Tool_Active);
   FClient.Asynchronous := LAsincronico;
 
@@ -141,10 +140,10 @@ begin
     AJSONObject.AddPair('user', User);
     AJSONObject.AddPair('n', TJSONNumber.Create(N));
 
-    //  Tool Calling (compatibilidad futura o experimental)
+    //  Tool Calling (future or experimental compatibility)
     if Tool_Active then
     begin
-      JTools := GetTools; // ya definido en TAiChat base
+      JTools := GetTools; // already defined in TAiChat base
       if (JTools <> nil) and (JTools.Count > 0) then
         AJSONObject.AddPair('tools', JTools);
 
@@ -180,4 +179,3 @@ initialization
   TAiChatFactory.Instance.RegisterDriver(TAiKimiChat);
 
 end.
-

@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -40,14 +40,14 @@ uses
   uMakerAi.Embeddings.Connection;
 
 type
-  // Property Editor for the propiedad DriverName de TAiEmbeddingConnection
+  // Property Editor for the DriverName property of TAiEmbeddingConnection
   TAiEmbeddingDriverNamePropertyEditor = class(TStringProperty)
   public
     procedure GetValues(Proc: TGetStrProc); override;
     function GetAttributes: TPropertyAttributes; override;
   end;
 
-  // Component Editor para TAiEmbeddingConnection
+  // Component Editor for TAiEmbeddingConnection
   TAiEmbeddingConnectionComponentEditor = class(TDefaultEditor)
   public
     function GetVerbCount: Integer; override;

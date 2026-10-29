@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -108,20 +108,20 @@ begin
   Result := False;
   Hunk := nil;
 
-  // Formato esperado: @@ -start,count +start,count @@
-  // Pero GPT-5 a veces sends solo "@@" o "@@ context @@"
+  // Expected format: @@ -start,count +start,count @@
+  // But GPT-5 sometimes sends only '@@' or '@@ context @@'
   if not Line.StartsWith('@@') then Exit;
 
   try
     Hunk := TDiffHunk.Create;
 
-    // VALORES By default (Si el parsing falla, asumimos inicio de archivo o search difusa)
+    // DEFAULT VALUES (If parsing fails, assume start of file or fuzzy search)
     Hunk.OriginalStart := 1;
     Hunk.OriginalCount := 0;
     Hunk.NewStart := 1;
     Hunk.NewCount := 0;
 
-    // Intentamos parsear estrictamente
+    // We try to parse strictly
     Parts := Line.Split(['@@'], TStringSplitOptions.ExcludeEmpty);
 
     if Length(Parts) >= 1 then
@@ -148,7 +148,7 @@ begin
           end;
         end;
 
-        // 2. Nuevo (+start,count)
+        // 2. New (+start,count)
         NewPart := Parts[1];
         if NewPart.StartsWith('+') then
         begin
@@ -168,9 +168,9 @@ begin
       end;
     end;
 
-    // IMPORTANTE: Incluso si el parsing de numbers fthere (ej. la line era solo "@@"),
-    // devolvemos True porque hemos creado un Hunk valid con valores By default (0,0).
-    // El TDiffApplier would use el contenido (contexto) para encontrar where aplicarlo.
+    // IMPORTANT: Even if parsing of numbers fails (e.g., the line was only '@@'),
+    // we return True because we have created a valid Hunk with default values (0,0).
+    // The TDiffApplier will use the content (context) to find where to apply it.
     Result := True;
 
   except
@@ -191,11 +191,11 @@ begin
   Result := TList<TDiffHunk>.Create;
   Lines := TStringList.Create;
   try
-    Lines.Text := DiffText; // Normaliza CRLF/LF
+    Lines.Text := DiffText; // Normalizes CRLF/LF
     CurrentHunk := nil;
     HasHeaders := False;
 
-    // 1. detection fast de cabeceras
+    // 1. Quick detection of headers
     for I := 0 to Lines.Count - 1 do
       if Lines[I].StartsWith('@@') then
       begin
@@ -207,7 +207,7 @@ begin
     begin
       Line := Lines[I];
 
-      // Ignorar cabeceras de metadatos git (solo fuera de hunks)
+      // Ignore git metadata headers (only outside hunks)
       if (CurrentHunk = nil) and
          (Line.StartsWith('+++') or Line.StartsWith('---') or Line.StartsWith('\')) then
         Continue;
@@ -221,15 +221,15 @@ begin
       end
       else
       begin
-        // logic DE retrieval (FALLBACK):
-        // Si encontramos lines de contenido (+/-) pero NO tenemos un Hunk activo
-        // (y especialmente si no se detectaron cabeceras en todo the file),
-        // creamos un "Hunk Virtual" que asume inicio en line 0.
+        // Logic for retrieval (fallback):
+        // If we find content lines (+/-) but NO active Hunk
+        // (and especially if no headers were detected in the whole file),
+        // we create a "Virtual Hunk" that assumes start at line 0.
         if (CurrentHunk = nil) and not HasHeaders and
            (Line.StartsWith('+') or Line.StartsWith('-') or Line.StartsWith(' ')) then
         begin
           CurrentHunk := TDiffHunk.Create;
-          CurrentHunk.OriginalStart := 0; // Asumimos creation o inicio de archivo
+          CurrentHunk.OriginalStart := 0; // Assume creation or start of file
           CurrentHunk.OriginalCount := 0;
           CurrentHunk.NewStart := 1;
           CurrentHunk.NewCount := 0;
@@ -258,7 +258,7 @@ begin
           end
           else if Line = '' then
           begin
-             // line empty suele interpretarse como contexto empty
+             // empty line is usually interpreted as empty context
              DiffLine.Operation := doContext;
              DiffLine.Content := '';
              CurrentHunk.Lines.Add(DiffLine);
@@ -290,7 +290,7 @@ begin
     begin
       if CurrentFileIdx >= FileLines.Count then Exit(False);
 
-      // MEJORA: Usar TrimRight para ignorar diferencias invisibles de espacios al final
+      // IMPROVEMENT: Use TrimRight to ignore invisible trailing whitespace differences
       FileContent := TrimRight(FileLines[CurrentFileIdx]);
       DiffContent := TrimRight(DiffLine.Content);
 
@@ -308,24 +308,24 @@ begin
   ExpectedStart := Hunk.OriginalStart - 1;
   if ExpectedStart < 0 then ExpectedStart := 0;
 
-  // 1. Intento exacto
+  // 1. Exact attempt
   if MatchHunkAt(FileLines, Hunk, ExpectedStart) then
   begin
     ActualStart := ExpectedStart;
     Exit(True);
   end;
 
-  // 2. search difusa (+/- 20 lines)
+  // 2. Fuzzy search (+/- 20 lines)
   SearchRadius := 20;
   for Offset := 1 to SearchRadius do
   begin
-    // Abajo
+    // Down
     if MatchHunkAt(FileLines, Hunk, ExpectedStart + Offset) then
     begin
       ActualStart := ExpectedStart + Offset;
       Exit(True);
     end;
-    // Arriba
+    // Up
     if (ExpectedStart - Offset >= 0) and MatchHunkAt(FileLines, Hunk, ExpectedStart - Offset) then
     begin
       ActualStart := ExpectedStart - Offset;
@@ -380,14 +380,14 @@ begin
           Exit;
         end;
 
-        // Copiar original previo
+        // Copy previous original
         while CurrentPos < ActualStart do
         begin
           NewLines.Add(FileLines[CurrentPos]);
           Inc(CurrentPos);
         end;
 
-        // Aplicar Hunk
+        // Apply Hunk
         for J := 0 to Hunk.Lines.Count - 1 do
         begin
           DiffLine := Hunk.Lines[J];
@@ -403,7 +403,7 @@ begin
         end;
       end;
 
-      // Copiar resto del archivo
+      // Copy rest of file
       while CurrentPos < FileLines.Count do
       begin
         NewLines.Add(FileLines[CurrentPos]);

@@ -1,4 +1,4 @@
-﻿// Pendiente [TODO] //Estimar el costo de la generaci?n ya que no retorna el consumo
+﻿// Pending [TODO] // Estimate the cost of generation since it does not return consumption
 // https://ai.google.dev/gemini-api/docs/pricing
 
 unit uMakerAi.Gemini.Speech;
@@ -17,7 +17,7 @@ type
     FApiKey: string;
     FModel: string;
     FUrl: string;
-    FVoice: string; // Ahora es String para soportar "Nombre=Voz, Nombre2=Voz2"
+    FVoice: string; // Now it's String to support "Name=Voice, Name2=Voice2"
     FAudioProfile: TStrings;
     FScene: TStrings;
     FDirectorsNotes: TStrings;
@@ -33,7 +33,7 @@ type
     function BuildFullPrompt(const AText: string): string;
     function GetApiKey: string;
 
-    { Tu rutina de parseo adaptada al componente }
+    { Your parsing routine adapted to the component }
     function BuildSpeechConfigJson: TJSONObject;
   protected
     procedure ExecuteTranscription(aMediaFile: TAiMediaFile; ResMsg, AskMsg: TAiChatMessage); override;
@@ -50,7 +50,7 @@ type
     property Model: string read FModel write FModel;
     property Url: string read FUrl write FUrl;
 
-    { Soporta: "Puck" o "Anya=Kore, Liam=Puck" }
+    { Supports: "Puck" or "Anya=Kore, Liam=Puck" }
     property Voice: string read FVoice write FVoice;
 
     property AudioProfile: TStrings read FAudioProfile write SetAudioProfile;
@@ -61,9 +61,9 @@ type
     property Completion_tokens: Integer read FCompletion_tokens write FCompletion_tokens;
     property Total_tokens: Integer read FTotal_tokens write FTotal_tokens;
 
-    { Speech-to-Text: modelo multimodal que acepta audio (ej: gemini-3.8-flash) }
+    { Speech-to-Text: multimodal model that accepts audio (e.g., gemini-3.8-flash) }
     property TranscriptionModel: string read FTranscriptionModel write FTranscriptionModel;
-    { Instruccion enviada junto al audio para guiar la transcripcion }
+    { Instruction sent with the audio to guide transcription }
     property TranscriptionPrompt: string read FTranscriptionPrompt write FTranscriptionPrompt;
   end;
 
@@ -83,16 +83,16 @@ begin
   inherited Create(AOwner);
   FApiKey := '@GEMINI_API_KEY';
   FUrl := 'https://generativelanguage.googleapis.com/v1beta/';
-  // gemini-3.8-flash-tts (estable, sep 2026). La 2.5 TTS quedó limitada a
-  // cuentas que ya la usaban. Sin prueba runtime: la doc de 3.8 aún admite la
-  // API generateContent que usa este componente (y documenta además la nueva
+  // gemini-3.8-flash-tts (stable, sep 2026). 2.5 TTS was limited to
+  // accounts that already used it. No runtime test: the 3.8 doc still supports
+  // the generateContent API used by this component (and also documents the new
   // /interactions).
   FModel := 'gemini-3.8-flash-tts';
   FVoice := 'Puck';
   FAudioProfile := TStringList.Create;
   FScene := TStringList.Create;
   FDirectorsNotes := TStringList.Create;
-  // gemini-2.0-flash se apagó el 1 jun 2026; 3.8 Flash acepta audio de entrada
+  // gemini-2.0-flash was shut down on 1 jun 2026; 3.8 Flash accepts audio input
   FTranscriptionModel := 'gemini-3.8-flash';
   FTranscriptionPrompt := 'Transcribe this audio accurately.';
 end;
@@ -176,7 +176,7 @@ begin
   end;
 end;
 
-{ --- L?GICA DE EJECUCI?N --- }
+{ --- EXECUTION LOGIC --- }
 
 function TAiGeminiSpeechTool.InternalRunGeminiTTS(const AText: string; ResMsg: TAiChatMessage): string;
 var
@@ -202,10 +202,10 @@ begin
   LRequestJson := TJSONObject.Create;
   LPCMStream := TMemoryStream.Create;
   try
-    // 1. Prompt de Director
+    // 1. Director's Prompt
     LRequestJson.AddPair('contents', TJSONArray.Create.Add(TJSONObject.Create.AddPair('parts', TJSONArray.Create.Add(TJSONObject.Create.AddPair('text', BuildFullPrompt(AText))))));
 
-    // 2. Configuraci?n de Generaci?n
+    // 2. Generation Configuration
     LGenConfig := TJSONObject.Create;
 
     LRespModalities := TJSONArray.Create;
@@ -222,20 +222,20 @@ begin
     LBody := TStringStream.Create(LRequestJson.ToJSON, TEncoding.UTF8);
     try
       HTTP.ContentType := 'application/json';
-      ReportState(acsWriting, 'Gemini generando voz...');
+      ReportState(acsWriting, 'Gemini generating voice...');
       LResponse := HTTP.Post(LUrl, LBody, LPCMStream);
     finally
       LBody.Free;
     end;
 
-    // 4. Respuesta y Conversi?n
+    // 4. Response and Conversion
     if LResponse.StatusCode = 200 then
     begin
       LResponseJson := TJSONObject.ParseJSONValue(LResponse.ContentAsString) as TJSONObject;
       if not Assigned(LResponseJson) then
         Exit;
       try
-        // --- CAPTURA DE METADATOS DE USO (TOKENS) ---
+        // --- CAPTURE USAGE METADATA (TOKENS) ---
         if LResponseJson.TryGetValue<TJSONObject>('usageMetadata', JUsage) then
         begin
           var LPt: Integer := 0;
@@ -252,16 +252,16 @@ begin
           FTotal_tokens := FTotal_tokens + LTt;
         end;
 
-        // --- EXTRACCI?N DEL AUDIO ---
+        // --- EXTRACT AUDIO ---
         LBase64 := LResponseJson.GetValue<string>('candidates[0].content.parts[0].inlineData.data', '');
         if not LBase64.IsEmpty then
         begin
           LPCMStream.Clear;
           LNewFile := TAiMediaFile.Create;
-          // Cargamos el Base64 (PCM Raw)
+          // Load Base64 (Raw PCM)
           LNewFile.LoadFromBase64('temp.pcm', LBase64);
 
-          // Convertimos a WAV usando tu utilidad PcmToWav
+          // Convert to WAV using your PcmToWav utility
           if ConvertPCMStreamToWAVStream(LNewFile.Content, LWAVStream, 24000, 1, 16) then
           begin
             try
@@ -269,8 +269,8 @@ begin
               LNewFile.LoadFromStream('gemini_audio.wav', LWAVStream);
               LMsg.MediaFiles.Add(LNewFile);
 
-              Result := '[Audio Generado]';
-              // Sincronizamos el Prompt del mensaje con el resultado
+              Result := '[Audio Generated]';
+              // Sync the message prompt with the result
               LMsg.Prompt := Result;
 
               ReportDataEnd(ResMsg, 'assistant', Result);
@@ -297,7 +297,7 @@ begin
   end;
 end;
 
-{ --- M?TODOS DE APOYO --- }
+{ --- SUPPORT METHODS --- }
 
 function TAiGeminiSpeechTool.BuildFullPrompt(const AText: string): string;
 var
@@ -389,29 +389,29 @@ procedure TAiGeminiSpeechTool.ExecuteTranscription(aMediaFile: TAiMediaFile; Res
 var
   LText: string;
 begin
-  // Llamada directa siempre — nunca TTask.Run aquí:
-  // - IsAsync=True:  ya estamos en hilo background del chat → sin problema.
-  // - IsAsync=False: modo sync → bloquear es correcto (igual que la llamada HTTP al LLM).
-  //   Con TTask.Run en sync mode, el caller leía ResMsg.Prompt vacío y aMediaFile
-  //   podía liberarse antes de que el TTask terminara → access violation.
+  // Direct call always — never TTask.Run here:
+  // - IsAsync=True:  we are already in a background thread from the chat → no problem.
+  // - IsAsync=False: sync mode → blocking is correct (same as HTTP call to LLM).
+  //   With TTask.Run in sync mode, the caller read ResMsg.Prompt empty and aMediaFile
+  //   could be freed before the TTask finished → access violation.
   try
-    ReportState(acsReasoning, 'Transcribiendo audio con Gemini...');
+    ReportState(acsReasoning, 'Transcribing audio with Gemini...');
     LText := InternalRunGeminiTranscription(aMediaFile);
     aMediaFile.Transcription := LText;
     aMediaFile.Procesado := True;
-    ResMsg.Prompt := LText;  // asignación directa para que InternalRunTranscription lo lea en sync
+    ResMsg.Prompt := LText;  // direct assignment so that InternalRunTranscription reads it in sync
     ReportDataEnd(ResMsg, 'assistant', LText);
   except
     on E: Exception do
-      ReportError('Error en transcripcion Gemini: ' + E.Message, E);
+      ReportError('Error in Gemini transcription: ' + E.Message, E);
   end;
 end;
 
 procedure TAiGeminiSpeechTool.ExecuteSpeechGeneration(const AText: string; ResMsg, AskMsg: TAiChatMessage);
 begin
-  // Si IsAsync=True ya estamos en un hilo background del chat: llamar directo
-  // para evitar un TTask anidado que causaría dangling pointer sobre ResMsg.
-  // Si IsAsync=False estamos en el hilo principal: lanzar task para no bloquearlo.
+  // If IsAsync=True we are already in a background thread from the chat: call directly
+  // to avoid a nested TTask that would cause a dangling pointer on ResMsg.
+  // If IsAsync=False we are in the main thread: launch task to avoid blocking it.
   if IsAsync then
     InternalRunGeminiTTS(AText, ResMsg)
   else
@@ -454,17 +454,17 @@ class function TAiGeminiSpeechTool.GenerateSpeech(const AApiKey, AText, AVice: s
   begin
     Result := nil;
 
-    // 1. Creamos una instancia temporal de la propia clase
+    // 1. Create a temporary instance of the class itself
     LInstance := TAiGeminiSpeechTool.Create(nil);
-    // 2. Creamos el contenedor de mensaje
+    // 2. Create the message container
     LDummyMsg := TAiChatMessage.Create('', 'assistant');
 
     try
-      // 3. Configuramos la instancia
+      // 3. Configure the instance
       LInstance.ApiKey := AApiKey;
       LInstance.Voice := AVice;
 
-      // Asignamos los par?metros de direcci?n si se proveen
+      // Assign the direction parameters if provided
       if Assigned(AAudioProfile) then
         LInstance.AudioProfile.Assign(AAudioProfile);
       if Assigned(AScene) then
@@ -472,19 +472,19 @@ class function TAiGeminiSpeechTool.GenerateSpeech(const AApiKey, AText, AVice: s
       if Assigned(ADirectorsNotes) then
         LInstance.DirectorsNotes.Assign(ADirectorsNotes);
 
-      // 4. Ejecutamos la l?gica interna (S?ncronamente)
-      // Llamamos a InternalRunGeminiTTS que es donde est? la l?gica de red y tokens
+      // 4. Execute the internal logic (Synchronously)
+      // Call InternalRunGeminiTTS which contains the network and token logic
       LInstance.InternalRunGeminiTTS(AText, LDummyMsg);
 
-      // 5. Extraemos el archivo resultante
+      // 5. Extract the resulting file
       if LDummyMsg.MediaFiles.Count > 0 then
       begin
         Result := LDummyMsg.MediaFiles[0];
-        // Importante: Extraer para que no se libere al destruir LDummyMsg
+        // Important: Extract so it is not freed when LDummyMsg is destroyed
         LDummyMsg.MediaFiles.Extract(Result);
       end;
     finally
-      // Limpieza de los objetos temporales
+      // Clean up temporary objects
       LDummyMsg.Free;
       LInstance.Free;
     end;

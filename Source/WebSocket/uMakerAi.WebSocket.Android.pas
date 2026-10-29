@@ -1,19 +1,19 @@
-﻿// MakerAI Suite — TLS Transport Android vía javax.net.ssl.SSLSocketFactory (JNI)
+﻿// MakerAI Suite — TLS Transport Android via javax.net.ssl.SSLSocketFactory (JNI)
 //
-// TAndroidSSLTransport implementa ITlsTransport usando el stack TLS nativo de Android
-// (BoringSSL — sin DLLs externos ni permiso de red extra más allá de INTERNET).
+// TAndroidSSLTransport implements ITlsTransport using Android's native TLS stack
+// (BoringSSL — no external DLLs or extra network permission beyond INTERNET).
 //
-// Gestión de memoria JNI:
-//   - jobject retornados por JNI son locales; se convierten a refs globales con
-//     NewGlobalRef para sobrevivir entre llamadas.
-//   - ReleaseRefs() elimina todas las refs globales en Disconnect/Destroy.
-//   - Hilos TThread en Delphi/Android están auto-attached al JVM; GetCurrentEnv
-//     llama AttachCurrentThread como seguro adicional para hilos nativos puros.
+// JNI memory management:
+//   - jobjects returned by JNI are local; they are converted to global refs with
+//     NewGlobalRef to survive across calls.
+//   - ReleaseRefs() deletes all global refs in Disconnect/Destroy.
+//   - TThread threads in Delphi/Android are auto-attached to the JVM; GetCurrentEnv
+//     calls AttachCurrentThread as an additional safety measure for pure native threads.
 //
-// Prerequisito en AndroidManifest.xml:
+// Prerequisite in AndroidManifest.xml:
 //   <uses-permission android:name="android.permission.INTERNET"/>
 //
-// Autor: Gustavo Enriquez
+// Author: Gustavo Enriquez
 // Email: gustavoeenriquez@gmail.com
 
 unit uMakerAi.WebSocket.Android;
@@ -30,19 +30,19 @@ type
   TAndroidSSLTransport = class(TInterfacedObject, ITlsTransport)
   private
     FConnected:    Boolean;
-    // Referencias globales JNI (válidas entre llamadas a métodos nativos)
+    // Global JNI references (valid across native method calls)
     FSocket:       jobject;     // javax.net.ssl.SSLSocket
     FInputStream:  jobject;     // java.io.InputStream
     FOutputStream: jobject;     // java.io.OutputStream
-    FReadBuf:      jbyteArray;  // byte[READ_BUF_SIZE] reutilizable para lecturas
-    // Method IDs cacheados tras Connect (válidos mientras el proceso vive)
+    FReadBuf:      jbyteArray;  // byte[READ_BUF_SIZE] reusable for reads
+    // Cached method IDs after Connect (valid for the process lifetime)
     FMidISRead:     jmethodID;  // InputStream.read([BII)I
     FMidOSWrite:    jmethodID;  // OutputStream.write([BII)V
     FMidSetTimeout: jmethodID;  // Socket.setSoTimeout(I)V
     FMidClose:      jmethodID;  // Socket.close()V
     procedure ReleaseRefs;
     function  GetCurrentEnv: PJNIEnv;
-    // True si había excepción pendiente (la limpia siempre)
+    // True if there was a pending exception (always clears it)
     function  CheckAndClearException(const E: PJNIEnv): Boolean;
   public
     constructor Create;
@@ -56,7 +56,7 @@ type
   end;
 
 {$ELSE}
-// Stub vacío en plataformas no-Android
+// Empty stub on non-Android platforms
 type
   TAndroidSSLTransport = class(TInterfacedObject)
   end;
@@ -75,11 +75,11 @@ const
   JNI_VERSION_1_6 = $00010006;
   JNI_OK          = 0;
   JNI_EDETACHED   = -2;
-  JNI_ABORT       = 2; // ReleaseByteArrayElements: no copiar de vuelta al heap Java
+  JNI_ABORT       = 2; // ReleaseByteArrayElements: do not copy back to Java heap
 
 // ---------------------------------------------------------------------------
-//  GetCurrentEnv — PJNIEnv para el hilo actual
-//  Adjunta el hilo al JVM si aún no está adjunto (p.ej. hilos nativos puros).
+//  GetCurrentEnv — PJNIEnv for the current thread
+//  Attaches the thread to the JVM if not yet attached (e.g., pure native threads).
 // ---------------------------------------------------------------------------
 function TAndroidSSLTransport.GetCurrentEnv: PJNIEnv;
 var
@@ -90,7 +90,7 @@ begin
   Result := nil;
   VM     := TJNIResolver.GetJavaVM;
   if VM = nil then Exit;
-  // GetEnv devuelve la env del hilo actual si está adjunto
+  // GetEnv returns the env of the current thread if attached
   Res := VM^.GetEnv(VM, @EnvPtr, JNI_VERSION_1_6);
   if Res = JNI_EDETACHED then
     VM^.AttachCurrentThread(VM, @EnvPtr, nil);
@@ -98,7 +98,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-//  CheckAndClearException — True si había excepción; siempre la limpia.
+//  CheckAndClearException — True if there was an exception; always clears it.
 // ---------------------------------------------------------------------------
 function TAndroidSSLTransport.CheckAndClearException(const E: PJNIEnv): Boolean;
 begin
@@ -108,7 +108,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-//  ReleaseRefs — libera todas las refs globales JNI
+//  ReleaseRefs — releases all global JNI references
 // ---------------------------------------------------------------------------
 procedure TAndroidSSLTransport.ReleaseRefs;
 var
@@ -143,23 +143,23 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-//  Connect — establece conexión TCP + TLS usando javax.net.ssl.SSLSocketFactory
+//  Connect — establishes TCP + TLS connection using javax.net.ssl.SSLSocketFactory
 //
-//  Flujo JNI:
+//  JNI flow:
 //   1. SSLSocketFactory.getDefault()  → factory
-//   2. factory.createSocket(host, port) → SSLSocket (conecta TCP + inicia TLS)
-//   3. sslSocket.startHandshake()       → completa handshake TLS
-//   4. Cachear getInputStream/getOutputStream y sus method IDs
-//   5. Crear byte[] reutilizable para lecturas
+//   2. factory.createSocket(host, port) → SSLSocket (connects TCP + starts TLS)
+//   3. sslSocket.startHandshake()       → completes TLS handshake
+//   4. Cache getInputStream/getOutputStream and their method IDs
+//   5. Create reusable byte[] for reads
 // ---------------------------------------------------------------------------
 function TAndroidSSLTransport.Connect(const AHost: string; APort: Integer): Boolean;
 var
   E: PJNIEnv;
-  // Clases JNI locales
+  // Local JNI classes
   CSSLFactory, CActualFactory, CSocket, CIS, COS: jclass;
-  // Method IDs locales
+  // Local method IDs
   MGetDefault, MCreateSocket, MStartHandshake, MGetIS, MGetOS: jmethodID;
-  // Objetos JNI locales (refs locales — se eliminan o se hacen globales)
+  // Local JNI objects (local refs — either deleted or made global)
   LFactory, LSocket, LIS, LOS: jobject;
   LReadBuf: jbyteArray;
   JHost: jstring;
@@ -188,7 +188,7 @@ begin
   if CheckAndClearException(E) or (LFactory = nil) then Exit;
 
   // 2. factory.createSocket(host, port)
-  //    Usamos la clase real de la factory para buscar el método (puede ser subclase)
+  //    Use the actual class of the factory to look up the method (may be a subclass)
   CActualFactory := E^.GetObjectClass(E, LFactory);
   MCreateSocket  := E^.GetMethodID(E, CActualFactory,
     'createSocket', '(Ljava/lang/String;I)Ljava/net/Socket;');
@@ -207,11 +207,11 @@ begin
   E^.DeleteLocalRef(E, LFactory);
   if CheckAndClearException(E) or (LSocket = nil) then Exit;
 
-  // Convertir socket a ref global
+  // Convert socket to global ref
   FSocket := E^.NewGlobalRef(E, LSocket);
   E^.DeleteLocalRef(E, LSocket);
 
-  // 3. sslSocket.startHandshake() — forza el handshake TLS ahora (falla rápido)
+  // 3. sslSocket.startHandshake() — forces TLS handshake now (fail fast)
   CSocket         := E^.GetObjectClass(E, FSocket);
   MStartHandshake := E^.GetMethodID(E, CSocket, 'startHandshake', '()V');
   if (not CheckAndClearException(E)) and (MStartHandshake <> nil) then
@@ -219,17 +219,17 @@ begin
     E^.CallVoidMethod(E, FSocket, MStartHandshake);
     if CheckAndClearException(E) then
     begin
-      // Handshake TLS fallido
+      // TLS handshake failed
       E^.DeleteLocalRef(E, CSocket);
       ReleaseRefs;
       Exit;
     end;
   end;
 
-  // 4a. Cachear method IDs de Socket (heredados por SSLSocket)
+  // 4a. Cache method IDs of Socket (inherited by SSLSocket)
   FMidSetTimeout := E^.GetMethodID(E, CSocket, 'setSoTimeout', '(I)V');
   FMidClose      := E^.GetMethodID(E, CSocket, 'close', '()V');
-  CheckAndClearException(E); // ignorar si alguno falta (muy improbable)
+  CheckAndClearException(E); // ignore if any missing (very unlikely)
 
   // 4b. getInputStream / getOutputStream
   MGetIS := E^.GetMethodID(E, CSocket, 'getInputStream',  '()Ljava/io/InputStream;');
@@ -247,7 +247,7 @@ begin
   FOutputStream := E^.NewGlobalRef(E, LOS);
   E^.DeleteLocalRef(E, LOS);
 
-  // 4c. Cachear InputStream.read y OutputStream.write
+  // 4c. Cache InputStream.read and OutputStream.write
   CIS        := E^.FindClass(E, 'java/io/InputStream');
   FMidISRead := E^.GetMethodID(E, CIS, 'read', '([BII)I');
   E^.DeleteLocalRef(E, CIS);
@@ -260,7 +260,7 @@ begin
     Exit;
   end;
 
-  // 5. Buffer de lectura Java byte[] reutilizable
+  // 5. Reusable Java byte[] read buffer
   LReadBuf := E^.NewByteArray(E, READ_BUF_SIZE);
   if CheckAndClearException(E) or (LReadBuf = nil) then begin ReleaseRefs; Exit; end;
   FReadBuf := jbyteArray(E^.NewGlobalRef(E, LReadBuf));
@@ -271,7 +271,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-//  Disconnect — cierra el socket y libera todas las refs JNI
+//  Disconnect — closes the socket and releases all JNI references
 // ---------------------------------------------------------------------------
 procedure TAndroidSSLTransport.Disconnect;
 var
@@ -284,14 +284,14 @@ begin
     if E <> nil then
     begin
       E^.CallVoidMethod(E, FSocket, FMidClose);
-      E^.ExceptionClear(E); // ignorar errores al cerrar
+      E^.ExceptionClear(E); // ignore errors on close
     end;
   end;
   ReleaseRefs;
 end;
 
 // ---------------------------------------------------------------------------
-//  SendAll — envía AData completo vía OutputStream.write(byte[],0,len)
+//  SendAll — sends complete AData via OutputStream.write(byte[],0,len)
 // ---------------------------------------------------------------------------
 function TAndroidSSLTransport.SendAll(const AData: TBytes): Boolean;
 var
@@ -307,7 +307,7 @@ begin
   E     := GetCurrentEnv;
   if E = nil then Exit;
 
-  // Crear Java byte[] temporal con los datos a enviar
+  // Create temporary Java byte[] with the data to send
   JBuf := E^.NewByteArray(E, Total);
   if JBuf = nil then Exit;
   E^.SetByteArrayRegion(E, JBuf, 0, Total, pjbyte(@AData[0]));
@@ -324,10 +324,10 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-//  RecvSome — lee hasta READ_BUF_SIZE bytes con timeout ATimeoutMs (ms)
-//  Retorna: >0 = bytes en ABuf, 0 = timeout, -1 = error / conexión cerrada
+//  RecvSome — reads up to READ_BUF_SIZE bytes with timeout ATimeoutMs (ms)
+//  Returns: >0 = bytes in ABuf, 0 = timeout, -1 = error / connection closed
 //
-//  Distingue SocketTimeoutException (timeout normal) de IOException (error).
+//  Distinguishes SocketTimeoutException (normal timeout) from IOException (error).
 // ---------------------------------------------------------------------------
 function TAndroidSSLTransport.RecvSome(var ABuf: TBytes; ATimeoutMs: Integer): Integer;
 var
@@ -345,15 +345,15 @@ begin
   E := GetCurrentEnv;
   if E = nil then Exit;
 
-  // Ajustar timeout de lectura en el socket antes de cada recv
+  // Set read timeout on the socket before each recv
   if FMidSetTimeout <> nil then
   begin
     Args[0].i := ATimeoutMs;
     E^.CallVoidMethodA(E, FSocket, FMidSetTimeout, @Args[0]);
-    CheckAndClearException(E); // no crítico si falla
+    CheckAndClearException(E); // non-critical if it fails
   end;
 
-  // InputStream.read(readBuf, 0, READ_BUF_SIZE) — bloqueante hasta ATimeoutMs
+  // InputStream.read(readBuf, 0, READ_BUF_SIZE) — blocks until ATimeoutMs
   Args[0].l := FReadBuf;
   Args[1].i := 0;
   Args[2].i := READ_BUF_SIZE;
@@ -361,9 +361,9 @@ begin
 
   if E^.ExceptionCheck(E) <> 0 then
   begin
-    // Determinar si es timeout (recuperable) o error real (fatal)
-    ExObj     := E^.ExceptionOccurred(E);  // OK llamar con excepción pendiente
-    E^.ExceptionClear(E);                   // limpiar antes de llamar FindClass
+    // Determine if it's a timeout (recoverable) or real error (fatal)
+    ExObj     := E^.ExceptionOccurred(E);  // OK to call with pending exception
+    E^.ExceptionClear(E);                   // clear before calling FindClass
 
     TCls      := E^.FindClass(E, 'java/net/SocketTimeoutException');
     IsTimeout := (TCls <> nil) and (ExObj <> nil) and
@@ -371,10 +371,10 @@ begin
 
     if TCls  <> nil then E^.DeleteLocalRef(E, TCls);
     if ExObj <> nil then E^.DeleteLocalRef(E, ExObj);
-    CheckAndClearException(E); // limpiar posible excepción de FindClass
+    CheckAndClearException(E); // clear possible exception from FindClass
 
     if IsTimeout then
-      Result := 0   // timeout — el reader thread reintentará
+      Result := 0   // timeout — the reader thread will retry
     else
     begin
       FConnected := False;
@@ -385,12 +385,12 @@ begin
 
   if N <= 0 then
   begin
-    // read() devolvió -1: fin de stream (socket cerrado limpiamente)
+    // read() returned -1: end of stream (socket cleanly closed)
     FConnected := False;
     Exit;
   end;
 
-  // Copiar N bytes de FReadBuf (Java heap) a ABuf (Delphi heap)
+  // Copy N bytes from FReadBuf (Java heap) to ABuf (Delphi heap)
   SetLength(ABuf, N);
   BufPtr := E^.GetByteArrayElements(E, FReadBuf, nil);
   if BufPtr <> nil then

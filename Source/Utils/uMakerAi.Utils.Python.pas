@@ -23,7 +23,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -37,35 +37,35 @@
 
 {
   ===============================================================================
-  uMakerAi.Utils.Python - Utilidad para ejecutar scripts Python desde Delphi
+  uMakerAi.Utils.Python - Utility to execute Python scripts from Delphi
   ===============================================================================
 
-  Esta librer?a proporciona una interfaz simple y eficiente para ejecutar
-  scripts de Python desde aplicaciones Delphi, permitiendo aprovechar el
-  poder de Python para c?lculos complejos, an?lisis de datos, inteligencia
-  artificial y m?s.
+  This library provides a simple and efficient interface to execute
+  Python scripts from Delphi applications, allowing you to take advantage of the
+  power of Python for complex calculations, data analysis, artificial
+  intelligence and more.
 
-  CARACTER?STICAS PRINCIPALES:
-  ? Ejecuci?n de scripts Python con y sin par?metros
-  ? Conversi?n autom?tica de tipos Delphi a Python
-  ? Manejo seguro de memoria y referencias
-  ? Soporte para m?ltiples tipos de datos (String, Integer, Float, Boolean, DateTime)
-  ? Motor Python global reutilizable para mejor rendimiento
+  MAIN FEATURES:
+  - Execution of Python scripts with and without parameters
+  - Automatic conversion of Delphi types to Python
+  - Safe memory and reference handling
+  - Support for multiple data types (String, Integer, Float, Boolean, DateTime)
+  - Reusable global Python engine for better performance
 
-  REQUISITOS:
-  ? Python 3.10 o superior instalado en el sistema
-  ? Componente Python4Delphi (P4D)
-  ? DLL de Python accesible (python310.dll por defecto)
+  REQUIREMENTS:
+  - Python 3.10 or higher installed on the system
+  - Python4Delphi (P4D) component
+  - Accessible Python DLL (python310.dll by default)
 
-  USO B?SICO:
+  BASIC USAGE:
 
-  1. Sin par?metros:
+  1. Without parameters:
   Result := TUtilsPython.ExecuteScript('result = "Hello from Python!"');
 
-  2. Con par?metros:
+  2. With parameters:
   Result := TUtilsPython.ExecuteScript('result = param1 + param2', [10, 20]);
 
-  EJEMPLO PR?CTICO - C?lculo de N?meros Primos:
+  PRACTICAL EXAMPLE - Prime Number Calculation:
 
   var
   ScriptPrimos: String;
@@ -87,42 +87,42 @@
   '    return primos_list' + sLineBreak + sLineBreak +
   'result = primos(param1)';
 
-  // Calcular los primeros 10 numbers primos
+  // Calculate the first 10 prime numbers
   Resultado := TUtilsPython.ExecuteScript(ScriptPrimos, [10]);
-  ShowMessage(Resultado); // Resultado: [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
+  ShowMessage(Resultado); // Result: [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
   end;
 
-  OTROS EJEMPLOS:
+  OTHER EXAMPLES:
 
-  ? Operaciones matem?ticas:
+  - Mathematical operations:
   Result := TUtilsPython.ExecuteScript('result = param1 ** param2', [2, 8]); // 256
 
-  ? Manipulaci?n de strings:
+  - String manipulation:
   Result := TUtilsPython.ExecuteScript(
   'result = param1.upper() + " " + param2.lower()',
   ['Hello', 'WORLD']
   ); // "HELLO world"
 
-  ? Trabajo con fechas:
+  - Date handling:
   Result := TUtilsPython.ExecuteScript(
   'result = param1.strftime("%Y-%m-%d %H:%M:%S")',
   [Now]
   );
 
 
-  NOTAS IMPORTANTES:
-  ? Todos los scripts deben asignar su resultado a la variable 'result'
-  ? Los par?metros se pasan como param1, param2, param3, etc.
-  ? El motor Python se inicializa autom?ticamente
-  ? Se recomienda manejar excepciones al ejecutar scripts complejos
+  IMPORTANT NOTES:
+  - All scripts must assign their result to the variable 'result'
+  - Parameters are passed as param1, param2, param3, etc.
+  - The Python engine is initialized automatically
+  - It is recommended to handle exceptions when executing complex scripts
 
-  AUTOR: Gustavo Enr?quez
-  VERSI?N: 1.1 - Soporte para par?metros din?micos
-  FECHA: 2024
+  AUTHOR: Gustavo Enriquez
+  VERSION: 1.1 - Support for dynamic parameters
+  DATE: 2024
 
   ===============================================================================
 
-  ADVERTENCI!  Asegurese que la aplicaci?n est? en 64 bits si tiene instalado Python en architectura 64 bits.
+  WARNING! Make sure the application is 64-bit if you have Python installed in 64-bit architecture.
 
 }
 
@@ -162,10 +162,10 @@ Begin
     GlPythonEngine := TPythonEngine.Create(nil);
   end;
 
-  // Verificar arquitectura antes de inicializar
+  // Check architecture before initializing
   TUtilsPython.CheckArchitecture;
 
-  GlPythonEngine.DllName := DllName; // make sure de usar la version correcta de Python
+  GlPythonEngine.DllName := DllName; // make sure to use the correct Python version
 
   If Not GlPythonEngine.Initialized then
     GlPythonEngine.LoadDll;
@@ -204,14 +204,14 @@ class procedure TUtilsPython.CheckArchitecture;
 begin
   if not Is64BitApplication then
   begin
-    raise EPythonArchitectureError.CreateFmt('ERROR DE ARQUITECTURA: La aplicaci?n est? compilada en %s pero Python generalmente se instala en 64 bits.' + sLineBreak + 'SOLUCIONES:' + sLineBreak +
-      '1. Recompile la application para 64 bits (Recomendado)' + sLineBreak + '2. Instale Python 32 bits desde https://www.python.org/downloads/' + sLineBreak + '3. Use la DLL de Python 32 bits (python310-32.dll)' + sLineBreak + sLineBreak +
-      'Para compilar en 64 bits:' + sLineBreak + '- En Delphi: Project > Options > Building > Delphi Compiler > Target platforms > Win64' + sLineBreak + '- Seleccione "Win64" como plataforma de destino', [GetApplicationArchitecture]);
+    raise EPythonArchitectureError.CreateFmt('ARCHITECTURE ERROR: The application is compiled in %s but Python is generally installed in 64 bits.' + sLineBreak + 'SOLUTIONS:' + sLineBreak +
+      '1. Recompile the application for 64 bits (Recommended)' + sLineBreak + '2. Install Python 32 bits from https://www.python.org/downloads/' + sLineBreak + '3. Use the Python 32-bit DLL (python310-32.dll)' + sLineBreak + sLineBreak +
+      'To compile for 64 bits:' + sLineBreak + '- In Delphi: Project > Options > Building > Delphi Compiler > Target platforms > Win64' + sLineBreak + '- Select "Win64" as target platform', [GetApplicationArchitecture]);
   end;
 end;
 
 class function TUtilsPython.ExecuteScript(Script: String): String;
-// En esta function el script debe retornar the result en una variable llamada result
+// In this function the script must return the result in a variable called result
 var
   PyEngine: TPythonEngine;
   PyModule: TPythonModule;
@@ -220,37 +220,37 @@ var
   UTF8Script: UTF8String;
 begin
 
-// Verificar arquitectura antes de ejecutar
+// Check architecture before executing
   CheckArchitecture;
 
-  PyEngine := GetPythonEngine; // Obtiene el engine global
+  PyEngine := GetPythonEngine; // Gets the global engine
 
   try
-    // Crear el module de Python
+    // Create the Python module
     PyModule := TPythonModule.Create(nil);
     PyModule.Engine := PyEngine;
     PyModule.ModuleName := 'mymodule';
 
     FullScript := '# -*- coding: utf-8 -*-' + sLineBreak + Script;
 
-    // Convertir a UTF-8
+    // Convert to UTF-8
     UTF8Script := UTF8Encode(FullScript);
 
-    // Ejecutar el script completo de Python
+    // Execute the full Python script
     PyEngine.ExecString(AnsiString(UTF8Script));
 
-    // Obtener the result de la execution
+    // Get the result of the execution
     PyResult := PyEngine.EvalString('result');
 
-    // Convertir the result a una cadena
+    // Convert the result to a string
     Result := PyEngine.PyObjectAsString(PyResult);
 
-    // Decrementar la referencia del objeto Python
+    // Decrement the reference of the Python object
     PyEngine.Py_DecRef(PyResult);
   Except
     On E: Exception do
     Begin
-      Result := E.Message + sLineBreak + 'Recuerda que todos los script deben retornar un valor en una variable llamada Result';
+      Result := E.Message + sLineBreak + 'Remember that all scripts must return a value in a variable called result';
       Raise;
     End;
   end;
@@ -267,25 +267,25 @@ var
   UTF8Script: UTF8String;
 begin
 
-// Verificar arquitectura antes de ejecutar
+// Check architecture before executing
   CheckArchitecture;
 
   PyEngine := GetPythonEngine;
   try
-    // Crear el module de Python
+    // Create the Python module
     PyModule := TPythonModule.Create(nil);
     try
       PyModule.Engine := PyEngine;
       PyModule.ModuleName := 'mymodule';
 
-      // Construir el script de parameters
+      // Build the parameter script
       ParameterScript := '';
       for i := 0 to High(Params) do
       begin
         ParameterScript := ParameterScript + Format('param%d = %s', [i + 1, VariantToPythonValue(Params[i])]) + sLineBreak;
       end;
 
-      // Si hay parameters de tipo fecha, agregar import de datetime
+      // If there are date parameters, add datetime import
       for i := 0 to High(Params) do
       begin
         if VarType(Params[i]) = varDate then
@@ -295,22 +295,22 @@ begin
         end;
       end;
 
-      // Agregar encoding UTF-8 al inicio del script
+      // Add UTF-8 encoding at the beginning of the script
       FullScript := '# -*- coding: utf-8 -*-' + sLineBreak + ParameterScript + sLineBreak + Script;
 
-      // Convertir a UTF-8
+      // Convert to UTF-8
       UTF8Script := UTF8Encode(FullScript);
 
-      // Ejecutar el script completo de Python
+      // Execute the full Python script
       PyEngine.ExecString(AnsiString(UTF8Script));
 
-      // Obtener the result de la execution
+      // Get the result of the execution
       PyResult := PyEngine.EvalString('result');
       try
-        // Convertir the result a una cadena
+        // Convert the result to a string
         Result := PyEngine.PyObjectAsString(PyResult);
       finally
-        // Decrementar la referencia del objeto Python
+        // Decrement the reference of the Python object
         PyEngine.Py_DecRef(PyResult);
       end;
     finally
@@ -319,7 +319,7 @@ begin
   Except
     On E: Exception do
     Begin
-      Result := E.Message + sLineBreak + 'Recuerda que todos los script deben retornar un valor en una variable llamada result';
+      Result := E.Message + sLineBreak + 'Remember that all scripts must return a value in a variable called result';
       Raise;
     End;
   end;
@@ -338,13 +338,13 @@ begin
     varByte, varSmallint, varInteger, varWord, varLongWord, varInt64, varUInt64:
       Result := VarToStr(Value);
     varSingle, varDouble, varCurrency:
-      Result := StringReplace(VarToStr(Value), ',', '.', [rfReplaceAll]); // Formato decimal para Python
+      Result := StringReplace(VarToStr(Value), ',', '.', [rfReplaceAll]); // Decimal format for Python
     varDate:
       Result := Format('datetime.datetime(%s)', [FormatDateTime('yyyy,m,d,h,n,s', Value)]);
     varString, varUString, varOleStr:
       Result := QuotedStr(VarToStr(Value));
   else
-    Result := QuotedStr(VarToStr(Value)); // By default como string
+    Result := QuotedStr(VarToStr(Value)); // By default as string
   end;
 end;
 
@@ -374,4 +374,3 @@ end.
          num += 1
      return primos_list
  result = primos(param1)
-

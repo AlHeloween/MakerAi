@@ -1,54 +1,4 @@
-﻿// MIT License
-//
-// Copyright (c) <year> <copyright holders>
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
-// Nombre: Gustavo Enriquez
-// Social Networks:
-// - Email: gustavoeenriquez@gmail.com
-// - Telegram: https://t.me/MakerAi_Suite_Delphi
-// - Telegram: https://t.me/MakerAi_Delphi_Suite_English
-// - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
-// - Youtube: https://www.youtube.com/@cimamaker3945
-// - GitHub: https://github.com/gustavoeenriquez/
-
-// -------------------------------------------------------------------------
-// TAiOllamaVisionTool: Image description tool using models
-// de vision en Ollama (ej: gemma3:4b, llava:latest, moondream:latest).
-//
-// Implementa IAiVisionTool -> usable como ChatTool en TAiChat.VisionTool.
-// El bridge de Fase 1 lo invoca automaticamente cuando el modelo principal
-// no soporta imagenes nativamente (Tfc_Image not in NativeInputFiles).
-//
-// Diferencias con TAiOllamaOcrTool:
-//   - Orientado a descripcion / comprension general de imagenes
-//   - Prompt libre configurable (no formato OCR especifico)
-//   - Temperature mayor (0.7 By default) para respuestas mas naturales
-//   - Modelo By default: gemma3:4b
-//
-// Uso:
-//   AiChat.ChatTools.VisionTool := TAiOllamaVisionTool.Create(Self);
-//   (TAiOllamaVisionTool(AiChat.VisionTool)).Model := 'llava:latest';
-// -------------------------------------------------------------------------
-
-unit uMakerAi.Ollama.Vision;
+﻿unit uMakerAi.Ollama.Vision;
 
 interface
 
@@ -60,8 +10,8 @@ uses
 
 type
   { TAiOllamaVisionTool
-    Descripcion de imagenes con modelos multimodales de Ollama.
-    Implementa IAiVisionTool a traves de TAiVisionToolBase. }
+    Image description with Ollama multimodal models.
+    Implements IAiVisionTool via TAiVisionToolBase. }
   TAiOllamaVisionTool = class(TAiVisionToolBase)
   private
     FUrl: string;
@@ -80,7 +30,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    { Metodos estaticos para uso directo sin chat }
+    { Static methods for direct use without chat }
     class function Describe(AMediaFile: TAiMediaFile; const APrompt: string = ''; const AUrl: string = ''): string;
     class function DescribeFromFile(const AFilePath: string; const APrompt: string = ''; const AUrl: string = ''): string;
     class function DescribeFromStream(AStream: TStream; const AFileName: string; const APrompt: string = ''; const AUrl: string = ''): string;
@@ -89,7 +39,7 @@ type
     property Url: string read FUrl write FUrl;
     property Model: string read FModel write FModel;
     property KeepAlive: string read FKeepAlive write FKeepAlive;
-    { Prompt de descripcion enviado junto a la imagen }
+    { Description prompt sent together with the image }
     property Prompt: string read FPrompt write FPrompt;
     property Temperature: Double read FTemperature write FTemperature;
     property MaxTokens: Integer read FMaxTokens write FMaxTokens default 2048;
@@ -141,8 +91,8 @@ procedure TAiOllamaVisionTool.ExecuteImageDescription(aMediaFile: TAiMediaFile; 
 var
   LPrompt: string;
 begin
-  // Capturar el prompt antes de cualquier operacion async para evitar
-  // acceder a AskMsg cuando pueda estar liberado dentro del TTask.
+  // Capture the prompt before any async operation to avoid
+  // accessing AskMsg when it might be freed inside the TTask.
   LPrompt := '';
   if Assigned(AskMsg) then
     LPrompt := AskMsg.Prompt;
@@ -173,12 +123,12 @@ begin
   try
     LActualApiKey := GetApiKey;
 
-    // Payload raiz
+    // Root payload
     LRequestJson.AddPair('model', FModel);
     LRequestJson.AddPair('stream', TJSONBool.Create(False));
     LRequestJson.AddPair('keep_alive', FKeepAlive);
 
-    // Mensaje con imagen embebida como base64
+    // Message with image embedded as base64
     LMessagesArray := TJSONArray.Create;
     LMessage := TJSONObject.Create;
     LMessage.AddPair('role', 'user');
@@ -191,7 +141,7 @@ begin
     LMessagesArray.Add(LMessage);
     LRequestJson.AddPair('messages', LMessagesArray);
 
-    // Opciones de generacion
+    // Generation options
     LOptions := TJSONObject.Create;
     LOptions.AddPair('temperature', TJSONNumber.Create(FTemperature));
     LOptions.AddPair('num_predict', TJSONNumber.Create(FMaxTokens));
@@ -205,7 +155,7 @@ begin
       if not LActualApiKey.IsEmpty then
         HTTP.CustomHeaders['Authorization'] := 'Bearer ' + LActualApiKey;
 
-      ReportState(acsReasoning, 'Ollama analizando imagen...');
+      ReportState(acsReasoning, 'Ollama analyzing image...');
       LResponse := HTTP.Post(FUrl + 'api/chat', LBody);
     finally
       LBody.Free;
@@ -217,7 +167,7 @@ begin
       if not Assigned(LResponseJson) then
         Exit;
       try
-        // Ollama /api/chat devuelve { "message": { "content": "..." } }
+        // Ollama /api/chat returns { "message": { "content": "..." } }
         if LResponseJson.TryGetValue('message', LMsgResponse) then
           LContent := LMsgResponse.GetValue<string>('content', '')
         else
@@ -232,7 +182,7 @@ begin
         Result := LContent;
 
         ReportDataEnd(ResMsg, 'assistant', LContent, LResponseJson);
-        ReportState(acsFinished, 'Vision completada');
+        ReportState(acsFinished, 'Vision completed');
       finally
         LResponseJson.Free;
       end;
@@ -246,7 +196,7 @@ begin
   end;
 end;
 
-{ --- Metodos estaticos --- }
+{ --- Static methods --- }
 
 class function TAiOllamaVisionTool.Describe(AMediaFile: TAiMediaFile; const APrompt, AUrl: string): string;
 var

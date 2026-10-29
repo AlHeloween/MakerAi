@@ -1,7 +1,7 @@
-﻿// MakerAI Suite — Clase base abstracta para componentes Realtime STT
-// Provee: resampler PCM16, event dispatchers thread-safe, factory de drivers
+﻿// MakerAI Suite — Abstract base class for Realtime STT components
+// Provides: PCM16 resampler, thread-safe event dispatchers, driver factory
 //
-// Autor: Gustavo Enriquez
+// Author: Gustavo Enriquez
 // Email: gustavoeenriquez@gmail.com
 
 unit uMakerAi.Realtime;
@@ -13,21 +13,21 @@ uses
   System.Generics.Collections, System.SyncObjs, System.Threading;
 
 type
-  // Modo de deteccion de actividad de voz
+  // Voice activity detection mode
   TAiRealtimeVADMode = (
-    rvmServerVad,   // VAD basado en energia (servidor)
-    rvmSemanticVad, // VAD semantico (servidor)
-    rvmManual       // El cliente controla commit manualmente
+    rvmServerVad,   // Energy-based VAD (server)
+    rvmSemanticVad, // Semantic VAD (server)
+    rvmManual       // Client controls commit manually
   );
 
-  // Reduccion de ruido de fondo
+  // Background noise reduction
   TAiRealtimeNoiseReduction = (
-    rnrNone,      // Sin reduccion
-    rnrNearField, // Microfono de auriculares / headset
-    rnrFarField   // Microfono de laptop / sala
+    rnrNone,      // No reduction
+    rnrNearField, // Headset microphone
+    rnrFarField   // Laptop/room microphone
   );
 
-  // Tipos de eventos
+  // Event types
   TAiRealtimeTranscriptDeltaEvent = procedure(Sender: TObject;
     const Delta: string) of object;
 
@@ -40,11 +40,11 @@ type
   TAiRealtimeSpeechEvent = procedure(Sender: TObject;
     AudioMs: Int64; const ItemId: string) of object;
 
-  // Texto del asistente (completo o delta) — drivers de voz full-duplex
+  // Assistant text (complete or delta) — full-duplex voice drivers
   TAiRealtimeAssistantTextEvent = procedure(Sender: TObject;
     const AText: string) of object;
 
-  // Fragmento de audio TTS del asistente (PCM16)
+  // Assistant TTS audio chunk (PCM16)
   TAiRealtimeAudioChunkEvent = procedure(Sender: TObject;
     const AData: TBytes) of object;
 
@@ -52,14 +52,14 @@ type
   TAiRealtimeClass = class of TAiRealtimeBase;
 
   // -------------------------------------------------------------------
-  // Factory de drivers
+  // Driver factory
   // -------------------------------------------------------------------
   TAiRealtimeFactory = class
   strict private
     class var FInstance: TAiRealtimeFactory;
   strict private
-    // Campo de instancia: dentro de 'class var' tambien seria de clase y nadie
-    // lo liberaba (fuga reportada al cerrar cualquier app con realtime)
+    // Instance field: inside 'class var' it would also be class-level and no one
+    // would free it (leak reported when closing any app using realtime)
     FDrivers: TDictionary<string, TAiRealtimeClass>;
     constructor Create;
     class destructor ClassDestroy;
@@ -72,7 +72,7 @@ type
   end;
 
   // -------------------------------------------------------------------
-  // Clase base abstracta
+  // Abstract base class
   // -------------------------------------------------------------------
   TAiRealtimeBase = class(TComponent)
   private
@@ -96,17 +96,17 @@ type
     FOnError:         TAiRealtimeErrorEvent;
     function GetResolvedApiKey: string;
   protected
-    // Cada driver indica a que sample rate necesita el audio
+    // Each driver indicates the sample rate it needs for audio
     function GetTargetSampleRate: Integer; virtual; abstract;
-    // El driver implementa el envio real al WebSocket
+    // The driver implements actual sending to WebSocket
     procedure InternalSendAudio(const ResampledPCM16: TBytes); virtual; abstract;
     procedure InternalConnect;    virtual; abstract;
     procedure InternalDisconnect; virtual; abstract;
     procedure InternalCommitAudio; virtual; abstract;
     procedure InternalClearAudio;  virtual; abstract;
-    // Resampler lineal PCM16 (mono)
+    // Linear PCM16 resampler (mono)
     function ResamplePCM16(const Input: TBytes; FromHz, ToHz: Integer): TBytes;
-    // Dispatchers thread-safe (todos via TThread.Queue al hilo principal)
+    // Thread-safe dispatchers (all via TThread.Queue to main thread)
     procedure DoConnected;
     procedure DoDisconnected;
     procedure DoSessionReady;
@@ -119,13 +119,13 @@ type
     property Connected: Boolean read FConnected write FConnected;
   public
     constructor Create(AOwner: TComponent); override;
-    // Conectar/desconectar al proveedor
+    // Connect/Disconnect to provider
     procedure Connect;
     procedure Disconnect;
-    // Enviar chunk de audio PCM16 (se resamplea automaticamente segun el provider).
-    // virtual para que TAiRealtimeConnection pueda delegar sin doble resampling.
+    // Send PCM16 audio chunk (automatically resampled according to provider).
+    // virtual so TAiRealtimeConnection can delegate without double resampling.
     procedure SendAudioChunk(const PCM16Data: TBytes); virtual;
-    // Control manual de VAD (solo cuando VADMode = rvmManual)
+    // Manual VAD control (only when VADMode = rvmManual)
     procedure CommitAudio;
     procedure ClearAudio;
     class function GetDriverName:    string; virtual; abstract;
@@ -136,7 +136,7 @@ type
     property ApiKey:   string  read FApiKey   write FApiKey;
     property Model:    string  read FModel    write FModel;
     property Language: string  read FLanguage write FLanguage;
-    // Sample rate del audio que se entrega via SendAudioChunk (antes del resampling)
+    // Sample rate of audio delivered via SendAudioChunk (before resampling)
     property InputSampleRate: Integer read FInputSampleRate write FInputSampleRate
       default 44100;
     property VADMode:          TAiRealtimeVADMode       read FVADMode        write FVADMode        default rvmServerVad;
@@ -155,8 +155,8 @@ type
   end;
 
   // -------------------------------------------------------------------
-  // Base para drivers de voz full-duplex (STT + LLM + TTS)
-  // Agrega la salida del asistente: texto (delta y completo) y audio TTS.
+  // Base for full-duplex voice drivers (STT + LLM + TTS)
+  // Adds assistant output: text (delta and complete) and TTS audio.
   // Drivers: TAiMakerAiRealtimeChat, TAiGrokRealtimeChat
   // -------------------------------------------------------------------
   TAiRealtimeVoiceBase = class(TAiRealtimeBase)
@@ -166,22 +166,22 @@ type
     FOnAudioChunk:         TAiRealtimeAudioChunkEvent;
     FOnAudioDone:          TNotifyEvent;
   protected
-    // Dispatchers thread-safe (via TThread.Queue al hilo principal)
+    // Thread-safe dispatchers (via TThread.Queue to main thread)
     procedure DoAssistantText(const AText: string);
     procedure DoAssistantTextDelta(const ADelta: string);
     procedure DoAudioChunk(const AData: TBytes);
     procedure DoAudioDone;
   published
-    // Texto completo de la respuesta del asistente (al finalizar el turno)
+    // Complete assistant response text (at end of turn)
     property OnAssistantText: TAiRealtimeAssistantTextEvent
       read FOnAssistantText write FOnAssistantText;
-    // Fragmentos de texto en streaming (drivers que lo soporten)
+    // Streaming text fragments (drivers that support it)
     property OnAssistantTextDelta: TAiRealtimeAssistantTextEvent
       read FOnAssistantTextDelta write FOnAssistantTextDelta;
-    // Audio TTS del asistente en PCM16 (sample rate segun el driver)
+    // Assistant TTS audio in PCM16 (sample rate according to driver)
     property OnAudioChunk: TAiRealtimeAudioChunkEvent
       read FOnAudioChunk write FOnAudioChunk;
-    // Fin del audio del turno actual
+    // End of audio for current turn
     property OnAudioDone: TNotifyEvent
       read FOnAudioDone write FOnAudioDone;
   end;
@@ -227,7 +227,7 @@ var
 begin
   if not FDrivers.TryGetValue(AName, Cls) then
     raise EArgumentException.CreateFmt(
-      'Realtime driver "%s" no encontrado. Agrega el unit del driver al uses.', [AName]);
+      'Realtime driver "%s" not found. Add the driver unit to the uses clause.', [AName]);
   Result := Cls.Create(AOwner);
 end;
 
@@ -258,8 +258,8 @@ begin
     Result := FApiKey;
 end;
 
-// Resampler lineal PCM16 mono.
-// Convierte una senial de FromHz a ToHz usando interpolacion lineal.
+// Linear PCM16 mono resampler.
+// Converts a signal from FromHz to ToHz using linear interpolation.
 function TAiRealtimeBase.ResamplePCM16(const Input: TBytes;
   FromHz, ToHz: Integer): TBytes;
 var
@@ -326,7 +326,7 @@ begin
   if FConnected then InternalClearAudio;
 end;
 
-{ Dispatchers — siempre al hilo principal via TThread.Queue }
+{ Dispatchers — always to main thread via TThread.Queue }
 
 procedure TAiRealtimeBase.DoConnected;
 begin
@@ -395,7 +395,7 @@ begin
     end);
 end;
 
-{ TAiRealtimeVoiceBase — dispatchers de salida del asistente }
+{ TAiRealtimeVoiceBase — dispatchers of assistant output }
 
 procedure TAiRealtimeVoiceBase.DoAssistantText(const AText: string);
 var
@@ -424,7 +424,7 @@ var
   LData: TBytes;
 begin
   if not Assigned(FOnAudioChunk) then Exit;
-  LData := AData; // TBytes es array dinamico: asignacion incrementa refcount
+  LData := AData; // TBytes is dynamic array: assignment increments refcount
   TThread.Queue(nil, procedure begin
     if Assigned(FOnAudioChunk) then FOnAudioChunk(Self, LData);
   end);

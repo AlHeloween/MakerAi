@@ -1,37 +1,4 @@
-﻿// MIT License
-//
-// Copyright (c) <year> <copyright holders>
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
-// Nombre: Gustavo Enriquez
-// Social Networks:
-// - Email: gustavoeenriquez@gmail.com
-
-// - Telegram: https://t.me/MakerAi_Suite_Delphi
-// - Telegram: https://t.me/MakerAi_Delphi_Suite_English
-
-// - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
-// - Youtube: https://www.youtube.com/@cimamaker3945
-// - GitHub: https://github.com/gustavoeenriquez/
-
-unit UMakerAi.MCPServer.Stdio;
+﻿unit UMakerAi.MCPServer.Stdio;
 
 interface
 
@@ -40,11 +7,11 @@ uses
   UMakerAi.MCPServer.Core;
 
 type
-  // declaration adelantada for the hilo
+  // forward declaration for the thread
   TAiMCPStdioServer = class;
 
   { TStdioWorkerThread
-    Este hilo se encarga de la tarea bloqueante de leer desde Standard Input }
+    This thread handles the blocking task of reading from Standard Input }
   TStdioWorkerThread = class(TThread)
   private
     FServer: TAiMCPStdioServer;
@@ -55,11 +22,11 @@ type
   end;
 
   { TAiMCPStdioServer
-    El componente principal que gestiona la comunicaci?n Stdio }
+    The main component that manages Stdio communication }
   TAiMCPStdioServer = class(TAiMCPServer)
   private
     FWorkerThread: TStdioWorkerThread;
-    FOutputLock: TCriticalSection; // Para escrituras seguras a Stdout desde multiples hilos
+    FOutputLock: TCriticalSection; // For safe writes to Stdout from multiple threads
 
     procedure ProcessRequest(const ARequestJson: string);
     procedure SendResponse(const AResponseJson: string);
@@ -87,7 +54,7 @@ end;
 
 constructor TStdioWorkerThread.Create(AServer: TAiMCPStdioServer);
 begin
-  inherited Create(True); // El hilo Is created suspendido
+  inherited Create(True); // The thread is created suspended
   FServer := AServer;
   FreeOnTerminate := False;
 end;
@@ -100,15 +67,15 @@ begin
   while not Terminated do
   begin
     try
-      // Leemos una line completa desde Standard Input.
-      // Esta llamada es bloqueante y would wait hasta recibir un LF (#10).
+      // Read a complete line from Standard Input.
+      // This call is blocking and would wait until receiving an LF (#10).
       System.ReadLn(JsonRequestLine);
 
-      // Si el hilo fue terminado mientras esperaba o la line is empty, continuamos.
+      // If the thread was terminated while waiting or the line is empty, we continue.
       if Terminated or (JsonRequestLine = '') then
         Continue;
 
-      // Cada line es un request JSON completo. Lo procesamos.
+      // Each line is a complete JSON request. We process it.
       TThread.Queue(nil,
         procedure
         begin
@@ -118,13 +85,13 @@ begin
     except
       on E: EInOutError do
       begin
-        // Esto ocurre si el pipe de Stdin se cierra. Es la forma normal de terminar.
+        // This occurs if the stdin pipe is closed. It is the normal way to terminate.
         if not Terminated then
           Break;
       end;
       on E: Exception do
       begin
-        // Otro tipo de error, terminamos el bucle.
+        // Other type of error, we terminate the loop.
         if not Terminated then
           Break;
       end;
@@ -186,7 +153,7 @@ begin
         try
           FServer.ProcessRequest(JsonRequestLine);
         except
-          // Capturamos excepciones so that un error de logica no mate al hilo de lectura
+          // Catch exceptions so that a logic error does not kill the reading thread
         end;
       end;
     except
@@ -208,7 +175,7 @@ end;
 constructor TAiMCPStdioServer.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FOutputLock := TCriticalSection.Create; // Para proteger Stdout
+  FOutputLock := TCriticalSection.Create; // To protect Stdout
 end;
 
 destructor TAiMCPStdioServer.Destroy;
@@ -238,8 +205,8 @@ begin
   if Assigned(FWorkerThread) then
   begin
     FWorkerThread.Terminate;
-    // No llamamos WaitFor: ReadLn(Input) es bloqueante e ininterrumpible.
-    // El thread saldr� naturalmente al detectar EOF en stdin.
+    // We do not call WaitFor: ReadLn(Input) is blocking and uninterruptible.
+    // The thread will exit naturally upon detecting EOF on stdin.
     FWorkerThread := nil;
   end;
 
@@ -253,10 +220,10 @@ begin
   if not IsActive then
     Exit;
 
-  // Delegamos el trabajo pesado al servidor logical
-  ResponseBody := FLogicServer.ExecuteRequest(ARequestJson, ''); // La session no aplica en Stdio
+  // We delegate the heavy work to the logic server
+  ResponseBody := FLogicServer.ExecuteRequest(ARequestJson, ''); // Session does not apply in Stdio
 
-  // Si hay una respuesta que enviar (no es una notification)
+  // If there is a response to send (not a notification)
   if ResponseBody <> '' then
   begin
     SendResponse(ResponseBody);
@@ -293,7 +260,7 @@ end;
 procedure TAiMCPStdioServer.SetConsoleIOToUTF8;
 begin
 {$IFDEF MSWINDOWS}
-  // Forzar UTF-8 (Codepage 65001) so that los JSON no se rompan
+  // Force UTF-8 (Codepage 65001) so that JSON does not break
   SetConsoleOutputCP(CP_UTF8);
   SetConsoleCP(CP_UTF8);
 {$ENDIF}

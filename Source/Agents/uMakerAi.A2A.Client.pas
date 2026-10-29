@@ -1,8 +1,8 @@
-// MIT License
+﻿// MIT License
 //
-// MakerAI - Cliente A2A (Agent-to-Agent Protocol, Linux Foundation)
+// MakerAI - A2A Client (Agent-to-Agent Protocol, Linux Foundation)
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
@@ -12,27 +12,27 @@
 unit uMakerAi.A2A.Client;
 
 // -----------------------------------------------------------------------------
-// TAiA2AClient (spec A2A 1.0): consume agentes A2A remotos.
+// TAiA2AClient (spec A2A 1.0): consumes remote A2A agents.
 //
-// - FetchAgentCard: GET /.well-known/agent-card.json (con fallback al alias
-//   legacy /.well-known/agent.json). El campo url de la card pasa a ser el
-//   endpoint JSON-RPC: un agente de terceros puede publicar la card en un host
-//   y atender el RPC en otra ruta.
-// - SendText / SendTextEx: SendMessage con un TextPart. SendTextEx admite
-//   taskId y contextId, que es lo que permite continuar una conversacion o
-//   responder a un task en input-required.
+// - FetchAgentCard: GET /.well-known/agent-card.json (with fallback to the
+//   legacy /.well-known/agent.json alias). The card's url field becomes the
+//   JSON-RPC endpoint: a third-party agent can publish the card on one host
+//   and serve the RPC on another route.
+// - SendText / SendTextEx: SendMessage with a TextPart. SendTextEx accepts
+//   taskId and contextId, which is what allows continuing a conversation or
+//   answering a task in input-required.
 // - GetTask / CancelTask.
-// - Tolerancia de literales: los estados y roles se leen tanto en forma
-//   protobuf (TASK_STATE_COMPLETED / ROLE_AGENT) como en forma JSON-RPC
-//   (completed / agent), porque el ecosistema usa ambas.
-// - Telemetria: spans 'a2a.client <metodo>' (skClient) y propagacion del
-//   traceparent W3C al agente remoto.
+// - Literal tolerance: states and roles are read both in protobuf form
+//   (TASK_STATE_COMPLETED / ROLE_AGENT) and in JSON-RPC form
+//   (completed / agent), because the ecosystem uses both.
+// - Telemetry: spans 'a2a.client <method>' (skClient) and propagation of the
+//   W3C traceparent to the remote agent.
 //
-// TAiA2ARemoteAgentTool federa un nodo de grafo contra un agente remoto. Si el
-// agente remoto pide input humano (input-required), el nodo LOCAL se suspende
-// en vez de fallar: al reanudarlo, la respuesta viaja al task remoto y el flujo
-// continua donde estaba. Es lo que hace que un human-in-the-loop cruce la
-// federacion en vez de morir en el borde.
+// TAiA2ARemoteAgentTool federates a graph node against a remote agent. If the
+// remote agent asks for human input (input-required), the LOCAL node suspends
+// instead of failing: on resume, the response travels to the remote task and the
+// flow continues where it was. That is what lets a human-in-the-loop cross the
+// federation instead of dying at the edge.
 // -----------------------------------------------------------------------------
 
 interface
@@ -45,8 +45,8 @@ uses
 
 type
   EA2AClientException = class(Exception);
-  // El agente remoto respondio, pero el task no termino bien. Se distingue del
-  // error de transporte para que un orquestador pueda decidir si reintentar.
+  // The remote agent responded, but the task did not end well. It is distinguished from
+  // the transport error so an orchestrator can decide whether to retry.
   EA2ARemoteTaskError = class(EA2AClientException);
 
   TAiA2ATaskState = (tsUnknown, tsSubmitted, tsWorking, tsInputRequired, tsCompleted, tsCanceled, tsFailed, tsRejected,
@@ -54,8 +54,8 @@ type
 
   TAiA2AClient = class(TComponent)
   private
-    FUrl: string;      // base del agente, p.ej. http://localhost:8280
-    FEndpoint: string; // endpoint JSON-RPC efectivo (lo fija la Agent Card)
+    FUrl: string;      // agent base, e.g. http://localhost:8280
+    FEndpoint: string; // effective JSON-RPC endpoint (set by the Agent Card)
     FTimeout: Integer; // ms
     FRetryCount: Integer;
     FApiKey: string;
@@ -71,64 +71,64 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    // Descarga y devuelve el Agent Card (el llamador libera el objeto). Como
-    // efecto util fija Endpoint con el campo url de la card.
+    // Downloads and returns the Agent Card (the caller frees the object). As a
+    // useful effect it sets Endpoint from the card's url field.
     function FetchAgentCard: TJSONObject;
 
-    // Envia un mensaje de texto y devuelve el Task resultante (el llamador
-    // libera el objeto). El texto de los artifacts queda en AOutputText.
+    // Sends a text message and returns the resulting Task (the caller
+    // frees the object). The artifacts' text lands in AOutputText.
     function SendText(const AText: string; out AOutputText: string): TJSONObject;
-    // Igual, pero continuando un task existente: con ATaskId de un task en
-    // input-required, AText es la respuesta humana que lo reanuda.
+    // Same, but continuing an existing task: with ATaskId of a task in
+    // input-required, AText is the human response that resumes it.
     function SendTextEx(const AText, ATaskId, AContextId: string; out AOutputText: string; ABlocking: Boolean = True)
       : TJSONObject;
 
     function GetTask(const ATaskId: string): TJSONObject;
     function CancelTask(const ATaskId: string): TJSONObject;
 
-    // Extrae el texto de los artifacts de un Task ya obtenido.
+    // Extracts the artifacts' text from an already-obtained Task.
     class function ArtifactsText(ATask: TJSONObject): string; static;
-    // Normaliza el result de SendMessage a un objeto con forma de Task,
-    // tolerando el wrapper {task}/{message} de v1.0 y el Task plano de 0.x.
+    // Normalizes the SendMessage result into a Task-shaped object,
+    // tolerating the v1.0 {task}/{message} wrapper and the flat 0.x Task.
     class function UnwrapSendMessageResult(ARawResult: TJSONObject): TJSONObject; static;
 
-    // Ultimo task enviado (conveniencia)
+    // Last task sent (convenience)
     property LastTaskId: string read FLastTaskId;
     property LastContextId: string read FLastContextId;
-    // Literal crudo tal como lo mando el agente remoto.
+    // Raw literal exactly as the remote agent sent it.
     property LastState: string read FLastState;
-    // Estado normalizado, independiente de la forma del literal.
+    // Normalized state, independent of the literal's form.
     property LastTaskState: TAiA2ATaskState read FLastTaskState;
-    // Texto de status.message: la pregunta al humano en input-required, o el
-    // detalle del error en failed.
+    // status.message text: the question to the human in input-required, or the
+    // error detail in failed.
     property LastStatusMessage: string read FLastStatusMessage;
-    // Endpoint JSON-RPC efectivo (Url + '/' hasta que la card diga otra cosa).
+    // Effective JSON-RPC endpoint (Url + '/' until the card says otherwise).
     property Endpoint: string read ResolveEndpoint;
   published
     property Url: string read FUrl write FUrl;
     property Timeout: Integer read FTimeout write FTimeout default 60000;
-    // Reintentos ante fallo de transporte (no ante task fallido), con espera
-    // creciente. 0 = sin reintento.
+    // Retries on transport failure (not on task failure), with growing
+    // wait. 0 = no retry.
     property RetryCount: Integer read FRetryCount write FRetryCount default 2;
-    // Si no esta vacio se envia como Authorization: Bearer <ApiKey>.
+    // If not empty it is sent as Authorization: Bearer <ApiKey>.
     property ApiKey: string read FApiKey write FApiKey;
   end;
 
-  // Federacion de agentes: asignar como Tool de un TAIAgentsNode para que ese
-  // nodo delegue su entrada en un agente A2A remoto. El input del nodo viaja
-  // como mensaje de texto y el output es el texto de los artifacts del task.
-  [TToolAttribute('A2ARemoteAgent', 'Delega la entrada del nodo en un agente A2A remoto y devuelve el texto de sus artifacts',
+  // Agent federation: assign as a TAIAgentsNode's Tool so that node
+  // delegates its input to a remote A2A agent. The node's input travels
+  // as a text message and the output is the task artifacts' text.
+  [TToolAttribute('A2ARemoteAgent', 'Delegates the node input to a remote A2A agent and returns the text of its artifacts',
     'A2A')]
   TAiA2ARemoteAgentTool = class(TAiToolBase)
   private
-    [TToolParameterAttribute('Agent URL', 'URL base del agente A2A remoto (ej: http://host:8280)', '')]
+    [TToolParameterAttribute('Agent URL', 'Base URL of the remote A2A agent (e.g. http://host:8280)', '')]
     FAgentUrl: string;
-    [TToolParameterAttribute('Timeout ms', 'Timeout de la llamada remota en milisegundos', '60000')]
+    [TToolParameterAttribute('Timeout ms', 'Timeout of the remote call in milliseconds', '60000')]
     FTimeoutMs: Integer;
     [TToolParameterAttribute('Suspend on input required',
-      'Si el agente remoto pide input humano, suspende el nodo local en vez de fallar', 'True')]
+      'If the remote agent asks for human input, suspends the local node instead of failing', 'True')]
     FSuspendOnInputRequired: Boolean;
-    [TToolParameterAttribute('Api Key', 'Bearer token del agente remoto', '')]
+    [TToolParameterAttribute('Api Key', 'Bearer token of the remote agent', '')]
     FApiKey: string;
     FClient: TAiA2AClient;
     function GetClient: TAiA2AClient;
@@ -145,10 +145,10 @@ type
     property ApiKey: string read FApiKey write FApiKey;
   end;
 
-  // Expone un agente A2A remoto como HERRAMIENTA de chat: al asignarle un
-  // TAiFunctions, el LLM puede invocar al agente igual que a cualquier otra
-  // funcion. Complementa a TAiA2ARemoteAgentTool, que hace lo mismo pero para
-  // un nodo de grafo en vez de para un chat.
+  // Exposes a remote A2A agent as a chat TOOL: when a TAiFunctions is assigned,
+  // the LLM can invoke the agent like any other
+  // function. It complements TAiA2ARemoteAgentTool, which does the same but for
+  // a graph node instead of a chat.
   TAiA2AAgentTool = class(TComponent)
   private
     FFunctions: TAiFunctions;
@@ -165,26 +165,26 @@ type
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     constructor Create(AOwner: TComponent); override;
-    // Registra la funcion en el TAiFunctions asignado. Se llama solo al
-    // asignar Functions; se expone por si hay que rehacerlo tras cambiar
-    // ToolName o Description en runtime.
+    // Registers the function in the assigned TAiFunctions. It is called only when
+    // Functions is assigned; it is exposed in case it must be redone after changing
+    // ToolName or Description at runtime.
     procedure RegisterTool;
-    // Rellena ToolName y Description desde la Agent Card del agente remoto.
-    // Asi el LLM ve la descripcion que el propio agente publica de si mismo.
+    // Fills ToolName and Description from the remote agent's Agent Card.
+    // That way the LLM sees the description the agent itself publishes about itself.
     procedure DiscoverFromCard;
   published
     property Functions: TAiFunctions read FFunctions write SetFunctions;
     property AgentUrl: string read FAgentUrl write FAgentUrl;
-    // Nombre con el que el LLM ve la herramienta. Si se deja vacio se usa
-    // 'ask_remote_agent'.
+    // Name under which the LLM sees the tool. If left empty, 'ask_remote_agent'
+    // is used.
     property ToolName: string read FToolName write FToolName;
     property Description: string read FDescription write FDescription;
     property ApiKey: string read FApiKey write FApiKey;
     property TimeoutMs: Integer read FTimeoutMs write FTimeoutMs default 60000;
   end;
 
-// Normaliza cualquiera de las dos formas del literal ('TASK_STATE_INPUT_REQUIRED'
-// o 'input-required') al enum.
+// Normalizes either form of the literal ('TASK_STATE_INPUT_REQUIRED'
+// or 'input-required') to the enum.
 function A2AParseState(const AValue: string): TAiA2ATaskState;
 
 procedure Register;
@@ -276,7 +276,7 @@ begin
       Resp := Http.Get(BaseUrl + '/.well-known/agent-card.json', nil, BuildHeaders(AiSpanTraceParent(LSpan)));
       if Resp.StatusCode <> 200 then
         Resp := Http.Get(BaseUrl + '/.well-known/agent.json', nil, BuildHeaders(AiSpanTraceParent(LSpan)));
-      // alias legacy
+      // legacy alias
       if Resp.StatusCode <> 200 then
         raise EA2AClientException.CreateFmt('Agent card not found (HTTP %d)', [Resp.StatusCode]);
       Content := Resp.ContentAsString(TEncoding.UTF8);
@@ -288,16 +288,16 @@ begin
       end;
       Result := TJSONObject(V);
 
-      // La card manda sobre la URL base: el endpoint RPC puede no ser la raiz.
-      // En v1.0 la URL vive en supportedInterfaces[]; el campo 'url' de la raiz
-      // es de la era 0.x y ya no existe en el AgentCard de la spec.
+      // The card takes precedence over the base URL: the RPC endpoint may not be the root.
+      // In v1.0 the URL lives in supportedInterfaces[]; the root's 'url' field
+      // is from the 0.x era and no longer exists in the spec's AgentCard.
       CardUrl := '';
       if Result.TryGetValue<TJSONArray>('supportedInterfaces', Ifaces) then
         for VCard in Ifaces do
           if VCard is TJSONObject then
           begin
             IfaceObj := TJSONObject(VCard);
-            // Nos interesa el binding JSON-RPC; si no dice cual, se acepta.
+            // We care about the JSON-RPC binding; if it does not say which, it is accepted.
             S := IfaceObj.GetValue<string>('protocolBinding', '');
             if (S = '') or SameText(S, 'JSONRPC') or S.ToUpper.Contains('JSONRPC') then
             begin
@@ -307,7 +307,7 @@ begin
             end;
           end;
       if CardUrl = '' then
-        CardUrl := Result.GetValue<string>('url', ''); // fallback era 0.x
+        CardUrl := Result.GetValue<string>('url', ''); // 0.x-era fallback
       if CardUrl <> '' then
         FEndpoint := CardUrl;
 
@@ -349,7 +349,7 @@ begin
       Req.AddPair('id', TJSONNumber.Create(1));
       Req.AddPair('method', AMethod);
       if Assigned(AParams) then
-        Req.AddPair('params', AParams); // toma posesion
+        Req.AddPair('params', AParams); // takes ownership
       Payload := Req.ToJSON;
 
       Attempt := 0;
@@ -386,8 +386,8 @@ begin
         if Assigned(Resp) then
           LastErr := Format('HTTP %d: %s', [Resp.StatusCode, Resp.ContentAsString(TEncoding.UTF8)]);
 
-        // Solo se reintenta el transporte. Un task fallido no es un fallo de
-        // red y repetirlo duplicaria trabajo del agente remoto.
+        // Only the transport is retried. A failed task is not a network
+        // failure and repeating it would duplicate the remote agent's work.
         Inc(Attempt);
         if Attempt > FRetryCount then
           raise EA2AClientException.Create(LastErr);
@@ -468,7 +468,7 @@ begin
   end;
 end;
 
-// Lee id/contextId/status del Task y deja el estado normalizado a mano.
+// Reads the Task's id/contextId/status and leaves the normalized state at hand.
 procedure TAiA2AClient.ReadTaskStatus(ATask: TJSONObject);
 var
   StatusObj, MsgObj: TJSONObject;
@@ -534,7 +534,7 @@ begin
     Params.AddPair('configuration', Config);
   end;
 
-  Raw := JsonRpcCall('SendMessage', Params); // JsonRpcCall libera Params
+  Raw := JsonRpcCall('SendMessage', Params); // JsonRpcCall frees Params
   try
     Result := UnwrapSendMessageResult(Raw);
   finally
@@ -544,12 +544,12 @@ begin
   AOutputText := ArtifactsText(Result);
 end;
 
-// El result de SendMessage es un SendMessageResponse: un oneof {task | message}.
-// Esta funcion devuelve SIEMPRE un objeto con forma de Task, para que el resto
-// del cliente no tenga que saber en que era habla el agente remoto.
-//   {"task": {...}}     -> v1.0, el caso normal
-//   {"message": {...}}  -> v1.0, el agente respondio de una sin crear tarea
-//   {...campos task...} -> era 0.x, el Task viajaba plano
+// The SendMessage result is a SendMessageResponse: a oneof {task | message}.
+// This function ALWAYS returns a Task-shaped object, so the rest of the
+// client does not have to know which era the remote agent speaks.
+//   {"task": {...}}     -> v1.0, the normal case
+//   {"message": {...}}  -> v1.0, the agent answered at once without creating a task
+//   {...task fields...} -> 0.x era, the Task traveled flat
 class function TAiA2AClient.UnwrapSendMessageResult(ARawResult: TJSONObject): TJSONObject;
 var
   Inner, MsgObj, StatusObj, ArtObj: TJSONObject;
@@ -563,8 +563,8 @@ begin
 
   if ARawResult.TryGetValue<TJSONObject>('message', MsgObj) then
   begin
-    // Respuesta inmediata sin tarea: se sintetiza un Task completado con el
-    // texto del mensaje como artifact, para no romper el contrato de SendText.
+    // Immediate response without a task: a completed Task is synthesized with the
+    // message text as an artifact, so the SendText contract is not broken.
     Result := TJSONObject.Create;
     Result.AddPair('id', MsgObj.GetValue<string>('taskId', ''));
     Result.AddPair('contextId', MsgObj.GetValue<string>('contextId', ''));
@@ -637,9 +637,9 @@ begin
   Result := FClient;
 end;
 
-// Clave del blackboard donde se recuerda el task remoto pendiente de este nodo.
-// Va por nodo, no por tool: la misma instancia de tool puede estar asignada a
-// varios nodos del grafo.
+// Blackboard key where this node's pending remote task is remembered.
+// It goes per node, not per tool: the same tool instance can be assigned to
+// several nodes of the graph.
 function TAiA2ARemoteAgentTool.StateKey(ANode: TAIAgentsNode): string;
 begin
   Result := 'A2A.' + ANode.Name + '.PendingTask';
@@ -654,14 +654,14 @@ var
   Board: TAIBlackboard;
 begin
   if Trim(FAgentUrl) = '' then
-    raise EA2AClientException.Create('TAiA2ARemoteAgentTool: AgentUrl no configurada');
+    raise EA2AClientException.Create('TAiA2ARemoteAgentTool: AgentUrl not configured');
 
   Board := nil;
   if Assigned(ANode) and Assigned(ANode.Graph) then
     Board := ANode.Graph.Blackboard;
 
-  // Si este nodo ya tenia un task remoto en input-required, esta llamada es la
-  // reanudacion: AInput es la respuesta humana y viaja al MISMO task remoto.
+  // If this node already had a remote task in input-required, this call is the
+  // resume: AInput is the human response and travels to the SAME remote task.
   TaskId := '';
   ContextId := '';
   if Assigned(Board) then
@@ -689,17 +689,17 @@ begin
       tsInputRequired:
         begin
           if not FSuspendOnInputRequired then
-            raise EA2ARemoteTaskError.CreateFmt('El agente A2A remoto requiere input adicional: %s',
+            raise EA2ARemoteTaskError.CreateFmt('The remote A2A agent requires additional input: %s',
               [Client.LastStatusMessage]);
-          // Se recuerda el task remoto y se suspende el nodo local. Al reanudar
-          // (ResumeThread) este Execute vuelve a correr y continua alla mismo.
+          // The remote task is remembered and the local node suspends. On resume
+          // (ResumeThread) this Execute runs again and continues right there.
           if Assigned(Board) then
             Board.SetString(StateKey(ANode), Client.LastTaskId + '|' + Client.LastContextId);
-          AOutput := AInput; // pass-through mientras se espera al humano
+          AOutput := AInput; // pass-through while waiting for the human
           ANode.Suspend(Client.LastStatusMessage, 'A2A task ' + Client.LastTaskId + ' @ ' + FAgentUrl);
         end;
     else
-      raise EA2ARemoteTaskError.CreateFmt('El agente A2A remoto termino en %s%s',
+      raise EA2ARemoteTaskError.CreateFmt('The remote A2A agent ended in %s%s',
         [Client.LastState, IfThen(Client.LastStatusMessage <> '', ': ' + Client.LastStatusMessage, '')]);
     end;
   finally
@@ -714,7 +714,7 @@ begin
   inherited Create(AOwner);
   FTimeoutMs := 60000;
   FToolName := 'ask_remote_agent';
-  FDescription := 'Delega una consulta en un agente remoto especializado y devuelve su respuesta';
+  FDescription := 'Delegates a query to a specialized remote agent and returns its response';
 end;
 
 procedure TAiA2AAgentTool.Notification(AComponent: TComponent; Operation: TOperation);
@@ -723,7 +723,7 @@ begin
   if (Operation = opRemove) and (AComponent = FFunctions) then
   begin
     FFunctions := nil;
-    FItem := nil; // lo destruye la coleccion, aqui solo se suelta la referencia
+    FItem := nil; // the collection destroys it; only the reference is released here
   end;
 end;
 
@@ -752,14 +752,13 @@ begin
   FItem.Description.Text := FDescription;
   FItem.Enabled := True;
   FItem.OnAction := DoToolAction;
-
-  // Un unico parametro: la consulta en lenguaje natural. El agente remoto es
-  // opaco por diseno, asi que no tiene sentido exponerle un schema detallado.
+  // A single parameter: the natural-language query. The remote agent is
+  // opaque by design, so exposing a detailed schema to it makes no sense.
   if FItem.Parameters.Count = 0 then
   begin
     Param := FItem.Parameters.Add;
     Param.Name := 'query';
-    Param.Description.Text := 'La consulta o instruccion para el agente remoto';
+    Param.Description.Text := 'The query or instruction for the remote agent';
     Param.ParamType := TToolsParamType.ptString;
     Param.Required := True;
   end;
@@ -800,13 +799,13 @@ begin
   Handled := True;
   if Trim(FAgentUrl) = '' then
   begin
-    ToolCall.Response := '{"error":"TAiA2AAgentTool: AgentUrl no configurada"}';
+    ToolCall.Response := '{"error":"TAiA2AAgentTool: AgentUrl not configured"}';
     Exit;
   end;
 
   Consulta := ToolCall.Params.Values['query'];
   if Consulta = '' then
-    Consulta := ToolCall.Arguments; // ultimo recurso: el JSON crudo
+    Consulta := ToolCall.Arguments; // last resort: the raw JSON
 
   Client := TAiA2AClient.Create(nil);
   try
@@ -820,11 +819,11 @@ begin
           tsCompleted:
             ToolCall.Response := Salida;
           tsInputRequired:
-            // El agente remoto pide mas datos. Se le devuelve al LLM como
-            // texto: es el LLM quien decide si preguntar al usuario.
-            ToolCall.Response := 'El agente remoto necesita mas informacion: ' + Client.LastStatusMessage;
+            // The remote agent asks for more data. It is returned to the LLM as
+            // text: it is the LLM that decides whether to ask the user.
+            ToolCall.Response := 'The remote agent needs more information: ' + Client.LastStatusMessage;
         else
-          ToolCall.Response := 'El agente remoto no completo la tarea (' + Client.LastState + '): ' +
+          ToolCall.Response := 'The remote agent did not complete the task (' + Client.LastState + '): ' +
             Client.LastStatusMessage;
         end;
       finally
@@ -832,9 +831,9 @@ begin
       end;
     except
       on E: Exception do
-        // Un fallo del agente remoto se le cuenta al LLM en vez de romper el
-        // turno de chat: puede reintentar o seguir sin esa informacion.
-        ToolCall.Response := 'Error llamando al agente remoto: ' + E.Message;
+        // A remote agent failure is told to the LLM instead of breaking the
+        // chat turn: it can retry or continue without that information.
+        ToolCall.Response := 'Error calling the remote agent: ' + E.Message;
     end;
   finally
     Client.Free;

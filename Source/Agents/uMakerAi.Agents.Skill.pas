@@ -2,40 +2,40 @@
 
 // MIT License
 //
-// Copyright (c) 2026 Gustavo Enríquez - CimaMaker
+// Copyright (c) 2026 Gustavo Enriquez - CimaMaker
 //
-// TAiSkill — configuración reutilizable de un agente LLM.
+// TAiSkill — reusable configuration for an LLM agent.
 //
-// Encapsula: DriverName, Model, ApiKey, SystemPrompt y una lista de
-// herramientas adicionales (ExtraTools) identificadas por nombre en el
-// TAiToolRegistry. Acepta dos formatos:
+// Encapsulates: DriverName, Model, ApiKey, SystemPrompt and a list of
+// additional tools (ExtraTools) identified by name in the
+// TAiToolRegistry. Accepts two formats:
 //
-//   1) SKILL.md — el formato de las Agent Skills y del registry PPM
-//      (frontmatter YAML + instrucciones en Markdown). Lo entiende
-//      uMakerAi.Skills.Format; el cuerpo pasa a SystemPrompt, 'model' a
-//      Model y 'allowed-tools' a ExtraTools. Como extensión de MakerAI se
-//      acepta además la clave 'driver' en el frontmatter.
+//   1) SKILL.md — the format of the Agent Skills and of the PPM registry
+//      (YAML frontmatter + Markdown instructions). It is understood by
+//      uMakerAi.Skills.Format; the body becomes SystemPrompt, 'model' becomes
+//      Model and 'allowed-tools' becomes ExtraTools. As a MakerAI extension the
+//      'driver' key is also accepted in the frontmatter.
 //
 //        Node.Skill := TAiSkill.FromPPM('skill-code-review');
-//        Node.Skill := TAiSkill.FromFolder('skills\revisor');   // SKILL.md
+//        Node.Skill := TAiSkill.FromFolder('skills\reviewer');   // SKILL.md
 //
-//   2) JSON propio (archivos locales del desarrollador):
+//   2) Own JSON (developer's local files):
 //      {
 //        "name":         "code-reviewer",
-//        "description":  "Revisa código en busca de errores y mejoras",
+//        "description":  "Reviews code for bugs and improvements",
 //        "driverName":   "Claude",
 //        "model":        "claude-sonnet-4-6",
 //        "apiKey":       "@CLAUDE_API_KEY",
-//        "systemPrompt": "Eres un revisor experto...",
+//        "systemPrompt": "You are an expert reviewer...",
 //        "extraTools":   ["filesystem", "git"]
 //      }
 //
-// Seguridad: 'apiKey' SOLO se lee del JSON, que es un archivo del propio
-// desarrollador. Un SKILL.md (de disco o del registry) es contenido de
-// terceros y nunca aporta credenciales: sin esto, un skill descargado podría
-// pedir '@CUALQUIER_VARIABLE' y el nodo enviaría ese secreto al proveedor.
+// Security: 'apiKey' is ONLY read from the JSON, which is a file of the
+// developer's own. A SKILL.md (from disk or from the registry) is third-party
+// content and never provides credentials: without this, a downloaded skill could
+// ask for '@ANY_VARIABLE' and the node would send that secret to the provider.
 //
-// Autor: Gustavo Enríquez
+// Author: Gustavo Enriquez
 // GitHub: https://github.com/gustavoeenriquez/MakerAi
 
 interface
@@ -45,25 +45,25 @@ uses
   uMakerAi.Skills.Format;
 
 type
-  // Formato del que se cargó el skill
+  // Format the skill was loaded from
   TAiSkillFormat = (sfNone, sfJSON, sfSkillMd);
 
-  { TAiSkill -----------------------------------------------------------------
-    Contenedor de configuración reutilizable para nodos LLM y conexiones de chat.
+{ TAiSkill -----------------------------------------------------------------
+  Reusable configuration container for LLM nodes and chat connections.
 
-    Reglas de merge al aplicar sobre un TLLMNode (ver TLLMNode.ResolveConfig):
-      - DriverName / Model / ApiKey: el valor explícito del nodo gana; si el
-        nodo lo deja vacío se usa el del skill. El Model del skill solo se
-        usa si pertenece al driver efectivo.
-      - SystemPrompt: se CONCATENAN — primero el del skill (las instrucciones
-        base) y después el del nodo (ajustes para ese nodo).
-      - ExtraTools es SIEMPRE aditivo: se suman a las tools ya cargadas.
+  Merge rules when applied to a TLLMNode (see TLLMNode.ResolveConfig):
+    - DriverName / Model / ApiKey: the node's explicit value wins; if the
+      node leaves it empty the skill's value is used. The skill's Model is
+      only used if it belongs to the effective driver.
+    - SystemPrompt: they are CONCATENATED — first the skill's (the base
+      instructions) and then the node's (adjustments for that node).
+    - ExtraTools is ALWAYS additive: it adds to the already-loaded tools.
 
-    Gestión de memoria:
-      - Cuando se asigna a TLLMNode.Skill, el nodo toma ownership y libera
-        el skill en su destructor.
-      - Para uso standalone, el caller es responsable de liberar la instancia.
-  }
+  Memory management:
+    - When assigned to TLLMNode.Skill, the node takes ownership and frees
+      the skill in its destructor.
+    - For standalone use, the caller is responsible for freeing the instance.
+}
   TAiSkill = class
   private
     FName        : String;
@@ -83,60 +83,60 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    // Limpia todos los campos al estado inicial vacío
+    // Clears all fields back to the initial empty state
     procedure Clear;
 
-    // Carga desde string JSON (formato propio)
+    // Loads from a JSON string (own format)
     procedure LoadFromJSON(const AJsonStr: String);
 
-    // Carga desde disco. Una carpeta o un archivo .md se leen como SKILL.md;
-    // cualquier otro archivo, como JSON (compatibilidad con versiones previas).
+  // Loads from disk. A folder or a .md file is read as SKILL.md;
+  // any other file, as JSON (backward compatibility).
     procedure LoadFromFile(const APath: String);
 
-    // Carga un SKILL.md ya parseado (o su texto)
+  // Loads an already-parsed SKILL.md (or its text)
     procedure LoadFromSkillDoc(ADoc: TAiSkillDoc);
     procedure LoadFromSkillText(const AText: String);
 
-    // Descarga el SKILL.md del registry PPM.
-    // AName: nombre del paquete ('skill-code-review'; también acepta
-    //   'code-review' y prueba con el prefijo 'skill-').
-    // ARegistryUrl: URL del registry; vacío = https://registry.cimamaker.com.
-    // AVersion: vacío = la última versión no retirada.
+  // Downloads the SKILL.md from the PPM registry.
+  // AName: package name ('skill-code-review'; also accepts
+  //   'code-review' and tries the 'skill-' prefix).
+  // ARegistryUrl: registry URL; empty = https://registry.cimamaker.com.
+  // AVersion: empty = the latest non-yanked version.
     procedure LoadFromPPM(const AName: String; const ARegistryUrl: String = '';
                           const AVersion: String = '');
 
-    // Factorías — crean, cargan y devuelven una instancia lista para usar.
-    // El caller toma ownership del objeto devuelto.
+  // Factories — create, load and return an instance ready to use.
+  // The caller takes ownership of the returned object.
     class function FromJSON(const AJsonStr: String): TAiSkill;
     class function FromFile(const APath: String): TAiSkill;
-    // SKILL.md explícito (archivo) o carpeta que lo contiene
+  // Explicit SKILL.md (file) or the folder containing it
     class function FromSkillFile(const APath: String): TAiSkill;
     class function FromFolder(const AFolder: String): TAiSkill;
     class function FromPPM(const AName: String; const ARegistryUrl: String = '';
                            const AVersion: String = ''): TAiSkill;
 
-    // Nombre identificador del skill (coincide con el nombre en PPM)
+  // Identifier name of the skill (matches the name in PPM)
     property Name: String read FName write FName;
-    // Descripción legible del skill
+  // Human-readable description of the skill
     property Description: String read FDescription write FDescription;
-    // Driver LLM sugerido ('OpenAI', 'Claude', 'Gemini', etc.)
+  // Suggested LLM driver ('OpenAI', 'Claude', 'Gemini', etc.)
     property DriverName: String read FDriverName write FDriverName;
-    // Modelo sugerido (vacío = default del driver)
+  // Suggested model (empty = driver default)
     property Model: String read FModel write FModel;
-    // API key; soporta sintaxis @ENV_VAR para resolución en runtime.
-    // Solo se carga desde JSON (nunca desde un SKILL.md).
+  // API key; supports @ENV_VAR syntax for runtime resolution.
+  // Only loaded from JSON (never from a SKILL.md).
     property ApiKey: String read FApiKey write FApiKey;
-    // System prompt del skill — el principal aporte reutilizable
+  // Skill's system prompt — the main reusable contribution
     property SystemPrompt: String read FSystemPrompt write FSystemPrompt;
-    // Nombres de herramientas del TAiToolRegistry a activar para este skill.
-    // Los nombres que no existen en el registry se ignoran al cargar las tools
-    // (p.ej. 'Read'/'Bash' de un skill pensado para Claude Code).
+  // Names of TAiToolRegistry tools to activate for this skill.
+  // Names that do not exist in the registry are ignored when loading the tools
+  // (e.g. 'Read'/'Bash' from a skill written for Claude Code).
     property ExtraTools: TStringList read FExtraTools;
-    // Formato y origen de la última carga
+  // Format and origin of the last load
     property Format: TAiSkillFormat read FFormat;
     property Source: TAiSkillSource read FSource;
     property SourcePath: String read FSourcePath;
-    // Versión del paquete PPM (vacío si no viene del registry)
+  // Version of the PPM package (empty if not from the registry)
     property Version: String read FVersion;
   end;
 
@@ -201,7 +201,7 @@ begin
   if not (JVal is TJSONObject) then
   begin
     JVal.Free;
-    raise EAiSkillError.CreateFmt('TAiSkill: JSON inválido — no es un objeto: %s',
+    raise EAiSkillError.CreateFmt('TAiSkill: invalid JSON — not an object: %s',
                                   [Copy(AJsonStr, 1, 80)]);
   end;
   try
@@ -223,11 +223,11 @@ begin
   FModel        := ADoc.Model;
   FSystemPrompt := ADoc.Body;
   FExtraTools.Assign(ADoc.AllowedTools);
-  // Extensión de MakerAI: el SKILL.md puede fijar el driver
+  // MakerAI extension: the SKILL.md can set the driver
   FDriverName   := ADoc.Extra.Values['driver'];
   if FDriverName = '' then
     FDriverName := ADoc.Extra.Values['drivername'];
-  // ApiKey: nunca desde un SKILL.md (ver la nota de seguridad arriba)
+  // ApiKey: never from a SKILL.md (see the security note above)
   FFormat       := sfSkillMd;
   FSource       := ADoc.Source;
   FSourcePath   := ADoc.SourcePath;
@@ -262,7 +262,7 @@ begin
   end;
 
   if not TFile.Exists(APath) then
-    raise EAiSkillError.CreateFmt('TAiSkill: archivo no encontrado: %s', [APath]);
+    raise EAiSkillError.CreateFmt('TAiSkill: file not found: %s', [APath]);
   LoadFromJSON(TFile.ReadAllText(APath, TEncoding.UTF8));
   FSource := ssFile;
   FSourcePath := APath;
@@ -281,7 +281,7 @@ begin
   end;
 end;
 
-// --- Factorías --------------------------------------------------------------
+// --- Factories --------------------------------------------------------------
 
 class function TAiSkill.FromJSON(const AJsonStr: String): TAiSkill;
 begin

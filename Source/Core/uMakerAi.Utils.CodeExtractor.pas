@@ -20,13 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
-
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - Telegram: https://t.me/MakerAi_Delphi_Suite_English
-
 // - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
 // - Youtube: https://www.youtube.com/@cimamaker3945
 // - GitHub: https://github.com/gustavoeenriquez/
@@ -40,18 +38,18 @@ uses
   System.SysUtils, System.Classes, System.Generics.Collections;
 
 type
-  // Registro para almacenar information del archivo extracted
+  // Record to store extracted file information
   TCodeFile = record
     FileName : String;
     FileType: string;
     Code: string;
-    LineNumber: Integer; // line donde se found el bloque
+    LineNumber: Integer; // line where the block was found
   end;
 
-  // Lista de archivos de code
+  // List of code files
   TCodeFileList = TList<TCodeFile>;
 
-  // Clase principal para extraer archivos de code
+  // Main class to extract code files
   TMarkdownCodeExtractor = class
   private
     FCodeFiles: TCodeFileList;
@@ -62,13 +60,13 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    // method principal para extraer archivos de code del texto markdown
+    // Main method to extract code files from markdown text
     function ExtractCodeFiles(const AMarkdownText: string): TCodeFileList;
 
     // Method to clean the file list
     procedure Clear;
 
-    // Propiedad para acceder a los archivos extracteds
+    // Property to access the extracted files
     property CodeFiles: TCodeFileList read FCodeFiles;
   end;
 
@@ -99,7 +97,7 @@ var
 begin
   LowerLang := LowerCase(Trim(ALanguage));
 
-  // Normalizar nombres de lenguajes comunes
+  // Normalize common language names
   if (LowerLang = 'pascal') or (LowerLang = 'delphi') or (LowerLang = 'objectpascal') then
     Result := 'delphi'
   else if (LowerLang = 'js') or (LowerLang = 'javascript') then
@@ -151,14 +149,14 @@ begin
 
   Rest := Copy(Trimmed, 4, MaxInt);
 
-  // Caso 1: Solo ``` (sin lenguaje ni archivo)
+  // Case 1: Just ``` (without language or file)
   if Trim(Rest) = '' then
   begin
     Result := True;
     Exit;
   end;
 
-  // Caso 2: ```language:filename.ext (separador dos puntos)
+  // Case 2: ```language:filename.ext (colon separator)
   ColonPos := Pos(':', Rest);
   if ColonPos > 1 then
   begin
@@ -172,7 +170,7 @@ begin
     end;
   end;
 
-  // Caso 3: ```language title="filename.ext" (atributo title)
+  // Case 3: ```language title="filename.ext" (title attribute)
   SpacePos := Pos(' ', Rest);
   if SpacePos > 1 then
   begin
@@ -180,11 +178,11 @@ begin
     if IsWordChars(Token) then
     begin
       ALanguage := Token;
-      // Buscar title="..."
+      // Look for title="..."
       Rest := Trim(Copy(Rest, SpacePos + 1, MaxInt));
       if Rest.StartsWith('title="') then
       begin
-        QuoteStart := 8; // after de title="
+        QuoteStart := 8; // after title="
         QuoteEnd := Pos('"', Copy(Rest, QuoteStart, MaxInt));
         if QuoteEnd > 0 then
           AFileName := Copy(Rest, QuoteStart, QuoteEnd - 1);
@@ -194,7 +192,7 @@ begin
     end;
   end;
 
-  // Caso 4: ```language (solo lenguaje, sin extras)
+  // Case 4: ```language (only language, no extras)
   Token := Trim(Rest);
   if IsWordChars(Token) then
   begin
@@ -203,7 +201,7 @@ begin
     Exit;
   end;
 
-  // does not match no pattern conocido
+  // Does not match any known pattern
 end;
 
 function TMarkdownCodeExtractor.ExtractCodeFiles(const AMarkdownText: string): TCodeFileList;
@@ -243,7 +241,7 @@ begin
         if TryParseFenceOpen(CurrentLine, ParsedLang, ParsedFileName) then
         begin
           InCodeBlock := True;
-          StartLineNumber := i + 1; // +1 porque las lines se cuentan desde 1
+          StartLineNumber := i + 1; // +1 because lines are counted from 1
           CodeContent.Clear;
           CurrentLanguage := NormalizeLanguage(ParsedLang);
           CurrentFileName := ParsedFileName;
@@ -255,24 +253,24 @@ begin
         begin
           InCodeBlock := False;
 
-          // Crear el registro del archivo de code
+          // Create the code file record
           CodeFile.FileName := CurrentFileName;
           CodeFile.FileType := CurrentLanguage;
           CodeFile.Code := CodeContent.ToString;
           CodeFile.LineNumber := StartLineNumber;
 
-          // Agregar solo si hay contenido
+          // Add only if there is content
           if Trim(CodeFile.Code) <> '' then
             FCodeFiles.Add(CodeFile);
 
-          // Resetear variables
+          // Reset variables
           CurrentLanguage := '';
           CurrentFileName := '';
           CodeContent.Clear;
         end
         else
         begin
-          // line dentro del bloque de code
+          // Line inside the code block
           if CodeContent.Length > 0 then
             CodeContent.AppendLine;
           CodeContent.Append(CurrentLine);
@@ -280,7 +278,7 @@ begin
       end;
     end;
 
-    // Si remained un bloque abierto al final del texto
+    // If a block remained open at the end of the text
     if InCodeBlock and (CodeContent.Length > 0) then
     begin
       CodeFile.FileName := CurrentFileName;

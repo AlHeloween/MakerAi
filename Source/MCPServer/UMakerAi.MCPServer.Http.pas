@@ -20,13 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
-
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - Telegram: https://t.me/MakerAi_Delphi_Suite_English
-
 // - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
 // - Youtube: https://www.youtube.com/@cimamaker3945
 // - GitHub: https://github.com/gustavoeenriquez/
@@ -52,8 +50,8 @@ type
     procedure HandleGetRequest(ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo);
     procedure HandlePostRequest(ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo; const AAuthContext: TAiAuthContext);
     function VerifyAndSetCORSHeaders(ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo): Boolean;
-    // MCP 2026-07-28: valida Mcp-Method/Mcp-Name contra el body JSON-RPC.
-    // Devuelve '' si coinciden (o no aplica) o el JSON de HeaderMismatchError.
+    // MCP 2026-07-28: validates Mcp-Method/Mcp-Name against the JSON-RPC body.
+    // Returns '' if they match (or not applicable) or the JSON of HeaderMismatchError.
     function CheckHeaderMismatch(const ARequestBody, AHdrMethod, AHdrName: string): string;
 
   public
@@ -70,7 +68,7 @@ type
     property CorsAllowedOrigins;
     property ApiKey;
     property OnValidateRequest;
-    // ISSUE #110: vetting del cliente en initialize + gate de sesion en tools/resources/prompts
+    // ISSUE #110: client vetting on initialize + session gate on tools/resources/prompts
     property OnClientConnect;
     property OnUnauthorizedRequest;
   end;
@@ -85,7 +83,7 @@ const
   HTTP_OK = 200;
   HTTP_NO_CONTENT = 204;
   HTTP_BAD_REQUEST = 400;
-  HTTP_NOT_FOUND = 404; // <-- CAMBIO: A?adida constante para claridad
+  HTTP_NOT_FOUND = 404; // <-- CHANGE: Added constant for clarity
   HTTP_FORBIDDEN = 403;
   HTTP_METHOD_NOT_ALLOWED = 405;
   HTTP_INTERNAL_SERVER_ERROR = 500;
@@ -111,10 +109,10 @@ end;
 procedure TAiMCPHttpServer.ParseAuthentication(AContext: TIdContext; const AAuthType, AAuthData: String;
   var VUsername, VPassword: String; var VHandled: Boolean);
 begin
-  // Sin este handler, Indy responde 401 a cualquier esquema Authorization
-  // distinto de Basic (p.ej. "Bearer <token>") antes de llegar a HttpCommand.
-  // La validación real ocurre en ValidateRequest sobre el header crudo
-  // (ApiKey / OnValidateRequest); aquí solo evitamos el rechazo prematuro.
+  // Without this handler, Indy responds 401 to any Authorization scheme
+  // other than Basic (e.g. "Bearer <token>") before reaching HttpCommand.
+  // Actual validation occurs in ValidateRequest on the raw header
+  // (ApiKey / OnValidateRequest); here we only avoid premature rejection.
   VHandled := True;
 end;
 
@@ -128,7 +126,7 @@ procedure TAiMCPHttpServer.Start;
 begin
   inherited Start;
   FHttpServer.DefaultPort := FLogicServer.Port;
-  // Sin BindAddress Indy escucha en todas las interfaces (0.0.0.0)
+  // Without BindAddress Indy listens on all interfaces (0.0.0.0)
   FHttpServer.Bindings.Clear;
   if EffectiveBindAddress <> '' then
     FHttpServer.Bindings.Add.SetBinding(EffectiveBindAddress, FLogicServer.Port);
@@ -184,9 +182,9 @@ begin
 
   AResponseInfo.CustomHeaders.Values['Access-Control-Allow-Origin'] := AllowedOrigin;
   AResponseInfo.CustomHeaders.Values['Access-Control-Allow-Methods'] := 'POST, GET, OPTIONS';
-  // ISSUE #110: aceptamos Mcp-Session-Id (estandar MCP) ademas de X-Session-ID (legacy),
-  // y la exponemos para que clientes de navegador puedan leer la sesion emitida.
-  // MCP 2026-07-28: se admiten ademas los headers del modo stateless
+  // ISSUE #110: accept Mcp-Session-Id (MCP standard) in addition to X-Session-ID (legacy),
+  // and expose it so browser clients can read the issued session.
+  // MCP 2026-07-28: also accept headers for stateless mode
   // (MCP-Protocol-Version, Mcp-Method, Mcp-Name).
   AResponseInfo.CustomHeaders.Values['Access-Control-Allow-Headers'] :=
     'Content-Type, X-Session-ID, Mcp-Session-Id, Authorization, X-API-Key, ' +
@@ -200,12 +198,12 @@ var
   AuthContext: TAiAuthContext;
   AuthHeader: string;
 begin
-  // --- PASO 1: Verificar y establecer cabeceras CORS ---
+  // --- STEP 1: Verify and set CORS headers ---
   if not VerifyAndSetCORSHeaders(ARequestInfo, AResponseInfo) then
     Exit;
 
-  // --- PASO 2: Autenticaci�n (Layer 1: API Key + Layer 2: Evento custom) ---
-// Extract authentication header: first Authorization, then X-API-Key
+  // --- STEP 2: Authentication (Layer 1: API Key + Layer 2: Custom event) ---
+  // Extract authentication header: first Authorization, then X-API-Key
   AuthHeader := ARequestInfo.RawHeaders.Values['Authorization'];
   if AuthHeader = '' then
     AuthHeader := ARequestInfo.RawHeaders.Values['X-API-Key'];
@@ -219,32 +217,32 @@ begin
     Exit;
   end;
 
-  // --- PASO 3: Despachar la petici�n al manejador correcto seg�n el m�todo HTTP ---
+  // --- STEP 3: Dispatch the request to the correct handler according to the HTTP method ---
   if not SameText(ARequestInfo.URI, Endpoint) then
   begin
-    // Si la URL no es nuestro endpoint /mcp, devolvemos un 404 Not Found.
+    // If the URL is not our /mcp endpoint, return a 404 Not Found.
     AResponseInfo.ResponseNo := HTTP_NOT_FOUND;
     AResponseInfo.ResponseText := 'Not Found';
     AResponseInfo.ContentText := 'Endpoint not found. Please use ' + Endpoint;
   end
   else if SameText(ARequestInfo.Command, 'OPTIONS') then
   begin
-    // El navegador sends una request OPTIONS (preflight) para verificar CORS.
+    // The browser sends an OPTIONS request (preflight) to verify CORS.
     HandleOptionsRequest(AResponseInfo);
   end
   else if SameText(ARequestInfo.Command, 'GET') then
   begin
-    // Una request GET a /mcp devuelve information del servidor.
+    // A GET request to /mcp returns server information.
     HandleGetRequest(ARequestInfo, AResponseInfo);
   end
   else if SameText(ARequestInfo.Command, 'POST') then
   begin
-    // Una petici�n POST a /mcp contiene una llamada de procedimiento JSON-RPC.
+    // A POST request to /mcp contains a JSON-RPC procedure call.
     HandlePostRequest(ARequestInfo, AResponseInfo, AuthContext);
   end
   else
   begin
-    // Cualquier otro method (PUT, DELETE, etc.) no is permitido.
+    // Any other method (PUT, DELETE, etc.) is not allowed.
     AResponseInfo.ResponseNo := HTTP_METHOD_NOT_ALLOWED;
     AResponseInfo.ResponseText := 'Method Not Allowed';
     AResponseInfo.ContentText := 'Only GET, POST, and OPTIONS are supported.';
@@ -255,7 +253,7 @@ procedure TAiMCPHttpServer.HandleOptionsRequest(AResponseInfo: TIdHTTPResponseIn
 begin
   AResponseInfo.ResponseNo := HTTP_NO_CONTENT;
   AResponseInfo.ResponseText := 'No Content';
-  // Indy > 10.6 puede requerir esto to avoid el HTML By default
+  // Indy > 10.6 may require this to avoid the default HTML
   AResponseInfo.ContentLength := 0;
 end;
 
@@ -263,12 +261,12 @@ procedure TAiMCPHttpServer.HandleGetRequest(ARequestInfo: TIdHTTPRequestInfo; AR
 var
   InfoObj: TJSONObject;
 begin
-  // Respondemos con information basic del servidor en formato JSON
+  // Respond with basic server information in JSON format
   InfoObj := TJSONObject.Create;
   try
     InfoObj.AddPair('serverName', TJSONString.Create(FLogicServer.ServerName));
     InfoObj.AddPair('protocolVersion', TJSONString.Create(FLogicServer.ProtocolVersion));
-    // MCP 2026-07-28: anunciamos tambien el modo moderno (stateless) soportado.
+    // MCP 2026-07-28: also announce support for the modern (stateless) mode.
     var LVersions := TJSONArray.Create;
     LVersions.Add(MCP_PROTOCOL_VERSION_MODERN);
     if FLogicServer.ProtocolVersion <> MCP_PROTOCOL_VERSION_MODERN then
@@ -279,7 +277,7 @@ begin
     AResponseInfo.ResponseNo := HTTP_OK;
     AResponseInfo.ResponseText := 'OK';
     AResponseInfo.ContentType := 'application/json; charset=utf-8';
-    AResponseInfo.ContentText := InfoObj.ToJSON; // <- Awhat asignamos el JSON
+    AResponseInfo.ContentText := InfoObj.ToJSON; // <- Assign the JSON
   finally
     InfoObj.Free;
   end;
@@ -293,9 +291,9 @@ begin
   try
     RequestBody := ReadStringFromStream(ARequestInfo.PostStream, -1, IndyTextEncoding_UTF8);
 
-    // MCP 2026-07-28: si el cliente manda los headers estandar del modo
-    // stateless, deben coincidir con el body (HeaderMismatchError -32020).
-    // Si no vienen (cliente legacy), se acepta el request tal cual.
+    // MCP 2026-07-28: if the client sends the standard headers for stateless
+    // mode, they must match the body (HeaderMismatchError -32020).
+    // If they are absent (legacy client), the request is accepted as is.
     HdrMethod := ARequestInfo.RawHeaders.Values['Mcp-Method'];
     HdrName := ARequestInfo.RawHeaders.Values['Mcp-Name'];
     if (HdrMethod <> '') or (HdrName <> '') then
@@ -312,13 +310,13 @@ begin
       end;
     end;
 
-    // ISSUE #110: Mcp-Session-Id (estandar MCP) con fallback a X-Session-ID (legacy).
+    // ISSUE #110: Mcp-Session-Id (MCP standard) with fallback to X-Session-ID (legacy).
     SessionID := ARequestInfo.RawHeaders.Values['Mcp-Session-Id'];
     if SessionID = '' then
       SessionID := ARequestInfo.RawHeaders.Values['X-Session-ID'];
 
-    // Overload con gate de sesion (Parte B). Si fue un 'initialize' exitoso con el
-    // gating activo, IssuedSessionID trae el Mcp-Session-Id a devolver al cliente.
+    // Overload with session gate (Part B). If an initialize was successful with
+    // gating active, IssuedSessionID carries the Mcp-Session-Id to return to the client.
     ResponseBody := FLogicServer.ExecuteRequest(RequestBody, SessionID, AAuthContext, IssuedSessionID);
 
     if IssuedSessionID <> '' then
@@ -337,7 +335,7 @@ begin
     begin
       AResponseInfo.ResponseNo := HTTP_OK;
       AResponseInfo.ResponseText := 'OK';
-      AResponseInfo.ContentText := ResponseBody; // <- Asignamos el JSON
+      AResponseInfo.ContentText := ResponseBody; // <- Assign the JSON
     end;
 
   except
@@ -364,7 +362,7 @@ begin
   if not(Root is TJSONObject) then
   begin
     Root.Free;
-    Exit; // body invalido: lo reporta el motor JSON-RPC como parse error
+    Exit; // invalid body: the JSON-RPC engine will report it as parse error
   end;
   Obj := TJSONObject(Root);
   try

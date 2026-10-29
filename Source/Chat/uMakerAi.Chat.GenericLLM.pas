@@ -1,38 +1,4 @@
-﻿// MIT License
-//
-// Copyright (c) <year> <copyright holders>
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
-// Nombre: Gustavo Enríquez
-// Redes Sociales:
-// - Email: gustavoeenriquez@gmail.com
-
-// - Telegram: https://t.me/MakerAi_Suite_Delphi
-// - Telegram: https://t.me/MakerAi_Delphi_Suite_English
-
-// - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
-// - Youtube: https://www.youtube.com/@cimamaker3945
-// - GitHub: https://github.com/gustavoeenriquez/
-
-
-unit uMakerAi.Chat.GenericLLM;
+﻿unit uMakerAi.Chat.GenericLLM;
 
 interface
 
@@ -64,8 +30,8 @@ type
     class procedure RegisterDefaultParams(Params: TStrings); override;
     class function CreateInstance(Sender: TComponent): TAiChat; override;
   published
-    // Nombre personalizado con el que este componente se registra en el factory.
-    // Permite usar múltiples instancias de TAiGenericChat apuntando a APIs distintas.
+    // Custom name with which this component registers in the factory.
+    // Allows using multiple instances of TAiGenericChat pointing to different APIs.
     property CustomDriverName: string read FCustomDriverName write SetCustomDriverName;
   end;
 
@@ -89,8 +55,8 @@ procedure TAiGenericChat.SetCustomDriverName(const Value: string);
 begin
   if FCustomDriverName = Value then Exit;
   FCustomDriverName := Value;
-  // Registrar la clase en el factory bajo el nombre personalizado.
-  // 'GenericLLM' siempre queda registrado (via initialization).
+  // Register the class in the factory under the custom name.
+  // 'GenericLLM' always remains registered (via initialization).
   if Value <> '' then
     TAiChatFactory.Instance.RegisterDriver(TAiGenericChat, Value);
 end;
@@ -103,7 +69,7 @@ end;
 class procedure TAiGenericChat.RegisterDefaultParams(Params: TStrings);
 begin
   Params.Clear;
-  Params.Add('ApiKey=1234'); // LMStudio normalmente no requiere API key
+  Params.Add('ApiKey=1234'); // LMStudio normally does not require API key
   Params.Add('Model=generic-local');
   Params.Add('Max_Tokens=4096');
   Params.Add('URL='+GlGenericUrl);
@@ -117,7 +83,7 @@ end;
 constructor TAiGenericChat.Create(Sender: TComponent);
 begin
   inherited;
-  ApiKey := '1234'; // local, no se requiere autenticación
+  ApiKey := '1234'; // local, no authentication required
   Model := 'generic-local';
   Url := GlGenericUrl;
 end;
@@ -133,4 +99,3 @@ initialization
   TAiChatFactory.Instance.RegisterDriver(TAiGenericChat);
 
 end.
-

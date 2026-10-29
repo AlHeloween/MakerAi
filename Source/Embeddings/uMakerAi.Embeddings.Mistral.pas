@@ -82,7 +82,7 @@ Var
   Client: TNetHTTPClient;
   Headers: TNetHeaders;
   jObj: TJSONObject;
-  jResp: TJSONObject; // respuesta aparte: reusar jObj perdia el request (fuga por llamada)
+  jResp: TJSONObject; // separate response: reusing jObj lost the request (call leak)
   Res: IHTTPResponse;
   Response: TStringStream;
   St: TStringStream;
@@ -108,7 +108,7 @@ begin
     jInput := TJSonArray.Create;
     jInput.Add(aInput);
 
-    jObj.AddPair('input', jInput); // Este se adiciona por compatibilidad con ollama
+    jObj.AddPair('input', jInput); // This is added for compatibility with Ollama
     // JObj.AddPair('prompt', aInput);
     // JObj.AddPair('user', aUser);
     // JObj.AddPair('dimensions', aDimensions);

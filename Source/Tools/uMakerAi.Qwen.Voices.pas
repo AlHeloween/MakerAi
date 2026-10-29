@@ -22,8 +22,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
-// Redes Sociales:
+// Name: Gustavo Enriquez
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -33,19 +33,19 @@
 // - Youtube: https://www.youtube.com/@cimamaker3945
 // - GitHub: https://github.com/gustavoeenriquez/
 
-// Voces personalizadas de Qwen TTS (Alibaba Model Studio):
-//   - CloneVoice: clona una voz desde una muestra de audio (qwen-voice-enrollment)
-//   - DesignVoice: crea una voz desde una descripcion en texto (qwen-voice-design)
+// Custom voices for Qwen TTS (Alibaba Model Studio):
+//   - CloneVoice: clones a voice from an audio sample (qwen-voice-enrollment)
+//   - DesignVoice: creates a voice from a text description (qwen-voice-design)
 //   - ListVoices / DeleteVoice
 // API: POST api/v1/services/audio/tts/customization {model, input:{action,...}}
 //
-// El id devuelto se usa como voz del TTS normal: TtsParams.Voice := Id en una
-// conexion 'Qwen' con cap_GenAudio. Una voz propia SOLO funciona con el modelo
-// para el que se registro (qwen3-tts-flash la rechaza); el driver de chat elige
-// ese modelo solo por el prefijo del id (qwen-tts-vc-* / qwen-tts-vd-*).
+// The returned id is used as the voice for standard TTS: TtsParams.Voice := Id in a
+// 'Qwen' connection with cap_GenAudio. A custom voice ONLY works with the model
+// for which it was registered (qwen3-tts-flash rejects it); the chat driver chooses
+// that model only by the id prefix (qwen-tts-vc-* / qwen-tts-vd-*).
 //
-// Clonar voces solo con consentimiento de la persona duena de la voz.
-// Verificado en runtime (sep 2026) contra dashscope-intl.
+// Clone voices only with consent of the voice owner.
+// Verified at runtime (Sep 2026) against dashscope-intl.
 
 interface
 
@@ -58,8 +58,8 @@ type
   TAiQwenVoiceKind = (qvkClone, qvkDesign);
 
   TAiQwenVoiceInfo = record
-    Voice: string;        // id para TtsParams.Voice
-    TargetModel: string;  // modelo TTS con el que funciona
+    Voice: string;        // id for TtsParams.Voice
+    TargetModel: string;  // TTS model it works with
     Language: string;
     Created: string;
     Kind: TAiQwenVoiceKind;
@@ -76,30 +76,30 @@ type
     function Call(const AModel: string; AInput: TJSONObject; AParams: TJSONObject = nil): TJSONObject;
     function KindModel(AKind: TAiQwenVoiceKind): string;
   protected
-    // Transporte: cuerpo JSON -> respuesta JSON. Virtual para probar sin red.
+    // Transport: JSON body -> JSON response. Virtual for testing without network.
     function Post(const ABody: string): string; virtual;
   public
     constructor Create(AOwner: TComponent); override;
-    // Clona una voz desde una muestra (10-20 s de habla limpia recomendados).
-    // APreferredName: letras, numeros y _ (se incorpora al id). Devuelve el id.
+    // Clones a voice from a sample (10-20 s of clean speech recommended).
+    // APreferredName: letters, numbers and _ (incorporated into the id). Returns the id.
     function CloneVoice(AAudio: TAiMediaFile; const APreferredName: string;
       const ALanguage: string = ''): string; overload;
     function CloneVoice(const AAudioFile, APreferredName: string;
       const ALanguage: string = ''): string; overload;
-    // Diseña una voz desde una descripcion ('Voz masculina adulta, calmada...').
-    // APreview recibe el audio de muestra (WAV) si se pasa asignado. Devuelve el id.
+    // Designs a voice from a description ('Adult male voice, calm...').
+    // APreview receives the sample audio (WAV) if assigned. Returns the id.
     function DesignVoice(const ADescription, APreviewText, APreferredName: string;
       const ALanguage: string = ''; APreview: TAiMediaFile = nil): string;
     function ListVoices(AKind: TAiQwenVoiceKind; APageSize: Integer = 100): TArray<TAiQwenVoiceInfo>;
     procedure DeleteVoice(const AVoice: string);
-    // Motivo si la ultima voz diseñada cayo en modo de respaldo (p.ej. 'wer_too_high':
-    // la descripcion no se pudo seguir bien); vacio si salio como se pidio
+    // Reason if the last designed voice fell into fallback mode (e.g. 'wer_too_high':
+    // the description could not be followed well); empty if it came out as requested
     property LastDesignFallback: string read FLastDesignFallback;
   published
-    // '@VARIABLE' lee la key de esa variable de entorno
+    // '@VARIABLE' reads the key from that environment variable
     property ApiKey: string read FApiKey write FApiKey;
     property Url: string read FUrl write FUrl;
-    // Modelo TTS destino de las voces clonadas / diseñadas
+    // Target TTS model for cloned / designed voices
     property CloneModel: string read FCloneModel write FCloneModel;
     property DesignModel: string read FDesignModel write FDesignModel;
   end;
@@ -185,7 +185,7 @@ begin
   if not (V is TJSONObject) then
   begin
     V.Free;
-    raise Exception.Create('Qwen voices: la respuesta no es un objeto JSON');
+    raise Exception.Create('Qwen voices: response is not a JSON object');
   end;
   Result := TJSONObject(V);
 end;
@@ -196,7 +196,7 @@ var
   LMime: string;
 begin
   if not Assigned(AAudio) or (AAudio.Content.Size = 0) then
-    raise Exception.Create('Qwen voices: se necesita una muestra de audio con contenido.');
+    raise Exception.Create('Qwen voices: an audio sample with content is required.');
   LMime := AAudio.MimeType;
   if (LMime = '') or SameText(LMime, 'audio/x-wav') then
     LMime := 'audio/wav';
@@ -213,7 +213,7 @@ begin
   try
     Result := jRes.GetValue<string>('output.voice', '');
     if Result = '' then
-      raise Exception.Create('Qwen voices: la respuesta no trae el id de la voz: ' + Copy(jRes.ToJSON, 1, 300));
+      raise Exception.Create('Qwen voices: response does not contain voice id: ' + Copy(jRes.ToJSON, 1, 300));
   finally
     jRes.Free;
   end;
@@ -239,7 +239,7 @@ var
   LB64: string;
 begin
   if Trim(ADescription) = '' then
-    raise Exception.Create('Qwen voices: se necesita la descripcion de la voz.');
+    raise Exception.Create('Qwen voices: a voice description is required.');
   FLastDesignFallback := '';
   jInput := TJSONObject.Create;
   jInput.AddPair('action', 'create');
@@ -255,7 +255,7 @@ begin
   try
     Result := jRes.GetValue<string>('output.voice', '');
     if Result = '' then
-      raise Exception.Create('Qwen voices: la respuesta no trae el id de la voz: ' + Copy(jRes.ToJSON, 1, 300));
+      raise Exception.Create('Qwen voices: response does not contain voice id: ' + Copy(jRes.ToJSON, 1, 300));
     if jRes.GetValue<Boolean>('output.fallback_mode', False) then
       FLastDesignFallback := jRes.GetValue<string>('output.fallback_reason', 'fallback');
     if Assigned(APreview) then
@@ -304,7 +304,7 @@ var
   jInput: TJSONObject;
   LKind: TAiQwenVoiceKind;
 begin
-  // El prefijo del id dice con que servicio se creo
+  // The id prefix tells which service created it
   if AVoice.StartsWith('qwen-tts-vd-') then
     LKind := qvkDesign
   else

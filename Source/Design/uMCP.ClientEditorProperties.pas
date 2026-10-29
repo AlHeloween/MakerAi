@@ -20,28 +20,26 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr�quez
+// Name: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
-
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - Telegram: https://t.me/MakerAi_Delphi_Suite_English
-
 // - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
 // - Youtube: https://www.youtube.com/@cimamaker3945
 // - GitHub: https://github.com/gustavoeenriquez/
-
+//
 unit uMCP.ClientEditorProperties;
 
 interface
 
 uses
   System.SysUtils, DesignIntf, DesignEditors, System.UITypes,
-  uMakerAi.Tools.Functions, // Para TMCPClientItem
+  uMakerAi.Tools.Functions, // For TMCPClientItem
   uMCPClientEditor; // For TFMCPClientEditor, assuming it is in this unit
 
 type
-  TMCPClientItemEditor = class(TClassProperty) // Usamos TClassProperty porque editamos un objeto
+  TMCPClientItemEditor = class(TClassProperty) // We use TClassProperty because we edit an object
   public
     procedure Edit; override;
     function GetAttributes: TPropertyAttributes; override;
@@ -53,15 +51,15 @@ implementation
 
 uses
   System.Classes, Vcl.Dialogs, uMakerAi.Core,
-  uMakerAi.MCPClient.Core; // Necesario para Get/SetProperties
+  uMakerAi.MCPClient.Core; // Necessary for Get/SetProperties
 
 procedure Register;
 begin
   // We register the editor for the "Configuration" property of the TMCPClientItem class
-  RegisterPropertyEditor(TypeInfo(string), // El tipo de la propiedad (string)
-    TMCPClientItem, // La clase que contiene la propiedad
-    'Configuration', // El nombre de la propiedad
-    TMCPClientItemEditor // Nuestra clase editora
+  RegisterPropertyEditor(TypeInfo(string), // The type of the property (string)
+    TMCPClientItem, // The class that contains the property
+    'Configuration', // The name of the property
+    TMCPClientItemEditor // Our editor class
     );
 end;
 
@@ -73,20 +71,20 @@ var
   EditorForm: TFMCPClientEditor;
   Props, VarEnv: TStringList;
 begin
-  // GetComponent(0) devuelve la instancia de TMCPClientItem que se est� editando.
+  // GetComponent(0) returns the instance of TMCPClientItem being edited.
   ClientItem := GetComponent(0) as TMCPClientItem;
 
-  // Creamos el formulario editor
+  // We create the editor form
   EditorForm := TFMCPClientEditor.Create(Nil);
   try
-    // 1. Cargamos el estado actual del ClientItem en el formulario
+    // 1. Load the current state of ClientItem into the form
     EditorForm.EditName.Text := ClientItem.Name;
     EditorForm.EditProtocol.ItemIndex := Ord(ClientItem.TransportType);
 
     Props := TStringList.Create;
     VarEnv := TStringList.Create;
     try
-      // Puedes a�adir tambi�n los TStrings de Params y DisabledFunctions si quieres
+      // You can also add the TStrings of Params and DisabledFunctions if you want
       Props.AddStrings(ClientItem.Params);
       VarEnv.AddStrings(ClientItem.EnvVars);
 
@@ -96,10 +94,10 @@ begin
       VarEnv.Free;
     end;
 
-    // 2. Mostramos el formulario de forma modal
+    // 2. Show the form modally
     if EditorForm.ShowModal = mrOk then
     begin
-      // 3. Si el usuario presiona OK, actualizamos el ClientItem original
+      // 3. If the user presses OK, update the original ClientItem
       ClientItem.Name := EditorForm.EditName.Text;
       ClientItem.TransportType := TToolTransportType(EditorForm.EditProtocol.ItemIndex);
 
@@ -122,8 +120,8 @@ end;
 
 function TMCPClientItemEditor.GetAttributes: TPropertyAttributes;
 begin
-  // paDialog: Muestra el bot�n [...]
-  // paReadOnly: Hace que el valor no se pueda editar directamente en la rejilla.
+  // paDialog: Shows the [...] button
+  // paReadOnly: Makes the value not editable directly in the grid.
   Result := [paDialog, paReadOnly];
 end;
 

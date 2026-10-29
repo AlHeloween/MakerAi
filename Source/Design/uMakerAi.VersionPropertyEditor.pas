@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr�quez
+// Name: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -40,7 +40,7 @@ uses
   uMakerAi.Chat.AiConnection;
 
 type
-  // Property Editor personalizado for the propiedad Version
+  // Custom Property Editor for the Version property
   TVersionPropertyEditor = class(TStringProperty)
   public
     function GetAttributes: TPropertyAttributes; override;
@@ -61,19 +61,19 @@ uses
 procedure Register;
 begin
   // Register the Property Editor for the Version property
-  // de la clase TAiChatConnection
-  RegisterPropertyEditor(TypeInfo(string), // Tipo de la propiedad (string)
-    TAiChatConnection, // Clase que contiene la propiedad
-    'Version', // Nombre de la propiedad
-    TVersionPropertyEditor // Clase del Property Editor
+  // of the TAiChatConnection class
+  RegisterPropertyEditor(TypeInfo(string), // Property type (string)
+    TAiChatConnection, // Class that contains the property
+    'Version', // Property name
+    TVersionPropertyEditor // Property Editor class
     );
 
 End;
 
 function TVersionPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
-  // paDialog permite mostrar el bot�n de tres puntos
-  // paReadOnly hace que la propiedad no sea editable directamente
+  // paDialog allows showing the three-dot button
+  // paReadOnly makes the property not directly editable
   Result := [paDialog, paReadOnly];
 end;
 
@@ -81,7 +81,7 @@ procedure TVersionPropertyEditor.Edit;
 var
   AboutForm: TAboutDialog;
 begin
-  // Crear y mostrar el di�logo About
+  // Create and show the About dialog
   AboutForm := TAboutDialog.Create(nil);
   try
     AboutForm.ShowModal;
@@ -93,15 +93,15 @@ end;
 {
 function TVersionPropertyEditor.GetValue: string;
 begin
-  // Mostrar la versi�n actual en el Object Inspector
-   //$I uMakerAi.Version.inc
+  // Display the current version in the Object Inspector
+   //\$I uMakerAi.Version.inc
   //Result := MAKERAI_VERSION_FULL;
 end;
 
 procedure TVersionPropertyEditor.SetValue(const Value: string);
 begin
-  // No permitir cambio del valor (solo lectura)
-  // Opcionalmente podr�as mostrar un mensaje explicativo
+  // Do not allow changing the value (read only)
+  // Optionally you could show an explanatory message
 end;
 }
 

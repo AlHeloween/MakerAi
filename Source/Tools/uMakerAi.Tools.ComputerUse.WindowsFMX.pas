@@ -11,7 +11,7 @@ uses
 type
   TAiWindowsFMXExecutor = class
   private
-    // M�todos de Input (API Win32 pura)
+    // Input Methods (pure Win32 API)
     class procedure SendMouseInput(Flags: DWORD; Data: DWORD = 0);
     class procedure SendKeyboardInput(VK: Word; Up: Boolean);
     class procedure SendUnicodeChar(C: Char);
@@ -21,14 +21,14 @@ type
     class function ModifiersDown(const Mods: string): TArray<Word>;
     class procedure ModifiersUp(const Keys: TArray<Word>);
 
-    // Helper para dibujar un cursor simulado sobre el Bitmap FMX
-    // (Ya que la captura por BitBlt pura no incluye el cursor flotante)
+    // Helper to draw a simulated cursor over the FMX Bitmap
+    // (Since plain BitBlt capture does not include the floating cursor)
     class procedure DrawCursorOnBitmap(Bmp: FMX.Graphics.TBitmap; AreaLeft, AreaTop: Integer);
   public
-    // Ejecuta la acci�n f�sica
+    // Executes the physical action
     class function Execute(const Action: TAiActionData): TAiActionResult;
 
-    // Captura pantalla delegando en uMakerAi.Utils.ScreenCapture
+    // Captures screen by delegating to uMakerAi.Utils.ScreenCapture
     class procedure CaptureScreen(var MediaFile: TAiMediaFile; TargetArea: TRect; Quality: Integer = 70);
   end;
 
@@ -37,7 +37,7 @@ implementation
 { TAiWindowsFMXExecutor }
 
 // =============================================================================
-// SECCI�N DE INPUTS (Id�ntica a la anterior - Interact�a con Kernel)
+// INPUT SECTION (Identical to previous - Interacts with Kernel)
 // =============================================================================
 
 class procedure TAiWindowsFMXExecutor.SendMouseInput(Flags: DWORD; Data: DWORD);
@@ -79,7 +79,7 @@ end;
 
 class procedure TAiWindowsFMXExecutor.SmoothMouseMove(DestX, DestY: Integer);
 begin
-  // SetCursorPos maneja coordenadas virtuales autom�ticamente en Windows modernos
+  // SetCursorPos handles virtual coordinates automatically on modern Windows
   SetCursorPos(DestX, DestY);
 end;
 
@@ -263,13 +263,13 @@ begin
       end;
 
       catZoom: begin
-        // Sin input físico: la región (CurrentAction.ZoomRect) se captura
-        // ampliada en el manejador de OnRequestScreenshot.
+        // No physical input: the region (CurrentAction.ZoomRect) is captured
+        // enlarged in the OnRequestScreenshot handler.
       end;
 
       catType: begin
-        // Pre-click solo si hay posici�n (Gemini). Claude 'type' llega (0,0) y NO
-        // debe clicar: quitar�a el foco del control donde hay que escribir.
+        // Pre-click only if position provided (Gemini). Claude 'type' arrives (0,0) and should NOT
+        // click: it would remove focus from the control where we need to type.
         if (Action.X <> 0) or (Action.Y <> 0) then
         begin
           SmoothMouseMove(Action.X, Action.Y);
@@ -310,7 +310,7 @@ begin
 end;
 
 // =============================================================================
-// SECCI�N DE CAPTURA (Integraci�n con uMakerAi.Utils.ScreenCapture)
+// CAPTURE SECTION (Integration with uMakerAi.Utils.ScreenCapture)
 // =============================================================================
 
 class procedure TAiWindowsFMXExecutor.DrawCursorOnBitmap(Bmp: FMX.Graphics.TBitmap; AreaLeft, AreaTop: Integer);
@@ -319,28 +319,28 @@ var
   RelX, RelY: Single;
   R: TRectF;
 begin
-  // Obtener posici�n global del mouse
+  // Get global mouse position
   if not GetCursorPos(CursorPos) then Exit;
 
-  // Calcular posici�n relativa al �rea capturada
+  // Calculate relative position to the captured area
   RelX := CursorPos.X - AreaLeft;
   RelY := CursorPos.Y - AreaTop;
 
-  // Si el cursor est� fuera de la imagen, no dibujamos nada
+  // If the cursor is outside the image, we draw nothing
   if (RelX < 0) or (RelY < 0) or (RelX >= Bmp.Width) or (RelY >= Bmp.Height) then
     Exit;
 
-  // Dibujamos un indicador visual (C�rculo rojo con borde blanco)
-  // Esto es m�s f�cil en FMX que convertir HICONs y suficiente for the IA.
+  // Draw a visual indicator (Red circle with white border)
+  // This is easier in FMX than converting HICONs and is sufficient for the AI.
   if Bmp.Canvas.BeginScene then
   try
     R := TRectF.Create(RelX - 10, RelY - 10, RelX + 10, RelY + 10);
 
-    // Relleno Rojo semitransparente
+    // Semi-transparent Red fill
     Bmp.Canvas.Fill.Color := $80FF0000; // Alpha=128, Red
     Bmp.Canvas.FillEllipse(R, 1);
 
-    // Borde Blanco s�lido para contraste
+    // Solid White border for contrast
     Bmp.Canvas.Stroke.Color := TAlphaColors.White;
     Bmp.Canvas.Stroke.Thickness := 2;
     Bmp.Canvas.DrawEllipse(R, 1);
@@ -360,13 +360,13 @@ begin
   if not Assigned(MediaFile) then
     MediaFile := TAiMediaFile.Create;
 
-  // 1. Validar el �rea
+  // 1. Validate the area
   if TargetArea.IsEmpty then
   begin
     VirtualLeft := GetSystemMetrics(SM_XVIRTUALSCREEN);
     VirtualTop := GetSystemMetrics(SM_YVIRTUALSCREEN);
-    // Si viene vac�o, capturamos todo el virtual screen
-    // (Aun as� se recomienda que el componente TAiComputerUseTool pase un �rea expl�cita)
+    // If empty, we capture the entire virtual screen
+    // (It is still recommended that the TAiComputerUseTool component passes an explicit area)
     TargetArea := Rect(
       VirtualLeft,
       VirtualTop,
@@ -375,16 +375,16 @@ begin
     );
   end;
 
-  // 2. Usar tu librer�a existente for the captura de p�xeles
+  // 2. Use your existing library for pixel capture
   Bmp := TScreenCapture.CaptureArea(TargetArea);
   if not Assigned(Bmp) then Exit;
 
   try
-    // 3. Dibujar el cursor sobre el Bitmap capturado
-    // Es vital so that Gemini sepa d�nde est� el mouse
+    // 3. Draw the cursor onto the captured Bitmap
+    // It is vital so that Gemini knows where the mouse is
     DrawCursorOnBitmap(Bmp, TargetArea.Left, TargetArea.Top);
 
-    // 4. Guardar como JPG comprimido
+    // 4. Save as compressed JPG
     Surf := TBitmapSurface.Create;
     try
       Surf.Assign(Bmp);

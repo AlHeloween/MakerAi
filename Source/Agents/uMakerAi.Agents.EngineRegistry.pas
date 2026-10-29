@@ -1,38 +1,4 @@
-﻿// MIT License
-//
-// Copyright (c) <year> <copyright holders>
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
-// Nombre: Gustavo Enr�quez
-// Social Networks:
-// - Email: gustavoeenriquez@gmail.com
-
-// - Telegram: https://t.me/MakerAi_Suite_Delphi
-// - Telegram: https://t.me/MakerAi_Delphi_Suite_English
-
-// - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
-// - Youtube: https://www.youtube.com/@cimamaker3945
-// - GitHub: https://github.com/gustavoeenriquez/
-
-
-unit uMakerAi.Agents.EngineRegistry;
+﻿unit uMakerAi.Agents.EngineRegistry;
 
 interface
 
@@ -42,8 +8,8 @@ uses
   uMakerAi.Agents, uMakerAi.Agents.Attributes;
 
 type
-  // Este es el "contrato" de datos que el Dise�ador recibir�.
-  // Es un simple registro, no contiene clases ni l�gica compleja.
+  // This is the data "contract" that the Designer will receive.
+  // It is a simple record, does not contain classes or complex logic.
   TToolBlueprint = record
     ToolClassName: string;
     DisplayName: string;
@@ -53,36 +19,36 @@ type
   end;
 
   // --- CHANGE 1: New structure to store the class AND its unit name. ---
-  // Esto enriquece el registro so that el generador de c�digo sepa qu� unidades incluir.
+  // This enriches the record so that the code generator knows which units to include.
   TToolInfo = record
     ToolClass: TClass;
     UnitName: string;
   end;
 
-  // El Singleton que act�a como nuestra "caja negra".
+  // The Singleton that acts as our "black box".
   TEngineRegistry = class
   private
     class var
       FInstance: TEngineRegistry;
-    // --- CAMBIO 2: El diccionario ahora almacena el registro TToolInfo. ---
+    // --- CHANGE 2: The dictionary now stores the TToolInfo record. ---
     FRegisteredTools: TDictionary<string, TToolInfo>;
     constructor Create;
   public
     destructor Destroy; override;
     class property Instance: TEngineRegistry read FInstance;
 
-    // --- CAMBIO 3: El m�todo de registro ahora requiere el nombre de la unidad. ---
+    // --- CHANGE 3: The registration method now requires the unit name. ---
     procedure RegisterTool(ToolClass: TClass; const AUnitName: string);
 
     function FindToolClass(const AToolClassName: string): TClass;
 
-    // --- CAMBIO 4: Nuevo m�todo so that el generador consulte the name de la unidad. ---
+    // --- CHANGE 4: New method so that the generator can query the unit name. ---
     function GetUnitForToolClass(const AToolClassName: string): string;
 
     function GetToolBlueprints: TArray<TToolBlueprint>;
   end;
 
-  // TAgentHandlerRegistry no requiere cambios.
+  // TAgentHandlerRegistry does not require changes.
   TAgentHandlerRegistry = class
   private
   class var
@@ -104,8 +70,8 @@ implementation
 
 uses System.Rtti;
 
-// Helper interno to generate the JSON schemas de los par�metros.
-// No requiere cambios.
+// Internal helper to generate JSON schemas for parameters.
+// Does not require changes.
 type
   TSchemaGen_Internal = class
   private
@@ -120,7 +86,7 @@ type
 constructor TEngineRegistry.Create;
 begin
   inherited;
-  // --- CAMBIO 5: Is created el diccionario con el nuevo tipo de valor (TToolInfo). ---
+  // --- CHANGE 5: The dictionary is created with the new value type (TToolInfo). ---
   FRegisteredTools := TDictionary<string, TToolInfo>.Create;
 end;
 
@@ -134,14 +100,14 @@ function TEngineRegistry.FindToolClass(const AToolClassName: string): TClass;
 var
   LToolInfo: TToolInfo;
 begin
-  // --- CAMBIO 6: La b�squeda ahora extrae el TClass desde el registro TToolInfo. ---
+  // --- CHANGE 6: The search now extracts the TClass from the TToolInfo record. ---
   if FRegisteredTools.TryGetValue(AToolClassName, LToolInfo) then
     Result := LToolInfo.ToolClass
   else
     Result := nil;
 end;
 
-// --- CAMBIO 7: Implementaci�n del nuevo m�todo to obtain/get la unidad. ---
+// --- CHANGE 7: Implementation of the new method to get the unit. ---
 function TEngineRegistry.GetUnitForToolClass(const AToolClassName: string): string;
 var
   LToolInfo: TToolInfo;
@@ -152,7 +118,7 @@ begin
     Result := '';
 end;
 
-// --- CAMBIO 8: Implementaci�n del m�todo de registro modificado. ---
+// --- CHANGE 8: Implementation of the modified registration method. ---
 procedure TEngineRegistry.RegisterTool(ToolClass: TClass; const AUnitName: string);
 var
   LToolInfo: TToolInfo;
@@ -160,7 +126,7 @@ begin
   if not ToolClass.InheritsFrom(TAiToolBase) then
     raise Exception.CreateFmt('Cannot register class "%s" because it does not inherit from TAiToolBase.', [ToolClass.ClassName]);
 
-  // Se llena el registro con toda la informaci�n necesaria.
+  // Fill the record with all necessary information.
   LToolInfo.ToolClass := ToolClass;
   LToolInfo.UnitName := AUnitName;
 
@@ -169,7 +135,7 @@ end;
 
 function TEngineRegistry.GetToolBlueprints: TArray<TToolBlueprint>;
 var
-  LToolInfo: TToolInfo;   // La variable del bucle ahora es del tipo TToolInfo.
+  LToolInfo: TToolInfo;   // The loop variable is now of type TToolInfo.
   ToolClass: TClass;      // Local variable to maintain clarity of existing code.
   LContext: TRttiContext;
   LRttiType: TRttiType;
@@ -180,10 +146,10 @@ begin
   i := 0;
   LContext := TRttiContext.Create;
   try
-    // --- CAMBIO 9: El bucle itera sobre los valores TToolInfo del diccionario. ---
+    // --- CHANGE 9: The loop iterates over the TToolInfo values of the dictionary. ---
     for LToolInfo in FRegisteredTools.Values do
     begin
-      // Se extrae the class del registro so that el resto del c�digo funcione without changes.
+      // Extract the class from the record so that the rest of the code works without changes.
       ToolClass := LToolInfo.ToolClass;
 
       LRttiType := LContext.GetType(ToolClass);
@@ -224,7 +190,7 @@ end;
 
 { TSchemaGen_Internal }
 
-// Esta clase no necesita ninguna modificaci�n.
+// This class does not need any modifications.
 class function TSchemaGen_Internal.GenerateSchemaFor(AClass: TClass): TJSONObject;
 var
   LContext: TRttiContext;
@@ -347,7 +313,7 @@ end;
 
 { TAgentHandlerRegistry }
 
-// Esta clase no necesita ninguna modificaci�n.
+// This class does not need any modifications.
 constructor TAgentHandlerRegistry.Create;
 begin
   inherited;

@@ -1,43 +1,15 @@
-﻿// MIT License
-//
-// Copyright (c) 2024 Gustavo Enríquez - CimaMaker
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
-// Nombre: Gustavo Enríquez
-// - Email: gustavoeenriquez@gmail.com
-// - Telegram: https://t.me/MakerAi_Suite_Delphi
-// - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
-// - GitHub: https://github.com/gustavoeenriquez/
+﻿unit uMakerAi.Memory.Context;
 
-unit uMakerAi.Memory.Context;
-
-// Smart Context Builder para TAiMemory.
+// Smart Context Builder for TAiMemory.
 //
-// Combina tres fuentes de candidatos y los selecciona dentro de un token budget:
-//   1. FTS search(prompt)       → score por relevancia léxica
-//   2. Semantic search(prompt)  → score por similitud coseno  [si hay embedder]
-//   3. Recall(importance >= 7)  → memorias de alta importancia, siempre incluidas
+// Combines three sources of candidates and selects them within a token budget:
+//   1. FTS search(prompt)       → score by lexical relevance
+//   2. Semantic search(prompt)  → score by cosine similarity  [if embedder available]
+//   3. Recall(importance >= 7)  → high importance memories, always included
 //
-// Ranking combinado: 0.6 * relevance + 0.4 * (importance / 10)
-// Token budget: acumula entradas ordenadas por score hasta agotar el límite.
-// Estimación: ~4 caracteres por token.
+// Combined ranking: 0.6 * relevance + 0.4 * (importance / 10)
+// Token budget: accumulates entries sorted by score until limit is reached.
+// Estimation: ~4 characters per token.
 
 interface
 
@@ -59,7 +31,7 @@ type
   public
     constructor Create(AStorage: IAiMemoryStorage; AEmbedder: TAiEmbeddingsCore = nil);
 
-    // Construye el bloque de contexto para inyectar en el prompt del agente
+    // Builds the context block to inject into the agent's prompt
     function Build(
       const APrompt:    string;
       ATokenBudget:     Integer = 2000;
@@ -83,7 +55,7 @@ end;
 
 function TAiMemoryContext.EstimateTokens(const AText: string): Integer;
 begin
-  // Estimación conservadora: ~4 chars por token
+  // Conservative estimation: ~4 chars per token
   Result := Max(1, Length(AText) div 4);
 end;
 
@@ -107,7 +79,7 @@ type
   TScoredCandidate = record
     Entry:     TMemoryEntry;
     Score:     Double;
-    IsOwned:   Boolean;    // True = debe liberarse aquí si no se usa
+    IsOwned:   Boolean;    // True = must be freed here if not used
   end;
 var
   FTSList, RecallList, SemanticList: TMemoryEntryList;
@@ -148,7 +120,7 @@ begin
   SeenIds := TDictionary<Integer, Boolean>.Create;
   Lines   := TStringList.Create;
   try
-    // ── Fuente 1: FTS léxica ─────────────────────────────────────────────────
+    // ── Source 1: FTS lexical ─────────────────────────────────────────────────
     FTSList := FStorage.SearchFTS(APrompt, ANamespace, 20);
     try
       Rank := 0;
@@ -164,7 +136,7 @@ begin
       FTSList.Free;
     end;
 
-    // ── Fuente 2: Semántica (si hay embedder) ────────────────────────────────
+    // ── Source 2: Semantic (if embedder available) ────────────────────────────
     if Assigned(FEmbedder) then
     begin
       try
@@ -184,11 +156,11 @@ begin
           end;
         end;
       except
-        // Si el embedder falla, continúa solo con FTS
+        // If embedder fails, continue with FTS only
       end;
     end;
 
-    // ── Fuente 3: Recall de alta importancia (siempre incluir) ───────────────
+    // ── Source 3: High importance recall (always include) ─────────────────────
     RecallList := FStorage.Recall(7, ANamespace, 10);
     try
       for Entry in RecallList do
@@ -198,7 +170,7 @@ begin
       RecallList.Free;
     end;
 
-    // ── Ordenar por score descendente — selection sort (n típicamente < 50) ──
+    // ── Sort by descending score — selection sort (n typically < 50) ─────────
     SetLength(Candidates, CandCount);
     for Si := 0 to CandCount - 2 do
       for Sj := Si + 1 to CandCount - 1 do
@@ -207,7 +179,7 @@ begin
           Stmp := Candidates[Si]; Candidates[Si] := Candidates[Sj]; Candidates[Sj] := Stmp;
         end;
 
-    // ── Acumular dentro del token budget ─────────────────────────────────────
+    // ── Accumulate within token budget ──────────────────────────────────────
     TokensUsed := 0;
     SetLength(Result.MemoryIds, 0);
     for I := 0 to High(Candidates) do
@@ -231,7 +203,7 @@ begin
       SetLength(Result.MemoryIds, Result.MemoryCount);
       Result.MemoryIds[Result.MemoryCount - 1] := Entry.Id;
 
-      // Actualizar estadísticas de acceso
+      // Update access statistics
       FStorage.UpdateAccessStats(Entry.Id, ANamespace);
     end;
 
@@ -239,7 +211,7 @@ begin
     Result.TokenEstimate  := TokensUsed;
 
   finally
-    // Liberar entries propios que no quedaron en Result
+    // Free own entries that were not kept in Result
     for I := 0 to High(Candidates) do
       if Candidates[I].IsOwned then
         Candidates[I].Entry.Free;

@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
-// Redes Sociales:
+// Name: Gustavo Enriquez
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - Telegram: https://t.me/MakerAi_Delphi_Suite_English
@@ -30,17 +30,17 @@
 // - GitHub: https://github.com/gustavoeenriquez/
 
 // -------------------------------------------------------------------------
-// TAiElevenLabsSpeechTool: TTS y STT via ElevenLabs API.
+// TAiElevenLabsSpeechTool: TTS and STT via ElevenLabs API.
 //
 // TTS:  POST https://api.elevenlabs.io/v1/text-to-speech/{voice_id}
 // STT:  POST https://api.elevenlabs.io/v1/speech-to-text
 //
-// Uso como ChatTool:
+// Usage as ChatTool:
 //   AiChat.ChatTools.SpeechTool := TAiElevenLabsSpeechTool.Create(Self);
 //   (AiChat.SpeechTool as TAiElevenLabsSpeechTool).ApiKey := '@ELEVENLABS_API_KEY';
 //
-// Uso directo:
-//   LFile := TAiElevenLabsSpeechTool.GenerateSpeech(ApiKey, VoiceId, '', 'Hola mundo');
+// Direct usage:
+//   LFile := TAiElevenLabsSpeechTool.GenerateSpeech(ApiKey, VoiceId, '', 'Hello world');
 // -------------------------------------------------------------------------
 
 unit uMakerAi.ElevenLabs.Speech;
@@ -54,21 +54,21 @@ uses
   uMakerAi.Core, uMakerAi.Chat.Tools, uMakerAi.Chat.Messages;
 
 type
-  // Formato de audio de salida para TTS.
-  // Formatos PCM se convierten automaticamente a WAV para compatibilidad.
+  // Audio output format for TTS.
+  // PCM formats are automatically converted to WAV for compatibility.
   TAiElevenLabsOutputFormat = (
-    elofMp3_44100_128,  // mp3_44100_128 — recomendado por defecto
-    elofMp3_44100_192,  // mp3_44100_192 — mayor calidad
-    elofPcm_16000,      // pcm_16000 — minima latencia
+    elofMp3_44100_128,  // mp3_44100_128 — recommended default
+    elofMp3_44100_192,  // mp3_44100_192 — higher quality
+    elofPcm_16000,      // pcm_16000 — lowest latency
     elofPcm_22050,      // pcm_22050
     elofPcm_24000,      // pcm_24000
-    elofPcm_44100       // pcm_44100 — maxima calidad PCM
+    elofPcm_44100       // pcm_44100 — maximum PCM quality
   );
 
   { TAiElevenLabsSpeechTool
-    Implementa IAiSpeechTool con el motor de ElevenLabs.
-    - TTS: devuelve TAiMediaFile con audio MP3 o WAV (PCM convertido)
-    - STT: transcribe via Scribe (modelo dedicado de ElevenLabs) }
+    Implements IAiSpeechTool with the ElevenLabs engine.
+    - TTS: returns TAiMediaFile with MP3 or WAV audio (PCM converted)
+    - STT: transcribes via Scribe (dedicated ElevenLabs model) }
   TAiElevenLabsSpeechTool = class(TAiSpeechToolBase)
   private
     FApiKey: string;
@@ -98,42 +98,42 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    { Genera audio directamente sin necesitar un chat activo.
-      Retorna un TAiMediaFile que el llamador debe liberar. }
+    { Generates audio directly without needing an active chat.
+      Returns a TAiMediaFile that the caller must free. }
     class function GenerateSpeech(const AApiKey, AVoiceId, AModelId, AText: string): TAiMediaFile;
 
-    { Transcribe un archivo de audio a texto directamente sin necesitar un chat activo. }
+    { Transcribes an audio file to text directly without needing an active chat. }
     function Transcribe(aMediaFile: TAiMediaFile): string;
   published
-    { API key de ElevenLabs. Soporta convencion @ELEVENLABS_API_KEY. }
+    { ElevenLabs API key. Supports the convention @ELEVENLABS_API_KEY. }
     property ApiKey: string read GetApiKey write FApiKey;
 
-    { ID de la voz ElevenLabs. Default: Rachel (21m00Tcm4TlvDq8ikWAM). }
+    { ElevenLabs voice ID. Default: Rachel (21m00Tcm4TlvDq8ikWAM). }
     property VoiceId: string read FVoiceId write FVoiceId;
 
-    { Modelo TTS. Default: eleven_multilingual_v2.
-      Otros: eleven_flash_v2_5, eleven_turbo_v2_5, eleven_turbo_v2. }
+    { TTS model. Default: eleven_multilingual_v2.
+      Others: eleven_flash_v2_5, eleven_turbo_v2_5, eleven_turbo_v2. }
     property ModelId: string read FModelId write FModelId;
 
-    { Estabilidad de la voz: 0.0 (variable) .. 1.0 (estable). Default: 0.5. }
+    { Voice stability: 0.0 (variable) .. 1.0 (stable). Default: 0.5. }
     property Stability: Double read FStability write FStability;
 
-    { Similitud con la voz original: 0.0 .. 1.0. Default: 0.75. }
+    { Similarity to the original voice: 0.0 .. 1.0. Default: 0.75. }
     property SimilarityBoost: Double read FSimilarityBoost write FSimilarityBoost;
 
-    { Estilo expresivo (solo modelos v2+): 0.0 .. 1.0. Default: 0.0. }
+    { Expressive style (only v2+ models): 0.0 .. 1.0. Default: 0.0. }
     property Style: Double read FStyle write FStyle;
 
-    { Boosting del hablante para mayor parecido. Default: True. }
+    { Speaker boost for higher resemblance. Default: True. }
     property UseSpeakerBoost: Boolean read FUseSpeakerBoost write FUseSpeakerBoost default True;
 
-    { Formato de salida del audio. Default: elofMp3_44100_128. }
+    { Audio output format. Default: elofMp3_44100_128. }
     property OutputFormat: TAiElevenLabsOutputFormat read FOutputFormat write FOutputFormat default elofMp3_44100_128;
 
-    { Modelo STT para transcripcion. Default: scribe_v1. }
+    { STT model for transcription. Default: scribe_v1. }
     property SpeechToTextModel: string read FSpeechToTextModel write FSpeechToTextModel;
 
-    { Tokens acumulados de las llamadas a la API. }
+    { Accumulated tokens from API calls. }
     property Prompt_tokens: Integer read FPrompt_tokens write FPrompt_tokens;
     property Completion_tokens: Integer read FCompletion_tokens write FCompletion_tokens;
     property Total_tokens: Integer read FTotal_tokens write FTotal_tokens;
@@ -215,7 +215,7 @@ begin
   Result := PCMSampleRates[FOutputFormat];
 end;
 
-{ --- Logica principal TTS --- }
+{ --- Main TTS logic --- }
 
 function TAiElevenLabsSpeechTool.InternalRunTTS(const AText: string; ResMsg: TAiChatMessage): string;
 var
@@ -255,7 +255,7 @@ begin
       HTTP.ContentType := 'application/json';
       LApiHeader := [TNameValuePair.Create('xi-api-key', GetApiKey)];
 
-      ReportState(acsWriting, 'ElevenLabs generando voz...');
+      ReportState(acsWriting, 'ElevenLabs generating voice...');
       LResponse := HTTP.Post(LUrl, LBody, LAudioStream, LApiHeader);
     finally
       LBody.Free;
@@ -268,7 +268,7 @@ begin
 
       if IsPcmFormat then
       begin
-        // ElevenLabs PCM: 16-bit, mono, little-endian — convertir a WAV
+        // ElevenLabs PCM: 16-bit, mono, little-endian — convert to WAV
         if ConvertPCMStreamToWAVStream(LAudioStream, LWavStream, PcmSampleRate, 1, 16) then
         try
           LNewFile.LoadFromStream('elevenlabs_audio.wav', LWavStream);
@@ -282,7 +282,7 @@ begin
         LNewFile.LoadFromStream('elevenlabs_audio.' + OutputFormatToExtension, LAudioStream);
 
       LMsg.MediaFiles.Add(LNewFile);
-      Result := '[Audio Generado]';
+      Result := '[Audio Generated]';
       LMsg.Prompt := Result;
       ReportDataEnd(ResMsg, 'assistant', Result);
     end
@@ -297,7 +297,7 @@ begin
   end;
 end;
 
-{ --- Logica principal STT --- }
+{ --- Main STT logic --- }
 
 function TAiElevenLabsSpeechTool.InternalRunSTT(aMediaFile: TAiMediaFile): string;
 var
@@ -346,16 +346,16 @@ begin
   end;
 end;
 
-{ --- Implementacion IAiSpeechTool --- }
+{ --- IAiSpeechTool implementation --- }
 
 procedure TAiElevenLabsSpeechTool.ExecuteTranscription(aMediaFile: TAiMediaFile; ResMsg, AskMsg: TAiChatMessage);
 var
   LText: string;
 begin
-  // Llamada directa — ver comentario identico en TAiGeminiSpeechTool.
-  // IsAsync=True: ya en hilo background. IsAsync=False: sync, bloquear es correcto.
+  // Direct call — see identical comment in TAiGeminiSpeechTool.
+  // IsAsync=True: already in background thread. IsAsync=False: sync, blocking is correct.
   try
-    ReportState(acsReasoning, 'Transcribiendo audio con ElevenLabs...');
+    ReportState(acsReasoning, 'Transcribing audio with ElevenLabs...');
     LText := InternalRunSTT(aMediaFile);
     aMediaFile.Transcription := LText;
     aMediaFile.Procesado := True;
@@ -363,7 +363,7 @@ begin
     ReportDataEnd(ResMsg, 'assistant', LText);
   except
     on E: Exception do
-      ReportError('Error en transcripcion ElevenLabs: ' + E.Message, E);
+      ReportError('Error in ElevenLabs transcription: ' + E.Message, E);
   end;
 end;
 
@@ -378,14 +378,12 @@ begin
     end).Start;
 end;
 
-{ --- Metodos publicos para uso directo sin chat --- }
+{ --- Public methods for direct use without chat --- }
 
 function TAiElevenLabsSpeechTool.Transcribe(aMediaFile: TAiMediaFile): string;
 begin
   Result := InternalRunSTT(aMediaFile);
 end;
-
-
 
 class function TAiElevenLabsSpeechTool.GenerateSpeech(const AApiKey, AVoiceId, AModelId, AText: string): TAiMediaFile;
 var

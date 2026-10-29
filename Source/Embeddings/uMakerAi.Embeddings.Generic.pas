@@ -32,10 +32,10 @@ unit uMakerAi.Embeddings.Generic;
 // - GitHub: https://github.com/gustavoeenriquez/
 
 // Generic embeddings driver for any API-compatible endpoint
-// OpenAI de embeddings (POST /embeddings con body {input, model, dimensions}).
-// Soporta: vLLM, llama.cpp, OpenLLM, Text Embeddings Inference (TEI),
-//          Hugging Face Inference Endpoints, FastEmbed-server, y cualquier
-//          proveedor con interfaz OpenAI-compatible.
+// OpenAI embeddings (POST /embeddings with body {input, model, dimensions}).
+// Supports: vLLM, llama.cpp, OpenLLM, Text Embeddings Inference (TEI),
+//          Hugging Face Inference Endpoints, FastEmbed-server, and any
+//          provider with OpenAI-compatible interface.
 //
 // Minimal usage:
 //   EmbConn.DriverName := 'GenericLLM';
@@ -43,9 +43,9 @@ unit uMakerAi.Embeddings.Generic;
 //   EmbConn.Model      := 'BAAI/bge-m3';
 //   EmbConn.ApiKey     := 'optional-token';
 //
-// El campo ParseEmbedding soporta dos formatos de respuesta:
-//   Formato OpenAI:    {"data": [{"embedding": [...]}]}
-//   Formato directo:   {"embedding": [...]}   (usado por algunos servidores locales)
+// The ParseEmbedding field supports two response formats:
+//   OpenAI format:    {"data": [{"embedding": [...]}]}
+//   Direct format:   {"embedding": [...]}   (used by some local servers)
 
 interface
 
@@ -62,9 +62,9 @@ uses
 type
   // Generic driver for any OpenAI-compatible embeddings API.
   // Configure Url, ApiKey and Model at design time or in code.
-  // Permite registrar el mismo driver bajo nombres distintos mediante
-  // CustomDriverName, igual que TAiGenericChat, para tener varios proveedores
-  // simultaneous generics in the same project.
+  // Allows registering the same driver under different names via
+  // CustomDriverName, similar to TAiGenericChat, to have multiple providers
+  // and simultaneous generic instances in the same project.
   TAiGenericEmbeddings = class(TAiEmbeddings)
   private
     FCustomDriverName: string;
@@ -78,9 +78,9 @@ type
     class function CreateInstance(aOwner: TComponent): TAiEmbeddings; override;
     class procedure RegisterDefaultParams(Params: TStrings); override;
   published
-    // Nombre con el que este componente se registra en la factory.
+    // Name under which this component registers in the factory.
     // Allows using multiple instances pointing to different APIs.
-    // Ej: 'AzureEmb', 'LocalTEI', 'VllmServer'
+    // Example: 'AzureEmb', 'LocalTEI', 'VllmServer'
     property CustomDriverName: string read FCustomDriverName write SetCustomDriverName;
   end;
 
@@ -105,7 +105,7 @@ begin
   if FCustomDriverName = Value then Exit;
   FCustomDriverName := Value;
 // Register the class in the factory under the custom name.
-  // 'GenericLLM' siempre queda registrado (via initialization).
+  // 'GenericLLM' always remains registered (via initialization).
   if Value <> '' then
     TAiEmbeddingFactory.Instance.RegisterDriver(TAiGenericEmbeddings, Value);
 end;
@@ -135,7 +135,7 @@ begin
   if aDimensions <= 0 then
     aDimensions := FDimensions;
 
-  // Normalizar URL: asegurar que termina en /
+  // Normalize URL: ensure it ends with /
   sUrl := FUrl.TrimRight(['/']) + '/embeddings';
 
   Client := TNetHTTPClient.Create(nil);
@@ -201,7 +201,7 @@ var
   Emb      : TAiEmbeddingData;
   i        : Integer;
 begin
-  // Tokens de uso (opcional — no todos los servidores lo reportan)
+  // Usage tokens (optional — not all servers report them)
   if jObj.TryGetValue<TJSONObject>('usage', jUsage) then
   begin
     jUsage.TryGetValue<Integer>('prompt_tokens', Fprompt_tokens);
@@ -222,7 +222,7 @@ begin
     Exit;
   end;
 
-  // Formato 2 — directo: {"embedding": [...]}  (llama.cpp, algunos servidores locales)
+  // Format 2 — direct: {"embedding": [...]}  (llama.cpp, some local servers)
   if jObj.TryGetValue<TJSONArray>('embedding', jVec) then
   begin
     SetLength(Emb, jVec.Count);

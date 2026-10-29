@@ -34,11 +34,11 @@ uses
   uMakerAi.ErrorCodes;
 
 {$IFDEF MSWINDOWS}
-// Windows: DLL acepta wchar_t* — Delphi PChar = PWideChar, sin conversión.
+// Windows: DLL expects wchar_t* — Delphi PChar = PWideChar, no conversion needed.
 type TNativeStr = PChar;
 {$DEFINE EMB_NATIVE_WCHAR}
 {$ELSE}
-// POSIX/Android: .so espera const char* (UTF-8).
+// POSIX/Android: .so expects const char* (UTF-8).
 type TNativeStr = MarshaledAString;
 {$ENDIF}
 
@@ -92,9 +92,9 @@ type
     FnEmbedBatch:       function(Inst: Pointer; Texts: Pointer; Count: Integer;
                           OutVecs: PSingle; VecSize: Integer): LongBool; stdcall;
     FnIsGPU:            function(Inst: Pointer): LongBool; stdcall;
-    FnGetCUDAInfo:      function: PAnsiChar; stdcall;  // siempre UTF-8 narrow
+    FnGetCUDAInfo:      function: PAnsiChar; stdcall;  // always UTF-8 narrow
     FnFree:             procedure(Inst: Pointer); stdcall;
-    FnGetLastError:     function: PAnsiChar; stdcall;  // siempre UTF-8 narrow
+    FnGetLastError:     function: PAnsiChar; stdcall;  // always UTF-8 narrow
     FnGetLastErrorCode: function: Integer; stdcall;
     FnValidate:         function(Path: TNativeStr): Integer; stdcall;
 
@@ -159,8 +159,8 @@ var
 
 begin
 {$IFDEF MSWINDOWS}
-  // Agrega el directorio de makerai.embedder.dll al search path so that
-  // Windows encuentre las dependencias (ggml-cuda.dll, cublas*.dll, etc.)
+  // Add the directory of makerai.embedder.dll to the search path so that
+  // Windows finds its dependencies (ggml-cuda.dll, cublas*.dll, etc.).
   LDir := ExtractFilePath(ExpandFileName(DLLPath));
   if LDir <> '' then
     SetDllDirectory(PChar(LDir));
@@ -276,7 +276,7 @@ var
 {$IFDEF EMB_NATIVE_WCHAR}
   Ptrs: TArray<PChar>;
 {$ELSE}
-  // En POSIX necesitamos UTF8String intermedios para mantener los punteros vivos
+  // On POSIX we need intermediate UTF8String values to keep the pointers alive
   U8:   TArray<UTF8String>;
   Ptrs: TArray<MarshaledAString>;
 {$ENDIF}
@@ -296,8 +296,8 @@ begin
   if not FnEmbedBatch(FHandle, @Ptrs[0], Count, @FlatBuf[0], FDimensions) then
     RaiseLastError;
 {$ELSE}
-  // Convertir todos los strings a UTF-8 antes de construir el array de punteros;
-  // U8 mantiene las cadenas vivas mientras FnEmbedBatch ejecuta.
+  // Convert all strings to UTF-8 before building the pointer array;
+  // U8 keeps the strings alive while FnEmbedBatch executes.
   SetLength(U8, Count);
   SetLength(Ptrs, Count);
   for i := 0 to Count - 1 do

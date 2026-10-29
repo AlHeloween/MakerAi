@@ -22,8 +22,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
-// Redes Sociales:
+// Name: Gustavo Enriquez
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi

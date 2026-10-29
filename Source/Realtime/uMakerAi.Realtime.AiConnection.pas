@@ -1,26 +1,4 @@
-﻿// MakerAI Suite — Conector universal Realtime STT
-// Permite cambiar de provider en tiempo de diseno sin modificar el codigo.
-// Equivalente a TAiChatConnection pero para el modulo Realtime.
-//
-// Uso tipico:
-//   RealtimeConn.DriverName := 'OpenAI';
-//   RealtimeConn.ApiKey     := '@OPENAI_API_KEY';
-//   RealtimeConn.Model      := 'gpt-realtime-2.1';
-//   VoiceMonitor.RealtimeSTT := RealtimeConn;
-//   RealtimeConn.Connect;
-//
-// Propiedades propias de cada driver (voz, instrucciones, idioma destino...):
-// DriverParams, una por linea 'Propiedad=Valor', se aplica al driver por RTTI
-// al crearlo y al conectar:
-//   RealtimeConn.DriverParams.Values['Voice'] := 'Tina';
-//   RealtimeConn.DriverParams.Values['Instructions'] := 'Responde breve';
-// Lo que no se expresa como texto (AiFunctions, eventos propios) va por
-// (RealtimeConn.Instance as TAiGrokRealtimeChat).
-//
-// Autor: Gustavo Enriquez
-// Email: gustavoeenriquez@gmail.com
-
-unit uMakerAi.Realtime.AiConnection;
+﻿unit uMakerAi.Realtime.AiConnection;
 
 interface
 
@@ -29,9 +7,9 @@ uses
   uMakerAi.Realtime;
 
 type
-  // Hereda de TAiRealtimeVoiceBase para re-exponer tambien los eventos de
-  // los drivers de voz full-duplex (OnAssistantText, OnAudioChunk, ...).
-  // Con drivers STT puros esos eventos simplemente nunca se disparan.
+  // Inherits from TAiRealtimeVoiceBase to also re-expose the events of
+  // full-duplex voice drivers (OnAssistantText, OnAudioChunk, ...).
+  // With pure STT drivers those events simply never fire.
   TAiRealtimeConnection = class(TAiRealtimeVoiceBase)
   private
     FInstance:   TAiRealtimeBase;
@@ -40,11 +18,11 @@ type
     procedure SetDriverName(const Value: string);
     procedure SetDriverParams(const Value: TStrings);
     procedure RecreateInstance;
-    // AReportUnknown: al conectar, una clave que el driver no tiene se informa por
-    // OnError (al crear el driver no: DriverParams puede traer claves de otro)
+    // AReportUnknown: when connecting, a key that the driver does not have is reported via
+    // OnError (when creating the driver it does not: DriverParams may bring keys from another driver)
     procedure SyncToInstance(AReportUnknown: Boolean = False);
     procedure ApplyDriverParams(AReportUnknown: Boolean);
-    // Handlers que reenvian los eventos de FInstance a Self
+    // Handlers that forward events from FInstance to Self
     procedure OnInstConnected(Sender: TObject);
     procedure OnInstDisconnected(Sender: TObject);
     procedure OnInstSessionReady(Sender: TObject);
@@ -53,7 +31,7 @@ type
     procedure OnInstTranscriptDelta(Sender: TObject; const Delta: string);
     procedure OnInstTranscriptCompleted(Sender: TObject; const Transcript, ItemId: string);
     procedure OnInstError(Sender: TObject; const ErrorMsg, ErrorCode: string);
-    // Reenviadores de los eventos de voz (solo drivers TAiRealtimeVoiceBase)
+    // Forwarders for voice events (only TAiRealtimeVoiceBase drivers)
     procedure OnInstAssistantText(Sender: TObject; const AText: string);
     procedure OnInstAssistantTextDelta(Sender: TObject; const ADelta: string);
     procedure OnInstAudioChunk(Sender: TObject; const AData: TBytes);
@@ -74,12 +52,12 @@ type
     procedure SendAudioChunk(const PCM16Data: TBytes); override;
     property  Instance: TAiRealtimeBase read FInstance;
   published
-    // Al cambiar DriverName se crea/destruye la instancia interna
+    // Changing DriverName creates/destroys the internal instance
     property DriverName: string read FDriverName write SetDriverName;
-    // Propiedades propias del driver, 'Propiedad=Valor' por linea: Voice,
-    // Instructions, TargetLanguage, Mode, ReasoningEffort... Texto, numeros,
-    // enumerados por nombre (greNone, tmCommit), booleanos y listas (TStrings)
-    // con elementos separados por '|'
+    // Driver-specific properties, 'Property=Value' per line: Voice,
+    // Instructions, TargetLanguage, Mode, ReasoningEffort... Text, numbers,
+    // enumerated types by name (greNone, tmCommit), booleans and lists (TStrings)
+    // with elements separated by '|'
     property DriverParams: TStrings read FDriverParams write SetDriverParams;
   end;
 
@@ -173,7 +151,7 @@ begin
             end;
           tkClass:
             begin
-              // TStrings (Keyterms, CustomToolsJson...): elementos separados por '|'
+              // TStrings (Keyterms, CustomToolsJson...): elements separated by '|'
               LObj := P.GetValue(FInstance).AsObject;
               if LObj is TStrings then
               begin
@@ -183,7 +161,7 @@ begin
             end;
         end;
       if not LOk and AReportUnknown then
-        DoError(Format('DriverParams: el driver %s no tiene la propiedad "%s" o el valor "%s" no es valido',
+        DoError(Format('DriverParams: the driver %s does not have property "%s" or the value "%s" is not valid',
           [FDriverName, LName, LVal]), 'driver_param');
     end;
   finally
@@ -216,7 +194,7 @@ begin
   if FDriverName = '' then Exit;
   try
     FInstance := TAiRealtimeFactory.Instance.CreateDriver(FDriverName, Self);
-    // Cablear todos los eventos al reenviador
+    // Wire all events to the forwarder
     FInstance.OnConnected         := OnInstConnected;
     FInstance.OnDisconnected      := OnInstDisconnected;
     FInstance.OnSessionReady      := OnInstSessionReady;
@@ -225,7 +203,7 @@ begin
     FInstance.OnTranscriptDelta   := OnInstTranscriptDelta;
     FInstance.OnTranscriptCompleted := OnInstTranscriptCompleted;
     FInstance.OnError             := OnInstError;
-    // Eventos de voz full-duplex (MakerAi, Grok, ...)
+    // Full-duplex voice events (MakerAi, Grok, ...)
     if FInstance is TAiRealtimeVoiceBase then
     begin
       TAiRealtimeVoiceBase(FInstance).OnAssistantText      := OnInstAssistantText;
@@ -260,7 +238,7 @@ begin
   SetLength(Result, 0);
 end;
 
-{ Metodos abstractos — delegan en FInstance }
+{ Abstract methods — delegate to FInstance }
 
 function TAiRealtimeConnection.GetTargetSampleRate: Integer;
 begin
@@ -274,7 +252,7 @@ procedure TAiRealtimeConnection.InternalConnect;
 begin
   if not Assigned(FInstance) then
     raise EInvalidOperation.Create(
-      'TAiRealtimeConnection: DriverName no esta configurado');
+      'TAiRealtimeConnection: DriverName not configured');
   SyncToInstance(True);
   FInstance.Connect;
 end;
@@ -287,8 +265,8 @@ end;
 
 procedure TAiRealtimeConnection.InternalSendAudio(const ResampledPCM16: TBytes);
 begin
-  // No se usa: SendAudioChunk va directo a FInstance.SendAudioChunk
-  // para evitar doble resampling
+  // Not used: SendAudioChunk goes directly to FInstance.SendAudioChunk
+  // to avoid double resampling
 end;
 
 procedure TAiRealtimeConnection.SendAudioChunk(const PCM16Data: TBytes);
@@ -307,7 +285,7 @@ begin
   if Assigned(FInstance) then FInstance.ClearAudio;
 end;
 
-{ Reenviadores de eventos de FInstance a Self }
+{ Forwarders of FInstance events to Self }
 
 procedure TAiRealtimeConnection.OnInstConnected(Sender: TObject);
 begin

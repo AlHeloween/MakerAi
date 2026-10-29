@@ -1,29 +1,29 @@
-﻿// MakerAI Suite — Qwen TTS en tiempo real (texto -> audio en vivo)
+﻿// MakerAI Suite — Qwen TTS in real time (text -> live audio)
 // wss://dashscope-intl.aliyuncs.com/api-ws/v1/realtime?model=qwen3-tts-flash-realtime
 //
-// Componente aparte de TAiRealtimeBase: aquella jerarquia es de audio de entrada
-// (microfono -> servidor); esta va al reves, texto de entrada y audio de salida.
-// Uso tipico: leer en voz alta la respuesta de un LLM mientras se genera —
-// AppendText con cada delta de OnReceiveData y Finish al terminar. El primer
-// audio llega ~0.7 s despues del primer texto.
+// Separate component from TAiRealtimeBase: that hierarchy is for input audio
+// (microphone -> server); this one goes the other way, text input and audio output.
+// Typical use: read the LLM's response aloud while it's being generated —
+// AppendText with each delta from OnReceiveData and Finish at the end. The first
+// audio arrives ~0.7 s after the first text.
 //
-// Protocolo (verificado en vivo, sep 2026):
-//   cliente: session.update {voice, mode, response_format, sample_rate,
+// Protocol (verified live, Sep 2026):
+//   client: session.update {voice, mode, response_format, sample_rate,
 //            language_type, instructions}, input_text_buffer.append {text},
 //            input_text_buffer.commit, session.finish
-//   servidor: response.created, response.audio.delta (PCM base64),
-//            response.done (por enunciado), session.finished, error
-// Modos: tmServerCommit (el servidor decide cuando sintetizar; lo pendiente sale
-// con Finish) y tmCommit (el cliente cierra cada enunciado con Commit; varias
-// respuestas en la misma sesion).
-// Voces propias (TAiQwenVoices): hay que crearlas para el modelo realtime
-// (CloneModel := 'qwen3-tts-vc-realtime-2026-01-15'); el componente elige ese
-// modelo por el prefijo del id.
+//   server: response.created, response.audio.delta (PCM base64),
+//            response.done (per utterance), session.finished, error
+// Modes: tmServerCommit (the server decides when to synthesize; pending output
+// is released with Finish) and tmCommit (the client closes each utterance with Commit;
+// multiple responses in the same session).
+// Custom voices (TAiQwenVoices): they must be created for the realtime model
+// (CloneModel := 'qwen3-tts-vc-realtime-2026-01-15'); the component selects that
+// model by the prefix of the id.
 //
-// Todos los eventos se despachan con TThread.Queue: en consola hay que drenar la
-// cola con CheckSynchronize.
+// All events are dispatched via TThread.Queue: in a console application you must drain
+// the queue with CheckSynchronize.
 //
-// Autor: Gustavo Enriquez
+// Author: Gustavo Enriquez
 // Email: gustavoeenriquez@gmail.com
 
 unit uMakerAi.Realtime.QwenTTS;
@@ -59,51 +59,51 @@ type
     procedure Notify(AEvent: TNotifyEvent);
     procedure DoError(const AMsg, ACode: string);
   protected
-    // Modelo efectivo (las voces propias exigen su modelo realtime)
+    // Effective model (custom voices require their realtime model)
     function EffectiveModel: string;
-    // session.update completo (protegido: la suite lo inspecciona)
+    // Full session.update (protected: the suite inspects it)
     function BuildSessionUpdate: TJSONObject;
-    // Procesa un evento JSON del servidor (protegido: la suite lo alimenta sin red)
+    // Processes a JSON event from the server (protected: the suite feeds it without network)
     procedure ProcessServerEvent(const JObj: TJSONObject);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Connect;
     procedure Disconnect;
-    // Agrega texto al buffer; puede llamarse muchas veces con fragmentos
+    // Adds text to the buffer; can be called many times with fragments
     procedure AppendText(const AText: string);
-    // tmCommit: sintetiza lo acumulado como un enunciado (OnResponseDone al terminar)
+    // tmCommit: synthesizes the accumulated text as an utterance (OnResponseDone when finished)
     procedure Commit;
-    // Atajo: AppendText + Commit (en tmServerCommit equivale a AppendText)
+    // Shortcut: AppendText + Commit (in tmServerCommit mode it is equivalent to AppendText)
     procedure Speak(const AText: string);
-    // Sintetiza lo pendiente y cierra la sesion en el servidor (OnFinished)
+    // Synthesizes pending text and closes the session on the server (OnFinished)
     procedure Finish;
     property IsConnected: Boolean read FConnected;
     property IsSessionReady: Boolean read FSessionReady;
   published
-    // '@VARIABLE' lee la key de esa variable de entorno
+    // '@VARIABLE' reads the key from that environment variable
     property ApiKey: string read FApiKey write FApiKey;
     property Url: string read FUrl write FUrl;
     // qwen3-tts-flash-realtime [default], qwen3-tts-instruct-flash-realtime,
     // qwen3-tts-vc-realtime-2026-01-15, qwen3-tts-vd-realtime-2026-01-15
     property Model: string read FModel write FModel;
-    // Voz: Cherry, Ethan... o el id de una voz propia creada para el modelo realtime
+    // Voice: Cherry, Ethan... or the ID of a custom voice created for the realtime model
     property Voice: string read FVoice write FVoice;
-    // Idioma ('es' o 'Spanish'); vacio = Auto
+    // Language ('es' or 'Spanish'); empty = Auto
     property Language: string read FLanguage write FLanguage;
-    // Estilo de lectura (solo modelos instruct), p.ej. 'Habla rapido y con entusiasmo'
+    // Reading style (only instruct models), e.g. 'Speak fast and enthusiastically'
     property Instructions: string read FInstructions write FInstructions;
     property Mode: TAiQwenTTSMode read FMode write FMode default tmServerCommit;
-    // Frecuencia del PCM de salida (default 24000)
+    // Output PCM frequency (default 24000)
     property SampleRate: Integer read FSampleRate write FSampleRate default 24000;
     property OnConnected: TNotifyEvent read FOnConnected write FOnConnected;
     property OnDisconnected: TNotifyEvent read FOnDisconnected write FOnDisconnected;
     property OnSessionReady: TNotifyEvent read FOnSessionReady write FOnSessionReady;
-    // PCM16 mono a SampleRate, a medida que se genera
+    // PCM16 mono at SampleRate, as it is generated
     property OnAudioChunk: TAiRealtimeAudioChunkEvent read FOnAudioChunk write FOnAudioChunk;
-    // Termino un enunciado
+    // Finished an utterance
     property OnResponseDone: TNotifyEvent read FOnResponseDone write FOnResponseDone;
-    // El servidor cerro la sesion tras Finish
+    // Server closed the session after Finish
     property OnFinished: TNotifyEvent read FOnFinished write FOnFinished;
     property OnError: TAiRealtimeErrorEvent read FOnError write FOnError;
   end;
@@ -267,7 +267,7 @@ begin
     Notify(FOnFinished)
   else if EventType = 'error' then
   begin
-    ErrMsg := 'Error desconocido';
+    ErrMsg := 'Unknown error';
     ErrCode := '';
     if JObj.TryGetValue<TJSONObject>('error', JError) then
     begin
@@ -325,7 +325,7 @@ begin
   LUrl := FUrl + '?model=' + EffectiveModel;
   FConnectThread := TThread.CreateAnonymousThread(procedure begin
     if not FWebSocket.Connect(LUrl) then
-      DoError('No se pudo conectar al TTS realtime de Qwen', 'connection_failed');
+      DoError('Could not connect to Qwen realtime TTS', 'connection_failed');
   end);
   FConnectThread.FreeOnTerminate := False;
   FConnectThread.Start;

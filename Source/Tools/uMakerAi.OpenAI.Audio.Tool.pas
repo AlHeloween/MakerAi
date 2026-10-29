@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
-// Redes Sociales:
+// Name: Gustavo Enriquez
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - Telegram: https://t.me/MakerAi_Delphi_Suite_English
@@ -30,15 +30,15 @@
 // - GitHub: https://github.com/gustavoeenriquez/
 
 // -------------------------------------------------------------------------
-// TAiOpenAiSpeechTool: Wrapper de TAiOpenAiAudio que implementa IAiSpeechTool
-// para ser usado como ChatTool en el orquestador de TAiChat (Run / SpeechTool).
+// TAiOpenAiSpeechTool: Wrapper of TAiOpenAiAudio that implements IAiSpeechTool
+// to be used as ChatTool in the TAiChat orchestrator (Run / SpeechTool).
 //
-// Uso:
+// Usage:
 //   AiChat.ChatTools.SpeechTool := TAiOpenAiSpeechTool.Create(Self);
 //   (TAiOpenAiSpeechTool(AiChat.SpeechTool)).ApiKey := '@OPENAI_API_KEY';
 //
-// ExecuteTranscription: convierte audio en texto (STT - Fase 1 del orquestador)
-// ExecuteSpeechGeneration: convierte texto en audio (TTS - Fase 3 del orquestador)
+// ExecuteTranscription: converts audio to text (STT - Phase 1 of the orchestrator)
+// ExecuteSpeechGeneration: converts text to audio (TTS - Phase 3 of the orchestrator)
 // -------------------------------------------------------------------------
 
 unit uMakerAi.OpenAI.Audio.Tool;
@@ -52,8 +52,8 @@ uses
 
 type
   { TAiOpenAiSpeechTool
-    Wrapper de TAiOpenAiAudio que implementa IAiSpeechTool.
-    Delega todas las llamadas a la API a un TAiOpenAiAudio interno. }
+    Wrapper of TAiOpenAiAudio that implements IAiSpeechTool.
+    Delegates all API calls to an internal TAiOpenAiAudio. }
   TAiOpenAiSpeechTool = class(TAiSpeechToolBase)
   private
     FAudio: TAiOpenAiAudio;
@@ -95,7 +95,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    { Acceso directo al componente interno para configuracion avanzada }
+    { Direct access to the internal component for advanced configuration }
     property Audio: TAiOpenAiAudio read FAudio;
   published
     property ApiKey: string read GetApiKey write SetApiKey;
@@ -149,7 +149,7 @@ begin
   Result := TTSFormatExtensions[FAudio.TTSResponseFormat];
 end;
 
-{ --- Propiedades delegadas --- }
+{ --- Delegated properties --- }
 
 function TAiOpenAiSpeechTool.GetApiKey: string;
 begin
@@ -271,7 +271,7 @@ begin
   FAudio.TranscriptionLogprobs := Value;
 end;
 
-{ --- Implementacion IAiSpeechTool --- }
+{ --- IAiSpeechTool implementation --- }
 
 procedure TAiOpenAiSpeechTool.ExecuteTranscription(aMediaFile: TAiMediaFile; ResMsg, AskMsg: TAiChatMessage);
 
@@ -281,7 +281,7 @@ procedure TAiOpenAiSpeechTool.ExecuteTranscription(aMediaFile: TAiMediaFile; Res
     LText: string;
   begin
     try
-      ReportState(acsReasoning, 'Transcribiendo audio...');
+      ReportState(acsReasoning, 'Transcribing audio...');
       LResult := FAudio.Transcribe(aMediaFile);
       try
         LText := LResult.Text;
@@ -294,7 +294,7 @@ procedure TAiOpenAiSpeechTool.ExecuteTranscription(aMediaFile: TAiMediaFile; Res
       ReportDataEnd(ResMsg, 'assistant', LText);
     except
       on E: Exception do
-        ReportError('Error en transcripcion OpenAI: ' + E.Message, E);
+        ReportError('Error in OpenAI transcription: ' + E.Message, E);
     end;
   end;
 
@@ -310,20 +310,20 @@ procedure TAiOpenAiSpeechTool.ExecuteSpeechGeneration(const AText: string; ResMs
     LNewFile: TAiMediaFile;
   begin
     try
-      ReportState(acsWriting, 'Generando voz...');
+      ReportState(acsWriting, 'Generating voice...');
       LStream := FAudio.Speech(AText);
       try
         LNewFile := TAiMediaFile.Create;
         LNewFile.LoadFromStream('speech.' + TTSFormatExtension, LStream);
         ResMsg.AddMediaFile(LNewFile);
-        ResMsg.Prompt := '[Audio generado]';
-        ReportDataEnd(ResMsg, 'assistant', '[Audio generado]');
+        ResMsg.Prompt := '[Audio generated]';
+        ReportDataEnd(ResMsg, 'assistant', '[Audio generated]');
       finally
         LStream.Free;
       end;
     except
       on E: Exception do
-        ReportError('Error generando voz OpenAI: ' + E.Message, E);
+        ReportError('Error generating voice OpenAI: ' + E.Message, E);
     end;
   end;
 

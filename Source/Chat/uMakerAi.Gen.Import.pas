@@ -38,12 +38,12 @@ uses
   uMakerAi.ErrorCodes;
 
 {$IFDEF MSWINDOWS}
-// En Windows el DLL acepta wchar_t* (Delphi PChar = PWideChar) — sin conversión.
+// On Windows the DLL accepts wchar_t* (Delphi PChar = PWideChar) — no conversion.
 type TNativeStr = PChar;
 {$DEFINE GEN_NATIVE_WCHAR}
 {$ELSE}
-// En POSIX (Linux, macOS, Android) los .so esperan const char* (UTF-8).
-// Usamos MarshaledAString y convertimos en los call sites.
+// On POSIX (Linux, macOS, Android) the .so expect const char* (UTF-8).
+// We use MarshaledAString and convert at the call sites.
 type TNativeStr = MarshaledAString;
 {$ENDIF}
 
@@ -119,7 +119,7 @@ type
     FReset:             procedure(Inst: Pointer); stdcall;
     FFree:              procedure(Inst: Pointer); stdcall;
     FIsGPUEnabled:      function(Inst: Pointer): LongBool; stdcall;
-    FGetLastError:      function: PAnsiChar; stdcall;  // siempre narrow (UTF-8)
+    FGetLastError:      function: PAnsiChar; stdcall;  // always narrow (UTF-8)
     FGetLastErrorCode:  function: Integer; stdcall;
     FValidate:          function(Path: TNativeStr): Integer; stdcall;
 
@@ -259,9 +259,9 @@ var
 begin
   FDLLPath := DLLPath;
 {$IFDEF MSWINDOWS}
-  // Agrega el directorio de makerai.gen.dll al search path so that Windows
-  // encuentre las dependencias (ggml-cuda.dll, cublas*.dll, etc.) aunque el
-  // .exe este en otro directorio.
+  // Add the directory of makerai.gen.dll to the search path so that Windows
+  // finds the dependencies (ggml-cuda.dll, cublas*.dll, etc.) even if the
+  // .exe is in another directory.
   LDir := ExtractFilePath(ExpandFileName(DLLPath));
   if LDir <> '' then
     SetDllDirectory(PChar(LDir));

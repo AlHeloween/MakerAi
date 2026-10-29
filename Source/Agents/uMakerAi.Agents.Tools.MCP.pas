@@ -3,7 +3,7 @@
 // MCP → IAiTool adapter: exposes each tool from an MCP server
 // as an interchangeable IAiTool within TAiToolRegistry.
 //
-// Author: Gustavo Enríquez
+// Author: Gustavo Enriquez
 // GitHub: https://github.com/gustavoeenriquez/MakerAi
 
 unit uMakerAi.Agents.Tools.MCP;
@@ -119,7 +119,7 @@ end;
 
 function TAiMCPTool.GetSchema: TJSONObject;
 begin
-  // NO liberar — propiedad de esta clase
+  // Do NOT free — owned by this class
   Result := FSchema;
 end;
 

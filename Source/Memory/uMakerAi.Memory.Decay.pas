@@ -28,17 +28,17 @@
 
 unit uMakerAi.Memory.Decay;
 
-// Motor de decay exponencial para TAiMemory.
+// Exponential decay engine for TAiMemory.
 //
-// Modelo inspirado en la curva de olvido de Ebbinghaus:
+// Model inspired by Ebbinghaus forgetting curve:
 //   decay = exp(-base_rate * importance_factor * access_factor * hours_elapsed)
 //
-// Factores:
-//   importance_factor  = 1.0 / importance      → importance 10 = decay lento, 1 = rápido
-//   access_factor      = 1.0 / log1p(accesses) → más accesos = decay más lento
-//   hours_elapsed      = horas desde último acceso
+// Factors:
+//   importance_factor  = 1.0 / importance      -> importance 10 = slow decay, 1 = fast
+//   access_factor      = 1.0 / log1p(accesses) -> more accesses = slower decay
+//   hours_elapsed      = hours since last access
 //
-// Resultado: Double en [0.0, 1.0] donde 1.0 = fresco, 0.0 = completamente decaído
+// Result: Double in [0.0, 1.0] where 1.0 = fresh, 0.0 = completely decayed
 
 interface
 
@@ -48,16 +48,16 @@ uses
 type
   TAiMemoryDecay = class
   private
-    const BASE_RATE = 0.005; // tasa base — 0.005 ≈ mitad de vida ~200h para imp=5
+    const BASE_RATE = 0.005; // base rate - 0.005 ≈ half-life ~200h for imp=5
   public
-    // Calcula el decay score en base a importancia, accesos y tiempo
+    // Calculates the decay score based on importance, accesses and time
     class function Compute(
       AImportance:  Integer;
       AAccessCount: Integer;
       ALastAccess:  TDateTime
     ): Double;
 
-    // Devuelve True si el entry debe considerarse "activo" (decay > threshold)
+    // Returns True if the entry should be considered "active" (decay > threshold)
     class function IsAlive(
       AImportance:  Integer;
       AAccessCount: Integer;
@@ -79,17 +79,17 @@ var
   AccessFactor:     Double;
   EffectiveRate:    Double;
 begin
-  // Importance garantizado en rango 1–10
+  // Importance guaranteed in range 1-10
   AImportance  := Max(1, Min(10, AImportance));
   AAccessCount := Max(0, AAccessCount);
 
   HoursElapsed := Max(0.0, HourSpan(Now, ALastAccess));
 
-  // importance 10 → factor 0.1 (decay muy lento)
-  // importance  1 → factor 1.0 (decay máximo)
+  // importance 10 -> factor 0.1 (very slow decay)
+  // importance  1 -> factor 1.0 (maximum decay)
   ImportanceFactor := 1.0 / AImportance;
 
-  // Más accesos → denominador mayor → decay más lento (log1p = Ln(1+x) en Delphi)
+  // More accesses -> larger denominator -> slower decay (log1p = Ln(1+x) in Delphi)
   AccessFactor := 1.0 / (1.0 + Ln(1.0 + AAccessCount));
 
   EffectiveRate := BASE_RATE * ImportanceFactor * AccessFactor;

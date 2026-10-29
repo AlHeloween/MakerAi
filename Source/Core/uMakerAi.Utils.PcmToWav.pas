@@ -1,68 +1,4 @@
-﻿// MIT License
-//
-// Copyright (c) <year> <copyright holders>
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
-// Nombre: Gustavo Enr�quez
-// Social Networks:
-// - Email: gustavoeenriquez@gmail.com
-
-// - Telegram: https://t.me/MakerAi_Suite_Delphi
-// - Telegram: https://t.me/MakerAi_Delphi_Suite_English
-
-// - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
-// - Youtube: https://www.youtube.com/@cimamaker3945
-// - GitHub: https://github.com/gustavoeenriquez/
-
-
-
-// Ejemplo de uso:
-{
-  uses AudioConverter;
-
-  procedure TForm1.Button1Click(Sender: TObject);
-  begin
-  try
-  // Convertir archivo PCM mono de 24kHz y 16 bits
-  if ConvertPCMToWAV('c:\temp\imagen.pcm', 'c:\temp\imagen.wav', 24000, 1, 16) then
-  ShowMessage('Conversion successful')
-  else
-  ShowMessage('Conversion error');
-  except
-  on E: Exception do
-  ShowMessage('Error: ' + E.Message);
-  end;
-  end;
-
-  // Otros ejemplos:
-  // Est�reo 44.1kHz, 16 bits (valores By default)
-  // ConvertPCMToWAV('audio.pcm', 'audio.wav');
-
-  // Mono 8kHz, 16 bits (calidad telef�nica)
-  // ConvertPCMToWAV('voice.pcm', 'voice.wav', 8000, 1, 16);
-
-  // Est�reo 48kHz, 16 bits (calidad CD+)
-  // ConvertPCMToWAV('music.pcm', 'music.wav', 48000, 2, 16);
-}
-
-unit uMakerAi.Utils.PcmToWav;
+﻿unit uMakerAi.Utils.PcmToWav;
 
 interface
 
@@ -70,33 +6,33 @@ uses
   System.SysUtils, System.Classes;
 
 type
-  // Estructura del header WAV
+  // WAV header structure
   TWAVHeader = packed record
-    // Chunk RIFF
+    // RIFF chunk
     ChunkID: array [0 .. 3] of AnsiChar; // "RIFF"
     ChunkSize: Cardinal; // File size - 8 bytes
     Format: array [0 .. 3] of AnsiChar; // "WAVE"
 
-    // Subchunk fmt
+    // fmt subchunk
     Subchunk1ID: array [0 .. 3] of AnsiChar; // "fmt "
-    Subchunk1Size: Cardinal; // 16 para PCM
-    AudioFormat: Word; // 1 para PCM
+    Subchunk1Size: Cardinal; // 16 for PCM
+    AudioFormat: Word; // 1 for PCM
     NumChannels: Word; // Number of channels
-    SampleRate: Cardinal; // Frecuencia de muestreo
+    SampleRate: Cardinal; // Sample rate
     ByteRate: Cardinal; // SampleRate * NumChannels * BitsPerSample/8
     BlockAlign: Word; // NumChannels * BitsPerSample/8
-    BitsPerSample: Word; // Bits por muestra
+    BitsPerSample: Word; // Bits per sample
 
-    // Subchunk data
+    // data subchunk
     Subchunk2ID: array [0 .. 3] of AnsiChar; // "data"
     Subchunk2Size: Cardinal; // PCM data size
   end;
 
-  // Funci�n principal para convertir PCM a WAV
+  // Main function to convert PCM to WAV
 function ConvertPCMToWAV(const PCMFilePath, WAVFilePath: string; SampleRate: Cardinal = 44100; Channels: Word = 2;
   BitsPerSample: Word = 16): Boolean;
 
-// Funci�n para convertir PCM a WAV desde TMemoryStream
+// Function to convert PCM to WAV from TMemoryStream
 function ConvertPCMStreamToWAVStream(const PCMStream: TMemoryStream; out WAVStream: TMemoryStream; SampleRate: Cardinal = 44100;
   Channels: Word = 2; BitsPerSample: Word = 16): Boolean;
 
@@ -113,30 +49,30 @@ begin
   //Result := False;
 
   try
-    // Verificar que el archivo PCM existe
+    // Verify that the PCM file exists
     if not FileExists(PCMFilePath) then
     begin
-      raise Exception.Create('El archivo PCM no existe: ' + PCMFilePath);
+      raise Exception.Create('The PCM file does not exist: ' + PCMFilePath);
     end;
 
-    // Abrir archivo PCM
+    // Open PCM file
     PCMFile := TFileStream.Create(PCMFilePath, fmOpenRead);
     try
-      // Obtener tama�o del archivo PCM
+      // Get PCM file size
       PCMSize := PCMFile.Size;
 
-      // Crear archivo WAV
+      // Create WAV file
       WAVFile := TFileStream.Create(WAVFilePath, fmCreate);
       try
-        // Configurar header WAV
+        // Configure WAV header
         FillChar(Header, SizeOf(Header), 0);
 
-        // Chunk RIFF
+        // RIFF chunk
         Header.ChunkID := 'RIFF';
         Header.ChunkSize := 36 + PCMSize;
         Header.Format := 'WAVE';
 
-        // Subchunk fmt
+        // fmt subchunk
         Header.Subchunk1ID := 'fmt ';
         Header.Subchunk1Size := 16;
         Header.AudioFormat := 1; // PCM
@@ -146,14 +82,14 @@ begin
         Header.BlockAlign := Channels * (BitsPerSample div 8);
         Header.BitsPerSample := BitsPerSample;
 
-        // Subchunk data
+        // data subchunk
         Header.Subchunk2ID := 'data';
         Header.Subchunk2Size := PCMSize;
 
-        // Escribir header WAV
+        // Write WAV header
         WAVFile.WriteBuffer(Header, SizeOf(Header));
 
-        // Copiar datos PCM al archivo WAV
+        // Copy PCM data to WAV file
         PCMFile.Position := 0;
         while PCMFile.Position < PCMFile.Size do
         begin
@@ -175,7 +111,7 @@ begin
   except
     on E: Exception do
     begin
-      // Si hay error y el archivo WAV se cre� parcialmente, eliminarlo
+      // If there is an error and the WAV file was partially created, delete it
       if FileExists(WAVFilePath) then
         DeleteFile(WAVFilePath);
       raise;
@@ -183,7 +119,7 @@ begin
   end;
 end;
 
-// Funci�n para convertir PCM a WAV desde TMemoryStream
+// Function to convert PCM to WAV from TMemoryStream
 function ConvertPCMStreamToWAVStream(const PCMStream: TMemoryStream; out WAVStream: TMemoryStream; SampleRate: Cardinal = 44100;
   Channels: Word = 2; BitsPerSample: Word = 16): Boolean;
 var
@@ -193,24 +129,24 @@ var
   BytesRead: Integer;
 begin
   //Result := False;
-  WAVStream := nil; // Inicializar WAVStream
+  WAVStream := nil; // Initialize WAVStream
 
   try
-    // Crear el stream de salida WAV
+    // Create the output WAV stream
     WAVStream := TMemoryStream.Create;
     try
-      // Obtener el tama�o del stream PCM
+      // Get the PCM stream size
       PCMSize := PCMStream.Size;
 
-      // Configurar el header WAV
+      // Configure the WAV header
       FillChar(Header, SizeOf(Header), 0);
 
-      // Chunk RIFF
+      // RIFF chunk
       Header.ChunkID := 'RIFF';
       Header.ChunkSize := 36 + PCMSize;
       Header.Format := 'WAVE';
 
-      // Subchunk fmt
+      // fmt subchunk
       Header.Subchunk1ID := 'fmt ';
       Header.Subchunk1Size := 16;
       Header.AudioFormat := 1; // PCM
@@ -220,14 +156,14 @@ begin
       Header.BlockAlign := Channels * (BitsPerSample div 8);
       Header.BitsPerSample := BitsPerSample;
 
-      // Subchunk data
+      // data subchunk
       Header.Subchunk2ID := 'data';
       Header.Subchunk2Size := PCMSize;
 
-      // Escribir el header WAV en el stream de salida
+      // Write the WAV header to the output stream
       WAVStream.WriteBuffer(Header, SizeOf(Header));
 
-      // Copiar los datos PCM al stream WAV
+      // Copy the PCM data to the WAV stream
       PCMStream.Position := 0;
       while PCMStream.Position < PCMStream.Size do
       begin
@@ -236,7 +172,7 @@ begin
           WAVStream.WriteBuffer(Buffer, BytesRead);
       end;
 
-      // Resetear la posici�n del stream WAV a 0 para su posterior lectura
+      // Reset the WAV stream position to 0 for subsequent reading
       WAVStream.Position := 0;
 
       Result := True;
@@ -244,7 +180,7 @@ begin
     except
       on E: Exception do
       begin
-        // Si hay un error, liberar el stream WAV y propagar la excepci�n
+        // If there is an error, free the WAV stream and propagate the exception
         WAVStream.Free;
         WAVStream := nil;
         raise;
@@ -263,5 +199,3 @@ begin
 end;
 
 end.
-
-

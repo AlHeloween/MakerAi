@@ -1,7 +1,7 @@
-﻿// MakerAI Suite — shim de compatibilidad Realtime.WebSocket
-// Redirige los tipos legacy al nuevo TAiWSClient (Source/WebSocket/)
+﻿// MakerAI Suite — Realtime.WebSocket compatibility shim
+// Redirects legacy types to new TAiWSClient (Source/WebSocket/)
 //
-// La implementación real está en:
+// The actual implementation is in:
 //   uMakerAi.WebSocket.Client   — TAiWSClient, ITlsTransport, TAiWSReaderThread
 //   uMakerAi.WebSocket.SChannel — TSChannelTransport (Windows, secur32.dll)
 //   uMakerAi.WebSocket.OpenSSL  — TOpenSSLTransport  (POSIX, libssl dlopen)
@@ -14,7 +14,7 @@ uses
   uMakerAi.WebSocket.Client;
 
 const
-  WS_DIAG_LOG = '';  // activar con 'C:\Temp\wsclient_diag.txt' para debug
+  WS_DIAG_LOG = '';  // activate with 'C:\Temp\wsclient_diag.txt' for debug
 
 type
   TAiRealtimeWSOpcode       = TAiWSOpcode;

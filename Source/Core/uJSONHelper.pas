@@ -1,37 +1,4 @@
-﻿// MIT License
-//
-// Copyright (c) <year> <copyright holders>
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
-// Nombre: Gustavo Enr�quez
-// Social Networks:
-// - Email: gustavoeenriquez@gmail.com
-
-// - Telegram: https://t.me/MakerAi_Suite_Delphi
-// - Telegram: https://t.me/MakerAi_Delphi_Suite_English
-
-// - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
-// - Youtube: https://www.youtube.com/@cimamaker3945
-// - GitHub: https://github.com/gustavoeenriquez/
-
-unit uJSONHelper;
+﻿unit uJSONHelper;
 
 interface
 
@@ -41,8 +8,8 @@ uses
 type
   TJSONObjectHelper = class helper for TJSONObject
   public
-    // Solo definimos los AddPair para versiones anteriores a Delphi 11 (35.0)
-    // En Delphi 11, 12 y 13 ya existen de forma nativa.
+    // We only define AddPair for versions prior to Delphi 11 (35.0)
+    // In Delphi 11, 12 and 13 they already exist natively.
     {$IF CompilerVersion < 35.0}
     function AddPair(const AKey: string; const AValue: Integer): TJSONObject; overload;
     function AddPair(const AKey: string; const AValue: Int64): TJSONObject; overload;
@@ -52,7 +19,7 @@ type
     function AddPair(const AKey: string; const AValue: string): TJSONObject; overload;
     {$IFEND}
 
-    // M�todos de navegaci�n segura (estos do not exist nativamente en ninguna versi�n con esta firma)
+    // Safe navigation methods (these do not exist natively in any version with this signature)
     function GetValueSafe(const Name: string): TJSONValue;
     function GetValueAsString(const Name: string; const DefaultValue: string = ''): string;
     function GetValueAsInteger(const Name: string; const DefaultValue: Integer = 0): Integer;
@@ -116,8 +83,8 @@ end;
 
 function TJSONObjectHelper.GetValueSafe(const Name: string): TJSONValue;
 begin
-  // En 10.3 GetValue retorna nil si does not exist.
-  // En versiones nuevas es igual, pero este helper asegura consistencia.
+  // In 10.3 GetValue returns nil if it does not exist.
+  // In newer versions it's the same, but this helper ensures consistency.
   Result := Self.GetValue(Name);
 end;
 
@@ -172,8 +139,8 @@ begin
   LValue := GetValueSafe(Name);
   if Assigned(LValue) then
   begin
-    // En todas las versiones de Delphi, .Value devuelve 'true' o 'false' para tipos booleanos.
-    // Usamos SameText para una comparaci�n segura que no dependa de tipos nativos.
+    // In all Delphi versions, .Value returns 'true' or 'false' for boolean types.
+    // We use SameText for a case-insensitive comparison that doesn't depend on native types.
     Result := SameText(LValue.Value, 'true');
   end
   else

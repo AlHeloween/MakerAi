@@ -1,52 +1,42 @@
-﻿// MIT License
-//
-// MakerAI - Jev: clasificador de riesgo de tool calls para TAiGuardrails
-//
-// Nombre: Gustavo Enriquez
-// - Email: gustavoeenriquez@gmail.com
-// - Telegram: https://t.me/MakerAi_Suite_Delphi
-// - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
-// - Youtube: https://www.youtube.com/@cimamaker3945
-// - GitHub: https://github.com/gustavoeenriquez/
-
-unit uMakerAi.Jev.Guardrails;
+﻿unit uMakerAi.Jev.Guardrails;
 
 // -----------------------------------------------------------------------------
-// TAiJevGuardrailClassifier: se asigna a TAiGuardrails.Classifier y juzga con
-// Jev cada tool call que las listas (AllowedTools, BlockedTools,
-// BlockedArgPatterns) dejaron pasar. Complementa las listas: estas atrapan lo
-// que se puede enumerar ('rm -rf', 'DROP TABLE'); Jev atrapa lo que no, como un
-// correo a un externo con una clave en el cuerpo o una transferencia a una
-// cuenta desconocida.
+// TAiJevGuardrailClassifier: assigned to TAiGuardrails.Classifier, it judges
+// with Jev every tool call that the lists (AllowedTools, BlockedTools,
+// BlockedArgPatterns) let through. Complements the lists: these catch what can
+// be enumerated ('rm -rf', 'DROP TABLE'); Jev catches what cannot, such as an
+// email to an external party with a password in the body or a transfer to an
+// unknown account.
 //
-//   Guardrails.Classifier := JevGuard;   // este componente
+//   Guardrails.Classifier := JevGuard;   // this component
 //
-// Dos juicios en UNA llamada sobre {tool, description?, arguments}:
+// Two judgments in ONE call on {tool, description?, arguments}:
 //
-//   1. Riesgo (Noul, siempre): si P(riesgo) >= BlockThreshold, bloquea. Policy
-//      es la pregunta y define que cuenta como riesgo: ajustarla al dominio.
-//      Vacia: sin Categories se usa DEFAULT_POLICY (estricta: cualquier pago
-//      o borrado cuenta como riesgo); con Categories, ABUSE_POLICY (solo lo
-//      abusivo), porque el control por tipo de operacion ya lo hacen las
-//      categorias. Con DEFAULT_POLICY un pay_invoice normal daba 0.88.
-//   2. Categoria de permiso (Choice, opcional): si Categories no esta vacio,
-//      clasifica la llamada ('read', 'write', 'financial', ...) y bloquea si la
-//      probabilidad de alguna de BlockedCategories alcanza CategoryThreshold
-//      (aunque no sea la mas probable: ante la duda entre 'write' y
-//      'financial', manda la politica de 'financial'). OnCategorized permite
-//      auditar cada llamada y cambiar la decision.
+//   1. Risk (Noul, always): if P(risk) >= BlockThreshold, block. Policy
+//      is the question and defines what counts as risk: adjust it to the domain.
+//      Empty: without Categories, DEFAULT_POLICY is used (strict: any payment
+//      or deletion counts as risk); with Categories, ABUSE_POLICY (only the
+//      abusive), because the control by operation type is already done by the
+//      categories. With DEFAULT_POLICY a normal pay_invoice gave 0.88.
+//   2. Permission category (Choice, optional): if Categories is not empty,
+//      classify the call ('read', 'write', 'financial', ...) and block if the
+//      probability of any BlockedCategories reaches CategoryThreshold
+//      (even if not the most probable: when in doubt between 'write' and
+//      'financial', the policy of 'financial' prevails). OnCategorized allows
+//      auditing each call and changing the decision.
 //
-// ToolDescriptions ('nombre=descripcion') agrega al state una descripcion de
-// la tool. Hace falta con nombres de dominio que Jev lee al pie de la letra:
-// 'anular_comprobante' salia 'read' (0.83); con "genera el comprobante de
-// reversion" sale 'write' (0.95).
+// ToolDescriptions ('name=description') adds a description of the tool to the
+// state. It is needed with domain names that Jev reads literally:
+// 'anular_comprobante' came out as 'read' (0.83); with "generates the reversal
+// receipt" it comes out as 'write' (0.95).
 //
-// Si Jev no responde (red, 401, ...): BlockOnError = True (defecto) bloquea;
-// False deja pasar. El motivo del bloqueo queda en AReason y en OnBlocked.
+// If Jev does not respond (network, 401, ...): BlockOnError = True (default)
+// blocks; False lets it through. The block reason remains in AReason and in
+// OnBlocked.
 //
-// Calibrado contra jev-1.13.0 (sep 27/2026). Riesgo, 13 tool calls: seguros
-// <= 0.17, peligrosos >= 0.88. Categorias, 20 tool calls en 6 categorias:
-// 19/20 sin descripciones, 20/20 con la descripcion de anular_comprobante.
+// Calibrated against jev-1.13.0 (sep 27/2026). Risk, 13 tool calls: safe
+// <= 0.17, dangerous >= 0.88. Categories, 20 tool calls in 6 categories:
+// 19/20 without descriptions, 20/20 with the description of anular_comprobante.
 // -----------------------------------------------------------------------------
 
 interface
@@ -56,8 +46,8 @@ uses
   uMakerAi.Guardrails, uMakerAi.Jev;
 
 type
-  // Auditoria de la categoria; AAllow/AReason llegan con la decision tomada
-  // (riesgo y categorias bloqueadas) y el handler puede cambiarla.
+  // Category audit; AAllow/AReason arrive with the decision already made
+  // (risk and blocked categories) and the handler can change them.
   TAiJevToolCategorizedEvent = procedure(Sender: TObject; const AToolName, AArguments,
     ACategory: string; AConfidence: Double; var AAllow: Boolean; var AReason: string) of object;
 
@@ -96,8 +86,8 @@ type
       'Could executing the tool `tool` with the arguments `arguments` cause harm: deleting or ' +
       'overwriting data, exposing credentials or private information, moving money, or running ' +
       'destructive system commands?';
-    // Calibrada sobre 19 tool calls (13 de riesgo + 6 operaciones legitimas de
-    // negocio): peligrosos >= 0.64, legitimos <= 0.35, 0 errores
+    // Calibrated on 19 tool calls (13 risk + 6 legitimate business
+    // operations): dangerous >= 0.64, legitimate <= 0.35, 0 errors
     ABUSE_POLICY =
       'Does calling the tool `tool` with the arguments `arguments` look abusive or malicious rather ' +
       'than a normal business operation: destroying data in bulk, leaking credentials or private ' +
@@ -106,43 +96,43 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    // Consumo de Jev acumulado desde Create o ResetUsage (seguro entre hilos)
+    // Jev consumption accumulated since Create or ResetUsage (thread-safe)
     property Usage: TAiJevUsage read GetUsage;
     procedure ResetUsage;
     function CheckToolCall(const AToolName, AArguments: string; out AReason: string): Boolean; override;
-    // Probabilidad de riesgo del ultimo tool call evaluado (-1 si Jev fallo)
+    // Risk probability of the last evaluated tool call (-1 if Jev failed)
     property LastRisk: Double read FLastRisk;
-    // Categoria y confianza del ultimo tool call ('' si no hay Categories o Jev fallo)
+    // Category and confidence of the last tool call ('' if no Categories or Jev failed)
     property LastCategory: string read FLastCategory;
     property LastCategoryConfidence: Double read FLastCategoryConfidence;
   published
-    // Opcional: TAiJev externo (compartido o doble de pruebas); si se asigna,
-    // ApiKey y Model de este componente se ignoran
+    // Optional: external TAiJev (shared or test double); if assigned,
+    // ApiKey and Model of this component are ignored
     property Jev: TAiJev read FJev write SetJev;
     property ApiKey: string read FApiKey write FApiKey;
     property Model: string read FModel write FModel;
-    // Servidor System One: '' = TypeSafe; 'http://localhost:11434/v1/' = Ollama
-    // (con Model := 'nimble', 'clef-flash'...). Ignorada si Jev esta asignado
+    // System One server: '' = TypeSafe; 'http://localhost:11434/v1/' = Ollama
+    // (with Model := 'nimble', 'clef-flash'...). Ignored if Jev is assigned
     property Url: string read FUrl write FUrl;
-    // Pregunta si/no sobre `tool` y `arguments`; vacio = DEFAULT_POLICY, o
-    // ABUSE_POLICY si hay Categories
+    // Yes/no question about `tool` and `arguments`; empty = DEFAULT_POLICY, or
+    // ABUSE_POLICY if Categories exist
     property Policy: string read FPolicy write FPolicy;
     property BlockThreshold: Double read FBlockThreshold write FBlockThreshold;
     property BlockOnError: Boolean read FBlockOnError write FBlockOnError default True;
-    // Categorias de permiso, una por linea 'clave=descripcion'. Vacio = no se categoriza
+    // Permission categories, one per line 'key=description'. Empty = no categorization
     property Categories: TStrings read FCategories write SetCategories;
-    // Claves de Categories que se bloquean siempre
+    // Keys from Categories that are always blocked
     property BlockedCategories: TStrings read FBlockedCategories write SetBlockedCategories;
     property CategoryThreshold: Double read FCategoryThreshold write FCategoryThreshold;
-    // Opcional: 'nombre_tool=descripcion' para tools cuyo nombre no basta
+    // Optional: 'tool_name=description' for tools whose name is not enough
     property ToolDescriptions: TStrings read FToolDescriptions write SetToolDescriptions;
     property OnCategorized: TAiJevToolCategorizedEvent read FOnCategorized write FOnCategorized;
-    // Precios para CostUSD de Usage/OnUsage (US$ por millon de tokens; hoy la
-    // salida no se cobra)
+    // Prices for CostUSD in Usage/OnUsage (US$ per million tokens; today
+    // output is not charged)
     property PricePerMillionInput: Double read FPricePerMillionInput write FPricePerMillionInput;
     property PricePerMillionOutput: Double read FPricePerMillionOutput write FPricePerMillionOutput;
-    // Una vez por operacion con el consumo de esa operacion. Sincrono, en el hilo
-    // que la ejecuto (en un servidor: el de la peticion, para cobrarle al cliente)
+    // Once per operation with the consumption of that operation. Synchronous, in the thread
+    // that executed it (on a server: the request thread, to charge the client)
     property OnUsage: TAiJevUsageEvent read FOnUsage write FOnUsage;
   end;
 
@@ -281,7 +271,7 @@ begin
         Desc := Trim(FToolDescriptions.Values[AToolName]);
         if Desc <> '' then
           State.AddPair('description', Desc);
-        // Los argumentos van como texto JSON crudo, igual que los recibe el guardrail
+        // The arguments go as raw JSON text, just as the guardrail receives them
         State.AddPair('arguments', AArguments);
         R := ActiveJev.Ask(State, Q);
       finally
@@ -294,7 +284,7 @@ begin
         begin
           FLastCategory := R['category'].Choice;
           FLastCategoryConfidence := R['category'].Confidence;
-          // La categoria bloqueada mas probable, aunque no sea la eleccion
+          // The most probable blocked category, even if not the choice
           for i := 0 to FBlockedCategories.Count - 1 do
           begin
             Key := Trim(FBlockedCategories[i]);

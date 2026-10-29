@@ -1,40 +1,40 @@
 ﻿unit uMakerAi.Tools.ComputerUse.Linux;
 
 // =============================================================================
-//  Executor de Computer Use para Linux (X11).
+//  Computer Use Executor for Linux (X11).
 //
-//  - Input (raton / teclado / scroll) delegado en xdotool.
-//  - Captura de pantalla delegada en scrot.
+//  - Input (mouse / keyboard / scroll) delegated to xdotool.
+//  - Screenshot capture delegated to scrot.
 //
-//  Por que por shell y no con libX11/XTest directamente: el ejecutor son dos
-//  handlers (OnExecuteAction / OnRequestScreenshot), asi que cambiar de motor
-//  despues no toca nada mas del framework. Esta version arranca funcionando con
-//  dos paquetes de apt; una variante sobre libX11+XTest por dlopen (sin
-//  binarios externos, patron de TOpenSSLTransport) puede sustituirla sin que
-//  la aplicacion se entere.
+//  Why via shell and not with libX11/XTest directly: the executor consists of two
+//  handlers (OnExecuteAction / OnRequestScreenshot), so changing the engine
+//  later does not affect anything else in the framework. This version starts working with
+//  two apt packages; a variant using libX11+XTest via dlopen (without
+//  external binaries, pattern of TOpenSSLTransport) can replace it without the
+//  application noticing.
 //
-//  DEPENDENCIAS EN LA MAQUINA DESTINO:
+//  DEPENDENCIES ON THE TARGET MACHINE:
 //    sudo apt-get install -y xdotool scrot
-//    # y, si no hay pantalla fisica (VPS headless):
+//    # and, if there is no physical screen (VPS headless):
 //    sudo apt-get install -y xvfb
 //    Xvfb :99 -screen 0 1280x800x24 &
 //    export DISPLAY=:99
 //
-//  DISPLAY: por defecto se hereda del proceso. Si la aplicacion corre como
-//  servicio y no lo tiene en el entorno, asignar TAiLinuxExecutor.Display.
+//  DISPLAY: by default it is inherited from the process. If the application runs as
+//  a service and does not have it in the environment, set TAiLinuxExecutor.Display.
 //
-//  LIMITACIONES CONOCIDAS:
-//   * Solo X11. Bajo Wayland nativo xdotool no controla las ventanas; hace
-//     falta XWayland (y aun asi solo alcanza a los clientes X).
-//   * catNavigate usa xdg-open, asi que necesita un navegador instalado y un
-//     manejador registrado. En un Xvfb pelado no hay ninguno.
-//   * Sin window manager (el caso tipico de Xvfb) no hay foco por clic en el
-//     marco ni activacion de ventanas: las apps reciben el foco por puntero.
-//     Si hace falta comportamiento de escritorio, levantar un WM ligero.
+//  KNOWN LIMITATIONS:
+//   * X11 only. Under native Wayland, xdotool does not control windows;
+//     XWayland is needed (and even then it only reaches X clients).
+//   * catNavigate uses xdg-open, so it needs a browser installed and a
+//     registered handler. On a bare Xvfb there is none.
+//   * Without a window manager (typical case of Xvfb) there is no focus by clicking on the
+//     frame nor window activation: apps receive focus by pointer.
+//     If desktop behavior is needed, start a lightweight WM.
 //
-//  La interfaz publica (Execute / CaptureScreen) es identica a la de los
-//  executors de Windows y macOS, para que el handler sea intercambiable por
-//  plataforma sin tocar la aplicacion.
+//  The public interface (Execute / CaptureScreen) is identical to that of the
+//  Windows and macOS executors, so the handler is interchangeable per
+//  platform without touching the application.
 // =============================================================================
 
 interface
@@ -50,30 +50,30 @@ type
   TAiLinuxExecutor = class
   private
     class var FDisplay: string;
-    // Ejecuta un comando y devuelve el codigo de salida.
+    // Executes a command and returns the exit code.
     class function Sh(const ACmd: string): Integer;
-    // Ejecuta un comando y devuelve su salida estandar.
+    // Executes a command and returns its standard output.
     class function ShOut(const ACmd: string): string;
-    // Envuelve el comando con DISPLAY=... si se fijo explicitamente.
+    // Wraps the command with DISPLAY=... if explicitly set.
     class function WithDisplay(const ACmd: string): string;
-    // Escapa un argumento para el shell (comillas simples).
+    // Escapes an argument for the shell (single quotes).
     class function Q(const S: string): string;
-    // Traduce un nombre de tecla al keysym que entiende xdotool.
+    // Translates a key name to the keysym understood by xdotool.
     class function MapKey(const AName: string): string;
-    // 'CTRL+A' -> 'ctrl+a'; tambien vale para una sola tecla.
+    // 'CTRL+A' -> 'ctrl+a'; also works for a single key.
     class function MapCombo(const ACombo: string): string;
-    // Botones de rueda de X11: 4 arriba, 5 abajo, 6 izquierda, 7 derecha.
+    // X11 scroll buttons: 4 up, 5 down, 6 left, 7 right.
     class function ScrollButton(const ADirection: string): Integer;
   public
-    // Si se deja vacio, se usa el DISPLAY del entorno del proceso.
+    // If left empty, the DISPLAY from the process environment is used.
     class property Display: string read FDisplay write FDisplay;
 
     class function Execute(const Action: TAiActionData): TAiActionResult;
     class procedure CaptureScreen(var MediaFile: TAiMediaFile; TargetArea: TRect;
       Quality: Integer = 70);
 
-    // True si xdotool y scrot estan disponibles. Conviene llamarlo al arrancar
-    // para dar un mensaje claro en vez de fallar accion por accion.
+    // True if xdotool and scrot are available. It is advisable to call it at startup
+    // to give a clear message instead of failing action by action.
     class function ToolsAvailable(out AMissing: string): Boolean;
   end;
 
@@ -123,8 +123,8 @@ end;
 
 class function TAiLinuxExecutor.Q(const S: string): string;
 begin
-  // Comillas simples: dentro no se interpreta nada. Una comilla simple del
-  // texto se cierra, se escapa y se reabre ('\'' es el idioma habitual).
+  // Single quotes: nothing is interpreted inside. A single quote in the text is
+  // closed, escaped and reopened ('\'' is the usual idiom).
   Result := '''' + StringReplace(S, '''', '''\''''', [rfReplaceAll]) + '''';
 end;
 
@@ -189,7 +189,7 @@ begin
   if LD = 'up' then Result := 4
   else if LD = 'left' then Result := 6
   else if LD = 'right' then Result := 7
-  else Result := 5; // down por defecto
+  else Result := 5; // down by default
 end;
 
 class function TAiLinuxExecutor.ToolsAvailable(out AMissing: string): Boolean;
@@ -200,7 +200,7 @@ begin
   if Sh('command -v scrot >/dev/null 2>&1') <> 0 then
   begin
     if AMissing <> '' then
-      AMissing := AMissing + ' y ';
+      AMissing := AMissing + ' and ';
     AMissing := AMissing + 'scrot';
   end;
   Result := AMissing = '';
@@ -217,8 +217,8 @@ begin
   Result.CustomOutput := '';
 
   try
-    // Modificadores (click / scroll con shift, ctrl...): se mantienen pulsados
-    // alrededor de la accion, igual que en el executor de Windows.
+    // Modifiers (click / scroll with shift, ctrl...): they are held pressed
+    // around the action, same as in the Windows executor.
     LMods := '';
     if Trim(Action.Modifiers) <> '' then
     begin
@@ -262,10 +262,10 @@ begin
 
         catType:
           begin
-            // Pre-click SOLO si viene posicion (Gemini 'type_text_at' la trae;
-            // el 'type' de Claude no, y clicar en (0,0) quitaria el foco).
-            // Identico al executor de Windows, ClearBeforeTyping incluido: alli
-            // tampoco se aplica, para no divergir entre plataformas.
+            // Pre-click ONLY if position is given (Gemini 'type_text_at' brings it;
+            // Claude's 'type' does not, and clicking at (0,0) would remove focus).
+            // Identical to the Windows executor, including ClearBeforeTyping: there
+            // it is also not applied, to avoid divergence between platforms.
             if (Action.X <> 0) or (Action.Y <> 0) then
             begin
               Sh(WithDisplay(Format('xdotool mousemove %d %d click 1',
@@ -290,7 +290,7 @@ begin
             if LKey = '' then
             begin
               Result.Success := False;
-              Result.ErrorMessage := 'key_combination sin teclas';
+              Result.ErrorMessage := 'key_combination without keys';
             end
             else
               Result.Success := Sh(WithDisplay('xdotool key ' + Q(LKey))) = 0;
@@ -302,7 +302,7 @@ begin
             if LKey = '' then
             begin
               Result.Success := False;
-              Result.ErrorMessage := 'hold_key sin teclas';
+              Result.ErrorMessage := 'hold_key without keys';
             end
             else
             begin
@@ -315,8 +315,8 @@ begin
         catScroll:
           begin
             LBtn := ScrollButton(Action.ScrollDirection);
-            // ScrollAmount viene en pixeles (default 800). X11 solo sabe de
-            // "clics" de rueda, asi que se aproxima ~100 px por clic.
+            // ScrollAmount comes in pixels (default 800). X11 only knows about
+            // wheel "clicks", so it is approximated at ~100 px per click.
             LClicks := EnsureRange(Round(Max(1, Action.ScrollAmount) / 100), 1, 15);
             if (Action.X <> 0) or (Action.Y <> 0) then
               Sh(WithDisplay(Format('xdotool mousemove %d %d', [Action.X, Action.Y])));
@@ -329,17 +329,17 @@ begin
             LCmd := Format('xdotool mousemove %d %d mousedown 1 mousemove %d %d',
               [Action.X, Action.Y, Action.DestX, Action.DestY]);
             Sh(WithDisplay(LCmd));
-            Sleep(120); // dar tiempo a que la app procese el arrastre
+            Sleep(120); // give time for the app to process the drag
             Result.Success := Sh(WithDisplay('xdotool mouseup 1')) = 0;
           end;
 
         catCursorPosition:
           begin
-            // Devuelve 'X=123 Y=456 SCREEN=0 WINDOW=...'
+            // Returns 'X=123 Y=456 SCREEN=0 WINDOW=...'
             Result.CustomOutput := Trim(ShOut(WithDisplay('xdotool getmouselocation --shell')));
             Result.Success := Result.CustomOutput <> '';
             if not Result.Success then
-              Result.ErrorMessage := 'no se pudo leer la posicion del cursor';
+              Result.ErrorMessage := 'could not read cursor position';
           end;
 
         catNavigate:
@@ -347,7 +347,7 @@ begin
             if Trim(Action.Url) = '' then
             begin
               Result.Success := False;
-              Result.ErrorMessage := 'navigate sin url';
+              Result.ErrorMessage := 'navigate without url';
             end
             else
             begin
@@ -355,8 +355,8 @@ begin
                 ' >/dev/null 2>&1')) = 0;
               if not Result.Success then
                 Result.ErrorMessage :=
-                  'xdg-open fallo: no hay navegador instalado o no hay manejador registrado';
-              Sleep(1500); // margen para que el navegador pinte algo
+                  'xdg-open failed: no browser installed or no handler registered';
+              Sleep(1500); // margin for the browser to render something
             end;
           end;
 
@@ -369,14 +369,14 @@ begin
         catWait:
           Sleep(5000);
 
-        // No mueven nada: la captura la hace despues OnRequestScreenshot, y el
-        // recorte de zoom lo lee de CurrentAction.ZoomRect.
+        // They don't move anything: the capture is done later by OnRequestScreenshot, and the
+        // zoom crop is read from CurrentAction.ZoomRect.
         catScreenshot, catZoom, catTerminate:
           Result.Success := True;
 
       else
         Result.Success := False;
-        Result.ErrorMessage := 'Accion no soportada por TAiLinuxExecutor: ' +
+        Result.ErrorMessage := 'Action not supported by TAiLinuxExecutor: ' +
           Action.FunctionName;
       end;
     finally
@@ -411,7 +411,7 @@ begin
       LCmd := 'scrot -o ' + Q(LTmp);
 
     if (Sh(WithDisplay(LCmd)) <> 0) or (not TFile.Exists(LTmp)) then
-      raise Exception.Create('scrot no pudo capturar la pantalla (revise DISPLAY y que scrot este instalado)');
+      raise Exception.Create('scrot could not capture the screen (check DISPLAY and that scrot is installed)');
 
     if not Assigned(MediaFile) then
       MediaFile := TAiMediaFile.Create;

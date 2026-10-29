@@ -1,4 +1,4 @@
-// MIT License
+﻿// MIT License
 // MakerAI - Agent System v3.4
 // Unified registry of IAiTool tools with PPM integration.
 //
@@ -6,7 +6,7 @@
   // the agent system, regardless of origin (legacy TAiToolBase,
   // LLM function, MCP server, or downloaded PPM tool).
 //
-// Author: Gustavo Enríquez
+// Author: Gustavo Enriquez
 // GitHub: https://github.com/gustavoeenriquez/MakerAi
 
 unit uMakerAi.Agents.ToolRegistry;
@@ -27,7 +27,7 @@ uses
 type
 
   { TAiRegistryEntry ------------------------------------------------------------
-    Entry del registry: herramienta + metadatos de origen.
+    Registry entry: tool + origin metadata.
   }
   TAiRegistryEntry = record
     Tool     : IAiTool;
@@ -69,7 +69,7 @@ type
     // Frees the singleton (call in finalization or test TearDown)
     class procedure DropInstance;
 
-    // --- Registro ---
+    // --- Registration ---
     procedure Register(const ATool: IAiTool;
                        const AOrigin: String = 'local';
                        const ASourceId: String = '');
@@ -93,12 +93,12 @@ type
                        APerPage: Integer = 20): TArray<TAiPPMPackageInfo>;
     function GetPPMPackage(const AName, AVersion: String): TAiPPMPackageInfo;
     // Downloads the package executable to ToolsDir (skips if already exists).
-    // Devuelve la ruta completa del ejecutable, o '' si falla.
+    // Returns the full executable path, or '' on failure.
     function DownloadPackage(const APkg: TAiPPMPackageInfo): String;
     function InstallFromPPM(const APkg: TAiPPMPackageInfo;
                             AOwner: TComponent = nil): TMCPClientCustom;
     // For schema-only packages (no executable binary):
-    // descarga el .paipkg, extrae los .tool JSON y registra TAiSchemaTool.
+    // downloads the .paipkg, extracts the .tool JSON files and registers TAiSchemaTool.
     // Returns the number of registered tools (0 = failure).
     function InstallSchemaFromPPM(const APkg: TAiPPMPackageInfo): Integer;
 
@@ -132,7 +132,7 @@ type
   TAiFunctionItem_IAiTool = class(TInterfacedObject, IAiTool)
   private
     FItem   : TFunctionActionItem;  // weak ref — not owning
-    FSchema : TJSONObject;          // propiedad de este objeto
+    FSchema : TJSONObject;          // owned by this object
   public
     constructor Create(AItem: TFunctionActionItem);
     destructor  Destroy; override;
@@ -334,7 +334,7 @@ var
   Existing : IAiTool;
 begin
   if not Assigned(ATool) then Exit;
-  if TryFind(ATool.Name, Existing) then Exit;  // evitar duplicados
+  if TryFind(ATool.Name, Existing) then Exit;  // avoid duplicates
   Entry.Tool     := ATool;
   Entry.Origin   := AOrigin;
   Entry.SourceId := ASourceId;

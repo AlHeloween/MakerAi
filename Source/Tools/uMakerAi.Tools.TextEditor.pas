@@ -1,6 +1,6 @@
 ﻿// MIT License
 //
-// Copyright (c) 2013 Gustavo Enr?quez - CimaMaker
+// Copyright (c) 2013 Gustavo Enriquez - CimaMaker
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -33,26 +33,26 @@
 
 {
   -------------------------------------------------------------------------------
-  TAiTextEditorTool - Componente de Edici?n de Texto para IA
+  TAiTextEditorTool - Text Editing Component for AI
   -------------------------------------------------------------------------------
 
-  ADVERTENCIA SOBRE EL MODO DE OPERACI?N:
+  WARNING ABOUT OPERATION MODE:
 
-  Este componente est? dise?ado con un sistema de eventos para virtualizar la
-  entrada y salida (I/O).
+  This component is designed with an event system to virtualize input and
+  output (I/O).
 
-  1. MODO POR DEFECTO (Acceso a Disco):
-  Si NO se asignan los eventos (OnLoadFile, OnSaveFile, etc.) o si el par?metro
-  "Handled" se deja en False, el componente ejecutar? las operaciones directamente
-  sobre el SISTEMA DE ARCHIVOS F?SICO del sistema operativo.
+  1. DEFAULT MODE (Disk Access):
+  If the events (OnLoadFile, OnSaveFile, etc.) are NOT assigned or if the
+  "Handled" parameter is left as False, the component will execute operations
+  directly on the PHYSICAL FILE SYSTEM of the operating system.
 
-  2. MODO INTERCEPTADO (Memoria/UI/DB):
-  Para evitar el acceso al disco (ej. para editar un TMemo o un registro de BD),
-  el programador debe asignar los eventos correspondientes, realizar la l?gica
-  personalizada y establecer expl?citamente:
+  2. INTERCEPTED MODE (Memory/UI/DB):
+  To avoid disk access (e.g., to edit a TMemo or a database record),
+  the programmer must assign the corresponding events, perform custom logic,
+  and explicitly set:
   Handled := True;
 
-  Esto detiene la ejecuci?n de la l?gica predeterminada de archivos.
+  This stops the execution of the default file logic.
   -------------------------------------------------------------------------------
 }
 
@@ -65,15 +65,15 @@ uses
 
 type
 
-  // Evento para leer contenido (ej: desde DB o Memoria)
+  // Event to read content (e.g., from DB or Memory)
   TAiFileReadEvent = procedure(Sender: TObject; const Path: string; var Content: string; var Handled: Boolean) of object;
-  // Evento para escribir contenido
+  // Event to write content
   TAiFileWriteEvent = procedure(Sender: TObject; const Path: string; const Content: string; var Handled: Boolean) of object;
-  // Evento para verificar existencia
+  // Event to check existence
   TAiFileCheckEvent = procedure(Sender: TObject; const Path: string; var Exists: Boolean; var Handled: Boolean) of object;
-  // Evento para management de directorios
+  // Event for directory management
   TAiDirEvent = procedure(Sender: TObject; const Path: string; var Handled: Boolean) of object;
-  // Evento generic antes de ejecutar un comando (permite override total de la logic)
+  // Generic event before executing a command (allows total override of logic)
   TAiCommandEvent = procedure(Sender: TObject; const Command, Path: string; Args: TJSONObject; var Result: string; var Handled: Boolean) of object;
 
   TAiTextEditorTool = class(TComponent)
@@ -86,14 +86,14 @@ type
 
     function CountOccurrences(const Text, SubText: string): Integer;
   protected
-    // --- methods Virtuales con soporte de Eventos ---
+    // --- Virtual methods with Event support ---
     function LoadFileContent(const Path: string): string; virtual;
     procedure SaveFileContent(const Path: string; const Content: string); virtual;
     function FileExists(const Path: string): Boolean; virtual;
     function EnsureDirectory(const Path: string): Boolean; virtual;
     function ValidatePath(const APath: string): Boolean; virtual;
 
-    // --- Comandos specifics ---
+    // --- Specific commands ---
     function Cmd_View(const Path: string; const jArgs: TJSONObject): string; virtual;
     function Cmd_Create(const Path: string; const jArgs: TJSONObject): string; virtual;
     function Cmd_StrReplace(const Path: string; const jArgs: TJSONObject): string; virtual;
@@ -105,7 +105,7 @@ type
     function Execute(const JsonArguments: string): string; virtual;
 
   published
-    // --- Eventos Publicados ---
+    // --- Published Events ---
     property OnLoadFile: TAiFileReadEvent read FOnLoadFile write FOnLoadFile;
     property OnSaveFile: TAiFileWriteEvent read FOnSaveFile write FOnSaveFile;
     property OnFileExists: TAiFileCheckEvent read FOnFileExists write FOnFileExists;
@@ -135,7 +135,7 @@ begin
   if not (jVal is TJSONObject) then
   begin
     jVal.Free;
-    Exit('Error: Argumentos inv?lidos (JSON mal formado).');
+    Exit('Error: Invalid arguments (malformed JSON).');
   end;
 
   jArgs := TJSONObject(jVal);
@@ -145,22 +145,22 @@ begin
       Cmd := jArgs.GetValue<string>('command');
       Path := jArgs.GetValue<string>('path');
 
-      // Evento: Permitir al usuario interceptar el comando completamente
+      // Event: Allow user to fully intercept the command
       Handled := False;
       if Assigned(FOnBeforeCommand) then
         FOnBeforeCommand(Self, Cmd, Path, jArgs, Result, Handled);
 
       if Handled then
-        Exit; // El usuario ya generated el Result
+        Exit; // The user already generated the Result
 
-      // 2. Validar ruta (Seguridad basic)
+      // 2. Validate path (basic security)
       if not ValidatePath(Path) then
-        Exit('Error: Ruta inv?lida o vac?a.');
+        Exit('Error: Invalid or empty path.');
 
       if (Cmd <> 'create') and (not FileExists(Path)) then
         Exit('Error: File does not exist at path: ' + Path);
 
-      // 3. Despachar comando
+      // 3. Dispatch command
       if Cmd = 'view' then
         Result := Cmd_View(Path, jArgs)
       else if Cmd = 'create' then
@@ -172,18 +172,18 @@ begin
       else if Cmd = 'apply_diff' then
         Result := Cmd_ApplyDiff(Path, jArgs)
       else
-        Result := 'Error: Comando desconocido "' + Cmd + '"';
+        Result := 'Error: Unknown command "' + Cmd + '"';
 
     except
       on E: Exception do
-        Result := 'Error ejecutando editor (' + Cmd + '): ' + E.Message;
+        Result := 'Error executing editor (' + Cmd + '): ' + E.Message;
     end;
   finally
     jArgs.Free;
   end;
 end;
 
-// --- implementation de I/O con Eventos ---
+// --- I/O implementation with Events ---
 
 function TAiTextEditorTool.LoadFileContent(const Path: string): string;
 var
@@ -191,11 +191,11 @@ var
 begin
   Handled := False;
   Result := '';
-  // 1. Intentar evento
+  // 1. Try event
   if Assigned(FOnLoadFile) then
     FOnLoadFile(Self, Path, Result, Handled);
 
-  // 2. Si no fue manejado, usar disco
+  // 2. If not handled, use disk
   if not Handled then
   begin
     if TFile.Exists(Path) then
@@ -210,11 +210,11 @@ var
   Handled: Boolean;
 begin
   Handled := False;
-  // 1. Intentar evento
+  // 1. Try event
   if Assigned(FOnSaveFile) then
     FOnSaveFile(Self, Path, Content, Handled);
 
-  // 2. Si no fue manejado, escribir a disco
+  // 2. If not handled, write to disk
   if not Handled then
     TFile.WriteAllText(Path, Content, TEncoding.UTF8);
 end;
@@ -225,11 +225,11 @@ var
 begin
   Handled := False;
   Result := False;
-  // 1. Intentar evento
+  // 1. Try event
   if Assigned(FOnFileExists) then
     FOnFileExists(Self, Path, Result, Handled);
 
-  // 2. Si no fue manejado, verificar disco
+  // 2. If not handled, check disk
   if not Handled then
     Result := TFile.Exists(Path);
 end;
@@ -240,13 +240,13 @@ var
   Dir: string;
 begin
   Handled := False;
-  Result := True; // Asumimos success By default
+  Result := True; // Assume success by default
 
-  // 1. Intentar evento
+  // 1. Try event
   if Assigned(FOnEnsureDirectory) then
     FOnEnsureDirectory(Self, Path, Handled);
 
-  // 2. Si no fue manejado, crear en disco
+  // 2. If not handled, create on disk
   if not Handled then
   begin
     Dir := TPath.GetDirectoryName(Path);
@@ -263,7 +263,7 @@ end;
 
 function TAiTextEditorTool.ValidatePath(const APath: string): Boolean;
 begin
-  // validation basic. Can be sobrecargar para logic more compleja de seguridad.
+  // Basic validation. Can be overridden for more complex security logic.
   Result := Trim(APath) <> '';
 end;
 
@@ -285,7 +285,7 @@ begin
   end;
 end;
 
-// --- Comandos specifics ---
+// --- Specific commands ---
 
 function TAiTextEditorTool.Cmd_View(const Path: string; const jArgs: TJSONObject): string;
 var
@@ -298,12 +298,12 @@ begin
   FullText := LoadFileContent(Path);
   Lines := TStringList.Create;
   try
-    Lines.Text := FullText; // TStringList maneja saltos de line autookticamente
+    Lines.Text := FullText; // TStringList handles line breaks automatically
 
-    // Verificar si piden un rango specific [start_line, end_line]
+    // Check if a range [start_line, end_line] is requested
     if jArgs.TryGetValue<TJSonArray>('view_range', ViewRange) and (ViewRange.Count = 2) then
     begin
-      StartL := ViewRange.Items[0].GetValue<Integer> - 1; // Claude usa base 1 -> TStringList base 0
+      StartL := ViewRange.Items[0].GetValue<Integer> - 1; // Claude uses base 1 -> TStringList base 0
       EndL := ViewRange.Items[1].GetValue<Integer> - 1;
 
       if StartL < 0 then
@@ -312,7 +312,7 @@ begin
         EndL := Lines.Count - 1;
 
       if StartL > EndL then
-        Exit('Error: Rango de vista inv?lido (Start > End) o fuera de l?mites.');
+        Exit('Error: Invalid view range (Start > End) or out of bounds.');
 
       ResBuilder := TStringBuilder.Create;
       try
@@ -325,7 +325,7 @@ begin
     end
     else
     begin
-      // Ver todo el archivo
+      // View entire file
       Result := FullText;
     end;
   finally
@@ -346,7 +346,7 @@ begin
     Exit('Error: Could not create directory for the file.');
 
   SaveFileContent(Path, Content);
-  Result := 'Archivo creado exitosamente.';
+  Result := 'File created successfully.';
 end;
 
 function TAiTextEditorTool.Cmd_StrReplace(const Path: string; const jArgs: TJSONObject): string;
@@ -357,26 +357,26 @@ begin
   OldStr := jArgs.GetValue<string>('old_str');
   NewStr := jArgs.GetValue<string>('new_str');
 
-  // Cargar contenido (Dispara OnLoadFile -> Lee del Memo)
+  // Load content (triggers OnLoadFile -> reads from Memo)
   FileContent := LoadFileContent(Path);
 
-  // 1. validation according to DOCS: Conteo exacto
+  // 1. Validation according to DOCS: Exact count
   Occurrences := CountOccurrences(FileContent, OldStr);
 
   if Occurrences = 0 then
-    // Mensaje oficial de la documentation para "No matches"
+    // Official message from documentation for "No matches"
     Exit('Error: No match found for replacement. Please check your text and try again.')
   else if Occurrences > 1 then
-    // Mensaje oficial de la documentation para "Multiple matches"
+    // Official message from documentation for "Multiple matches"
     Exit('Error: Found ' + IntToStr(Occurrences) + ' matches for replacement text. Please provide more context to make a unique match.');
 
-  // 2. execution: Reemplazo en memoria
+  // 2. Execution: Replacement in memory
   FileContent := StringReplace(FileContent, OldStr, NewStr, []);
 
-  // 3. PERSISTENCIA: Dispara OnSaveFile -> Actualiza el Memo
+  // 3. PERSISTENCE: Triggers OnSaveFile -> Updates the Memo
   SaveFileContent(Path, FileContent);
 
-  // Respuesta de success isndar
+  // Standard success response
   Result := 'Successfully replaced text at exactly one location.';
 end;
 
@@ -386,12 +386,12 @@ var
   InsertLine: Integer;
   Lines: TStringList;
 begin
-  // Intentar leer 'insert_text' primero, si does not exist, probar 'new_str'
+  // Try to read 'insert_text' first, if not present try 'new_str'
   if not jArgs.TryGetValue<string>('insert_text', NewStr) then
     if not jArgs.TryGetValue<string>('new_str', NewStr) then
       Exit('Error: No insert text provided.');
 
-  // Claude sends la line after de la cual insertar (base 0 o 1 dependiendo del modelo, usualmente 0 es inicio)
+  // Claude sends the line after which to insert (base 0 or 1 depending on model, usually 0 is start)
   InsertLine := jArgs.GetValue<Integer>('insert_line');
 
   FileContent := LoadFileContent(Path);
@@ -399,9 +399,9 @@ begin
   try
     Lines.Text := FileContent;
 
-    // validation de seguridad para evitar crashes
+    // Security validation to avoid crashes
     if (InsertLine < 0) or (InsertLine > Lines.Count) then
-      Exit('Error: N?mero de l?nea ' + IntToStr(InsertLine) + ' fuera de rango.');
+      Exit('Error: Line number ' + IntToStr(InsertLine) + ' out of range.');
 
     if InsertLine = 0 then
       Lines.Insert(0, NewStr)
@@ -411,7 +411,7 @@ begin
       Lines.Insert(InsertLine, NewStr);
 
     SaveFileContent(Path, Lines.Text);
-    Result := 'Texto insertado exitosamente.';
+    Result := 'Text inserted successfully.';
   finally
     Lines.Free;
   end;
@@ -424,7 +424,7 @@ var
 begin
   DiffText := jArgs.GetValue<string>('diff_text');
   if DiffText = '' then
-    Exit('Error: "diff_text" no puede estar vac?o.');
+    Exit('Error: "diff_text" cannot be empty.');
 
   OriginalContent := LoadFileContent(Path);
 
@@ -433,10 +433,10 @@ begin
     if Applier.Apply(OriginalContent, DiffText, NewContent, ErrorMsg) then
     begin
       SaveFileContent(Path, NewContent);
-      Result := 'Diff aplicado exitosamente.';
+      Result := 'Diff applied successfully.';
     end
     else
-      Result := 'Error al aplicar diff: ' + ErrorMsg;
+      Result := 'Error applying diff: ' + ErrorMsg;
   finally
     Applier.Free;
   end;

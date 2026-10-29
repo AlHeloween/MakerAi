@@ -1,8 +1,8 @@
 ﻿// MIT License
 //
-// MakerAI - Evals: evaluacion sistematica de respuestas de IA (fase 3)
+// MakerAI - Evals: systematic evaluation of AI responses (phase 3)
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
@@ -12,15 +12,15 @@
 unit uMakerAi.Evals;
 
 // -----------------------------------------------------------------------------
-// TAiEvalRunner: mini-framework de evals para pipelines de IA en Delphi.
+// TAiEvalRunner: mini-framework for evals in AI pipelines in Delphi.
 //
-// El target es una funcion generica (input -> output), asi que sirve para
-// evaluar un TAiChat, un grafo de agentes, un tool MCP, un agente A2A o
-// cualquier funcion propia. Los casos se definen con API fluida:
+// The target is a generic function (input -> output), so it can be used to
+// evaluate a TAiChat, a graph of agents, an MCP tool, an A2A agent, or any
+// custom function. Cases are defined with a fluent API:
 //
-//   Runner.AddCase('saludo')
-//     .Input('Di hola en espanol')
-//     .ExpectContains('hola')
+//   Runner.AddCase('greeting')
+//     .Input('Say hello in Spanish')
+//     .ExpectContains('hello')
 //     .ExpectMaxLength(200);
 //
 //   Report := Runner.Run(
@@ -29,16 +29,16 @@ unit uMakerAi.Evals;
 //       Result := Chat.AddMessageAndRun(AInput, 'user', []);
 //     end);
 //
-// Checks deterministas: Contains / NotContains / Regex / Equals / MinLength /
-// MaxLength. Check semantico: ExpectJudge('criterio') usa un TAiChat como
-// LLM-as-judge (propiedad Judge) que responde PASS/FAIL contra el criterio.
-// Check calibrado: ExpectScore('criterio', 0.7) usa un TAiEvalScorerBase
-// (propiedad Scorer, p.ej. TAiJevEvalScorer) que devuelve la probabilidad de
-// que la salida cumpla el criterio; pasa si alcanza el minimo.
+// Deterministic checks: Contains / NotContains / Regex / Equals / MinLength /
+// MaxLength. Semantic check: ExpectJudge('criteria') uses a TAiChat as
+// LLM-as-judge (Judge property) that responds PASS/FAIL against the criteria.
+// Calibrated check: ExpectScore('criteria', 0.7) uses a TAiEvalScorerBase
+// (Scorer property, e.g. TAiJevEvalScorer) that returns the probability that
+// the output meets the criteria; passes if it reaches the minimum.
 //
-// Cada caso emite un span OTel 'eval.case <name>' (via uMakerAi.Telemetry) con
-// el resultado, de modo que los evals quedan trazados junto al resto del
-// pipeline. El reporte ofrece ToText (consola) y ToJSON (CI / persistencia).
+// Each case emits an OTel span 'eval.case <name>' (via uMakerAi.Telemetry)
+// with the result, so that the evals are traced alongside the rest of the
+// pipeline. The report offers ToText (console) and ToJSON (CI / persistence).
 // -----------------------------------------------------------------------------
 
 interface
@@ -49,19 +49,19 @@ uses
   uMakerAi.Chat;
 
 type
-  // ekScore va al final: los ordinales anteriores no cambian
+  // ekScore goes last: previous ordinals do not change
   TAiEvalCheckKind = (ekContains, ekNotContains, ekRegex, ekEquals,
     ekMinLength, ekMaxLength, ekJudge, ekScore);
 
   TAiEvalCheck = class
   public
     Kind: TAiEvalCheckKind;
-    Value: string; // texto esperado / patron / criterio del judge / longitud
-    MinScore: Double; // ekScore: probabilidad minima para pasar
+    Value: string; // expected text / pattern / judge criteria / length
+    MinScore: Double; // ekScore: minimum probability to pass
   end;
 
-  // Juez calibrado para ExpectScore: probabilidad (0..1) de que AActual cumpla
-  // ACriteria para el input AInput. Implementacion con Jev: TAiJevEvalScorer.
+  // Calibrated judge for ExpectScore: probability (0..1) that AActual meets
+  // ACriteria for input AInput. Implementation with Jev: TAiJevEvalScorer.
   TAiEvalScorerBase = class(TComponent)
   public
     function Score(const ACriteria, AInput, AActual: string): Double; virtual; abstract;
@@ -83,9 +83,9 @@ type
     function ExpectEquals(const AText: string): TAiEvalCase;
     function ExpectMinLength(ALength: Integer): TAiEvalCase;
     function ExpectMaxLength(ALength: Integer): TAiEvalCase;
-    // Criterio semantico evaluado por el LLM judge (propiedad Judge del runner)
+    // Semantic criteria evaluated by the LLM judge (Runner's Judge property)
     function ExpectJudge(const ACriteria: string): TAiEvalCase;
-    // Criterio semantico con probabilidad calibrada (propiedad Scorer del runner)
+    // Semantic criteria with calibrated probability (Runner's Scorer property)
     function ExpectScore(const ACriteria: string; AMinScore: Double = 0.5): TAiEvalCase;
     property CaseName: string read FName;
   end;
@@ -94,8 +94,8 @@ type
   public
     CaseName: string;
     Passed: Boolean;
-    Actual: string;      // salida real del target (truncada a 4KB)
-    FailReason: string;  // vacio si paso
+    Actual: string;      // actual target output (truncated to 4KB)
+    FailReason: string;  // empty if passed
     DurationMs: Int64;
   end;
 
@@ -107,15 +107,15 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    function ToText: string;   // resumen legible para consola
-    function ToJSON: TJSONObject; // el llamador libera el objeto
+    function ToText: string;   // human-readable summary for console
+    function ToJSON: TJSONObject; // the caller frees the object
     property Results: TObjectList<TAiEvalCaseResult> read FResults;
     property Passed: Integer read GetPassed;
     property Failed: Integer read GetFailed;
     function AllPassed: Boolean;
   end;
 
-  // Target generico: recibe el input del caso y devuelve la salida a evaluar
+  // Generic target: receives the case input and returns the output to evaluate
   TAiEvalTargetFunc = reference to function(const AInput: string): string;
 
   TAiEvalRunner = class(TComponent)
@@ -134,18 +134,18 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    // Define un caso nuevo (API fluida sobre el TAiEvalCase devuelto)
+    // Defines a new case (fluent API on the returned TAiEvalCase)
     function AddCase(const AName: string): TAiEvalCase;
     procedure Clear;
 
-    // Ejecuta todos los casos contra el target. El llamador libera el reporte.
+    // Runs all cases against the target. The caller frees the report.
     function Run(ATarget: TAiEvalTargetFunc): TAiEvalReport;
 
     property Cases: TObjectList<TAiEvalCase> read FCases;
   published
-    // Chat usado como LLM-as-judge para los checks ExpectJudge (opcional)
+    // Chat used as LLM-as-judge for ExpectJudge checks (optional)
     property Judge: TAiChat read FJudge write SetJudge;
-    // Juez calibrado para los checks ExpectScore (opcional)
+    // Calibrated judge for ExpectScore checks (optional)
     property Scorer: TAiEvalScorerBase read FScorer write SetScorer;
   end;
 
@@ -316,8 +316,8 @@ begin
     if not R.Passed then
     begin
       Item.AddPair('failReason', R.FailReason);
-      // La salida real: sin ella el reporte dice que fallo pero no que se
-      // obtuvo, y hay que reproducir el caso a mano para averiguarlo.
+      // The actual output: without it the report says it failed but not what was
+      // obtained, and the case must be run manually to find out.
       Item.AddPair('actual', R.Actual);
     end;
     Arr.AddElement(Item);
@@ -407,9 +407,9 @@ begin
   FCases.Clear;
 end;
 
-// LLM-as-judge: pregunta al chat si la salida cumple el criterio. La
-// respuesta debe empezar por PASS o FAIL (prompt estricto); cualquier otra
-// cosa se considera fallo del juicio (conservador).
+// LLM-as-judge: asks the chat if the output meets the criteria. The
+// answer must start with PASS or FAIL (strict prompt); anything else is
+// considered a judgment failure (conservative).
 function TAiEvalRunner.RunJudge(const ACriteria, AActual: string; out AReason: string): Boolean;
 var
   Prompt, Resp: string;
@@ -423,10 +423,10 @@ begin
   end;
 
   Prompt :=
-    'Eres un evaluador estricto de calidad. Evalua si la RESPUESTA cumple el CRITERIO.' + sLineBreak +
-    'CRITERIO: ' + ACriteria + sLineBreak +
-    'RESPUESTA: """' + AActual + '"""' + sLineBreak +
-    'Contesta UNICAMENTE con una palabra: PASS si cumple, FAIL si no cumple.';
+    'You are a strict quality evaluator. Evaluate whether the RESPONSE meets the CRITERION.' + sLineBreak +
+    'CRITERION: ' + ACriteria + sLineBreak +
+    'RESPONSE: """' + AActual + '"""' + sLineBreak +
+    'Answer ONLY with one word: PASS if it meets, FAIL if it does not.';
 
   Resp := Trim(FJudge.AddMessageAndRun(Prompt, 'user', []));
   if StartsText('PASS', Resp) then
@@ -495,7 +495,7 @@ begin
         end;
     end;
     if not Result then
-      Break; // primer check fallido detiene el caso
+      Break; // first failing check stops the case
   end;
 end;
 
@@ -508,7 +508,7 @@ var
   LSpan: TAiSpan;
 begin
   if not Assigned(ATarget) then
-    raise Exception.Create('TAiEvalRunner.Run: target no asignado');
+    raise Exception.Create('TAiEvalRunner.Run: target not assigned');
 
   Result := TAiEvalReport.Create;
   for ACase in FCases do

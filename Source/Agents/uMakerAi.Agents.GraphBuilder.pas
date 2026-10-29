@@ -7,40 +7,40 @@ uses
   uMakerAi.Agents;
 
 type
-  // Error estructural del grafo (M-02). La declaracion vive en uMakerAi.Agents
-  // (tambien la usa SaveToStream, M-06); este alias preserva compatibilidad.
+  // Structural error of the graph (M-02). The declaration lives in uMakerAi.Agents
+  // (SaveToStream also uses it, M-06); this alias preserves compatibility.
   EAiGraphError = uMakerAi.Agents.EAiGraphError;
 
   TGraphBuilder = class
   private
-  // MEJORA: Constantes para evitar "Magic Strings" y errores de tipeo.
+  // IMPROVEMENT: Constants to avoid "Magic Strings" and typos.
     const
-    // Estructura principal
+    // Main structure
     cJsonNodes = 'nodes';
     cJsonEdges = 'edges';
     cJsonProperties = 'properties';
 
-    // Propiedades de Nodos
+    // Node properties
     cJsonNodeId = 'id';
     cJsonNodeLabel = 'label';
     cJsonNodePorts = 'ports';
     cJsonToolClassName = 'toolClassName';
     cJsonParameters = 'parameters';
-    cJsonMetadataDescription = 'metadata.description'; // Usamos punto para denotar anidamiento
+    cJsonMetadataDescription = 'metadata.description'; // We use the dot to denote nesting
 
-    // Propiedades de Puertos
+    // Port properties
     cJsonPortInternalId = 'internalId';
     cJsonPortId = 'idStr';
     cJsonPortCategory = 'category';
     cJsonPortCategoryAccessory = 'accessory';
 
-    // Propiedades de Aristas
+    // Edge properties
     cJsonEdgeSourceNodeId = 'sourceNodeId';
     cJsonEdgeTargetNodeId = 'targetNodeId';
     cJsonEdgeSourceTerminal = 'sourceTerminal';
     cJsonEdgeDescription = 'description';
 
-    // Propiedades del motor (Engine)
+    // Engine properties
     cJsonEngine = 'engine';
     cJsonEngineJoinMode = 'joinMode';
     cJsonEngineLinkMode = 'linkMode';
@@ -52,11 +52,11 @@ type
     cJsonEngineLinkExprC = 'linkExpressionC';
     cJsonEngineLinkExprD = 'linkExpressionD';
 
-    // Puertos especiales
+    // Special ports
     cPortOutFailure = 'out_failure';
 
-    cJsonMetadata = 'metadata'; // <-- Nueva constante
-    cJsonDescription = 'description'; // <-- Nueva constante
+    cJsonMetadata = 'metadata'; // <-- New constant
+    cJsonDescription = 'description'; // <-- New constant
 
   private
     FAgents: TAIAgents;
@@ -77,10 +77,10 @@ type
 
     procedure BuildFromJson(const AJsonString: string);
 
-    // M-02: con True (default) los defectos estructurales del JSON lanzan
-    // EAiGraphError (arista a nodo inexistente, puerto no declarado, exceso
-    // de salidas). Con False se conserva el comportamiento historico de
-    // advertir por el log y continuar (con perdida silenciosa de aristas).
+    // M-02: with True (default) the JSON's structural defects raise
+    // EAiGraphError (edge to a non-existent node, undeclared port, excess
+    // of outputs). With False the historical behavior is kept of
+    // warning through the log and continuing (with silent loss of edges).
     property StrictValidation: Boolean read FStrictValidation write FStrictValidation default True;
   end;
 
@@ -131,11 +131,11 @@ begin
   end;
 end;
 
-// MEJORA: Se mantiene la funci�n original, pero se a�ade un comentario sobre su naturaleza.
-// Esta funci�n realiza una b�squeda recursiva profunda para encontrar un objeto con la clave 'engine'.
-// Es robusta si la ubicaci�n del objeto 'engine' no es fija.
-// Si la estructura del JSON fuera constante (ej: 'properties.engine'),
-// una b�squeda directa ser�a m�s eficiente.
+// IMPROVEMENT: The original function is kept, but a comment about its nature is added.
+// This function performs a deep recursive search to find an object with the 'engine' key.
+// It is robust if the location of the 'engine' object is not fixed.
+// If the JSON structure were constant (e.g. 'properties.engine'),
+// a direct lookup would be more efficient.
 function TGraphBuilder.FindEngineObject(JsonObj: TJSONObject): TJSONObject;
 var
   Pair: TJSONPair;
@@ -194,29 +194,29 @@ begin
     LNodeGuid := LNodeJson.GetValue<string>(cJsonNodeId);
     LLabel := LNodeJson.GetValue<string>(cJsonNodeLabel, 'Node_' + Copy(LNodeGuid, 2, 8));
 
-    LLabel := StringReplace(LLabel, ' ', '', [rfReplaceAll]); // Los nombres no pueden tener espacios
+    LLabel := StringReplace(LLabel, ' ', '', [rfReplaceAll]); // Names cannot contain spaces
 
-    // 1. Crear la instancia del nodo
+    // 1. Create the node instance
     LNode := TAIAgentsNode.Create(FAgents);
 
-    // 2. Asignar propiedades fundamentales
-    LNode.ID := LNodeGuid; // Asignar el GUID original a la propiedad ID existente
+    // 2. Assign fundamental properties
+    LNode.ID := LNodeGuid; // Assign the original GUID to the existing ID property
     LNode.Name := LLabel;
     LNode.Graph := FAgents;
     LNode.JoinMode := jmAny;
     LTool := nil; // Good practice to initialize the reference
 
-    // 3. Procesar the properties del JSON
+    // 3. Process the JSON properties
     if LNodeJson.TryGetValue<TJSONObject>(cJsonProperties, LPropertiesJson) then
     begin
-      // 3.1. Leer la descripci�n (de forma anidada y segura)
+      // 3.1. Read the description (nested and safe)
       if LPropertiesJson.TryGetValue<TJSONObject>(cJsonMetadata, LMetadataJson) then
         LDescription := LMetadataJson.GetValue<string>(cJsonDescription, '')
       else
         LDescription := '';
       LNode.Description := LDescription;
 
-      // 3.2. Buscar el objeto 'engine' para configurar JoinMode
+      // 3.2. Find the 'engine' object to configure JoinMode
       LEngineJson := FindEngineObject(LPropertiesJson);
       if Assigned(LEngineJson) then
       begin
@@ -226,7 +226,7 @@ begin
           LNode.JoinMode := TJoinMode(LJoinModeOrdinal);
       end;
 
-      // 3.3. Crear y configurar la herramienta (Tool) asociada
+      // 3.3. Create and configure the associated tool (Tool)
       LToolClassName := LPropertiesJson.GetValue<string>(cJsonToolClassName,'');
       if not LToolClassName.IsEmpty then
       begin
@@ -237,7 +237,7 @@ begin
           LNode.Tool := LTool;
           LTool.Description := LDescription; // Also assign the description to the tool
 
-          // Asignar par�metros a la herramienta usando RTTI
+          // Assign parameters to the tool using RTTI
           if LPropertiesJson.TryGetValue<TJSONObject>(cJsonParameters, LParametersJson) then
             SetToolParameters(LTool, LParametersJson);
         end
@@ -245,14 +245,14 @@ begin
           raise Exception.CreateFmt('Tool class "%s" not found or not registered.', [LToolClassName]);
       end;
 
-      // 3.4. Identificar nodos especiales (Start/End)
+      // 3.4. Identify special nodes (Start/End)
       if SameText(LToolClassName, 'TStartTool') then
         FAgents.StartNode := LNode;
       if SameText(LToolClassName, 'TEndTool') then
         FAgents.EndNode := LNode;
     end;
 
-    // 4. Registrar el nodo en los diccionarios for the paso de 'ParseEdges'
+    // 4. Register the node in the dictionaries for the 'ParseEdges' step
     FNodeMap.Add(LNodeGuid, LNode);
     FNodeJsonMap.Add(LNodeGuid, LNodeJson);
   end;
@@ -304,8 +304,8 @@ begin
     if SameText(LSourcePortCategory, cJsonPortCategoryAccessory) then
       Continue;
 
-    // MEJORA: La l�gica de creaci�n del Link es m�s expl�cita.
-    // Is created un �nico Link por nodo de origen la primera vez que se encuentra una arista saliente.
+    // IMPROVEMENT: The Link creation logic is more explicit.
+    // A single Link is created per source node the first time an outgoing edge is found.
     LLink := LSourceNode.Next;
     if not Assigned(LLink) then
     begin
@@ -314,7 +314,7 @@ begin
       LLink.Name := 'Link_From_' + LSourceNode.Name;
       LSourceNode.Next := LLink;
 
-      // the properties del Link se leen del objeto 'engine' del NODO DE ORIGEN.
+      // The Link properties are read from the SOURCE NODE's 'engine' object.
       LEngineJson := FindEngineObject(LSourceNodeJson);
       if Assigned(LEngineJson) then
       begin
@@ -340,9 +340,9 @@ begin
 
     LSourcePortId := LSourcePortJson.GetValue<string>(cJsonPortId, LSourceTerminalId);
 
-    // El puerto out_failure es la rama de error en TODOS los modos (M-07):
-    // debe evaluarse antes que el modo, o en lmConditional quedaria registrado
-    // como condicion de valor "out_failure" y el nodo sin salida de fallo.
+    // The out_failure port is the error branch in ALL modes (M-07):
+    // it must be evaluated before the mode, or in lmConditional it would be registered
+    // as a value condition "out_failure" and the node would be left without a failure output.
     if SameText(LSourcePortId, cPortOutFailure) then
     begin
       LLink.NextNo := LTargetNode;
@@ -353,7 +353,7 @@ begin
     end
     else
     begin
-        // MEJORA: L�gica de asignaci�n a NextA/B/C/D simplificada y menos repetitiva.
+        // IMPROVEMENT: Assignment logic to NextA/B/C/D simplified and less repetitive.
         var
           LNextSlots: array [0 .. 3] of PPointer;
         LNextSlots[0] := @LLink.NextA;
@@ -387,9 +387,9 @@ end;
 
 procedure TGraphBuilder.SetToolParameters(ATool: TAiToolBase; AParamsJson: TJSONObject);
 begin
-  // M-04: delega en el mapper unico. TAiToolParams.FromJSON es tolerante a
-  // valores tipados o como string, excluye las propiedades reservadas
-  // (Name/Tag/ID/Description) e ignora las marcadas [TSecret].
+  // M-04: delegates to the single mapper. TAiToolParams.FromJSON is tolerant of
+  // typed values or string values, excludes the reserved properties
+  // (Name/Tag/ID/Description) and ignores those marked [TSecret].
   TAiToolParams.FromJSON(ATool, AParamsJson);
 end;
 

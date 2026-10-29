@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -32,8 +32,8 @@
 // - GitHub: https://github.com/gustavoeenriquez/
 
 // Registers TSelectionEditor so that when dropping a MakerAI component on a
-// formulario se add autookticamente las units que el usuario necesita
-// (tipos de eventos, tipos base, etc.) sin tener que agregarlas a mano.
+// form it automatically adds the units that the user needs
+// (event types, base types, etc.) without having to add them manually.
 
 unit uAiEditors.RequiresUnits;
 
@@ -47,7 +47,7 @@ procedure Register;
 implementation
 
 uses
-  // --- Conectores universales ---
+  // --- Universal connectors ---
   uMakerAi.Chat.AiConnection,
   uMakerAi.Embeddings.Connection,
 
@@ -65,7 +65,7 @@ uses
   uMakerAi.Chat.LMStudio,
   uMakerAi.Chat.GenericLLM,
 
-  // --- Core (tipos base) ---
+  // --- Core (base types) ---
   uMakerAi.Core,
   uMakerAi.Chat,
   uMakerAi.Chat.Messages,
@@ -108,7 +108,7 @@ uses
   // --- Agents ---
   uMakerAi.Agents,
 
-  // --- Otros ---
+  // --- Others ---
   uMakerAi.Chat.Bridge,
   uMakerAi.Prompts,
   uMakerAi.Utils.VoiceMonitor;
@@ -117,8 +117,8 @@ uses
 type
 
   // =========================================================================
-  // TAiChatConnection y TAiChat drivers
-  // Necesitan: uMakerAi.Core (TAiMediaFile, TAiChatState, TAiErrorEvent),
+  // TAiChatConnection and TAiChat drivers
+  // Requires: uMakerAi.Core (TAiMediaFile, TAiChatState, TAiErrorEvent),
   //            uMakerAi.Chat.Messages (TAiChatMessage, TAiToolsFunction)
   // =========================================================================
 
@@ -133,8 +133,8 @@ type
   end;
 
   // =========================================================================
-  // TAiEmbeddingConnection y TAiEmbeddings drivers
-  // Necesitan: uMakerAi.Embeddings.core (TAiEmbeddingData, TOnGetEmbedding)
+  // TAiEmbeddingConnection and TAiEmbeddings drivers
+  // Requires: uMakerAi.Embeddings.core (TAiEmbeddingData, TOnGetEmbedding)
   // =========================================================================
 
   TAiEmbeddingConnectionSelEditor = class(TSelectionEditor)
@@ -149,7 +149,7 @@ type
 
   // =========================================================================
   // TAiFunctions
-  // Necesita: uMakerAi.Core, uMakerAi.Chat.Messages (TAiToolsFunction)
+  // Requires: uMakerAi.Core, uMakerAi.Chat.Messages (TAiToolsFunction)
   // =========================================================================
 
   TAiFunctionsSelEditor = class(TSelectionEditor)
@@ -158,8 +158,8 @@ type
   end;
 
   // =========================================================================
-  // RAG (Vector y Graph)
-  // Necesitan: uMakerAi.Embeddings.core (TAiEmbeddingData)
+  // RAG (Vector and Graph)
+  // Requires: uMakerAi.Embeddings.core (TAiEmbeddingData)
   // =========================================================================
 
   TAiRAGSelEditor = class(TSelectionEditor)
@@ -169,7 +169,7 @@ type
 
   // =========================================================================
   // Agents
-  // Necesitan: uMakerAi.Chat.AiConnection
+  // Requires: uMakerAi.Chat.AiConnection
   // =========================================================================
 
   TAiAgentsSelEditor = class(TSelectionEditor)
@@ -179,7 +179,7 @@ type
 
   // =========================================================================
   // MCP Servers
-  // Necesitan: uMakerAi.MCPServer.Core (IAiMCPTool, tipos base)
+  // Requires: uMakerAi.MCPServer.Core (IAiMCPTool, base types)
   // =========================================================================
 
   TAiMCPServerSelEditor = class(TSelectionEditor)
@@ -188,8 +188,8 @@ type
   end;
 
   // =========================================================================
-  // Tools generics (Shell, TextEditor, ComputerUse, Whisper, Dalle, etc.)
-  // Necesitan: uMakerAi.Core
+  // Generic Tools (Shell, TextEditor, ComputerUse, Whisper, Dalle, etc.)
+  // Requires: uMakerAi.Core
   // =========================================================================
 
   TAiToolSelEditor = class(TSelectionEditor)
@@ -199,7 +199,7 @@ type
 
   // =========================================================================
   // Bridges
-  // Necesitan: uMakerAi.Core, uMakerAi.Chat.Tools
+  // Requires: uMakerAi.Core, uMakerAi.Chat.Tools
   // =========================================================================
 
   TAiBridgeSelEditor = class(TSelectionEditor)
@@ -209,7 +209,7 @@ type
 
 
 // ==========================================================================
-// Implementaciones
+// Implementations
 // ==========================================================================
 
 { TAiChatConnectionSelEditor }
@@ -303,13 +303,13 @@ end;
 
 
 // ==========================================================================
-// Registro
+// Registration
 // ==========================================================================
 
 procedure Register;
 begin
 
-  // --- Conectores universales ---
+  // --- Universal connectors ---
   RegisterSelectionEditor(TAiChatConnection, TAiChatConnectionSelEditor);
   RegisterSelectionEditor(TAiEmbeddingConnection, TAiEmbeddingConnectionSelEditor);
 
@@ -380,7 +380,7 @@ begin
   RegisterSelectionEditor(TAiChatCodeInterpreterBridge, TAiBridgeSelEditor);
   RegisterSelectionEditor(TAiChatWebSearchBridge, TAiBridgeSelEditor);
 
-  // --- Otros ---
+  // --- Others ---
   RegisterSelectionEditor(TAiPrompts, TAiToolSelEditor);
 
 end;

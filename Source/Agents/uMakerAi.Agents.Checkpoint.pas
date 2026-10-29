@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -49,7 +49,7 @@ uses
 
 type
   // -------------------------------------------------------------------------
-  // TAiPendingStep  -- un paso suspendido esperando approval humana
+  // TAiPendingStep  -- a suspended step waiting for human approval
   // -------------------------------------------------------------------------
   TAiPendingStep = class
   private
@@ -78,7 +78,7 @@ type
   end;
 
   // -------------------------------------------------------------------------
-  // TAiCheckpointSnapshot  -- estado completo de una execution en un instante
+  // TAiCheckpointSnapshot  -- complete state of an execution at an instant
   // -------------------------------------------------------------------------
   TAiCheckpointSnapshot = class
   private
@@ -107,7 +107,7 @@ type
   end;
 
   // -------------------------------------------------------------------------
-  // IAiCheckpointer  -- contrato de persistencia; implementaciones thread-safe
+  // IAiCheckpointer  -- persistence contract; thread-safe implementations
   // -------------------------------------------------------------------------
   IAiCheckpointer = interface
   ['{A3F2C1D4-8B5E-4F7A-9C3D-2E1B0F6A8D4C}']
@@ -118,7 +118,7 @@ type
   end;
 
   // -------------------------------------------------------------------------
-  // TAiNullCheckpointer  -- no-op: mantiene comportamiento sin persistencia
+  // TAiNullCheckpointer  -- no-op: keeps behavior without persistence
   // -------------------------------------------------------------------------
   TAiNullCheckpointer = class(TInterfacedObject, IAiCheckpointer)
   public
@@ -129,7 +129,7 @@ type
   end;
 
   // -------------------------------------------------------------------------
-  // TAiFileCheckpointer  -- JSON en disco: <dir>/<GUID>.checkpoint.json
+  // TAiFileCheckpointer  -- JSON on disk: <dir>/<GUID>.checkpoint.json
   // -------------------------------------------------------------------------
   TAiFileCheckpointer = class(TInterfacedObject, IAiCheckpointer)
   private

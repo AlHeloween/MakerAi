@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enríquez
-// Redes Sociales:
+// Name: Gustavo Enriquez
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - Telegram: https://t.me/MakerAi_Delphi_Suite_English
@@ -31,15 +31,15 @@
 
 unit uMakerAi.Agents.Tools.Approval;
 
-// Herramienta de suspensión human-in-the-loop.
-// Cuando un nodo ejecuta esta tool, la ejecución del grafo se suspende
-// y se dispara el evento TAIAgentManager.OnSuspend.
-// La ejecución se reanuda llamando a TAIAgentManager.ResumeThread.
+// Human-in-the-loop suspension tool.
+// When a node executes this tool, the graph execution is suspended
+// and the TAIAgentManager.OnSuspend event is triggered.
+// Execution is resumed by calling TAIAgentManager.ResumeThread.
 //
-// Uso:
+// Usage:
 //   LNode.Tool := TAiWaitApprovalTool.Create(LNode);
-//   TAiWaitApprovalTool(LNode.Tool).SuspendReason := 'Requiere aprobación';
-//   TAiWaitApprovalTool(LNode.Tool).ContextKey    := 'resultado_previo';
+//   TAiWaitApprovalTool(LNode.Tool).SuspendReason := 'Requires approval';
+//   TAiWaitApprovalTool(LNode.Tool).ContextKey    := 'previous_result';
 
 interface
 
@@ -49,7 +49,7 @@ uses
 
 type
   [TToolAttribute('WaitApproval',
-                  'Suspende la ejecución hasta que un operador humano apruebe el paso',
+                  'Suspends execution until a human operator approves the step',
                   'Control')]
   TAiWaitApprovalTool = class(TAiToolBase)
   private
@@ -59,13 +59,13 @@ type
     procedure Execute(ANode: TAIAgentsNode; const AInput: string;
                       var AOutput: string); override;
   published
-    [TToolParameterAttribute('Razón de suspensión',
-                             'Mensaje legible que explica por qué se requiere aprobación',
-                             'Se requiere aprobación del operador')]
+    [TToolParameterAttribute('Suspension reason',
+                             'Human-readable message explaining why approval is required',
+                             'Operator approval is required')]
     property SuspendReason: string read FSuspendReason write FSuspendReason;
 
-    [TToolParameterAttribute('Clave de contexto',
-                             'Clave del Blackboard cuyo valor se incluye como contexto',
+    [TToolParameterAttribute('Context key',
+                             'Blackboard key whose value is included as context',
                              '')]
     property ContextKey: string read FContextKey write FContextKey;
   end;
@@ -81,22 +81,22 @@ var
   LReason:  string;
   LKey:     string;
 begin
-  // Pass-through: cuando se reanude, AInput es la respuesta del humano
+  // Pass-through: when resumed, AInput is the human's response
   AOutput := AInput;
 
   if not Assigned(ANode) then
     Exit;
 
-  // ResumeThread vuelve a ejecutar este nodo (DoExecute con aBeforeNode=nil),
-  // asi que la tool corre DOS veces: al suspender y al reanudar. La marca en
-  // el blackboard distingue ambos casos —mismo patron que el demo
-  // 10-HumanInTheLoop— y viaja en el checkpoint, por lo que sobrevive a un
-  // reinicio del proceso.
+  // ResumeThread re-executes this node (DoExecute with aBeforeNode=nil),
+  // so the tool runs TWICE: when suspending and when resuming. The mark in
+  // the blackboard distinguishes both cases —same pattern as the demo
+  // 10-HumanInTheLoop— and travels in the checkpoint, so it survives a
+  // process restart.
   LKey := 'approval.' + ANode.Name + '.pending';
   if Assigned(ANode.Graph) and
      (ANode.Graph.Blackboard.GetString(LKey) = '1') then
   begin
-    // Reanudacion: no suspender de nuevo; AOutput ya lleva la respuesta.
+    // Resumption: do not suspend again; AOutput already contains the response.
     ANode.Graph.Blackboard.SetString(LKey, '');
     Exit;
   end;

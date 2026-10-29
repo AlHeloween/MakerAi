@@ -1,8 +1,8 @@
-// MIT License
+﻿// MIT License
 //
-// MakerAI - Servidor A2A (Agent-to-Agent Protocol, Linux Foundation)
+// MakerAI - A2A Server (Agent-to-Agent Protocol, Linux Foundation)
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
@@ -12,43 +12,43 @@
 unit uMakerAi.A2A.Server;
 
 // -----------------------------------------------------------------------------
-// TAiA2AServer (spec A2A 1.0): expone uno o varios TAIAgentManager como agente
-// A2A para flujos de orquestacion / federacion.
+// TAiA2AServer (spec A2A 1.0): exposes one or more TAIAgentManager as an A2A
+// agent for orchestration / federation flows.
 //
-// - Agent Card en GET /.well-known/agent-card.json (y el alias legacy
+// - Agent Card at GET /.well-known/agent-card.json (and the legacy alias
 //   /.well-known/agent.json).
-// - Binding JSON-RPC 2.0 en POST /: metodos 1.0 (SendMessage, GetTask,
-//   CancelTask) con tolerancia a los aliases 0.x (message/send, tasks/get,
+// - JSON-RPC 2.0 binding at POST /: 1.0 methods (SendMessage, GetTask,
+//   CancelTask) with tolerance for the 0.x aliases (message/send, tasks/get,
 //   tasks/cancel).
 //
-// CONCURRENCIA
-//   Un unico TAIAgentManager no puede ejecutar dos grafos a la vez, asi que un
-//   servidor con un solo manager serializa los tasks (el segundo recibe
-//   AgentBusy). Para orquestacion real (fan-out de varios nodos contra el mismo
-//   agente remoto) asignar OnAcquireManager: la fabrica devuelve una instancia
-//   nueva del grafo y el servidor mantiene un pool de hasta MaxConcurrentTasks.
-//   La reserva del slot es atomica, de modo que dos peticiones simultaneas no
-//   pueden quedarse con el mismo manager.
+// CONCURRENCY
+//   A single TAIAgentManager cannot run two graphs at once, so a
+//   server with a single manager serializes the tasks (the second one receives
+//   AgentBusy). For real orchestration (fan-out of several nodes against the same
+//   remote agent) assign OnAcquireManager: the factory returns a fresh
+//   graph instance and the server keeps a pool of up to MaxConcurrentTasks.
+//   The slot reservation is atomic, so two simultaneous requests cannot
+//   take the same manager.
 //
-// CICLO DE VIDA DEL TASK
-//   SendMessage crea el task y lanza el grafo. Si configuration.blocking es
-//   false (o vence WaitTimeoutMs) responde con el task en estado working y el
-//   cliente sigue con GetTask; el estado se refresca de forma perezosa desde el
-//   manager, de modo que un task nunca queda mintiendo. El slot se libera solo
-//   al llegar a un estado terminal.
+// TASK LIFECYCLE
+//   SendMessage creates the task and launches the graph. If configuration.blocking is
+//   false (or WaitTimeoutMs elapses) it responds with the task in working state and the
+//   client continues with GetTask; the state is lazily refreshed from the
+//   manager, so a task never lies. The slot is freed only
+//   when a terminal state is reached.
 //
 // HUMAN-IN-THE-LOOP
-//   Una suspension del grafo (Node.Suspend) se publica como input-required y el
-//   task conserva su manager. Un SendMessage posterior que incluya ese taskId
-//   reanuda el grafo (ResumeThread) con el texto recibido como respuesta
-//   humana, de modo que la conversacion multi-turno cruza A2A.
+//   A graph suspension (Node.Suspend) is published as input-required and the
+//   task keeps its manager. A later SendMessage including that taskId
+//   resumes the graph (ResumeThread) with the received text as the human
+//   response, so the multi-turn conversation crosses A2A.
 //
-// OBSERVABILIDAD
-//   El span de servidor continua la traza del llamante si llega el header
-//   traceparent (W3C), igual que hace el servidor MCP con _meta.
+// OBSERVABILITY
+//   The server span continues the caller's trace if the header
+//   traceparent (W3C) arrives, the same way the MCP server does with _meta.
 //
-// Sin streaming ni push notifications: capabilities=false y la spec exige
-// rechazar SendStreamingMessage con UnsupportedOperationError.
+// No streaming and no push notifications: capabilities=false and the spec requires
+// rejecting SendStreamingMessage with UnsupportedOperationError.
 // -----------------------------------------------------------------------------
 
 interface
@@ -61,8 +61,8 @@ uses
   uMakerAi.Agents;
 
 type
-  // Excepcion con codigo JSON-RPC explicito (evita mapear errores por prefijo
-  // del mensaje, que era fragil y perdia el codigo ante cualquier retoque).
+  // Exception with an explicit JSON-RPC code (avoids mapping errors by message
+  // prefix, which was fragile and lost the code on any touch-up).
   EA2AServerError = class(Exception)
   private
     FCode: Integer;
@@ -71,39 +71,39 @@ type
     property Code: Integer read FCode;
   end;
 
-  // Forma en que se serializan los enums de la spec:
+  // How the spec's enums are serialized:
   //   anProto -> TASK_STATE_COMPLETED / ROLE_AGENT  (v1.0: ProtoJSON)
-  //   anLower -> completed / agent                  (era 0.x, kebab-case)
-  // v1.0 paso de kebab-case a SCREAMING_SNAKE_CASE por conformidad con
-  // ProtoJSON, asi que anProto es el correcto y anLower el de compatibilidad.
-  // La lectura siempre tolera ambas.
+  //   anLower -> completed / agent                  (0.x era, kebab-case)
+  // v1.0 moved from kebab-case to SCREAMING_SNAKE_CASE for ProtoJSON conformance,
+  // so anProto is the correct one and anLower the compatibility one.
+  // Reading always tolerates both.
   TAiA2ANaming = (anProto, anLower);
 
-  // Era del formato de cable. Verificado contra a2a-sdk 1.1.2:
-  //   weV1  -> SendMessage devuelve SendMessageResponse, con el Task ENVUELTO
-  //            en {"task": {...}}, y la Agent Card publica supportedInterfaces[].
-  //   weV03 -> el Task viaja plano en result y la card lleva url/protocolVersion
-  //            en la raiz (lo que emitia MakerAI antes de agosto 2026).
-  // OJO: GetTask y CancelTask devuelven el Task DIRECTO en ambas eras; en el
-  // proto son "returns (Task)" y no tienen mensaje de respuesta propio.
+  // Wire format era. Verified against a2a-sdk 1.1.2:
+  //   weV1  -> SendMessage returns a SendMessageResponse, with the Task WRAPPED
+  //            in {"task": {...}}, and the Agent Card publishes supportedInterfaces[].
+  //   weV03 -> the Task travels flat in result and the card carries url/protocolVersion
+  //            at the root (what MakerAI emitted before August 2026).
+  // NOTE: GetTask and CancelTask return the Task DIRECTLY in both eras; in the
+  // proto they are "returns (Task)" and have no response message of their own.
   TAiA2AWireEra = (weV1, weV03);
 
   TAiA2AServer = class;
 
-  // Slot del pool: un manager + su reserva. La reserva es propia del servidor y
-  // no depende de Manager.Busy, para cerrar la ventana TOCTOU entre "vi que
-  // estaba libre" y "lo puse a correr".
+  // Pool slot: a manager + its reservation. The reservation belongs to the server and
+  // does not depend on Manager.Busy, to close the TOCTOU window between "I saw it
+  // free" and "I set it running".
   TAiA2AManagerSlot = class
   public
     Manager: TAIAgentManager;
-    Owned: Boolean; // creado por la fabrica -> lo liberamos nosotros
+    Owned: Boolean; // created by the factory -> we free it
     InUse: Boolean;
     PrevOnFinish: TAIAgentsOnFinish;
     HookedFinish: Boolean;
   end;
 
-  // Config de push notification registrada para un task. La forma de v1.0 es
-  // PLANA: {id, taskId, url, token, authentication:{scheme, credentials}}.
+  // Push notification config registered for a task. The v1.0 form is
+  // FLAT: {id, taskId, url, token, authentication:{scheme, credentials}}.
   TAiA2APushConfig = class
   public
     Id: string;
@@ -118,40 +118,40 @@ type
   TAiA2ATaskInfo = class
   public
     Id: string;
-    MessageId: string;  // messageId del mensaje que creo el task
+    MessageId: string;  // messageId of the message that created the task
     ContextId: string;
-    State: string; // canonico en minusculas: working, completed, ...
+    State: string; // canonical lowercase: working, completed, ...
     OutputText: string;
     ErrorText: string;
     CreatedAt: TDateTime;
     UpdatedAt: TDateTime;
-    // Vinculo con la ejecucion viva (nil cuando el task es terminal)
+    // Link to the live execution (nil when the task is terminal)
     Slot: TAiA2AManagerSlot;
     ThreadID: string;
     SuspendNode: string;
     SuspendReason: string;
     SuspendContext: string;
-    // Respuesta estructurada que dejo el grafo en el blackboard (ver
-    // A2A_BB_ARTIFACTS / A2A_BB_MESSAGE). Vacias = respuesta de texto normal.
+    // Structured response the graph left in the blackboard (see
+    // A2A_BB_ARTIFACTS / A2A_BB_MESSAGE). Empty = normal text response.
     ArtifactsJson: string;
     MessageJson: string;
-    History: TStringList; // 'role<TAB>texto'
+    History: TStringList; // 'role<TAB>text'
     constructor Create;
     destructor Destroy; override;
   end;
 
   // ---------------------------------------------------------------------------
-  // Skills declaradas del Agent Card
+  // Skills declared on the Agent Card
   // ---------------------------------------------------------------------------
-  // Una skill A2A es lo que un cliente lee para DECIDIR si este agente le sirve.
-  // No es un punto de entrada: la spec no lleva selector de skill en
-  // SendMessage, asi que las skills describen, no enrutan.
+  // An A2A skill is what a client reads to DECIDE whether this agent serves it.
+  // It is not an entry point: the spec carries no skill selector in
+  // SendMessage, so skills describe, they do not route.
   //
-  // Por eso NO se derivan de los nodos automaticamente: un grafo normal tiene
-  // nodos llamados 'Nodo1'/'Nodo2' sin descripcion, y publicarlos seria ruido
-  // que ademas insinua una granularidad de invocacion que no existe. Quien
-  // quiera skills utiles las declara aqui; ver tambien PublishNodesAsSkills
-  // para el caso en que los nodos SI traen descripcion en su Tool.
+  // That is why they are NOT derived from the nodes automatically: a normal graph has
+  // nodes named 'Node1'/'Node2' without description, and publishing them would be noise
+  // that also hints at an invocation granularity that does not exist. Whoever
+  // wants useful skills declares them here; see also PublishNodesAsSkills
+  // for the case where the nodes DO carry a description in their Tool.
   TAiA2ASkill = class(TCollectionItem)
   private
     FId: string;
@@ -164,11 +164,11 @@ type
     procedure Assign(Source: TPersistent); override;
   published
     property Id: string read FId write FId;
-    // 'Title' y no 'Name': TCollectionItem no tiene Name, pero el campo del
-    // Agent Card se llama 'name'.
+    // 'Title' and not 'Name': TCollectionItem has no Name, but the Agent Card's
+    // field is called 'name'.
     property Title: string read FTitle write FTitle;
     property Description: string read FDescription write FDescription;
-    // Separadas por coma. Se emiten como array JSON.
+    // Comma-separated. Emitted as a JSON array.
     property Tags: string read FTags write FTags;
   end;
 
@@ -179,19 +179,19 @@ type
   public
     constructor Create(AOwner: TPersistent);
     function Add: TAiA2ASkill;
-    // Atajo para declarar una skill en una linea desde codigo.
+    // Shortcut to declare a skill in one line from code.
     function AddSkill(const AId, ATitle, ADescription: string;
       const ATags: string = ''): TAiA2ASkill;
     property Items[AIndex: Integer]: TAiA2ASkill read GetItem write SetItem; default;
   end;
 
-  // Fabrica de managers para el pool. Debe devolver un grafo nuevo y completo
-  // (mismo shape que AgentManager); el servidor se hace cargo de liberarlo.
+  // Manager factory for the pool. It must return a new and complete graph
+  // (same shape as AgentManager); the server takes care of freeing it.
   TAiA2AAcquireManager = procedure(Sender: TObject; var AManager: TAIAgentManager) of object;
-  // Ultimo retoque de la Agent Card antes de publicarla.
+  // Last touch on the Agent Card before publishing it.
   TAiA2ACardEvent = procedure(Sender: TObject; ACard: TJSONObject) of object;
-  // Autorizacion propia. Se llama antes de procesar la peticion; AAllow=False
-  // responde 401. AAuthHeader es el valor crudo de Authorization.
+  // Own authorization. Called before processing the request; AAllow=False
+  // responds 401. AAuthHeader is the raw Authorization value.
   TAiA2AAuthEvent = procedure(Sender: TObject; const AAuthHeader: string; var AAllow: Boolean) of object;
 
   TAiA2AServer = class(TComponent)
@@ -221,10 +221,10 @@ type
     FPushConfigs: TObjectList<TAiA2APushConfig>;
     FPushLock: TCriticalSection;
 
-    // Ultima URL base servida, para poder responder GetExtendedAgentCard sin
-    // tener el contexto HTTP delante.
+    // Last base URL served, so GetExtendedAgentCard can be answered without
+    // having the HTTP context at hand.
     FLastBaseUrl: string;
-    // Puente entre DoSendMessage y HandleJsonRpc para el brazo 'message'
+    // Bridge between DoSendMessage and HandleJsonRpc for the 'message' arm
     FLastMessageJson: string;
     FTasks: TObjectDictionary<string, TAiA2ATaskInfo>;
     FTasksLock: TCriticalSection;
@@ -236,10 +236,10 @@ type
     procedure SetActive(const Value: Boolean);
     procedure SetAgentManager(const Value: TAIAgentManager);
     procedure SetSkills(const Value: TAiA2ASkills);
-    // TIdHTTPServer solo entiende autenticacion Basic. Con cualquier otro
-    // esquema (Bearer, que es el que usa A2A) responde 401 el solo y
-    // HttpCommand no llega a ejecutarse nunca. Marcandolo como atendido la
-    // peticion sigue su curso y la autorizacion la decidimos nosotros.
+    // TIdHTTPServer only understands Basic authentication. With any other
+    // scheme (Bearer, the one A2A uses) it responds 401 by itself and
+    // HttpCommand never gets to run. Marking it as handled lets the
+    // request continue and we decide the authorization.
     procedure ParseAuthentication(AContext: TIdContext; const AAuthType, AAuthData: string;
       var VUsername, VPassword: string; var VHandled: Boolean);
     procedure HttpCommand(AContext: TIdContext; ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo);
@@ -250,25 +250,25 @@ type
     // --- tasks ---
     function NewTask(const AContextId: string): TAiA2ATaskInfo;
     function FindTask(const AId: string): TAiA2ATaskInfo;
-    // AIgnoreBusy: saltarse la comprobacion de Manager.Busy. Solo tiene
-    // sentido desde OnGraphFinished, donde ya se sabe que el grafo acabo.
-    procedure RefreshTask(AInfo: TAiA2ATaskInfo; AIgnoreBusy: Boolean = False); // exige FTasksLock tomado
+    // AIgnoreBusy: skip the Manager.Busy check. It only makes
+    // sense from OnGraphFinished, where the graph is already known to have finished.
+    procedure RefreshTask(AInfo: TAiA2ATaskInfo; AIgnoreBusy: Boolean = False); // requires FTasksLock taken
     procedure StartTask(AInfo: TAiA2ATaskInfo; const AInput: string);
     procedure ResumeTask(AInfo: TAiA2ATaskInfo; const AInput: string; const AMessageId: string);
     procedure WaitTask(AInfo: TAiA2ATaskInfo);
     procedure PurgeTasks;
     // --- json ---
     function BuildAgentCard(const ABaseUrl: string): TJSONObject;
-    // AHistoryLength: -1 todo el historial, 0 ninguno, N los ultimos N.
+    // AHistoryLength: -1 the whole history, 0 none, N the last N.
     function BuildTaskJson(AInfo: TAiA2ATaskInfo; AHistoryLength: Integer = -1): TJSONObject;
-    // Envuelve el Task como SendMessageResponse cuando la era es v1.0.
+    // Wraps the Task as a SendMessageResponse when the era is v1.0.
     function WrapSendMessageResult(ATask: TJSONObject): TJSONObject;
     function WrapSendMessageAsMessage(const AMessageJson: string; ATask: TJSONObject): TJSONObject;
     // --- streaming SSE ---
     procedure SseWriteEvent(AContext: TIdContext; AId: TJSONValue; APayload: TJSONObject);
     function StreamStatusEvent(AInfo: TAiA2ATaskInfo): TJSONObject;
-    // Emite los artifacts del task (solo tiene sentido si completo). Van
-    // ANTES del status final: es el orden del ejemplo de la spec.
+    // Emits the task's artifacts (only makes sense if completed). They go
+    // BEFORE the final status: that is the spec example's order.
     procedure SseEmitArtifacts(AContext: TIdContext; AId: TJSONValue; AInfo: TAiA2ATaskInfo);
     procedure HandleStreamingRequest(AContext: TIdContext; ARequestInfo: TIdHTTPRequestInfo;
       AResponseInfo: TIdHTTPResponseInfo; const AMethod: string; AParams: TJSONObject; AId: TJSONValue);
@@ -285,9 +285,9 @@ type
     function DoListPushConfigs(AParams: TJSONObject): TJSONObject;
     function DoDeletePushConfig(AParams: TJSONObject): TJSONObject;
     procedure DeliverPushNotifications(AInfo: TAiA2ATaskInfo);
-    // Se engancha a TAIAgentManager.OnFinish: es el aviso de que un grafo
-    // termino. Sustituye al sondeo, que era la unica forma de enterarse y
-    // dependia de que alguien consultara el task.
+    // Hooks into TAIAgentManager.OnFinish: it is the notice that a graph
+    // finished. It replaces polling, which was the only way to find out and
+    // depended on someone querying the task.
     procedure RefreshLiveTasks;
     procedure OnGraphFinished(Sender: TObject; const Input, Output: string;
       Status: TAgentExecutionStatus; E: Exception);
@@ -310,46 +310,46 @@ type
     property AgentName: string read FAgentName write FAgentName;
     property AgentDescription: string read FAgentDescription write FAgentDescription;
     property AgentVersion: string read FAgentVersion write FAgentVersion;
-    // Espera maxima de SendMessage bloqueante. Al vencer NO se falla el task:
-    // se devuelve en working para que el cliente siga con GetTask.
+    // Maximum wait of a blocking SendMessage. On expiry the task is NOT failed:
+    // it is returned in working so the client continues with GetTask.
     property WaitTimeoutMs: Integer read FWaitTimeoutMs write FWaitTimeoutMs default 60000;
-    // Alias del nombre anterior: los DFM ya escritos siguen cargando. No se
-    // vuelve a serializar (stored False) para que el nombre nuevo sea el unico
-    // que quede en disco.
+    // Alias of the previous name: already-written DFM files keep loading. It is
+    // not serialized again (stored False) so the new name is the only
+    // one left on disk.
     property RunTimeoutMs: Integer read FWaitTimeoutMs write FWaitTimeoutMs stored False;
-    // Tope del pool. Solo se supera 1 si OnAcquireManager esta asignado.
+    // Pool cap. Only exceeds 1 if OnAcquireManager is assigned.
     property MaxConcurrentTasks: Integer read FMaxConcurrentTasks write FMaxConcurrentTasks default 4;
-    // Retencion de tasks terminados (segundos) y tope duro del registry.
+    // Retention of finished tasks (seconds) and hard cap of the registry.
     property TaskTtlSeconds: Integer read FTaskTtlSeconds write FTaskTtlSeconds default 3600;
     property MaxTasks: Integer read FMaxTasks write FMaxTasks default 1000;
-    // Si no esta vacio se exige Authorization: Bearer <ApiKey> (o X-API-Key).
+    // If not empty, Authorization: Bearer <ApiKey> (or X-API-Key) is required.
     property ApiKey: string read FApiKey write FApiKey;
-    // URL publica a anunciar en la card (util detras de un reverse proxy).
+    // Public URL to announce in the card (useful behind a reverse proxy).
     property PublicUrl: string read FPublicUrl write FPublicUrl;
     property StateNaming: TAiA2ANaming read FStateNaming write FStateNaming default anProto;
-    // Formato de cable. weV1 es el de la spec 1.0 y el default; weV03 reproduce
-    // lo que emitia MakerAI antes de agosto 2026, para no romper integraciones
-    // que ya dependieran de aquella forma.
+    // Wire format. weV1 is the spec 1.0 one and the default; weV03 reproduces
+    // what MakerAI emitted before August 2026, so integrations that already
+    // depended on that form do not break.
     property WireEra: TAiA2AWireEra read FWireEra write FWireEra default weV1;
-    // Habilita GetExtendedAgentCard. La card extendida se construye igual que
-    // la publica, asi que para diferenciarla hay que enriquecerla en
-    // OnCustomizeCard (que recibe la card antes de publicarse).
+    // Enables GetExtendedAgentCard. The extended card is built the same as
+    // the public one, so to differentiate it you must enrich it in
+    // OnCustomizeCard (which receives the card before it is published).
     property PublishExtendedCard: Boolean read FPublishExtendedCard write FPublishExtendedCard default False;
-    // Skills declaradas. Si esta vacia se publica una unica skill
-    // 'run-graph' que representa la ejecucion del grafo entero.
+    // Declared skills. If empty, a single 'run-graph' skill is published
+    // representing the whole graph's execution.
     property Skills: TAiA2ASkills read FSkills write SetSkills;
-    // Anade una skill por nodo del grafo que tenga descripcion (la de su
-    // Tool). Los nodos sin descripcion se omiten a proposito: publicar
-    // 'Nodo1' sin mas no ayuda a nadie a elegir agente.
+    // Adds one skill per graph node that has a description (its Tool's).
+    // Nodes without description are omitted on purpose: publishing
+    // 'Node1' with nothing else does not help anyone choose an agent.
     property PublishNodesAsSkills: Boolean read FPublishNodesAsSkills write FPublishNodesAsSkills default False;
-    // Segundos de Cache-Control/max-age de la Agent Card (SHOULD de la spec).
+    // Cache-Control/max-age seconds of the Agent Card (spec SHOULD).
     property CardCacheSeconds: Integer read FCardCacheSeconds write FCardCacheSeconds default 3600;
-    // Cuanto se espera un hueco del pool antes de devolver AgentBusy.
+    // How long a pool slot is waited for before returning AgentBusy.
     property AcquireTimeoutMs: Integer read FAcquireTimeoutMs write FAcquireTimeoutMs default 10000;
-    // Habilita SendStreamingMessage y SubscribeToTask, y lo anuncia en
-    // capabilities.streaming. Con False se rechazan con UnsupportedOperation.
+    // Enables SendStreamingMessage and SubscribeToTask, and announces it in
+    // capabilities.streaming. With False they are rejected with UnsupportedOperation.
     property EnableStreaming: Boolean read FEnableStreaming write FEnableStreaming default True;
-    // Habilita el CRUD de configs y la entrega al webhook, y lo anuncia en
+    // Enables the config CRUD and the webhook delivery, and announces it in
     // capabilities.pushNotifications.
     property EnablePushNotifications: Boolean read FEnablePushNotifications
       write FEnablePushNotifications default True;
@@ -359,7 +359,7 @@ type
   end;
 
 const
-  // Estados canonicos de la spec (forma JSON-RPC en minusculas)
+  // Canonical states of the spec (JSON-RPC lowercase form)
   A2A_STATE_SUBMITTED = 'submitted';
   A2A_STATE_WORKING = 'working';
   A2A_STATE_INPUT_REQUIRED = 'input-required';
@@ -367,7 +367,7 @@ const
   A2A_STATE_CANCELED = 'canceled';
   A2A_STATE_FAILED = 'failed';
 
-  // Codigos de error JSON-RPC especificos A2A (spec 1.0, seccion 5.4)
+  // A2A-specific JSON-RPC error codes (spec 1.0, section 5.4)
   A2A_ERR_AGENT_BUSY = -32000;
   A2A_ERR_TASK_NOT_FOUND = -32001;
   A2A_ERR_TASK_NOT_CANCELABLE = -32002;
@@ -380,32 +380,32 @@ const
   A2A_ERR_VERSION_NOT_SUPPORTED = -32009;
   A2A_ERR_INVALID_PARAMS = -32602;
 
-  // ErrorInfo de google.rpc: la spec exige que error.data sea un ARRAY que lo
-  // contenga, con la convencion ProtoJSON de @type.
+  // google.rpc ErrorInfo: the spec requires error.data to be an ARRAY containing
+  // it, with the ProtoJSON @type convention.
   A2A_ERRORINFO_TYPE = 'type.googleapis.com/google.rpc.ErrorInfo';
   A2A_ERROR_DOMAIN = 'a2a-protocol.org';
 
-  // Version del protocolo que anunciamos y aceptamos en la cabecera A2A-Version
+  // Protocol version we announce and accept in the A2A-Version header
   A2A_VERSION_HEADER = 'A2A-Version';
   A2A_VERSION = '1.0';
 
   // --- Canal blackboard <-> A2A -------------------------------------------
-  // El servidor siembra estas claves antes de correr el grafo, para que los
-  // nodos sepan en que conversacion estan:
+  // The server seeds these keys before running the graph, so the nodes
+  // know which conversation they are in:
   A2A_BB_MESSAGE_ID = 'A2A.MessageId';
   A2A_BB_TASK_ID = 'A2A.TaskId';
   A2A_BB_CONTEXT_ID = 'A2A.ContextId';
-  // Y lee estas al terminar, para responder algo mas rico que texto plano:
-  //   A2A.Artifacts -> array JSON de artifacts, se emite tal cual. Permite
-  //                    DataPart, FilePart (bytes o url) y varios artifacts.
-  //   A2A.Message   -> objeto Message JSON. Si esta, SendMessage responde
-  //                    {"message": ...} en vez de {"task": ...}, que es el
-  //                    otro brazo del oneof SendMessageResponse.
+  // And reads these at the end, to respond with something richer than plain text:
+  //   A2A.Artifacts -> JSON array of artifacts, emitted as-is. Allows
+  //                    DataPart, FilePart (bytes or url) and several artifacts.
+  //   A2A.Message   -> JSON Message object. If present, SendMessage responds
+  //                    {"message": ...} instead of {"task": ...}, which is the
+  //                    other arm of the SendMessageResponse oneof.
   A2A_BB_ARTIFACTS = 'A2A.Artifacts';
   A2A_BB_MESSAGE = 'A2A.Message';
 
-// Convierte cualquiera de las dos formas ('TASK_STATE_INPUT_REQUIRED' o
-// 'input-required') al canonico en minusculas. Publica porque el cliente la usa.
+// Converts either form ('TASK_STATE_INPUT_REQUIRED' or
+// 'input-required') to the canonical lowercase. Published because the client uses it.
 function A2ACanonicalState(const AValue: string): string;
 
 procedure Register;
@@ -463,7 +463,7 @@ end;
 { TAiA2AServer }
 
 // -----------------------------------------------------------------------------
-// Skills declaradas
+// Declared skills
 // -----------------------------------------------------------------------------
 
 function TAiA2ASkill.GetDisplayName: string;
@@ -579,7 +579,7 @@ begin
   if FAgentManager <> Value then
   begin
     FAgentManager := Value;
-    ClearSlots; // el pool se reconstruye con el manager nuevo
+    ClearSlots; // the pool is rebuilt with the new manager
     if Assigned(FAgentManager) then
       FAgentManager.FreeNotification(Self);
   end;
@@ -608,9 +608,9 @@ begin
   FHttpServer.Active := True;
   FActive := True;
 
-  // Ya no hay hilo de sondeo: la deteccion del fin de un grafo va por el evento
-  // OnFinish del propio TAIAgentManager, que es determinista y no cuesta nada.
-  // RefreshLiveTasks se conserva por si un integrador quiere forzar un repaso.
+  // There is no polling thread anymore: graph-finish detection goes through the
+  // TAIAgentManager's own OnFinish event, which is deterministic and costs nothing.
+  // RefreshLiveTasks is kept in case an integrator wants to force a review.
 end;
 
 procedure TAiA2AServer.Stop;
@@ -623,7 +623,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Pool de managers
+// Manager pool
 // ---------------------------------------------------------------------------
 
 procedure TAiA2AServer.ClearSlots;
@@ -655,7 +655,7 @@ begin
   repeat
   FSlotsLock.Enter;
   try
-    // El manager de diseno es siempre el slot 0.
+    // The design-time manager is always slot 0.
     if (FSlots.Count = 0) and Assigned(FAgentManager) then
     begin
       Slot := TAiA2AManagerSlot.Create;
@@ -671,8 +671,8 @@ begin
         Exit(Slot);
       end;
 
-    // Crecer el pool solo si hay fabrica: sin ella no hay forma de tener un
-    // segundo grafo equivalente.
+    // Grow the pool only if there is a factory: without it there is no way to have a
+    // second equivalent graph.
     if Assigned(FOnAcquireManager) and (FSlots.Count < FMaxConcurrentTasks) then
     begin
       NewMgr := nil;
@@ -696,9 +696,9 @@ begin
     Inc(Esperado, 25);
   until Esperado >= FAcquireTimeoutMs;
 
-  // Sin hueco libre: en vez de rechazar de inmediato se espera un poco. Un
-  // pico de concurrencia es normal y los grafos suelen durar poco; devolver
-  // AgentBusy a la primera convierte una espera en un error para el cliente.
+  // No free slot: instead of rejecting immediately, wait a bit. A
+  // concurrency spike is normal and graphs are usually short-lived; returning
+  // AgentBusy at the first turn converts a wait into an error for the client.
   if Result = nil then
     raise EA2AServerError.CreateCode(A2A_ERR_AGENT_BUSY,
       'Agent busy: no free agent slot (MaxConcurrentTasks=' + IntToStr(FMaxConcurrentTasks) + ')');
@@ -739,19 +739,19 @@ begin
   end;
 end;
 
-// v1.0: SendMessage responde un SendMessageResponse, que es un oneof
-// {task | message}. El Task por tanto va ENVUELTO. GetTask y CancelTask no
-// llevan wrapper: en el proto devuelven Task directamente.
+// v1.0: SendMessage responds a SendMessageResponse, which is a oneof
+// {task | message}. The Task therefore goes WRAPPED. GetTask and CancelTask do
+// not carry a wrapper: in the proto they return the Task directly.
 function TAiA2AServer.WrapSendMessageResult(ATask: TJSONObject): TJSONObject;
 begin
   if FWireEra = weV03 then
     Exit(ATask);
   Result := TJSONObject.Create;
-  Result.AddPair('task', ATask); // toma posesion
+  Result.AddPair('task', ATask); // takes ownership
 end;
 
-// El otro brazo del oneof: responder con un Message en vez de con un Task,
-// para agentes que contestan de una sin crear tarea.
+// The other arm of the oneof: respond with a Message instead of a Task,
+// for agents that answer at once without creating a task.
 function TAiA2AServer.WrapSendMessageAsMessage(const AMessageJson: string; ATask: TJSONObject): TJSONObject;
 var
   MsgObj: TJSONValue;
@@ -760,9 +760,9 @@ begin
   if not(MsgObj is TJSONObject) then
   begin
     MsgObj.Free;
-    Exit(WrapSendMessageResult(ATask)); // JSON invalido: se responde el task
+    Exit(WrapSendMessageResult(ATask)); // invalid JSON: the task is responded
   end;
-  ATask.Free; // no se usa en esta rama
+  ATask.Free; // not used in this branch
   if FWireEra = weV03 then
     Exit(TJSONObject(MsgObj));
   Result := TJSONObject.Create;
@@ -786,7 +786,7 @@ begin
     esCompleted:
       Result := A2A_STATE_COMPLETED;
     esSuspended:
-      Result := A2A_STATE_INPUT_REQUIRED; // human-in-the-loop del grafo
+      Result := A2A_STATE_INPUT_REQUIRED; // the graph's human-in-the-loop
     esAborted:
       Result := A2A_STATE_CANCELED;
     esRunning:
@@ -796,10 +796,10 @@ begin
   end;
 end;
 
-// Refresca el estado del task desde su manager. Se llama con FTasksLock tomado.
-// Es la pieza que evita que un task quede mintiendo: mientras la ejecucion siga
-// viva, el estado publicado sale siempre del grafo, no de lo que se anoto al
-// responder el SendMessage.
+// Refreshes the task's state from its manager. Called with FTasksLock taken.
+// It is the piece that keeps a task from lying: while the execution stays
+// alive, the published state always comes from the graph, not from what was
+// noted when answering the SendMessage.
 procedure TAiA2AServer.RefreshTask(AInfo: TAiA2ATaskInfo; AIgnoreBusy: Boolean);
 var
   Mgr: TAIAgentManager;
@@ -816,9 +816,9 @@ begin
   if not Assigned(Mgr) then
     Exit;
 
-  // OJO con el orden del motor: TAIAgentManager dispara OnFinish y solo
-  // DESPUES pone FBusy a 0. Un refresco lanzado desde ese evento veria el
-  // manager como ocupado y se perderia la transicion final.
+  // NOTE the engine's order: TAIAgentManager fires OnFinish and only
+  // AFTER that sets FBusy to 0. A refresh launched from that event would see the
+  // manager as busy and the final transition would be lost.
   if Mgr.Busy and not AIgnoreBusy then
   begin
     AInfo.State := A2A_STATE_WORKING;
@@ -826,10 +826,10 @@ begin
   end;
 
   St := Mgr.Blackboard.GetStatus;
-  // UpdatedAt solo se mueve cuando el estado CAMBIA de verdad. Sellarlo en cada
-  // consulta tenia dos efectos malos: dos snapshots del mismo task salian con
-  // timestamps distintos (y los clientes suscritos no podian deduplicarlos), y
-  // el TTL de purga, que se mide contra este campo, no vencia nunca.
+  // UpdatedAt only moves when the state REALLY changes. Stamping it on every
+  // query had two bad effects: two snapshots of the same task came out with
+  // different timestamps (and subscribed clients could not deduplicate them), and
+  // the purge TTL, measured against this field, never expired.
   var LCambio := AInfo.State <> StatusToA2AState(St);
   if LCambio then
   begin
@@ -839,8 +839,8 @@ begin
 
   if St = esSuspended then
   begin
-    // Conservamos el slot: el grafo suspendido vive dentro de ese manager y es
-    // el unico que puede reanudarlo.
+    // We keep the slot: the suspended graph lives inside that manager and it is
+    // the only one that can resume it.
     AInfo.ThreadID := Mgr.CurrentThreadID;
     Names := Mgr.GetSuspendedNodeNames;
     if Length(Names) > 0 then
@@ -860,7 +860,7 @@ begin
   begin
     if Assigned(Mgr.EndNode) then
       AInfo.OutputText := Mgr.EndNode.Output;
-    // Respuesta estructurada opcional dejada por el grafo
+    // Optional structured response left by the graph
     AInfo.ArtifactsJson := Mgr.Blackboard.GetString(A2A_BB_ARTIFACTS);
     AInfo.MessageJson := Mgr.Blackboard.GetString(A2A_BB_MESSAGE);
     if AInfo.OutputText <> '' then
@@ -877,8 +877,8 @@ begin
   ReleaseSlot(AInfo.Slot);
   AInfo.Slot := nil;
 
-  // Notificar a los webhooks registrados. El POST se hace en un TTask aparte,
-  // asi que esto no bloquea aunque tengamos FTasksLock tomado.
+  // Notify the registered webhooks. The POST is done in a separate TTask,
+  // so this does not block even with FTasksLock taken.
   if LCambio then
     DeliverPushNotifications(AInfo);
 end;
@@ -887,17 +887,17 @@ procedure TAiA2AServer.StartTask(AInfo: TAiA2ATaskInfo; const AInput: string);
 var
   Slot: TAiA2AManagerSlot;
 begin
-  Slot := AcquireSlot; // lanza AgentBusy si no hay cupo
+  Slot := AcquireSlot; // raises AgentBusy if there is no room
   try
-    // El servidor conduce la ejecucion: necesita que Run retorne de inmediato
-    // para poder aplicar su propio timeout y publicar el task en working. En
-    // modo sincrono Run haria Wait(INFINITE) y ademas lanzaria excepcion en
-    // lugar de dejar el estado en el blackboard.
+    // The server drives the execution: it needs Run to return immediately
+    // so it can apply its own timeout and publish the task in working. In
+    // synchronous mode Run would Wait(INFINITE) and would also raise an exception
+    // instead of leaving the state in the blackboard.
     Slot.Manager.Asynchronous := True;
-    // Engancharse al fin del grafo para poder notificar sin sondear.
+    // Hook into the graph's finish to be able to notify without polling.
     if not Slot.HookedFinish then
     begin
-      Slot.PrevOnFinish := Slot.Manager.OnFinish; // se encadena, no se pisa
+      Slot.PrevOnFinish := Slot.Manager.OnFinish; // chained, not overwritten
       Slot.Manager.OnFinish := OnGraphFinished;
       Slot.HookedFinish := True;
     end;
@@ -910,18 +910,18 @@ begin
     finally
       FTasksLock.Leave;
     end;
-    // Sobrecarga con siembra: garantiza Compile + ResetExecutionState, sin lo
-    // cual un manager reutilizado del pool arrastraria el estado del task
-    // anterior (blackboard, Output de nodos, NoCycles de los links). La siembra
-    // corre DESPUES del reset, asi que estos valores sobreviven.
+    // Overload with seeding: guarantees Compile + ResetExecutionState, without which
+    // a manager reused from the pool would drag the previous task's
+    // state (blackboard, node Outputs, link NoCycles). The seeding
+    // runs AFTER the reset, so these values survive.
     var LMsgId := AInfo.MessageId;
     var LTaskId := AInfo.Id;
     var LCtxId := AInfo.ContextId;
     Slot.Manager.Run(AInput,
       procedure(B: TAIBlackboard)
       begin
-        // El grafo necesita saber en que conversacion esta: sin esto un nodo
-        // no puede distinguir turnos ni correlacionar con sistemas externos.
+        // The graph needs to know which conversation it is in: without this a node
+        // cannot distinguish turns or correlate with external systems.
         B.SetString(A2A_BB_MESSAGE_ID, LMsgId);
         B.SetString(A2A_BB_TASK_ID, LTaskId);
         B.SetString(A2A_BB_CONTEXT_ID, LCtxId);
@@ -939,8 +939,8 @@ begin
         FTasksLock.Leave;
       end;
       ReleaseSlot(Slot);
-      // No se propaga: un fallo de ejecucion es estado del task, no error de
-      // transporte (la spec distingue una cosa de la otra).
+      // Not propagated: an execution failure is task state, not a transport
+      // error (the spec distinguishes one from the other).
     end;
   end;
 end;
@@ -974,9 +974,9 @@ begin
     finally
       FTasksLock.Leave;
     end;
-    // El grafo reanudado tiene que ver la metadata del turno NUEVO. Sin esto
-    // un nodo que decide por el messageId repite la decision del turno
-    // anterior: el que se suspendio volvia a suspenderse indefinidamente.
+    // The resumed graph must see the NEW turn's metadata. Without this
+    // a node that decides by messageId repeats the previous turn's
+    // decision: the one that suspended would suspend again indefinitely.
     if Assigned(Slot.Manager) then
     begin
       Slot.Manager.Blackboard.SetString(A2A_BB_MESSAGE_ID, AMessageId);
@@ -1001,8 +1001,8 @@ begin
   end;
 end;
 
-// Espera activa acotada. No sostiene FTasksLock: bloquear el registry durante
-// toda la corrida dejaria colgado cualquier GetTask concurrente.
+// Bounded active wait. It does not hold FTasksLock: blocking the registry during
+// the whole run would hang any concurrent GetTask.
 procedure TAiA2AServer.WaitTask(AInfo: TAiA2ATaskInfo);
 var
   Slot: TAiA2AManagerSlot;
@@ -1032,8 +1032,8 @@ begin
   end;
 end;
 
-// Descarta tasks terminados vencidos y acota el registry. Sin esto un servidor
-// de larga vida acumula memoria sin techo.
+// Discards expired finished tasks and caps the registry. Without this a long-lived
+// server accumulates memory without a ceiling.
 procedure TAiA2AServer.PurgeTasks;
 var
   Pair: TPair<string, TAiA2ATaskInfo>;
@@ -1053,7 +1053,7 @@ begin
       for var Id in Doomed do
         FTasks.Remove(Id);
 
-      // Tope duro: si aun sobra, cae el terminal mas antiguo.
+      // Hard cap: if there is still excess, the oldest terminal falls.
       while (FMaxTasks > 0) and (FTasks.Count > FMaxTasks) do
       begin
         Oldest := nil;
@@ -1065,7 +1065,7 @@ begin
             OldestId := Pair.Key;
           end;
         if OldestId = '' then
-          Break; // todos vivos: no hay nada que descartar
+          Break; // all alive: nothing to discard
         FTasks.Remove(OldestId);
       end;
     finally
@@ -1077,7 +1077,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Serializacion JSON
+// JSON serialization
 // ---------------------------------------------------------------------------
 
 function TAiA2AServer.EmitState(const ACanonical: string): string;
@@ -1104,7 +1104,7 @@ var
 begin
   LName := FAgentName;
   if LName = '' then
-    LName := Name; // nombre del componente como fallback
+    LName := Name; // component name as fallback
   LDesc := FAgentDescription;
   if (LDesc = '') and Assigned(FAgentManager) then
     LDesc := FAgentManager.Description;
@@ -1116,13 +1116,13 @@ begin
 
   if FWireEra = weV1 then
   begin
-    // v1.0: la raiz NO tiene url ni protocolVersion ni preferredTransport.
-    // Todo eso vive en supportedInterfaces[], que es lo que un cliente v1.0
-    // consulta para saber a que URL hablar. Sin esto, no sabe donde llamar.
+    // v1.0: the root has NO url, protocolVersion or preferredTransport.
+    // All of that lives in supportedInterfaces[], which is what a v1.0 client
+    // queries to know which URL to talk to. Without this, it does not know where to call.
     var Ifaces := TJSONArray.Create;
     var Iface := TJSONObject.Create;
     Iface.AddPair('url', ABaseUrl);
-    Iface.AddPair('protocolBinding', 'JSONRPC'); // es un string, no un enum
+    Iface.AddPair('protocolBinding', 'JSONRPC'); // it is a string, not an enum
     Iface.AddPair('protocolVersion', '1.0.0');
     Ifaces.AddElement(Iface);
     Result.AddPair('supportedInterfaces', Ifaces);
@@ -1138,7 +1138,7 @@ begin
   Caps.AddPair('streaming', TJSONBool.Create(FEnableStreaming));
   Caps.AddPair('pushNotifications', TJSONBool.Create(FEnablePushNotifications));
   Caps.AddPair('extendedAgentCard', TJSONBool.Create(FPublishExtendedCard));
-  // stateTransitionHistory no existe en AgentCapabilities de v1.0
+  // stateTransitionHistory does not exist in v1.0's AgentCapabilities
   if FWireEra = weV03 then
     Caps.AddPair('stateTransitionHistory', TJSONBool.Create(False));
   Result.AddPair('capabilities', Caps);
@@ -1162,7 +1162,7 @@ begin
     var SecItem := TJSONObject.Create;
     if FWireEra = weV1 then
     begin
-      // v1.0: SecurityRequirement tiene un campo 'schemes'
+      // v1.0: SecurityRequirement has a 'schemes' field
       var SchemesMap := TJSONObject.Create;
       SchemesMap.AddPair('bearer', TJSONArray.Create);
       SecItem.AddPair('schemes', SchemesMap);
@@ -1171,19 +1171,19 @@ begin
       SecItem.AddPair('bearer', TJSONArray.Create);
     SecArr.AddElement(SecItem);
     if FWireEra = weV1 then
-      Result.AddPair('securityRequirements', SecArr) // renombrado en v1.0
+      Result.AddPair('securityRequirements', SecArr) // renamed in v1.0
     else
       Result.AddPair('security', SecArr);
   end;
 
   Skills := TJSONArray.Create;
 
-  // 1. Las skills declaradas por el desarrollador mandan.
+  // 1. The developer-declared skills take precedence.
   for var I := 0 to FSkills.Count - 1 do
   begin
     var LSk := FSkills[I];
     if Trim(LSk.Id) = '' then
-      Continue; // sin id no es una skill valida
+      Continue; // without an id it is not a valid skill
     Skill := TJSONObject.Create;
     Skill.AddPair('id', LSk.Id);
     if LSk.Title <> '' then
@@ -1199,8 +1199,8 @@ begin
     Skills.AddElement(Skill);
   end;
 
-  // 2. Nodos con descripcion, solo si se pide. Los que no la tienen se omiten:
-  //    publicar 'Nodo1' sin descripcion no ayuda a elegir agente.
+  // 2. Nodes with description, only if requested. Those without it are omitted:
+  //    publishing 'Node1' without a description does not help choose an agent.
   if FPublishNodesAsSkills and Assigned(FAgentManager) then
     for var LNode in FAgentManager.GetNodes do
     begin
@@ -1216,8 +1216,8 @@ begin
       Skills.AddElement(Skill);
     end;
 
-  // 3. Si no quedo ninguna, la skill por defecto: ejecutar el grafo entero.
-  //    La Agent Card NUNCA debe salir sin skills.
+  // 3. If none remained, the default skill: run the whole graph.
+  //    The Agent Card must NEVER go out without skills.
   if Skills.Count = 0 then
   begin
     Skill := TJSONObject.Create;
@@ -1263,12 +1263,12 @@ begin
       if V is TJSONObject then
       begin
         PartObj := TJSONObject(V);
-        // spec 1.0: {"text": "..."}; toleramos tambien el estilo 0.x
+        // spec 1.0: {"text": "..."}; we also tolerate the 0.x style
         // {"type":"text","text":"..."}
         if PartObj.TryGetValue<string>('text', S) then
           Append(S)
-        // DataPart: el payload estructurado viaja como JSON crudo, de modo que
-        // una orquestacion pueda pasar objetos y no solo prosa.
+        // DataPart: the structured payload travels as raw JSON, so an
+        // orchestration can pass objects and not only prose.
         else if PartObj.TryGetValue<TJSONValue>('data', DataVal) then
           Append(DataVal.ToJSON);
       end;
@@ -1293,8 +1293,8 @@ begin
   StatusObj.AddPair('state', EmitState(AInfo.State));
   StatusObj.AddPair('timestamp', DateToISO8601(TTimeZone.Local.ToUniversalTime(AInfo.UpdatedAt), True));
 
-  // En input-required el mensaje de status lleva la pregunta al humano; en
-  // failed lleva el error. Es lo que el cliente muestra o reenvia.
+  // In input-required the status message carries the question to the human; in
+  // failed it carries the error. It is what the client shows or forwards.
   StatusText := '';
   if AInfo.State = A2A_STATE_INPUT_REQUIRED then
   begin
@@ -1310,9 +1310,9 @@ begin
   if StatusText <> '' then
   begin
     MsgObj := TJSONObject.Create;
-    // Determinista a proposito: dos snapshots del MISMO task tienen que salir
-    // identicos. Con un GUID nuevo por llamada, dos clientes suscritos al mismo
-    // task recibian eventos distintos y no podian deduplicar.
+    // Deterministic on purpose: two snapshots of the SAME task must come out
+    // identical. With a new GUID per call, two clients subscribed to the same
+    // task received different events and could not deduplicate.
     MsgObj.AddPair('messageId', AInfo.Id + '-status');
     MsgObj.AddPair('role', EmitRole('agent'));
     MsgObj.AddPair('taskId', AInfo.Id);
@@ -1326,8 +1326,8 @@ begin
   end;
   Result.AddPair('status', StatusObj);
 
-  // Si el grafo dejo artifacts estructurados, mandan ellos: permiten DataPart,
-  // FilePart (bytes o url) y varios artifacts, cosa que el texto plano no.
+  // If the graph left structured artifacts, they take precedence: they allow DataPart,
+  // FilePart (bytes or url) and several artifacts, which plain text does not.
   Artifacts := nil;
   if (AInfo.State = A2A_STATE_COMPLETED) and (Trim(AInfo.ArtifactsJson) <> '') then
     Artifacts := TJSONArray(TJSONObject.ParseJSONValue(AInfo.ArtifactsJson));
@@ -1356,7 +1356,7 @@ begin
   Result.AddPair('artifacts', Artifacts);
 
   HistArr := TJSONArray.Create;
-  // historyLength recorta por el final: 0 = sin historial, N = los N ultimos.
+  // historyLength trims from the end: 0 = no history, N = the last N.
   var LDesde := 0;
   if AHistoryLength = 0 then
     LDesde := AInfo.History.Count
@@ -1384,7 +1384,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Metodos JSON-RPC
+// JSON-RPC methods
 // ---------------------------------------------------------------------------
 
 function TAiA2AServer.DoSendMessage(AParams: TJSONObject): TJSONObject;
@@ -1401,14 +1401,14 @@ begin
   MsgObj := nil;
   if Assigned(AParams) then
     AParams.TryGetValue<TJSONObject>('message', MsgObj);
-  // 'message' es obligatorio: sin el la peticion esta malformada y hay que
-  // rechazarla, no crear un task con texto vacio (CORE-ERR-002).
+  // 'message' is mandatory: without it the request is malformed and must be
+  // rejected, not turned into a task with empty text (CORE-ERR-002).
   if not Assigned(MsgObj) then
     raise EA2AServerError.CreateCode(A2A_ERR_INVALID_PARAMS, 'SendMessage requires a "message" parameter');
   InputText := ExtractTextFromParts(MsgObj);
 
-  // taskId/contextId viajan en el Message; toleramos verlos tambien sueltos en
-  // params, que es como los mandan varios clientes de la era 0.x.
+  // taskId/contextId travel in the Message; we tolerate seeing them loose in
+  // params too, which is how several 0.x-era clients send them.
   TaskId := '';
   ContextId := '';
   MessageId := '';
@@ -1452,8 +1452,8 @@ begin
     if Info = nil then
       raise EA2AServerError.CreateCode(A2A_ERR_TASK_NOT_FOUND, 'Task not found: ' + TaskId);
 
-    // Si el llamante manda contextId, tiene que ser el del task. Un par
-    // taskId/contextId cruzado es un error, no algo a ignorar (CORE-MULTI-006).
+    // If the caller sends a contextId, it must be the task's. A crossed
+    // taskId/contextId pair is an error, not something to ignore (CORE-MULTI-006).
     if (ContextId <> '') and (Info.ContextId <> ContextId) then
       raise EA2AServerError.CreateCode(A2A_ERR_INVALID_PARAMS,
         Format('contextId "%s" does not belong to task "%s"', [ContextId, TaskId]));
@@ -1461,9 +1461,9 @@ begin
     if Info.State = A2A_STATE_INPUT_REQUIRED then
       ResumeTask(Info, InputText, MessageId)
     else if IsTerminal(Info.State) then
-      // La spec lo exige asi (CORE-SEND-002): continuar un task ya terminal es
-      // UnsupportedOperation. Antes se devolvia el task tal cual, por parecer
-      // mas util al llamante; el TCK lo marca como incumplimiento MUST.
+      // The spec requires it this way (CORE-SEND-002): continuing an already-terminal task is
+      // UnsupportedOperation. Before, the task was returned as-is, for seeming
+      // more useful to the caller; the TCK marks it as a MUST violation.
       raise EA2AServerError.CreateCode(A2A_ERR_UNSUPPORTED_OPERATION,
         Format('Task "%s" is in a terminal state (%s) and cannot be continued', [TaskId, Info.State]));
   end
@@ -1472,9 +1472,9 @@ begin
     Info := NewTask(ContextId);
     Info.MessageId := MessageId;
 
-    // El webhook puede venir en la propia peticion, no solo por el CRUD:
-    // configuration.taskPushNotificationConfig registra la config para este
-    // task. Es la via que usan los clientes para no hacer dos llamadas.
+    // The webhook can come in the request itself, not only through the CRUD:
+    // configuration.taskPushNotificationConfig registers the config for this
+    // task. It is the route clients use to avoid making two calls.
     if Assigned(ConfigObj) and ConfigObj.TryGetValue<TJSONObject>('taskPushNotificationConfig', PushObj) then
     begin
       PushParams := TJSONObject.Create;
@@ -1490,8 +1490,8 @@ begin
     StartTask(Info, InputText);
   end;
 
-  // Si TaskId apuntaba a un task ya en working y no hubo reanudacion, no hay
-  // nada nuevo que lanzar: se espera / refresca ese mismo task.
+  // If TaskId pointed to a task already in working and there was no resume, there is
+  // nothing new to launch: that same task is waited on / refreshed.
   if Blocking then
     WaitTask(Info)
   else
@@ -1536,14 +1536,14 @@ begin
     Info := FindTask(Id);
     if not Assigned(Info) then
       raise EA2AServerError.CreateCode(A2A_ERR_TASK_NOT_FOUND, 'Task not found: ' + Id);
-    RefreshTask(Info); // el estado publicado sale siempre del grafo vivo
+    RefreshTask(Info); // the published state always comes from the live graph
     Result := BuildTaskJson(Info, LHistLen);
   finally
     FTasksLock.Leave;
   end;
 end;
 
-// ListTasks (v1.0). Filtra por contextId y/o estado, con paginado simple por
+// ListTasks (v1.0). Filters by contextId and/or state, with simple paging by
 // pageSize. ListTasksResponse = {tasks, nextPageToken, pageSize, totalSize}.
 function TAiA2AServer.DoListTasks(AParams: TJSONObject): TJSONObject;
 var
@@ -1558,8 +1558,8 @@ begin
   if Assigned(AParams) then
   begin
     FiltroCtx := AParams.GetValue<string>('contextId', '');
-    // El filtro llega como literal de TaskState; se normaliza para poder
-    // comparar con el estado interno sea cual sea la era del llamante.
+    // The filter arrives as a TaskState literal; it is normalized so it can be
+    // compared with the internal state regardless of the caller's era.
     FiltroEstado := A2ACanonicalState(AParams.GetValue<string>('status', ''));
     PageSize := AParams.GetValue<Integer>('pageSize', 0);
   end;
@@ -1571,14 +1571,14 @@ begin
   try
     for Pair in FTasks do
     begin
-      RefreshTask(Pair.Value); // el listado tampoco debe mentir
+      RefreshTask(Pair.Value); // the listing must not lie either
       if (FiltroCtx <> '') and (Pair.Value.ContextId <> FiltroCtx) then
         Continue;
       if (FiltroEstado <> '') and (Pair.Value.State <> FiltroEstado) then
         Continue;
       Inc(Total);
       if (PageSize > 0) and (Emitidos >= PageSize) then
-        Continue; // se cuenta en totalSize pero no se emite
+        Continue; // counted in totalSize but not emitted
       Arr.AddElement(BuildTaskJson(Pair.Value));
       Inc(Emitidos);
     end;
@@ -1617,14 +1617,14 @@ end;
 // -----------------------------------------------------------------------------
 // Push notifications
 // -----------------------------------------------------------------------------
-// La forma de v1.0 es PLANA: TaskPushNotificationConfig = {tenant, id, taskId,
-// url, token, authentication}. No hay un objeto pushNotificationConfig anidado
-// como en la era 0.x. Se acepta igualmente el anidado {taskId, config:{...}}
-// porque es lo que mandan varios clientes.
+// The v1.0 form is FLAT: TaskPushNotificationConfig = {tenant, id, taskId,
+// url, token, authentication}. There is no nested pushNotificationConfig object
+// as in the 0.x era. The nested {taskId, config:{...}} is accepted anyway
+// because that is what several clients send.
 
-// Lee una clave tolerando las dos convenciones. El binding JSON-RPC usa
-// camelCase, pero varios clientes -el propio TCK entre ellos- mandan los
-// nombres del proto en snake_case.
+// Reads a key tolerating both conventions. The JSON-RPC binding uses
+// camelCase, but several clients -the TCK itself among them- send the
+// proto names in snake_case.
 function ParamStr2(AParams: TJSONObject; const ACamel, ASnake: string): string;
 begin
   Result := '';
@@ -1646,7 +1646,7 @@ begin
     raise EA2AServerError.CreateCode(A2A_ERR_INVALID_PARAMS, 'Missing params');
 
   TaskId := ParamStr2(AParams, 'taskId', 'task_id');
-  // El cuerpo puede venir anidado en 'config' o plano en los propios params
+  // The body can come nested in 'config' or flat in the params themselves
   if not AParams.TryGetValue<TJSONObject>('config', Src) then
     Src := AParams;
   if TaskId = '' then
@@ -1669,8 +1669,8 @@ begin
 
   FPushLock.Enter;
   try
-    // Registrar de nuevo el mismo id reemplaza: crear duplicados haria que el
-    // webhook recibiera la misma notificacion dos veces.
+    // Re-registering the same id replaces: creating duplicates would make the
+    // webhook receive the same notification twice.
     for var I := FPushConfigs.Count - 1 downto 0 do
       if (FPushConfigs[I].TaskId = Cfg.TaskId) and (FPushConfigs[I].Id = Cfg.Id) then
         FPushConfigs.Delete(I);
@@ -1748,21 +1748,21 @@ begin
   finally
     FPushLock.Leave;
   end;
-  // Delete es IDEMPOTENTE: borrar algo que ya no esta no es un error.
+  // Delete is IDEMPOTENT: deleting something that is no longer there is not an error.
   Result := TJSONObject.Create;
 end;
 
-// Entrega el estado del task a los webhooks registrados. Se llama al detectar
-// un cambio de estado. El POST va en un TTask aparte: bloquear aqui pararia el
-// refresco del task y, con el lock tomado, todo el registry.
-// Refresca los tasks con ejecucion viva. Hace falta un vigilante activo: la
-// entrega push se dispara al detectar un cambio de estado, y RefreshTask solo
-// corria cuando un cliente preguntaba. Si nadie llamaba a GetTask, el task
-// terminaba y el webhook no se enteraba nunca.
-// Un grafo acaba de terminar. Se localiza su task y se refresca, lo que
-// dispara la entrega push si el estado cambio. Antes esto dependia de un hilo
-// que sondeaba cada 100 ms: funcionaba solo si alguien consultaba el task, asi
-// que con blocking=false el webhook no se enteraba nunca.
+// Delivers the task's state to the registered webhooks. Called when a state
+// change is detected. The POST goes in a separate TTask: blocking here would stop
+// the task's refresh and, with the lock taken, the whole registry.
+// Refreshes the tasks with a live execution. An active watcher is needed: the
+// push delivery fires when a state change is detected, and RefreshTask only
+// ran when a client asked. If nobody called GetTask, the task
+// finished and the webhook never found out.
+// A graph just finished. Its task is located and refreshed, which
+// fires the push delivery if the state changed. Before, this depended on a thread
+// polling every 100 ms: it worked only if someone queried the task, so
+// with blocking=false the webhook never found out.
 procedure TAiA2AServer.OnGraphFinished(Sender: TObject; const Input, Output: string;
   Status: TAgentExecutionStatus; E: Exception);
 var
@@ -1782,17 +1782,17 @@ begin
         Break;
       end;
     if Assigned(Afectado) then
-      // AIgnoreBusy: el motor dispara OnFinish ANTES de poner FBusy a 0,
-      // asi que aqui el manager todavia se declara ocupado. Sin esto,
-      // RefreshTask salia por la rama 'sigue trabajando' y nunca detectaba
-      // el paso a completed: el webhook no se enteraba jamas.
+      // AIgnoreBusy: the engine fires OnFinish BEFORE setting FBusy to 0,
+      // so here the manager still declares itself busy. Without this,
+      // RefreshTask took the 'still working' branch and never detected
+      // the step to completed: the webhook never found out.
       RefreshTask(Afectado, True);
   finally
     FTasksLock.Leave;
   end;
 
-  // Encadenar el handler que el integrador pudiera tener puesto: apropiarse
-  // del evento sin devolverlo romperia su codigo.
+  // Chain the handler the integrator might have set: appropriating
+  // the event without returning it would break their code.
   if Assigned(Previo) then
     Previo(Sender, Input, Output, Status, E);
 end;
@@ -1811,7 +1811,7 @@ begin
           Lista.Add(Pair.Value);
       Vivos := Lista.ToArray;
       for var Info in Vivos do
-        RefreshTask(Info); // dispara DeliverPushNotifications si cambio
+        RefreshTask(Info); // fires DeliverPushNotifications if it changed
     finally
       FTasksLock.Leave;
     end;
@@ -1845,9 +1845,9 @@ begin
   if Length(Destinos) = 0 then
     Exit;
 
-  // El payload NO es el Task desnudo sino un StreamResponse, el mismo oneof
-  // que usa el streaming: {task | message | statusUpdate | artifactUpdate}.
-  // Aqui se manda el snapshot completo, asi que va por el brazo 'task'.
+  // The payload is NOT the bare Task but a StreamResponse, the same oneof
+  // the streaming uses: {task | message | statusUpdate | artifactUpdate}.
+  // Here the full snapshot is sent, so it goes through the 'task' arm.
   var Envuelto := TJSONObject.Create;
   try
     Envuelto.AddPair('task', BuildTaskJson(AInfo));
@@ -1885,7 +1885,7 @@ begin
           try
             Http.Post(LUrl, Body, nil, Headers);
           except
-            // Un webhook caido no puede tumbar la ejecucion del agente.
+            // A fallen webhook cannot take down the agent's execution.
           end;
         finally
           Body.Free;
@@ -1922,8 +1922,8 @@ begin
     FTasksLock.Leave;
   end;
 
-  // Aborta SOLO el manager de este task. Con un pool, abortar el manager de
-  // diseno cancelaria el task de otro llamante.
+  // Aborts ONLY this task's manager. With a pool, aborting the design-time
+  // manager would cancel another caller's task.
   if Assigned(Slot) and Assigned(Slot.Manager) then
     Slot.Manager.Abort;
 
@@ -1943,12 +1943,12 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Capa JSON-RPC / HTTP
+// JSON-RPC / HTTP layer
 // ---------------------------------------------------------------------------
 
-// Razon canonica de ErrorInfo para cada codigo A2A: el nombre del error en
-// UPPER_SNAKE_CASE y sin el sufijo "Error". Los errores estandar de JSON-RPC
-// (-32600 y siguientes) no llevan razon.
+// Canonical ErrorInfo reason for each A2A code: the error name in
+// UPPER_SNAKE_CASE and without the "Error" suffix. The standard JSON-RPC errors
+// (-32600 and below) carry no reason.
 function A2AReasonForCode(ACode: Integer): string;
 begin
   case ACode of
@@ -1962,7 +1962,7 @@ begin
     A2A_ERR_EXTENSION_SUPPORT_REQUIRED: Result := 'EXTENSION_SUPPORT_REQUIRED';
     A2A_ERR_VERSION_NOT_SUPPORTED: Result := 'VERSION_NOT_SUPPORTED';
   else
-    Result := ''; // error estandar de JSON-RPC: sin ErrorInfo
+    Result := ''; // standard JSON-RPC error: no ErrorInfo
   end;
 end;
 
@@ -1979,8 +1979,8 @@ begin
     Err.AddPair('code', TJSONNumber.Create(ACode));
     Err.AddPair('message', AMsg);
 
-    // La spec exige ErrorInfo dentro de un array en error.data para los
-    // errores propios de A2A (seccion 9.5).
+    // The spec requires ErrorInfo inside an array in error.data for the
+    // A2A-specific errors (section 9.5).
     Reason := A2AReasonForCode(ACode);
     if Reason <> '' then
     begin
@@ -2011,7 +2011,7 @@ begin
   Resp := TJSONObject.Create;
   try
     Resp.AddPair('jsonrpc', '2.0');
-    Resp.AddPair('result', AResult); // toma posesion
+    Resp.AddPair('result', AResult); // takes ownership
     if Assigned(AId) then
       Resp.AddPair('id', TJSONValue(AId.Clone))
     else
@@ -2043,16 +2043,16 @@ begin
     IdVal := Req.GetValue('id');
     Params := Req.GetValue<TJSONObject>('params', nil);
 
-    // Continua la traza del llamante si vino traceparent: sin esto cada salto
-    // de una federacion arranca una traza nueva y el flujo no es observable.
+    // Continues the caller's trace if a traceparent came: without this every hop
+    // of a federation starts a new trace and the flow is not observable.
     LSpan := AiSpanStart('a2a.server ' + Method, skServer, ATraceParent);
     AiSpanAttr(LSpan, 'a2a.method', Method);
     try
-      // Metodos 1.0 + aliases 0.x (message/send, tasks/get, tasks/cancel)
+      // 1.0 methods + 0.x aliases (message/send, tasks/get, tasks/cancel)
       if SameText(Method, 'SendMessage') or SameText(Method, 'message/send') then
       begin
-        // DoSendMessage deja en FLastMessageJson lo que el grafo haya puesto en
-        // A2A.Message; si hay algo, la respuesta va por el brazo 'message'.
+        // DoSendMessage leaves in FLastMessageJson whatever the graph put in
+        // A2A.Message; if there is something, the response goes through the 'message' arm.
         FLastMessageJson := '';
         LTaskJson := DoSendMessage(Params);
         if FLastMessageJson <> '' then
@@ -2068,8 +2068,8 @@ begin
         Result := RpcResult(IdVal, DoListTasks(Params))
       else if SameText(Method, 'GetExtendedAgentCard') or SameText(Method, 'agent/getExtendedCard') then
       begin
-        // Solo si el integrador la habilito: la card extendida esta pensada
-        // para clientes ya autenticados, con mas detalle que la publica.
+        // Only if the integrator enabled it: the extended card is meant
+        // for already-authenticated clients, with more detail than the public one.
         if not FPublishExtendedCard then
           Result := RpcError(IdVal, A2A_ERR_EXTENDED_CARD_NOT_CONFIGURED, 'Extended agent card is not configured')
         else
@@ -2077,7 +2077,7 @@ begin
       end
       else if SameText(Method, 'SendStreamingMessage') or SameText(Method, 'SubscribeToTask') or
         SameText(Method, 'message/stream') or SameText(Method, 'tasks/resubscribe') then
-        // La spec exige UnsupportedOperationError si capabilities.streaming=false
+        // The spec requires UnsupportedOperationError if capabilities.streaming=false
         Result := RpcError(IdVal, A2A_ERR_UNSUPPORTED_OPERATION, 'Streaming not supported by this agent')
       else if SameText(Method, 'CreateTaskPushNotificationConfig') then
         Result := RpcResult(IdVal, DoCreatePushConfig(Params))
@@ -2088,8 +2088,8 @@ begin
       else if SameText(Method, 'DeleteTaskPushNotificationConfig') then
         Result := RpcResult(IdVal, DoDeletePushConfig(Params))
       else if Method.ToLower.Contains('pushnotification') then
-        // Variantes que no implementamos: con capabilities.pushNotifications a
-        // false la spec pide este codigo concreto, no un MethodNotFound.
+        // Variants we do not implement: with capabilities.pushNotifications at
+        // false the spec asks for this specific code, not a MethodNotFound.
         Result := RpcError(IdVal, A2A_ERR_PUSH_NOT_SUPPORTED, 'Push notification method not supported')
       else
         Result := RpcError(IdVal, -32601, 'Method not found: ' + Method);
@@ -2104,8 +2104,8 @@ begin
       on E: Exception do
       begin
         AiSpanEnd(LSpan, E.Message);
-        // El motor de grafos senala la contencion con este texto; sin mapearlo
-        // un fan-out concurrente devolveria -32603 en vez de AgentBusy.
+        // The graph engine signals contention with this text; without mapping it
+        // a concurrent fan-out would return -32603 instead of AgentBusy.
         if E.Message.ToLower.Contains('busy') then
           Result := RpcError(IdVal, A2A_ERR_AGENT_BUSY, E.Message)
         else
@@ -2120,11 +2120,11 @@ end;
 // -----------------------------------------------------------------------------
 // Streaming SSE (binding JSON-RPC)
 // -----------------------------------------------------------------------------
-// Cada evento viaja como una linea 'data:' con el ENVOLTORIO JSON-RPC dentro,
-// segun la seccion 9.4.2 de la spec:
+// Each event travels as a 'data:' line with the JSON-RPC WRAPPER inside,
+// per section 9.4.2 of the spec:
 //     data: {jsonrpc, id, result: <StreamResponse>}
-// OJO: el binding REST manda el StreamResponse desnudo; el de JSON-RPC no.
-// StreamResponse es un oneof: task | message | statusUpdate | artifactUpdate.
+// NOTE: the REST binding sends the bare StreamResponse; the JSON-RPC one does not.
+// StreamResponse is a oneof: task | message | statusUpdate | artifactUpdate.
 
 procedure TAiA2AServer.SseWriteEvent(AContext: TIdContext; AId: TJSONValue; APayload: TJSONObject);
 var
@@ -2137,8 +2137,8 @@ begin
       Env.AddPair('id', TJSONValue(AId.Clone))
     else
       Env.AddPair('id', TJSONNull.Create);
-    Env.AddPair('result', APayload); // toma posesion
-    // El doble salto de linea es lo que cierra un evento en SSE
+    Env.AddPair('result', APayload); // takes ownership
+    // The double line break is what closes an event in SSE
     AContext.Connection.IOHandler.Write(ToBytes('data: ' + Env.ToJSON + #10#10, IndyTextEncoding_UTF8));
   finally
     Env.Free;
@@ -2210,8 +2210,8 @@ var
 begin
   Suscripcion := SameText(AMethod, 'SubscribeToTask') or SameText(AMethod, 'tasks/resubscribe');
 
-  // Resolver el task ANTES de abrir el stream: si hay que devolver un error,
-  // se responde JSON normal. Una vez abierto el SSE ya no se puede.
+  // Resolve the task BEFORE opening the stream: if an error must be returned,
+  // normal JSON is responded. Once the SSE is open it can no longer be done.
   Info := nil;
   if Suscripcion then
   begin
@@ -2234,7 +2234,7 @@ begin
     end;
     if IsTerminal(Info.State) then
     begin
-      // Suscribirse a un task ya terminal es un error segun la spec
+      // Subscribing to an already-terminal task is an error per the spec
       AResponseInfo.ResponseNo := 200;
       AResponseInfo.ContentText := RpcError(AId, A2A_ERR_UNSUPPORTED_OPERATION,
         'Task is already in a terminal state: ' + Info.State);
@@ -2268,9 +2268,9 @@ begin
     try
       if TaskId <> '' then
       begin
-        // Mismo contrato que SendMessage: con taskId se REANUDA, no se abre un
-        // task nuevo. Sin esto un flujo human-in-the-loop por streaming perdia
-        // el grafo suspendido en cada turno y empezaba de cero.
+        // Same contract as SendMessage: with a taskId it RESUMES, it does not open a
+        // new task. Without this a human-in-the-loop flow over streaming lost
+        // the suspended graph on every turn and started from scratch.
         FTasksLock.Enter;
         try
           Info := FindTask(TaskId);
@@ -2282,7 +2282,7 @@ begin
         if Info = nil then
           raise EA2AServerError.CreateCode(A2A_ERR_TASK_NOT_FOUND, 'Task not found: ' + TaskId);
 
-        // Un par taskId/contextId cruzado es error, no algo a ignorar.
+        // A crossed taskId/contextId pair is an error, not something to ignore.
         if (ContextId <> '') and (Info.ContextId <> ContextId) then
           raise EA2AServerError.CreateCode(A2A_ERR_INVALID_PARAMS,
             Format('contextId "%s" does not belong to task "%s"', [ContextId, TaskId]));
@@ -2310,12 +2310,12 @@ begin
     end;
   end;
 
-  // --- A partir de aqui el stream esta abierto ---
+  // --- From here on the stream is open ---
   Hdr := 'HTTP/1.1 200 OK' + #13#10 + 'Content-Type: text/event-stream; charset=utf-8' + #13#10 +
     'Cache-Control: no-cache' + #13#10 + 'Connection: keep-alive' + #13#10 +
     'X-Accel-Buffering: no' + #13#10 + #13#10;
   AContext.Connection.IOHandler.Write(ToBytes(Hdr, IndyTextEncoding_UTF8));
-  AResponseInfo.HeaderHasBeenWritten := True; // que Indy no escriba los suyos
+  AResponseInfo.HeaderHasBeenWritten := True; // so Indy does not write its own
 
   // 1. Snapshot inicial del task
   FTasksLock.Enter;
@@ -2330,15 +2330,15 @@ begin
   Payload.AddPair('task', TaskJson);
   SseWriteEvent(AContext, AId, Payload);
 
-  // 1b. El task puede haber llegado a su estado final ANTES de este primer
-  // snapshot: un grafo rapido, o un resume que completa enseguida. Entonces no
-  // queda ningun cambio que detectar y el bucle de abajo se quedaria dando
-  // vueltas hasta agotar WaitTimeoutMs con el cliente esperando. Se cierra ya.
+  // 1b. The task may have reached its final state BEFORE this first
+  // snapshot: a fast graph, or a resume that completes right away. Then there is
+  // no change left to detect and the loop below would keep spinning
+  // until WaitTimeoutMs runs out with the client waiting. It is closed now.
   //
-  // input-required solo cierra si NO es una suscripcion: en
-  // SendStreamingMessage significa "te toca a ti", pero quien hace
-  // SubscribeToTask es un observador y tiene que seguir mirando las
-  // transiciones posteriores.
+  // input-required only closes if it is NOT a subscription: in
+  // SendStreamingMessage it means "your turn", but whoever does
+  // SubscribeToTask is an observer and must keep watching the
+  // later transitions.
   if IsTerminal(EstadoPrevio) or
     ((EstadoPrevio = A2A_STATE_INPUT_REQUIRED) and not Suscripcion) then
   begin
@@ -2355,7 +2355,7 @@ begin
     Exit;
   end;
 
-  // 2. Seguir la ejecucion y emitir cada cambio de estado
+  // 2. Follow the execution and emit each state change
   Esperado := 0;
   while (Esperado < FWaitTimeoutMs) and AContext.Connection.Connected do
   begin
@@ -2379,13 +2379,13 @@ begin
     if not Assigned(Payload) then
       Continue;
 
-    // 3. Al completar, primero los artifacts y luego el status final.
+    // 3. On completion, first the artifacts and then the final status.
     if EstadoPrevio = A2A_STATE_COMPLETED then
       SseEmitArtifacts(AContext, AId, Info);
 
     SseWriteEvent(AContext, AId, Payload);
 
-    // input-required tambien cierra el stream: la pelota pasa al cliente
+    // input-required also closes the stream: the ball goes to the client
     if IsTerminal(EstadoPrevio) or (EstadoPrevio = A2A_STATE_INPUT_REQUIRED) then
       Break;
   end;
@@ -2405,16 +2405,16 @@ begin
   AResponseInfo.CharSet := 'utf-8';
 
   // --- Autorizacion ---
-  // La Agent Card base queda FUERA de la comprobacion de ApiKey: es un
-  // documento de descubrimiento, y es justo donde el cliente lee QUE esquema
-  // de seguridad tiene que usar. Protegerla es un circulo vicioso -para saber
-  // como autenticarse habria que estar ya autenticado- y deja al agente
-  // invisible para cualquier cliente que no traiga la clave de antemano.
-  // Para publicar datos solo a clientes autenticados esta la extended card
-  // (GetExtendedAgentCard), que si pasa por aqui.
+  // The base Agent Card stays OUTSIDE the ApiKey check: it is a
+  // discovery document, and it is exactly where the client reads WHICH security
+  // scheme it must use. Protecting it is a vicious circle -to know
+  // how to authenticate you would already have to be authenticated- and it leaves the agent
+  // invisible to any client that does not carry the key in advance.
+  // To publish data only to authenticated clients there is the extended card
+  // (GetExtendedAgentCard), which does go through here.
   //
-  // OnAuthorize SI se sigue llamando: si alguien quiere cerrar tambien la
-  // card, es una decision suya y explicita.
+  // OnAuthorize IS still called: if someone wants to close the card too,
+  // it is their own explicit decision.
   CardPublica := SameText(ARequestInfo.Command, 'GET') and
     (SameText(ARequestInfo.URI, '/.well-known/agent-card.json') or
      SameText(ARequestInfo.URI, '/.well-known/agent.json'));
@@ -2428,9 +2428,9 @@ begin
       Token := Trim(Copy(Token, Length('Bearer ') + 1, MaxInt))
     else
       Token := '';
-    // El secreto se compara EXACTO. Con SameText una clave 'AbC' la validaba
-    // 'abc', que es tirar a la basura buena parte de su entropia; solo el
-    // nombre del esquema va sin distinguir mayusculas.
+    // The secret is compared EXACTLY. With SameText a key 'AbC' was validated by
+    // 'abc', which throws away much of its entropy; only the
+    // scheme name goes case-insensitive.
     Allowed := (Token <> '') and (Token = FApiKey);
     if not Allowed then
       Allowed := ARequestInfo.RawHeaders.Values['X-API-Key'] = FApiKey;
@@ -2453,8 +2453,8 @@ begin
       BaseUrl := FPublicUrl
     else
     begin
-      // Detras de un reverse proxy TLS el esquema real llega por cabecera; sin
-      // esto la card anunciaria http:// y el cliente no podria volver.
+      // Behind a TLS reverse proxy the real scheme arrives by header; without
+      // this the card would announce http:// and the client could not come back.
       Scheme := LowerCase(ARequestInfo.RawHeaders.Values['X-Forwarded-Proto']);
       if Scheme = '' then
         Scheme := 'http';
@@ -2468,14 +2468,14 @@ begin
       Card.Free;
     end;
 
-    // La spec recomienda (SHOULD) que la card sea cacheable: sin esto cada
-    // cliente la vuelve a pedir en cada descubrimiento.
+    // The spec recommends (SHOULD) the card be cacheable: without this every
+    // client asks for it again on every discovery.
     ETag := '"' + THashSHA2.GetHashString(CardJson).Substring(0, 32) + '"';
     AResponseInfo.CustomHeaders.Values['Cache-Control'] :=
       Format('public, max-age=%d', [FCardCacheSeconds]);
     AResponseInfo.CustomHeaders.Values['ETag'] := ETag;
 
-    // Revalidacion condicional: si el cliente ya tiene esta version, 304.
+    // Conditional revalidation: if the client already has this version, 304.
     if SameText(Trim(ARequestInfo.RawHeaders.Values['If-None-Match']), ETag) then
     begin
       AResponseInfo.ResponseNo := 304;
@@ -2490,9 +2490,9 @@ begin
 
   if SameText(ARequestInfo.Command, 'POST') then
   begin
-    // --- Validaciones de cabecera exigidas por la spec (seccion 5.4) ---
-    // Version: si el cliente declara una que no soportamos, hay que rechazarla
-    // con su codigo propio. Ausente = se asume compatible (clientes 0.x).
+    // --- Header validations required by the spec (section 5.4) ---
+    // Version: if the client declares one we do not support, it must be rejected
+    // with its own code. Absent = assumed compatible (0.x clients).
     VerHdr := Trim(ARequestInfo.RawHeaders.Values[A2A_VERSION_HEADER]);
     if (VerHdr <> '') and (not SameText(VerHdr, A2A_VERSION)) and (not VerHdr.StartsWith('1.')) then
     begin
@@ -2502,8 +2502,8 @@ begin
       Exit;
     end;
 
-    // Content-Type: tiene que ser JSON. Devolver ParseError aqui seria enganoso,
-    // porque el cuerpo puede estar perfectamente bien formado.
+    // Content-Type: it must be JSON. Returning ParseError here would be misleading,
+    // because the body may be perfectly well formed.
     CtHdr := LowerCase(ARequestInfo.ContentType);
     if (CtHdr <> '') and (not CtHdr.Contains('json')) then
     begin
@@ -2513,8 +2513,8 @@ begin
       Exit;
     end;
 
-    // Se recuerda para poder construir la card en GetExtendedAgentCard, que
-    // llega por JSON-RPC y no trae contexto de URL.
+    // Remembered so the card can be built in GetExtendedAgentCard, which
+    // arrives via JSON-RPC and carries no URL context.
     if FLastBaseUrl = '' then
       if FPublicUrl <> '' then
         FLastBaseUrl := FPublicUrl
@@ -2532,8 +2532,8 @@ begin
           Free;
         end;
     end;
-    // Los metodos de streaming no responden JSON sino un SSE, asi que se
-    // desvian antes de entrar al despachador normal.
+    // The streaming methods do not respond JSON but an SSE, so they are
+    // diverted before entering the normal dispatcher.
     if FEnableStreaming then
     begin
       PeekRoot := TJSONObject.ParseJSONValue(Body);

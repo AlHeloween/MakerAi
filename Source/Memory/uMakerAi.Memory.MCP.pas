@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enríquez
+// Name: Gustavo Enríquez
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
@@ -28,24 +28,24 @@
 
 unit uMakerAi.Memory.MCP;
 
-// MCP Tools para exponer TAiMemory a través del servidor MCP de AiMaker.
+// MCP Tools to expose TAiMemory through the AiMaker MCP server.
 //
-// Cada tool sigue el patrón TAiMCPToolBase<TParams> de uMakerAi.MCPServer.Core:
-//   - Clase de Params con atributos AiMCPSchemaDescription
-//   - ExecuteWithParams() → llama TAiMemory y devuelve TJSONObject
+// Each tool follows the TAiMCPToolBase<TParams> pattern from uMakerAi.MCPServer.Core:
+//   - Params class with AiMCPSchemaDescription attributes
+//   - ExecuteWithParams() → calls TAiMemory and returns TJSONObject
 //
-// Registrar en un TAiMCPServer existente:
+// Register on an existing TAiMCPServer:
 //   RegisterMemoryTools(MyMCPServer, MyMemory);
 //
-// Tools disponibles:
-//   memory_store   — guarda una memoria
-//   memory_search  — búsqueda FTS/semántica/híbrida
-//   memory_recall  — recupera memorias de alta importancia
-//   memory_context — Smart Context Builder con token budget
-//   memory_delete  — elimina por Id
-//   memory_stats   — estadísticas del namespace
-//   memory_link    — crea relación entre dos memorias
-//   memory_prune   — limpieza de memorias antiguas de baja importancia
+// Available tools:
+//   memory_store   — stores a memory
+//   memory_search  — FTS/semantic/hybrid search
+//   memory_recall  — retrieves high-importance memories
+//   memory_context — Smart Context Builder with token budget
+//   memory_delete  — deletes by Id
+//   memory_stats   — namespace statistics
+//   memory_link    — creates a relationship between two memories
+//   memory_prune   — cleanup of old low-importance memories
 
 interface
 
@@ -55,100 +55,100 @@ uses
   uMakerAi.Memory,
   uMakerAi.Memory.Types;
 
-// Registra los 8 tools de memoria en un TAiMCPServer
+// Registers the 8 memory tools in a TAiMCPServer
 procedure RegisterMemoryTools(AServer: TAiMCPServer; AMemory: TAiMemory);
 
 implementation
 
 // ---------------------------------------------------------------------------
-// Params classes — TAiMCPSchemaDescription genera el JSON Schema automáticamente
+// Params classes — TAiMCPSchemaDescription generates the JSON Schema automatically
 // ---------------------------------------------------------------------------
 
 type
   TMemStoreParams = class
-    [AiMCPSchemaDescription('Contenido de la memoria a guardar')]
+    [AiMCPSchemaDescription('Content of the memory to store')]
     content: string;
 
-    [AiMCPSchemaDescription('Tipo: fact | preference | decision | error_fix | pattern | workflow | summary | custom')]
+    [AiMCPSchemaDescription('Type: fact | preference | decision | error_fix | pattern | workflow | summary | custom')]
     [AiMCPOptional]
     memory_type: string;
 
-    [AiMCPSchemaDescription('Importancia de 1 (baja) a 10 (crítica). Default: 5')]
+    [AiMCPSchemaDescription('Importance from 1 (low) to 10 (critical). Default: 5')]
     [AiMCPOptional]
     importance: Integer;
 
-    [AiMCPSchemaDescription('Tags separados por coma. Ej: delphi,fmx,memoria')]
+    [AiMCPSchemaDescription('Tags separated by commas. E.g.: delphi,fmx,memory')]
     [AiMCPOptional]
     tags: string;
 
-    [AiMCPSchemaDescription('Días hasta expiración. 0 = sin expiración')]
+    [AiMCPSchemaDescription('Days until expiration. 0 = no expiration')]
     [AiMCPOptional]
     ttl_days: Integer;
   end;
 
   TMemSearchParams = class
-    [AiMCPSchemaDescription('Texto a buscar en las memorias')]
+    [AiMCPSchemaDescription('Text to search in memories')]
     query: string;
 
-    [AiMCPSchemaDescription('Número máximo de resultados. Default: 10')]
+    [AiMCPSchemaDescription('Maximum number of results. Default: 10')]
     [AiMCPOptional]
     limit: Integer;
 
-    [AiMCPSchemaDescription('Modo de búsqueda: fts | semantic | hybrid. Default: hybrid')]
+    [AiMCPSchemaDescription('Search mode: fts | semantic | hybrid. Default: hybrid')]
     [AiMCPOptional]
     mode: string;
   end;
 
   TMemRecallParams = class
-    [AiMCPSchemaDescription('Importancia mínima (1-10). Default: 7')]
+    [AiMCPSchemaDescription('Minimum importance (1-10). Default: 7')]
     [AiMCPOptional]
     min_importance: Integer;
 
-    [AiMCPSchemaDescription('Número máximo de entradas. Default: 20')]
+    [AiMCPSchemaDescription('Maximum number of entries. Default: 20')]
     [AiMCPOptional]
     limit: Integer;
   end;
 
   TMemContextParams = class
-    [AiMCPSchemaDescription('Prompt actual del agente para seleccionar memorias relevantes')]
+    [AiMCPSchemaDescription('Current agent prompt to select relevant memories')]
     prompt: string;
 
-    [AiMCPSchemaDescription('Presupuesto máximo en tokens. Default: 2000')]
+    [AiMCPSchemaDescription('Maximum token budget. Default: 2000')]
     [AiMCPOptional]
     token_budget: Integer;
 
-    [AiMCPSchemaDescription('Importancia mínima de las memorias a incluir. Default: 1')]
+    [AiMCPSchemaDescription('Minimum importance of memories to include. Default: 1')]
     [AiMCPOptional]
     min_importance: Integer;
   end;
 
   TMemDeleteParams = class
-    [AiMCPSchemaDescription('Id de la memoria a eliminar')]
+    [AiMCPSchemaDescription('Id of the memory to delete')]
     id: Integer;
   end;
 
   TMemStatsParams = class
-    // Sin parámetros requeridos — usa el namespace del componente TAiMemory
+    // No required parameters — uses the component TAiMemory's namespace
   end;
 
   TMemLinkParams = class
-    [AiMCPSchemaDescription('Id de la memoria origen')]
+    [AiMCPSchemaDescription('Id of the source memory')]
     from_id: Integer;
 
-    [AiMCPSchemaDescription('Id de la memoria destino')]
+    [AiMCPSchemaDescription('Id of the target memory')]
     to_id: Integer;
 
-    [AiMCPSchemaDescription('Tipo de relación: related | caused_by | depends_on | contradicts')]
+    [AiMCPSchemaDescription('Type of relationship: related | caused_by | depends_on | contradicts')]
     [AiMCPOptional]
     relation: string;
   end;
 
   TMemPruneParams = class
-    [AiMCPSchemaDescription('Elimina memorias con importancia menor a este valor. Default: 3')]
+    [AiMCPSchemaDescription('Deletes memories with importance lower than this value. Default: 3')]
     [AiMCPOptional]
     min_importance: Integer;
 
-    [AiMCPSchemaDescription('Elimina memorias con más de N días sin acceso. Default: 90')]
+    [AiMCPSchemaDescription('Deletes memories older than N days without access. Default: 90')]
     [AiMCPOptional]
     max_age_days: Integer;
   end;
@@ -247,7 +247,7 @@ begin
   inherited Create;
   FMemory     := AMemory;
   FName       := 'memory_store';
-  FDescription:= 'Guarda una memoria persistente. Evita duplicados automáticamente.';
+  FDescription:= 'Stores a persistent memory. Automatically avoids duplicates.';
 end;
 
 function TAiMemoryStoreTool.ExecuteWithParams(const Params: TMemStoreParams;
@@ -276,7 +276,7 @@ begin
   inherited Create;
   FMemory      := AMemory;
   FName        := 'memory_search';
-  FDescription := 'Busca memorias por texto (FTS), similitud semántica o híbrido.';
+  FDescription := 'Searches memories by text (FTS), semantic similarity, or hybrid.';
 end;
 
 function TAiMemorySearchTool.ExecuteWithParams(const Params: TMemSearchParams;
@@ -321,7 +321,7 @@ begin
   inherited Create;
   FMemory      := AMemory;
   FName        := 'memory_recall';
-  FDescription := 'Recupera memorias de alta importancia ordenadas por relevancia.';
+  FDescription := 'Retrieves high-importance memories sorted by relevance.';
 end;
 
 function TAiMemoryRecallTool.ExecuteWithParams(const Params: TMemRecallParams;
@@ -357,8 +357,8 @@ begin
   inherited Create;
   FMemory      := AMemory;
   FName        := 'memory_context';
-  FDescription := 'Construye un bloque de contexto con las memorias más relevantes ' +
-                  'para el prompt actual, respetando un token budget.';
+  FDescription := 'Builds a context block with the most relevant memories ' +
+                  'for the current prompt, respecting a token budget.';
 end;
 
 function TAiMemoryContextTool.ExecuteWithParams(const Params: TMemContextParams;
@@ -392,7 +392,7 @@ begin
   inherited Create;
   FMemory      := AMemory;
   FName        := 'memory_delete';
-  FDescription := 'Elimina una memoria por su Id.';
+  FDescription := 'Deletes a memory by its Id.';
 end;
 
 function TAiMemoryDeleteTool.ExecuteWithParams(const Params: TMemDeleteParams;
@@ -417,8 +417,8 @@ begin
   inherited Create;
   FMemory      := AMemory;
   FName        := 'memory_stats';
-  FDescription := 'Devuelve estadísticas del namespace activo: total, importancia ' +
-                  'promedio, decay promedio, entrada más antigua/reciente.';
+  FDescription := 'Returns statistics for the active namespace: total, average ' +
+                  'importance, average decay, oldest/newest entry.';
 end;
 
 function TAiMemoryStatsTool.ExecuteWithParams(const Params: TMemStatsParams;
@@ -439,8 +439,8 @@ begin
   inherited Create;
   FMemory      := AMemory;
   FName        := 'memory_link';
-  FDescription := 'Crea una relación entre dos memorias. ' +
-                  'Relaciones estándar: related, caused_by, depends_on, contradicts.';
+  FDescription := 'Creates a relationship between two memories. ' +
+                  'Standard relations: related, caused_by, depends_on, contradicts.';
 end;
 
 function TAiMemoryLinkTool.ExecuteWithParams(const Params: TMemLinkParams;
@@ -470,8 +470,8 @@ begin
   inherited Create;
   FMemory      := AMemory;
   FName        := 'memory_prune';
-  FDescription := 'Elimina memorias antiguas de baja importancia y decay bajo. ' +
-                  'Útil para limpiar el namespace periódicamente.';
+  FDescription := 'Deletes old memories with low importance and low decay. ' +
+                  'Useful for periodically cleaning the namespace.';
 end;
 
 function TAiMemoryPruneTool.ExecuteWithParams(const Params: TMemPruneParams;
@@ -496,13 +496,13 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// RegisterMemoryTools — registra los 8 tools en TAiMCPServer
+// RegisterMemoryTools — registers the 8 tools in TAiMCPServer
 // ---------------------------------------------------------------------------
 
 procedure RegisterMemoryTools(AServer: TAiMCPServer; AMemory: TAiMemory);
 begin
-  // Cada factory crea una instancia fresca del tool para cada llamada MCP.
-  // El AMemory capturado por el closure es el mismo componente compartido.
+  // Each factory creates a fresh instance of the tool for each MCP call.
+  // The captured AMemory is the same shared component.
 
   AServer.RegisterTool('memory_store',
     function: IAiMCPTool begin Result := TAiMemoryStoreTool.Create(AMemory)   end);

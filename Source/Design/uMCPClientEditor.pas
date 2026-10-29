@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -168,9 +168,9 @@ var
   Properties, VarEnv: TStringList;
 begin
   MemoLog.Lines.Clear;
-  MemoLog.Lines.Add('--- Iniciando Test de Conexi?n ---');
+  MemoLog.Lines.Add('--- Starting Connection Test ---');
 
-  // 1. Factory: Crear la instancia correcta
+  // 1. Factory: Create the correct instance
   case EditProtocol.ItemIndex of
     0: MCPClient := TMCPClientStdIo.Create(nil);   // Stdio
     1: MCPClient := TMCPClientHttp.Create(nil);    // HTTP
@@ -184,43 +184,43 @@ begin
   VarEnv := TStringList.Create;
   try
     try
-      // 2. Asignar Eventos (Deben ser thread-safe, ver abajo)
+      // 2. Assign Events (Should be thread-safe, see below)
       MCPClient.OnLog := MCPLogEvent;
       MCPClient.OnStatusUpdate := MCPStatusEvent;
 
-      // 3. Obtener configuration de la UI
+      // 3. Get configuration from UI
       GetProperties(Properties, VarEnv);
 
-      // validation fast para SSE
+      // Quick validation for SSE
       if (MCPClient is TMCPClientSSE) and (Pos('http', Properties.Values['URL']) = 0) then
       begin
         ShowMessage('Error: For SSE the "URL" parameter is required (e.g., http://localhost:3000/sse)');
         Exit;
       end;
 
-      // 4. Inyectar parameters
+      // 4. Inject parameters
       MCPClient.Params.Assign(Properties);
       MCPClient.EnvVars.Assign(VarEnv);
 
-      MemoLog.Lines.Add(Format('Protocolo: %s', [GetEnumName(TypeInfo(TToolTransportType), Ord(MCPClient.TransportType))]));
+      MemoLog.Lines.Add(Format('Protocol: %s', [GetEnumName(TypeInfo(TToolTransportType), Ord(MCPClient.TransportType))]));
 
-      // 5. Inicializar (Conecta, hace Handshake y verifica capacidades)
-      // Nota: Si usaste el fix de "CheckSynchronize" en WaitForInitialization, esto no would block la UI.
+      // 5. Initialize (Connects, handshakes, and verifies capabilities)
+      // Note: If you used the "CheckSynchronize" fix in WaitForInitialization, this would not block the UI.
       if MCPClient.Initialize then
       begin
-        MemoLog.Lines.Add('>> Inicializaci?n Exitosa. Solicitando herramientas...');
+        MemoLog.Lines.Add('>> Initialization Successful. Requesting tools...');
 
-        // 6. Probar una llamada real (ListTools)
+        // 6. Test a real call (ListTools)
         jTools := MCPClient.ListTools;
         try
           if Assigned(jTools) then
           begin
-            MemoLog.Lines.Add('>> Herramientas recibidas:');
-            MemoLog.Lines.Add(jTools.Format(2)); // Formatear bonito
+            MemoLog.Lines.Add('>> Tools received:');
+            MemoLog.Lines.Add(jTools.Format(2)); // Pretty print
 
             PageControl1.ActivePage := TabLog;
             ShowMessage('[OK] Connection Successful!' + sLineBreak +
-                        'Se detectaron ' + IntToStr(jTools.GetValue<TJSONArray>('tools').Count) + ' herramientas.');
+                        'Detected ' + IntToStr(jTools.GetValue<TJSONArray>('tools').Count) + ' tools.');
           end
           else
           begin
@@ -248,14 +248,14 @@ begin
   finally
     Properties.Free;
     VarEnv.Free;
-    MCPClient.Free; // Importante: Esto cierra el socket y detiene los hilos
+    MCPClient.Free; // Important: This closes the socket and stops the threads
   end;
 end;
 
 procedure TFMCPClientEditor.FormCreate(Sender: TObject);
 begin
-  sgProperties.ColWidths[0] := 150; // Columna Propiedad
-  sgProperties.ColWidths[1] := 250; // Columna Valor
+  sgProperties.ColWidths[0] := 150; // Column Property
+  sgProperties.ColWidths[1] := 250; // Column Value
 
   sgProperties.Cells[0, 0] := 'Properties';
   sgProperties.Cells[1, 0] := 'Value';
@@ -267,8 +267,8 @@ procedure TFMCPClientEditor.FormResize(Sender: TObject);
 var
   AvailableWidth: Integer;
 begin
-  // Ajustar el ancho de las columnas al redimensionar el formulario
-  AvailableWidth := sgProperties.ClientWidth - 4; // Margen para scrollbar
+  // Adjust column widths when resizing the form
+  AvailableWidth := sgProperties.ClientWidth - 4; // Margin for scrollbar
   // sgProperties.ColWidths[0] := AvailableWidth div 2;
   sgProperties.ColWidths[1] := AvailableWidth - sgProperties.ColWidths[0];
 end;
@@ -316,7 +316,7 @@ Var
   I, Idx: Integer;
 begin
 
-  sgProperties.RowCount := Properties.Count + VarEnv.Count + 1; // +1 for the encabezado
+  sgProperties.RowCount := Properties.Count + VarEnv.Count + 1; // +1 for the header
   Idx := 0;
 
   if Properties.Count > 0 then
@@ -354,7 +354,7 @@ begin
   for I := 1 to sgProperties.RowCount - 1 do
   begin
     PropName := Trim(sgProperties.Cells[0, I]);
-    PropValue := sgProperties.Cells[1, I]; // No trim del valor in case tiene espacios intencionados
+    PropValue := sgProperties.Cells[1, I]; // No trim of value in case it has intentional spaces
 
     if PropName <> '' then
     Begin

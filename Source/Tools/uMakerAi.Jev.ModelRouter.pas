@@ -1,8 +1,8 @@
 ﻿// MIT License
 //
-// MakerAI - Jev: enrutador de modelos LLM con el modelo Jev (TypeSafe AI)
+// MakerAI - Jev: LLM model router using the Jev model (TypeSafe AI)
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
@@ -12,45 +12,44 @@
 unit uMakerAi.Jev.ModelRouter;
 
 // -----------------------------------------------------------------------------
-// TAiJevModelRouter: elige, para cada peticion, el modelo mas barato que
-// alcanza. Jev NO elige el modelo (no conoce precios ni capacidades): describe
-// la peticion en una llamada con tres preguntas, y el CODIGO decide con reglas
-// que se pueden leer y cambiar:
+// TAiJevModelRouter: chooses, for each request, the cheapest model that
+// suffices. Jev does NOT choose the model (it doesn't know prices or
+// capabilities): it describes the request in a single call with three
+// questions, and the CODE decides with rules that can be read and changed:
 //
-//   tarea       Choice  conversacion / redaccion / codigo / analisis /
-//                       matematicas / datos
-//   dificultad  Score   0 trivial .. 3 experta
-//   sensible    Noul    decisiones legales, medicas, tributarias o
-//                       financieras con consecuencias reales
+//   task       Choice  conversation / writing / code / analysis /
+//                       mathematics / data
+//   difficulty  Score   0 trivial .. 3 expert
+//   sensitive    Noul    legal, medical, tax or financial decisions with
+//                        real consequences
 //
-//   nivel = round(dificultad)
-//         + 1 si la confianza en la dificultad es < 0.5 (ante la duda, subir)
-//         >= CodeMinLevel si la tarea es codigo, analisis o matematicas
-//         >= SensitiveMinLevel si sensible > SensitiveThreshold
-//         =  3 si ni siquiera se sabe que tarea es (confianza < 0.4)
+//   level = round(difficulty)
+//         + 1 if confidence in difficulty is < 0.5 (when in doubt, bump up)
+//         >= CodeMinLevel if task is code, analysis or mathematics
+//         >= SensitiveMinLevel if sensitive > SensitiveThreshold
+//         =  3 if even the task is unknown (confidence < 0.4)
 //
-// El modelo es el Tier mas barato (Cost) cuyo MaxLevel alcanza el nivel.
+// The model is the cheapest Tier (Cost) whose MaxLevel reaches the level.
 //
-//   Router.Tiers.AddTier('rapido',   'Groq',     'openai/gpt-oss-20b',   0, 0.3);
-//   Router.Tiers.AddTier('estandar', 'DeepSeek', 'deepseek-v4-flash',    1, 0.3);
-//   Router.Tiers.AddTier('experto',  'Claude',   'claude-opus-5',        3, 15);
-//   Respuesta := Router.Ask(Conexion, Pregunta);   // enruta, aplica y ejecuta
+//   Router.Tiers.AddTier('fast',   'Groq',     'openai/gpt-oss-20b',   0, 0.3);
+//   Router.Tiers.AddTier('standard', 'DeepSeek', 'deepseek-v4-flash',    1, 0.3);
+//   Router.Tiers.AddTier('expert',  'Claude',   'claude-opus-5',        3, 15);
+//   Answer := Router.Ask(Connection, Question);   // routes, applies and executes
 //
-// Cambiar de proveedor en TAiChatConnection recrea el chat interno y el
-// historial se pierde. Con MigrateHistory (defecto) se copian los mensajes de
-// texto user/assistant al chat nuevo; los de tool calls NO se copian (su
-// formato y sus ids son propios de cada proveedor). Cambiar solo de modelo
-// dentro del mismo proveedor conserva todo. El SystemPrompt vive en la
-// conexion y sobrevive en ambos casos. Los Params NO: el driver nuevo trae los
-// suyos (su ApiKey '@<PROVEEDOR>_API_KEY' incluida); lo que deba valer para
-// todos los modelos (Asynchronous=False, Max_Tokens, ...) va en
-// ConnectionParams, que se aplica en cada Apply; lo propio de un modelo va en
-// el Params de su tier (se aplica despues). Ejemplo real: claude-opus-5 con el
-// razonamiento por defecto supero el timeout HTTP (~300 s) en una pregunta de
-// diseno; con ThinkingLevel=tlLow respondio en 91 s.
+// Changing the provider in TAiChatConnection recreates the internal chat and
+// the history is lost. With MigrateHistory (default) the text user/assistant
+// messages are copied to the new chat; tool calls are NOT copied (their format
+// and ids are provider-specific). Changing only the model within the same
+// provider preserves everything. The SystemPrompt lives in the connection and
+// survives in both cases. Params do NOT: the new driver brings its own
+// (its ApiKey '@<PROVIDER>_API_KEY' included); what must apply to all models
+// (Asynchronous=False, Max_Tokens, ...) goes in ConnectionParams, applied on
+// each Apply; model-specific goes in the tier's Params (applied afterwards).
+// Real example: claude-opus-5 with default reasoning exceeded HTTP timeout
+// (~300 s) on a design question; with ThinkingLevel=tlLow it responded in 91 s.
 //
-// Calibrado contra jev-1.13.0 (sep 28/2026) sobre 16 peticiones de dificultad
-// conocida: 13 exactas, 2 un nivel arriba (gastan de mas), 1 un nivel abajo.
+// Calibrated against jev-1.13.0 (sep 28/2026) on 16 requests of known
+// difficulty: 13 exact, 2 one level higher (spends too much), 1 one level lower.
 // -----------------------------------------------------------------------------
 
 interface
@@ -64,13 +63,13 @@ type
     TierName: string;
     DriverName: string;
     Model: string;
-    Level: Integer;          // 0 trivial .. 3 experto
+    Level: Integer;          // 0 trivial .. 3 expert
     Task: string;
     TaskConfidence: Double;
-    Difficulty: Double;      // valor esperado 0..3
+    Difficulty: Double;      // expected value 0..3
     DifficultyConfidence: Double;
     Sensitive: Double;
-    Reason: string;          // por que ese nivel, legible
+    Reason: string;          // why that level, readable
   end;
 
   TAiJevModelTier = class(TCollectionItem)
@@ -92,12 +91,12 @@ type
     property Name: string read FName write FName;
     property DriverName: string read FDriverName write FDriverName;
     property Model: string read FModel write FModel;
-    // Nivel mas alto (0..3) que se le confia a este modelo
+    // Highest level (0..3) trusted to this model
     property MaxLevel: Integer read FMaxLevel write FMaxLevel;
-    // Costo relativo (p.ej. US$ por millon de tokens de salida); decide entre empatados
+    // Relative cost (e.g. US$ per million output tokens); decides among ties
     property Cost: Double read FCost write FCost;
-    // 'nombre=valor' propios de este modelo (p.ej. ThinkingLevel, Max_Tokens);
-    // se aplican a la conexion despues de ConnectionParams
+    // 'name=value' specific to this model (e.g. ThinkingLevel, Max_Tokens);
+    // applied to the connection after ConnectionParams
     property Params: TStrings read FParams write SetParams;
   end;
 
@@ -108,7 +107,7 @@ type
     constructor Create(AOwner: TPersistent);
     function AddTier(const AName, ADriverName, AModel: string; AMaxLevel: Integer;
       ACost: Double): TAiJevModelTier;
-    // El mas barato con MaxLevel >= ALevel; si ninguno alcanza, el de MaxLevel mas alto
+    // Cheapest with MaxLevel >= ALevel; if none reaches, the one with highest MaxLevel
     function Pick(ALevel: Integer): TAiJevModelTier;
     function FindTier(const AName: string): TAiJevModelTier;
     property Items[Index: Integer]: TAiJevModelTier read GetItem; default;
@@ -147,44 +146,43 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    // Consumo de Jev acumulado desde Create o ResetUsage (seguro entre hilos)
+    // Jev consumption accumulated since Create or ResetUsage (thread-safe)
     property Usage: TAiJevUsage read GetUsage;
     procedure ResetUsage;
-    // Solo decide (una llamada a Jev); no toca ninguna conexion
+    // Only decides (one Jev call); does not touch any connection
     function Route(const APrompt: string): TAiModelRoute;
-    // Pone DriverName/Model en la conexion; migra el historial si cambia de proveedor
+    // Sets DriverName/Model on the connection; migrates history if provider changes
     procedure Apply(AConnection: TAiChatConnection; const ARoute: TAiModelRoute);
     // Route + Apply + AddMessageAndRun
     function Ask(AConnection: TAiChatConnection; const APrompt: string): string;
     property LastRoute: TAiModelRoute read FLastRoute;
   published
-    // Opcional: TAiJev externo (compartido o doble de pruebas)
+    // Optional: external TAiJev (shared or test double)
     property Jev: TAiJev read FJev write SetJev;
     property ApiKey: string read FApiKey write FApiKey;
     property Model: string read FModel write FModel;
-    // Servidor System One: '' = TypeSafe; 'http://localhost:11434/v1/' = Ollama
-    // (con Model := 'nimble', 'clef-flash'...). Ignorada si Jev esta asignado
+    // System One server: '' = TypeSafe; 'http://localhost:11434/v1/' = Ollama
+    // (with Model := 'nimble', 'clef-flash'...). Ignored if Jev is assigned
     property Url: string read FUrl write FUrl;
     property Tiers: TAiJevModelTiers read FTiers write SetTiers;
     property SensitiveThreshold: Double read FSensitiveThreshold write FSensitiveThreshold;
-    // Nivel minimo para lo sensible (2 = nunca al modelo mas barato)
+    // Minimum level for sensitive content (2 = never the cheapest model)
     property SensitiveMinLevel: Integer read FSensitiveMinLevel write FSensitiveMinLevel default 2;
-    // Nivel minimo para codigo, analisis y matematicas
+    // Minimum level for code, analysis and mathematics
     property CodeMinLevel: Integer read FCodeMinLevel write FCodeMinLevel default 1;
-    // Subir un nivel si Jev duda de la dificultad
+    // Bump one level if Jev doubts the difficulty
     property BumpOnDoubt: Boolean read FBumpOnDoubt write FBumpOnDoubt default True;
-    // Copiar los mensajes de texto al cambiar de proveedor
+    // Copy text messages when changing provider
     property MigrateHistory: Boolean read FMigrateHistory write FMigrateHistory default True;
-    // 'nombre=valor' que se aplican a AConnection.Params en cada Apply
-    // (el cambio de proveedor recarga los Params por defecto del driver)
+    // 'name=value' applied to AConnection.Params on each Apply
+    // (changing provider reloads the driver's default Params)
     property ConnectionParams: TStrings read FConnectionParams write SetConnectionParams;
     property OnRoute: TAiJevModelRouteEvent read FOnRoute write FOnRoute;
-    // Precios para CostUSD de Usage/OnUsage (US$ por millon de tokens; hoy la
-    // salida no se cobra)
+    // Prices for CostUSD of Usage/OnUsage (US$ per million tokens; output is currently free)
     property PricePerMillionInput: Double read FPricePerMillionInput write FPricePerMillionInput;
     property PricePerMillionOutput: Double read FPricePerMillionOutput write FPricePerMillionOutput;
-    // Una vez por operacion con el consumo de esa operacion. Sincrono, en el hilo
-    // que la ejecuto (en un servidor: el de la peticion, para cobrarle al cliente)
+    // Once per operation with the consumption of that operation. Synchronous, in the thread
+    // that executed it (on a server: the request thread, to bill the client)
     property OnUsage: TAiJevUsageEvent read FOnUsage write FOnUsage;
   end;
 
@@ -291,7 +289,7 @@ begin
   end;
   if Result <> nil then
     Exit;
-  // Ninguno alcanza: el mas capaz disponible
+  // None reaches: the most capable available
   for i := 0 to Count - 1 do
     if (Result = nil) or (Items[i].MaxLevel > Result.MaxLevel) then
       Result := Items[i];
@@ -373,26 +371,26 @@ var
   Reasons: TStringList;
 begin
   if FTiers.Count = 0 then
-    raise EAiJevError.Create('JevModelRouter: no hay Tiers definidos');
+    raise EAiJevError.Create('JevModelRouter: no Tiers defined');
 
   Q := TAiJevQuestions.Create(nil);
   Reasons := TStringList.Create;
   try
-    // Mismas preguntas que el prototipo calibrado (router.py)
-    Q.AddChoice('tarea', '¿Qué tipo de tarea pide `pregunta`?', [
-      'conversacion=Saludo, charla o pregunta de conocimiento general con respuesta corta',
-      'redaccion=Escribir, resumir, traducir o corregir un texto',
-      'codigo=Escribir, depurar, revisar o explicar código de programación',
-      'analisis=Razonar en varios pasos, comparar opciones, planear o decidir',
-      'matematicas=Resolver cálculos, problemas numéricos o demostraciones',
-      'datos=Extraer, clasificar o transformar datos estructurados']);
-    Q.AddScore('dificultad', '¿Qué tan difícil es responder bien `pregunta`?', [
-      'Trivial: la respuesta es un dato o una frase',
-      'Estándar: un profesional la responde sin investigar',
-      'Exigente: requiere varios pasos de razonamiento o contexto largo',
-      'Experta: diseño complejo, casos límite o alto costo de equivocarse']);
-    Q.AddNoul('sensible', '¿`pregunta` involucra decisiones legales, médicas, tributarias o ' +
-      'financieras donde un error tendría consecuencias reales?');
+    // Same questions as the calibrated prototype (router.py)
+    Q.AddChoice('tarea', 'What type of task does `pregunta` ask?', [
+      'conversacion=Greeting, chat or general knowledge question with short answer',
+      'redaccion=Write, summarize, translate or correct a text',
+      'codigo=Write, debug, review or explain programming code',
+      'analisis=Reason in several steps, compare options, plan or decide',
+      'matematicas=Solve calculations, numerical problems or proofs',
+      'datos=Extract, classify or transform structured data']);
+    Q.AddScore('dificultad', 'How difficult is it to answer `pregunta` well?', [
+      'Trivial: the answer is a fact or a phrase',
+      'Standard: a professional answers without research',
+      'Demanding: requires several reasoning steps or long context',
+      'Expert: complex design, edge cases or high cost of being wrong']);
+    Q.AddNoul('sensible', 'Does `pregunta` involve legal, medical, tax or financial decisions ' +
+      'where a mistake would have real consequences?');
 
     State := TJSONObject.Create;
     try
@@ -412,13 +410,13 @@ begin
       R.Free;
     end;
 
-    // Reglas en codigo (mismas del prototipo), con el motivo de cada ajuste
+    // Code rules (same as prototype), with reason for each adjustment
     Result.Level := EnsureRange(Round(Result.Difficulty), 0, 3);
-    Reasons.Add('dificultad ' + Inv(Result.Difficulty));
+    Reasons.Add('difficulty ' + Inv(Result.Difficulty));
     if FBumpOnDoubt and (Result.DifficultyConfidence < 0.5) then
     begin
       Inc(Result.Level);
-      Reasons.Add('duda ' + Inv(Result.DifficultyConfidence) + ' +1');
+      Reasons.Add('doubt ' + Inv(Result.DifficultyConfidence) + ' +1');
     end;
     if ((Result.Task = 'codigo') or (Result.Task = 'analisis') or (Result.Task = 'matematicas')) and
        (Result.Level < FCodeMinLevel) then
@@ -429,12 +427,12 @@ begin
     if (Result.Sensitive > FSensitiveThreshold) and (Result.Level < FSensitiveMinLevel) then
     begin
       Result.Level := FSensitiveMinLevel;
-      Reasons.Add('sensible ' + Inv(Result.Sensitive) + ' >= ' + IntToStr(FSensitiveMinLevel));
+      Reasons.Add('sensitive ' + Inv(Result.Sensitive) + ' >= ' + IntToStr(FSensitiveMinLevel));
     end;
     if Result.TaskConfidence < 0.4 then
     begin
       Result.Level := 3;
-      Reasons.Add('tarea incierta ' + Inv(Result.TaskConfidence) + ' -> 3');
+      Reasons.Add('task uncertain ' + Inv(Result.TaskConfidence) + ' -> 3');
     end;
     Result.Level := EnsureRange(Result.Level, 0, 3);
 
@@ -477,7 +475,7 @@ var
     ApplyList(FConnectionParams);
     Tier := FTiers.FindTier(ARoute.TierName);
     if Assigned(Tier) then
-      ApplyList(Tier.Params); // lo propio del modelo gana sobre lo global
+      ApplyList(Tier.Params); // model-specific wins over global
   end;
 
 begin
@@ -486,7 +484,7 @@ begin
 
   if SameText(AConnection.DriverName, ARoute.DriverName) then
   begin
-    // Mismo proveedor: cambiar el modelo conserva el chat y su historial
+    // Same provider: changing the model preserves the chat and its history
     if AConnection.Model <> ARoute.Model then
       AConnection.Model := ARoute.Model;
     ApplyParams;
@@ -495,7 +493,7 @@ begin
 
   History := TList<TPair<string, string>>.Create;
   try
-    // Cambiar de proveedor recrea el chat: se guardan antes los mensajes de texto
+    // Changing provider recreates the chat: save text messages first
     if FMigrateHistory and Assigned(AConnection.Messages) then
       for M in AConnection.Messages do
         if ((M.Role = 'user') or (M.Role = 'assistant')) and (M.Prompt <> '') and (M.Tool_calls = '') then
@@ -503,7 +501,7 @@ begin
 
     AConnection.DriverName := ARoute.DriverName;
     AConnection.Model := ARoute.Model;
-    // Despues del modelo: asignar Model recarga sus defaults (p.ej. Max_Tokens)
+    // After model: assigning Model reloads its defaults (e.g. Max_Tokens)
     ApplyParams;
 
     for P in History do

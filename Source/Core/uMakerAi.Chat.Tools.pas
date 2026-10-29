@@ -5,11 +5,11 @@ interface
 uses
   System.SysUtils, System.Classes, System.JSON, System.Threading,
   uMakerAi.Core,
-  uMakerAi.Chat.Messages; // Ahora usamos la unidad de mensajes directamente
+  uMakerAi.Chat.Messages; // Now we use the messages unit directly
 
 type
-  { IAiToolContext: Interfaz so that la Tool reporte eventos al Chat principal.
-    Permite la comunicaci?n bidireccional sin dependencia circular. }
+  { IAiToolContext: Interface so that the Tool reports events to the main Chat.
+    Allows bidirectional communication without circular dependency. }
   IAiToolContext = interface
     ['{E1D2C3B4-A5F6-4B7C-9D8E-F0A1B2C3D4E5}']
     procedure DoData(Msg: TAiChatMessage; const Role, Text: string; AResponse: TJSONObject = nil);
@@ -19,7 +19,7 @@ type
     function GetAsynchronous: Boolean;
   end;
 
-  { --- INTERFACES DE HERRAMIENTAS --- }
+  { --- TOOL INTERFACES --- }
 
   IAiSpeechTool = interface
     ['{B2C3D4E5-F6A7-4B6C-9D0E-F1A2B3C4D5E6}']
@@ -62,9 +62,9 @@ type
     procedure ExecutePdfAnalysis(aMediaFile: TAiMediaFile; ResMsg, AskMsg: TAiChatMessage);
   end;
 
-  // Clasificador de intencion para cmSmartDispatch: sustituye el pase 1 (un LLM
-  // que clasifica) por un clasificador rapido. Devuelve una de ATags, o '' para
-  // que el chat haga el pase 1 con el LLM como siempre (duda, error, etc.).
+  // Intent classifier for cmSmartDispatch: replaces pass 1 (an LLM that
+  // classifies) with a fast classifier. Returns one of ATags, or '' so that
+  // the chat performs pass 1 with the LLM as usual (doubt, error, etc.).
   IAiDispatchClassifier = interface
     ['{F2D75772-8679-43F9-84C2-5E28E2FB3D07}']
     function ClassifyDispatch(const APrompt: string; const ATags: TArray<string>): string;
@@ -76,9 +76,9 @@ type
   end;
 
 
-  { --- CLASES BASE --- }
+  { --- BASE CLASSES --- }
 
-  { TAiCustomTool: management basic de contexto y eventos reportados al hilo principal }
+  { TAiCustomTool: Basic context management and events reported to the main thread }
   TAiCustomTool = class(TComponent)
   protected
     FContext: IAiToolContext;
@@ -92,7 +92,7 @@ type
     procedure SetContext(AContext: IAiToolContext); virtual;
   end;
 
-  { Especializaciones for the Object Inspector }
+  { Specializations for the Object Inspector }
 
   TAiSpeechToolBase = class(TAiCustomTool, IAiSpeechTool)
   Protected
@@ -140,18 +140,18 @@ type
     procedure ExecuteReport(ResMsg, AskMsg: TAiChatMessage); virtual;
   end;
 
-  // Veredicto del guardrail de entrada (ChatTools.PromptGuard)
+  // Verdict of the input guardrail (ChatTools.PromptGuard)
   TAiPromptVerdict = record
     Allowed: Boolean;
-    Category: string; // categoria que bloqueo ('injection', 'sensitive_data', ...); '' si paso
-    Score: Double;    // probabilidad de esa categoria (0..1)
+    Category: string; // category that blocked ('injection', 'sensitive_data', ...); '' if passed
+    Score: Double;    // probability of that category (0..1)
     Reason: string;
   end;
 
-  // Guardrail de entrada: revisa el mensaje del usuario ANTES de enviarlo al
-  // LLM, despues del sanitizador por regex (SanitizerActive). La base permite
-  // todo. Si CheckPrompt lanza, BlockOnError decide (True = bloquear).
-  // Implementacion con Jev: TAiJevPromptGuard.
+  // Input guardrail: checks the user's message BEFORE sending it to the LLM,
+  // after the regex sanitizer (SanitizerActive). The base allows everything.
+  // If CheckPrompt raises, BlockOnError decides (True = block).
+  // Implementation with Jev: TAiJevPromptGuard.
   TAiPromptGuardBase = class(TAiCustomTool)
   private
     FBlockOnError: Boolean;
@@ -162,8 +162,8 @@ type
     property BlockOnError: Boolean read FBlockOnError write FBlockOnError default True;
   end;
 
-  // Base para ChatTools.DispatchClassifier. La implementacion por defecto no
-  // decide ('') y SmartDispatch sigue con su pase 1 por LLM.
+  // Base for ChatTools.DispatchClassifier. The default implementation does not
+  // decide ('') and SmartDispatch continues with its pass 1 via LLM.
   TAiDispatchClassifierBase = class(TAiCustomTool, IAiDispatchClassifier)
   Protected
     function ClassifyDispatch(const APrompt: string; const ATags: TArray<string>): string; virtual;
@@ -175,10 +175,10 @@ implementation
 
 destructor TAiCustomTool.Destroy;
 begin
-  // FContext es una referencia weak (TAiChat es TComponent, sin ref-counting).
-  // Si el chat que lo assigned ya fue liberado, FContext apunta a memoria liberada.
-  // Delphi's CleanupInstance would calla _Release a through de esa vtable corrupta → AV.
-  // solution: zerear el campo directamente, sin pasar por la management de interfaz.
+  // FContext is a weak reference (TAiChat is TComponent, without ref-counting).
+  // If the chat that assigned it has already been freed, FContext points to freed memory.
+  // Delphi's CleanupInstance would call _Release through that corrupt vtable → AV.
+  // Solution: zero the field directly, without going through interface management.
   PPointer(@FContext)^ := nil;
   inherited;
 end;

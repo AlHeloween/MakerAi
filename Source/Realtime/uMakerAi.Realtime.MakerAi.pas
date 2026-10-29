@@ -1,25 +1,25 @@
 ﻿// MakerAI Suite — Driver MakerAI Realtime (STT + LLM + TTS)
-// wss://api.cimamaker.com/v1/audio/realtime  (RFC 6455 + subprotocolo "realtime")
-// El servidor es MKAIServer, que tambien se despliega on-prem: la propiedad
-// Endpoint apunta a otra instancia (vacia = el SaaS de arriba).
+// wss://api.cimamaker.com/v1/audio/realtime  (RFC 6455 + subprotocol "realtime")
+// The server is MKAIServer, which also deploys on-prem: the Endpoint property
+// points to another instance (empty = the SaaS above).
 //
-// Conversacion de voz completa en un solo WebSocket:
-//   1. STT  — el servidor transcribe el audio del usuario (Whisper)
-//   2. LLM  — genera la respuesta del asistente (mk-scout, mk-pro, etc.)
-//   3. TTS  — devuelve la respuesta como audio PCM16 a 24 kHz
+// Full voice conversation in a single WebSocket:
+//   1. STT  — the server transcribes the user's audio (Whisper)
+//   2. LLM  — generates the assistant response (mk-scout, mk-pro, etc.)
+//   3. TTS  — returns the response as PCM16 audio at 24 kHz
 //
-// Protocolo simplificado (sin buffer de audio separado como OpenAI):
-//   Cliente → {type:"session", model, voice?, language?, ...}   (post-connect)
-//   Servidor→ {type:"ready"}                                    → OnSessionReady
-//   Cliente → {type:"audio",  data:"<base64 PCM16>"}           (chunks de voz)
-//   Cliente → {type:"commit"}                                   (fin de turno)
-//   Servidor→ {type:"user_text",      text:"..."}               → OnTranscriptCompleted
-//   Servidor→ {type:"assistant_text", text:"..."}               → OnAssistantText
-//   Servidor→ {type:"audio",          data:"<base64 PCM16>"}    → OnAudioChunk
-//   Servidor→ {type:"audio_done"}                               → OnAudioDone
-//   Servidor→ {type:"error",          message:"..."}            → OnError
+// Simplified protocol (no separate audio buffer like OpenAI):
+//   Client → {type:"session", model, voice?, language?, ...}   (post-connect)
+//   Server → {type:"ready"}                                    → OnSessionReady
+//   Client → {type:"audio",  data:"<base64 PCM16>"}           (voice chunks)
+//   Client → {type:"commit"}                                   (end of turn)
+//   Server → {type:"user_text",      text:"..."}               → OnTranscriptCompleted
+//   Server → {type:"assistant_text", text:"..."}               → OnAssistantText
+//   Server → {type:"audio",          data:"<base64 PCM16>"}    → OnAudioChunk
+//   Server → {type:"audio_done"}                               → OnAudioDone
+//   Server → {type:"error",          message:"..."}            → OnError
 //
-// Autor: Gustavo Enriquez
+// Author: Gustavo Enriquez
 // Email: gustavoeenriquez@gmail.com
 
 unit uMakerAi.Realtime.MakerAi;
@@ -32,8 +32,8 @@ uses
   uMakerAi.Realtime, uMakerAi.Realtime.WebSocket, uMakerAi.WebSocket.Client;
 
 type
-  // Aliases de compatibilidad — los tipos de evento viven ahora en
-  // uMakerAi.Realtime (compartidos por todos los drivers de voz full-duplex)
+  // Compatibility aliases — the event types now live in
+  // uMakerAi.Realtime (shared by all full-duplex voice drivers)
   TAiRealtimeAssistantTextEvent = uMakerAi.Realtime.TAiRealtimeAssistantTextEvent;
   TAiRealtimeAudioChunkEvent    = uMakerAi.Realtime.TAiRealtimeAudioChunkEvent;
 
@@ -42,32 +42,32 @@ type
     FWebSocket:     TAiRealtimeWSClient;
     FConnectThread: TThread;
     FSessionSent:   Boolean;
-    // Propiedades especificas del driver MakerAI
-    FEndpoint:      string;  // '' = el SaaS por defecto (ver ResolvedEndpoint)
+    // MakerAI driver specific properties
+    FEndpoint:      string;  // '' = the default SaaS (see ResolvedEndpoint)
     FVoice:         string;
     FSttModel:      string;
-    FSttPrompt:     string;  // glosario de dominio para Whisper (campo stt_prompt)
-    FCallerUri:     string;  // identificador del llamante (memoria por llamante)
+    FSttPrompt:     string;  // domain glossary for Whisper (stt_prompt field)
+    FCallerUri:     string;  // caller identifier (memory per caller)
     FTtsModel:      string;
     FInstructions:  string;
     FRagId:         string;
     FStateless:     Boolean;
     FVadMode:       string;  // '' | 'server' | 'disabled'
-    // Eventos VAD simplificados (sin parametros, propios de este protocolo)
+    // Simplified VAD events (no parameters, specific to this protocol)
     FOnSpeechStart:   TNotifyEvent;
     FOnSpeechEnd:     TNotifyEvent;
-    // Callbacks internos del WebSocket
+    // Internal WebSocket callbacks
     procedure OnWSFrame(Sender: TObject; Opcode: TAiRealtimeWSOpcode;
       const Data: TBytes; IsFinal: Boolean);
     procedure OnWSConnected(Sender: TObject);
     procedure OnWSDisconnected(Sender: TObject);
     procedure OnWSError(Sender: TObject; const ErrorMsg: string);
-    // Procesamiento de eventos del servidor
+    // Server event processing
     procedure ProcessServerEvent(const JObj: TJSONObject);
     procedure SendSessionMessage;
     function  ResolvedEndpoint: string;
-    // Dispatchers thread-safe para los eventos VAD simplificados
-    // (DoAssistantText/DoAudioChunk/DoAudioDone se heredan de la base)
+    // Thread-safe dispatchers for simplified VAD events
+    // (DoAssistantText/DoAudioChunk/DoAudioDone are inherited from the base)
     procedure DoSpeechStart;
     procedure DoSpeechEnd;
   protected
@@ -80,22 +80,22 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
-    // Override: despacha el envio al hilo principal para no bloquear el
-    // callback de WaveIn (que no puede llamar a SChannel/sockets directamente).
+    // Override: dispatches sending to the main thread to avoid blocking the
+    // WaveIn callback (which cannot call SChannel/sockets directly).
     procedure SendAudioChunk(const PCM16Data: TBytes); override;
-    // TTS directo en el servidor sin pasar por STT/LLM ({"type":"say"}).
-    // Ideal para saludos deterministas al contestar una llamada; el server
-    // responde con chunks de audio + audio_done y lo anota en el historial.
+    // Direct TTS on the server without going through STT/LLM ({"type":"say"}).
+    // Ideal for deterministic greetings when answering a call; the server
+    // responds with audio chunks + audio_done and annotates it in the history.
     procedure Say(const AText: string);
     class function GetDriverName:   string; override;
     class function GetDefaultModel: string; override;
   published
-    // WebSocket del servidor MKAI. Vacio (default) = wss://api.cimamaker.com/
-    // v1/audio/realtime; se llena solo para una instancia propia (on-prem o
-    // staging). Al quedar vacio por defecto, no se escribe en los DFM que ya
-    // existen y el comportamiento no cambia para nadie.
+    // MKAI server WebSocket. Empty (default) = wss://api.cimamaker.com/
+    // v1/audio/realtime; it is filled only for a custom instance (on-prem or
+    // staging). Being empty by default, it is not written into existing DFMs
+    // and the behavior does not change for anyone.
     property Endpoint:     string read FEndpoint     write FEndpoint;
-    // Parametros de sesion (opcionales; todos resueltos por el servidor si se omiten)
+    // Session parameters (optional; all resolved by the server if omitted)
     property Voice:        string read FVoice        write FVoice;
     property SttModel:     string read FSttModel     write FSttModel;
     property SttPrompt:    string read FSttPrompt    write FSttPrompt;
@@ -103,17 +103,17 @@ type
     property TtsModel:     string read FTtsModel     write FTtsModel;
     property Instructions: string read FInstructions write FInstructions;
     property RagId:        string read FRagId        write FRagId;
-    // Cada commit corre con las instructions frescas, sin historial multi-turn.
-    // Util para sesiones de transformacion pura (traduccion, dictado, etc.)
+    // Each commit runs with fresh instructions, without multi-turn history.
+    // Useful for pure transformation sessions (translation, dictation, etc.)
     property Stateless:    Boolean read FStateless write FStateless default False;
-    // VAD del servidor: '' o 'disabled' → commit manual del cliente;
-    // 'server' → el servidor detecta turnos (OpenAI turn_detection server_vad,
-    //             threshold 0.5, silence 500ms, prefix 300ms). El cliente NO
-    //             debe enviar type:commit — el servidor lo dispara solo.
+    // Server VAD: '' or 'disabled' → manual client commit;
+    // 'server' → the server detects turns (OpenAI turn_detection server_vad,
+    //             threshold 0.5, silence 500ms, prefix 300ms). The client MUST
+    //             NOT send type:commit — the server triggers it automatically.
     property VadMode:      string  read FVadMode  write FVadMode;
-    // OnAssistantText / OnAudioChunk / OnAudioDone se heredan de
-    // TAiRealtimeVoiceBase (published en la base)
-    // Eventos VAD del servidor (speech_start / speech_end de OpenAI)
+    // OnAssistantText / OnAudioChunk / OnAudioDone are inherited from
+    // TAiRealtimeVoiceBase (published in the base)
+    // Server VAD events (speech_start / speech_end from OpenAI)
     property OnSpeechStart: TNotifyEvent read FOnSpeechStart write FOnSpeechStart;
     property OnSpeechEnd:   TNotifyEvent read FOnSpeechEnd   write FOnSpeechEnd;
   end;
@@ -125,7 +125,7 @@ implementation
 const
   CMAKERAIREALTIME_WSS  = 'wss://api.cimamaker.com/v1/audio/realtime';
   CMAKERAIREALTIME_SUBP = 'realtime';
-  CMAKERAIREALTIME_LOG  = ''; // debug: 'C:\Temp\makerai_ws.log' (Windows) o '/tmp/makerai_ws.log'
+  CMAKERAIREALTIME_LOG  = ''; // debug: 'C:\Temp\makerai_ws.log' (Windows) or '/tmp/makerai_ws.log'
 
 procedure MkLog(const AMsg: string);
 begin
@@ -280,14 +280,14 @@ begin
 
   else if EventType = 'error' then
   begin
-    ErrMsg := 'Error del servidor MakerAI';
+    ErrMsg := 'MakerAI server error';
     if not JObj.TryGetValue<string>('message', ErrMsg) then
       JObj.TryGetValue<string>('error', ErrMsg);
     DoError(ErrMsg, 'server_error');
   end;
 end;
 
-{ Dispatchers thread-safe para los eventos VAD simplificados }
+{ Thread-safe dispatchers for simplified VAD events }
 
 procedure TAiMakerAiRealtimeChat.DoSpeechStart;
 begin
@@ -307,19 +307,19 @@ begin
   end);
 end;
 
-{ Handlers del WebSocket }
+{ WebSocket handlers }
 
-{ Override de SendAudioChunk: encola el resampling + envio al hilo principal.
-  El VoiceMonitor llama a este metodo desde el callback de WaveIn (hilo del
-  sistema de audio de Windows), donde NO esta permitido llamar a funciones
-  de socket o SChannel. TThread.Queue mueve la operacion al hilo principal. }
+{ Override of SendAudioChunk: queues resampling + sending to the main thread.
+  VoiceMonitor calls this method from the WaveIn callback (Windows audio
+  system thread), where calling socket or SChannel functions is NOT allowed.
+  TThread.Queue moves the operation to the main thread. }
 procedure TAiMakerAiRealtimeChat.SendAudioChunk(const PCM16Data: TBytes);
 var
   LData: TBytes;
 begin
   if not IsConnected then Exit;
   if Length(PCM16Data) = 0 then Exit;
-  LData := Copy(PCM16Data); // copia rapida antes de salir del callback
+  LData := Copy(PCM16Data); // quick copy before leaving the callback
   TThread.Queue(nil, procedure
   var
     Resampled: TBytes;
@@ -377,7 +377,7 @@ begin
   end;
 end;
 
-{ Implementacion de metodos abstractos }
+{ Implementation of abstract methods }
 
 function TAiMakerAiRealtimeChat.ResolvedEndpoint: string;
 begin
@@ -390,8 +390,8 @@ procedure TAiMakerAiRealtimeChat.InternalConnect;
 var
   LUrl: string;
 begin
-  // Se resuelve UNA vez: el hilo de conexion no debe volver a leer FEndpoint,
-  // que el usuario podria cambiar mientras tanto.
+  // Resolved ONCE: the connection thread must not re-read FEndpoint,
+  // which the user could change in the meantime.
   LUrl := ResolvedEndpoint;
   MkLog('CONNECT url=' + LUrl + ' key_prefix=' +
         Copy(ResolvedApiKey, 1, 8) + '...');
@@ -402,7 +402,7 @@ begin
     if not FWebSocket.Connect(LUrl) then
     begin
       MkLog('CONNECT_FAILED');
-      DoError('No se pudo conectar al servidor WebSocket de MakerAI',
+      DoError('Could not connect to MakerAI WebSocket server',
               'connection_failed');
     end
     else

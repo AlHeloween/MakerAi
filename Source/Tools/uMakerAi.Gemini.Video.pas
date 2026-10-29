@@ -1,38 +1,4 @@
-﻿// MIT License
-//
-// Copyright (c) <year> <copyright holders>
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
-// Nombre: Gustavo Enriquez
-// Social Networks:
-// - Email: gustavoeenriquez@gmail.com
-
-// - Telegram: https://t.me/MakerAi_Suite_Delphi
-// - Telegram: https://t.me/MakerAi_Delphi_Suite_English
-
-// - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
-// - Youtube: https://www.youtube.com/@cimamaker3945
-// - GitHub: https://github.com/gustavoeenriquez/
-
-
-unit uMakerAi.Gemini.Video;
+﻿unit uMakerAi.Gemini.Video;
 
 interface
 
@@ -42,7 +8,7 @@ uses
   System.IOUtils, uMakerAi.Core, uMakerAi.Chat.Tools, uMakerAi.Chat, uMakerAi.Chat.Messages;
 
 type
-  { Enums para una mejor experiencia en el Inspector de Objetos }
+  { Enums for better experience in the Object Inspector }
   TVeoAspectRatio = (arDefault, ar16_9, ar9_16);
   TVeoResolution = (vrDefault, vr720p, vr1080p);
   TVeoPersonGeneration = (pgDefault, pgAllowAll, pgAllowAdult, pgDontAllow);
@@ -64,10 +30,10 @@ type
     function BuildParametersJson: TJSONObject;
     function DownloadVideo(const AVideoUri: string): TAiMediaFile;
   protected
-    { implementation de IAiVideoTool }
+    { implementation of IAiVideoTool }
     procedure ExecuteVideoGeneration(ResMsg, AskMsg: TAiChatMessage); override;
 
-    { logic interna de execution y Polling }
+    { internal execution and polling logic }
     procedure InternalRunVeo(AResMsg, AAskMsg: TAiChatMessage);
   public
     constructor Create(AOwner: TComponent); override;
@@ -76,7 +42,7 @@ type
     property Model: string read FModel write FModel;
     property Url: string read FUrl write FUrl;
 
-    { Propiedades de configuration de Veo }
+    { Veo configuration properties }
     property AspectRatio: TVeoAspectRatio read FAspectRatio write FAspectRatio default ar16_9;
     property Resolution: TVeoResolution read FResolution write FResolution default vr720p;
     property DurationSeconds: Integer read FDurationSeconds write FDurationSeconds default 8;
@@ -154,20 +120,20 @@ procedure TAiGeminiVideoTool.ExecuteVideoGeneration(ResMsg, AskMsg: TAiChatMessa
 var
   LTaskMsg: TAiChatMessage;
 begin
-  // Veo SIEMPRE es like thisncrono (tarda minutos). NO usamos ResMsg directamente
-  // porque TAiChat.Run puede liberarlo antes de que el polling termine.
-  // Creamos un mensaje propio y encolamos su release after de ReportDataEnd
-  // para respetar el orden FIFO de TThread.Queue.
+  // Veo is always asynchronous (takes minutes). We do NOT use ResMsg directly
+  // because TAiChat.Run can free it before the polling ends.
+  // We create our own message and queue its release after ReportDataEnd
+  // to respect the FIFO order of TThread.Queue.
   LTaskMsg := TAiChatMessage.Create('', 'assistant');
   TTask.Run(procedure
   begin
     try
       InternalRunVeo(LTaskMsg, TAiChatMessage(AskMsg));
     except
-      on E: Exception do ReportError('Error en Veo Tool: ' + E.Message, E);
+      on E: Exception do ReportError('Error in Veo Tool: ' + E.Message, E);
     end;
-    // ReportDataEnd ya queued DoDataEnd(LTaskMsg,...) al hilo principal.
-    // Encolamos el Free after para ejecutarse en orden FIFO.
+    // ReportDataEnd already queues DoDataEnd(LTaskMsg,...) to the main thread.
+    // Queue the Free after to execute in FIFO order.
     TThread.Queue(nil, procedure begin LTaskMsg.Free; end);
   end);
 end;
@@ -189,12 +155,12 @@ begin
   LRequest := TJSONObject.Create;
   LBody := nil;
   try
-    // 1. Construir request Inicial
+    // 1. Build initial request
     LInstances := TJSONArray.Create;
     LInstance := TJSONObject.Create;
     LInstance.AddPair('prompt', AAskMsg.Prompt);
 
-    // Soporte para Image-to-Video (si hay una imagen en el mensaje)
+    // Support for Image-to-Video (if there is an image in the message)
     LMediaArr := AAskMsg.MediaFiles.GetMediaList([Tfc_Image], False);
     if Length(LMediaArr) > 0 then
     begin
@@ -212,7 +178,7 @@ begin
     LRequest.AddPair('instances', LInstances);
     LRequest.AddPair('parameters', BuildParametersJson);
 
-    // 2. Iniciar operation (predictLongRunning)
+    // 2. Start operation (predictLongRunning)
     LUrl := Format('%smodels/%s:predictLongRunning?key=%s', [FUrl, FModel, GetApiKey]);
     LBody := TStringStream.Create(LRequest.ToJSON, TEncoding.UTF8);
     HTTP.ContentType := 'application/json';
@@ -221,7 +187,7 @@ begin
     LResponse := HTTP.Post(LUrl, LBody);
 
     if LResponse.StatusCode <> 200 then
-      raise Exception.Create('Error iniciando Veo: ' + LResponse.ContentAsString);
+      raise Exception.Create('Error starting Veo: ' + LResponse.ContentAsString);
 
     LJSON := TJSONObject.ParseJSONValue(LResponse.ContentAsString) as TJSONObject;
     LOpName := LJSON.GetValue<string>('name', '');
@@ -230,13 +196,13 @@ begin
     if LOpName.IsEmpty then
       raise Exception.Create('Operation name not received.');
 
-    // 3. Bucle de Polling
+    // 3. Polling loop
     LPollingUrl := FUrl + LOpName + '?key=' + GetApiKey;
     LIsDone := False;
 
     while not LIsDone do
     begin
-      Sleep(10000); // Esperar 10 segundos
+      Sleep(10000); // Wait 10 seconds
       ReportState(acsReasoning, 'Processing video on Google servers...');
 
       LResponse := HTTP.Get(LPollingUrl);
@@ -261,12 +227,12 @@ begin
     // 4. Download Final Video
     if not LVideoUri.IsEmpty then
     begin
-      ReportState(acsWriting, 'Descargando video generado...');
+      ReportState(acsWriting, 'Downloading generated video...');
       LVideoFile := DownloadVideo(LVideoUri);
       if Assigned(LVideoFile) then
       begin
         AResMsg.MediaFiles.Add(LVideoFile);
-        ReportDataEnd(AResMsg, 'assistant', '[Video generado exitosamente]');
+        ReportDataEnd(AResMsg, 'assistant', '[Video generated successfully]');
       end;
     end;
 

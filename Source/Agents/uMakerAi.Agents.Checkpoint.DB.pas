@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Name: Gustavo Enriquez
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
@@ -29,33 +29,33 @@
 
 unit uMakerAi.Agents.Checkpoint.DB;
 
-// TAiDatabaseCheckpointer: implementaci?n de IAiCheckpointer sobre FireDAC.
+// TAiDatabaseCheckpointer: IAiCheckpointer implementation over FireDAC.
 //
-// Compatible con cualquier base de datos que soporte FireDAC:
+// Works with any database supported by FireDAC:
 // PostgreSQL, SQLite, MySQL, Firebird, SQL Server, etc.
 //
-// Tabla requerida (crear con CreateSchema o ejecutar el DDL manualmente):
+// Required table (create with CreateSchema or run the DDL manually):
 //
 //   agent_checkpoints (
 //     thread_id     VARCHAR(255) PRIMARY KEY,
-//     snapshot      TEXT NOT NULL,     -- JSON de TAiCheckpointSnapshot
+//     snapshot      TEXT NOT NULL,     -- JSON of TAiCheckpointSnapshot
 //     checkpoint_id INTEGER NOT NULL,
 //     created_at    TIMESTAMP NOT NULL,
 //     updated_at    TIMESTAMP NOT NULL
 //   )
 //
-// Uso t?pico:
+// Typical usage:
 //
 //   var FCP := TAiDatabaseCheckpointer.Create(FDConnection1);
-//   FCP.CreateSchema;                         // solo la primera vez
+//   FCP.CreateSchema;                         // first time only
 //   AgentManager.Checkpointer := FCP;
 //
-//   // Al arrancar la app: recuperar threads suspendidos
+//   // On app startup: recover suspended threads
 //   for ThreadID in AgentManager.GetActiveThreads do
-//     ShowMessage('Pendiente: ' + ThreadID);
+//     ShowMessage('Pending: ' + ThreadID);
 //
-//   // Reanudar cuando el humano aprueba
-//   AgentManager.ResumeThread(ThreadID, 'NombreNodo', 'Aprobado');
+//   // Resume when the human approves
+//   AgentManager.ResumeThread(ThreadID, 'NodeName', 'Approved');
 
 interface
 
@@ -69,9 +69,9 @@ uses
 type
   // -------------------------------------------------------------------------
   // TAiDatabaseCheckpointer
-  //   - TInterfacedObject (misma base que TAiFileCheckpointer)
-  //   - Thread-safe: TCriticalSection protege accesos concurrentes
-  //   - El caller gestiona el ciclo de vida de FConnection
+  //   - TInterfacedObject (same base as TAiFileCheckpointer)
+  //   - Thread-safe: TCriticalSection protects concurrent accesses
+  //   - The caller manages the FConnection lifecycle
   // -------------------------------------------------------------------------
   TAiDatabaseCheckpointer = class(TInterfacedObject, IAiCheckpointer)
   private
@@ -84,7 +84,7 @@ type
                        const ATableName: string = 'agent_checkpoints');
     destructor  Destroy; override;
 
-    // Crea la tabla si no existe. Llamar una vez al iniciar la aplicaci?n.
+    // Creates the table if it does not exist. Call once at application startup.
     procedure CreateSchema;
 
     // IAiCheckpointer
@@ -106,7 +106,7 @@ constructor TAiDatabaseCheckpointer.Create(AConnection: TFDConnection;
 begin
   inherited Create;
   if not Assigned(AConnection) then
-    raise Exception.Create('TAiDatabaseCheckpointer: Connection no puede ser nil.');
+    raise Exception.Create('TAiDatabaseCheckpointer: Connection cannot be nil.');
   FConnection := AConnection;
   FTableName  := ATableName;
   FLock       := TCriticalSection.Create;
@@ -121,7 +121,7 @@ end;
 function TAiDatabaseCheckpointer.NewQuery: TFDQuery;
 begin
   if not Assigned(FConnection) then
-    raise Exception.Create('TAiDatabaseCheckpointer: sin conexi?n asignada.');
+    raise Exception.Create('TAiDatabaseCheckpointer: no connection assigned.');
   Result := TFDQuery.Create(nil);
   Result.Connection := FConnection;
 end;
@@ -160,7 +160,7 @@ var
   LContent: string;
   LNow:     TDateTime;
 begin
-  // Serializar fuera del lock (operaci?n costosa)
+  // Serialize outside the lock (expensive operation)
   LJson := ASnapshot.ToJSON;
   try
     LContent := LJson.ToString;
@@ -173,12 +173,12 @@ begin
   try
     FLock.Enter;
     try
-      // Borrar si existe (UPSERT gen?rico compatible con todos los drivers)
+      // Delete if exists (generic UPSERT compatible with all drivers)
       Q.SQL.Text := 'DELETE FROM ' + FTableName + ' WHERE thread_id = :tid';
       Q.ParamByName('tid').AsString := AThreadID;
       Q.ExecSQL;
 
-      // Insertar nueva versi?n
+      // Insert new version
       Q.SQL.Text :=
         'INSERT INTO ' + FTableName +
         ' (thread_id, snapshot, checkpoint_id, created_at, updated_at)' +
@@ -223,7 +223,7 @@ begin
     Q.Free;
   end;
 
-  // Parsear fuera del lock
+  // Parse outside the lock
   LJson := TJSONObject.ParseJSONValue(LContent);
   if Assigned(LJson) then
   try

@@ -17,15 +17,15 @@ type
     class function GetVirtualKey(const KeyName: string): Word;
     class procedure ParseAndExecuteCombo(const Combo: string);
     class procedure SmoothMouseMove(DestX, DestY: Integer);
-    // Presiona las teclas modificadoras y devuelve sus VK para liberarlas luego.
+    // Presses the modifier keys and returns their VK codes to release them later.
     class function ModifiersDown(const Mods: string): TArray<Word>;
     class procedure ModifiersUp(const Keys: TArray<Word>);
   public
-    // Ejecuta la acci�n f�sica basada en los datos procesados
+    // Executes the physical action based on the processed data
     class function Execute(const Action: TAiActionData): TAiActionResult;
 
-    // Helper para capturar la pantalla y devolverla como TAiMediaFile
-    // Quality: 1-100 (JPG compression). Recomendado: 60-75 para velocidad.
+    // Helper to capture the screen and return it as TAiMediaFile
+    // Quality: 1-100 (JPG compression). Recommended: 60-75 for speed.
     class procedure CaptureScreen(var MediaFile: TAiMediaFile; TargetArea: TRect; Quality: Integer = 70);
   end;
 
@@ -72,15 +72,15 @@ begin
   Input.ki.dwFlags := KEYEVENTF_UNICODE;
   SendInput(1, Input, SizeOf(TInput));
 
-  // Release (necesario para algunos inputs unicode)
+  // Release (necessary for some unicode inputs)
   Input.ki.dwFlags := KEYEVENTF_UNICODE or KEYEVENTF_KEYUP;
   SendInput(1, Input, SizeOf(TInput));
 end;
 
 class procedure TAiWindowsExecutor.SmoothMouseMove(DestX, DestY: Integer);
 begin
-  // SetCursorPos es instant�neo y es lo que Gemini espera generalmente.
-  // Si se quisiera simular movimiento humano, aqu� ir�a un algoritmo de interpolaci�n.
+  // SetCursorPos is instant and is what Gemini generally expects.
+  // If one wanted to simulate human movement, an interpolation algorithm would go here.
   SetCursorPos(DestX, DestY);
 end;
 
@@ -126,8 +126,8 @@ var
   VK: Word;
   I: Integer;
 begin
-  // Ejemplo: "Control+Shift+S"
-  // Reemplazar separadores comunes
+  // Example: "Control+Shift+S"
+  // Replace common separators
   Parts := Combo.Replace('-', '+').Split(['+']);
   Keys := TList<Word>.Create;
   try
@@ -142,7 +142,7 @@ begin
       end;
     end;
 
-    // Peque�a pausa para asegurar que la app detecte el combo
+    // Small pause to ensure the app detects the combo
     Sleep(50);
 
     // 2. Release Sequence (Reverse Order)
@@ -188,7 +188,7 @@ var
   I: Integer;
 begin
   for I := High(Keys) downto Low(Keys) do
-    SendKeyboardInput(Keys[I], True); // Key Up (orden inverso)
+    SendKeyboardInput(Keys[I], True); // Key Up (reverse order)
 end;
 
 // -----------------------------------------------------------------------------
@@ -269,13 +269,13 @@ begin
       begin
         SmoothMouseMove(Action.X, Action.Y);
         SendMouseInput(MOUSEEVENTF_LEFTDOWN);
-        Sleep(100); // Pausa para iniciar drag
+        Sleep(100); // Pause to start drag
 
-        // Movimiento interpolado simple so that el OS detecte el arrastre
-        // Mover a mitad de camino
+        // Simple interpolated movement so that the OS detects the drag
+        // Move halfway
         SmoothMouseMove((Action.X + Action.DestX) div 2, (Action.Y + Action.DestY) div 2);
         Sleep(50);
-        // Mover a destino
+        // Move to destination
         SmoothMouseMove(Action.DestX, Action.DestY);
         Sleep(100);
 
@@ -284,12 +284,12 @@ begin
 
       catScroll:
       begin
-        // Mover mouse a posici�n para asegurar que el scroll afecte a la ventana correcta
+        // Move mouse to position to ensure the scroll affects the correct window
         Mods := ModifiersDown(Action.Modifiers);
         SmoothMouseMove(Action.X, Action.Y);
 
-        // Magnitude default en Gemini es 800 (WHEEL_DELTA es 120)
-        // 800 unidades normalizadas ~ varios pasos de rueda.
+        // Default magnitude in Gemini is 800 (WHEEL_DELTA is 120)
+        // 800 normalized units ~ several wheel steps.
 
         if (Action.ScrollDirection = 'down') then
           SendMouseInput(MOUSEEVENTF_WHEEL, DWORD(-Action.ScrollAmount))
@@ -311,26 +311,25 @@ begin
 
       catZoom:
       begin
-        // No requiere input físico: la región (Action.ZoomRect) se captura ampliada
-        // en el manejador de OnRequestScreenshot vía CurrentAction.ZoomRect.
+        // No physical input required: the region (Action.ZoomRect) is captured zoomed
+        // in the OnRequestScreenshot handler via CurrentAction.ZoomRect.
       end;
 
-      // --- TECLADO ---
+      // --- KEYBOARD ---
       catType:
       begin
-        // Pre-click SOLO si se especific� una posici�n (Gemini 'type_text_at' la
-        // trae). La acci�n 'type' de Claude NO lleva coordenadas (escribe en el
-        // control con foco) -> llega (0,0); clicar (0,0) quitar�a el foco. Por eso
-        // solo clicamos cuando X/Y != 0.
+        // Pre-click ONLY if a position was specified (Gemini 'type_text_at' brings it).
+        // Claude's 'type' action does NOT carry coordinates (types in the focused control) -> arrives (0,0);
+        // clicking (0,0) would remove focus. Therefore we only click when X/Y != 0.
         if (Action.X <> 0) or (Action.Y <> 0) then
         begin
           SmoothMouseMove(Action.X, Action.Y);
           SendMouseInput(MOUSEEVENTF_LEFTDOWN);
           SendMouseInput(MOUSEEVENTF_LEFTUP);
-          Sleep(50); // Esperar foco
+          Sleep(50); // Wait for focus
         end;
 
-        // Escribir texto Unicode
+        // Type Unicode text
         for I := 1 to Length(Action.TextToType) do
           SendUnicodeChar(Action.TextToType[I]);
 
@@ -349,7 +348,7 @@ begin
 
       catHoldKey:
       begin
-        // Mantiene la(s) tecla(s) presionada(s) durante HoldDuration segundos.
+        // Holds the key(s) pressed during HoldDuration seconds.
         Mods := ModifiersDown(Action.KeyCombo);
         if Action.HoldDuration > 0 then
           Sleep(Round(Action.HoldDuration * 1000))
@@ -358,21 +357,21 @@ begin
         ModifiersUp(Mods);
       end;
 
-      // --- OTROS ---
+      // --- OTHERS ---
       catWait:
       begin
-        Sleep(5000); // Gemini define wait_5_seconds
+        Sleep(5000); // Gemini defines wait_5_seconds
       end;
 
       catNavigate:
       begin
-         // Aqu� no hacemos nada f�sico en Desktop,
-         // pero podr�amos abrir el navegador default si quisi�ramos.
-         // for now, asumimos �xito l�gico y retornamos the URL en el componente principal.
+         // Here we do nothing physical on Desktop,
+         // but we could open the default browser if we wanted.
+         // for now, we assume logical success and return the URL in the main component.
       end;
 
     else
-      // catScreenshot y otros se manejan fuera o no requieren acci�n de input
+      // catScreenshot and others are handled externally or do not require input action
     end;
 
   except
@@ -398,8 +397,8 @@ begin
   if not Assigned(MediaFile) then
     MediaFile := TAiMediaFile.Create;
 
-  // 1. Obtener dimensiones reales del monitor principal
-  // Nota: Para soporte multimonitor, se requerir�a l�gica extra (EnumDisplayMonitors)
+  // 1. Get actual dimensions of the primary monitor
+  // Note: For multi-monitor support, extra logic would be required (EnumDisplayMonitors)
   ScreenWidth := GetSystemMetrics(SM_CXSCREEN);
   ScreenHeight := GetSystemMetrics(SM_CYSCREEN);
 
@@ -408,13 +407,13 @@ begin
     Bmp.SetSize(ScreenWidth, ScreenHeight);
     DC := GetDC(0); // 0 = Desktop HWND
     try
-      // Copia r�pida BitBlt
+      // Fast BitBlt copy
       BitBlt(Bmp.Canvas.Handle, 0, 0, ScreenWidth, ScreenHeight, DC, 0, 0, SRCCOPY);
     finally
       ReleaseDC(0, DC);
     end;
 
-    // Opcional: Dibujar cursor (Gemini ayuda a saber d�nde est� el mouse)
+    // Optional: Draw cursor (Gemini helps to know where the mouse is)
 
     var CursorPos: TPoint;
     var IconInfo: TIconInfo;
@@ -427,7 +426,7 @@ begin
     end;
 
 
-    // 2. Comprimir a JPEG
+    // 2. Compress to JPEG
     Jpg := TJPEGImage.Create;
     try
       Jpg.Assign(Bmp);
@@ -438,11 +437,11 @@ begin
       Jpg.SaveToStream(Stream);
       Stream.Position := 0;
 
-      // 3. Cargar en MediaFile
+      // 3. Load into MediaFile
       MediaFile.LoadFromStream('screenshot.jpg', Stream);
 
-      // Liberar Stream (LoadFromStream suele hacer copia, o TAiMediaFile se adue�a, revisar implementaci�n base)
-      // Asumiendo que LoadFromStream copia:
+      // Free Stream (LoadFromStream usually copies, or TAiMediaFile takes ownership, check base implementation)
+      // Assuming LoadFromStream copies:
       Stream.Free;
     finally
       Jpg.Free;
@@ -462,20 +461,20 @@ var
   Stream: TMemoryStream;
   W, H: Integer;
 
-  // Variables para capturar el cursor
+  // Variables for capturing the cursor
   CursorInfo: TCursorInfo;
   IconInfo: TIconInfo;
 //  hIcon: HICON;
 begin
-  // 1. Asegurar que el objeto de salida existe
+  // 1. Ensure the output object exists
   if not Assigned(MediaFile) then
     MediaFile := TAiMediaFile.Create;
 
-  // 2. Calcular dimensiones basadas en el Rect�ngulo solicitado
+  // 2. Calculate dimensions based on the requested rectangle
   W := TargetArea.Width;
   H := TargetArea.Height;
 
-  // Fallback de seguridad: Si el �rea es inv�lida, capturar monitor principal completo
+  // Safety fallback: If the area is invalid, capture the full primary monitor
   if (W <= 0) or (H <= 0) then
   begin
     W := GetSystemMetrics(SM_CXSCREEN);
@@ -485,19 +484,19 @@ begin
 
   Bmp := TBitmap.Create;
   try
-    // pf24bit es suficiente y m�s r�pido para JPEGs
+    // pf24bit is sufficient and faster for JPEGs
     Bmp.PixelFormat := pf24bit;
     Bmp.SetSize(W, H);
 
-    DC := GetDC(0); // 0 = Handle del Escritorio completo
+    DC := GetDC(0); // 0 = Handle to the entire desktop
     try
-      // 3. Captura de P�xeles (BitBlt)
-      // Copiamos desde el DC de pantalla hacia el Canvas del Bitmap.
-      // Usamos TargetArea.Left y Top como coordenadas origen (Source X, Source Y).
+      // 3. Pixel capture (BitBlt)
+      // Copy from the screen DC to the Bitmap canvas.
+      // Use TargetArea.Left and Top as source coordinates (Source X, Source Y).
       BitBlt(Bmp.Canvas.Handle, 0, 0, W, H, DC, TargetArea.Left, TargetArea.Top, SRCCOPY);
 
-      // 4. Dibujar el Cursor (Overlay)
-      // Esto es crucial so that la IA sepa donde est� el puntero relativo a la imagen.
+      // 4. Draw the cursor (overlay)
+      // This is crucial so that the AI knows where the pointer is relative to the image.
       {
       CursorInfo.cbSize := SizeOf(CursorInfo);
       if GetCursorInfo(CursorInfo) and (CursorInfo.flags = CURSOR_SHOWING) then
@@ -507,14 +506,14 @@ begin
         try
           if GetIconInfo(hIcon, IconInfo) then
           begin
-            // Calcular posici�n relativa:
-            // PosicionRealMouse - InicioDeCaptura - OffsetDelHotspotIcono
+            // Calculate relative position:
+            // ActualMousePosition - CaptureOrigin - IconHotspotOffset
             DrawIcon(Bmp.Canvas.Handle,
                      CursorInfo.ptScreenPos.x - TargetArea.Left - IconInfo.xHotspot,
                      CursorInfo.ptScreenPos.y - TargetArea.Top - IconInfo.yHotspot,
                      hIcon);
 
-            // Limpieza de recursos de icono
+            // Clean up icon resources
             DeleteObject(IconInfo.hbmMask);
             DeleteObject(IconInfo.hbmColor);
           end;
@@ -528,7 +527,7 @@ begin
       ReleaseDC(0, DC);
     end;
 
-    // 5. Compresi�n y Guardado
+    // 5. Compression and saving
     Jpg := TJPEGImage.Create;
     try
       Jpg.Assign(Bmp);
@@ -540,8 +539,8 @@ begin
         Jpg.SaveToStream(Stream);
         Stream.Position := 0;
 
-        // Cargar en el MediaFile
-        // El nombre 'screenshot.jpg' ayuda a TAiMediaFile a detectar el MimeType correcto
+        // Load into the MediaFile
+        // The name 'screenshot.jpg' helps TAiMediaFile detect the correct MimeType
         MediaFile.LoadFromStream('screenshot.jpg', Stream);
       finally
         Stream.Free;

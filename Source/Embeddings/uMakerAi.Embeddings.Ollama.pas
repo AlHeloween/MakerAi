@@ -79,13 +79,13 @@ end;
 
 { TOllEmbeddings }
 
-{ modelos disponibles en Ollama a mayo 2024 Library https://ollama.com/library
+{ Available models in Ollama as of May 2024 Library https://ollama.com/library
   Model := 'mxbai-embed-large'; //Vector[1024]
   Model := 'nomic-embed-text'; // Vector[768]
   Model := 'all-minilm';      //Vector[384]
   Model := 'snowflake-arctic-embed'; //Vector[1024]    //This is the best version as of May/2024
 
-  Url para llamado http://IPOLLAMASERVER:11434/
+  URL for calling http://IPOLLAMASERVER:11434/
 }
 
 function TAiOllamaEmbeddings.CreateEmbedding(aInput, aUser: String; aDimensions: Integer; aModel, aEncodingFormat: String): TAiEmbeddingData;
@@ -167,7 +167,7 @@ Var
   J: Integer;
   Valor: Double;
 begin
-  // A diferencia de openAi el embedding es uno solo y no un arreglo
+  // Unlike OpenAI, the embedding is a single one and not an array
 
   JArr := JObj.GetValue<TJSonArray>('embedding');
   J := JArr.Count;

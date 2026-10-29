@@ -1,62 +1,34 @@
-﻿// MIT License
-//
-// Copyright (c) 2024 Gustavo Enríquez - CimaMaker
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
-// Nombre: Gustavo Enríquez
-// - Email: gustavoeenriquez@gmail.com
-// - Telegram: https://t.me/MakerAi_Suite_Delphi
-// - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
-// - GitHub: https://github.com/gustavoeenriquez/
-
-unit uMakerAi.Memory.Types;
+﻿unit uMakerAi.Memory.Types;
 
 interface
 
 uses
   System.SysUtils, System.Classes, System.Generics.Collections,
 {$IF CompilerVersion < 35}
-  uJSONHelper, // Delphi 10.4: helper genérico GetValue<T> de TJSONObject
+  uJSONHelper, // Delphi 10.4: generic helper GetValue<T> from TJSONObject
 {$ENDIF}
   System.JSON, System.DateUtils;
 
 type
-  // Categoría semántica de la memoria
+  // Semantic category of memory
   TMemoryType = (
-    mt_Fact,        // hecho objetivo: "el usuario usa Delphi 13"
-    mt_Preference,  // preferencia: "prefiere respuestas cortas"
-    mt_Decision,    // decisión tomada: "usamos SQLite como backend"
-    mt_ErrorFix,    // corrección aprendida: "ese bug se resuelve con X"
-    mt_Pattern,     // patrón detectado: "siempre pregunta sobre RAG primero"
-    mt_Workflow,    // procedimiento paso a paso
-    mt_Summary,     // resumen de sesión o conversación
-    mt_Custom       // uso libre
+    mt_Fact,        // objective fact: "the user uses Delphi 13"
+    mt_Preference,  // preference: "prefers short answers"
+    mt_Decision,    // decision made: "we use SQLite as backend"
+    mt_ErrorFix,    // learned fix: "that bug is solved with X"
+    mt_Pattern,     // detected pattern: "always asks about RAG first"
+    mt_Workflow,    // step-by-step procedure
+    mt_Summary,     // session or conversation summary
+    mt_Custom       // free usage
   );
 
   TMemorySearchMode = (
-    ms_FTS,         // solo full-text search (FTS5)
-    ms_Semantic,    // solo búsqueda vectorial por embeddings
-    ms_Hybrid       // FTS + semántica con fusión RRF
+    ms_FTS,         // only full-text search (FTS5)
+    ms_Semantic,    // only vector search by embeddings
+    ms_Hybrid       // FTS + semantic with RRF fusion
   );
 
-  // Registro atómico de memoria — equivalente a MemoryEntry de engram-core
+  // Atomic memory record — equivalent to MemoryEntry from engram-core
   TMemoryEntry = class
   public
     Id:           Integer;
@@ -65,17 +37,17 @@ type
     Importance:   Integer;        // 1–10
     Namespace:    string;
     Tags:         TArray<string>;
-    Metadata:     string;         // JSON serializado
-    ContentHash:  string;         // SHA-256[:16] para dedup
-    Embedding:    TArray<Double>; // nil si no hay embedder
+    Metadata:     string;         // JSON serialized
+    ContentHash:  string;         // SHA-256[:16] for dedup
+    Embedding:    TArray<Double>; // nil if no embedder
     DecayScore:   Double;         // 0.0–1.0
     CreatedAt:    TDateTime;
     AccessedAt:   TDateTime;
     AccessCount:  Integer;
-    ExpiresAt:    TDateTime;      // 0 = sin TTL
+    ExpiresAt:    TDateTime;      // 0 = no TTL
 
     constructor Create;
-    function    TagsAsString: string;    // CSV de tags
+    function    TagsAsString: string;    // CSV of tags
     function    ToJSON: TJSONObject;
     procedure   Assign(ASource: TMemoryEntry);
     class function FromJSON(AObj: TJSONObject): TMemoryEntry;
@@ -84,7 +56,7 @@ type
   TMemoryEntryList = TObjectList<TMemoryEntry>;
 
   TMemorySearchResult = record
-    Entry:     TMemoryEntry;     // no owned — el caller gestiona lifetime
+    Entry:     TMemoryEntry;     // not owned — the caller manages lifetime
     Score:     Double;
     MatchType: string;           // 'fts' | 'semantic' | 'hybrid'
   end;
@@ -110,25 +82,25 @@ type
     MemoryIds:     TArray<Integer>;
   end;
 
-  // Interfaz mínima para que TAiChat use TAiMemory sin depender del paquete RAG.Drivers
+  // Minimal interface so TAiChat can use TAiMemory without depending on the RAG.Drivers package
   IAiPersistentMemory = interface
     ['{A7F3E21C-4D5B-4E8F-9A0C-3B6D7E2F1948}']
     function  BuildContext(const APrompt: string; ATokenBudget: Integer): string;
     procedure AutoStore(const AContent: string; AImportance: Integer);
-    // Notifica un intercambio usuario/asistente completo. Implementaciones que
-    // soporten analisis automatico (ver TAiMemory.Analyzer) acumulan y, al llegar
-    // al umbral configurado, extraen y guardan lo que valga la pena recordar.
-    // No-op por defecto (ver TAiPersistentMemoryBase).
+    // Notifies a complete user/assistant exchange. Implementations that
+    // support automatic analysis (see TAiMemory.Analyzer) accumulate and, when
+    // the configured threshold is reached, extract and save what is worth remembering.
+    // No-op by default (see TAiPersistentMemoryBase).
     procedure NotifyExchange(const AUserPrompt, AAssistantResponse: string);
   end;
 
-  // Especialización para el Object Inspector (mismo patrón que TAiSpeechToolBase/
-  // TAiImageToolBase en uMakerAi.Chat.Tools.pas): TAiChat.PersistentMemory se tipa
-  // a esta clase en vez de TComponent genérico, así el combo de selección de
-  // componentes filtra solo instancias compatibles y el compilador valida el tipo.
-  // La implementación concreta con storage FireDAC (TAiMemory) vive en
-  // MakerAi.RAG.Drivers.dpk y hereda de esta base, que solo depende de este paquete
-  // core (MakerAI.dpk).
+  // Specialization for the Object Inspector (same pattern as TAiSpeechToolBase/
+  // TAiImageToolBase in uMakerAi.Chat.Tools.pas): TAiChat.PersistentMemory is typed
+  // to this class instead of generic TComponent, so the component selection combo
+  // filters only compatible instances and the compiler validates the type.
+  // The concrete implementation with FireDAC storage (TAiMemory) lives in
+  // MakerAi.RAG.Drivers.dpk and inherits from this base, which only depends on this core
+  // package (MakerAI.dpk).
   TAiPersistentMemoryBase = class(TComponent, IAiPersistentMemory)
   protected
     function  BuildContext(const APrompt: string; ATokenBudget: Integer): string; virtual;
@@ -136,7 +108,7 @@ type
     procedure NotifyExchange(const AUserPrompt, AAssistantResponse: string); virtual;
   end;
 
-// Helpers de conversión para TMemoryType
+// Conversion helpers for TMemoryType
 function  MemoryTypeToStr(AType: TMemoryType): string;
 function  StrToMemoryType(const AStr: string): TMemoryType;
 

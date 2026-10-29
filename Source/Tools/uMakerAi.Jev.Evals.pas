@@ -1,8 +1,8 @@
 ﻿// MIT License
 //
-// MakerAI - Jev: juez calibrado para TAiEvalRunner con el modelo Jev (TypeSafe AI)
+// MakerAI - Jev: calibrated judge for TAiEvalRunner with the Jev model (TypeSafe AI)
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
@@ -12,23 +12,23 @@
 unit uMakerAi.Jev.Evals;
 
 // -----------------------------------------------------------------------------
-// TAiJevEvalScorer: se asigna a TAiEvalRunner.Scorer y responde los checks
-// ExpectScore('criterio', minimo) con la probabilidad calibrada de que la
-// salida cumpla el criterio. Frente a ExpectJudge (un LLM que dice PASS/FAIL)
-// es mas rapido y barato, y el minimo se ajusta en codigo.
+// TAiJevEvalScorer: assign to TAiEvalRunner.Scorer and it answers the
+// ExpectScore('criterion', min) checks with the calibrated probability that the
+// output meets the criterion. Compared to ExpectJudge (an LLM that says PASS/FAIL)
+// it is faster and cheaper, and the minimum is adjusted in code.
 //
-//   Runner.Scorer := JevScorer;          // este componente
-//   Runner.AddCase('cortesia')
-//     .Input('Mi factura esta mal')
-//     .ExpectScore('Es cortes y profesional', 0.7);
+//   Runner.Scorer := JevScorer;          // this component
+//   Runner.AddCase('courtesy')
+//     .Input('My invoice is wrong')
+//     .ExpectScore('Polite and professional', 0.7);
 //
-// Una pregunta Noul sobre {input, response}: "Does `response` satisfy this
-// criterion: <criterio>?". Un error de Jev se propaga y el runner marca el
-// check como fallido con el motivo.
+// A Noul question about {input, response}: "Does `response` satisfy this
+// criterion: <criterion>?". A Jev error propagates and the runner marks the
+// check as failed with the reason.
 //
-// Calibrado contra jev-1.13.0 (sep 27/2026) sobre 10 pares criterio/respuesta
-// en espanol (idioma, dato contable presente, cifras inventadas, negarse a
-// revelar una clave, cortesia): los que cumplen >= 0.97, los que no <= 0.02.
+// Calibrated against jev-1.13.0 (Sep 27/2026) on 10 criterion/response pairs
+// in Spanish (language, accounting data present, invented figures, refusing to
+// reveal a key, courtesy): those that comply >= 0.97, those that do not <= 0.02.
 // -----------------------------------------------------------------------------
 
 interface
@@ -58,27 +58,27 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    // Consumo de Jev acumulado desde Create o ResetUsage (seguro entre hilos)
+    // Jev usage accumulated since Create or ResetUsage (thread-safe)
     property Usage: TAiJevUsage read GetUsage;
     procedure ResetUsage;
     function Score(const ACriteria, AInput, AActual: string): Double; override;
-    // Probabilidad del ultimo check evaluado (-1 si aun no se evaluo ninguno)
+    // Probability of the last evaluated check (-1 if none evaluated yet)
     property LastScore: Double read FLastScore;
   published
-    // Opcional: TAiJev externo (compartido o doble de pruebas); si se asigna,
-    // ApiKey y Model de este componente se ignoran
+    // Optional: external TAiJev (shared or test double); if assigned,
+    // this component's ApiKey and Model are ignored
     property Jev: TAiJev read FJev write SetJev;
     property ApiKey: string read FApiKey write FApiKey;
     property Model: string read FModel write FModel;
-    // Servidor System One: '' = TypeSafe; 'http://localhost:11434/v1/' = Ollama
-    // (con Model := 'nimble', 'clef-flash'...). Ignorada si Jev esta asignado
+    // System One server: '' = TypeSafe; 'http://localhost:11434/v1/' = Ollama
+    // (with Model := 'nimble', 'clef-flash'...). Ignored if Jev is assigned
     property Url: string read FUrl write FUrl;
-    // Precios para CostUSD de Usage/OnUsage (US$ por millon de tokens; hoy la
-    // salida no se cobra)
+    // Prices for CostUSD of Usage/OnUsage (US$ per million tokens; currently
+    // output is not charged)
     property PricePerMillionInput: Double read FPricePerMillionInput write FPricePerMillionInput;
     property PricePerMillionOutput: Double read FPricePerMillionOutput write FPricePerMillionOutput;
-    // Una vez por operacion con el consumo de esa operacion. Sincrono, en el hilo
-    // que la ejecuto (en un servidor: el de la peticion, para cobrarle al cliente)
+    // Once per operation with that operation's usage. Synchronous, on the thread
+    // that executed it (on a server: the request thread, to bill the client)
     property OnUsage: TAiJevUsageEvent read FOnUsage write FOnUsage;
   end;
 
@@ -148,7 +148,7 @@ var
 begin
   Q := TAiJevQuestions.Create(nil);
   try
-    // Redaccion calibrada (10/10): el criterio va en la pregunta, no en el state
+    // Calibrated wording (10/10): the criterion goes in the question, not in the state
     Q.AddNoul('pass', 'Does `response` satisfy this criterion: ' + ACriteria + '?');
     State := TJSONObject.Create;
     try

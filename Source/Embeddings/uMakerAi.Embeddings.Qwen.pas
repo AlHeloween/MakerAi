@@ -22,8 +22,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
-// Redes Sociales:
+// Name: Gustavo Enriquez
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -33,12 +33,11 @@
 // - Youtube: https://www.youtube.com/@cimamaker3945
 // - GitHub: https://github.com/gustavoeenriquez/
 
-// Embeddings de Qwen (Alibaba Model Studio / DashScope). El endpoint
-// compatible-mode/v1/embeddings acepta el mismo cuerpo que OpenAI, asi que se
-// hereda TAiOpenAiEmbeddings y solo cambian URL, key y modelo.
-// Verificado en runtime (sep 2026): text-embedding-v4 [default], text-embedding-v3,
-// qwen3.7-text-embedding. Dimensiones de v4: 64, 128, 256, 512, 768, 1024 (default),
-// 1536 y 2048. La key queda atada a la region: con otra URL el API responde 401.
+// Qwen Embeddings (Alibaba Model Studio / DashScope). The compatible-mode/v1/embeddings
+// endpoint accepts the same body as OpenAI, so TAiOpenAiEmbeddings is inherited and only
+// URL, key, and model change. Verified at runtime (Sep 2026): text-embedding-v4 [default],
+// text-embedding-v3, qwen3.7-text-embedding. v4 dimensions: 64, 128, 256, 512, 768, 1024
+// (default), 1536 and 2048. The key is tied to the region: with another URL the API responds 401.
 
 interface
 

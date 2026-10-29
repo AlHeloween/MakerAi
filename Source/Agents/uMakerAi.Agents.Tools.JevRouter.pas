@@ -1,8 +1,7 @@
 ﻿// MIT License
+// MakerAI - Agents: TAiJevRouterTool, graph routing with Jev (TypeSafe AI)
 //
-// MakerAI - Agentes: TAiJevRouterTool, enrutamiento de grafos con Jev (TypeSafe AI)
-//
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
@@ -12,42 +11,42 @@
 unit uMakerAi.Agents.Tools.JevRouter;
 
 // -----------------------------------------------------------------------------
-// TAiJevRouterTool: tool de nodo que decide la siguiente ruta del grafo.
+// TAiJevRouterTool: node tool that decides the next route of the graph.
 //
-// Pregunta a Jev (ver uMakerAi.Jev) cual de las Routes corresponde al input
-// del nodo y escribe la clave elegida en Blackboard[RouteKey] (por defecto
-// 'next_route'), que es lo que lee un TAIAgentsLink en modo lmConditional.
-// No cambia el motor: el link condicional existente hace el resto.
+// Asks Jev (see uMakerAi.Jev) which of the Routes matches the node's input
+// and writes the chosen key into Blackboard[RouteKey] (by default
+// 'next_route'), which is what a TAIAgentsLink in lmConditional mode reads.
+// It does not change the engine: the existing conditional link does the rest.
 //
-//   Router --(lmConditional)--> 'contable'   -> nodo del agente contable
-//                            -> 'tributario' -> nodo del agente tributario
-//                            -> NextNo       -> fallback (confianza baja o error)
+//   Router --(lmConditional)--> 'accounting' -> accounting agent node
+//                            -> 'tax'        -> tax agent node
+//                            -> NextNo       -> fallback (low confidence or error)
 //
-// En GraphBuilder las claves de ruta son los idStr de los puertos de salida
-// del nodo router: nombrar los puertos igual que las Routes.
+// In GraphBuilder the route keys are the idStr of the router node's output
+// ports: name the ports the same as the Routes.
 //
-// Routes: una linea por ruta, 'clave=descripcion'. La descripcion es lo que
-//   Jev lee para decidir; escribirla como se le explicaria a una recepcionista.
-// Flags: preguntas si/no opcionales, una por linea, 'nombre=pregunta'. Viajan
-//   en la MISMA llamada que la ruta. Su probabilidad queda en el blackboard y
-//   sirve para lmExpression (p.ej. 'Router.jev.fuentes >= 0.5') o para OnRoute.
+// Routes: one line per route, 'key=description'. The description is what
+//   Jev reads to decide; write it as you would explain it to a receptionist.
+// Flags: optional yes/no questions, one per line, 'name=question'. They travel
+//   in the SAME call as the route. Their probability lands in the blackboard and
+//   serves lmExpression (e.g. 'Router.jev.sources >= 0.5') or OnRoute.
 //
-// Claves que escribe en el blackboard (prefijo '<NombreDelNodo>.jev.'):
-//   choice      ruta con mayor probabilidad (aunque no supere MinConfidence)
-//   confidence  confianza de esa eleccion, '0.00'..'1.00' (punto decimal)
-//   top         las 3 rutas mas probables separadas por comas
-//   <flag>      probabilidad de cada flag, '0.00'..'1.00'
-//   error       mensaje si la llamada fallo; vacio si fue bien
-// y RouteKey con la ruta final.
+// Keys written to the blackboard (prefix '<NodeName>.jev.'):
+//   choice      route with the highest probability (even below MinConfidence)
+//   confidence  confidence of that choice, '0.00'..'1.00' (decimal point)
+//   top         the 3 most probable routes, comma-separated
+//   <flag>      probability of each flag, '0.00'..'1.00'
+//   error       message if the call failed; empty if it went well
+// and RouteKey with the final route.
 //
-// Ruta final: Choice si su confianza >= MinConfidence; si no, FallbackRoute.
-// OnRoute puede cambiarla (p.ej. sufijo '_rag' si un flag lo pide). Un error
-// de red o de configuracion NO rompe el grafo: se registra en '.jev.error' y
-// se usa FallbackRoute. Con FallbackRoute vacio, el link condicional cae a
-// NextNo (en GraphBuilder, el puerto out_failure).
+// Final route: Choice if its confidence >= MinConfidence; otherwise FallbackRoute.
+// OnRoute may change it (e.g. a '_rag' suffix if a flag asks for it). A network
+// or configuration error does NOT break the graph: it is logged in '.jev.error' and
+// FallbackRoute is used. With an empty FallbackRoute, the conditional link falls to
+// NextNo (in GraphBuilder, the out_failure port).
 //
-// El output del nodo es el input sin cambios: el agente siguiente recibe la
-// consulta original.
+// The node's output is the input unchanged: the next agent receives the
+// original query.
 // -----------------------------------------------------------------------------
 
 interface
@@ -58,12 +57,12 @@ uses
   uMakerAi.Jev;
 
 type
-  // Permite ajustar la ruta final con toda la respuesta de Jev a la vista
+  // Allows adjusting the final route with the whole Jev response in view
   TAiJevRouteEvent = procedure(Sender: TObject; ANode: TAIAgentsNode;
     AResult: TAiJevResult; var ARoute: string) of object;
 
   [TToolAttribute('JevRouter',
-                  'Elige la siguiente ruta del grafo con el modelo Jev (TypeSafe AI)',
+                  'Chooses the next route of the graph with the Jev model (TypeSafe AI)',
                   'Control')]
   TAiJevRouterTool = class(TAiToolBase)
   private
@@ -92,68 +91,68 @@ type
       var AOutput: string); override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public const
-    ROUTE_QUESTION = 'route'; // nombre reservado de la pregunta de ruta
+    ROUTE_QUESTION = 'route'; // reserved name of the route question
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    // Consumo de Jev acumulado desde Create o ResetUsage (seguro entre hilos)
+    // Jev usage accumulated since Create or ResetUsage (thread-safe)
     property Usage: TAiJevUsage read GetUsage;
     procedure ResetUsage;
 
-    // Atajos para armar Routes / Flags desde codigo
+    // Shortcuts to build Routes / Flags from code
     procedure AddRoute(const AKey, ADescription: string);
     procedure AddFlag(const AName, AQuestion: string);
-    // Preguntas que se envian a Jev (ruta + flags). El llamador libera el resultado.
+    // Questions sent to Jev (route + flags). The caller frees the result.
     function BuildQuestions: TAiJevQuestions;
 
-    // Opcional: un TAiJev externo (compartido, o un doble de pruebas). Si se
-    // asigna, ApiKey y Model de esta tool se ignoran.
+    // Optional: an external TAiJev (shared, or a test double). If assigned,
+    // this tool's ApiKey and Model are ignored.
     property Jev: TAiJev read FJev write SetJev;
     property OnRoute: TAiJevRouteEvent read FOnRoute write FOnRoute;
   published
-    // [TSecret]: nunca se serializa ni se acepta desde el JSON del grafo
+    // [TSecret]: never serialized nor accepted from the graph's JSON
     [TSecret('apiKey')]
     property ApiKey: string read FApiKey write FApiKey;
 
-    [TToolParameterAttribute('Modelo', 'Version de Jev; fijarla antes de calibrar MinConfidence',
+    [TToolParameterAttribute('Model', 'Jev version; set it before calibrating MinConfidence',
                              'jev-1.13.0')]
     property Model: string read FModel write FModel;
-    // Servidor System One: '' = TypeSafe; 'http://localhost:11434/v1/' = Ollama
-    // (con Model := 'nimble', 'clef-flash'...). Ignorada si Jev esta asignado
+    // System One server: '' = TypeSafe; 'http://localhost:11434/v1/' = Ollama
+    // (with Model := 'nimble', 'clef-flash'...). Ignored if Jev is assigned
     property Url: string read FUrl write FUrl;
 
-    [TToolParameterAttribute('Rutas', 'Una por linea: clave=descripcion. La clave es el valor que ' +
-                             'recibe el link condicional (idStr del puerto en GraphBuilder)', '')]
+    [TToolParameterAttribute('Routes', 'One per line: key=description. The key is the value ' +
+                             'received by the conditional link (port idStr in GraphBuilder)', '')]
     property Routes: string read FRoutes write FRoutes;
 
-    [TToolParameterAttribute('Instrucciones', 'Pregunta de enrutamiento. Vacio = una pregunta ' +
-                             'generica sobre el campo InputField', '')]
+    [TToolParameterAttribute('Instructions', 'Routing question. Empty = a generic question ' +
+                             'about the InputField field', '')]
     property Instructions: string read FInstructions write FInstructions;
 
-    [TToolParameterAttribute('Flags', 'Opcional. Una por linea: nombre=pregunta si/no. Su ' +
-                             'probabilidad queda en <Nodo>.jev.<nombre>', '')]
+    [TToolParameterAttribute('Flags', 'Optional. One per line: name=yes/no question. Its ' +
+                             'probability lands in <Node>.jev.<name>', '')]
     property Flags: string read FFlags write FFlags;
 
-    [TToolParameterAttribute('Campo del input', 'Nombre con el que el input del nodo viaja en el ' +
-                             'state de Jev; las preguntas lo citan entre backticks', 'consulta')]
+    [TToolParameterAttribute('Input field', 'Name with which the node input travels in the ' +
+                             'Jev state; the questions quote it between backticks', 'consulta')]
     property InputField: string read FInputField write FInputField;
 
-    [TToolParameterAttribute('Clave de ruta', 'Clave del blackboard que lee el link condicional ' +
-                             '(su ConditionalKey)', 'next_route')]
+    [TToolParameterAttribute('Route key', 'Blackboard key read by the conditional link ' +
+                             '(its ConditionalKey)', 'next_route')]
     property RouteKey: string read FRouteKey write FRouteKey;
 
-    [TToolParameterAttribute('Ruta de respaldo', 'Ruta si la confianza es baja o Jev falla. ' +
-                             'Vacio = el link cae a NextNo (out_failure)', '')]
+    [TToolParameterAttribute('Fallback route', 'Route if confidence is low or Jev fails. ' +
+                             'Empty = the link falls to NextNo (out_failure)', '')]
     property FallbackRoute: string read FFallbackRoute write FFallbackRoute;
 
-    [TToolParameterAttribute('Confianza minima', 'Por debajo se usa FallbackRoute', '0.5')]
+    [TToolParameterAttribute('Minimum confidence', 'Below it FallbackRoute is used', '0.5')]
     property MinConfidence: Double read FMinConfidence write FMinConfidence;
-    // Precios para CostUSD de Usage/OnUsage (US$ por millon de tokens; hoy la
-    // salida no se cobra)
+    // Prices for CostUSD of Usage/OnUsage (US$ per million tokens; currently the
+    // output is not charged)
     property PricePerMillionInput: Double read FPricePerMillionInput write FPricePerMillionInput;
     property PricePerMillionOutput: Double read FPricePerMillionOutput write FPricePerMillionOutput;
-    // Una vez por operacion con el consumo de esa operacion. Sincrono, en el hilo
-    // que la ejecuto (en un servidor: el de la peticion, para cobrarle al cliente)
+    // Once per operation with that operation's usage. Synchronous, in the thread
+    // that ran it (on a server: the request's, to bill the client)
     property OnUsage: TAiJevUsageEvent read FOnUsage write FOnUsage;
   end;
 
@@ -209,7 +208,7 @@ begin
     Exit(FJev);
   if not Assigned(FOwnJev) then
     FOwnJev := TAiJev.Create(nil);
-  // Se refresca en cada uso: ApiKey/Model pueden cambiar entre ejecuciones
+  // Refreshed on each use: ApiKey/Model may change between executions
   FOwnJev.ApiKey := FApiKey;
   FOwnJev.Model := FModel;
   FOwnJev.Url := JevUrlOrDefault(FUrl);
@@ -244,9 +243,9 @@ begin
   try
     Instr := FInstructions;
     if Trim(Instr) = '' then
-      // Redaccion probada contra jev-1.13.0: la variante "Que ruta o especialista
-      // debe atender" bajaba la confianza de 0.68 a 0.44 en la misma consulta
-      Instr := 'Que especialista debe responder `' + FInputField + '`?';
+      // Wording tested against jev-1.13.0: the variant "Which route or specialist
+      // should attend" lowered the confidence from 0.68 to 0.44 on the same query
+      Instr := 'Which specialist should answer `' + FInputField + '`?';
 
     Q := Result.Add;
     Q.Name := ROUTE_QUESTION;
@@ -264,9 +263,9 @@ begin
           Continue;
         P := Pos('=', Line);
         if P = 0 then
-          raise EAiJevError.CreateFmt('JevRouter: el flag "%s" no tiene la forma nombre=pregunta', [Line]);
+          raise EAiJevError.CreateFmt('JevRouter: the flag "%s" does not have the name=question form', [Line]);
         if SameText(Trim(Copy(Line, 1, P - 1)), ROUTE_QUESTION) then
-          raise EAiJevError.CreateFmt('JevRouter: "%s" es un nombre reservado para flags', [ROUTE_QUESTION]);
+          raise EAiJevError.CreateFmt('JevRouter: "%s" is a reserved name for flags', [ROUTE_QUESTION]);
         Result.AddNoul(Trim(Copy(Line, 1, P - 1)), Trim(Copy(Line, P + 1, MaxInt)));
       end;
     finally
@@ -289,7 +288,7 @@ var
   Route, Prefix: string;
   i: Integer;
 begin
-  // Pass-through: el agente siguiente recibe la consulta original
+  // Pass-through: the next agent receives the original query
   AOutput := AInput;
   if not Assigned(ANode) or not Assigned(ANode.Graph) then
     Exit;
@@ -331,7 +330,7 @@ begin
   except
     on E: Exception do
     begin
-      // Un router caido no debe tumbar el grafo: se toma la ruta de respaldo
+      // A fallen router must not take down the graph: the fallback route is taken
       BB.SetString(Prefix + 'error', E.Message);
       ANode.Print('JevRouter: ' + E.Message);
       Route := FFallbackRoute;

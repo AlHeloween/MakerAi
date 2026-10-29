@@ -22,10 +22,10 @@ type
     FSelRect  : TRectF;
     FOverlay  : TRectangle;
     FSelBox   : TRectangle;
-    // Puntos en pixeles fisicos de pantalla (GetCursorPos). Con monitores a
-    // distinta escala DPI las coordenadas logicas del form NO mapean a la
-    // pantalla virtual fisica que usa BitBlt: la captura en un monitor
-    // secundario salia negra.
+    // Physical screen pixel coordinates (GetCursorPos). On monitors with
+    // different DPI scaling, the logical form coordinates do NOT map to the
+    // physical virtual screen used by BitBlt: capture on a secondary monitor
+    // was coming out black.
     FPhysStart: TPoint;
     FPhysEnd  : TPoint;
     procedure FormMouseDown(Sender: TObject; Button: TMouseButton;
@@ -78,8 +78,8 @@ begin
   BorderStyle  := TFmxFormBorderStyle.None;
   Transparency := True;
   FormStyle    := TFormStyle.StayOnTop;
-  // Cubrir el escritorio virtual completo (multi-monitor, incluye monitores
-  // con origen negativo); Screen.Width solo cubria desde (0,0)
+  // Cover the entire virtual desktop (multi-monitor, including monitors with
+  // negative origin); Screen.Width only covered from (0,0).
   var DR := Screen.DesktopRect;
   Left   := Round(DR.Left);
   Top    := Round(DR.Top);
@@ -116,9 +116,9 @@ var
 begin
   inherited;
   {$IFDEF MSWINDOWS}
-  // Forzar los limites FISICOS del escritorio virtual via WinAPI: los bounds
-  // logicos de FMX no cubren monitores con origen negativo o escala DPI
-  // distinta (la sombra solo aparecia en el monitor principal)
+  // Force the PHYSICAL bounds of the virtual desktop via WinAPI: FMX logical
+  // bounds do not cover monitors with negative origin or different DPI scaling
+  // (the overlay only appeared on the primary monitor).
   VL := GetSystemMetrics(SM_XVIRTUALSCREEN);
   VT := GetSystemMetrics(SM_YVIRTUALSCREEN);
   VW := GetSystemMetrics(SM_CXVIRTUALSCREEN);
@@ -175,7 +175,7 @@ begin
     FEndPt    := TPointF.Create(X, Y);
     FDragging := False;
     {$IFDEF MSWINDOWS}
-    // SelRect en pixeles fisicos reales: es lo que espera CaptureArea/BitBlt
+    // SelRect in real physical pixels: this is what CaptureArea/BitBlt expects.
     GetCursorPos(FPhysEnd);
     FSelRect := TRectF.Create(
       Min(FPhysStart.X, FPhysEnd.X), Min(FPhysStart.Y, FPhysEnd.Y),

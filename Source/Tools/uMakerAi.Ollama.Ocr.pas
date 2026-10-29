@@ -30,7 +30,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    { methods isticos }
+    { Static methods }
     class function ExtractText(AMediaFile: TAiMediaFile; const APrompt: string = ''; const AUrl: string = ''): string;
     class function ExtractTextFromFile(const AFilePath: string; const APrompt: string = ''; const AUrl: string = ''): string;
     class function ExtractTextFromStream(AStream: TStream; const AFileName: string; const APrompt: string = ''; const AUrl: string = ''): string;
@@ -59,7 +59,7 @@ end;
 constructor TAiOllamaOcrTool.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  // Importante: La URL base. El InternalRun se will handle de asegurar el endpoint /api/chat
+  // Important: The base URL. InternalRun will handle ensuring the endpoint /api/chat
   FUrl := 'http://localhost:11434/';
   FModel := 'deepseek-ocr:latest';
   FPrompt := '<|grounding|>Convert the document to markdown';
@@ -81,8 +81,8 @@ procedure TAiOllamaOcrTool.ExecuteImageDescription(aMediaFile: TAiMediaFile; Res
 var
   LPrompt: string;
 begin
-  // Capturar el prompt antes de cualquier operaci�n async para evitar
-  // acceder a AskMsg cuando pueda estar liberado dentro del TTask.
+  // Capture the prompt before any async operation to avoid
+  // accessing AskMsg when it might be freed inside the TTask.
   LPrompt := '';
   if Assigned(AskMsg) then
     LPrompt := AskMsg.Prompt;
@@ -103,20 +103,20 @@ begin
   Result := '';
   if not Assigned(aMediaFile) or not Assigned(ResMsg) then Exit;
 
-  // 1. Asegurar Endpoint correcto (/api/chat)
+  // 1. Ensure correct endpoint (/api/chat)
   LFullUrl := FUrl + 'api/chat';
 
   LFinalPrompt := IfThen(AOverridePrompt.IsEmpty, FPrompt, AOverridePrompt);
   if LFinalPrompt.IsEmpty then LFinalPrompt := '<|grounding|>Convert the document to markdown';
 
-  //El prompt para DeepSeek OCR es muy estricto,  debe ir un #10 y luego the text sin espacio
-  //El texto del prompt debe ser en chino o en English no acepta prompts en otro idioma
-  //El texto del pdf o image si puede estar en Spanish o en otros idiomas
-  //Is used By default <|grounding|>  so that extraiga also los boundings de los textos
-  //Los boundings son proporcionales, no corresponden al valor real, it is necessary escalarlos de acuerdo
-  //al size de la imagen
-  //LFinalPrompt := ' Free OCR';  //Ok algunos documentos
-  //LFinalPrompt := #10+'<|grounding|>Convert the document to markdown'; //el more preciso extrae los boundings y los textos con precision
+  //The prompt for DeepSeek OCR is very strict, must have a #10 and then the text without space
+  //The prompt text must be in Chinese or English, it does not accept prompts in other languages
+  //The text of the PDF or image can be in Spanish or other languages
+  //Is used by default <|grounding|> so that it also extracts the boundings of the texts
+  //The boundings are proportional, they do not correspond to the real value, it is necessary to scale them according
+  //to the image size
+  //LFinalPrompt := ' Free OCR';  //OK some documents
+  //LFinalPrompt := #10+'<|grounding|>Convert the document to markdown'; //the most precise extracts the boundings and texts with precision
 
   LFinalPrompt := #10 + LFinalPrompt;
 
@@ -130,7 +130,7 @@ begin
     LRequestJson.AddPair('stream', TJSONBool.Create(FStream));
     LRequestJson.AddPair('keep_alive', FKeepAlive);
 
-    // B. Estructura de Mensajes (Igual a tu TAiOllamaChat.GetMessages)
+    // B. Message structure (Same as your TAiOllamaChat.GetMessages)
     LMessagesArray := TJSONArray.Create;
     LMessage := TJSONObject.Create;
     LMessage.AddPair('role', 'user');
@@ -143,7 +143,7 @@ begin
     LMessagesArray.Add(LMessage);
     LRequestJson.AddPair('messages', LMessagesArray);
 
-    // C. Opciones (Crucial para DeepSeek-OCR)
+    // C. Options (Crucial for DeepSeek-OCR)
     LOptions := TJSONObject.Create;
     LOptions.AddPair('temperature', TJSONNumber.Create(0.12));
     LOptions.AddPair('num_predict', TJSONNumber.Create(16000));
@@ -154,12 +154,12 @@ begin
     LBody := TStringStream.Create(LRequestJson.ToJSON, TEncoding.UTF8);
     try
       HTTP.ContentType := 'application/json';
-      HTTP.ResponseTimeout := FTimeOut; // 5 minutos (como en tu Chat)
+      HTTP.ResponseTimeout := FTimeOut; // 5 minutes (like in your Chat)
 
       if not LActualApiKey.IsEmpty then
         HTTP.CustomHeaders['Authorization'] := 'Bearer ' + LActualApiKey;
 
-      ReportState(acsWriting, 'Ollama analizando imagen...');
+      ReportState(acsWriting, 'Ollama analyzing image...');
       LResponse := HTTP.Post(LFullUrl, LBody);
 
        if LResponse.StatusCode = 200 then
@@ -168,7 +168,7 @@ begin
         try
           if Assigned(LResponseJson) then
           begin
-            // Ollama /api/chat devuelve { "message": { "content": "..." } }
+            // Ollama /api/chat returns { "message": { "content": "..." } }
             if LResponseJson.TryGetValue('message', LMsgResponse) then
               LContent := LMsgResponse.GetValue<string>('content', '')
             else
@@ -183,7 +183,7 @@ begin
             Result := LContent;
 
             ReportDataEnd(ResMsg, 'assistant', LContent, LResponseJson);
-            ReportState(acsFinished, 'OCR Completado');
+            ReportState(acsFinished, 'OCR Completed');
           end;
         finally
           LResponseJson.Free;
@@ -208,7 +208,7 @@ begin
     FTimeout := Value;
 end;
 
-{ --- methodS isTICOS --- }
+{ --- Static methods --- }
 
 class function TAiOllamaOcrTool.ExtractText(AMediaFile: TAiMediaFile; const APrompt, AUrl: string): string;
 var

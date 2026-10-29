@@ -1,8 +1,8 @@
 ﻿// MakerAI Suite — Driver Gemini Realtime STT (stub)
-// Protocolo: Gemini Live API via WebSocket (pendiente implementacion completa)
+// Protocol: Gemini Live API via WebSocket (full implementation pending)
 // Sample rate: 16kHz PCM16 mono
 //
-// Autor: Gustavo Enriquez
+// Author: Gustavo Enriquez
 // Email: gustavoeenriquez@gmail.com
 
 unit uMakerAi.Realtime.Gemini;
@@ -49,13 +49,13 @@ end;
 
 function TAiGeminiRealtimeSTT.GetTargetSampleRate: Integer;
 begin
-  Result := 16000; // Gemini Live API usa PCM16 a 16kHz
+  Result := 16000; // Gemini Live API uses PCM16 at 16kHz
 end;
 
 procedure TAiGeminiRealtimeSTT.InternalConnect;
 begin
   raise ENotImplemented.Create(
-    'TAiGeminiRealtimeSTT: implementacion pendiente en v3.5');
+    'TAiGeminiRealtimeSTT: implementation pending in v3.5');
 end;
 
 procedure TAiGeminiRealtimeSTT.InternalDisconnect;

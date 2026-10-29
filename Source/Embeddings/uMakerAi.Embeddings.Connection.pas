@@ -20,13 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
-
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - Telegram: https://t.me/MakerAi_Delphi_Suite_English
-
 // - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
 // - Youtube: https://www.youtube.com/@cimamaker3945
 // - GitHub: https://github.com/gustavoeenriquez/
@@ -195,7 +193,7 @@ begin
 
   ApplyParamsToEmbeddings(NewEmb, FParams);
 
-  // Delegar evento
+  // Delegate event
   if Assigned(FOnGetEmbedding) then
     NewEmb.OnGetEmbedding := FOnGetEmbedding;
 
@@ -300,7 +298,7 @@ begin
               end;
           end;
         except
-          // Fallo silencioso por propiedad individual
+          // Silent failure for individual property
         end;
       end;
     end;
@@ -355,7 +353,7 @@ begin
   UpdateAndApplyParams;
 end;
 
-// --- Getters y Setters delegados al driver ---
+// --- Getters and Setters delegated to the driver ---
 
 function TAiEmbeddingConnection.GetApiKey: String;
 begin

@@ -1,37 +1,4 @@
-﻿// MIT License
-//
-// Copyright (c) <year> <copyright holders>
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
-// Nombre: Gustavo Enr�quez
-// Social Networks:
-// - Email: gustavoeenriquez@gmail.com
-
-// - Telegram: https://t.me/MakerAi_Suite_Delphi
-// - Telegram: https://t.me/MakerAi_Delphi_Suite_English
-
-// - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
-// - Youtube: https://www.youtube.com/@cimamaker3945
-// - GitHub: https://github.com/gustavoeenriquez/
-
-unit uAiEditors.ChatConnectionEditor;
+﻿unit uAiEditors.ChatConnectionEditor;
 
 interface
 
@@ -39,14 +6,14 @@ uses
   System.Classes, System.SysUtils, DesignIntf, DesignEditors, uMakerAi.Chat.AiConnection;
 
 type
-  // Property Editor for the propiedad DriverName
+  // Property Editor for the property DriverName
   TAiChatDriverNamePropertyEditor = class(TStringProperty)
   public
     procedure GetValues(Proc: TGetStrProc); override;
     function GetAttributes: TPropertyAttributes; override;
   end;
 
-  // Component Editor para TAiChatConnection (opcional, para futuras funciones)
+  // Component Editor for TAiChatConnection (optional, for future functions)
   TAiChatConnectionComponentEditor = class(TDefaultEditor)
   public
     function GetVerbCount: Integer; override;
@@ -65,9 +32,9 @@ uses
 
 function TAiChatDriverNamePropertyEditor.GetAttributes: TPropertyAttributes;
 begin
-  // paValueList: Muestra lista desplegable
-  // paSortList: Ordena la lista alfab�ticamente
-  // paMultiSelect: Permite selecci�n m�ltiple (opcional)
+  // paValueList: Shows dropdown list
+  // paSortList: Sorts the list alphabetically
+  // paMultiSelect: Allows multiple selection (optional)
   Result := [paValueList, paSortList];
 end;
 
@@ -77,23 +44,23 @@ var
   Drivers: TArray<string>;
   Driver: string;
 begin
-  // Obtener la instancia of the component
+  // Get the component instance
   Connection := GetComponent(0) as TAiChatConnection;
   if not Assigned(Connection) then
     Exit;
 
   try
-    // Agregar opci�n vac�a
+    // Add empty option
     Proc('');
 
-    // Obtener drivers disponibles
+    // Get available drivers
     Drivers := Connection.GetAvailableDrivers;
 
-    // Agregar cada driver a la lista
+    // Add each driver to the list
     for Driver in Drivers do
       Proc(Driver);
   except
-    // Si hay error, al menos mostrar opci�n vac�a
+    // If error, at least show empty option
     Proc('');
   end;
 end;
@@ -127,7 +94,7 @@ begin
          try
            Connection.ResetParamsToDefaults;
            ShowMessage('Parameters reset to defaults for driver: ' + Connection.DriverName);
-           Designer.Modified; // Marca el formulario como modificado
+           Designer.Modified; // Marks the form as modified
          except
            on E: Exception do
              ShowMessage('Error resetting parameters: ' + E.Message);
@@ -141,16 +108,16 @@ begin
 
   // Register the Property Editor for the DriverName property
   RegisterPropertyEditor(
-    TypeInfo(string),              // Tipo de la propiedad
-    TAiChatConnection,             // Clase of the component
-    'DriverName',                  // Nombre de la propiedad
-    TAiChatDriverNamePropertyEditor // Clase del Property Editor
+    TypeInfo(string),              // Type of the property
+    TAiChatConnection,             // Class of the component
+    'DriverName',                  // Name of the property
+    TAiChatDriverNamePropertyEditor // Class of the Property Editor
   );
 
   // Register the Component Editor (optional)
   RegisterComponentEditor(
-    TAiChatConnection,                    // Clase of the component
-    TAiChatConnectionComponentEditor      // Clase del Component Editor
+    TAiChatConnection,                    // Class of the component
+    TAiChatConnectionComponentEditor      // Class of the Component Editor
   );
 end;
 
