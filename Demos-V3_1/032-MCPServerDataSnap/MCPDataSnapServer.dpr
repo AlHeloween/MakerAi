@@ -117,7 +117,7 @@ end;
 
 procedure ShowServerBanner(APort: Integer);
 const
-  C_ClassName = 'TSSE'; // El nombre exacto de tu clase DataSnap
+  C_ClassName = 'TSSE'; // The exact name of your DataSnap class
 begin
   Writeln('');
   // ASCII Art for MakerAi

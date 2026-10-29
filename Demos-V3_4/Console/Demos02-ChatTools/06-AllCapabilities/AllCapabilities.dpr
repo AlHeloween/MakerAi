@@ -10,7 +10,7 @@ program AllCapabilities;
 // el sistema de Gap (SessionCaps - ModelCaps) activa automáticamente los
 // ChatTools bridge correspondientes.
 //
-// Capacidades demostradas:
+// Capabilities demonstrated:
 //   cap_Image      — análisis de imágenes (Vision)
 //   cap_WebSearch  — búsqueda web
 //   cap_Pdf        — extracción de texto de PDFs
@@ -91,31 +91,31 @@ end;
 
 begin
   Writeln('=============================================================');
-  Writeln('  MakerAI - AllCapabilities: patrones de configuracion');
+  Writeln('  MakerAI - AllCapabilities: configuration patterns');
   Writeln('=============================================================');
 
-  // Gemini con visión y búsqueda nativas, TTS via bridge
+  // Gemini with native vision and search, TTS via bridge
   DemoCapabilityConfig(
     'Gemini', 'gemini-2.0-flash',
     [cap_Image, cap_WebSearch],
     [cap_Image, cap_WebSearch, cap_GenAudio]
   );
 
-  // Ollama local — sin capacidades nativas, todo via bridges
+  // Local Ollama — no native capabilities, everything via bridges
   DemoCapabilityConfig(
     'Ollama', 'gemma3:4b',
     [],
     [cap_Image, cap_WebSearch, cap_GenImage]
   );
 
-  // OpenAI con visión nativa, generación de imagen via bridge DALL-E
+  // OpenAI with native vision, image generation via DALL-E bridge
   DemoCapabilityConfig(
     'OpenAI', 'gpt-4.1',
     [cap_Image, cap_WebSearch],
     [cap_Image, cap_WebSearch, cap_GenImage]
   );
 
-  // Claude con visión nativa y razonamiento
+  // Claude with native vision and reasoning
   DemoCapabilityConfig(
     'Claude', 'claude-opus-4-7',
     [cap_Image, cap_Reasoning],
@@ -128,6 +128,6 @@ begin
   Writeln('07-AudioBridge, 09-ImageGeneration) para ejemplos completos.');
   Writeln('=============================================================');
 
-  Write('Presione Enter para salir...');
+  Write('Press Enter to exit...');
   Readln;
 end.

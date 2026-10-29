@@ -12,7 +12,7 @@ uses
 begin
 
   WriteLn(ErrOutput, '');
-  WriteLn(ErrOutput, '=== MCP Server con TAiFunctions System File Demo ===');
+  WriteLn(ErrOutput, '=== MCP Server with TAiFunctions System File Demo ===');
 
   try
     DmFunction := TDmFunction.Create(Nil);

@@ -10,7 +10,7 @@ program MultiAgent;
 // Cada agente recibe el historial completo del debate hasta ese momento
 // gracias al callback OnEnterNode que inyecta el contexto acumulado.
 //
-// Conceptos que cubre:
+// Concepts it covers:
 //   - Manager.OnEnterNode: callback antes de ejecutar cada nodo
 //   - Inyeccion de historial desde el blackboard
 //   - Contexto acumulativo entre nodos
@@ -33,7 +33,7 @@ const
   API_KEY = '@CLAUDE_API_KEY';
 
 // =============================================================================
-//  TContextoDebate — inyecta historial acumulado en cada nodo
+//  TContextoDebate — injects accumulated history into each node
 // =============================================================================
 type
   TContextoDebate = class
@@ -95,7 +95,7 @@ var
   L1, L2, L3, L4: TAIAgentsLink;
 begin
   Writeln(StringOfChar('=', 60));
-  Writeln('Tema del debate: ', ATema);
+  Writeln('Debate topic: ', ATema);
   Writeln(StringOfChar('=', 60));
 
   Manager  := TAIAgentManager.Create(nil);
@@ -135,7 +135,7 @@ begin
       'Da puntuaciones sobre 10 y declara un ganador con justificacion. ' +
       'Formato: "PUNTAJES:\n- Lado A favor: X/10\n- Lado En contra: X/10\nVEREDICTO: [ganador y razon]"');
 
-    // Encadenar linealmente
+    // Chain linearly
     L1 := TAIAgentsLink.Create(Manager); L1.Name := 'L1'; L1.Graph := Manager; L1.NextA := Ponente;   Moderador.Next := L1;
     L2 := TAIAgentsLink.Create(Manager); L2.Name := 'L2'; L2.Graph := Manager; L2.NextA := Critico;   Ponente.Next   := L2;
     L3 := TAIAgentsLink.Create(Manager); L3.Name := 'L3'; L3.Graph := Manager; L3.NextA := Replica;   Critico.Next   := L3;
@@ -150,19 +150,19 @@ begin
 
     // Mostrar el debate completo
     Writeln;
-    Writeln('--- Moderador ---');
+    Writeln('--- Moderator ---');
     Writeln(Manager.Blackboard.GetString('Moderador.output'));
     Writeln;
-    Writeln('--- Ponente ---');
+    Writeln('--- Proposer ---');
     Writeln(Manager.Blackboard.GetString('Ponente.output'));
     Writeln;
-    Writeln('--- Critico ---');
+    Writeln('--- Critic ---');
     Writeln(Manager.Blackboard.GetString('Critico.output'));
     Writeln;
-    Writeln('--- Replica ---');
+    Writeln('--- Rebuttal ---');
     Writeln(Manager.Blackboard.GetString('Replica.output'));
     Writeln;
-    Writeln('--- Veredicto del Juez ---');
+    Writeln('--- Judge verdict ---');
     Writeln(Veredicto);
 
   finally
@@ -175,7 +175,7 @@ end;
 procedure RunDemo;
 begin
   Writeln('=== MultiAgent ===');
-  Writeln('5 agentes: Moderador -> Ponente -> Critico -> Replica -> Juez');
+  Writeln('5 agents: Moderator -> Proposer -> Critic -> Rebuttal -> Judge');
   Writeln;
 
   RunDebate('La inteligencia artificial eliminara mas empleos de los que creara');
@@ -189,6 +189,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

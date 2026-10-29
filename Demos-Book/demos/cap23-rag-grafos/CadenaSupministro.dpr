@@ -3,17 +3,17 @@
 {$APPTYPE CONSOLE}
 
 // =============================================================================
-// MakerAI — Capítulo 23: RAG de Grafos
-// Demo: Cadena de suministro — grafo de conocimiento + integración LLM
+// MakerAI — Chapter 23: Graph RAG
+// Demo: Supply chain — knowledge graph + LLM integration
 // =============================================================================
 //
-//   A) Construcción del grafo y consultas GQL (sin API key)
-//      TAiRagGraph + GQL estructural vía ExecuteMakerGQL
+//   A) Graph construction and GQL queries (without API key)
+//      TAiRagGraph + structural GQL via ExecuteMakerGQL
 //
-//   B) Lenguaje natural → GQL → respuesta via LLM (requiere OPENAI_API_KEY)
-//      El modelo genera la consulta GQL; el grafo la ejecuta; el modelo responde
+//   B) Natural language → GQL → response via LLM (requires OPENAI_API_KEY)
+//      The model generates the GQL query; the graph executes it; the model responds
 //
-// Prerequisito: paquete MakerAI instalado.
+// Prerequisite: MakerAI package installed.
 // =============================================================================
 
 uses
@@ -41,7 +41,7 @@ begin
 end;
 
 // =============================================================================
-//  Construcción del grafo de cadena de suministro
+//  Construction of the supply chain graph
 // =============================================================================
 
 function BuildSupplyChainGraph: TAiRagGraph;
@@ -55,38 +55,38 @@ var
 begin
   Grafo := TAiRagGraph.Create(nil);
 
-  // ── Proveedores ──────────────────────────────────────────────────────────
+  // ── Suppliers ──────────────────────────────────────────────────────────
   NodoMateria := Grafo.AddNode('prov:materiasas',  'proveedor',    'MateriaSAS');
   NodoTech    := Grafo.AddNode('prov:techparts',   'proveedor',    'TechParts Ltd');
 
-  // ── Fabricante ────────────────────────────────────────────────────────────
+  // ── Manufacturer ────────────────────────────────────────────────────────────
   NodoFabrica := Grafo.AddNode('fab:fabrica_norte', 'fabricante',  'Fábrica Norte');
 
-  // ── Productos ─────────────────────────────────────────────────────────────
+  // ── Products ─────────────────────────────────────────────────────────────
   NodoWidgetPro := Grafo.AddNode('prod:widget_pro', 'producto',    'Widget Pro');
   NodoCompA     := Grafo.AddNode('prod:comp_a',     'producto',    'Componente A');
 
-  // ── Distribuidores ────────────────────────────────────────────────────────
+  // ── Distributors ────────────────────────────────────────────────────────
   NodoDN := Grafo.AddNode('dist:dist_norte', 'distribuidor', 'Distribuidor Norte');
   NodoDS := Grafo.AddNode('dist:dist_sur',   'distribuidor', 'Distribuidor Sur');
 
-  // ── Clientes ──────────────────────────────────────────────────────────────
+  // ── Customers ──────────────────────────────────────────────────────────────
   NodoEmpABC := Grafo.AddNode('cli:empresa_abc', 'cliente', 'Empresa ABC');
   NodoEmpXYZ := Grafo.AddNode('cli:empresa_xyz', 'cliente', 'Empresa XYZ');
 
-  // ── Aristas de suministro ─────────────────────────────────────────────────
+  // ── Supply edges ─────────────────────────────────────────────────────────
   Grafo.AddEdge(NodoMateria, NodoFabrica, 'sum:1', 'PROVEE', 'MateriaSAS provee Fábrica Norte');
   Grafo.AddEdge(NodoTech,    NodoFabrica, 'sum:2', 'PROVEE', 'TechParts provee Fábrica Norte');
 
-  // ── Aristas de fabricación ────────────────────────────────────────────────
+  // ── Manufacturing edges ────────────────────────────────────────────────
   Grafo.AddEdge(NodoFabrica, NodoWidgetPro, 'fab:1', 'FABRICA', 'Fábrica Norte fabrica Widget Pro');
   Grafo.AddEdge(NodoFabrica, NodoCompA,     'fab:2', 'FABRICA', 'Fábrica Norte fabrica Componente A');
 
-  // ── Aristas de distribución ───────────────────────────────────────────────
+  // ── Distribution edges ───────────────────────────────────────────────
   Grafo.AddEdge(NodoDN, NodoWidgetPro, 'dis:1', 'DISTRIBUYE', 'Dist Norte distribuye Widget Pro');
   Grafo.AddEdge(NodoDS, NodoWidgetPro, 'dis:2', 'DISTRIBUYE', 'Dist Sur distribuye Widget Pro');
 
-  // ── Aristas de compra ─────────────────────────────────────────────────────
+  // ── Purchase edges ─────────────────────────────────────────────────────
   Grafo.AddEdge(NodoEmpABC, NodoDN, 'com:1', 'COMPRA_DE', 'Empresa ABC compra de Dist Norte');
   Grafo.AddEdge(NodoEmpXYZ, NodoDS, 'com:2', 'COMPRA_DE', 'Empresa XYZ compra de Dist Sur');
 
@@ -94,7 +94,7 @@ begin
 end;
 
 // =============================================================================
-//  A) Demo de consultas GQL
+//  A) GQL query demo
 // =============================================================================
 
 procedure DemoGQL;
@@ -105,39 +105,39 @@ var
   Vecinos  : TArray<TAiRagGraphNode>;
   N        : TAiRagGraphNode;
 begin
-  WriteLn('A) Consultas GQL sobre el grafo de cadena de suministro');
-  WriteLn('   (Sin API key — operaciones estructurales en memoria)');
+  WriteLn('A) GQL queries on the supply chain graph');
+  WriteLn('   (Without API key — in-memory structural operations)');
   Separador;
 
   Grafo := BuildSupplyChainGraph;
   try
     WriteLn;
-    WriteLn('▶ Esquema del grafo:');
+    WriteLn('▶ Graph schema:');
     Resultado := Grafo.ExecuteMakerGQL('SHOW LABELS');
     WriteLn(Resultado);
     Resultado := Grafo.ExecuteMakerGQL('SHOW EDGES');
     WriteLn(Resultado);
 
     WriteLn;
-    WriteLn('▶ Todos los proveedores que abastecen fábricas:');
+    WriteLn('▶ All suppliers that supply factories:');
     Resultado := Grafo.ExecuteMakerGQL(
       'MATCH (p:proveedor)-[PROVEE]->(f:fabricante) RETURN p, f');
     WriteLn(Resultado);
 
     WriteLn;
-    WriteLn('▶ Qué productos fabrica Fábrica Norte:');
+    WriteLn('▶ Which products Fábrica Norte manufactures:');
     Resultado := Grafo.ExecuteMakerGQL(
       'MATCH (f:fabricante)-[FABRICA]->(p:producto) RETURN p');
     WriteLn(Resultado);
 
     WriteLn;
-    WriteLn('▶ Ruta más corta: proveedor → cliente:');
+    WriteLn('▶ Shortest path: supplier → customer:');
     Resultado := Grafo.ExecuteMakerGQL(
       'SHORTEST PATH (s:proveedor) TO (c:cliente)');
     WriteLn(Resultado);
 
     WriteLn;
-    WriteLn('▶ Vecinos directos de Empresa ABC (método GetNeighbors):');
+    WriteLn('▶ Direct neighbors of Empresa ABC (GetNeighbors method):');
     Nodo    := Grafo.FindNodeByID('cli:empresa_abc');
     Vecinos := Grafo.GetNeighbors(Nodo, gdBoth);
     for N in Vecinos do
@@ -149,14 +149,14 @@ begin
 
     // Guardar para uso en sección B
     Grafo.SaveToMakerAi(GRAFO_FILE);
-    WriteLn('Grafo guardado en: ', GRAFO_FILE);
+    WriteLn('Graph saved in: ', GRAFO_FILE);
   finally
     Grafo.Free;
   end;
 end;
 
 // =============================================================================
-//  B) Integración LLM — lenguaje natural → GQL → respuesta
+//  B) LLM integration — natural language → GQL → response
 // =============================================================================
 
 procedure DemoLLM;
@@ -174,7 +174,7 @@ var
   Contexto: string;
   Resp    : string;
 begin
-  WriteLn('B) Integración LLM — lenguaje natural → GQL → respuesta (OpenAI)');
+  WriteLn('B) LLM integration — natural language → GQL → response (OpenAI)');
   Separador;
 
   Grafo := BuildSupplyChainGraph;
@@ -187,7 +187,7 @@ begin
     Conn.Params.Values['Max_Tokens']   := '256';
 
     WriteLn;
-    WriteLn('Pregunta: ', PREGUNTA);
+    WriteLn('Question: ', PREGUNTA);
     WriteLn;
 
     // Paso 1 — El LLM genera la consulta GQL
@@ -209,12 +209,12 @@ begin
       if GQLQuery.EndsWith('```') then
         GQLQuery := GQLQuery.Substring(0, GQLQuery.Length - 3).Trim;
     end;
-    WriteLn('[GQL generado por OpenAI]: ', GQLQuery);
+    WriteLn('[GQL generated by OpenAI]: ', GQLQuery);
     WriteLn;
 
     // Paso 2 — Ejecutar la consulta en el grafo local
     Contexto := Grafo.ExecuteMakerGQL(GQLQuery);
-    WriteLn('[Contexto del grafo]: ', Contexto);
+    WriteLn('[Graph context]: ', Contexto);
     WriteLn;
 
     // Paso 3 — El LLM sintetiza la respuesta final
@@ -228,7 +228,7 @@ begin
       'Datos del grafo de conocimiento:' + #13#10 + Contexto,
       'user', []);
 
-    WriteLn('[Respuesta final]:');
+    WriteLn('[Final response]:');
     WriteLn(Resp);
   finally
     Conn.Free;
@@ -241,9 +241,9 @@ begin
   try
     WriteLn;
     WriteLn('════════════════════════════════════════════════════════════════');
-    WriteLn('  Cap. 23 — RAG de Grafos: Cadena de suministro');
-    WriteLn('  Motor   : TAiRagGraph (MakerAI in-memory)');
-    WriteLn('  Lenguaje: GQL — Graph Query Language (ExecuteMakerGQL)');
+    WriteLn('  Ch. 23 — Graph RAG: Supply chain');
+    WriteLn('  Engine   : TAiRagGraph (MakerAI in-memory)');
+    WriteLn('  Language: GQL — Graph Query Language (ExecuteMakerGQL)');
     WriteLn('════════════════════════════════════════════════════════════════');
     WriteLn;
 
@@ -253,7 +253,7 @@ begin
     if KeyPresente('OPENAI_API_KEY') then
       DemoLLM
     else
-      WriteLn('SKIP B: OPENAI_API_KEY no configurada.');
+      WriteLn('SKIP B: OPENAI_API_KEY not configured.');
 
   except
     on E: Exception do
@@ -264,6 +264,6 @@ begin
   end;
 
   WriteLn;
-  WriteLn('Presiona Enter para salir...');
+  WriteLn('Press Enter to exit...');
   ReadLn;
 end.

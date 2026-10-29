@@ -10,7 +10,7 @@ procedure MostrarTemplateLocal(Prompts: TAiPrompts);
 var
   S: string;
 begin
-  WriteLn('--- Templates locales ---');
+  WriteLn('--- Local templates ---');
   Prompts.AddString('reporte',
     'REPORTE DE VENTAS' + sLineBreak +
     'Cliente : <#Cliente>'  + sLineBreak +
@@ -31,12 +31,12 @@ var
   Name, Desc  : string;
   I, Count    : Integer;
 begin
-  WriteLn('--- Busqueda en el registry PPM ---');
+  WriteLn('--- Search in the PPM registry ---');
   WriteLn('Registry: ', Prompts.PPMRegistryUrl);
   SearchResult := Prompts.SearchPPM('commit', 'prompt');
   if not Assigned(SearchResult) then
   begin
-    WriteLn('No se pudo conectar al registry.');
+    WriteLn('Could not connect to the registry.');
     WriteLn;
     Exit;
   end;
@@ -45,7 +45,7 @@ begin
     if Assigned(Results) and (Results is TJSONArray) then
     begin
       Count := TJSONArray(Results).Count;
-      WriteLn('Paquetes encontrados: ', Count);
+      WriteLn('Packages found: ', Count);
       for I := 0 to Count - 1 do
       begin
         if I >= 5 then Break;
@@ -73,17 +73,17 @@ begin
   Item := Prompts.LoadFromPPM('commit-message');
   if not Assigned(Item) then
   begin
-    WriteLn('No se encontro "commit-message" en el registry.');
+    WriteLn('Could not find "commit-message" in the registry.');
     WriteLn;
     Exit;
   end;
-  WriteLn('Descargado : ', Item.Nombre);
-  WriteLn('Descripcion: ', Item.Descripcion);
+  WriteLn('Downloaded : ', Item.Nombre);
+  WriteLn('Description: ', Item.Descripcion);
   S := Prompts.GetTemplate('commit-message',
     ['commit_type=feat', 'scope=clientes',
      'change_summary=agrega busqueda en lista de clientes']);
   WriteLn;
-  WriteLn('Prompt con variables:');
+  WriteLn('Prompt with variables:');
   WriteLn(S);
   WriteLn;
 end;
@@ -92,7 +92,7 @@ var
   Prompts: TAiPrompts;
 begin
   WriteLn('=============================================');
-  WriteLn('  Cap. 31 -- PPM: Gestor de Paquetes MakerAI');
+  WriteLn('  Ch. 31 -- PPM: MakerAI Package Manager');
   WriteLn('=============================================');
   WriteLn;
 
@@ -105,6 +105,6 @@ begin
     Prompts.Free;
   end;
 
-  WriteLn('Demo completado. Presiona Enter para salir.');
+  WriteLn('Demo completed. Press Enter to exit.');
   ReadLn;
 end.

@@ -10,7 +10,7 @@ uses
   uMakerAi.Chat.Initializations;
 
 // ---------------------------------------------------------------------------
-// Imprime la lista de mensajes en FConn indicando si tienen reasoning_content
+// Prints the list of messages in FConn indicating whether they have reasoning_content
 // ---------------------------------------------------------------------------
 procedure PrintMessages(Conn: TAiChatConnection; const Caption: string);
 var
@@ -33,8 +33,8 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Reconstruye el historial de FConn usando solo Role+Prompt (sin metadata)
-// Replica exactamente lo que hace RebuildConnectionHistory en TChatBridge
+// Rebuilds FConn's history using only Role+Prompt (without metadata)
+// Exactly replicates what RebuildConnectionHistory does in TChatBridge
 // ---------------------------------------------------------------------------
 procedure RebuildHistory(Conn: TAiChatConnection);
 var
@@ -45,17 +45,17 @@ begin
   Roles := TStringList.Create;
   Texts := TStringList.Create;
   try
-    // 1. Snapshot antes de limpiar
+    // 1. Snapshot before clearing
     for I := 0 to Conn.Messages.Count - 1 do
     begin
       Roles.Add(Conn.Messages[I].Role);
       Texts.Add(Conn.Messages[I].Prompt);
     end;
 
-    // 2. Limpiar historial del driver
+    // 2. Clear the driver history
     Conn.NewChat;
 
-    // 3. Re-agregar con mensajes limpios (sin ReasoningContent)
+    // 3. Re-add with clean messages (without ReasoningContent)
     for I := 0 to Roles.Count - 1 do
       Conn.AddMessage(Texts[I], Roles[I]);
   finally
@@ -65,7 +65,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Test principal
+// Main test
 // ---------------------------------------------------------------------------
 procedure RunTest(const AProvider, AModel, AApiKey: string);
 var

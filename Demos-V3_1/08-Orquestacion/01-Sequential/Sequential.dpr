@@ -10,7 +10,7 @@ program Sequential;
 // La salida de cada nodo es la entrada del siguiente.
 // Patron fundamental de composicion de agentes.
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - TAIAgentsLink encadenando nodos linealmente
 //   - Salidas intermedias via Blackboard.GetString('Nodo.output')
 //   - Especializacion por SystemPrompt
@@ -41,7 +41,7 @@ var
   Resultado : String;
 begin
   Writeln(StringOfChar('=', 60));
-  Writeln('Tema: ', ATema);
+  Writeln('Topic: ', ATema);
   Writeln(StringOfChar('=', 60));
 
   Manager := TAIAgentManager.Create(nil);
@@ -49,7 +49,7 @@ begin
     Manager.Asynchronous := False;
     Manager.TimeoutMs    := 120000;
 
-    // Nodo 1: Extrae 5 conceptos clave
+    // Node 1: Extracts 5 key concepts
     Analizador := TLLMNode.Create(Manager);
     Analizador.Name         := 'Analizador';
     Analizador.Graph        := Manager;
@@ -61,7 +61,7 @@ begin
       'Eres un analista de conceptos. Dado un tema, lista exactamente 5 conceptos ' +
       'clave relacionados. Salida SOLO los 5 conceptos, uno por linea, sin numeracion.';
 
-    // Nodo 2: Expande cada concepto con una definicion
+    // Node 2: Expands each concept with a definition
     Expansor := TLLMNode.Create(Manager);
     Expansor.Name         := 'Expansor';
     Expansor.Graph        := Manager;
@@ -74,7 +74,7 @@ begin
       'Para cada concepto escribe una definicion breve de una sola frase en espanol. ' +
       'Formato: "Concepto: definicion."';
 
-    // Nodo 3: Genera un articulo corto integrando todo
+    // Node 3: Generates a short article integrating everything
     Redactor := TLLMNode.Create(Manager);
     Redactor.Name         := 'Redactor';
     Redactor.Graph        := Manager;
@@ -87,7 +87,7 @@ begin
       'Escribe un articulo corto (3 parrafos) en espanol que integre ' +
       'todos los conceptos de forma natural y coherente.';
 
-    // Encadenar: Analizador -> Expansor -> Redactor
+    // Chain: Analizador -> Expansor -> Redactor
     L1 := TAIAgentsLink.Create(Manager);
     L1.Name := 'L1'; L1.Graph := Manager; L1.NextA := Expansor;
     Analizador.Next := L1;
@@ -101,18 +101,18 @@ begin
     Manager.Compile;
 
     Writeln;
-    Writeln('Ejecutando pipeline secuencial...');
+    Writeln('Running sequential pipeline...');
     Resultado := Manager.Run(ATema);
 
     // Mostrar salidas intermedias del blackboard
     Writeln;
-    Writeln('--- Conceptos clave (Analizador) ---');
+    Writeln('--- Key concepts (Analizador) ---');
     Writeln(Manager.Blackboard.GetString('Analizador.output'));
     Writeln;
-    Writeln('--- Conceptos expandidos (Expansor) ---');
+    Writeln('--- Expanded concepts (Expansor) ---');
     Writeln(Manager.Blackboard.GetString('Expansor.output'));
     Writeln;
-    Writeln('--- Articulo final (Redactor) ---');
+    Writeln('--- Final article (Redactor) ---');
     Writeln(Resultado);
 
   finally
@@ -124,11 +124,11 @@ end;
 procedure RunDemo;
 begin
   Writeln('=== Sequential ===');
-  Writeln('Patron: [Analizador] -> [Expansor] -> [Redactor]');
+  Writeln('Pattern: [Analizador] -> [Expansor] -> [Redactor]');
   Writeln;
 
-  RunPipeline('Inteligencia Artificial Generativa');
-  RunPipeline('Computacion en la nube');
+  RunPipeline('Generative Artificial Intelligence');
+  RunPipeline('Cloud Computing');
 end;
 
 begin

@@ -6,19 +6,19 @@ program MCPClientChat;
 // =============================================================================
 // MakerAI — 06-MCP / 05-Client-WithChat
 // =============================================================================
-// Integra un servidor MCP con un chat LLM via TAiFunctions.
-// El LLM puede llamar herramientas MCP de forma transparente.
+// Integrates an MCP server with an LLM chat via TAiFunctions.
+// The LLM can call MCP tools transparently.
 //
-// Conceptos que cubre:
-//   - TAiFunctions: coleccion de herramientas para el LLM
-//   - TAiFunctions.MCPClients.Add: registrar un servidor MCP manualmente
+// Concepts covered:
+//   - TAiFunctions: collection of tools for the LLM
+//   - TAiFunctions.MCPClients.Add: register an MCP server manually
 //   - TMCPClientItem.TransportType := tpStdIo
-//   - TMCPClientItem.Params.Values['Command']: ruta al servidor
-//   - TAiChatConnection: conexion de chat con soporte de tools
-//   - FAiConn.AiFunctions: enlazar herramientas al chat
-//   - El LLM llama automaticamente las herramientas MCP cuando las necesita
+//   - TMCPClientItem.Params.Values['Command']: path to the server
+//   - TAiChatConnection: chat connection with tool support
+//   - FAiConn.AiFunctions: link tools to the chat
+//   - The LLM automatically calls MCP tools when needed
 //
-// Prerequisito: compilar 01-Server-StdIO (Win64 Release).
+// Prerequisite: compile 01-Server-StdIO (Win64 Release).
 // =============================================================================
 
 uses
@@ -53,11 +53,11 @@ var
   Respuesta   : String;
 begin
   Writeln('=== MCPClientChat ===');
-  Writeln('LLM + herramientas MCP (get_datetime, greet)');
+  Writeln('LLM + MCP tools (get_datetime, greet)');
   Writeln;
 
   ServerPath := ExpandFileName(ExtractFilePath(ParamStr(0)) + SERVER_EXE_REL);
-  Writeln('Servidor MCP: ', ServerPath);
+  Writeln('MCP server: ', ServerPath);
   Writeln;
 
   Functions := TAiFunctions.Create(nil);
@@ -76,14 +76,14 @@ begin
         ClientItem.MCPClient.Initialize;
 
       if ClientItem.MCPClient.Available then
-        Writeln('Servidor MCP conectado y disponible.')
+        Writeln('MCP server connected and available.')
       else
-        Writeln('AVISO: Servidor MCP no disponible. Verificar que exista el exe.');
+        Writeln('WARNING: MCP server not available. Check that the exe exists.');
     end
     else
     begin
-      Writeln('AVISO: Servidor no encontrado. Continuando sin herramientas MCP.');
-      Writeln('Compila primero 01-Server-StdIO (Win64 Release).');
+      Writeln('WARNING: Server not found. Continuing without MCP tools.');
+      Writeln('Compile 01-Server-StdIO (Win64 Release) first.');
     end;
     Writeln;
 
@@ -138,6 +138,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

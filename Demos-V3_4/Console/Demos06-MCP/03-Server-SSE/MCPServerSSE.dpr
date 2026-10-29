@@ -6,20 +6,20 @@ program MCPServerSSE;
 // =============================================================================
 // MakerAI — 06-MCP / 03-Server-SSE
 // =============================================================================
-// Servidor MCP via protocolo SSE (Server-Sent Events sobre HTTP).
-// Protocolo moderno compatible con Claude Desktop y clientes MCP estandar.
+// MCP server via SSE protocol (Server-Sent Events over HTTP).
+// Modern protocol compatible with Claude Desktop and standard MCP clients.
 //
-// Conceptos que cubre:
-//   - TAiMCPSSEHttpServer: servidor MCP via SSE + HTTP
-//   - Diferencia SSE vs HTTP vs StdIO
-//   - Endpoints SSE: /sse (stream) y /messages (comandos)
-//   - Configuracion para Claude Desktop
+// Concepts it covers:
+//   - TAiMCPSSEHttpServer: MCP server via SSE + HTTP
+//   - Difference SSE vs HTTP vs StdIO
+//   - SSE endpoints: /sse (stream) and /messages (commands)
+//   - Configuration for Claude Desktop
 //
 // Endpoints:
-//   GET  http://localhost:8080/sse       -> Stream SSE (conectar primero)
-//   POST http://localhost:8080/messages  -> Comandos JSON-RPC
+//   GET  http://localhost:8080/sse       -> SSE stream (connect first)
+//   POST http://localhost:8080/messages  -> JSON-RPC commands
 //
-// Herramientas: get_datetime, greet
+// Tools: get_datetime, greet
 // =============================================================================
 
 uses
@@ -37,7 +37,7 @@ type
   private
     FFormat: String;
   public
-    [AiMCPSchemaDescription('Formato: "iso" (ISO-8601) o "readable" (texto legible)')]
+    [AiMCPSchemaDescription('Format: "iso" (ISO-8601) or "readable" (readable text)')]
     property Format: String read FFormat write FFormat;
   end;
 
@@ -53,7 +53,7 @@ constructor TDateTimeMCPTool.Create;
 begin
   inherited;
   FName        := 'get_datetime';
-  FDescription := 'Retorna la fecha y hora actual del servidor.';
+  FDescription := 'Returns the current server date and time.';
 end;
 
 function TDateTimeMCPTool.ExecuteWithParams(const AParams: TDateTimeParams;
@@ -78,9 +78,9 @@ type
     FName    : String;
     FLanguage: String;
   public
-    [AiMCPSchemaDescription('Nombre de la persona a saludar')]
+    [AiMCPSchemaDescription('Name of the person to greet')]
     property Name: String read FName write FName;
-    [AiMCPSchemaDescription('Idioma: "es" espanol (defecto), "en" ingles')]
+    [AiMCPSchemaDescription('Language: "es" Spanish (default), "en" English')]
     property Language: String read FLanguage write FLanguage;
   end;
 
@@ -96,7 +96,7 @@ constructor TGreetMCPTool.Create;
 begin
   inherited;
   FName        := 'greet';
-  FDescription := 'Genera un saludo personalizado en espanol o ingles.';
+  FDescription := 'Generates a personalized greeting in Spanish or English.';
 end;
 
 function TGreetMCPTool.ExecuteWithParams(const AParams: TGreetParams;
@@ -129,7 +129,7 @@ begin
       Server.CorsEnabled        := True;
       Server.CorsAllowedOrigins := '*';
 
-      // Registrar herramientas
+      // Register tools
       Server.RegisterTool('get_datetime',
         function: IAiMCPTool begin Result := TDateTimeMCPTool.Create; end);
       Server.RegisterTool('greet',
@@ -139,14 +139,14 @@ begin
 
       Writeln;
       Writeln('=== MCPServerSSE ===');
-      Writeln(Format('Servidor SSE activo en puerto %d', [Server.Port]));
-      Writeln('Herramientas: get_datetime, greet');
+      Writeln(Format('SSE server active on port %d', [Server.Port]));
+      Writeln('Tools: get_datetime, greet');
       Writeln;
-      Writeln('Endpoints SSE:');
-      Writeln(Format('  GET  http://localhost:%d/sse       -> Stream SSE', [Server.Port]));
-      Writeln(Format('  POST http://localhost:%d/messages  -> Comandos JSON-RPC', [Server.Port]));
+      Writeln('SSE endpoints:');
+      Writeln(Format('  GET  http://localhost:%d/sse       -> SSE stream', [Server.Port]));
+      Writeln(Format('  POST http://localhost:%d/messages  -> JSON-RPC commands', [Server.Port]));
       Writeln;
-      Writeln('Configuracion para Claude Desktop (claude_desktop_config.json):');
+      Writeln('Configuration for Claude Desktop (claude_desktop_config.json):');
       Writeln('{');
       Writeln('  "mcpServers": {');
       Writeln('    "makerai-demo": {');
@@ -156,7 +156,7 @@ begin
       Writeln('  }');
       Writeln('}');
       Writeln;
-      Writeln('Presiona Enter para detener...');
+      Writeln('Press Enter to stop...');
       Readln;
 
     finally

@@ -6,19 +6,19 @@ program Vision;
 // =============================================================================
 // MakerAI — 02-ChatTools / 03-Vision
 // =============================================================================
-// Envía imágenes al LLM para que las describa, analice o extraiga información.
+// Sends images to the LLM so it can describe, analyze, or extract information.
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - Adjuntar imágenes con TAiMediaFile.LoadFromFile()
 //   - Pasar mediafiles en AddMessageAndRun()
 //   - Activar capacidad de visión (ChatMediaSupports)
 //   - Diferencia entre modelos con visión nativa vs. bridge automático
 //   - Casos de uso: descripción, OCR, análisis técnico, comparación
 //
-// Proveedores con visión nativa:
-//   Claude, OpenAI (GPT-4V), Gemini → usan la imagen directamente
-// Proveedores sin visión nativa:
-//   Ollama (gemma3:4b), Groq → MakerAI activa un bridge de OCR automático
+// Providers with native vision:
+//   Claude, OpenAI (GPT-4V), Gemini → use the image directly
+// Providers without native vision:
+//   Ollama (gemma3:4b), Groq → MakerAI activates an automatic OCR bridge
 //
 // Imágenes de prueba: crea archivos de imagen en la misma carpeta o ajusta
 // la ruta IMG_PATH a una imagen existente en tu sistema.
@@ -56,15 +56,15 @@ var
 begin
   if not TFile.Exists(ImagePath) then
   begin
-    Writeln(Format('  [%s] — Imagen no encontrada: %s', [SectionTitle, ImagePath]));
-    Writeln('  Ajusta IMG_SCREENSHOT a una imagen existente en tu sistema.');
+    Writeln(Format('  [%s] — Image not found: %s', [SectionTitle, ImagePath]));
+    Writeln('  Adjust IMG_SCREENSHOT to an existing image on your system.');
     Exit;
   end;
 
   Writeln(StringOfChar('-', 60));
   Writeln(Format('  %s', [SectionTitle]));
-  Writeln(Format('  Imagen  : %s', [TPath.GetFileName(ImagePath)]));
-  Writeln(Format('  Pregunta: %s', [Question]));
+  Writeln(Format('  Image  : %s', [TPath.GetFileName(ImagePath)]));
+  Writeln(Format('  Question: %s', [Question]));
   Writeln;
 
   Conn.Messages.Clear;
@@ -76,7 +76,7 @@ begin
     MediaList[0] := MediaFile;
 
     Response := Conn.AddMessageAndRun(Question, 'user', MediaList);
-    Writeln('  Respuesta:');
+    Writeln('  Response:');
     Writeln('  ', Response);
   finally
     MediaFile.Free;
@@ -105,8 +105,8 @@ begin
     Conn.Params.Values['Asynchronous']      := 'False';
     Conn.Params.Values['Max_Tokens']        := '1024';
 
-    // Activar capacidad de visión + PDF
-    // Tfc_Image = imágenes, Tfc_Pdf = documentos PDF
+    // Enable vision + PDF capability
+    // Tfc_Image = images, Tfc_Pdf = PDF documents
     Conn.Params.Values['NativeInputFiles']  := '[Tfc_Image]';
     Conn.Params.Values['ChatMediaSupports'] := '[Tcm_Image]';
 
@@ -114,31 +114,31 @@ begin
       'Eres un asistente experto en análisis de imágenes. ' +
       'Describe lo que ves de forma detallada y precisa. Responde en español.';
 
-    // Determinar imagen a usar
+    // Determine image to use
     ImgPath := IMG_SCREENSHOT;
     if (IMG_CUSTOM <> '') and TFile.Exists(IMG_CUSTOM) then
       ImgPath := IMG_CUSTOM;
 
-    // ── Demo 1: descripción general ──────────────────────────────────────
+    // ── Demo 1: general description ──────────────────────────────────────
     AskAboutImage(Conn, ImgPath,
       'Describe esta imagen en detalle: ¿qué ves? colores, objetos, contexto.',
-      'Descripción general');
+      'General description');
 
-    // ── Demo 2: análisis específico ──────────────────────────────────────
+    // ── Demo 2: specific analysis ──────────────────────────────────────
     AskAboutImage(Conn, ImgPath,
       '¿Qué colores predominan en esta imagen? Lista los 3 más importantes.',
-      'Análisis de colores');
+      'Color analysis');
 
-    // ── Demo 3: pregunta concreta ────────────────────────────────────────
+    // ── Demo 3: specific question ────────────────────────────────────────
     AskAboutImage(Conn, ImgPath,
       '¿Hay texto visible en la imagen? Si sí, transcríbelo exactamente.',
-      'Extracción de texto (OCR)');
+      'Text extraction (OCR)');
 
-    // ── Demo 4: imagen personalizada si se proporcionó ───────────────────
+    // ── Demo 4: custom image if provided ────────────────────────────────────
     if (IMG_CUSTOM <> '') and TFile.Exists(IMG_CUSTOM) then
       AskAboutImage(Conn, IMG_CUSTOM,
         'Analiza esta imagen desde el punto de vista técnico o artístico.',
-        'Análisis imagen personalizada');
+        'Custom image analysis');
 
     Writeln('Nota: Prueba cambiando DRIVER a "Gemini" o "OpenAI" para');
     Writeln('comparar cómo describe la misma imagen cada modelo.');

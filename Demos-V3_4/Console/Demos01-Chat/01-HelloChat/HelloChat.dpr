@@ -6,21 +6,21 @@
 // =============================================================================
 // MakerAI — 01-Chat / 01-HelloChat
 // =============================================================================
-// El demo más simple posible: configurar una conexión, enviar un mensaje,
-// imprimir la respuesta.
+// The simplest possible demo: configure a connection, send a message,
+// print the response.
 //
 // Conceptos que cubre:
-//   - Crear y configurar TAiChatConnection
-//   - Importar el driver del proveedor deseado
-//   - Llamada síncrona con AddMessageAndRun()
-//   - Resolución de API Keys desde variables de entorno (@VARNAME)
+//   - Create and configure TAiChatConnection
+//   - Import the desired provider driver
+//   - Synchronous call with AddMessageAndRun()
+//   - Resolution of API Keys from environment variables (@VARNAME)
 //
-// Cómo cambiar de proveedor:
-//   Solo modifica DRIVER, MODEL y API_KEY.
-//   El resto del código no cambia — esa es la propuesta de valor central
-//   de MakerAI: un conector universal para todos los LLMs.
+// How to change provider:
+//   Only modify DRIVER, MODEL and API_KEY.
+//   The rest of the code does not change — that is the core value proposition
+//   of MakerAI: a universal connector for all LLMs.
 //
-// Configurar antes de compilar (o definir como variables de entorno):
+// Configure before compiling (or define as environment variables):
 //   CLAUDE_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY...
 // =============================================================================
 
@@ -29,9 +29,9 @@ uses
   System.Generics.Collections,
   uMakerAi.Chat,
   uMakerAi.Chat.AiConnection,
-  // ── Drivers disponibles ──────────────────────────────────────────────────
-  // Importar el driver activa su registro automático en el factory.
-  // Solo se necesita importar; TAiChatConnection lo encontrará por nombre.
+  // ── Available drivers ──────────────────────────────────────────────────
+  // Importing the driver activates its automatic registration in the factory.
+  // You only need to import it; TAiChatConnection will find it by name.
   uMakerAi.Chat.Claude,    // DriverName = 'Claude'
   uMakerAi.Chat.OpenAi,    // DriverName = 'OpenAI'
   uMakerAi.Chat.Gemini,    // DriverName = 'Gemini'
@@ -40,7 +40,7 @@ uses
   uMakerAi.Chat.Mistral;   // DriverName = 'Mistral'
 
 const
-  // ── Cambiar aquí para usar otro proveedor ────────────────────────────────
+  // ── Change here to use another provider ────────────────────────────────
   DRIVER  = 'Claude';
   MODEL   = 'claude-haiku-4-5-20251001';
   API_KEY = '@CLAUDE_API_KEY';   // '@VAR' → GetEnvironmentVariable('VAR')
@@ -65,17 +65,17 @@ begin
 
   Conn := TAiChatConnection.Create(nil);
   try
-    // ── Configuración mínima ─────────────────────────────────────────────
+    // ── Minimal configuration ─────────────────────────────────────────────
     Conn.DriverName := DRIVER;
     Conn.Model      := MODEL;
 
     Conn.Params.Values['ApiKey']       := API_KEY;
-    Conn.Params.Values['Asynchronous'] := 'False';  // llamada síncrona
+    Conn.Params.Values['Asynchronous'] := 'False';  // synchronous call
     Conn.Params.Values['Max_Tokens']   := '1024';
 
     Conn.SystemPrompt.Text := SYSTEM_PROMPT;
 
-    // ── Pregunta 1: texto simple ─────────────────────────────────────────
+    // ── Question 1: simple text ─────────────────────────────────────────
     Prompt := '¿Cuál es la capital de Francia? Responde en una sola oración.';
     Writeln('Pregunta: ', Prompt);
 
@@ -83,9 +83,9 @@ begin
     Writeln('Respuesta: ', Response);
     Writeln;
 
-    // ── Pregunta 2: más elaborada ────────────────────────────────────────
-    // Nota: AddMessageAndRun() acumula historial. La segunda pregunta
-    // puede referirse a la primera. Ver demo 04-ChatHistory para detalle.
+    // ── Question 2: more elaborate ────────────────────────────────────────
+    // Note: AddMessageAndRun() accumulates history. The second question
+    // can refer to the first one. See demo 04-ChatHistory for details.
     Prompt := 'Dame ahora 3 datos curiosos sobre esa ciudad.';
     Writeln('Pregunta: ', Prompt);
 
@@ -105,6 +105,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

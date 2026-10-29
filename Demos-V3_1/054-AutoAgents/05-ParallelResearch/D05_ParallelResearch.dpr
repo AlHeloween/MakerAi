@@ -5,13 +5,13 @@ program D05_ParallelResearch;
 // =============================================================================
 // MakerAI - AutoAgents Demo 05: ParallelResearch
 // =============================================================================
-// Patron Fork/Join con TLLMNodes:
+// Fork/Join pattern with TLLMNodes:
 //
 //   [InputPrep] --ForkLink--> [ProsAnalyst]  --JoinLinkA--\
 //                         \-> [ConsAnalyst]  --JoinLinkB--> [Synthesizer] (jmAll)
 //
-// Dos nodos analizan el mismo tema en paralelo (ventajas y desventajas).
-// El nodo sintetizador espera ambos resultados (jmAll) y los integra.
+// Two nodes analyze the same topic in parallel (advantages and disadvantages).
+// The synthesizer node waits for both results (jmAll) and integrates them.
 // =============================================================================
 
 uses
@@ -40,7 +40,7 @@ var
   FinalOut   : String;
 begin
   Writeln(StringOfChar('=', 60));
-  Writeln('Tema: ', ATopic);
+  Writeln('Topic: ', ATopic);
   Writeln(StringOfChar('=', 60));
 
   Manager := TAIAgentManager.Create(nil);
@@ -48,7 +48,7 @@ begin
     Manager.Asynchronous := False;
     Manager.TimeoutMs    := 120000;
 
-    // --- Nodo de preparacion de input ---
+    // --- Input preparation node ---
     InputPrep := TLLMNode.Create(Manager);
     InputPrep.Name         := 'InputPrep';
     InputPrep.Graph        := Manager;
@@ -60,7 +60,7 @@ begin
       'You are a research coordinator. Given a topic, write a single clear ' +
       'research question about it. Output ONLY the question, nothing else.';
 
-    // --- Nodo de analisis de ventajas (rama A) ---
+    // --- Advantages analysis node (branch A) ---
     ProsNode := TLLMNode.Create(Manager);
     ProsNode.Name         := 'ProsAnalyst';
     ProsNode.Graph        := Manager;
@@ -77,7 +77,7 @@ begin
       '3. [one sentence advantage]' + #13#10 +
       'Nothing else. No explanations before or after.';
 
-    // --- Nodo de analisis de desventajas (rama B) ---
+    // --- Disadvantages analysis node (branch B) ---
     ConsNode := TLLMNode.Create(Manager);
     ConsNode.Name         := 'ConsAnalyst';
     ConsNode.Graph        := Manager;
@@ -94,7 +94,7 @@ begin
       '3. [one sentence disadvantage]' + #13#10 +
       'Nothing else. No explanations before or after.';
 
-    // --- Nodo sintetizador (espera ambas ramas: jmAll) ---
+    // --- Synthesizer node (waits for both branches: jmAll) ---
     SynthNode := TLLMNode.Create(Manager);
     SynthNode.Name         := 'Synthesizer';
     SynthNode.Graph        := Manager;
@@ -110,7 +110,7 @@ begin
       'Synthesize them into a balanced verdict paragraph of 4-5 sentences. ' +
       'Start your response with "VERDICT:" and end with a clear recommendation.';
 
-    // --- Fork: InputPrep -> (ProsNode, ConsNode) en paralelo ---
+    // --- Fork: InputPrep -> (ProsNode, ConsNode) in parallel ---
     ForkLink := TAIAgentsLink.Create(Manager);
     ForkLink.Name  := 'ForkLink';
     ForkLink.Graph := Manager;
@@ -132,27 +132,27 @@ begin
     JoinLinkB.NextA := SynthNode;
     ConsNode.Next   := JoinLinkB;
 
-    // --- Configurar grafo ---
+    // --- Configure graph ---
     Manager.StartNode := InputPrep;
     Manager.EndNode   := SynthNode;
     Manager.Compile;
 
-    // --- Ejecutar ---
+    // --- Run ---
     Writeln;
-    Writeln('Ejecutando investigacion en paralelo...');
+    Writeln('Running research in parallel...');
     FinalOut := Manager.Run(ATopic);
 
     Writeln;
-    Writeln('--- Pregunta de investigacion ---');
+    Writeln('--- Research question ---');
     Writeln(Manager.Blackboard.GetString('InputPrep.output'));
     Writeln;
-    Writeln('--- Analisis PROS ---');
+    Writeln('--- PROS analysis ---');
     Writeln(Manager.Blackboard.GetString('ProsAnalyst.output'));
     Writeln;
-    Writeln('--- Analisis CONS ---');
+    Writeln('--- CONS analysis ---');
     Writeln(Manager.Blackboard.GetString('ConsAnalyst.output'));
     Writeln;
-    Writeln('--- Veredicto final (Synthesizer) ---');
+    Writeln('--- Final verdict (Synthesizer) ---');
     Writeln(FinalOut);
 
   finally
@@ -164,11 +164,11 @@ end;
 procedure RunDemo;
 begin
   Writeln('=== Demo 05 - ParallelResearch ===');
-  Writeln('Patron: Fork/Join con dos ramas paralelas + sintetizador (jmAll)');
+  Writeln('Pattern: Fork/Join with two parallel branches + synthesizer (jmAll)');
   Writeln;
 
   RunParallelResearch('Artificial Intelligence in education');
-  Writeln('Pausa entre temas (15s)...');
+  Writeln('Pause between topics (15s)...');
   Sleep(15000);
   RunParallelResearch('Remote work for software developers');
 end;
@@ -200,6 +200,6 @@ begin
       PrintException(E, '  ');
     end;
   end;
-  Writeln('Demo finalizado. Presiona Enter para salir.');
+  Writeln('Demo finished. Press Enter to exit.');
   Readln;
 end.

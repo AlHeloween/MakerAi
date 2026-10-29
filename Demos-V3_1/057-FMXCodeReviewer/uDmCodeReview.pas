@@ -2,7 +2,7 @@
 
 // =============================================================================
 // MakerAI - Demo 057: FMX Code Reviewer
-// DataModule con el grafo de revision de codigo.
+// DataModule with the code review graph.
 //
 // Pipeline:
 //   [Generator] -> [Reviewer] -> [Refactorer]

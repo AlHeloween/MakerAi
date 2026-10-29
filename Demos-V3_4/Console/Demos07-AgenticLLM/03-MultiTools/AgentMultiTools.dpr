@@ -6,16 +6,16 @@ program AgentMultiTools;
 // =============================================================================
 // MakerAI — 07-AgenticLLM / 03-MultiTools
 // =============================================================================
-// Un agente con múltiples herramientas disponibles.
-// El LLM elige qué herramienta(s) usar según la consulta.
+// An agent with multiple available tools.
+// The LLM chooses which tool(s) to use based on the query.
 //
-// Conceptos que cubre:
-//   - Múltiples herramientas en el mismo TLLMNode
-//   - GetCategory: organizar herramientas por dominio
-//   - Llamadas encadenadas: LLM puede usar varias tools en secuencia
-//   - Tool result → LLM integra los resultados → respuesta final
+// Concepts it covers:
+//   - Multiple tools in the same TLLMNode
+//   - GetCategory: organize tools by domain
+//   - Chained calls: the LLM can use several tools in sequence
+//   - Tool result → LLM integrates the results → final response
 //
-// Herramientas: calculadora, fecha/hora, temperatura, URL encode
+// Tools: calculator, date/time, temperature, URL encode
 // Estructura: [Start] --> [MultiAgent] --> [End]
 // =============================================================================
 
@@ -67,7 +67,7 @@ begin
 end;
 destructor TCalculatorTool.Destroy; begin FSchema.Free; inherited; end;
 function TCalculatorTool.GetName: String; begin Result := 'calculator'; end;
-function TCalculatorTool.GetDescription: String; begin Result := 'Operaciones aritmeticas: add, subtract, multiply, divide'; end;
+function TCalculatorTool.GetDescription: String; begin Result := 'Arithmetic operations: add, subtract, multiply, divide'; end;
 function TCalculatorTool.GetCategory: String; begin Result := 'Math'; end;
 function TCalculatorTool.GetSchema: TJSONObject; begin Result := FSchema; end;
 function TCalculatorTool.IsAvailable: Boolean; begin Result := True; end;
@@ -110,7 +110,7 @@ constructor TDateTimeTool.Create;
 begin inherited; FSchema := TJSONObject.Create; FSchema.AddPair('type', 'object'); FSchema.AddPair('properties', TJSONObject.Create); end;
 destructor TDateTimeTool.Destroy; begin FSchema.Free; inherited; end;
 function TDateTimeTool.GetName: String; begin Result := 'get_datetime'; end;
-function TDateTimeTool.GetDescription: String; begin Result := 'Retorna la fecha y hora actual en formato ISO-8601'; end;
+function TDateTimeTool.GetDescription: String; begin Result := 'Returns the current date and time in ISO-8601 format'; end;
 function TDateTimeTool.GetCategory: String; begin Result := 'Utility'; end;
 function TDateTimeTool.GetSchema: TJSONObject; begin Result := FSchema; end;
 function TDateTimeTool.IsAvailable: Boolean; begin Result := True; end;
@@ -155,7 +155,7 @@ begin
 end;
 destructor TTemperatureTool.Destroy; begin FSchema.Free; inherited; end;
 function TTemperatureTool.GetName: String; begin Result := 'convert_temperature'; end;
-function TTemperatureTool.GetDescription: String; begin Result := 'Convierte temperatura entre Celsius (C) y Fahrenheit (F)'; end;
+function TTemperatureTool.GetDescription: String; begin Result := 'Converts temperature between Celsius (C) and Fahrenheit (F)'; end;
 function TTemperatureTool.GetCategory: String; begin Result := 'Utility'; end;
 function TTemperatureTool.GetSchema: TJSONObject; begin Result := FSchema; end;
 function TTemperatureTool.IsAvailable: Boolean; begin Result := True; end;
@@ -202,7 +202,7 @@ begin
 end;
 destructor TUrlEncodeTool.Destroy; begin FSchema.Free; inherited; end;
 function TUrlEncodeTool.GetName: String; begin Result := 'url_encode'; end;
-function TUrlEncodeTool.GetDescription: String; begin Result := 'Codifica un texto como URL-safe (percent-encoding)'; end;
+function TUrlEncodeTool.GetDescription: String; begin Result := 'Encodes text as URL-safe (percent-encoding)'; end;
 function TUrlEncodeTool.GetCategory: String; begin Result := 'Text'; end;
 function TUrlEncodeTool.GetSchema: TJSONObject; begin Result := FSchema; end;
 function TUrlEncodeTool.IsAvailable: Boolean; begin Result := True; end;
@@ -226,10 +226,10 @@ procedure RunQuery(Manager: TAIAgentManager; const AQuestion: String);
 begin
   Manager.Blackboard.Clear;
   Writeln(StringOfChar('-', 60));
-  Writeln('Pregunta: ', AQuestion);
+  Writeln('Question: ', AQuestion);
   Writeln;
   try
-    Writeln('Respuesta:', sLineBreak, Manager.Run(AQuestion));
+    Writeln('Answer:', sLineBreak, Manager.Run(AQuestion));
   except
     on E: Exception do
       Writeln('ERROR: ', E.Message);
@@ -245,15 +245,15 @@ var
   Finish   : TAIAgentsNode;
 begin
   Writeln('=== AgentMultiTools ===');
-  Writeln('4 herramientas: calculator, datetime, temperature, url_encode');
+  Writeln('4 tools: calculator, datetime, temperature, url_encode');
   Writeln;
 
-  // Registrar herramientas en el registry global
+  // Register tools in the global registry
   TAiToolRegistry.Instance.Register(TCalculatorTool.Create,   'local', 'math');
   TAiToolRegistry.Instance.Register(TDateTimeTool.Create,     'local', 'utility');
   TAiToolRegistry.Instance.Register(TTemperatureTool.Create,  'local', 'utility');
   TAiToolRegistry.Instance.Register(TUrlEncodeTool.Create,    'local', 'text');
-  Writeln('Herramientas registradas: ', TAiToolRegistry.Instance.Count);
+  Writeln('Registered tools: ', TAiToolRegistry.Instance.Count);
   Writeln;
 
   Manager := TAIAgentManager.Create(nil);
@@ -290,12 +290,12 @@ begin
     Manager.Compile;
 
     // Cada pregunta requiere una herramienta diferente
-    RunQuery(Manager, 'Cuanto es 347 por 28?');
-    RunQuery(Manager, 'Que fecha y hora es ahora?');
-    RunQuery(Manager, 'Cuanto es 37 grados Celsius en Fahrenheit?');
-    RunQuery(Manager, 'Codifica esta URL: busqueda de inteligencia artificial');
+    RunQuery(Manager, 'What is 347 times 28?');
+    RunQuery(Manager, 'What date and time is it now?');
+    RunQuery(Manager, 'What is 37 degrees Celsius in Fahrenheit?');
+    RunQuery(Manager, 'Encode this URL: artificial intelligence search');
     // Esta requiere dos herramientas: temperatura + calculadora
-    RunQuery(Manager, 'Cuanto es 100 Fahrenheit en Celsius? Y cuanto es ese valor al cuadrado?');
+    RunQuery(Manager, 'What is 100 Fahrenheit in Celsius? And what is that value squared?');
 
   finally
     Manager.Free;

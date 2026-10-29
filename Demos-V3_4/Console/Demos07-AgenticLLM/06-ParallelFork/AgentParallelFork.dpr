@@ -5,7 +5,7 @@ program AgentParallelFork;
 // =============================================================================
 // MakerAI — 07-AgenticLLM / 06-ParallelFork
 // =============================================================================
-// Patron Fork/Join con TLLMNodes ejecutandose en paralelo:
+// Fork/Join pattern with TLLMNodes running in parallel:
 //
 //   [InputPrep] --ForkLink--> [ProsAnalyst]  --JoinLinkA--\
 //                          \-> [ConsAnalyst] --JoinLinkB--> [Synthesizer] (jmAll)
@@ -13,7 +13,7 @@ program AgentParallelFork;
 // Dos nodos analizan el mismo tema en paralelo (ventajas y desventajas).
 // El nodo sintetizador espera AMBOS resultados (jmAll) antes de ejecutar.
 //
-// Conceptos que cubre:
+// Concepts it covers:
 //   - ForkLink con NextA + NextB: bifurcar hacia dos nodos en paralelo
 //   - JoinMode = jmAll: esperar a que TODOS los nodos de entrada completen
 //   - Lectura del blackboard intermedio por nombre de nodo
@@ -47,7 +47,7 @@ var
   FinalOut  : String;
 begin
   Writeln(StringOfChar('=', 60));
-  Writeln('Tema: ', ATopic);
+  Writeln('Topic: ', ATopic);
   Writeln(StringOfChar('=', 60));
 
   Manager := TAIAgentManager.Create(nil);
@@ -143,20 +143,20 @@ begin
     Manager.Compile;
 
     Writeln;
-    Writeln('Ejecutando investigacion en paralelo (ProsAnalyst || ConsAnalyst)...');
+    Writeln('Running parallel research (ProsAnalyst || ConsAnalyst)...');
     FinalOut := Manager.Run(ATopic);
 
     Writeln;
-    Writeln('--- Pregunta de investigacion (InputPrep) ---');
+    Writeln('--- Research question (InputPrep) ---');
     Writeln(Manager.Blackboard.GetString('InputPrep.output'));
     Writeln;
-    Writeln('--- Analisis PROS ---');
+    Writeln('--- PROS analysis ---');
     Writeln(Manager.Blackboard.GetString('ProsAnalyst.output'));
     Writeln;
-    Writeln('--- Analisis CONS ---');
+    Writeln('--- CONS analysis ---');
     Writeln(Manager.Blackboard.GetString('ConsAnalyst.output'));
     Writeln;
-    Writeln('--- Veredicto final (Synthesizer, jmAll) ---');
+    Writeln('--- Final verdict (Synthesizer, jmAll) ---');
     Writeln(FinalOut);
 
   finally
@@ -173,7 +173,7 @@ begin
   if E is EAggregateException then
   begin
     AggE := EAggregateException(E);
-    Writeln(APrefix, 'AggregateException (', AggE.Count, ' internos):');
+    Writeln(APrefix, 'AggregateException (', AggE.Count, ' internal):');
     for I := 0 to AggE.Count - 1 do
       Writeln(APrefix, '  [', I, '] ', AggE.InnerExceptions[I].ClassName,
               ': ', AggE.InnerExceptions[I].Message);
@@ -184,7 +184,7 @@ end;
 
 begin
   Writeln('=== AgentParallelFork ===');
-  Writeln('Patron: Fork/Join — dos ramas paralelas + sintetizador (jmAll)');
+  Writeln('Pattern: Fork/Join — two parallel branches + synthesizer (jmAll)');
   Writeln;
   try
     RunParallelResearch('Artificial intelligence in education');
@@ -196,6 +196,6 @@ begin
     end;
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

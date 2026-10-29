@@ -46,45 +46,45 @@ var
   Func: TFunctionActionItem;
 begin
   WriteLn(ErrOutput, '');
-  WriteLn(ErrOutput, '=== MCP Server con TAiFunctions ===');
+  WriteLn(ErrOutput, '=== MCP Server with TAiFunctions ===');
 
-  // Iniciar el servidor deseado (cambiar aquí para usar StdIO en su lugar)
+  // Start the desired server (change here to use StdIO instead)
   //AiMCPServer1.Start;
   AiMCPHttpServer1.Start;
 
-  // Mostrar información según el protocolo que quedó activo
+  // Show information according to the active protocol
   if AiMCPHttpServer1.IsActive then
   begin
-    WriteLn(ErrOutput, 'Protocolo : HTTP');
-    WriteLn(ErrOutput, 'Servidor  : ' + AiMCPHttpServer1.ServerName);
-    WriteLn(ErrOutput, 'Puerto    : ' + IntToStr(AiMCPHttpServer1.Port));
+    WriteLn(ErrOutput, 'Protocol : HTTP');
+    WriteLn(ErrOutput, 'Server    : ' + AiMCPHttpServer1.ServerName);
+    WriteLn(ErrOutput, 'Port      : ' + IntToStr(AiMCPHttpServer1.Port));
     WriteLn(ErrOutput, 'Endpoint  : ' + AiMCPHttpServer1.Endpoint);
     WriteLn(ErrOutput, 'URL       : http://localhost:' + IntToStr(AiMCPHttpServer1.Port) + AiMCPHttpServer1.Endpoint);
     WriteLn(ErrOutput, 'CORS      : ' + IfThen(AiMCPHttpServer1.CorsEnabled,
-      'Habilitado (' + AiMCPHttpServer1.CorsAllowedOrigins + ')', 'Deshabilitado'));
+      'Enabled (' + AiMCPHttpServer1.CorsAllowedOrigins + ')', 'Disabled'));
     WriteLn(ErrOutput, '');
-    WriteLn(ErrOutput, 'Ejemplos de uso con curl:');
-    WriteLn(ErrOutput, '  Listar herramientas:');
+    WriteLn(ErrOutput, 'Usage examples with curl:');
+    WriteLn(ErrOutput, '  List tools:');
     WriteLn(ErrOutput, '    curl -X POST http://localhost:' + IntToStr(AiMCPHttpServer1.Port) +
       AiMCPHttpServer1.Endpoint + ' -H "Content-Type: application/json"' +
       ' -d "{""jsonrpc"":""2.0"",""method"":""tools/list"",""id"":1}"');
-    WriteLn(ErrOutput, '  Llamar herramienta:');
+    WriteLn(ErrOutput, '  Call tool:');
     WriteLn(ErrOutput, '    curl -X POST http://localhost:' + IntToStr(AiMCPHttpServer1.Port) +
       AiMCPHttpServer1.Endpoint + ' -H "Content-Type: application/json"' +
       ' -d "{""jsonrpc"":""2.0"",""method"":""tools/call"",""params"":{""name"":""<herramienta>"",""arguments"":{}},""id"":2}"');
   end
   else if AiMCPServer1.IsActive then
   begin
-    WriteLn(ErrOutput, 'Protocolo : StdIO');
+    WriteLn(ErrOutput, 'Protocol : StdIO');
     WriteLn(ErrOutput, 'Servidor  : ' + AiMCPServer1.ServerName);
-    WriteLn(ErrOutput, 'Uso       : Registrar este ejecutable como subproceso en el cliente MCP.');
-    WriteLn(ErrOutput, '            El cliente escribe en stdin y lee las respuestas desde stdout.');
-    WriteLn(ErrOutput, '            Los mensajes de diagnóstico (como éste) van a stderr.');
+    WriteLn(ErrOutput, 'Usage     : Register this executable as a subprocess in the MCP client.');
+    WriteLn(ErrOutput, '            The client writes to stdin and reads responses from stdout.');
+    WriteLn(ErrOutput, '            Diagnostic messages (like this one) go to stderr.');
   end;
 
-  // Listar las herramientas registradas
+  // List registered tools
   WriteLn(ErrOutput, '');
-  WriteLn(ErrOutput, 'Herramientas registradas (' + IntToStr(AiFunctions1.Functions.Count) + '):');
+  WriteLn(ErrOutput, 'Registered tools (' + IntToStr(AiFunctions1.Functions.Count) + '):');
   for I := 0 to AiFunctions1.Functions.Count - 1 do
   begin
     Func := AiFunctions1.Functions[I];
@@ -93,7 +93,7 @@ begin
   end;
 
   WriteLn(ErrOutput, '');
-  WriteLn(ErrOutput, '✅ Servidor iniciado. Esperando peticiones JSON-RPC...');
+  WriteLn(ErrOutput, '✅ Server started. Waiting for JSON-RPC requests...');
   WriteLn(ErrOutput, '');
 end;
 
@@ -107,33 +107,33 @@ procedure TMCPServerAiFunctionsDm.SetupAiFunctions;
 begin
 {
 
-// Esta es otra forma de anexar las funciones manualmente y no por el IDE de Delphi
+// This is another way to attach functions manually and not through the Delphi IDE
 var
   Func: TFunctionActionItem;
   Param: TFunctionParamsItem;
 begin
   AiFunctions1.Functions.Clear;
 
-  // --- FUNCIÓN 1: Información del Sistema ---
+  // --- FUNCTION 1: System Information ---
   Func := AiFunctions1.Functions.Add;
   Func.FunctionName := 'get_system_info';
   Func.Description.Text := 'Retorna información básica del servidor Delphi.';
   Func.OnAction := OnGetSystemInfo;
 
-  // --- FUNCIÓN 2: Escribir Nota ---
+  // --- FUNCTION 2: Write Note ---
   Func := AiFunctions1.Functions.Add;
   Func.FunctionName := 'write_note';
   Func.Description.Text := 'Guarda una nota de texto en el servidor.';
   Func.OnAction := OnWriteNote;
 
-  // Parámetro: Título
+  // Parameter: Title
   Param := Func.Parameters.Add;
   Param.Name := 'title';
   Param.ParamType := ptString;
   Param.Description.Text := 'Título del archivo';
   Param.Required := True;
 
-  // Parámetro: Contenido
+  // Parameter: Content
   Param := Func.Parameters.Add;
   Param.Name := 'content';
   Param.ParamType := ptString;

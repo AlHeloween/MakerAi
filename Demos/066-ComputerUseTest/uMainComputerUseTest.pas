@@ -85,14 +85,14 @@ begin
   Self.Width := 900;
   Self.Height := 680;
 
-  // Componente de Computer Use
+  // Computer Use component
   FCU := TAiComputerUseTool.Create(Self);
   FCU.OnExecuteAction := DoExecuteAction;
   FCU.OnRequestScreenshot := DoRequestScreenshot;
   FCU.OnSafetyConfirmation := DoSafetyConfirmation;
   FCU.EnableZoom := True; // permite la acción zoom de Claude (computer_20251124)
 
-  // Área de captura = monitor primario físico (origen 0,0).
+  // Capture area = physical primary monitor (origin 0,0).
   FCU.AreaLeft := 0;
   FCU.AreaTop := 0;
   {$IFDEF MSWINDOWS}
@@ -109,7 +109,7 @@ begin
   FCU.ScreenWidth := 1280;
   FCU.ScreenHeight := Round(FCU.AreaHeight * 1280 / FCU.AreaWidth);
 
-  // Conexión universal
+  // Universal connection
   FConn := TAiChatConnection.Create(Self);
   FConn.ChatTools.ComputerUseTool := FCU;
   FConn.OnReceiveDataEnd := DoReceiveEnd;
@@ -130,12 +130,12 @@ begin
   cbProvider.Items.Add('OpenAI (gpt-6-astra)');
   cbProvider.ItemIndex := 0;
 
-  // Carpeta de depuración: cada screenshot enviado a la IA se guarda aquí.
+  // Debug folder: every screenshot sent to the AI is saved here.
   FShotDir := ExtractFilePath(ParamStr(0)) + 'shots' + PathDelim;
   ForceDirectories(FShotDir);
   FShotCount := 0;
 
-  // Log a disco, junto al exe. Se reinicia en cada arranque.
+  // Log to disk, next to the exe. It is reset on every run.
   FLogFile := ExtractFilePath(ParamStr(0)) + 'run.log';
   try
     TFile.WriteAllText(FLogFile, '', TEncoding.UTF8);
@@ -144,8 +144,8 @@ begin
   end;
 
   mePrompt.Lines.Text := DEF_PROMPT;
-  SetStatus('Listo. Abre la app objetivo y pulsa Ejecutar.');
-  Log(Format('Pantalla: %dx%d', [FCU.ScreenWidth, FCU.ScreenHeight]));
+  SetStatus('Ready. Open the target app and press Run.');
+  Log(Format('Screen: %dx%d', [FCU.ScreenWidth, FCU.ScreenHeight]));
   Log('Screenshots guardados en: ' + FShotDir);
 
   // --- Arranque por linea de comandos (para correr sin tocar la GUI) ---
@@ -308,7 +308,7 @@ begin
           SP.Quality := 80;
           if TBitmapCodecManager.SaveToStream(Strm, Surf, '.jpg', @SP) then
           begin
-            // Copia a disco (exactamente lo que se envía a la IA, con el cursor).
+            // Copy to disk (exactly what is sent to the AI, with the cursor).
             if FShotDir <> '' then
             begin
               Inc(FShotCount);
@@ -344,7 +344,7 @@ var
 begin
   if (FCU.CurrentAction.ActionType = catZoom) and not FCU.CurrentAction.ZoomRect.IsEmpty then
   begin
-    // Zoom: enviar la región a resolución nativa (la IA inspecciona detalle).
+    // Zoom: send the region at native resolution (the AI inspects detail).
     Area := FCU.CurrentAction.ZoomRect;
     OutW := Area.Width;
     OutH := Area.Height;
@@ -359,7 +359,7 @@ begin
   end;
 
   MF := nil;
-  // FMX.Canvas -> debe correr en el hilo principal.
+  // FMX.Canvas -> must run on the main thread.
   TThread.Synchronize(nil,
     procedure
     begin
@@ -371,7 +371,7 @@ end;
 
 procedure TFormComputerUse.DoSafetyConfirmation(Sender: TObject; const Explanation: string; var Allow: Boolean);
 begin
-  // En esta prueba con el usuario presente, auto-permitimos pero lo registramos.
+  // In this test with the user present, we auto-allow but log it.
   Log('SAFETY (auto-permitido): ' + Explanation);
   Allow := True;
 end;
@@ -428,7 +428,7 @@ begin
   Log('Proveedor: ' + FConn.DriverName + '  Modelo: ' + FConn.Model);
   Log('Tienes 4 segundos para llevar el foco a la app objetivo...');
 
-  // Pequeña espera para que el usuario active la ventana objetivo.
+  // Small wait so the user can activate the target window.
   TThread.CreateAnonymousThread(
     procedure
     begin

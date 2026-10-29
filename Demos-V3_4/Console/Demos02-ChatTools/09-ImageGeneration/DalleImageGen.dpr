@@ -6,9 +6,9 @@
 // =============================================================================
 // MakerAI — 02-ChatTools / 09-ImageGeneration
 // =============================================================================
-// Demo de generaci?n de im?genes con TAiDalle.
+// Demo of image generation with TAiDalle.
 //
-// Cubre los nuevos modelos y par?metros de la API OpenAI Images (v2):
+// Covers the new models and parameters of the OpenAI Images API (v2):
 //
 //   Test 1 — gpt-image-1      : PNG, quality=high, background=opaque
 //   Test 2 — gpt-image-1-mini : JPEG, quality=medium, output_compression=80
@@ -17,8 +17,8 @@
 //   Test 5 — dall-e-3         : Generaci?n cl?sica
 //   Test 6 — gpt-image-1      : size=auto, moderation=low
 //
-// Las im?genes se guardan en la carpeta TEMP del sistema.
-// Requisito: variable de entorno OPENAI_API_KEY definida.
+// Images are saved in the system TEMP folder.
+// Requirement: OPENAI_API_KEY environment variable defined.
 //
 // Nota sobre streaming en consola:
 //   TAiDalle usa TThread.Queue para disparar los callbacks de streaming.
@@ -55,7 +55,7 @@ begin
   FullPath := TPath.Combine(OutputDir, AFilename);
   AStream.Position := 0;
   AStream.SaveToFile(FullPath);
-  Writeln('    Guardada: ', FullPath);
+  Writeln('    Saved: ', FullPath);
 end;
 
 procedure PrintUsage(AImage: TAiDalleImage);
@@ -69,7 +69,7 @@ begin
   AImage.Usage.TryGetValue<Integer>('input_tokens', InputTok);
   AImage.Usage.TryGetValue<Integer>('output_tokens', OutputTok);
   AImage.Usage.TryGetValue<Integer>('total_tokens', TotalTok);
-  Writeln(Format('    Tokens — entrada: %d  salida: %d  total: %d',
+  Writeln(Format('    Tokens — input: %d  output: %d  total: %d',
     [InputTok, OutputTok, TotalTok]));
 end;
 
@@ -161,8 +161,8 @@ var
   Img: TAiDalleImage;
 begin
   Writeln;
-  Writeln('=== Test 3: gpt-image-2 — PNG, quality=high (sin streaming) ===');
-  Writeln('  (Requiere verificacion de organizacion en platform.openai.com)');
+  Writeln('=== Test 3: gpt-image-2 — PNG, quality=high (without streaming) ===');
+  Writeln('  (Requires organization verification on platform.openai.com)');
   Dalle := TAiDalle.Create(nil);
   try
     Dalle.ApiKey       := API_KEY;
@@ -216,7 +216,7 @@ procedure TStreamingTest.OnPartial(Sender: TObject;
   const AImage: TAiDalleImage; AIndex: Integer);
 begin
   Inc(FPartialCount);
-  Writeln(Format('    [Parcial #%d] %d bytes', [AIndex, AImage.Image.Size]));
+  Writeln(Format('    [Partial #%d] %d bytes', [AIndex, AImage.Image.Size]));
   SaveImage(Format('test4_partial_%d.webp', [AIndex]), AImage.Image);
   AImage.Free; // responsabilidad del handler
 end;
@@ -232,7 +232,7 @@ end;
 
 procedure TStreamingTest.OnError(Sender: TObject; const AMsg: string);
 begin
-  Writeln('    [Error streaming] ', AMsg);
+  Writeln('    [Streaming error] ', AMsg);
 end;
 
 procedure TStreamingTest.Run;
@@ -241,7 +241,7 @@ var
 begin
   Writeln;
   Writeln('=== Test 4: gpt-image-1 — Streaming, partial_images=2 ===');
-  Writeln('  Callbacks directos desde el hilo de Generate().');
+  Writeln('  Callbacks directly from the Generate() thread.');
 
   FPartialCount  := 0;
   FFinalReceived := False;
@@ -259,14 +259,14 @@ begin
     Dalle.OnStreamCompleted      := OnCompleted;
     Dalle.OnStreamError          := OnError;
 
-    Write('  Generando (streaming)... ');
+    Write('  Generating (streaming)... ');
     Dalle.Generate(
       'A futuristic cityscape at night with neon lights reflecting on wet streets, ' +
       'flying vehicles, and holographic advertisements. Cyberpunk aesthetic.',
       '', is1024x1024);
 
     Writeln('OK');
-    Writeln(Format('  Parciales: %d | Final recibido: %s',
+    Writeln(Format('  Partials: %d | Final received: %s',
       [FPartialCount, BoolToStr(FFinalReceived, True)]));
   finally
     Dalle.Free;
@@ -330,7 +330,7 @@ begin
     Dalle.Quality    := iqMedium;
     Dalle.Moderation := imodLow;
 
-    Write('  Generando con size=auto... ');
+    Write('  Generating with size=auto... ');
     Img := Dalle.Generate(
       'A fantasy warrior character in full plate armor, dynamic pose, ' +
       'detailed illustration style.',
@@ -359,11 +359,11 @@ var
 
 begin
   Writeln('================================================');
-  Writeln(' MakerAI — Demo 09: Generacion de Imagenes');
+  Writeln(' MakerAI — Demo 09: Image Generation');
   Writeln(' gpt-image-1 / gpt-image-1-mini / gpt-image-2');
   Writeln(' gpt-image-1.5 / chatgpt-image-latest / dall-e-3');
   Writeln('================================================');
-  Writeln('Salida: ', OutputDir);
+  Writeln('Output: ', OutputDir);
 
   try
     Test1_GptImage1_PNG;
@@ -382,11 +382,11 @@ begin
 
   except
     on E: Exception do
-      Writeln('ERROR FATAL: ', E.ClassName, ' — ', E.Message);
+      Writeln('FATAL ERROR: ', E.ClassName, ' — ', E.Message);
   end;
 
   Writeln;
   Writeln('================================================');
-  Writeln('Demo finalizado. Presiona Enter para salir...');
+  Writeln('Demo finished. Press Enter to exit...');
   Readln;
 end.

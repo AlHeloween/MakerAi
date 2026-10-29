@@ -5,7 +5,7 @@ program AgentDebate;
 // =============================================================================
 // MakerAI — 07-AgenticLLM / 10-MultiAgentDebate
 // =============================================================================
-// Cinco TLLMNodes simulan un debate estructurado:
+// Five TLLMNodes simulate a structured debate:
 //
 //   [Moderator] -> [Proposer] -> [Critic] -> [Rebuttal] -> [Judge]
 //
@@ -13,7 +13,7 @@ program AgentDebate;
 // TDebateContext inyecta el historial completo del debate antes de cada nodo
 // via Manager.OnEnterNode, dando a cada participante todo el contexto previo.
 //
-// Conceptos que cubre:
+// Concepts it covers:
 //   - Manager.OnEnterNode: callback que se dispara antes de cada nodo
 //   - Modificacion de Node.Input desde OnEnterNode (inyeccion de contexto)
 //   - Manager.Blackboard.GetString(NodeName + '.output') para leer historial
@@ -33,7 +33,7 @@ const
   API_KEY = '@CLAUDE_API_KEY';
 
 // -----------------------------------------------------------------------------
-// TDebateContext — inyecta el historial acumulado del debate en cada nodo
+// TDebateContext — injects the accumulated debate history into each node
 // -----------------------------------------------------------------------------
 type
   TDebateContext = class
@@ -95,7 +95,7 @@ var
   L1, L2, L3, L4: TAIAgentsLink;
 begin
   Writeln(StringOfChar('=', 60));
-  Writeln('Tema del debate: ', ATopic);
+  Writeln('Debate topic: ', ATopic);
   Writeln(StringOfChar('=', 60));
 
   Manager   := TAIAgentManager.Create(nil);
@@ -129,7 +129,7 @@ begin
       'Give scores out of 10 and declare a winner. ' +
       'Format: "SCORES:\n- Pro side: X/10\n- Con side: X/10\nVERDICT: [winner and why]"');
 
-    // Cadena lineal: Moderator -> Proposer -> Critic -> Rebuttal -> Judge
+    // Linear chain: Moderator -> Proposer -> Critic -> Rebuttal -> Judge
     L1 := TAIAgentsLink.Create(Manager); L1.Name := 'L1'; L1.Graph := Manager; L1.NextA := Proposer; Moderator.Next := L1;
     L2 := TAIAgentsLink.Create(Manager); L2.Name := 'L2'; L2.Graph := Manager; L2.NextA := Critic;   Proposer.Next  := L2;
     L3 := TAIAgentsLink.Create(Manager); L3.Name := 'L3'; L3.Graph := Manager; L3.NextA := Rebuttal; Critic.Next    := L3;
@@ -143,19 +143,19 @@ begin
     var Verdict := Manager.Run(ATopic);
 
     Writeln;
-    Writeln('--- Moderador ---');
+    Writeln('--- Moderator ---');
     Writeln(Manager.Blackboard.GetString('Moderator.output'));
     Writeln;
-    Writeln('--- Proponente ---');
+    Writeln('--- Proposer ---');
     Writeln(Manager.Blackboard.GetString('Proposer.output'));
     Writeln;
-    Writeln('--- Critico ---');
+    Writeln('--- Critic ---');
     Writeln(Manager.Blackboard.GetString('Critic.output'));
     Writeln;
-    Writeln('--- Replica ---');
+    Writeln('--- Rebuttal ---');
     Writeln(Manager.Blackboard.GetString('Rebuttal.output'));
     Writeln;
-    Writeln('--- Veredicto del Juez ---');
+    Writeln('--- Judge verdict ---');
     Writeln(Verdict);
 
   finally
@@ -167,8 +167,8 @@ end;
 
 begin
   Writeln('=== AgentDebate ===');
-  Writeln('5 nodos: Moderator -> Proposer -> Critic -> Rebuttal -> Judge');
-  Writeln('OnEnterNode inyecta historial completo del debate en cada nodo.');
+  Writeln('5 nodes: Moderator -> Proposer -> Critic -> Rebuttal -> Judge');
+  Writeln('OnEnterNode injects the full debate history into each node.');
   Writeln;
   try
     RunDebate('Artificial intelligence will eliminate more jobs than it creates');
@@ -177,6 +177,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

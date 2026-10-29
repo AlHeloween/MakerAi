@@ -6,19 +6,19 @@
 // =============================================================================
 // MakerAI — 01-Chat / 02-MultiProvider
 // =============================================================================
-// Misma pregunta, enviada a múltiples proveedores LLM uno tras otro.
-// Demuestra que el código de aplicación NO cambia al cambiar de proveedor.
+// Same question, sent to multiple LLM providers one after another.
+// Demonstrates that the application code does NOT change when changing provider.
 //
 // Conceptos que cubre:
-//   - Patrón de conector universal (TAiChatConnection)
-//   - Cambio de proveedor en tiempo de ejecución
-//   - Comparación de respuestas entre modelos
-//   - Manejo de errores por proveedor (clave inválida, modelo no disponible)
+//   - Universal connector pattern (TAiChatConnection)
+//   - Provider change at runtime
+//   - Comparison of responses between models
+//   - Error handling per provider (invalid key, model not available)
 //
 // Requisitos:
-//   Define las API keys como variables de entorno:
+//   Define the API keys as environment variables:
 //   CLAUDE_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, GROQ_API_KEY
-//   Los proveedores locales (Ollama) no requieren API key.
+//   Local providers (Ollama) do not require an API key.
 // =============================================================================
 
 uses
@@ -35,7 +35,7 @@ uses
   uMakerAi.Chat.Mistral,
   uMakerAi.Chat.DeepSeek;
 
-// ── Definición de los proveedores a probar ───────────────────────────────────
+// ── Definition of the providers to test ───────────────────────────────────
 type
   TProviderConfig = record
     Driver : String;
@@ -56,7 +56,7 @@ const
   QUESTION = 'En exactamente 2 oraciones: ¿Qué es la inteligencia artificial?';
 
 // =============================================================================
-//  Función que envía la misma pregunta a un proveedor y mide el tiempo
+//  Function that sends the same question to a provider and measures the time
 // =============================================================================
 procedure AskProvider(const Cfg: TProviderConfig; const Question: String);
 var
@@ -66,7 +66,7 @@ var
 begin
   if not Cfg.Enabled then
   begin
-    Writeln(Format('[%s] — Deshabilitado', [Cfg.Driver]));
+    Writeln(Format('[%s] — Disabled', [Cfg.Driver]));
     Exit;
   end;
 
@@ -88,8 +88,8 @@ begin
     try
       Response := Conn.AddMessageAndRun(Question, 'user', []);
       SW.Stop;
-      Writeln(Format('   Tiempo: %d ms', [SW.ElapsedMilliseconds]));
-      Writeln('   Respuesta: ', Response);
+      Writeln(Format('   Time: %d ms', [SW.ElapsedMilliseconds]));
+      Writeln('   Response: ', Response);
     except
       on E: Exception do
         Writeln(Format('   ERROR: %s', [E.Message]));
@@ -108,15 +108,15 @@ var
   I: Integer;
 begin
   Writeln('=== MultiProvider ===');
-  Writeln('Pregunta: ', QUESTION);
+  Writeln('Question: ', QUESTION);
   Writeln;
 
   for I := Low(PROVIDERS) to High(PROVIDERS) do
     AskProvider(PROVIDERS[I], QUESTION);
 
   Writeln(StringOfChar('=', 60));
-  Writeln('Todos los proveedores respondieron la misma pregunta.');
-  Writeln('El código de consulta es idéntico para todos ellos.');
+  Writeln('All providers answered the same question.');
+  Writeln('The query code is identical for all of them.');
 end;
 
 begin
@@ -127,6 +127,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' — ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

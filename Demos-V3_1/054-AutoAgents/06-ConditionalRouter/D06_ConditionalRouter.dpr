@@ -5,9 +5,9 @@ program D06_ConditionalRouter;
 // =============================================================================
 // MakerAI - AutoAgents Demo 06: ConditionalRouter
 // =============================================================================
-// Un clasificador LLM determina la ruta: 'math', 'science' o 'history'.
-// Un nodo router (TRouterHelper) lee la clasificacion del blackboard y escribe
-// la clave 'route'. Un link condicional despacha al especialista correcto.
+// An LLM classifier determines the route: 'math', 'science' or 'history'.
+// A router node (TRouterHelper) reads the classification from the blackboard and writes
+// the 'route' key. A conditional link dispatches to the correct specialist.
 //
 //   [Classifier] --> [RouterNode] --lmConditional--> [MathSpecialist]
 //                                                \-> [ScienceSpecialist]
@@ -30,8 +30,8 @@ const
   API_KEY = '@CLAUDE_API_KEY';
 
 // =============================================================================
-// TRouterHelper: nodo de enrutamiento sin LLM
-// Lee la clasificacion del blackboard y escribe la clave 'route'
+// TRouterHelper: routing node without LLM
+// Reads the classification from the blackboard and writes the 'route' key
 // =============================================================================
 type
   TRouterHelper = class
@@ -70,7 +70,7 @@ begin
   // Escribir la clave que usa el link condicional
   Node.Graph.Blackboard.SetString('route', Route);
 
-  Writeln(Format('  [Router] Clasificacion="%s" -> Ruta="%s"', [Classification, Route]));
+  Writeln(Format('  [Router] Classification="%s" -> Route="%s"', [Classification, Route]));
   // Pasar la pregunta ORIGINAL (BeforeNode.Input = Classifier.Input = pregunta del usuario)
   // no el texto de clasificacion que devolvio el LLM
   if Assigned(BeforeNode) then
@@ -80,7 +80,7 @@ begin
 end;
 
 // =============================================================================
-// Helper: crea y configura un TLLMNode
+// Helper: creates and configures a TLLMNode
 // =============================================================================
 function MakeLLMNode(Manager: TAIAgentManager; const AName, ASystemPrompt: String;
   UseTools: Boolean = False): TLLMNode;
@@ -98,10 +98,10 @@ end;
 procedure RunQuery(Manager: TAIAgentManager; const AQuestion: String);
 begin
   Writeln(StringOfChar('-', 60));
-  Writeln('Pregunta: ', AQuestion);
+  Writeln('Question: ', AQuestion);
   try
     Writeln;
-    Writeln('Respuesta: ', Manager.Run(AQuestion));
+    Writeln('Answer: ', Manager.Run(AQuestion));
   except
     on E: Exception do
       Writeln('ERROR: ', E.Message);
@@ -127,7 +127,7 @@ var
   CondTargets   : TDictionary<String, TAIAgentsNode>;
 begin
   Writeln('=== Demo 06 - ConditionalRouter ===');
-  Writeln('Patron: Clasificador -> Router -> Especialista (math|science|history) -> Formatter');
+  Writeln('Pattern: Classifier -> Router -> Specialist (math|science|history) -> Formatter');
   Writeln;
 
   RouterHelper := TRouterHelper.Create;
@@ -136,20 +136,20 @@ begin
     Manager.Asynchronous := False;
     Manager.TimeoutMs    := 90000;
 
-    // --- Nodo clasificador (TLLMNode) ---
+    // --- Classifier node (TLLMNode) ---
     Classifier := MakeLLMNode(Manager, 'Classifier',
       'You are a CLASSIFIER. Your job is to output ONE word only. Do not answer the question.' + #10 +
       'Given a question, output ONLY one of these exact words: math  science  history' + #10 +
       'No explanations. No punctuation. Just one word.');
-    Classifier.MaxTokens := 3;  // forzar 1 token
+    Classifier.MaxTokens := 3;  // force 1 token
 
-    // --- Nodo router (TRouterHelper.Execute como metodo de objeto) ---
+    // --- Router node (TRouterHelper.Execute as object method) ---
     RouterNode := TAIAgentsNode.Create(Manager);
     RouterNode.Name      := 'Router';
     RouterNode.Graph     := Manager;
     RouterNode.OnExecute := RouterHelper.Execute;
 
-    // --- Especialistas ---
+    // --- Specialists ---
     MathSpec := MakeLLMNode(Manager, 'MathSpecialist',
       'You are a math expert. Answer the question clearly, showing all steps if calculation is involved.');
 
@@ -159,20 +159,20 @@ begin
     HistorySpec := MakeLLMNode(Manager, 'HistorySpecialist',
       'You are a history expert. Answer the question with historical context and key facts.');
 
-    // --- Formateador final (jmAny: solo un especialista llega) ---
+    // --- Final formatter (jmAny: only one specialist arrives) ---
     FinalFmt := MakeLLMNode(Manager, 'FinalFormatter',
       'You receive an expert answer. Format it nicely: add a brief title line, ' +
       'then the answer. Keep it concise and well-structured.');
     FinalFmt.JoinMode := jmAny;
 
-    // --- Enlace: Classifier -> RouterNode ---
+    // --- Link: Classifier -> RouterNode ---
     RouterLink := TAIAgentsLink.Create(Manager);
     RouterLink.Name  := 'ToRouter';
     RouterLink.Graph := Manager;
     RouterLink.NextA := RouterNode;
     Classifier.Next  := RouterLink;
 
-    // --- Link condicional: RouterNode -> (MathSpec | ScienceSpec | HistorySpec) ---
+    // --- Conditional link: RouterNode -> (MathSpec | ScienceSpec | HistorySpec) ---
     CondLink      := TAIAgentsLink.Create(Manager);
     CondLink.Name := 'CondLink';
     CondLink.Graph := Manager;
@@ -191,7 +191,7 @@ begin
     end;
     RouterNode.Next := CondLink;
 
-    // --- Joins: cada especialista -> FinalFormatter ---
+    // --- Joins: each specialist -> FinalFormatter ---
     JoinLinkMath := TAIAgentsLink.Create(Manager);
     JoinLinkMath.Name := 'JoinMath'; JoinLinkMath.Graph := Manager; JoinLinkMath.NextA := FinalFmt;
     MathSpec.Next := JoinLinkMath;
@@ -204,12 +204,12 @@ begin
     JoinLinkHist.Name := 'JoinHist'; JoinLinkHist.Graph := Manager; JoinLinkHist.NextA := FinalFmt;
     HistorySpec.Next := JoinLinkHist;
 
-    // --- Configurar grafo ---
+    // --- Configure graph ---
     Manager.StartNode := Classifier;
     Manager.EndNode   := FinalFmt;
     Manager.Compile;
 
-    // --- Ejecutar consultas de distintas categorias ---
+    // --- Run queries from different categories ---
     RunQuery(Manager, 'What is the square root of 144?');
     RunQuery(Manager, 'How does photosynthesis work?');
     RunQuery(Manager, 'When did World War II end and who signed the surrender?');
@@ -229,6 +229,6 @@ begin
     on E: Exception do
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
-  Writeln('Demo finalizado. Presiona Enter para salir.');
+  Writeln('Demo finished. Press Enter to exit.');
   Readln;
 end.

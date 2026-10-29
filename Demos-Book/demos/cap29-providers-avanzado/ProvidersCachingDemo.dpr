@@ -4,26 +4,26 @@
 {$R *.res}
 
 // =============================================================================
-// MakerAI -- Capítulo 29: Características Avanzadas por Provider
+// MakerAI -- Chapter 29: Advanced Provider Features
 // =============================================================================
 // Demo A — Claude Prompt Caching
-//   System prompt largo (>= 2048 tokens). Primera llamada: Cache MISS.
-//   Segunda y tercera: Cache HIT. Muestra cache_write_tokens vs cached_tokens.
+//   Long system prompt (>= 2048 tokens). First call: Cache MISS.
+//   Second and third: Cache HIT. Shows cache_write_tokens vs cached_tokens.
 //
 // Demo B — Claude Citations
-//   Documento adjunto con EnableCitations := True. El modelo responde
-//   anotando qué fragmento del documento respaldó cada afirmación.
+//   Attached document with EnableCitations := True. The model responds
+//   annotating which document fragment supported each statement.
 //
 // Demo C — OpenAI Auto Caching
-//   gpt-5.4-mini. Sin configuración extra. Cache automático en prompts
-//   >= 1024 tokens. Muestra cached_tokens en segunda llamada.
+//   gpt-5.4-mini. No extra configuration. Automatic cache in prompts
+//   >= 1024 tokens. Shows cached_tokens in second call.
 //
 // Demo D — DeepSeek Auto Caching
-//   deepseek-chat. Sin configuración extra. Cache automático con
-//   prefijos repetidos. Muestra cached_tokens en segunda llamada.
+//   deepseek-chat. No extra configuration. Automatic cache with
+//   repeated prefixes. Shows cached_tokens in second call.
 //
-// Variables de entorno requeridas: CLAUDE_API_KEY, OPENAI_API_KEY,
-//   DEEPSEEK_API_KEY (según los demos que se ejecuten).
+// Required environment variables: CLAUDE_API_KEY, OPENAI_API_KEY,
+//   DEEPSEEK_API_KEY (depending on the demos run).
 // =============================================================================
 
 uses
@@ -37,7 +37,7 @@ uses
   uMakerAi.Chat.Initializations; // auto-registra todos los drivers
 
 // ---------------------------------------------------------------------------
-//  TCacheMonitor — captura métricas de caché desde OnReceiveDataEnd
+//  TCacheMonitor — captures cache metrics from OnReceiveDataEnd
 // ---------------------------------------------------------------------------
 
 type
@@ -135,7 +135,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-//  Helpers comunes
+//  Common helpers
 // ---------------------------------------------------------------------------
 
 procedure Separador(const Titulo: string);
@@ -189,9 +189,9 @@ var
 begin
   Separador('Demo A — Claude Prompt Caching');
   WriteLn('Provider: Claude  |  Modelo: claude-sonnet-4-6');
-  WriteLn('Umbral mínimo claude-sonnet-4-6: 2 048 tokens de system prompt.');
-  WriteLn('Primera llamada: Cache MISS → Cache_write_tokens > 0');
-  WriteLn('Segunda/tercera: Cache HIT  → Cached_tokens > 0');
+  WriteLn('Minimum threshold claude-sonnet-4-6: 2,048 system prompt tokens.');
+  WriteLn('First call: Cache MISS → Cache_write_tokens > 0');
+  WriteLn('Second/third: Cache HIT  → Cached_tokens > 0');
   WriteLn;
 
   Conn := TAiChatConnection.Create(nil);
@@ -201,25 +201,25 @@ begin
     Conn.SystemPrompt.Text := BuildLongPrompt(BASE_SYS, 40);
     Conn.OnReceiveDataEnd  := Mon.OnDataEnd;
 
-    // Activar caching explícito del system prompt en TAiClaudeChat
+    // Enable explicit caching of the system prompt in TAiClaudeChat
     (Conn.AiChat as TAiClaudeChat).CacheSystemPrompt := True;
 
-    WriteLn('--- Llamada 1 (Cache MISS esperado) ---');
+    WriteLn('--- Call 1 (Cache MISS expected) ---');
     Mon.Reset;
     Resp := Conn.AddMessageAndRun(
       '¿Cuál es tu función principal como asistente?', 'user', []);
     Mon.Print('Llamada 1');
-    WriteLn('  Respuesta: ', Copy(Resp, 1, 100), '...');
+    WriteLn('  Response: ', Copy(Resp, 1, 100), '...');
 
     WriteLn;
-    WriteLn('--- Llamada 2 (Cache HIT esperado) ---');
+    WriteLn('--- Call 2 (Cache HIT expected) ---');
     Mon.Reset;
     Resp := Conn.AddMessageAndRun(
       '¿Cómo analizas los documentos?', 'user', []);
     Mon.Print('Llamada 2');
 
     WriteLn;
-    WriteLn('--- Llamada 3 (Cache HIT confirmado) ---');
+    WriteLn('--- Call 3 (Cache HIT confirmed) ---');
     Mon.Reset;
     Resp := Conn.AddMessageAndRun(
       '¿Qué tipo de información extraes de los documentos?', 'user', []);
@@ -270,8 +270,8 @@ var
 begin
   Separador('Demo B — Claude Citations');
   WriteLn('Provider: Claude  |  Modelo: claude-sonnet-4-6');
-  WriteLn('Documento adjunto con EnableCitations := True.');
-  WriteLn('El modelo cita textualmente el fragmento que respalda cada respuesta.');
+  WriteLn('Attached document with EnableCitations := True.');
+  WriteLn('The model quotes verbatim the fragment supporting each answer.');
   WriteLn;
 
   Conn := TAiChatConnection.Create(nil);
@@ -285,7 +285,7 @@ begin
     Conn.OnReceiveDataEnd := Mon.OnDataEnd;
     Conn.OnError          := Mon.OnError;
 
-    // Preparar documento: codificar en Base64 y configurar propiedades
+    // Prepare document: encode in Base64 and configure properties
     B64 := TNetEncoding.Base64.Encode(DOC_TEXT);
     MF.LoadFromBase64('guia-makerai.txt', B64);
     MF.EnableCitations := True;  // Claude anotará las citas en la respuesta
@@ -298,20 +298,20 @@ begin
       '¿Cómo funciona el prompt caching?',
       'user', [MF]);
 
-    WriteLn('Respuesta del modelo:');
+    WriteLn('Model response:');
     if Resp <> '' then
       WriteLn(Resp)
     else if Mon.LastError <> '' then
       WriteLn('  [ERROR API]: ', Copy(Mon.LastError, 1, 200))
     else
-      WriteLn('  (respuesta vacía)');
+      WriteLn('  (empty response)');
 
     WriteLn;
-    WriteLn('--- Citas extraídas (', Mon.CitationTexts.Count, ') ---');
+    WriteLn('--- Extracted citations (', Mon.CitationTexts.Count, ') ---');
     Mon.PrintCitations;
     Mon.Print('Tokens');
   finally
-    // MF es propiedad del mensaje (TObjectList OwnsObjects) — no liberar aqui
+    // MF is a property of the message (TObjectList OwnsObjects) — do not free here
     Conn.Free;
     Mon.Free;
   end;
@@ -334,8 +334,8 @@ var
 begin
   Separador('Demo C — OpenAI Auto Caching');
   WriteLn('Provider: OpenAI  |  Modelo: gpt-5.4-mini');
-  WriteLn('El caching es automatico: no se requiere configuracion extra.');
-  WriteLn('Umbral: >= 1 024 tokens de input. Cache HIT reduce costo 50%.');
+  WriteLn('Caching is automatic: no extra configuration required.');
+  WriteLn('Threshold: >= 1,024 input tokens. Cache HIT reduces cost by 50%.');
   WriteLn;
 
   Conn := TAiChatConnection.Create(nil);
@@ -345,20 +345,20 @@ begin
     Conn.SystemPrompt.Text := BuildLongPrompt(BASE_SYS, 30);
     Conn.OnReceiveDataEnd  := Mon.OnDataEnd;
 
-    WriteLn('--- Llamada 1 (sin cache aun) ---');
+    WriteLn('--- Call 1 (no cache yet) ---');
     Mon.Reset;
     Conn.AddMessageAndRun('¿Qué es el machine learning?', 'user', []);
     Mon.Print('Llamada 1');
 
     WriteLn;
-    WriteLn('--- Llamada 2 (cache automatico esperado) ---');
+    WriteLn('--- Call 2 (automatic cache expected) ---');
     Mon.Reset;
     Conn.AddMessageAndRun('¿Qué es el deep learning?', 'user', []);
     Mon.Print('Llamada 2');
     if Mon.CachedTokens > 0 then
       WriteLn('  Cache activo: ', Mon.CachedTokens, ' tokens reutilizados (50% descuento)')
     else
-      WriteLn('  Cache aun no activo (puede tardar algunos segundos en activarse)');
+      WriteLn('  Cache not active yet (may take a few seconds to activate)');
   finally
     Conn.Free;
     Mon.Free;
@@ -381,8 +381,8 @@ var
 begin
   Separador('Demo D — DeepSeek Auto Caching');
   WriteLn('Provider: DeepSeek  |  Modelo: deepseek-chat');
-  WriteLn('El caching es automatico para prefijos repetidos.');
-  WriteLn('Costo en cache HIT: 0.1 USD/M tokens (vs 0.27 sin cache).');
+  WriteLn('Caching is automatic for repeated prefixes.');
+  WriteLn('Cost on cache HIT: 0.1 USD/M tokens (vs 0.27 without cache).');
   WriteLn;
 
   Conn := TAiChatConnection.Create(nil);
@@ -392,20 +392,20 @@ begin
     Conn.SystemPrompt.Text := BuildLongPrompt(BASE_SYS, 30);
     Conn.OnReceiveDataEnd  := Mon.OnDataEnd;
 
-    WriteLn('--- Llamada 1 ---');
+    WriteLn('--- Call 1 ---');
     Mon.Reset;
     Conn.AddMessageAndRun('¿Cuáles son las ventajas de MakerAI?', 'user', []);
     Mon.Print('Llamada 1');
 
     WriteLn;
-    WriteLn('--- Llamada 2 (prefijo compartido → cache esperado) ---');
+    WriteLn('--- Call 2 (shared prefix → cache expected) ---');
     Mon.Reset;
     Conn.AddMessageAndRun('¿Qué providers soporta MakerAI?', 'user', []);
     Mon.Print('Llamada 2');
     if Mon.CachedTokens > 0 then
       WriteLn('  Cache activo: ', Mon.CachedTokens, ' tokens reutilizados')
     else
-      WriteLn('  Cache aun no activo en esta sesion');
+      WriteLn('  Cache not active in this session');
   finally
     Conn.Free;
     Mon.Free;
@@ -429,9 +429,9 @@ begin
     WriteLn('  B — Claude Citations        (CLAUDE_API_KEY)');
     WriteLn('  C — OpenAI Auto Caching     (OPENAI_API_KEY)');
     WriteLn('  D — DeepSeek Auto Caching   (DEEPSEEK_API_KEY)');
-    WriteLn('  T — Todos los demos');
+    WriteLn('  T — All demos');
     WriteLn;
-    Write('  Opcion [A/B/C/D/T]: ');
+    Write('  Option [A/B/C/D/T]: ');
     Readln(Opcion);
     Opcion := UpCase(Opcion);
 
@@ -448,19 +448,19 @@ begin
         DemoD_DeepSeekAutoCaching;
       end;
     else
-      WriteLn('Opcion no reconocida: ', Opcion);
+      WriteLn('Unrecognized option: ', Opcion);
     end;
 
     WriteLn;
     WriteLn(StringOfChar('-', 64));
-    WriteLn('  Demo completado. Presione ENTER para salir...');
+    WriteLn('  Demo completed. Press ENTER to exit...');
     Readln;
   except
     on E: Exception do
     begin
       WriteLn;
       WriteLn('ERROR: ', E.ClassName, ': ', E.Message);
-      WriteLn('Presione ENTER para salir...');
+      WriteLn('Press ENTER to exit...');
       Readln;
     end;
   end;

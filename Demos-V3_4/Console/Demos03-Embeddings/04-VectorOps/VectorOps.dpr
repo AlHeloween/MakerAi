@@ -6,22 +6,22 @@
 // =============================================================================
 // MakerAI — 03-Embeddings / 04-VectorOps
 // =============================================================================
-// Demuestra las operaciones algebraicas con vectores de embeddings:
-// producto escalar, similitud coseno, distancia L2, suma, resta,
-// promediado, interpolacion y normalizacion, con la analogia clasica
-// rey - hombre + mujer aprox reina.
+// Demonstrates algebraic operations with embedding vectors:
+// dot product, cosine similarity, L2 distance, addition, subtraction,
+// averaging, interpolation and normalization, with the classic analogy
+// king - man + woman approx queen.
 //
-// Conceptos que cubre (seccion 21.3 a 21.6 del libro):
+// Concepts covered (sections 21.3 to 21.6 of the book):
 //   - DotProduct, CosineSimilarity, EuclideanDistance
-//   - Promediar embeddings (AverageEmbedding)
-//   - Sumar y restar (VectorAdd, VectorSubtract)
-//   - Analogia clasica: rey - hombre + mujer aprox reina
-//   - Interpolacion manual entre dos conceptos
-//   - Normalizacion (Normalize)
+//   - Averaging embeddings (AverageEmbedding)
+//   - Adding and subtracting (VectorAdd, VectorSubtract)
+//   - Classic analogy: king - man + woman approx queen
+//   - Manual interpolation between two concepts
+//   - Normalization (Normalize)
 //
-// Proveedor: Ollama local (sin costo, sin API key)
-//   Modelo principal: mxbai-embed-large:latest
-//   Alternativas:     snowflake-arctic-embed:latest
+// Provider: local Ollama (no cost, no API key)
+//   Main model: mxbai-embed-large:latest
+//   Alternatives:     snowflake-arctic-embed:latest
 //                     embeddinggemma:latest
 // =============================================================================
 
@@ -38,7 +38,7 @@ const
   URL    = 'http://localhost:11434/api/';
 
 // -----------------------------------------------------------------------------
-//  Helpers de presentacion
+//  Presentation helpers
 // -----------------------------------------------------------------------------
 procedure Titulo(const S: String);
 begin
@@ -50,11 +50,11 @@ end;
 
 function NivelSim(Sim: Double): String;
 begin
-  if Sim >= 0.90 then Result := 'muy alto'
-  else if Sim >= 0.70 then Result := 'alto'
-  else if Sim >= 0.50 then Result := 'medio'
-  else if Sim >= 0.30 then Result := 'bajo'
-  else Result := 'muy bajo';
+  if Sim >= 0.90 then Result := 'very high'
+  else if Sim >= 0.70 then Result := 'high'
+  else if Sim >= 0.50 then Result := 'medium'
+  else if Sim >= 0.30 then Result := 'low'
+  else Result := 'very low';
 end;
 
 var GDimsLog: Boolean = False;
@@ -64,21 +64,21 @@ begin
   Result := Conn.CreateEmbedding(Texto, 'user');
   if not GDimsLog and (Length(Result) > 0) then
   begin
-    Writeln(Format('  [modelo: %s  dims: %d]', [MODEL, Length(Result)]));
+    Writeln(Format('  [model: %s  dims: %d]', [MODEL, Length(Result)]));
     GDimsLog := True;
   end;
 end;
 
 // =============================================================================
-//  Seccion 1 — Producto escalar y metricas basicas (libro sec. 21.3-21.5)
+//  Section 1 — Dot product and basic metrics (book sec. 21.3-21.5)
 // =============================================================================
 procedure SeccionMetricas(Conn: TAiEmbeddingConnection);
 var
   VFr, VDr, VAv: TAiEmbeddingData;
 begin
-  Titulo('Sec. 21.3-21.5  Producto escalar, similitud coseno y distancia L2');
+  Titulo('Sec. 21.3-21.5  Dot product, cosine similarity and L2 distance');
 
-  Writeln('  Vectorizando: "medico", "doctor", "avion" ...');
+  Writeln('  Vectorizing: "medico", "doctor", "avion" ...');
   VFr := E(Conn, 'medico');
   VDr := E(Conn, 'doctor');
   VAv := E(Conn, 'avion');
@@ -95,12 +95,12 @@ begin
   Writeln(Format('  CosineSimilarity(medico, avion)  = %.4f  [%s]', [SimMA, NivelSim(SimMA)]));
   Writeln;
 
-  Writeln(Format('  EuclideanDistance(medico, doctor) = %.4f  (menor = mas cerca)', [TAiEmbeddingsCore.EuclideanDistance(VFr, VDr)]));
+  Writeln(Format('  EuclideanDistance(medico, doctor) = %.4f  (smaller = closer)', [TAiEmbeddingsCore.EuclideanDistance(VFr, VDr)]));
   Writeln(Format('  EuclideanDistance(medico, avion)  = %.4f', [TAiEmbeddingsCore.EuclideanDistance(VFr, VAv)]));
 end;
 
 // =============================================================================
-//  Seccion 2 — Promediar embeddings (libro sec. 21.6 op. 1)
+//  Section 2 — Averaging embeddings (book sec. 21.6 op. 1)
 // =============================================================================
 procedure SeccionPromediar(Conn: TAiEmbeddingConnection);
 var
@@ -109,10 +109,10 @@ var
   Promedio: TAiEmbeddingData;
   I: Integer;
 begin
-  Titulo('Sec. 21.6  Operacion 1 — Promediar (tema general de un grupo)');
+  Titulo('Sec. 21.6  Operation 1 — Averaging (general topic of a group)');
 
   Palabras := ['perro', 'gato', 'caballo', 'conejo', 'pajaro'];
-  Writeln(Format('  Promediando %d animales: %s', [Length(Palabras), String.Join(', ', Palabras)]));
+  Writeln(Format('  Averaging %d animals: %s', [Length(Palabras), String.Join(', ', Palabras)]));
 
   SetLength(Vectores, Length(Palabras));
   for I := 0 to High(Palabras) do
@@ -121,20 +121,20 @@ begin
   Promedio := TAiEmbeddingsCore.AverageEmbedding(Vectores);
 
   Writeln;
-  Writeln('  Similitud del vector-promedio con cada animal:');
+  Writeln('  Similarity of the average vector with each animal:');
   for I := 0 to High(Palabras) do
     Writeln(Format('    %s: %.4f', [Palabras[I], TAiEmbeddingsCore.CosineSimilarity(Promedio, Vectores[I])]));
 
   Writeln;
   var VAnimal := E(Conn, 'animal domestico');
   var VCoche  := E(Conn, 'automovil');
-  Writeln('  Comparacion con palabras externas:');
-  Writeln(Format('    "animal domestico": %.4f  (esperado: alto)', [TAiEmbeddingsCore.CosineSimilarity(Promedio, VAnimal)]));
-  Writeln(Format('    "automovil":        %.4f  (esperado: bajo)', [TAiEmbeddingsCore.CosineSimilarity(Promedio, VCoche)]));
+  Writeln('  Comparison with external words:');
+  Writeln(Format('    "animal domestico": %.4f  (expected: high)', [TAiEmbeddingsCore.CosineSimilarity(Promedio, VAnimal)]));
+  Writeln(Format('    "automovil":        %.4f  (expected: low)', [TAiEmbeddingsCore.CosineSimilarity(Promedio, VCoche)]));
 end;
 
 // =============================================================================
-//  Seccion 3 — Sumar embeddings: buscar A AND B (libro sec. 21.6 op. 2)
+//  Section 3 — Adding embeddings: search A AND B (book sec. 21.6 op. 2)
 // =============================================================================
 procedure SeccionSuma(Conn: TAiEmbeddingConnection);
 var
@@ -143,9 +143,9 @@ var
   Vectores: TAiEmbeddingList;
   I: Integer;
 begin
-  Titulo('Sec. 21.6  Operacion 2 — Sumar: gato + rojo (AND semantico)');
+  Titulo('Sec. 21.6  Operation 2 — Addition: cat + red (semantic AND)');
 
-  Writeln('  Buscamos documentos que hablen de AMBOS conceptos: gato AND rojo');
+  Writeln('  We look for documents that talk about BOTH concepts: cat AND red');
   Candidatos := ['gato rojo', 'gato azul', 'perro rojo', 'auto rojo', 'gato negro', 'flor roja'];
 
   VGato      := E(Conn, 'gato');
@@ -159,13 +159,13 @@ begin
   var Res := TAiEmbeddingsCore.FindTopK(VCombinado, Vectores, 3);
 
   Writeln;
-  Writeln('  Top 3 mas cercanos al vector (gato + rojo):');
+  Writeln('  Top 3 closest to the vector (cat + red):');
   for I := 0 to High(Res) do
     Writeln(Format('    [%d] %.4f — %s', [I+1, Res[I].Score, Candidatos[Res[I].Index]]));
 end;
 
 // =============================================================================
-//  Seccion 4 — Analogia: rey - hombre + mujer aprox reina (libro sec. 21.6 op. 3)
+//  Section 4 — Analogy: king - man + woman approx queen (book sec. 21.6 op. 3)
 // =============================================================================
 procedure SeccionAnalogia(Conn: TAiEmbeddingConnection);
 var
@@ -174,10 +174,10 @@ var
   Vectores: TAiEmbeddingList;
   I: Integer;
 begin
-  Titulo('Sec. 21.6  Operacion 3 — Analogia: rey - hombre + mujer aprox reina');
+  Titulo('Sec. 21.6  Operation 3 — Analogy: king - man + woman approx queen');
 
   Writeln('  Formula:  VAnalogy = VectorAdd(VectorSubtract(rey, hombre), mujer)');
-  Writeln('  Resultado esperado: reina (o terminos semanticamente equivalentes)');
+  Writeln('  Expected result: queen (or semantically equivalent terms)');
   Writeln;
 
   VRey    := E(Conn, 'rey');
@@ -197,16 +197,16 @@ begin
 
   var Res := TAiEmbeddingsCore.FindTopK(VAnalogy, Vectores, 5);
 
-  Writeln('  Top 5 candidatos mas cercanos al vector-analogia:');
+  Writeln('  Top 5 candidates closest to the analogy vector:');
   for I := 0 to High(Res) do
     Writeln(Format('    [%d] %.4f — %s', [I+1, Res[I].Score, Candidatos[Res[I].Index]]));
   Writeln;
-  Writeln('  Nota: el resultado varia segun el modelo. Modelos con mayor');
-  Writeln('  vocabulario semantico ubican "reina" en el top 1 o 2.');
+  Writeln('  Note: the result varies by model. Models with larger');
+  Writeln('  semantic vocabulary place "reina" in the top 1 or 2.');
 end;
 
 // =============================================================================
-//  Seccion 5 — Interpolacion (libro sec. 21.6 op. 4)
+//  Section 5 — Interpolation (book sec. 21.6 op. 4)
 // =============================================================================
 procedure SeccionInterpolacion(Conn: TAiEmbeddingConnection);
 var
@@ -214,7 +214,7 @@ var
   I, J: Integer;
   Alpha, Beta: Double;
 begin
-  Titulo('Sec. 21.6  Operacion 4 — Interpolacion: transicion gato a perro');
+  Titulo('Sec. 21.6  Operation 4 — Interpolation: transition from cat to dog');
 
   VGato  := E(Conn, 'gato');
   VPerro := E(Conn, 'perro');
@@ -238,26 +238,26 @@ begin
   end;
 
   Writeln;
-  Writeln('  alpha=0.0 -> 100% perro | alpha=1.0 -> 100% gato');
+  Writeln('  alpha=0.0 -> 100% dog | alpha=1.0 -> 100% cat');
 end;
 
 // =============================================================================
-//  Seccion 6 — Normalizacion (libro sec. 21.6 op. 5)
+//  Section 6 — Normalization (book sec. 21.6 op. 5)
 // =============================================================================
 procedure SeccionNormalizacion(Conn: TAiEmbeddingConnection);
 var
   V: TAiEmbeddingData;
 begin
-  Titulo('Sec. 21.6  Operacion 5 — Normalizacion');
+  Titulo('Sec. 21.6  Operation 5 — Normalization');
 
   V := E(Conn, 'inteligencia artificial');
-  Writeln(Format('  Magnitud antes de normalizar : %.6f', [TAiEmbeddingsCore.Magnitude(V)]));
+  Writeln(Format('  Magnitude before normalization : %.6f', [TAiEmbeddingsCore.Magnitude(V)]));
 
   TAiEmbeddingsCore.Normalize(V);
-  Writeln(Format('  Magnitud despues de normalizar: %.6f  (debe ser ~1.0)', [TAiEmbeddingsCore.Magnitude(V)]));
+  Writeln(Format('  Magnitude after normalization : %.6f  (should be ~1.0)', [TAiEmbeddingsCore.Magnitude(V)]));
   Writeln;
-  Writeln('  OpenAI devuelve vectores ya normalizados (magnitud ~1.0).');
-  Writeln('  Ollama y otros pueden tener magnitudes distintas.');
+  Writeln('  OpenAI returns already normalized vectors (magnitude ~1.0).');
+  Writeln('  Ollama and others may have different magnitudes.');
 end;
 
 // =============================================================================
@@ -267,8 +267,8 @@ procedure RunDemo;
 var
   Conn: TAiEmbeddingConnection;
 begin
-  Writeln('=== VectorOps — Operaciones algebraicas con embeddings ===');
-  Writeln('Driver: ', DRIVER, ' | Modelo: ', MODEL);
+  Writeln('=== VectorOps — Algebraic operations with embeddings ===');
+  Writeln('Driver: ', DRIVER, ' | Model: ', MODEL);
 
   Conn := TAiEmbeddingConnection.Create(nil);
   try
@@ -284,7 +284,7 @@ begin
     SeccionNormalizacion(Conn);
 
     Writeln;
-    Writeln('=== Demo completado ===');
+    Writeln('=== Demo completed ===');
   finally
     Conn.Free;
   end;
@@ -298,6 +298,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

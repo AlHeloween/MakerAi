@@ -6,21 +6,21 @@ program AutoMCP;
 // =============================================================================
 // MakerAI — 06-MCP / 06-AutoMCP
 // =============================================================================
-// AutoMCP: descarga e instala servidores MCP desde el registro PPM
-// (https://registry.cimamaker.com) automaticamente.
-// El LLM puede usar las herramientas instaladas sin configuracion manual.
+// AutoMCP: downloads and installs MCP servers from the PPM registry
+// (https://registry.cimamaker.com) automatically.
+// The LLM can use the installed tools without manual configuration.
 //
-// Conceptos que cubre:
-//   - FFunctions.AutoMCPConfig.Active: activa el sistema AutoMCP
-//   - FFunctions.AutoMCPConfig.RegistryUrl: URL del registro PPM
+// Concepts covered:
+//   - FFunctions.AutoMCPConfig.Active: activates the AutoMCP system
+//   - FFunctions.AutoMCPConfig.RegistryUrl: PPM registry URL
 //   - FFunctions.InstallMCPFromPPM(name, params, env, registryUrl)
-//   - FFunctions.GetAutoMCPSystemPrompt(): prompt de sistema para AutoMCP
-//   - TMCPClientItem.MCPClient.Initialize: iniciar el proceso del servidor
-//   - TMCPClientItem.MCPClient.Available: verificar disponibilidad
-//   - TAiChatConnection con herramientas MCP autoinstaladas
+//   - FFunctions.GetAutoMCPSystemPrompt(): system prompt for AutoMCP
+//   - TMCPClientItem.MCPClient.Initialize: start the server process
+//   - TMCPClientItem.MCPClient.Available: check availability
+//   - TAiChatConnection with auto-installed MCP tools
 //
-// Paquetes PPM instalados: mcp-calculator (si esta disponible en el registro)
-// Registro PPM: https://registry.cimamaker.com
+// PPM packages installed: mcp-calculator (if available in the registry)
+// PPM registry: https://registry.cimamaker.com
 // =============================================================================
 
 uses
@@ -134,44 +134,44 @@ var
   LItem: TMCPClientItem;
 begin
   Writeln(StringOfChar('=', 60));
-  Writeln('PASO 1 — Instalar ', MCP_PACKAGE, ' desde PPM');
+  Writeln('STEP 1 — Install ', MCP_PACKAGE, ' from PPM');
   Writeln(StringOfChar('-', 60));
 
   // Verificar si ya esta instalado
   LItem := FFunctions.MCPClients.GetClientByName(MCP_PACKAGE);
   if Assigned(LItem) then
   begin
-    Writeln('  Ya instalado: ', LItem.Params.Values['Command']);
+    Writeln('  Already installed: ', LItem.Params.Values['Command']);
     if not LItem.MCPClient.Initialized then
       LItem.MCPClient.Initialize;
-    Writeln('  Disponible: ', BoolToStr(LItem.MCPClient.Available, True));
+    Writeln('  Available: ', BoolToStr(LItem.MCPClient.Available, True));
     Exit;
   end;
 
   // Instalar desde PPM
-  Writeln('  Descargando e instalando ', MCP_PACKAGE, '...');
+  Writeln('  Downloading and installing ', MCP_PACKAGE, '...');
   try
     LItem := FFunctions.InstallMCPFromPPM(MCP_PACKAGE, '', '', REGISTRY);
     if not Assigned(LItem) then
     begin
-      Writeln('  AVISO: InstallMCPFromPPM retorno nil.');
-      Writeln('  Posibles causas: sin conectividad o paquete no disponible.');
+      Writeln('  WARNING: InstallMCPFromPPM returned nil.');
+      Writeln('  Possible causes: no connectivity or package not available.');
       Exit;
     end;
 
-    Writeln('  Instalado en: ', LItem.Params.Values['Command']);
+    Writeln('  Installed at: ', LItem.Params.Values['Command']);
 
     // Inicializar el proceso
     if not LItem.MCPClient.Initialized then
       LItem.MCPClient.Initialize;
 
     if LItem.MCPClient.Available then
-      Writeln('  Servidor MCP activo y disponible.')
+      Writeln('  MCP server active and available.')
     else
       Writeln('  AVISO: El servidor MCP no quedo disponible.');
   except
     on E: Exception do
-      Writeln('  ERROR al instalar: ', E.Message);
+      Writeln('  ERROR installing: ', E.Message);
   end;
 end;
 
@@ -184,13 +184,13 @@ var
   T        : TJSONValue;
 begin
   Writeln(StringOfChar('=', 60));
-  Writeln('PASO 2 — Listar herramientas de ', MCP_PACKAGE);
+  Writeln('STEP 2 — List tools of ', MCP_PACKAGE);
   Writeln(StringOfChar('-', 60));
 
   LItem := FFunctions.MCPClients.GetClientByName(MCP_PACKAGE);
   if not Assigned(LItem) or not LItem.MCPClient.Available then
   begin
-    Writeln('  Paquete no disponible, omitiendo.');
+    Writeln('  Package not available, skipping.');
     Exit;
   end;
 
@@ -198,7 +198,7 @@ begin
   try
     if Assigned(LToolsJ) and LToolsJ.TryGetValue<TJSONArray>('tools', LArr) then
     begin
-      Writeln(Format('  Herramientas encontradas: %d', [LArr.Count]));
+      Writeln(Format('  Tools found: %d', [LArr.Count]));
       for T in LArr do
         if T is TJSONObject then
         begin
@@ -217,7 +217,7 @@ var
   Pregunta, Resp: String;
 begin
   Writeln(StringOfChar('=', 60));
-  Writeln('PASO 3 — Chat LLM + herramientas AutoMCP');
+  Writeln('STEP 3 — LLM chat + AutoMCP tools');
   Writeln(StringOfChar('-', 60));
 
   // Actualizar el system prompt con las herramientas disponibles
@@ -248,8 +248,8 @@ end;
 procedure TAutoMCPDemo.Run;
 begin
   Writeln('=== AutoMCP Demo ===');
-  Writeln('Registro PPM: ', REGISTRY);
-  Writeln('Paquete a instalar: ', MCP_PACKAGE);
+  Writeln('PPM registry: ', REGISTRY);
+  Writeln('Package to install: ', MCP_PACKAGE);
   Writeln;
 
   InstalarPaquete;
@@ -275,6 +275,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

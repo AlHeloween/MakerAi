@@ -6,17 +6,17 @@ program AdvancedParams;
 // =============================================================================
 // MakerAI — 01-Chat / 05-AdvancedParams
 // =============================================================================
-// Exploración de todos los parámetros avanzados de TAiChatConnection.
+// Exploration of all advanced parameters of TAiChatConnection.
 //
 // Conceptos que cubre:
-//   - Temperature     : controla aleatoriedad (0=determinista, 1=creativo)
-//   - MaxTokens       : límite de tokens en la respuesta
-//   - SystemPrompt    : instrucciones de sistema (personalidad, restricciones)
-//   - ThinkingLevel   : razonamiento extendido (Claude, Gemini)
-//   - ResponseFormat  : texto libre vs. JSON estructurado
-//   - Stop sequences  : detener generación en un token específico
-//   - Timeout         : tiempo máximo de espera de respuesta
-//   - Model switching : cambiar modelo sin recrear la conexión
+//   - Temperature     : controls randomness (0=deterministic, 1=creative)
+//   - MaxTokens       : token limit in the response
+//   - SystemPrompt    : system instructions (personality, constraints)
+//   - ThinkingLevel   : extended reasoning (Claude, Gemini)
+//   - ResponseFormat  : free text vs. structured JSON
+//   - Stop sequences  : stop generation at a specific token
+//   - Timeout         : maximum response wait time
+//   - Model switching : change model without recreating the connection
 // =============================================================================
 
 uses
@@ -55,7 +55,7 @@ var
   T   : String;
   Res : String;
 begin
-  Section('Temperature (0.0 = determinista  /  1.5 = muy creativo)');
+  Section('Temperature (0.0 = deterministic  /  1.5 = very creative)');
 
   for T in TEMPS do
   begin
@@ -81,14 +81,14 @@ var
   Tokens : String;
   Res    : String;
 begin
-  Section('MaxTokens (controla la longitud máxima de la respuesta)');
+  Section('MaxTokens (controls the maximum response length)');
 
   for Tokens in ['50', '200', '1000'] do
   begin
     Conn.Messages.Clear;
     Conn.Params.Values['Max_Tokens'] := Tokens;
     Res := Conn.AddMessageAndRun(PROMPT, 'user', []);
-    Writeln(Format('  MaxTokens=%s → %d caracteres', [Tokens, Length(Res)]));
+    Writeln(Format('  MaxTokens=%s → %d characters', [Tokens, Length(Res)]));
     Writeln('  ', Copy(Res, 1, 120), '...');
     Writeln;
   end;
@@ -113,8 +113,8 @@ var
   Res : String;
   I   : Integer;
 begin
-  Section('SystemPrompt (cambia la personalidad sin cambiar la pregunta)');
-  Writeln('  Misma pregunta: "', PREGUNTA, '"');
+  Section('SystemPrompt (changes the personality without changing the question)');
+  Writeln('  Same question: "', PREGUNTA, '"');
   Writeln;
 
   I := 1;
@@ -124,7 +124,7 @@ begin
     Conn.SystemPrompt.Text := S;
     Res := Conn.AddMessageAndRun(PREGUNTA, 'user', []);
     Writeln(Format('  Persona %d: %s', [I, Copy(S, 1, 45), '...']));
-    Writeln('  Respuesta: ', Copy(Res, 1, 150));
+    Writeln('  Response: ', Copy(Res, 1, 150));
     Writeln;
     Inc(I);
   end;
@@ -141,7 +141,7 @@ var
   Res    : String;
   JObj   : TJSONObject;
 begin
-  Section('JSON Mode (respuesta estructurada como JSON)');
+  Section('JSON Mode (response structured as JSON)');
 
   Conn.Messages.Clear;
   Conn.SystemPrompt.Text :=
@@ -153,7 +153,7 @@ begin
   Conn.Params.Values['Max_Tokens']      := '256';
 
   Res := Conn.AddMessageAndRun('Dame info sobre México.', 'user', []);
-  Writeln('  Respuesta raw:');
+  Writeln('  Raw response:');
   Writeln('  ', Res);
 
   // Parsear y acceder a campos
@@ -163,15 +163,15 @@ begin
     try
       Writeln;
       Writeln('  Parsed:');
-      Writeln('    Nombre    : ', JObj.GetValue<String>('nombre', '?'));
+      Writeln('    Name    : ', JObj.GetValue<String>('nombre', '?'));
       Writeln('    Capital   : ', JObj.GetValue<String>('capital', '?'));
-      Writeln('    Población : ', JObj.GetValue<Double>('poblacion_millones', 0):0:1, 'M');
-      Writeln('    Idioma    : ', JObj.GetValue<String>('idioma_oficial', '?'));
+      Writeln('    Population : ', JObj.GetValue<Double>('poblacion_millones', 0):0:1, 'M');
+      Writeln('    Language    : ', JObj.GetValue<String>('idioma_oficial', '?'));
     finally
       JObj.Free;
     end;
   except
-    Writeln('  (No se pudo parsear el JSON)');
+    Writeln('  (Could not parse the JSON)');
   end;
 
   // Restaurar
@@ -186,9 +186,9 @@ procedure DemoThinkingLevel(Conn: TAiChatConnection);
 var
   Res: String;
 begin
-  Section('ThinkingLevel (razonamiento extendido — Claude)');
-  Writeln('  Nota: Requiere modelo que soporte Extended Thinking.');
-  Writeln('  En modelos que no lo soporten, se ignora el parámetro.');
+  Section('ThinkingLevel (extended reasoning — Claude)');
+  Writeln('  Note: Requires a model that supports Extended Thinking.');
+  Writeln('  In models that do not support it, the parameter is ignored.');
   Writeln;
 
   Conn.Messages.Clear;
@@ -250,6 +250,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

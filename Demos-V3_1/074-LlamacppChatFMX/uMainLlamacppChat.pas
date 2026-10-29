@@ -82,7 +82,7 @@ begin
   CbxStyle.Items.Add('Alpaca');
   CbxStyle.Items.Add('Custom');
 
-  // Sincronizar edits con propiedades del componente
+  // Sync edits with component properties
   EdtDLL.Text    := AiLlamacpp.DLLPath;
   EdtModelo.Text := AiLlamacpp.ModelPath;
   EdtGPU.Text    := IntToStr(AiLlamacpp.NGPULayers);
@@ -91,7 +91,7 @@ begin
   EdtTemp.Text   := FormatFloat('0.##', AiLlamacpp.Temperature);
   CbxStyle.ItemIndex := Ord(AiLlamacpp.PromptStyle);
 
-  // Asignar eventos
+  // Assign events
   AiLlamacpp.OnReceiveData    := AiLlamacppReceiveData;
   AiLlamacpp.OnReceiveDataEnd := AiLlamacppReceiveDataEnd;
   AiLlamacpp.OnError          := AiLlamacppError;
@@ -122,11 +122,11 @@ begin
   FGenerando           := False;
   FLineInicioRespuesta := -1;
   SetControlesActivos(True);
-  LblStatus.Text := 'Listo';
+  LblStatus.Text := 'Ready';
   EdtInput.SetFocus;
 end;
 
-// --- Eventos del componente AI ---
+// --- AI component events ---
 
 procedure TfrmLlamacppChat.AiLlamacppReceiveData(const Sender: TObject;
   aMsg: TAiChatMessage; aResponse: TJSONObject; aRole, aText: string);
@@ -137,7 +137,7 @@ begin
        (FLineInicioRespuesta < MemoChat.Lines.Count) then
     begin
       FRespuestaActual := FRespuestaActual + aText;
-      MemoChat.Lines[FLineInicioRespuesta] := '[IA]: ' + FRespuestaActual;
+      MemoChat.Lines[FLineInicioRespuesta] := '[AI]: ' + FRespuestaActual;
       MemoChat.GoToTextEnd;
     end;
   end);
@@ -160,13 +160,13 @@ begin
   begin
     if (FLineInicioRespuesta >= 0) and
        (FLineInicioRespuesta < MemoChat.Lines.Count) then
-      MemoChat.Lines[FLineInicioRespuesta] := '[IA]: ERROR - ' + ErrorMsg;
+      MemoChat.Lines[FLineInicioRespuesta] := '[AI]: ERROR - ' + ErrorMsg;
     LblStatus.Text := 'Error: ' + ErrorMsg;
     FinalizarGeneracion;
   end);
 end;
 
-// --- Configuracion ---
+// --- Configuration ---
 
 procedure TfrmLlamacppChat.BtnDLLClick(Sender: TObject);
 var
@@ -174,8 +174,8 @@ var
 begin
   Dlg := TOpenDialog.Create(Self);
   try
-    Dlg.Title  := 'Seleccionar makerai.gen.dll';
-    Dlg.Filter := 'DLL (*.dll)|*.dll|Todos|*.*';
+    Dlg.Title  := 'Select makerai.gen.dll';
+    Dlg.Filter := 'DLL (*.dll)|*.dll|All|*.*';
     if Dlg.Execute then
       EdtDLL.Text := Dlg.FileName;
   finally
@@ -189,8 +189,8 @@ var
 begin
   Dlg := TOpenDialog.Create(Self);
   try
-    Dlg.Title  := 'Seleccionar modelo GGUF';
-    Dlg.Filter := 'GGUF (*.gguf)|*.gguf|Todos|*.*';
+    Dlg.Title  := 'Select GGUF model';
+    Dlg.Filter := 'GGUF (*.gguf)|*.gguf|All|*.*';
     if Dlg.Execute then
       EdtModelo.Text := Dlg.FileName;
   finally
@@ -210,7 +210,7 @@ begin
   AiLlamacpp.SystemPrompt.Text := EdtSistema.Text;
   AiLlamacpp.NewChat;
   MemoChat.Lines.Clear;
-  LblStatus.Text := 'Nuevo chat iniciado.';
+  LblStatus.Text := 'New chat started.';
 end;
 
 procedure TfrmLlamacppChat.EdtInputKeyDown(Sender: TObject; var Key: Word;
@@ -231,7 +231,7 @@ begin
   if sPrompt = '' then Exit;
   if FGenerando then Exit;
 
-  // Aplicar configuracion al componente
+  // Apply configuration to component
   AiLlamacpp.DLLPath     := Trim(EdtDLL.Text);
   AiLlamacpp.ModelPath   := Trim(EdtModelo.Text);
   AiLlamacpp.NGPULayers  := StrToIntDef(EdtGPU.Text, 99);
@@ -244,17 +244,17 @@ begin
   FGenerando       := True;
   FRespuestaActual := '';
   SetControlesActivos(False);
-  LblStatus.Text := 'Generando...';
+  LblStatus.Text := 'Generating...';
 
-  // Mostrar turno del usuario
-  AppendMensaje('Voce', sPrompt);
+  // Show user turn
+  AppendMensaje('You', sPrompt);
 
-  // Preparar linea de respuesta IA
+  // Prepare AI response line
   MemoChat.Lines.Add('');
-  MemoChat.Lines.Add('[IA]: ');
+  MemoChat.Lines.Add('[AI]: ');
   FLineInicioRespuesta := MemoChat.Lines.Count - 1;
 
-  // Ejecutar en hilo de fondo
+  // Execute in background thread
   var LPrompt := sPrompt;
   TTask.Run(procedure
   begin
@@ -268,7 +268,7 @@ begin
         begin
           if (FLineInicioRespuesta >= 0) and
              (FLineInicioRespuesta < MemoChat.Lines.Count) then
-            MemoChat.Lines[FLineInicioRespuesta] := '[IA]: ERROR - ' + sErr;
+            MemoChat.Lines[FLineInicioRespuesta] := '[AI]: ERROR - ' + sErr;
           LblStatus.Text := 'Error: ' + sErr;
           FinalizarGeneracion;
         end);

@@ -8,8 +8,8 @@ uses
   uMakerAi.Chat;
 
 // ---------------------------------------------------------------------------
-// Test de memory leak con TAiOllamaChat + gemma3:1b
-// ReportMemoryLeaksOnShutdown es nativo en Delphi 10.3+ (FastMM integrado)
+// Memory leak test with TAiOllamaChat + gemma3:1b
+// ReportMemoryLeaksOnShutdown is native in Delphi 10.3+ (integrated FastMM)
 // ---------------------------------------------------------------------------
 
 procedure RunTest;
@@ -18,7 +18,7 @@ var
   Respuesta: string;
 begin
   Writeln('=== OllamaLeakTest ===');
-  Writeln('Modelo : gemma3:1b');
+  Writeln('Model : gemma3:1b');
   Writeln('URL    : http://localhost:11434/');
   Writeln;
 
@@ -29,21 +29,21 @@ begin
     Chat.Asynchronous := False;
     Chat.Max_tokens   := 256;
 
-    Write('Enviando pregunta... ');
+    Write('Sending question... ');
     Respuesta := Chat.AddMessageAndRun('¿Cuánto es 2 + 2? Responde en una sola frase.', 'user', []);
     Writeln('OK');
     Writeln;
-    Writeln('Respuesta del modelo:');
+    Writeln('Model response:');
     Writeln('  ', Respuesta);
     Writeln;
-    Writeln('Tokens usados:');
+    Writeln('Tokens used:');
     Writeln('  Prompt     : ', Chat.Prompt_tokens);
     Writeln('  Completion : ', Chat.Completion_tokens);
     Writeln('  Total      : ', Chat.Total_tokens);
   finally
     Chat.Free;
     Writeln;
-    Writeln('TAiOllamaChat liberado.');
+    Writeln('TAiOllamaChat released.');
   end;
 end;
 

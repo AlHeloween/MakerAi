@@ -5,8 +5,8 @@
 // =============================================================================
 // MakerAI - AutoAgents Demo 03: MultiTools
 // =============================================================================
-// Un TLLMNode con cuatro herramientas distintas. Demuestra llamadas paralelas
-// a herramientas, el blackboard y consultas que requieren varias herramientas.
+// A TLLMNode with four different tools. Demonstrates parallel calls
+// to tools, the blackboard, and queries requiring several tools.
 // =============================================================================
 
 uses
@@ -94,7 +94,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// TDateTimeTool — fecha y hora actual
+// TDateTimeTool — current date and time
 // -----------------------------------------------------------------------------
 type
   TDateTimeTool = class(TInterfacedObject, IAiTool)
@@ -137,7 +137,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// TTemperatureTool — conversor Celsius <-> Fahrenheit
+// TTemperatureTool — Celsius <-> Fahrenheit converter
 // -----------------------------------------------------------------------------
 type
   TTemperatureTool = class(TInterfacedObject, IAiTool)
@@ -203,7 +203,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// TWordCountTool — cuenta palabras en un texto
+// TWordCountTool — counts words in a text
 // -----------------------------------------------------------------------------
 type
   TWordCountTool = class(TInterfacedObject, IAiTool)
@@ -259,17 +259,17 @@ begin
 end;
 
 // =============================================================================
-// DEMO PRINCIPAL
+// MAIN DEMO
 // =============================================================================
 
 procedure RunQuery(Manager: TAIAgentManager; const AQuestion: String);
 begin
   Manager.Blackboard.Clear;
   Writeln(StringOfChar('-', 60));
-  Writeln('Pregunta: ', AQuestion);
+  Writeln('Question: ', AQuestion);
   Writeln;
   try
-    Writeln('Respuesta:', sLineBreak, Manager.Run(AQuestion));
+    Writeln('Answer:', sLineBreak, Manager.Run(AQuestion));
   except
     on E: Exception do
       Writeln('ERROR: ', E.Message);
@@ -291,7 +291,7 @@ var
   EndNode  : TAIAgentsNode;
 begin
   Writeln('=== Demo 03 — MultiTools ===');
-  Writeln('4 herramientas: calculadora, datetime, temperatura, conteo de palabras');
+  Writeln('4 tools: calculator, datetime, temperature, word count');
   Writeln;
 
   // Registrar todas las herramientas
@@ -299,7 +299,7 @@ begin
   TAiToolRegistry.Instance.Register(TDateTimeTool.Create,     'local', 'utility');
   TAiToolRegistry.Instance.Register(TTemperatureTool.Create,  'local', 'utility');
   TAiToolRegistry.Instance.Register(TWordCountTool.Create,    'local', 'text');
-  Writeln('Registry: ', TAiToolRegistry.Instance.Count, ' herramientas registradas.');
+  Writeln('Registry: ', TAiToolRegistry.Instance.Count, ' tools registered.');
   Writeln;
 
   Manager := TAIAgentManager.Create(nil);
@@ -363,6 +363,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Demo finalizado. Presiona Enter para salir.');
+  Writeln('Demo finished. Press Enter to exit.');
   Readln;
 end.

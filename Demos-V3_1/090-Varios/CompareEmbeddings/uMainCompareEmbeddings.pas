@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr�quez
-// Redes Sociales:
+// Name: Gustavo Enr�quez
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -83,7 +83,7 @@ begin
    Coseno := AiOllamaEmbeddings1.CosineSimilarity(Res1, Res2);
    Euclidian := AiOllamaEmbeddings1.EuclideanDistance(Res1, Res2);
 
-   ShowMessage('Coseno = '+Coseno.ToString + sLineBreak+'Euclidian = '+Euclidian.ToString);
+   ShowMessage('Cosine = '+Coseno.ToString + sLineBreak+'Euclidian = '+Euclidian.ToString);
 
 end;
 

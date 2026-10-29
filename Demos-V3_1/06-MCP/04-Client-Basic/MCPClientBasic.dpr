@@ -6,20 +6,20 @@ program MCPClientBasic;
 // =============================================================================
 // MakerAI — 06-MCP / 04-Client-Basic
 // =============================================================================
-// Cliente MCP basico que se conecta via StdIO al servidor compilado en
-// 01-Server-StdIO y ejecuta sus herramientas directamente.
+// Basic MCP client that connects via StdIO to the server compiled in
+// 01-Server-StdIO and runs its tools directly.
 //
-// Conceptos que cubre:
-//   - TMCPClientStdIo: cliente MCP para conexion via stdin/stdout
-//   - Client.Params.Values['Command']: ruta al ejecutable del servidor
-//   - Client.Initialize: handshake MCP (protocolo de inicio)
-//   - Client.ListTools: listar herramientas del servidor
-//   - Client.CallTool(name, args, mediaList): llamar una herramienta
-//   - Parsear la respuesta MCP (array "content" -> type:text -> text)
+// Concepts covered:
+//   - TMCPClientStdIo: MCP client for connection via stdin/stdout
+//   - Client.Params.Values['Command']: path to the server executable
+//   - Client.Initialize: MCP handshake (startup protocol)
+//   - Client.ListTools: list server tools
+//   - Client.CallTool(name, args, mediaList): call a tool
+//   - Parse the MCP response (array "content" -> type:text -> text)
 //
-// Prerequisito: compilar 01-Server-StdIO primero.
-//   El ejecutable debe estar en: Win64\Release\MCPServerStdIO.exe
-//   relativo al directorio padre del demo.
+// Prerequisite: compile 01-Server-StdIO first.
+//   The executable must be at: Win64\Release\MCPServerStdIO.exe
+//   relative to the demo's parent directory.
 // =============================================================================
 
 uses
@@ -51,7 +51,7 @@ begin
   end;
 end;
 
-// Extrae el texto de la respuesta MCP (content array -> type:text -> text)
+// Extracts the text from the MCP response (content array -> type:text -> text)
 function ExtraerTexto(AResult: TJSONObject): String;
 var
   ContentArr: TJSONArray;
@@ -77,7 +77,7 @@ begin
 end;
 
 // =============================================================================
-//  Prueba principal
+//  Main test
 // =============================================================================
 procedure RunTest;
 var
@@ -93,28 +93,28 @@ var
 begin
   Sep('Demo 04 - MCPClientBasic');
 
-  // Resolver la ruta del servidor relativa al ejecutable actual
+  // Resolve the server path relative to the current executable
   ServerPath := ExpandFileName(ExtractFilePath(ParamStr(0)) + SERVER_EXE_REL);
   Writeln('Servidor: ', ServerPath);
   Writeln;
 
   if not TFile.Exists(ServerPath) then
   begin
-    Writeln('AVISO: Servidor no encontrado en: ', ServerPath);
-    Writeln('Compila primero 01-Server-StdIO (Win64 Release).');
+    Writeln('WARNING: Server not found at: ', ServerPath);
+    Writeln('Compile 01-Server-StdIO (Win64 Release) first.');
     Writeln;
-    Writeln('Continuando demo con descripcion de pasos...');
+    Writeln('Continuing demo with step descriptions...');
     Writeln;
-    Sep('PASO 1: Inicializar conexion StdIO');
+    Sep('STEP 1: Initialize StdIO connection');
     Writeln('  Client.Params.Values[''Command''] := ServerPath');
     Writeln('  Client.Initialize  // handshake MCP');
-    Sep('PASO 2: Listar herramientas');
+    Sep('STEP 2: List tools');
     Writeln('  ToolsJson := Client.ListTools');
-    Sep('PASO 3: Llamar herramienta get_datetime');
+    Sep('STEP 3: Call tool get_datetime');
     Writeln('  Args := TJSONObject.Create;');
     Writeln('  Args.AddPair(''format'', ''readable'');');
     Writeln('  Resp := Client.CallTool(''get_datetime'', Args, MediaList)');
-    Sep('PASO 4: Llamar herramienta greet');
+    Sep('STEP 4: Call tool greet');
     Writeln('  Args.AddPair(''name'', ''MakerAI'');');
     Writeln('  Args.AddPair(''language'', ''es'');');
     Writeln('  Resp := Client.CallTool(''greet'', Args, MediaList)');
@@ -124,19 +124,19 @@ begin
   Client    := TMCPClientStdIo.Create(nil);
   MediaList := TObjectList<TAiMediaFile>.Create(True);
   try
-    // Paso 1: Configurar y conectar
+    // Step 1: Configure and connect
     Client.Params.Values['Command'] := ServerPath;
     Client.Params.Values['Timeout'] := '10000';
 
     Sep('PASO 1: Initialize (handshake MCP)');
     if not Client.Initialize then
     begin
-      Writeln('ERROR: No se pudo inicializar el servidor MCP.');
+      Writeln('ERROR: Could not initialize the MCP server.');
       Exit;
     end;
-    Writeln('Inicializacion OK.');
+    Writeln('Initialization OK.');
 
-    // Paso 2: Listar herramientas disponibles
+    // Step 2: List available tools
     Sep('PASO 2: ListTools');
     ToolsJson := Client.ListTools;
     try
@@ -144,7 +144,7 @@ begin
       begin
         if ToolsJson.TryGetValue<TJSONArray>('tools', ToolsArr) then
         begin
-          Writeln(Format('Herramientas encontradas: %d', [ToolsArr.Count]));
+          Writeln(Format('Tools found: %d', [ToolsArr.Count]));
           for Tool in ToolsArr do
             if Tool is TJSONObject then
             begin
@@ -158,7 +158,7 @@ begin
       ToolsJson.Free;
     end;
 
-    // Paso 3: Llamar get_datetime
+    // Step 3: Call get_datetime
     Sep('PASO 3: CallTool — get_datetime');
     Args := TJSONObject.Create;
     try
@@ -176,7 +176,7 @@ begin
       Args.Free;
     end;
 
-    // Paso 4: Llamar greet
+    // Step 4: Call greet
     Sep('PASO 4: CallTool — greet');
     Args := TJSONObject.Create;
     try
@@ -195,7 +195,7 @@ begin
       Args.Free;
     end;
 
-    Sep('Demo completado OK');
+    Sep('Demo completed OK');
 
   finally
     MediaList.Free;
@@ -211,6 +211,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

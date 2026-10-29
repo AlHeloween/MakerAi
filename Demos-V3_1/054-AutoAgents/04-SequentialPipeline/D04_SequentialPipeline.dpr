@@ -5,10 +5,10 @@ program D04_SequentialPipeline;
 // =============================================================================
 // MakerAI - AutoAgents Demo 04: SequentialPipeline
 // =============================================================================
-// Tres TLLMNodes encadenados linealmente:
+// Three TLLMNodes chained linearly:
 //   [Extractor] -> [Expander] -> [Reporter]
-// La salida de cada nodo es la entrada del siguiente.
-// Demuestra composicion de agentes especializados en pipeline.
+// The output of each node is the input of the next.
+// Demonstrates composition of specialized agents in a pipeline.
 // =============================================================================
 
 uses
@@ -34,7 +34,7 @@ var
   FinalOut : String;
 begin
   Writeln(StringOfChar('=', 60));
-  Writeln('Tema: ', ATopic);
+  Writeln('Topic: ', ATopic);
   Writeln(StringOfChar('=', 60));
 
   Manager := TAIAgentManager.Create(nil);
@@ -42,7 +42,7 @@ begin
     Manager.Asynchronous := False;
     Manager.TimeoutMs    := 120000;
 
-    // --- Nodo 1: Extractor de conceptos clave ---
+    // --- Node 1: Key concept extractor ---
     Extractor := TLLMNode.Create(Manager);
     Extractor.Name         := 'Extractor';
     Extractor.Graph        := Manager;
@@ -54,7 +54,7 @@ begin
       'You are a concept extractor. Given a topic, list exactly 5 key concepts ' +
       'related to it. Output ONLY the 5 concepts, one per line, no numbering, no extra text.';
 
-    // --- Nodo 2: Expander de conceptos ---
+    // --- Node 2: Concept expander ---
     Expander := TLLMNode.Create(Manager);
     Expander.Name         := 'Expander';
     Expander.Graph        := Manager;
@@ -67,7 +67,7 @@ begin
       'For each concept write a single clear sentence definition. ' +
       'Format: "ConceptName: definition sentence."';
 
-    // --- Nodo 3: Generador de reporte ---
+    // --- Node 3: Report generator ---
     Reporter := TLLMNode.Create(Manager);
     Reporter.Name         := 'Reporter';
     Reporter.Graph        := Manager;
@@ -80,7 +80,7 @@ begin
       'Write a cohesive 3-paragraph summary that integrates all concepts naturally. ' +
       'The summary should read as a mini-article about the original topic.';
 
-    // --- Enlazar nodos: Extractor -> Expander -> Reporter ---
+    // --- Link nodes: Extractor -> Expander -> Reporter ---
     Link1 := TAIAgentsLink.Create(Manager);
     Link1.Name  := 'Link_Extract_Expand';
     Link1.Graph := Manager;
@@ -93,25 +93,25 @@ begin
     Link2.NextA := Reporter;
     Expander.Next := Link2;
 
-    // --- Configurar grafo ---
+    // --- Configure graph ---
     Manager.StartNode := Extractor;
     Manager.EndNode   := Reporter;
     Manager.Compile;
 
-    // --- Ejecutar ---
+    // --- Run ---
     Writeln;
-    Writeln('[Extractor] Extrayendo conceptos...');
+    Writeln('[Extractor] Extracting concepts...');
     FinalOut := Manager.Run(ATopic);
 
     // Mostrar salidas intermedias via blackboard
     Writeln;
-    Writeln('--- Conceptos extraidos (Extractor.output) ---');
+    Writeln('--- Extracted concepts (Extractor.output) ---');
     Writeln(Manager.Blackboard.GetString('Extractor.output'));
     Writeln;
-    Writeln('--- Conceptos expandidos (Expander.output) ---');
+    Writeln('--- Expanded concepts (Expander.output) ---');
     Writeln(Manager.Blackboard.GetString('Expander.output'));
     Writeln;
-    Writeln('--- Reporte final (Reporter.output) ---');
+    Writeln('--- Final report (Reporter.output) ---');
     Writeln(FinalOut);
 
   finally
@@ -123,7 +123,7 @@ end;
 procedure RunDemo;
 begin
   Writeln('=== Demo 04 - SequentialPipeline ===');
-  Writeln('Patron: [Extractor] -> [Expander] -> [Reporter]');
+  Writeln('Pattern: [Extractor] -> [Expander] -> [Reporter]');
   Writeln;
 
   RunPipeline('Machine Learning');
@@ -137,6 +137,6 @@ begin
     on E: Exception do
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
-  Writeln('Demo finalizado. Presiona Enter para salir.');
+  Writeln('Demo finished. Press Enter to exit.');
   Readln;
 end.

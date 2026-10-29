@@ -4,21 +4,21 @@ program ConditionalRouter;
 {$R *.res}
 
 // =============================================================================
-// MakerAI — 08-Orquestacion / 03-ConditionalRouter
+// MakerAI — 08-Orchestration / 03-ConditionalRouter
 // =============================================================================
-// Un clasificador LLM determina la ruta en tiempo de ejecucion.
-// Un nodo router (plain node con OnExecute) lee la clasificacion del
-// blackboard y escribe la clave 'ruta'. Un link condicional despacha
-// al especialista correcto.
+// An LLM classifier determines the route at runtime.
+// A router node (plain node with OnExecute) reads the classification from
+// the blackboard and writes the key 'ruta'. A conditional link dispatches
+// to the correct specialist.
 //
 // Conceptos que cubre:
 //   - TAIAgentsLink.Mode := lmConditional
-//   - TAIAgentsLink.ConditionalKey: clave en el blackboard que decide la ruta
+//   - TAIAgentsLink.ConditionalKey: key in the blackboard that decides the route
 //   - TAIAgentsLink.AddConditionalTarget(key, node)
-//   - TAIAgentsNode.OnExecute: logica de enrutamiento sin LLM
-//   - TLLMNode.JoinMode := jmAny: el formatter solo recibe un especialista
+//   - TAIAgentsNode.OnExecute: routing logic without LLM
+//   - TLLMNode.JoinMode := jmAny: the formatter only receives one specialist
 //
-// Estructura:
+// Structure:
 //   [Clasificador] -> [Router (OnExecute)] --lmConditional-->
 //     math    -> [EspecialistaMath]     \
 //     science -> [EspecialistaCiencia]  --> [Formatter (jmAny)]
@@ -39,7 +39,7 @@ const
   API_KEY = '@CLAUDE_API_KEY';
 
 // =============================================================================
-//  TRouterLogic: logica de enrutamiento sin LLM
+//  TRouterLogic: routing logic without LLM
 // =============================================================================
 type
   TRouterLogic = class
@@ -55,7 +55,7 @@ var
 begin
   Clasificacion := Trim(LowerCase(Node.Graph.Blackboard.GetString('Clasificador.output')));
 
-  // Tomar la primera palabra de la clasificacion
+  // Take the first word of the classification
   Ruta := 'history'; // default
   PrimeraP := '';
   if Length(Clasificacion) > 0 then
@@ -76,9 +76,9 @@ begin
   end;
 
   Node.Graph.Blackboard.SetString('ruta', Ruta);
-  Writeln(Format('  [Router] Clasificacion="%s" -> Ruta="%s"', [Clasificacion, Ruta]));
+  Writeln(Format('  [Router] Classification="%s" -> Route="%s"', [Clasificacion, Ruta]));
 
-  // Pasar la pregunta original (no la clasificacion)
+  // Pass the original question (not the classification)
   if Assigned(BeforeNode) then
     Output := BeforeNode.Input
   else
@@ -86,7 +86,7 @@ begin
 end;
 
 // =============================================================================
-//  Helper: crear TLLMNode
+//  Helper: create TLLMNode
 // =============================================================================
 function MakeLLM(Manager: TAIAgentManager; const AName, APrompt: String;
   UseTools: Boolean = False): TLLMNode;
@@ -104,10 +104,10 @@ end;
 procedure RunQuery(Manager: TAIAgentManager; const APregunta: String);
 begin
   Writeln(StringOfChar('-', 60));
-  Writeln('Pregunta: ', APregunta);
+  Writeln('Question: ', APregunta);
   try
     Writeln;
-    Writeln('Respuesta: ', Manager.Run(APregunta));
+    Writeln('Answer: ', Manager.Run(APregunta));
   except
     on E: Exception do
       Writeln('ERROR: ', E.Message);
@@ -133,7 +133,7 @@ var
   Targets       : TDictionary<String, TAIAgentsNode>;
 begin
   Writeln('=== ConditionalRouter ===');
-  Writeln('Patron: Clasificador -> Router -> Especialista (math|science|history) -> Formatter');
+  Writeln('Pattern: Clasificador -> Router -> Especialista (math|science|history) -> Formatter');
   Writeln;
 
   RouterLogic := TRouterLogic.Create;
@@ -142,20 +142,20 @@ begin
     Manager.Asynchronous := False;
     Manager.TimeoutMs    := 90000;
 
-    // Clasificador: devuelve UNA palabra
+    // Classifier: returns ONE word
     Clasificador := MakeLLM(Manager, 'Clasificador',
       'Eres un CLASIFICADOR. Tu trabajo es devolver UNA sola palabra.' + #10 +
       'Dada una pregunta, responde SOLO con una de estas palabras exactas: math  science  history' + #10 +
       'Sin explicaciones. Sin puntuacion. Solo una palabra.');
     Clasificador.MaxTokens := 3;
 
-    // Router: nodo sin LLM que lee el blackboard
+    // Router: node without LLM that reads the blackboard
     RouterNode := TAIAgentsNode.Create(Manager);
     RouterNode.Name      := 'Router';
     RouterNode.Graph     := Manager;
     RouterNode.OnExecute := RouterLogic.Execute;
 
-    // Especialistas
+    // Specialists
     EspMath := MakeLLM(Manager, 'EspecialistaMath',
       'Eres un experto en matematicas. Responde la pregunta claramente ' +
       'mostrando todos los pasos si hay calculos. Responde en espanol.');
@@ -168,19 +168,19 @@ begin
       'Eres un experto en historia. Responde con contexto historico ' +
       'y datos clave. Responde en espanol.');
 
-    // Formatter final: jmAny (solo un especialista llega)
+    // Final formatter: jmAny (only one specialist arrives)
     Formatter := MakeLLM(Manager, 'Formatter',
       'Recibes la respuesta de un experto. ' +
       'Formatéala: agrega un titulo breve, luego la respuesta estructurada. ' +
       'Mantén la concision. Responde en espanol.');
     Formatter.JoinMode := jmAny;
 
-    // Enlace: Clasificador -> Router
+    // Link: Classifier -> Router
     ToRouter := TAIAgentsLink.Create(Manager);
     ToRouter.Name := 'ToRouter'; ToRouter.Graph := Manager; ToRouter.NextA := RouterNode;
     Clasificador.Next := ToRouter;
 
-    // Link condicional: Router -> (EspMath | EspCiencia | EspHistoria)
+    // Conditional link: Router -> (EspMath | EspCiencia | EspHistoria)
     CondLink := TAIAgentsLink.Create(Manager);
     CondLink.Name := 'CondLink'; CondLink.Graph := Manager;
     CondLink.Mode := lmConditional;
@@ -198,7 +198,7 @@ begin
     end;
     RouterNode.Next := CondLink;
 
-    // Joins: cada especialista -> Formatter
+    // Joins: each specialist -> Formatter
     JoinMath := TAIAgentsLink.Create(Manager);
     JoinMath.Name := 'JoinMath'; JoinMath.Graph := Manager; JoinMath.NextA := Formatter;
     EspMath.Next := JoinMath;
@@ -215,7 +215,7 @@ begin
     Manager.EndNode   := Formatter;
     Manager.Compile;
 
-    // Consultas de diferentes categorias
+    // Queries from different categories
     RunQuery(Manager, 'Cuanto es la raiz cuadrada de 225?');
     RunQuery(Manager, 'Como funciona la fotosintesis?');
     RunQuery(Manager, 'Cuando termino la Segunda Guerra Mundial?');
@@ -236,6 +236,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

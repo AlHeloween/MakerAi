@@ -3,32 +3,32 @@
 {$APPTYPE CONSOLE}
 
 // =============================================================================
-// MakerAI — Capítulo 33: Skills PPM para Claude Code y agentes Delphi
+// MakerAI — Chapter 33: PPM Skills for Claude Code and Delphi agents
 // =============================================================================
 //
-// Demuestra las tres operaciones clave con TAiPrompts + PPM:
+// Demonstrates the three key operations with TAiPrompts + PPM:
 //
-//   1. DescubrirSkills  — SearchPPM(type='skill') lista el catálogo del registry
-//   2. CargarSkill      — LoadSkillFromPPM descarga y parsea frontmatter YAML
-//   3. UsarSkillComoAgente — Strings.Text como SystemPrompt en TAiChatConnection
+//   1. DescubrirSkills  — SearchPPM(type='skill') lists the registry catalog
+//   2. CargarSkill      — LoadSkillFromPPM downloads and parses YAML frontmatter
+//   3. UsarSkillComoAgente — Strings.Text as SystemPrompt in TAiChatConnection
 //
 // TAiPrompts.LoadSkillFromPPM:
-//   - Llama GET /v1/packages/{name}/{version}/skill
-//   - Extrae del frontmatter YAML: model, allowed-tools
-//   - Almacena SOLO el cuerpo Markdown en Strings.Text (sin frontmatter)
-//   - Expone SkillModel y SkillAllowedTools en el item resultante
+//   - Calls GET /v1/packages/{name}/{version}/skill
+//   - Extracts from YAML frontmatter: model, allowed-tools
+//   - Stores ONLY the Markdown body in Strings.Text (without frontmatter)
+//   - Exposes SkillModel and SkillAllowedTools in the resulting item
 //
-// Requiere: GROQ_API_KEY (para la parte 3)
+// Requires: GROQ_API_KEY (for part 3)
 // =============================================================================
 
 uses
   System.SysUtils, System.JSON,
   uMakerAi.Prompts,         // TAiPrompts, TAiPromptItem
   uMakerAi.Chat.AiConnection,
-  uMakerAi.Chat.Groq;       // auto-registra driver 'Groq'
+  uMakerAi.Chat.Groq;       // auto-registers driver 'Groq'
 
 // -----------------------------------------------------------------------------
-//  1. Descubrir skills disponibles en el registry PPM
+//  1. Discover skills available in the PPM registry
 // -----------------------------------------------------------------------------
 procedure DescubrirSkills(Prompts: TAiPrompts);
 var
@@ -39,18 +39,18 @@ var
   Desc    : string;
   I       : Integer;
 begin
-  WriteLn('--- 1. Descubrir skills en el registry ---');
+  WriteLn('--- 1. Discover skills in the registry ---');
   Json := Prompts.SearchPPM('', 'skill', 1, 10);  // query vacío = todos los skills
   if not Assigned(Json) then
   begin
-    WriteLn('  No se pudo conectar al registry.');
+    WriteLn('  Could not connect to the registry.');
     WriteLn;
     Exit;
   end;
   try
     if Json.TryGetValue<TJSONArray>('packages', Pkgs) then
     begin
-      WriteLn('  Skills disponibles: ', Pkgs.Count);
+      WriteLn('  Available skills: ', Pkgs.Count);
       for I := 0 to Pkgs.Count - 1 do
       begin
         Pkg  := Pkgs.Items[I] as TJSONObject;
@@ -63,7 +63,7 @@ begin
       end;
     end
     else
-      WriteLn('  (sin resultados)');
+      WriteLn('  (no results)');
   finally
     Json.Free;
   end;
@@ -71,40 +71,40 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-//  2. Cargar skill: frontmatter parseado, cuerpo en Strings.Text
+//  2. Load skill: parsed frontmatter, body in Strings.Text
 // -----------------------------------------------------------------------------
 procedure CargarSkill(Prompts: TAiPrompts; const AName: string);
 var
   Skill: TAiPromptItem;
   N, I : Integer;
 begin
-  WriteLn('--- 2. Cargar skill: ', AName, ' ---');
+  WriteLn('--- 2. Load skill: ', AName, ' ---');
   Skill := Prompts.LoadSkillFromPPM(AName);
   if not Assigned(Skill) then
   begin
-    WriteLn('  No encontrado o sin conexión.');
+    WriteLn('  Not found or no connection.');
     WriteLn;
     Exit;
   end;
 
-  WriteLn('  Nombre     : ', Skill.Nombre);
-  WriteLn('  Descripción: ', Skill.Descripcion);
+  WriteLn('  Name       : ', Skill.Nombre);
+  WriteLn('  Description: ', Skill.Descripcion);
   WriteLn('  SkillModel : ', Skill.SkillModel);
   WriteLn('  AllowedTools: ', Skill.SkillAllowedTools);
-  WriteLn('  Líneas en cuerpo: ', Skill.Strings.Count);
+  WriteLn('  Lines in body: ', Skill.Strings.Count);
   WriteLn;
-  WriteLn('  Primeras 6 líneas del cuerpo (sin frontmatter):');
+  WriteLn('  First 6 lines of the body (without frontmatter):');
   N := Skill.Strings.Count;
   if N > 6 then N := 6;
   for I := 0 to N - 1 do
     WriteLn('  | ', Skill.Strings[I]);
   if Skill.Strings.Count > 6 then
-    WriteLn('  | [...', Skill.Strings.Count - 6, ' líneas más]');
+    WriteLn('  | [...', Skill.Strings.Count - 6, ' more lines]');
   WriteLn;
 end;
 
 // -----------------------------------------------------------------------------
-//  3. Usar el skill como system prompt en un agente MakerAI
+//  3. Use the skill as a system prompt in a MakerAI agent
 // -----------------------------------------------------------------------------
 procedure UsarSkillComoAgente(Prompts: TAiPrompts; const AName: string);
 var
@@ -113,7 +113,7 @@ var
   Modelo  : string;
   Revision: string;
 const
-  // Código Delphi deliberadamente inseguro (SQL injection) para que el skill lo detecte
+  // Deliberately insecure Delphi code (SQL injection) for the skill to detect
   CODIGO_SQL_INJECTION =
     'procedure TForm1.ButtonClick(Sender: TObject);' + sLineBreak +
     'var S: string;' + sLineBreak +
@@ -123,24 +123,24 @@ const
     '  Query1.Open;' + sLineBreak +
     'end;';
 begin
-  WriteLn('--- 3. Skill como system prompt del agente (Groq) ---');
+  WriteLn('--- 3. Skill as the agent''s system prompt (Groq) ---');
 
-  // El skill ya está cacheado en Prompts.Items; solo lo buscamos por nombre
+  // The skill is already cached in Prompts.Items; just look it up by name
   Skill := Prompts.LoadSkillFromPPM(AName);
   if (Skill = nil) or (Skill.Strings.Count = 0) then
   begin
-    WriteLn('  Skill no disponible, omitiendo.');
+    WriteLn('  Skill not available, skipping.');
     WriteLn;
     Exit;
   end;
 
-  // El skill recomienda claude-opus-4-6; usamos Groq como driver local de bajo costo.
-  // Para producción: driver='Claude', Model=Skill.SkillModel
+  // The skill recommends claude-opus-4-6; we use Groq as a low-cost local driver.
+  // For production: driver='Claude', Model=Skill.SkillModel
   Modelo := 'llama-3.3-70b-versatile';
 
   WriteLn('  Skill        : ', Skill.Nombre);
-  WriteLn('  Driver usado : Groq (', Modelo, ')');
-  WriteLn('  Skill sugiere: ', Skill.SkillModel);
+  WriteLn('  Driver used  : Groq (', Modelo, ')');
+  WriteLn('  Skill suggests: ', Skill.SkillModel);
   WriteLn('  Tools (info) : ', Skill.SkillAllowedTools);
   WriteLn;
 
@@ -152,10 +152,10 @@ begin
     AiConn.Params.Values['Asynchronous'] := 'False';
     AiConn.SystemPrompt.Text             := Skill.Strings.Text; // cuerpo sin frontmatter
 
-    WriteLn('  Código a revisar:');
+    WriteLn('  Code to review:');
     WriteLn('  ', StringReplace(CODIGO_SQL_INJECTION, sLineBreak, sLineBreak + '  ', []));
     WriteLn;
-    WriteLn('  Revisión del agente:');
+    WriteLn('  Agent review:');
     Revision := AiConn.AddMessageAndRun(
       'Revisa el siguiente código Delphi e identifica problemas:' +
       sLineBreak + CODIGO_SQL_INJECTION, 'user', []);
@@ -172,34 +172,34 @@ const
 
 begin
   WriteLn('==============================================');
-  WriteLn('  Cap. 33 — Skills PPM para Claude Code');
+  WriteLn('  Ch. 33 — PPM Skills for Claude Code');
   WriteLn('==============================================');
   WriteLn;
 
   var Prompts := TAiPrompts.Create(nil);
   try
-    // 1. Descubrir skills en el registry
+    // 1. Discover skills in the registry
     DescubrirSkills(Prompts);
 
-    // 2. Cargar skill con frontmatter parseado
+    // 2. Load skill with parsed frontmatter
     CargarSkill(Prompts, SKILL_NAME);
 
-    // 3. Usar skill como agente (requiere GROQ_API_KEY)
+    // 3. Use skill as an agent (requires GROQ_API_KEY)
     if GetEnvironmentVariable('GROQ_API_KEY') <> '' then
       UsarSkillComoAgente(Prompts, SKILL_NAME)
     else
-      WriteLn('SKIP parte 3: GROQ_API_KEY no configurada.');
+      WriteLn('SKIP part 3: GROQ_API_KEY not configured.');
 
   finally
     Prompts.Free;
   end;
 
   WriteLn;
-  WriteLn('Para activar en Claude Code:');
+  WriteLn('To enable in Claude Code:');
   WriteLn('  ppm install ', SKILL_NAME);
   WriteLn('  ppm skill install-claude');
-  WriteLn('  -> /', SKILL_NAME, ' disponible en Claude Code');
+  WriteLn('  -> /', SKILL_NAME, ' available in Claude Code');
   WriteLn;
-  WriteLn('Demo completado. Presiona Enter para salir.');
+  WriteLn('Demo completed. Press Enter to exit.');
   ReadLn;
 end.

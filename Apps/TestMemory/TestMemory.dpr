@@ -4,7 +4,7 @@ program TestMemory;
 
 uses
   System.SysUtils,
-  // Registro de FireDAC SQLite (factories y driver)
+  // FireDAC SQLite registration (factories and driver)
   FireDAC.Stan.Intf,
   FireDAC.Stan.Option,
   FireDAC.Stan.Error,

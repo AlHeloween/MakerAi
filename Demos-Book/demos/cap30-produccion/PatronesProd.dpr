@@ -3,20 +3,20 @@
 {$APPTYPE CONSOLE}
 
 // =============================================================================
-// MakerAI — Capítulo 30: Patrones para Aplicaciones Productivas
-// Demo: Sanitizer, reintentos, caché y logging integrados
+// MakerAI — Chapter 30: Patterns for Production Applications
+// Demo: Sanitizer, retries, cache, and integrated logging
 // =============================================================================
 //
-//   A) TSanitizerPipeline — detección de prompt injection (sin API key)
-//      Analiza 4 textos de usuario: limpio, injection directa,
-//      homoglifos Unicode y markers de sistema.
+//   A) TSanitizerPipeline — prompt injection detection (no API key)
+//      Analyzes 4 user texts: clean, direct injection,
+//      Unicode homoglyphs, and system markers.
 //
-//   B) Retry + Caché + Logger (requiere OPENAI_API_KEY)
-//      - EjecutarConReintento: backoff exponencial 1s → 2s → 4s
-//      - ConsultarConCache: THashSHA2 evita llamadas duplicadas
-//      - TAiLogger: logging estructurado JSON por cada llamada al LLM
+//   B) Retry + Cache + Logger (requires OPENAI_API_KEY)
+//      - EjecutarConReintento: exponential backoff 1s → 2s → 4s
+//      - ConsultarConCache: THashSHA2 avoids duplicate calls
+//      - TAiLogger: structured JSON logging for each LLM call
 //
-// Prerequisito: paquete MakerAI instalado.
+// Prerequisite: MakerAI package installed.
 // =============================================================================
 
 uses
@@ -30,14 +30,14 @@ uses
   uMakerAi.Chat.AiConnection,
   uMakerAi.Chat.Messages,
   uMakerAi.Chat.Sanitizer,
-  uMakerAi.Chat.OpenAi;   // auto-registra driver 'OpenAI' en el factory
+  uMakerAi.Chat.OpenAi;   // auto-registers driver 'OpenAI' in the factory
 
 const
   MODEL_OPENAI = 'gpt-4o-mini';
   LOG_FILE     = 'ai_calls.log';
 
 // =============================================================================
-//  Configuración de reintentos con backoff exponencial
+//  Retry configuration with exponential backoff
 // =============================================================================
 
 type
@@ -63,12 +63,12 @@ begin
     except
       on E: Exception do
       begin
-        // Errores no recuperables — no reintentar
+        // Non-recoverable errors — do not retry
         if (Pos('401', E.Message) > 0) or (Pos('404', E.Message) > 0) then
           raise;
         if Intento = Config.MaxIntentos then
           raise;
-        WriteLn(Format('  [Intento %d/%d] %s — reintentando en %dms...',
+        WriteLn(Format('  [Attempt %d/%d] %s — retrying in %dms...',
           [Intento, Config.MaxIntentos, E.Message, EsperaMs]));
         Sleep(EsperaMs);
         EsperaMs := Min(Round(EsperaMs * Config.BackoffFactor), Config.EsperaMaxMs);
@@ -78,7 +78,7 @@ begin
 end;
 
 // =============================================================================
-//  Logger estructurado — OnReceiveDataEnd es "of object", requiere método de clase
+//  Structured logger — OnReceiveDataEnd is "of object", requires a class method
 // =============================================================================
 
 type
@@ -148,15 +148,15 @@ begin
     R := TSanitizerPipeline.Run(Texto, 'formulario-web', 'usuario');
 
     if R.IsSuspicious then
-      Write('[SOSPECHOSO] ')
+      Write('[SUSPICIOUS] ')
     else
       Write('[OK]         ');
     WriteLn(Copy(Texto, 1, 58));
 
     if R.HomoglyphsReplaced > 0 then
-      WriteLn('             → Homoglifos normalizados: ', R.HomoglyphsReplaced);
+      WriteLn('             → Homoglyphs normalized: ', R.HomoglyphsReplaced);
     for var Match in R.SuspiciousMatches do
-      WriteLn('             → Patrón: ', Match.PatternName);
+      WriteLn('             → Pattern: ', Match.PatternName);
     WriteLn;
   end;
 end;
@@ -176,7 +176,7 @@ var
   Key   : string;
   Resp  : string;
 begin
-  WriteLn('B) Retry + Caché + Logger (OpenAI)');
+  WriteLn('B) Retry + Cache + Logger (OpenAI)');
   WriteLn(StringOfChar('─', 64));
   WriteLn;
 
@@ -202,7 +202,7 @@ begin
 
     // Primera llamada — caché miss
     WriteLn;
-    WriteLn('Primera llamada:');
+    WriteLn('First call:');
     if Cache.TryGetValue(Key, Resp) then
       WriteLn('[Cache HIT]  ', Resp)
     else
@@ -218,7 +218,7 @@ begin
     WriteLn;
     WriteLn('Segunda llamada (mismo prompt):');
     if Cache.TryGetValue(Key, Resp) then
-      WriteLn('[Cache HIT — sin llamada a API]')
+      WriteLn('[Cache HIT — no API call]')
     else
     begin
       Write('[Cache MISS] ');
@@ -227,10 +227,10 @@ begin
     end;
 
     WriteLn;
-    WriteLn(Format('Llamadas reales a API: %d (caché ahorró 1)', [Logger.CallCount]));
-    WriteLn('Log JSON guardado en: ', LOG_FILE);
+    WriteLn(Format('Actual API calls: %d (cache saved 1)', [Logger.CallCount]));
+    WriteLn('JSON log saved to: ', LOG_FILE);
 
-    // Evitar callback a Logger ya liberado
+    // Avoid callback to Logger already freed
     AiConn.OnReceiveDataEnd := nil;
   finally
     Cache.Free;
@@ -244,7 +244,7 @@ begin
   try
     WriteLn;
     WriteLn('════════════════════════════════════════════════════════════════');
-    WriteLn('  Cap. 30 — Patrones para Aplicaciones Productivas');
+    WriteLn('  Ch. 30 — Patterns for Production Applications');
     WriteLn('════════════════════════════════════════════════════════════════');
     WriteLn;
 
@@ -265,6 +265,6 @@ begin
   end;
 
   WriteLn;
-  WriteLn('Presiona Enter para salir...');
+  WriteLn('Press Enter to exit...');
   ReadLn;
 end.

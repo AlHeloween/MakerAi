@@ -39,13 +39,13 @@ uses
   uMakerAi.MCPServer.Core;
 
 const
-  // Credenciales de acceso al servidor MCP (quemadas segun especificacion)
+  // MCP server access credentials (hardcoded per specification)
   RAG_LOGIN = 'admin';
   RAG_PASSWORD = 'MakerAi2026*';
 
 type
 
-  // Configuracion leida del archivo .ini
+  // Configuration read from the .ini file
   TRagServerConfig = record
     Protocol: string;
     Port: Integer;
@@ -71,7 +71,7 @@ type
     Language: string;
   end;
 
-  // Handler del evento OnValidateRequest (requiere metodo de objeto)
+  // OnValidateRequest event handler (requires an object method)
   TRagAuth = class
   public
     procedure HandleValidateRequest(Sender: TObject; const AAuthHeader, ARemoteIP: string;
@@ -92,39 +92,39 @@ type
   public
     constructor Create;
 
-    [AiMCPSchemaDescription('Operacion: index_text, index_file, search, list_docs, delete_doc, clear, stats')]
+    [AiMCPSchemaDescription('Operation: index_text, index_file, search, list_docs, delete_doc, clear, stats')]
     property Operation: string read FOperation write FOperation;
 
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Texto a indexar directamente (para index_text)')]
+    [AiMCPSchemaDescription('Text to index directly (for index_text)')]
     property TextContent: string read FTextContent write FTextContent;
 
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Nombre del documento (para index_text, delete_doc; opcional en index_file)')]
+    [AiMCPSchemaDescription('Document name (for index_text, delete_doc; optional in index_file)')]
     property DocName: string read FDocName write FDocName;
 
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Ruta de un archivo de texto a indexar (para index_file)')]
+    [AiMCPSchemaDescription('Path of a text file to index (for index_file)')]
     property FilePath: string read FFilePath write FFilePath;
 
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Consulta de busqueda semantica (para search)')]
+    [AiMCPSchemaDescription('Semantic search query (for search)')]
     property Query: string read FQuery write FQuery;
 
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Numero maximo de resultados (para search, default: 5)')]
+    [AiMCPSchemaDescription('Maximum number of results (for search, default: 5)')]
     property TopK: Integer read FTopK write FTopK;
 
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Score minimo 0..1 como texto, ej. "0.3" (para search, default: "0")')]
+    [AiMCPSchemaDescription('Minimum score 0..1 as text, e.g. "0.3" (for search, default: "0")')]
     property MinScore: string read FMinScore write FMinScore;
 
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Tamano del chunk en caracteres (para index_*, default: 800)')]
+    [AiMCPSchemaDescription('Chunk size in characters (for index_*, default: 800)')]
     property ChunkSize: Integer read FChunkSize write FChunkSize;
 
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Porcentaje de solapamiento entre chunks 0-99 (para index_*, default: 15)')]
+    [AiMCPSchemaDescription('Overlap percentage between chunks 0-99 (for index_*, default: 15)')]
     property OverlapPct: Integer read FOverlapPct write FOverlapPct;
   end;
 
@@ -144,7 +144,7 @@ type
     constructor Create; override;
   end;
 
-// Lee el .ini de configuracion; si no existe lo crea con valores por defecto.
+// Reads the configuration .ini; creates it with default values if it does not exist.
 function LoadServerConfig(const AFileName: string): TRagServerConfig;
 
 // Inicializa el motor RAG compartido (no conecta a la DB; la conexion es perezosa).
@@ -192,7 +192,7 @@ begin
   Result := StrToFloatDef(Ini.ReadString(ASection, AKey, ''), ADefault, TFormatSettings.Invariant);
 end;
 
-// Valores que empiezan con '@' se leen del entorno (Password=@PGPASSWORD)
+// Values starting with '@' are read from the environment (Password=@PGPASSWORD)
 function ResolveEnv(const AValue: string): string;
 begin
   if AValue.StartsWith('@') then
@@ -206,7 +206,7 @@ begin
   Result := SameText(GCfg.DbDriver, 'postgres') or SameText(GCfg.DbDriver, 'pg');
 end;
 
-// libpq.dll de la instalacion de PostgreSQL mas nueva (como el demo 077)
+// libpq.dll from the newest PostgreSQL installation (like demo 077)
 function FindLibPq: string;
 var
   V: Integer;
@@ -249,7 +249,7 @@ begin
       Ini.WriteString('Search', 'BM25Weight', '0.3');
       Ini.WriteString('Search', 'Language', 'es');
       Ini.UpdateFile;
-      WriteLn(ErrOutput, '[rag] Archivo de configuracion creado con defaults: ' + AFileName);
+      WriteLn(ErrOutput, '[rag] Configuration file created with defaults: ' + AFileName);
     end;
 
     Result.Protocol := Ini.ReadString('Server', 'Protocol', 'sse');
@@ -290,7 +290,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Autenticacion (login/password quemados)
+// Authentication (hardcoded login/password)
 // ---------------------------------------------------------------------------
 
 procedure TRagAuth.HandleValidateRequest(Sender: TObject; const AAuthHeader, ARemoteIP: string;
@@ -322,11 +322,11 @@ begin
     AIsValid := True;
   end
   else
-    WriteLn(ErrOutput, '[rag] Acceso denegado desde ' + ARemoteIP);
+    WriteLn(ErrOutput, '[rag] Access denied from ' + ARemoteIP);
 end;
 
 // ---------------------------------------------------------------------------
-// Motor compartido
+// Shared engine
 // ---------------------------------------------------------------------------
 
 procedure InitRagEngine(const ACfg: TRagServerConfig);
@@ -396,7 +396,7 @@ begin
   GRag.SearchOptions.EmbeddingWeight := ACfg.EmbeddingWeight;
   GRag.SearchOptions.BM25Weight := ACfg.BM25Weight;
 
-  WriteLn(ErrOutput, Format('[rag] Driver=%s Server=%s DB=%s Tabla=%s Entidad=%s Modelo=%s Dim=%d',
+  WriteLn(ErrOutput, Format('[rag] Driver=%s Server=%s DB=%s Table=%s Entity=%s Model=%s Dim=%d',
     [IfThen(IsPostgres, 'postgres', 'mssql'), ACfg.DbServer, ACfg.DbDatabase, ACfg.TableName,
      ACfg.Entidad, ACfg.Model, ACfg.Dimensions]));
 end;
@@ -416,7 +416,7 @@ end;
 
 // Conexion y esquema perezosos: el servidor arranca aunque la DB no este
 // disponible; cada operacion reporta el error real si sigue caida.
-// Tabla real (el driver de PostgreSQL la pasa a minusculas)
+// Real table (the PostgreSQL driver lowercases it)
 function RagTable: string;
 begin
   if IsPostgres then
@@ -425,7 +425,7 @@ begin
     Result := GMSDriver.TableName;
 end;
 
-// Expresion SQL del metadato 'doc' (JSON en SQL Server, JSONB en PostgreSQL)
+// SQL expression for the 'doc' metadata (JSON in SQL Server, JSONB in PostgreSQL)
 function DocExpr: string;
 begin
   if IsPostgres then
@@ -434,7 +434,7 @@ begin
     Result := 'JSON_VALUE(properties, ''$.doc'')';
 end;
 
-// PostgreSQL trae busqueda de texto (tsvector) siempre
+// PostgreSQL always brings text search (tsvector)
 function FullTextAvailable: Boolean;
 begin
   Result := IsPostgres or GMSDriver.FullTextAvailable;
@@ -453,7 +453,7 @@ begin
       GMSDriver.CreateSchema(GCfg.TableName, GCfg.Dimensions);
     GSchemaReady := True;
     if not FullTextAvailable then
-      WriteLn(ErrOutput, '[rag] Aviso: Full-Text Search no disponible; busqueda solo vectorial');
+      WriteLn(ErrOutput, '[rag] Warning: Full-Text Search not available; vector-only search');
   end;
 end;
 
@@ -533,7 +533,7 @@ function TRagTool.IndexText(const AText, ADocName: string; AChunkSize, AOverlapP
 var
   Meta: TAiEmbeddingMetaData;
 begin
-  // Reindexar = borrar la version anterior del documento primero
+  // Reindex = delete the previous version of the document first
   RemoveDocChunks(ADocName);
 
   Meta := TAiEmbeddingMetaData.Create;
@@ -550,9 +550,9 @@ var
   Chunks: Integer;
 begin
   if P.TextContent.Trim = '' then
-    raise Exception.Create('"textContent" es requerido para index_text');
+    raise Exception.Create('"textContent" is required for index_text');
   if P.DocName.Trim = '' then
-    raise Exception.Create('"docName" es requerido para index_text');
+    raise Exception.Create('"docName" is required for index_text');
 
   Chunks := IndexText(P.TextContent, P.DocName.Trim, P.ChunkSize, P.OverlapPct);
 
@@ -568,16 +568,16 @@ var
   Chunks: Integer;
 begin
   if P.FilePath.Trim = '' then
-    raise Exception.Create('"filePath" es requerido para index_file');
+    raise Exception.Create('"filePath" is required for index_file');
   if not TFile.Exists(P.FilePath) then
-    raise Exception.CreateFmt('Archivo no encontrado: %s', [P.FilePath]);
+    raise Exception.CreateFmt('File not found: %s', [P.FilePath]);
 
   if P.DocName.Trim <> '' then
     DocName := P.DocName.Trim
   else
     DocName := TPath.GetFileName(P.FilePath);
 
-  // UTF-8 estricto con fallback a ANSI/deteccion por BOM
+  // Strict UTF-8 with fallback to ANSI/BOM detection
   try
     RawText := TFile.ReadAllText(P.FilePath, TEncoding.UTF8);
   except
@@ -602,7 +602,7 @@ var
   TopK, i: Integer;
 begin
   if P.Query.Trim = '' then
-    raise Exception.Create('"query" es requerido para search');
+    raise Exception.Create('"query" is required for search');
 
   TopK := P.TopK;
   if TopK < 1 then
@@ -678,7 +678,7 @@ var
   Removed: Integer;
 begin
   if P.DocName.Trim = '' then
-    raise Exception.Create('"docName" es requerido para delete_doc');
+    raise Exception.Create('"docName" is required for delete_doc');
 
   Removed := RemoveDocChunks(P.DocName.Trim);
 
@@ -777,7 +777,7 @@ begin
       else if Op = 'stats' then
         R := DoStats
       else
-        raise Exception.CreateFmt('Operacion desconocida "%s"', [Op]);
+        raise Exception.CreateFmt('Unknown operation "%s"', [Op]);
 
       Result := TAiMCPResponseBuilder.New.AddText(R.ToJSON).Build;
       R.Free;
@@ -802,7 +802,7 @@ end;
 
 procedure RegisterTools(AServer: TAiMCPServer);
 begin
-  // Autenticacion: login/password quemados via OnValidateRequest (Layer 2)
+  // Authentication: hardcoded login/password via OnValidateRequest (Layer 2)
   AServer.OnValidateRequest := GAuth.HandleValidateRequest;
 
   AServer.RegisterTool('rag_vector',
@@ -810,7 +810,7 @@ begin
     begin
       Result := TRagTool.Create;
     end);
-  WriteLn(ErrOutput, '[rag]   + rag_vector (autenticacion activa: usuario "' + RAG_LOGIN + '")');
+  WriteLn(ErrOutput, '[rag]   + rag_vector (authentication active: user "' + RAG_LOGIN + '")');
 end;
 
 end.

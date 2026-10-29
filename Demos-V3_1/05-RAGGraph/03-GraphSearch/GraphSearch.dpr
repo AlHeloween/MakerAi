@@ -6,15 +6,15 @@ program GraphSearch;
 // =============================================================================
 // MakerAI — 05-RAGGraph / 03-GraphSearch
 // =============================================================================
-// Demuestra las diferentes estrategias de búsqueda en un Knowledge Graph.
+// Demonstrates the different search strategies in a Knowledge Graph.
 //
 // Conceptos que cubre:
-//   - Search() → TArray<TAiRagGraphNode>: resultado como objetos
-//   - SearchText() → String: resultado formateado como texto
-//   - depth=0: solo nodos ancla; depth=1: nodos + vecinos directos
-//   - Diferencia entre búsqueda superficial y profunda
-//   - SaveToMakerAi / SaveToFile: persistencia del grafo
-//   - FindNodesByLabel: filtro por tipo de entidad
+//   - Search() → TArray<TAiRagGraphNode>: result as objects
+//   - SearchText() → String: result formatted as text
+//   - depth=0: anchor nodes only; depth=1: nodes + direct neighbors
+//   - Difference between shallow and deep search
+//   - SaveToMakerAi / SaveToFile: graph persistence
+//   - FindNodesByLabel: filter by entity type
 //   - CountNodesByLabel / CountEdgesByLabel
 // =============================================================================
 
@@ -35,7 +35,7 @@ const
   GRAPH_FILE  = 'historia_tech.mkai';
 
 // =============================================================================
-//  Grafo de historia de la tecnología
+//  Technology history graph
 // =============================================================================
 procedure ConstruirGrafoHistoria(RAG: TAiRagGraph);
 var
@@ -43,7 +43,7 @@ var
   // Décadas
   D70, D80, D90, D00, D10, D20: TAiRagGraphNode;
 begin
-  // Eventos históricos de tecnología
+  // Historical technology events
   N := RAG.AddNode('ev001', 'EVENTO', 'Creacion de UNIX');
   N.Text := 'UNIX fue creado en Bell Labs en 1969, base de Linux y macOS.';
   N.Properties['año'] := 1969;
@@ -84,7 +84,7 @@ begin
   N.Text := 'ChatGPT lanzado en noviembre 2022, popularizó los LLMs masivamente.';
   N.Properties['año'] := 2022;
 
-  // Décadas como nodos temporales
+  // Decades as temporal nodes
   D70 := RAG.AddNode('dec70', 'DECADA', '1970s');
   D70.Text := 'Década de 1970: inicio de la computación personal y UNIX.';
   D80 := RAG.AddNode('dec80', 'DECADA', '1980s');
@@ -98,7 +98,7 @@ begin
   D20 := RAG.AddNode('dec20', 'DECADA', '2020s');
   D20.Text := 'Década de 2020: IA generativa, LLMs y transformers.';
 
-  // Relaciones evento → décadas
+  // Relationships event → decades
   var Ev001 := RAG.FindNodeByID('ev001');
   var Ev002 := RAG.FindNodeByID('ev002');
   var Ev003 := RAG.FindNodeByID('ev003');
@@ -125,12 +125,12 @@ begin
 end;
 
 // =============================================================================
-//  Compara búsqueda superficial vs profunda
+//  Compares shallow vs deep search
 // =============================================================================
 procedure CompararProfundidad(RAG: TAiRagGraph; const Query: String);
 begin
   Writeln(StringOfChar('-', 60));
-  Writeln('Consulta: "', Query, '"');
+  Writeln('Query: "', Query, '"');
   Writeln;
 
   Writeln('  depth=0 (solo nodos ancla):');
@@ -167,43 +167,43 @@ begin
 
     ConstruirGrafoHistoria(RAG);
 
-    Writeln('Generando embeddings...');
+    Writeln('Generating embeddings...');
     RAG.RebuildIndexes;
     Writeln;
 
-    // Estadísticas por tipo
+    // Statistics by type
     Writeln(StringOfChar('=', 60));
-    Writeln('Estadisticas:');
-    Writeln('  Eventos: ',   RAG.CountNodesByLabel('EVENTO'));
-    Writeln('  Decadas: ',   RAG.CountNodesByLabel('DECADA'));
-    Writeln('  Relaciones: ', RAG.EdgeCount);
+    Writeln('Statistics:');
+    Writeln('  Events: ',   RAG.CountNodesByLabel('EVENTO'));
+    Writeln('  Decades: ',   RAG.CountNodesByLabel('DECADA'));
+    Writeln('  Relationships: ', RAG.EdgeCount);
     Writeln;
 
-    // Listar nodos por etiqueta
+    // List nodes by label
     Writeln(StringOfChar('-', 60));
-    Writeln('Todos los nodos DECADA:');
+    Writeln('All DECADA nodes:');
     Nodes := RAG.FindNodesByLabel('DECADA');
     for Node in Nodes do
       Writeln('  - ', Node.Name);
     Writeln;
 
-    // Búsqueda a diferentes profundidades
+    // Search at different depths
     CompararProfundidad(RAG, 'sistemas operativos de codigo abierto');
     CompararProfundidad(RAG, 'inteligencia artificial y chatbots');
 
-    // Búsqueda como array de nodos
+    // Search as node array
     Writeln(StringOfChar('-', 60));
-    Writeln('Resultado como array de nodos:');
+    Writeln('Result as node array:');
     var ResultNodes := RAG.Search('busqueda en internet', 0, 3, 0.2);
     for var N in ResultNodes do
       Writeln(Format('  [%s] %s', [N.NodeLabel, N.Name]));
     Writeln;
 
-    // Guardar grafo
+    // Save graph
     Writeln(StringOfChar('-', 60));
-    Writeln('Guardando grafo en: ', GRAPH_FILE);
+    Writeln('Saving graph to: ', GRAPH_FILE);
     RAG.SaveToMakerAi(GRAPH_FILE, True);
-    Writeln('Guardado OK.');
+    Writeln('Saved OK.');
     TFile.Delete(GRAPH_FILE);
 
   finally

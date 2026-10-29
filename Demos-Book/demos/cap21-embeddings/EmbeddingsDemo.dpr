@@ -4,16 +4,16 @@
 {$R *.res}
 
 // =============================================================================
-// MakerAI -- Capitulo 21: Embeddings: El lenguaje de los vectores
+// MakerAI -- Chapter 21: Embeddings: The language of vectors
 // =============================================================================
-// Tres demos usando TAiEmbeddingConnection + TAiEmbeddingsCore con Ollama local.
+// Three demos using TAiEmbeddingConnection + TAiEmbeddingsCore with local Ollama.
 //
-// Modelos requeridos (Ollama, sin internet, sin API key):
-//   snowflake-arctic-embed  -- 1024 dims, BERT  (modelo principal)
-//   mxbai-embed-large       -- 1024 dims, BERT  (comparacion Demo 3)
-//   embeddinggemma          --  768 dims, Gemma3 (comparacion Demo 3)
+// Required models (Ollama, no internet, no API key):
+//   snowflake-arctic-embed  -- 1024 dims, BERT  (main model)
+//   mxbai-embed-large       -- 1024 dims, BERT  (comparison Demo 3)
+//   embeddinggemma          --  768 dims, Gemma3 (comparison Demo 3)
 //
-// Para instalar modelos: ollama pull snowflake-arctic-embed
+// To install models: ollama pull snowflake-arctic-embed
 //                        ollama pull mxbai-embed-large
 //                        ollama pull embeddinggemma
 // =============================================================================
@@ -26,7 +26,7 @@ uses
   uMakerAi.Embeddings.Ollama;  // auto-registra el driver en initialization
 
 // ---------------------------------------------------------------------------
-//  Constantes de driver y modelos
+//  Driver and model constants
 // ---------------------------------------------------------------------------
 const
   OLLAMA_DRV    = 'Ollama';
@@ -35,7 +35,7 @@ const
   MDL_GEMMA     = 'embeddinggemma';
 
 // ---------------------------------------------------------------------------
-//  Corpus Demo 1: 6 frases, rango tematico amplio
+//  Demo 1 corpus: 6 sentences, broad thematic range
 // ---------------------------------------------------------------------------
 const
   D1_QUERY = 'Como se programa una aplicacion en Delphi';
@@ -50,7 +50,7 @@ const
   );
 
 // ---------------------------------------------------------------------------
-//  Corpus Demo 2: 15 frases, busqueda semantica con FindTopK
+//  Demo 2 corpus: 15 sentences, semantic search with FindTopK
 // ---------------------------------------------------------------------------
 const
   D2_QUERIES: array[0..2] of string = (
@@ -78,7 +78,7 @@ const
   );
 
 // ---------------------------------------------------------------------------
-//  Corpus Demo 3: 8 frases, comparacion de tres modelos
+//  Demo 3 corpus: 8 sentences, comparison of three models
 // ---------------------------------------------------------------------------
 const
   D3_QUERY = 'procesamiento de lenguaje natural con redes neuronales';
@@ -106,7 +106,7 @@ begin
   WriteLn(StringOfChar('-', 62));
 end;
 
-// Barra visual de score (0.0-1.0 -> 20 chars)
+// Visual score bar (0.0-1.0 -> 20 chars)
 function ScoreBar(Score: Double): string;
 var
   Filled: Integer;
@@ -117,7 +117,7 @@ begin
   Result := '[' + StringOfChar('#', Filled) + StringOfChar('.', 20 - Filled) + ']';
 end;
 
-// Genera embeddings para un array de frases y devuelve TAiEmbeddingList
+// Generates embeddings for an array of sentences and returns TAiEmbeddingList
 function BuildCorpus(Conn: TAiEmbeddingConnection;
   const Textos: array of string): TAiEmbeddingList;
 var
@@ -129,7 +129,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-//  Demo 1 -- Similitud coseno: frases cercanas y lejanas
+//  Demo 1 -- Cosine similarity: close and distant sentences
 // ---------------------------------------------------------------------------
 
 procedure Demo1_Similitud;
@@ -150,16 +150,16 @@ begin
     Conn.DriverName := OLLAMA_DRV;
     Conn.Model      := MDL_SNOWFLAKE;
 
-    Write('  Calculando embeddings...');
+    Write('  Calculating embeddings...');
     Corpus := BuildCorpus(Conn, D1_CORPUS);
     QVec   := Conn.CreateEmbedding(D1_QUERY, '');
-    WriteLn(Format(' OK  (%d dims x %d frases)', [Length(QVec), Length(D1_CORPUS)]));
+    WriteLn(Format(' OK  (%d dims x %d sentences)', [Length(QVec), Length(D1_CORPUS)]));
 
     // FindTopK con K = total: devuelve todo el corpus ordenado por similitud
     Results := TAiEmbeddingsCore.FindTopK(QVec, Corpus, Length(D1_CORPUS));
 
     WriteLn('');
-    WriteLn('  Ranking de similitud  (1.0 = identico, 0.0 = sin relacion):');
+    WriteLn('  Similarity ranking  (1.0 = identical, 0.0 = unrelated):');
     WriteLn('  ' + StringOfChar('=', 60));
     for I := 0 to High(Results) do
       WriteLn(Format('  #%d  %.3f  %s  %s',
@@ -169,9 +169,9 @@ begin
          Copy(D1_CORPUS[Results[I].Index], 1, 42)]));
     WriteLn('  ' + StringOfChar('=', 60));
     WriteLn('');
-    WriteLn('-> "Cafe" sube al #2 porque "programadores" es proximo a "programar".');
-    WriteLn('   Los embeddings capturan afinidad lexical, no solo temas completos.');
-    WriteLn('   Marte obtiene el score mas bajo: tema completamente ajeno al query.');
+    WriteLn('-> "Coffee" rises to #2 because "programmers" is close to "programming".');
+    WriteLn('   Embeddings capture lexical affinity, not just complete topics.');
+    WriteLn('   Mars gets the lowest score: a completely unrelated topic to the query.');
 
   finally
     Conn.Free;
@@ -179,7 +179,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-//  Demo 2 -- Busqueda semantica con FindTopK
+//  Demo 2 -- Semantic search with FindTopK
 // ---------------------------------------------------------------------------
 
 procedure Demo2_FindTopK;
@@ -192,7 +192,7 @@ var
 begin
   Separador('Demo 2 -- Busqueda semantica con FindTopK');
   WriteLn('  Modelo : ', MDL_SNOWFLAKE, '  [1024 dims]');
-  WriteLn('  Corpus : ', Length(D2_CORPUS), ' frases  |  Top-K = 3');
+  WriteLn('  Corpus : ', Length(D2_CORPUS), ' sentences  |  Top-K = 3');
   WriteLn('');
 
   Conn := TAiEmbeddingConnection.Create(nil);
@@ -201,9 +201,9 @@ begin
     Conn.Model      := MDL_SNOWFLAKE;
 
     // Pre-calcular embeddings del corpus (una sola vez, reutilizar en las 3 queries)
-    Write('  Indexando corpus...');
+    Write('  Indexing corpus...');
     Corpus := BuildCorpus(Conn, D2_CORPUS);
-    WriteLn(Format(' OK  (%d embeddings listos)', [Length(Corpus)]));
+    WriteLn(Format(' OK  (%d embeddings ready)', [Length(Corpus)]));
     WriteLn('');
 
     for Q := 0 to High(D2_QUERIES) do
@@ -220,9 +220,9 @@ begin
       WriteLn('');
     end;
 
-    WriteLn('-> Patron RAG: el corpus se indexa UNA vez, se consulta N veces.');
-    WriteLn('   En produccion los embeddings viven en una base de datos vectorial');
-    WriteLn('   (cap. 22-23). FindTopK es el motor de busqueda semantica.');
+    WriteLn('-> RAG pattern: the corpus is indexed ONCE, queried N times.');
+    WriteLn('   In production, embeddings live in a vector database');
+    WriteLn('   (ch. 22-23). FindTopK is the semantic search engine.');
 
   finally
     Conn.Free;
@@ -230,7 +230,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-//  Demo 3 -- Los tres modelos cara a cara
+//  Demo 3 -- The three models head to head
 // ---------------------------------------------------------------------------
 
 procedure Demo3_Comparacion;
@@ -246,7 +246,7 @@ var
 begin
   Separador('Demo 3 -- Los tres modelos cara a cara');
   WriteLn('  Query : "', D3_QUERY, '"');
-  WriteLn('  Corpus: ', Length(D3_CORPUS), ' frases  |  Top-3 por modelo');
+  WriteLn('  Corpus: ', Length(D3_CORPUS), ' sentences  |  Top-3 per model');
   WriteLn('');
 
   for M := 0 to High(MODELS) do
@@ -274,26 +274,26 @@ begin
     end;
   end;
 
-  WriteLn('-> Los tres modelos suelen coincidir en el ORDEN semantico,');
-  WriteLn('   pero sus scores absolutos difieren (BERT-1024 vs Gemma-768).');
-  WriteLn('   Para comparar entre modelos siempre usar ranking relativo,');
-  WriteLn('   nunca el valor de score como umbral absoluto.');
+  WriteLn('-> The three models usually agree on semantic ORDER,');
+  WriteLn('   but their absolute scores differ (BERT-1024 vs Gemma-768).');
+  WriteLn('   To compare across models, always use relative ranking,');
+  WriteLn('   never the score value as an absolute threshold.');
 end;
 
 // ---------------------------------------------------------------------------
-//  Programa principal
+//  Main program
 // ---------------------------------------------------------------------------
 
 begin
-  WriteLn('=== MakerAI -- Capitulo 21: Embeddings: El lenguaje de los vectores ===');
+  WriteLn('=== MakerAI -- Chapter 21: Embeddings: The language of vectors ===');
   WriteLn('');
-  WriteLn('  Modelos locales (Ollama, sin internet, sin API key):');
+  WriteLn('  Local models (Ollama, no internet, no API key):');
   WriteLn('    snowflake-arctic-embed   [1024 dims, BERT,   334M params]');
   WriteLn('    mxbai-embed-large        [1024 dims, BERT,   334M params]');
   WriteLn('    embeddinggemma           [ 768 dims, Gemma3, 308M params]');
   WriteLn('');
-  WriteLn('  Nota: cada CreateEmbedding hace una llamada HTTP a localhost:11434.');
-  WriteLn('  En produccion los embeddings del corpus se precalculan y persisten.');
+  WriteLn('  Note: each CreateEmbedding makes an HTTP call to localhost:11434.');
+  WriteLn('  In production, corpus embeddings are precomputed and persisted.');
 
   try
     Demo1_Similitud;
@@ -302,8 +302,8 @@ begin
 
     WriteLn('');
     WriteLn(StringOfChar('=', 62));
-    WriteLn('  Demos completados.');
-    WriteLn('  Ver cap21-embeddings.md para la documentacion completa.');
+    WriteLn('  Demos completed.');
+    WriteLn('  See cap21-embeddings.md for the complete documentation.');
     WriteLn(StringOfChar('=', 62));
 
   except
@@ -315,6 +315,6 @@ begin
   end;
 
   WriteLn('');
-  Write('Presiona Enter para salir...');
+  Write('Press Enter to exit...');
   ReadLn;
 end.

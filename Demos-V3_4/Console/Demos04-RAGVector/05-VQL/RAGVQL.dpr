@@ -6,16 +6,16 @@ program RAGVQL;
 // =============================================================================
 // MakerAI — 04-RAGVector / 05-VQL
 // =============================================================================
-// VQL (Vector Query Language) — consultas avanzadas sobre el vector store
-// usando una sintaxis tipo SQL adaptada a búsqueda vectorial.
+// VQL (Vector Query Language) — advanced queries on the vector store
+// using SQL-like syntax adapted to vector search.
 //
-// Conceptos que cubre:
-//   - TAiRAGVector.ExecuteVQL() para consultas VQL
+// Concepts covered:
+//   - TAiRAGVector.ExecuteVQL() for VQL queries
 //   - SELECT, SEARCH NEAR, WHERE, ORDER BY, LIMIT
-//   - Filtrado por metadatos con operadores
-//   - Combinación de búsqueda semántica + filtros estructurados
+//   - Metadata filtering with operators
+//   - Combination of semantic search + structured filters
 //
-// Sintaxis VQL básica:
+// Basic VQL syntax:
 //   SEARCH "<query>" NEAR <campo>
 //   WHERE metadata.<campo> = <valor>
 //   ORDER BY score DESC
@@ -36,7 +36,7 @@ const
   EMB_MODEL   = 'text-embedding-3-small';
   EMB_API_KEY = '@OPENAI_API_KEY';
 
-// Corpus con metadatos
+// Corpus with metadata
 type
   TDocMeta = record
     Text    : String;
@@ -65,7 +65,7 @@ var
   I   : Integer;
   Meta: TAiEmbeddingMetaData;
 begin
-  Writeln('Indexando corpus con metadatos...');
+  Writeln('Indexing corpus with metadata...');
   for I := 0 to High(CORPUS) do
   begin
     Meta := TAiEmbeddingMetaData.Create;
@@ -82,7 +82,7 @@ begin
   Writeln;
   RAG.BuildIndex;
   RAG.BuildLexicalIndex;
-  Writeln(Format('%d documentos indexados.', [RAG.Count]));
+  Writeln(Format('%d documents indexed.', [RAG.Count]));
   Writeln;
 end;
 
@@ -100,11 +100,11 @@ begin
   Writeln;
   try
     Resultado := RAG.ExecuteVQL(Query);
-    Writeln('Resultado:');
+    Writeln('Result:');
     Writeln(Resultado);
   except
     on E: Exception do
-      Writeln('Error en VQL: ', E.Message);
+      Writeln('Error in VQL: ', E.Message);
   end;
   Writeln;
 end;
@@ -134,7 +134,7 @@ begin
 
     IndexarCorpus(RAG);
 
-    // Consultas VQL progresivas
+    // Progressive VQL queries
     EjecutarVQL(RAG,
       'Busqueda semantica simple',
       'SEARCH "inteligencia artificial y redes neuronales" LIMIT 3');
@@ -165,6 +165,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

@@ -4,21 +4,21 @@
 {$R *.res}
 
 // =============================================================================
-// MakerAI -- Capitulo 26: Construyendo Agentes con TLLMNode
+// MakerAI -- Chapter 26: Building Agents with TLLMNode
 // =============================================================================
-// Dos escenarios de orquestacion con TAIAgentManager:
+// Two orchestration scenarios with TAIAgentManager:
 //
-// Escenario A -- Sin TLLMNode: pipeline manual con TAIAgentsNode + OnExecute.
-//   Cada nodo invoca TAiChatConnection directamente dentro del handler.
-//   Los handlers son metodos de clase porque OnExecute es "of object".
-//   Muestra que nodos pueden mezclar logica LLM y logica ordinaria.
+// Scenario A -- Without TLLMNode: manual pipeline with TAIAgentsNode + OnExecute.
+//   Each node invokes TAiChatConnection directly inside the handler.
+//   Handlers are class methods because OnExecute is "of object".
+//   Shows that nodes can mix LLM logic and ordinary logic.
 //
-// Escenario B -- Con TLLMNode: agente autonomo con herramientas IAiTool.
-//   TLLMNode maneja el loop ReAct (Razonar->Actuar->Observar) internamente.
-//   Las herramientas se implementan como TInterfacedObject + IAiTool.
-//   TAiToolRegistry es el catalogo central de herramientas.
+// Scenario B -- With TLLMNode: autonomous agent with IAiTool tools.
+//   TLLMNode handles the ReAct loop (Reason->Act->Observe) internally.
+//   Tools are implemented as TInterfacedObject + IAiTool.
+//   TAiToolRegistry is the central tool catalog.
 //
-// Driver: Claude (CLAUDE_API_KEY). Cambiar DRV/MDL/APIKEY para otro provider.
+// Driver: Claude (CLAUDE_API_KEY). Change DRV/MDL/APIKEY for another provider.
 // =============================================================================
 
 uses
@@ -39,7 +39,7 @@ const
   MDL    = 'claude-haiku-4-5-20251001';
   APIKEY = '@CLAUDE_API_KEY';
 
-// Texto de prueba para el pipeline editorial
+// Test text for the editorial pipeline
 const
   TEXTO_PRUEBA =
     'Los modelos de lenguaje grande estan transformando el desarrollo de ' +
@@ -61,17 +61,17 @@ begin
 end;
 
 // ===========================================================================
-//  ESCENARIO A -- Pipeline manual sin TLLMNode
+//  SCENARIO A -- Manual pipeline without TLLMNode
 // ===========================================================================
-//  Clase wrapper requerida porque TAIAgentsNodeOnExecute es "of object":
-//  los handlers deben ser metodos de una instancia de clase.
+//  Wrapper class required because TAIAgentsNodeOnExecute is "of object":
+//  handlers must be methods of a class instance.
 //
-//  Grafo: Analizar --> Resumir --> Formatear
-//    Nodo 1 (Analizar):  llama al LLM para detectar tema y tono
-//    Nodo 2 (Resumir):   llama al LLM para generar resumen ejecutivo
-//    Nodo 3 (Formatear): logica local -- no necesita LLM
+//  Graph: Analyze --> Summarize --> Format
+//    Node 1 (Analyze):  calls the LLM to detect topic and tone
+//    Node 2 (Summarize):   calls the LLM to generate an executive summary
+//    Node 3 (Format): local logic -- does not need LLM
 //
-//  TAIAgentManager.Asynchronous := False --> Manager.Run() bloquea.
+//  TAIAgentManager.Asynchronous := False --> Manager.Run() blocks.
 // ===========================================================================
 
 type
@@ -80,9 +80,9 @@ type
     FDriver : String;
     FModel  : String;
     FApiKey : String;
-    // Llamada LLM sincronica -- segura desde worker threads del manager
+    // Synchronous LLM call -- safe from manager worker threads
     function LlmCall(const AInput, ASystem: String): String;
-    // Handlers "of object" -- uno por nodo del pipeline
+    // Handlers "of object" -- one per pipeline node
     procedure OnAnalizar(Node, Before: TAIAgentsNode; Link: TAIAgentsLink;
       Input: String; var Output: String);
     procedure OnResumir(Node, Before: TAIAgentsNode; Link: TAIAgentsLink;
@@ -123,7 +123,7 @@ end;
 procedure TDemoA.OnAnalizar(Node, Before: TAIAgentsNode; Link: TAIAgentsLink;
   Input: String; var Output: String);
 begin
-  WriteLn('    [Analizar] identificando tema y tono...');
+  WriteLn('    [Analyze] identifying topic and tone...');
   Output := LlmCall(
     'Analiza el siguiente texto. Identifica en 3 lineas: ' +
     '1) Tema principal, 2) Tono (formal o informal), 3) Audiencia objetivo.' +
@@ -134,7 +134,7 @@ end;
 procedure TDemoA.OnResumir(Node, Before: TAIAgentsNode; Link: TAIAgentsLink;
   Input: String; var Output: String);
 begin
-  WriteLn('    [Resumir] generando resumen ejecutivo...');
+  WriteLn('    [Summarize] generating executive summary...');
   Output := LlmCall(
     'A partir del siguiente analisis editorial, escribe un resumen ejecutivo ' +
     'de exactamente 2 oraciones que capture la esencia del contenido.' +
@@ -145,7 +145,7 @@ end;
 procedure TDemoA.OnFormatear(Node, Before: TAIAgentsNode; Link: TAIAgentsLink;
   Input: String; var Output: String);
 begin
-  WriteLn('    [Formatear] aplicando estructura final (sin LLM)...');
+  WriteLn('    [Format] applying final structure (without LLM)...');
   // Este nodo usa logica local -- muestra que los nodos pueden mezclar LLM y codigo
   Output :=
     StringOfChar('=', 50) + sLineBreak +
@@ -178,16 +178,16 @@ begin
 end;
 
 // ===========================================================================
-//  ESCENARIO B -- Herramientas IAiTool para TLLMNode
+//  SCENARIO B -- IAiTool tools for TLLMNode
 // ===========================================================================
-//  Cada herramienta implementa IAiTool como TInterfacedObject.
-//  Contrato de memoria (definido en uMakerAi.Agents.IAiTool):
-//    GetSchema --> NO liberar; el TJSONObject es propiedad de la herramienta
-//    Execute   --> el llamador libera el TJSONObject retornado
+//  Each tool implements IAiTool as TInterfacedObject.
+//  Memory contract (defined in uMakerAi.Agents.IAiTool):
+//    GetSchema --> DO NOT free; the TJSONObject is owned by the tool
+//    Execute   --> the caller frees the returned TJSONObject
 // ===========================================================================
 
 type
-  // Herramienta 1: Fecha y hora del sistema (sin parametros)
+  // Tool 1: System date and time (no parameters)
   TFechaHoraTool = class(TInterfacedObject, IAiTool)
   private
     FSchema: TJSONObject;
@@ -201,7 +201,7 @@ type
     function IsAvailable: Boolean;
   end;
 
-  // Herramienta 2: Calculadora aritmetica (a, b, operacion)
+  // Tool 2: Arithmetic calculator (a, b, operation)
   TCalculadoraTool = class(TInterfacedObject, IAiTool)
   private
     FSchema: TJSONObject;
@@ -383,9 +383,9 @@ var
   Demo: TDemoA;
   Resultado: String;
 begin
-  Separador('Demo A -- Pipeline editorial sin TLLMNode (3 nodos en secuencia)');
-  WriteLn('  Texto: "', Copy(TEXTO_PRUEBA, 1, 58), '..."');
-  WriteLn('  Grafo: Analizar --> Resumir --> Formatear');
+  Separador('Demo A -- Editorial pipeline without TLLMNode (3 nodes in sequence)');
+  WriteLn('  Text: "', Copy(TEXTO_PRUEBA, 1, 58), '..."');
+  WriteLn('  Graph: Analyze --> Summarize --> Format');
   WriteLn;
 
   Demo := TDemoA.Create(DRV, MDL, APIKEY);
@@ -409,21 +409,21 @@ var
   P, R    : String;
   Preguntas: array[0..1] of string;
 begin
-  Separador('Demo B -- TLLMNode con herramientas IAiTool (agente autonomo)');
+  Separador('Demo B -- TLLMNode with IAiTool tools (autonomous agent)');
 
-  // 1. Registrar herramientas en el singleton global
+  // 1. Register tools in the global singleton
   TAiToolRegistry.Instance.Register(TFechaHoraTool.Create,  'local');
   TAiToolRegistry.Instance.Register(TCalculadoraTool.Create, 'local');
-  WriteLn(Format('  Herramientas en registry: %d', [TAiToolRegistry.Instance.Count]));
+  WriteLn(Format('  Tools in registry: %d', [TAiToolRegistry.Instance.Count]));
   WriteLn;
 
   Manager := TAIAgentManager.Create(nil);
   try
     Manager.Asynchronous := False;
 
-    // 2. Crear TLLMNode como componente owned por el manager.
-    //    Al usar Manager como owner, el nodo se auto-registra en la lista
-    //    de componentes via el mecanismo de Notification de TComponent.
+    // 2. Create TLLMNode as a component owned by the manager.
+    //    When using Manager as owner, the node auto-registers in the list
+    //    of components via TComponent's Notification mechanism.
     Node := TLLMNode.Create(Manager);
     Node.Name         := 'Agente';
     Node.Graph        := Manager;    // necesario para Blackboard y link traversal
@@ -442,15 +442,15 @@ begin
       .SetFinishPoint('Agente')
       .Compile;
 
-    // 3. Consultas que requieren el uso de herramientas
+    // 3. Queries that require tool use
     Preguntas[0] := 'Cual es la fecha y hora actual del sistema?';
     Preguntas[1] := 'Cuanto es 1247 multiplicado por 38? Y ese resultado dividido entre 7?';
 
     for P in Preguntas do
     begin
-      WriteLn('  Pregunta: ', P);
+      WriteLn('  Question: ', P);
       R := Manager.Run(P);
-      WriteLn('  Respuesta: ', R);
+      WriteLn('  Answer: ', R);
       WriteLn;
     end;
 
@@ -465,13 +465,13 @@ end;
 // ---------------------------------------------------------------------------
 
 begin
-  WriteLn('=== MakerAI -- Capitulo 26: Construyendo Agentes con TLLMNode ===');
+  WriteLn('=== MakerAI -- Chapter 26: Building Agents with TLLMNode ===');
   WriteLn;
-  WriteLn('  Demo A: TAIAgentsNode + OnExecute manual (code-first, sin TLLMNode)');
-  WriteLn('  Demo B: TLLMNode + IAiTool (component-first, agente autonomo)');
+  WriteLn('  Demo A: TAIAgentsNode + manual OnExecute (code-first, without TLLMNode)');
+  WriteLn('  Demo B: TLLMNode + IAiTool (component-first, autonomous agent)');
   WriteLn;
-  WriteLn('  Driver: ', DRV, '  Modelo: ', MDL);
-  WriteLn('  API Key: ', APIKEY, '  (variable de entorno CLAUDE_API_KEY)');
+  WriteLn('  Driver: ', DRV, '  Model: ', MDL);
+  WriteLn('  API Key: ', APIKEY, '  (CLAUDE_API_KEY environment variable)');
 
   try
     DemoA;

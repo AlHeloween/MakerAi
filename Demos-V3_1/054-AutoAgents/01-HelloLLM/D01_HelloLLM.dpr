@@ -5,15 +5,15 @@
 // =============================================================================
 // MakerAI - AutoAgents Demo 01: HelloLLM
 // =============================================================================
-// Grafo minimo de 3 nodos: StartNode -> TLLMNode -> EndNode.
-// Demuestra la estructura basica de un grafo de agentes con un nodo LLM
-// central sin herramientas.
+// Minimal graph of 3 nodes: StartNode -> TLLMNode -> EndNode.
+// Demonstrates the basic structure of an agent graph with an LLM node
+// central without tools.
 //
-// Estructura:
+// Structure:
 //   [Start] --(lmFanout)--> [LLMNode] --(lmFanout)--> [End]
 //
-// Start y End son nodos pasantes (sin OnExecute): propagan Input -> Output.
-// LLMNode contiene el loop ReAct con el proveedor LLM configurado.
+// Start and End are pass-through nodes (without OnExecute): they propagate Input -> Output.
+// LLMNode contains the ReAct loop with the configured LLM provider.
 // =============================================================================
 
 uses
@@ -52,12 +52,12 @@ begin
     Manager.Asynchronous := False;
     Manager.TimeoutMs    := 30000;
 
-    // Nodo de entrada: pasante (sin OnExecute propaga Input -> Output)
+    // Entry node: pass-through (without OnExecute propagates Input -> Output)
     StartNode       := TAIAgentsNode.Create(Manager);
     StartNode.Name  := 'Start';
     StartNode.Graph := Manager;
 
-    // Nodo LLM central: ejecuta el loop ReAct con el proveedor configurado
+    // Central LLM node: executes the ReAct loop with the configured provider
     LLMNode              := TLLMNode.Create(Manager);
     LLMNode.Name         := 'LLMNode';
     LLMNode.Graph        := Manager;
@@ -68,12 +68,12 @@ begin
     LLMNode.SystemPrompt :=
       'Eres un asistente conciso. Responde siempre en una sola frase corta y directa.';
 
-    // Nodo de salida: pasante (recibe Output del LLMNode)
+    // Exit node: pass-through (receives Output from LLMNode)
     EndNode       := TAIAgentsNode.Create(Manager);
     EndNode.Name  := 'End';
     EndNode.Graph := Manager;
 
-    // Conectar: Start -> LLMNode -> End
+    // Connect: Start -> LLMNode -> End
     Manager.AddEdge('Start', 'LLMNode');
     Manager.AddEdge('LLMNode', 'End');
 
@@ -81,17 +81,17 @@ begin
     Manager.EndNode   := EndNode;
     Manager.Compile;
 
-    // Ejecutar varias preguntas independientes
+    // Run several independent questions
     for I := 0 to High(Questions) do
     begin
-      // Limpiar estado del blackboard entre preguntas (libera AskMsg/ResMsg previos
-      // y permite que Run cree un AskMsg fresco desde el nuevo prompt)
+      // Clear blackboard state between questions (releases previous AskMsg/ResMsg
+      // and allows Run to create a fresh AskMsg from the new prompt)
       Manager.Blackboard.Clear;
 
       Writeln(StringOfChar('-', 60));
-      Writeln('Pregunta : ', Questions[I]);
+      Writeln('Question : ', Questions[I]);
       try
-        Writeln('Respuesta: ', Manager.Run(Questions[I]));
+        Writeln('Answer: ', Manager.Run(Questions[I]));
       except
         on E: Exception do
           Writeln('ERROR: ', E.Message);
@@ -112,6 +112,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Demo finalizado. Presiona Enter para salir.');
+  Writeln('Demo finished. Press Enter to exit.');
   Readln;
 end.

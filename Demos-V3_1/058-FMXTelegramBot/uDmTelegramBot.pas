@@ -60,7 +60,7 @@ uses
 type
   TTelegramLogEvent = procedure(const ADirection, AText: string) of object;
 
-  // Configuracion de un proveedor en una categoria
+  // Configuration of a provider in a category
   TProviderConfig = record
     Driver : string;  // 'Claude', 'OpenAI', 'Gemini', 'Ollama', 'ElevenLabs', etc.
     Model  : string;  // modelo especifico del proveedor
@@ -71,13 +71,13 @@ type
     procedure Clear;
   end;
 
-  // Par primario + fallback para cada categoria
+  // Primary + fallback pair for each category
   TCategoryConfig = record
     Primary  : TProviderConfig;
     Fallback : TProviderConfig;
   end;
 
-  // Config completa de proveedores por categoria
+  // Full provider configuration by category
   TBotProviders = record
     LLM       : TCategoryConfig;
     TTS       : TCategoryConfig;
@@ -91,22 +91,22 @@ type
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
   private
-    // ── Fase 1: Multi-usuario ──────────────────────────────────────────────
+    // ── Phase 1: Multi-user ──────────────────────────────────────────────
     FChats    : TObjectDictionary<Int64, TAiChatConnection>;
     FFunctions: TAiFunctions;
     FCSChats  : TCriticalSection;
 
-    // ── Fase 1: Polling ───────────────────────────────────────────────────
+    // ── Phase 1: Polling ───────────────────────────────────────────────────
     FToken   : string;
     FOffset  : Int64;
     FPolling : Boolean;
     FThread  : TThread;
     FOnLog   : TTelegramLogEvent;
 
-    // ── Fase 2: Memory ────────────────────────────────────────────────────
+    // ── Phase 2: Memory ────────────────────────────────────────────────────
     FMemory : TBotMemory;
 
-    // ── Fase 2: chat_id activo (para progress msgs del pipeline) ──────────
+    // ── Phase 2: active chat_id (for pipeline progress msgs) ──────────
     FCurrentChatId: Int64;
 
     // ── Fase 3: Permisos ──────────────────────────────────────────────────
@@ -117,7 +117,7 @@ type
     FConfigLock   : TCriticalSection;
     FLastToken    : string;
 
-    // ── Fase 3: Stats ─────────────────────────────────────────────────────
+    // ── Phase 3: Stats ─────────────────────────────────────────────────────
     FTotalMessages : Integer;
     FTotalToolCalls: Integer;
     FBotStartTime  : TDateTime;
@@ -126,7 +126,7 @@ type
     FVoiceEnabled : Boolean;  // responde con voz cuando el input es voz
     FMCPToolsURL  : string;   // URL MCPService (vacio = TAiOpenAiAudio directo)
 
-    // ── Proveedores configurables por categoria ───────────────────────────
+    // ── Configurable providers by category ───────────────────────────
     FProviders  : TBotProviders;
 
     // ── PPM auto-install ──────────────────────────────────────────────────
@@ -147,21 +147,21 @@ type
                 FunctionName: String; ToolCall: TAiToolsFunction; var Handled: Boolean);
     procedure OnChatError(Sender: TObject; const ErrorMsg: string; E: Exception; const AResponse: IHTTPResponse);
 
-    // ── Fase 1: System tools ──────────────────────────────────────────────
+    // ── Phase 1: System tools ──────────────────────────────────────────────
     function  ToolShellExec(const Args: TJSONObject): string;
     function  ToolFileRead (const Args: TJSONObject): string;
     function  ToolFileWrite(const Args: TJSONObject): string;
     function  ToolFileList (const Args: TJSONObject): string;
     function  RunShell(const ACmd: string; var AOutput: string): Integer;
 
-    // ── Fase 2: Memory tools ──────────────────────────────────────────────
+    // ── Phase 2: Memory tools ──────────────────────────────────────────────
     function  ToolMemorySave  (const Args: TJSONObject): string;
     function  ToolMemoryGet   (const Args: TJSONObject): string;
     function  ToolMemoryDelete(const Args: TJSONObject): string;
     function  ToolMemoryList  (const Args: TJSONObject): string;
     function  ToolMemorySearch(const Args: TJSONObject): string;
 
-    // ── Fase 2: Agent tool ────────────────────────────────────────────────
+    // ── Phase 2: Agent tool ────────────────────────────────────────────────
     function  ToolAgentRun      (const Args: TJSONObject): string;
     function  RunStep(const ASysPrompt, AInput: string): string;
     function  PipelineAnalyze   (const Task: string): string;
@@ -175,7 +175,7 @@ type
     function  IsAuthorized(AChatId: Int64): Boolean;
     function  HandleCommand(AChatId: Int64; const AText, AUsername: string): Boolean;
 
-    // ── Fase 3: Historial ─────────────────────────────────────────────────
+    // ── Phase 3: History ─────────────────────────────────────────────────
     function  HistoryPath(AChatId: Int64): string;
     procedure SaveHistory(AChatId: Int64; AChat: TAiChatConnection);
     procedure LoadHistory(AChatId: Int64; AChat: TAiChatConnection);
@@ -190,25 +190,25 @@ type
     procedure CheckVoiceCapabilities;
 
     // ── PPM helpers ───────────────────────────────────────────────────────
-    // Registra un IAiTool del registry en TAiFunctions para que el LLM pueda llamarlo.
+    // Registers an IAiTool from the registry in TAiFunctions so the LLM can call it.
     procedure RegisterIAiToolInFunctions(const ATool: IAiTool);
-    // Devuelve el primer tool disponible cuyo SourceId coincide con ASourceId.
+    // Returns the first available tool whose SourceId matches ASourceId.
     function  FindMCPToolBySource(const ASourceId: string): IAiTool;
-    // Extrae texto de una respuesta MCP (content array o campo text directo).
+    // Extracts text from an MCP response (content array or direct text field).
     function  ExtractMCPText(const AResult: TJSONObject): string;
     // Busca AQuery en PPM, descarga, instala y registra en TAiFunctions.
     // Devuelve True si instaló exitosamente. APkgName y AToolsList son informativos.
     function  InstallMCPPackage(const AQuery: string;
                                 out APkgName, AToolsList: string): Boolean;
-    // Implementación del tool ppm_install que el LLM puede llamar.
+    // Implementation of the ppm_install tool that the LLM can call.
     function  ToolPPMInstall(const Args: TJSONObject): string;
-    // Lista los paquetes PPM instalados en esta sesión.
+    // Lists the PPM packages installed in this session.
     function  ToolPPMList(const Args: TJSONObject): string;
-    // Limpia todos los paquetes PPM instalados.
+    // Clears all installed PPM packages.
     function  ToolPPMClear(const Args: TJSONObject): string;
-    // Persiste FInstalledPkgs en FPPMStateFile.
+    // Persists FInstalledPkgs in FPPMStateFile.
     procedure SavePPMState;
-    // Lee FPPMStateFile y re-instala los paquetes guardados.
+    // Reads FPPMStateFile and reinstalls the saved packages.
     procedure LoadAndRestorePPMState;
     // Bridge nativo para mcp-telegram (schema-only en PPM).
     // Soporta operation: send_message, get_updates.
@@ -300,7 +300,7 @@ procedure TDmTelegramBot.DataModuleCreate(Sender: TObject);
 begin
   FDataDir := TPath.Combine(GetEnvironmentVariable('APPDATA'), 'MakerAI');
 
-  // Fase 1
+  // Phase 1
   FCSChats   := TCriticalSection.Create;
   FChats     := TObjectDictionary<Int64, TAiChatConnection>.Create([doOwnsValues]);
   FFunctions := TAiFunctions.Create(nil);
@@ -308,7 +308,7 @@ begin
   FThread    := nil;
   FOffset    := 0;
 
-  // Fase 2 — defaults de proveedores (se sobreescriben con LoadConfig)
+  // Phase 2 — provider defaults (overridden by LoadConfig)
   FProviders.LLM.Primary   := TProviderConfig.Create('Claude',  'claude-haiku-4-5-20251001',     '@CLAUDE_API_KEY',  '');
   FProviders.LLM.Fallback  := TProviderConfig.Create('OpenAI',  'gpt-4o-mini',                   '@OPENAI_API_KEY',  '');
   FProviders.TTS.Primary   := TProviderConfig.Create('Gemini',  'gemini-2.5-flash-preview-tts',  '@GEMINI_API_KEY',  'Aoede');
@@ -322,7 +322,7 @@ begin
   FProviders.Embeddings.Primary  := TProviderConfig.Create('OpenAI', 'text-embedding-3-small',   '@OPENAI_API_KEY',  '');
   FProviders.Embeddings.Fallback := TProviderConfig.Create('Gemini', 'text-embedding-004',        '@GEMINI_API_KEY',  '');
 
-  // Fase 3 — config (overrides defaults above)
+  // Phase 3 — config (overrides defaults above)
   FConfigLock    := TCriticalSection.Create;
   FAllowedIds    := TDictionary<Int64, string>.Create;
   FConfigFile    := TPath.Combine(FDataDir, 'telegram_bot_config.json');
@@ -332,18 +332,18 @@ begin
   try LoadConfig;
   finally FConfigLock.Leave; end;
 
-  // Fase 4 — memoria semántica (KV + RAG) — usa FProviders.Embeddings cargado
+  // Phase 4 — semantic memory (KV + RAG) — uses loaded FProviders.Embeddings
   FMemory := TBotMemory.Create(FDataDir,
     FProviders.Embeddings.Primary.ApiKey,
     FProviders.Embeddings.Primary.Driver,
     FProviders.Embeddings.Primary.Model);
 
-  // Fase 5 — stats
+  // Phase 5 — stats
   FTotalMessages  := 0;
   FTotalToolCalls := 0;
   FBotStartTime   := 0;
 
-  // Fase 6 — voz
+  // Phase 6 — voice
   FVoiceEnabled := True;
   FMCPToolsURL  := '';
 
@@ -387,7 +387,7 @@ begin
 end;
 
 // =============================================================================
-// Multi-usuario
+// Multi-user
 // =============================================================================
 
 function TDmTelegramBot.CreateNewChat: TAiChatConnection;
@@ -420,7 +420,7 @@ begin
         DoLog('SYS', Format('Usuario reconectado: chat_id=%d (historial: %d msgs, sesiones: %d)',
                             [AChatId, Result.Messages.Count, FChats.Count]))
       else
-        DoLog('SYS', Format('Nuevo usuario: chat_id=%d (total: %d)', [AChatId, FChats.Count]));
+        DoLog('SYS', Format('New user: chat_id=%d (total: %d)', [AChatId, FChats.Count]));
     end;
   finally FCSChats.Leave; end;
 end;
@@ -568,14 +568,14 @@ begin
       var DynTool: IAiTool;
       if TAiToolRegistry.Instance.TryFind(FunctionName, DynTool) then
       begin
-        DoLog('TOOL', '[PPM] ' + FunctionName + ' -> ejecutando via registry');
+        DoLog('TOOL', '[PPM] ' + FunctionName + ' -> executing via registry');
         var JResult: TJSONObject := nil;
         try
           JResult := DynTool.Execute(Args);
         except
           on E: Exception do
           begin
-            DoLog('ERR', '[PPM] ' + FunctionName + ' excepcion: ' + E.Message);
+            DoLog('ERR', '[PPM] ' + FunctionName + ' exception: ' + E.Message);
             ToolCall.Response := Format('{"error":"%s"}',
               [StringReplace(E.Message, '"', '\"', [rfReplaceAll])]);
             Handled := True;
@@ -589,7 +589,7 @@ begin
         end
         else
         begin
-          DoLog('ERR', '[PPM] ' + FunctionName + ' retorno nil (binario fallo o sin output)');
+          DoLog('ERR', '[PPM] ' + FunctionName + ' returned nil (binary failed or no output)');
           ToolCall.Response := Format(
             '{"error":"Tool ''%s'' returned no output. The binary may have crashed, ' +
             'require missing dependencies, or need environment variables (e.g. GITHUB_TOKEN)."}',
@@ -611,7 +611,7 @@ begin
 end;
 
 // =============================================================================
-// Fase 1: Shell tools
+// Phase 1: Shell tools
 // =============================================================================
 
 function TDmTelegramBot.RunShell(const ACmd: string; var AOutput: string): Integer;
@@ -627,11 +627,11 @@ begin
   FillChar(SA, SizeOf(SA), 0);
   SA.nLength := SizeOf(SA); SA.bInheritHandle := True;
 
-  // Pipe para capturar stdout+stderr
+  // Pipe to capture stdout+stderr
   if not CreatePipe(hR, hW, @SA, 0) then begin AOutput := 'CreatePipe failed'; Exit; end;
   SetHandleInformation(hR, HANDLE_FLAG_INHERIT, 0); // el extremo lector no se hereda
 
-  // stdin → NUL device (no INVALID_HANDLE_VALUE que confunde a cmd.exe)
+  // stdin -> NUL device (not INVALID_HANDLE_VALUE, which confuses cmd.exe)
   hNulIn := CreateFile('nul', GENERIC_READ, FILE_SHARE_READ or FILE_SHARE_WRITE,
     @SA, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
   if hNulIn = INVALID_HANDLE_VALUE then hNulIn := 0;
@@ -653,7 +653,7 @@ begin
     Exit;
   end;
 
-  // Cerrar los extremos escritores en el proceso padre (crítico para que ReadFile termine)
+  // Close the writer ends in the parent process (critical so ReadFile completes)
   CloseHandle(hW);
   if hNulIn <> 0 then CloseHandle(hNulIn);
   CloseHandle(PI.hThread); // no necesitamos el handle del thread
@@ -681,10 +681,10 @@ begin
         end
         else
         begin
-          // Sin datos: verificar si el proceso ya terminó
+          // No data: check whether the process has already finished
           if WaitForSingleObject(PI.hProcess, 0) = WAIT_OBJECT_0 then
           begin
-            // Proceso terminado; leer los bytes finales que queden
+            // Process finished; read the remaining final bytes
             nRead := 0;
             while PeekNamedPipe(hR, nil, 0, nil, @BytesAvail, nil) and (BytesAvail > 0) and
                   ReadFile(hR, Buf[0], SizeOf(Buf), nRead, nil) and (nRead > 0) do
@@ -694,7 +694,7 @@ begin
             end;
             Break;
           end;
-          // Timeout de inactividad: proceso colgado esperando input interactivo
+          // Inactivity timeout: process hung waiting for interactive input
           if (GetTickCount - LastActivity) > MAX_IDLE_MS then
           begin
             TerminateProcess(PI.hProcess, 1);
@@ -787,7 +787,7 @@ begin
 end;
 
 // =============================================================================
-// Fase 2: Memory (TBotMemory — KV store + RAG semántico)
+// Phase 2: Memory (TBotMemory — KV store + semantic RAG)
 // =============================================================================
 
 function TDmTelegramBot.ToolMemorySave(const Args: TJSONObject): string;
@@ -853,7 +853,7 @@ begin
 end;
 
 // =============================================================================
-// Fase 2: Agent pipeline
+// Phase 2: Agent pipeline
 // =============================================================================
 
 function TDmTelegramBot.RunStep(const ASysPrompt, AInput: string): string;
@@ -918,7 +918,7 @@ begin
 end;
 
 // =============================================================================
-// Fase 3: Permisos
+// Phase 3: Permissions
 // =============================================================================
 
 procedure LoadSlot(AObj: TJSONObject; const AKey: string; var ASlot: TProviderConfig);
@@ -1095,7 +1095,7 @@ begin
     finally FCSChats.Leave; end;
     if TFile.Exists(HistoryPath(AChatId)) then TFile.Delete(HistoryPath(AChatId));
     SendTgMessage(AChatId, 'Chat history cleared.');
-    DoLog('SYS', Format('Historial limpiado: chat_id=%d', [AChatId]));
+    DoLog('SYS', Format('History cleared: chat_id=%d', [AChatId]));
   end
   else if Cmd = '/status' then
   begin
@@ -1211,12 +1211,12 @@ begin
       if Arg = '' then
       begin
         SendTgMessage(AChatId,
-          'LLM actual:' + #10 +
+          'Current LLM:' + #10 +
           'Driver: ' + FProviders.LLM.Primary.Driver + #10 +
           'Model:  ' + FProviders.LLM.Primary.Model  + #10 +
           'Key:    ' + FProviders.LLM.Primary.ApiKey + #10 +
           'Fallback: ' + FProviders.LLM.Fallback.Driver + ' / ' + FProviders.LLM.Fallback.Model + #10#10 +
-          'Para cambiar: /llm <Driver> <Model> <ApiKey>' + #10 +
+          'To change: /llm <Driver> <Model> <ApiKey>' + #10 +
           'Drivers: Claude, OpenAI, Gemini, Ollama');
       end
       else
@@ -1234,7 +1234,7 @@ begin
             FChats.Clear;
           finally FCSChats.Leave; end;
           SendTgMessage(AChatId, Format(
-            'LLM actualizado:' + #10 +
+            'LLM updated:' + #10 +
             'Driver: %s' + #10 +
             'Model:  %s' + #10 +
             'Key:    %s' + #10 +
@@ -1243,14 +1243,14 @@ begin
           DoLog('SYS', Format('[LLM] -> %s / %s', [FProviders.LLM.Primary.Driver, FProviders.LLM.Primary.Model]));
         end
         else
-          SendTgMessage(AChatId, 'Uso: /llm <Driver> <Model> <ApiKey>');
+          SendTgMessage(AChatId, 'Usage: /llm <Driver> <Model> <ApiKey>');
       end;
     end;
   end;
 end;
 
 // =============================================================================
-// Fase 3: Historial
+// Phase 3: History
 // =============================================================================
 
 function TDmTelegramBot.HistoryPath(AChatId: Int64): string;
@@ -1298,7 +1298,7 @@ begin
 end;
 
 // =============================================================================
-// Fase 3: Stats
+// Phase 3: Stats
 // =============================================================================
 
 function TDmTelegramBot.Uptime: string;
@@ -1310,7 +1310,7 @@ begin
 end;
 
 // =============================================================================
-// Fase 4: MCP / PPM
+// Phase 4: MCP / PPM
 // =============================================================================
 
 // Llama a una herramienta en MCPService via JSON-RPC HTTP.
@@ -1376,7 +1376,7 @@ begin
   finally Http.Free; end;
 end;
 
-// Verifica e instala automáticamente capacidades de voz (mcp-transcribe, mcp-tts).
+// Checks and automatically installs voice capabilities (mcp-transcribe, mcp-tts).
 procedure TDmTelegramBot.CheckVoiceCapabilities;
 const
   VOICE_CAPS: array[0..1] of string = ('mcp-stt-openai', 'mcp-tts-openai');
@@ -1392,9 +1392,9 @@ begin
   for var Cap in VOICE_CAPS do
   begin
     if InstallMCPPackage(Cap, PkgName, ToolsList) then
-      DoLog('SYS', Format('[PPM] %s listo - tools: %s', [PkgName, ToolsList]))
+      DoLog('SYS', Format('[PPM] %s ready - tools: %s', [PkgName, ToolsList]))
     else
-      DoLog('SYS', Format('[PPM] %s no disponible - usando modo directo', [Cap]));
+      DoLog('SYS', Format('[PPM] %s unavailable - using direct mode', [Cap]));
   end;
 
   // Verificar MCPService legacy si esta configurado
@@ -1409,11 +1409,11 @@ begin
           DoLog('SYS', '[MCP] MCPService activo: ' + FMCPToolsURL)
         else
         begin
-          DoLog('SYS', '[MCP] MCPService no responde - cambiando a modo directo');
+          DoLog('SYS', '[MCP] MCPService not responding - switching to direct mode');
           FMCPToolsURL := '';
         end;
       except
-        DoLog('SYS', '[MCP] MCPService no disponible - usando modo directo');
+        DoLog('SYS', '[MCP] MCPService unavailable - using direct mode');
         FMCPToolsURL := '';
       end;
     finally Http.Free; end;
@@ -1421,10 +1421,10 @@ begin
 end;
 
 // =============================================================================
-// Fase 4: Voz
+// Phase 4: Voice
 // =============================================================================
 
-// Descarga un archivo de Telegram por file_id, devuelve ruta local (OGG).
+// Downloads a Telegram file by file_id, returns the local path (OGG).
 function TDmTelegramBot.DownloadTgFile(const AFileId: string): string;
 var
   Http       : THTTPClient;
@@ -1474,7 +1474,7 @@ begin
   finally Http.Free; end;
 end;
 
-// Transcribe audio OGG a texto. Intenta MCPService primero, luego TAiOpenAiAudio.
+// Transcribes OGG audio to text. Tries MCPService first, then TAiOpenAiAudio.
 function TDmTelegramBot.TranscribeAudio(const AFilePath: string): string;
 var
   JArgs   : TJSONObject;
@@ -1534,7 +1534,7 @@ begin
     end;
   end;
 
-  // Opcion B: TAiOpenAiAudio directo (Whisper)
+  // Option B: direct TAiOpenAiAudio (Whisper)
   Audio := TAiOpenAiAudio.Create(nil);
   try
     Audio.ApiKey             := '@OPENAI_API_KEY';
@@ -1623,7 +1623,7 @@ begin
     end;
   end;
 
-  // Opcion C: proveedor primario configurado
+  // Option C: configured primary provider
   var TtsSlots: array[0..1] of TProviderConfig;
   TtsSlots[0] := FProviders.TTS.Primary;
   TtsSlots[1] := FProviders.TTS.Fallback;
@@ -1665,7 +1665,7 @@ begin
   end;
 end;
 
-// Envia un archivo MP3/OGG como mensaje de voz a Telegram.
+// Sends an MP3/OGG file as a voice message to Telegram.
 procedure TDmTelegramBot.SendTgVoice(const AChatId: Int64; const AFilePath: string);
 var Http: THTTPClient; MP: TMultipartFormData; URL: string;
 begin
@@ -1728,7 +1728,7 @@ begin
     VarName := Copy(AToken, 2, MaxInt);
     Result  := GetEnvironmentVariable(VarName);
     if Result = '' then
-      DoLog('SYS', 'AVISO: variable "' + VarName + '" no encontrada - ingresa el token literal');
+      DoLog('SYS', 'WARNING: variable "' + VarName + '" not found - enter the literal token');
   end
   else
     Result := AToken;
@@ -1775,7 +1775,7 @@ begin
   if not IsAuthorized(ChatId) then
   begin
     SendTgMessage(ChatId, 'Sorry, this bot is restricted.');
-    DoLog('SYS', Format('Acceso denegado: chat_id=%d @%s', [ChatId, Username]));
+    DoLog('SYS', Format('Access denied: chat_id=%d @%s', [ChatId, Username]));
     Exit;
   end;
 
@@ -1786,7 +1786,7 @@ begin
     FConfigLock.Enter;
     try FAllowedIds.AddOrSetValue(ChatId, Username); SaveConfig;
     finally FConfigLock.Leave; end;
-    DoLog('SYS', Format('Owner establecido: chat_id=%d @%s', [ChatId, Username]));
+    DoLog('SYS', Format('Owner set: chat_id=%d @%s', [ChatId, Username]));
   end;
 
   FCurrentChatId := ChatId;
@@ -1800,7 +1800,7 @@ begin
   begin
     IsVoice     := True;
     VoiceFileId := JVoice.GetValue<string>('file_id');
-    DoLog('IN', '[voz recibida] descargando...');
+    DoLog('IN', '[voice received] downloading...');
 
     TempAudio := DownloadTgFile(VoiceFileId);
     if TempAudio = '' then
@@ -1816,8 +1816,8 @@ begin
     begin SendTgMessage(ChatId, 'No pude transcribir el audio.'); Exit; end;
 
     // Confirmar lo que se entendio
-    SendTgMessage(ChatId, '[Escuche]: ' + Text);
-    DoLog('IN', '[voz] ' + Text);
+    SendTgMessage(ChatId, '[Heard]: ' + Text);
+    DoLog('IN', '[voice] ' + Text);
   end
   else if not JMsg.TryGetValue<string>('text', Text) then
     Exit;
@@ -1835,7 +1835,7 @@ begin
     Response := Chat.AddMessageAndRun(Text, 'user', []);
   except on E: Exception do Response := 'Error: ' + E.Message; end;
 
-  if Response = '' then Response := '(Sin respuesta del modelo)';
+  if Response = '' then Response := '(No response from the model)';
 
   // Responder: voz si el input fue voz y voice mode activo, sino texto
   if IsVoice and FVoiceEnabled then
@@ -1845,7 +1845,7 @@ begin
     begin
       SendTgVoice(ChatId, Mp3Path);
       TFile.Delete(Mp3Path);
-      DoLog('OUT', '[voz] ' + Copy(Response, 1, 100));
+      DoLog('OUT', '[voice] ' + Copy(Response, 1, 100));
     end
     else
     begin
@@ -1921,7 +1921,7 @@ begin
   end);
   FThread.FreeOnTerminate := False;
   FThread.Start;
-  DoLog('SYS', Format('Bot iniciado - %d skills | modo: %s | owner: %d | voz: %s',
+  DoLog('SYS', Format('Bot started - %d skills | mode: %s | owner: %d | voice: %s',
         [FFunctions.Functions.Count,
          IfThen(FWhitelistMode, 'whitelist', 'open'),
          FOwnerChatId,
@@ -2043,8 +2043,8 @@ begin
     Exit(True);
   end;
 
-  // Instalar
-  DoLog('SYS', Format('[PPM] Instalando %s v%s...', [Pkg.Name, Pkg.Version]));
+  // Install
+  DoLog('SYS', Format('[PPM] Installing %s v%s...', [Pkg.Name, Pkg.Version]));
   Client := TAiToolRegistry.Instance.InstallFromPPM(Pkg, nil);
   if Assigned(Client) then
   begin
@@ -2054,7 +2054,7 @@ begin
   end
   else
   begin
-    // Paquete schema-only (sin binario): registrar solo la definicion .tool
+    // Schema-only package (no binary): register only the .tool definition
     if TAiToolRegistry.Instance.InstallSchemaFromPPM(Pkg) = 0 then Exit;
     if FInstalledPkgs.IndexOf(Pkg.Name) < 0 then
     begin
@@ -2063,7 +2063,7 @@ begin
     end;
   end;
 
-  // Registrar tools nuevas en TAiFunctions
+  // Register new tools in TAiFunctions
   Tools := TStringList.Create;
   try
     Entries := TAiToolRegistry.Instance.GetEntries;
@@ -2166,21 +2166,21 @@ begin
     if not (JVal is TJSONArray) then begin JVal.Free; Exit; end;
     JArr := TJSONArray(JVal);
     try
-      DoLog('SYS', Format('[PPM] Restaurando %d paquete(s) guardados...', [JArr.Count]));
+      DoLog('SYS', Format('[PPM] Restoring %d saved package(s)...', [JArr.Count]));
       for JItem in JArr do
       begin
         PkgQuery := JItem.Value;
         if PkgQuery = '' then Continue;
         if FInstalledPkgs.IndexOf(PkgQuery) >= 0 then Continue; // ya instalado (voz)
         if InstallMCPPackage(PkgQuery, PkgName, ToolsList) then
-          DoLog('SYS', '[PPM] Restaurado: ' + PkgName + ' (' + ToolsList + ')')
+          DoLog('SYS', '[PPM] Restored: ' + PkgName + ' (' + ToolsList + ')')
         else
-          DoLog('SYS', '[PPM] No se pudo restaurar: ' + PkgQuery);
+          DoLog('SYS', '[PPM] Could not restore: ' + PkgQuery);
       end;
     finally JArr.Free; end;
   except
     on E: Exception do
-      DoLog('SYS', '[PPM] Error al restaurar estado: ' + E.Message);
+      DoLog('SYS', '[PPM] Error restoring state: ' + E.Message);
   end;
 end;
 
@@ -2211,7 +2211,7 @@ begin
   // Borrar archivo de estado
   if TFile.Exists(FPPMStateFile) then
     TFile.Delete(FPPMStateFile);
-  DoLog('SYS', Format('[PPM] Limpiado: %d paquete(s) eliminados', [Count]));
+  DoLog('SYS', Format('[PPM] Cleared: %d package(s) removed', [Count]));
   Result := Format('{"ok":true,"removed":%d,"message":"All PPM packages cleared. ' +
     'Use ppm_install to reinstall as needed."}', [Count]);
 end;

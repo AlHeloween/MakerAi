@@ -1,7 +1,7 @@
 // MIT License
 // MakerAI - Demo 064: PPM Auto Tools
-// El LLM descubre, instala y ejecuta herramientas MCP del registry PPM
-// de forma autónoma, sin intervención del usuario.
+// The LLM discovers, installs, and executes MCP tools from the PPM registry
+// autonomously, without user intervention.
 
 program PPMAutoTools;
 

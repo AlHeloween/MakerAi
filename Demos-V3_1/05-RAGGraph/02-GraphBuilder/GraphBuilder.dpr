@@ -6,17 +6,17 @@ program GraphBuilder;
 // =============================================================================
 // MakerAI — 05-RAGGraph / 02-GraphBuilder
 // =============================================================================
-// Construye un grafo más complejo y navega relaciones entre nodos.
-// Muestra cómo recorrer vecinos, encontrar caminos y analizar el grafo.
+// Builds a more complex graph and navigates relationships between nodes.
+// Shows how to traverse neighbors, find paths, and analyze the graph.
 //
 // Conceptos que cubre:
-//   - Grafo de dominio científico (disciplinas, conceptos, autores)
-//   - FindNodesByLabel: buscar nodos por etiqueta
-//   - FindNodeByName: buscar nodo por nombre
-//   - GetNeighbors: vecinos de un nodo
-//   - GetShortestPath: camino mínimo entre nodos
-//   - GetNodesByDegree: nodos más conectados
-//   - Búsqueda semántica con profundidad (depth > 0)
+//   - Scientific domain graph (disciplines, concepts, authors)
+//   - FindNodesByLabel: search nodes by label
+//   - FindNodeByName: search node by name
+//   - GetNeighbors: neighbors of a node
+//   - GetShortestPath: shortest path between nodes
+//   - GetNodesByDegree: most connected nodes
+//   - Semantic search with depth (depth > 0)
 // =============================================================================
 
 uses
@@ -34,7 +34,7 @@ const
   EMB_API_KEY = '@OPENAI_API_KEY';
 
 // =============================================================================
-//  Grafo de ciencias de la computación
+//  Computer science graph
 // =============================================================================
 procedure ConstruirGrafoCiencias(RAG: TAiRagGraph);
 var
@@ -47,7 +47,7 @@ var
 begin
   Writeln('Construyendo grafo de Ciencias de la Computacion...');
 
-  // --- Disciplinas ---
+  // --- Disciplines ---
   IA := RAG.AddNode('d001', 'DISCIPLINA', 'Inteligencia Artificial');
   IA.Text := 'Inteligencia Artificial: rama de la informatica que simula capacidades cognitivas.';
 
@@ -63,7 +63,7 @@ begin
   CV := RAG.AddNode('d005', 'DISCIPLINA', 'Vision por Computadora');
   CV.Text := 'Vision por Computadora: IA para interpretar y analizar imágenes y video.';
 
-  // --- Técnicas ---
+  // --- Techniques ---
   NN := RAG.AddNode('t001', 'TECNICA', 'Redes Neuronales');
   NN.Text := 'Redes neuronales artificiales inspiradas en el cerebro humano.';
 
@@ -89,30 +89,30 @@ begin
   Keras := RAG.AddNode('f003', 'FRAMEWORK', 'Keras');
   Keras.Text := 'Keras: API de alto nivel para construir redes neuronales.';
 
-  // --- Relaciones jerárquicas ---
+  // --- Hierarchical relationships ---
   RAG.AddEdge(IA, ML,  'h001', 'INCLUYE', 'incluye');
   RAG.AddEdge(ML, DL,  'h002', 'INCLUYE', 'incluye');
   RAG.AddEdge(DL, NLP, 'h003', 'HABILITA', 'habilita');
   RAG.AddEdge(DL, CV,  'h004', 'HABILITA', 'habilita');
 
-  // --- Relaciones técnica → disciplina ---
+  // --- Relationships technique → discipline ---
   RAG.AddEdge(NN,          ML,  'u001', 'USADA_EN', 'usada en');
   RAG.AddEdge(CNN,         CV,  'u002', 'USADA_EN', 'usada en');
   RAG.AddEdge(RNN,         NLP, 'u003', 'USADA_EN', 'usada en');
   RAG.AddEdge(Transformer, NLP, 'u004', 'USADA_EN', 'usada en');
   RAG.AddEdge(RAGTech,     NLP, 'u005', 'USADA_EN', 'usada en');
 
-  // --- Relaciones framework → técnica ---
+  // --- Relationships framework → technique ---
   RAG.AddEdge(TensorFlow, NN,          'i001', 'IMPLEMENTA', 'implementa');
   RAG.AddEdge(PyTorch,    Transformer, 'i002', 'IMPLEMENTA', 'implementa');
   RAG.AddEdge(Keras,      CNN,         'i003', 'IMPLEMENTA', 'implementa');
 
-  Writeln(Format('Grafo listo: %d nodos, %d aristas.', [RAG.NodeCount, RAG.EdgeCount]));
+  Writeln(Format('Graph ready: %d nodes, %d edges.', [RAG.NodeCount, RAG.EdgeCount]));
   Writeln;
 end;
 
 // =============================================================================
-//  Muestra vecinos de un nodo
+//  Shows neighbors of a node
 // =============================================================================
 procedure MostrarVecinos(RAG: TAiRagGraph; const NodeName, NodeLabel: String);
 var
@@ -123,12 +123,12 @@ begin
   Node := RAG.FindNodeByName(NodeName, NodeLabel);
   if not Assigned(Node) then
   begin
-    Writeln('Nodo no encontrado: ', NodeName);
+    Writeln('Node not found: ', NodeName);
     Exit;
   end;
 
   Writeln(StringOfChar('-', 60));
-  Writeln('Vecinos de "', Node.Name, '" (', Node.NodeLabel, '):');
+  Writeln('Neighbors of "', Node.Name, '" (', Node.NodeLabel, '):');
 
   Vecinos := RAG.GetNeighbors(Node, gdOutgoing);
   if Length(Vecinos) = 0 then
@@ -139,7 +139,7 @@ begin
 end;
 
 // =============================================================================
-//  Camino mínimo entre dos nodos
+//  Shortest path between two nodes
 // =============================================================================
 procedure MostrarCaminoMinimo(RAG: TAiRagGraph;
   const NombreA, LabelA, NombreB, LabelB: String);
@@ -154,17 +154,17 @@ begin
 
   if not Assigned(NodeA) or not Assigned(NodeB) then
   begin
-    Writeln('Nodos no encontrados para camino minimo.');
+    Writeln('Nodes not found for shortest path.');
     Exit;
   end;
 
   Writeln(StringOfChar('-', 60));
-  Writeln(Format('Camino minimo: "%s" --> "%s"', [NombreA, NombreB]));
+  Writeln(Format('Shortest path: "%s" --> "%s"', [NombreA, NombreB]));
 
   Camino := RAG.GetShortestPath(NodeA, NodeB);
   if Length(Camino) = 0 then
   begin
-    Writeln('  (no hay camino)');
+    Writeln('  (no path)');
     Exit;
   end;
 
@@ -204,34 +204,34 @@ begin
 
     ConstruirGrafoCiencias(RAG);
 
-    Writeln('Generando embeddings...');
+    Writeln('Generating embeddings...');
     RAG.RebuildIndexes;
-    Writeln('Listo.');
+    Writeln('Ready.');
     Writeln;
 
-    // Vecinos
+    // Neighbors
     MostrarVecinos(RAG, 'Deep Learning', 'DISCIPLINA');
     MostrarVecinos(RAG, 'PyTorch', 'FRAMEWORK');
     Writeln;
 
-    // Camino mínimo
+    // Shortest path
     MostrarCaminoMinimo(RAG,
       'PyTorch', 'FRAMEWORK',
       'Procesamiento de Lenguaje Natural', 'DISCIPLINA');
     Writeln;
 
-    // Nodos más conectados
+    // Most connected nodes
     Writeln(StringOfChar('-', 60));
-    Writeln('Top 3 nodos mas conectados:');
+    Writeln('Top 3 most connected nodes:');
     TopNodes := RAG.GetNodesByDegree(3);
     for Node in TopNodes do
       Writeln(Format('  %s (%s)', [Node.Name, Node.NodeLabel]));
     Writeln;
 
-    // Búsqueda semántica con depth=1 (expande vecinos)
+    // Semantic search with depth=1 (expands neighbors)
     Writeln(StringOfChar('-', 60));
     Writeln('Busqueda semantica con expansion (depth=1):');
-    Writeln('"generacion de texto con transformers"');
+    Writeln('"text generation with transformers"');
     Writeln(RAG.SearchText('generacion de texto con transformers', 1, False, 3, 0.2));
 
   finally

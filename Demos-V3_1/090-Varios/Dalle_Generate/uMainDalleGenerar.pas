@@ -122,7 +122,7 @@ begin
   AiDalle.AutoUpscale := ChAutoUpscale.IsChecked;
   AIDalle.UseRefiner := ChUserRefiner.IsChecked;
 
-  //Faltar�a por implementar
+  // Still to be implemented
 
   {
     property Steps: Integer read FSteps write FSteps default 30;

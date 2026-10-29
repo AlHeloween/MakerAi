@@ -27,7 +27,7 @@ program DemoMemoryChat;
 
 uses
   System.SysUtils,
-  // FireDAC SQLite (requerido por TAiMemory)
+  // FireDAC SQLite (required by TAiMemory)
   FireDAC.Stan.Intf,
   FireDAC.Stan.Option,
   FireDAC.Stan.Error,
@@ -41,7 +41,7 @@ uses
   FireDAC.Phys.SQLiteDef,
   FireDAC.DApt,
   FireDAC.VCLUI.Wait,
-  // Drivers de chat disponibles
+  // Available chat drivers
   uMakerAi.Chat.Claude,
   uMakerAi.Chat.OpenAi,
   uMakerAi.Chat.Gemini,

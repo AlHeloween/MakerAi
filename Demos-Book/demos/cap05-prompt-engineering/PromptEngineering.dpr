@@ -4,12 +4,12 @@
 {$R *.res}
 
 // =============================================================================
-// MakerAI — Capítulo 5: Prompt Engineering para Desarrolladores
+// MakerAI — Chapter 5: Prompt Engineering for Developers
 // =============================================================================
 // Demuestra las técnicas fundamentales de prompt engineering aplicadas
 // a casos de uso reales de desarrollo de software con MakerAI.
 //
-// Demuestra:
+// Demonstrates:
 //   - Demo 1: Prompt básico vs. CRIFE — el mismo task con estructuras distintas
 //             produce respuestas radicalmente diferentes en calidad y formato.
 //   - Demo 2: Few-shot en el SystemPrompt — enseñar el formato con ejemplos
@@ -17,22 +17,22 @@
 //   - Demo 3: Chain of Thought — "piensa paso a paso" mejora la precisión
 //             en tareas de razonamiento y cálculo.
 //
-// Técnica CRIFE (marco de prompt profesional):
-//   C — Contexto:   ¿En qué situación estamos?
-//   R — Rol:        ¿Quién eres? ¿Qué expertise tienes?
-//   I — Instrucción: ¿Qué exactamente debes hacer?
-//   F — Formato:    ¿Cómo debe ser la salida?
-//   E — Ejemplos/restricciones: ¿Qué sí y qué no?
+// CRIFE technique (professional prompt framework):
+//   C — Context:   What situation are we in?
+//   R — Role:        Who are you? What expertise do you have?
+//   I — Instruction: What exactly must you do?
+//   F — Format:    How should the output be?
+//   E — Examples/constraints: What is allowed and what is not?
 //
-// Configurar antes de compilar:
-//   Define GROQ_API_KEY como variable de entorno del sistema.
+// Configure before compiling:
+//   Define GROQ_API_KEY as a system environment variable.
 // =============================================================================
 
 uses
   System.SysUtils,
   uMakerAi.Chat,
   uMakerAi.Chat.AiConnection,
-  uMakerAi.Chat.Groq;    // DriverName = 'Groq' — rápido y gratuito
+  uMakerAi.Chat.Groq;    // DriverName = 'Groq' — fast and free
 
 const
   DRIVER  = 'Groq';
@@ -65,10 +65,10 @@ procedure Demo1_BasicoVsCRIFE(Conn: TAiChatConnection);
 var
   R: string;
 begin
-  Separador('Demo 1 — Prompt básico vs. CRIFE');
+  Separador('Demo 1 — Basic prompt vs. CRIFE');
 
-  // ── Versión básica ─────────────────────────────────────────────────────────
-  WriteLn('── Prompt básico (resultado impredecible): ──');
+  // ── Basic version ─────────────────────────────────────────────────────────
+  WriteLn('── Basic prompt (unpredictable result): ──');
   Conn.SystemPrompt.Text := 'Eres un asistente.';
   Conn.NewChat;
 
@@ -76,11 +76,11 @@ begin
     'Clasifica este correo: ' + EMAIL_EJEMPLO, 'user', []);
   WriteLn(R);
 
-  // ── Versión CRIFE ──────────────────────────────────────────────────────────
+  // ── CRIFE version ──────────────────────────────────────────────────────────
   WriteLn('');
-  WriteLn('── Prompt CRIFE (resultado determinista y parseable): ──');
+  WriteLn('── CRIFE prompt (deterministic and parseable result): ──');
 
-  // ROL + CONTEXTO van en SystemPrompt (behavior del agente)
+  // ROLE + CONTEXT go in SystemPrompt (agent behavior)
   Conn.SystemPrompt.Text :=
     'ROL: Eres un sistema de clasificación de correos para un CRM empresarial.' + #13#10 +
     'CONTEXTO: Procesas correos de clientes y los enrutas al departamento correcto.' + #13#10 +
@@ -88,7 +88,7 @@ begin
     'Sin texto adicional fuera del JSON.';
   Conn.NewChat;
 
-  // INSTRUCCIÓN + FORMATO + EJEMPLO van en el mensaje del usuario
+  // INSTRUCTION + FORMAT + EXAMPLE go in the user message
   R := Conn.AddMessageAndRun(
     'INSTRUCCIÓN: Clasifica en exactamente UNA categoría: ' +
     '[SOPORTE_TECNICO, FACTURACION, VENTAS, QUEJA, OTRO]' + #13#10 +
@@ -98,7 +98,7 @@ begin
   WriteLn(R);
 
   WriteLn('');
-  WriteLn('→ El prompt CRIFE produce JSON parseable directamente en código Delphi.');
+  WriteLn('→ The CRIFE prompt produces JSON parseable directly in Delphi code.');
 end;
 
 // =============================================================================
@@ -120,9 +120,9 @@ var
   I: integer;
   R: string;
 begin
-  Separador('Demo 2 — Few-Shot en el SystemPrompt');
+  Separador('Demo 2 — Few-Shot in the SystemPrompt');
 
-  // Los ejemplos están embebidos en el behavior; no hay que reinyectarlos
+  // The examples are embedded in the behavior; there is no need to re-inject them
   Conn.SystemPrompt.Text :=
     'Eres un clasificador de tickets de soporte. Responde SOLO con JSON.' + #13#10 +
     'Formato: {"categoria":"SOPORTE_TECNICO|FACTURACION|VENTAS|ACCESO|HARDWARE","urgencia":"ALTA|MEDIA|BAJA"}' + #13#10 +
@@ -137,7 +137,7 @@ begin
     'Ticket:  "¿Cuándo vence mi suscripción?"' + #13#10 +
     'Salida:  {"categoria":"FACTURACION","urgencia":"BAJA"}';
 
-  WriteLn('Clasificando 3 tickets con few-shot en el SystemPrompt:');
+  WriteLn('Classifying 3 tickets with few-shot in the SystemPrompt:');
   WriteLn('');
 
   for I := 0 to High(TICKETS) do
@@ -149,8 +149,8 @@ begin
   end;
 
   WriteLn('');
-  WriteLn('→ Tres llamadas, tres JSON válidos, cero texto extra.');
-  WriteLn('  Los ejemplos en el SystemPrompt actúan como contrato de formato.');
+  WriteLn('→ Three calls, three valid JSONs, zero extra text.');
+  WriteLn('  The examples in the SystemPrompt act as a format contract.');
 end;
 
 // =============================================================================
@@ -175,15 +175,15 @@ begin
   Conn.SystemPrompt.Text :=
     'Eres un asistente de ventas. Responde en español.';
 
-  // ── Sin Chain of Thought ───────────────────────────────────────────────────
-  WriteLn('── Sin Chain of Thought (respuesta directa): ──');
+  // ── Without Chain of Thought ───────────────────────────────────────────────────
+  WriteLn('── Without Chain of Thought (direct answer): ──');
   Conn.NewChat;
   R := Conn.AddMessageAndRun(PROBLEMA, 'user', []);
   WriteLn(R);
 
-  // ── Con Chain of Thought ───────────────────────────────────────────────────
+  // ── With Chain of Thought ───────────────────────────────────────────────────
   WriteLn('');
-  WriteLn('── Con Chain of Thought ("piensa paso a paso"): ──');
+  WriteLn('── With Chain of Thought ("think step by step"): ──');
   Conn.NewChat;
   R := Conn.AddMessageAndRun(
     PROBLEMA + #13#10#13#10 +
@@ -192,8 +192,8 @@ begin
   WriteLn(R);
 
   WriteLn('');
-  WriteLn('→ Chain of Thought expone el razonamiento y facilita detectar errores.');
-  WriteLn('  Útil en: cálculos de precios, validación de lógica, depuración de datos.');
+  WriteLn('→ Chain of Thought exposes the reasoning and makes errors easier to detect.');
+  WriteLn('  Useful in: price calculations, logic validation, data debugging.');
 end;
 
 // =============================================================================
@@ -203,8 +203,8 @@ procedure RunDemo;
 var
   Conn: TAiChatConnection;
 begin
-  WriteLn('=== MakerAI — Capítulo 5: Prompt Engineering ===');
-  WriteLn('Driver: ', DRIVER, ' | Modelo: ', MODEL);
+  WriteLn('=== MakerAI — Chapter 5: Prompt Engineering ===');
+  WriteLn('Driver: ', DRIVER, ' | Model: ', MODEL);
 
   Conn := TAiChatConnection.Create(nil);
   try
@@ -221,7 +221,7 @@ begin
 
     WriteLn('');
     WriteLn(StringOfChar('=', 62));
-    WriteLn('  Demo completado.');
+    WriteLn('  Demo completed.');
     WriteLn(StringOfChar('=', 62));
   finally
     Conn.Free;
@@ -236,6 +236,6 @@ begin
       WriteLn('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   WriteLn('');
-  WriteLn('Presiona Enter para salir...');
+  WriteLn('Press Enter to exit...');
   ReadLn;
 end.

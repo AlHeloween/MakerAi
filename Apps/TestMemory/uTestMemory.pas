@@ -78,25 +78,25 @@ begin
 
     Id1 := Mem.Store('Delphi usa Ln() en lugar de Log() para logaritmo natural',
                      mt_ErrorFix, 9, 'delphi,math', nil, 0);
-    Check(Id1 > 0, 'Store ErrorFix devuelve Id > 0', 'Id=' + Id1.ToString);
+    Check(Id1 > 0, 'Store ErrorFix returns Id > 0', 'Id=' + Id1.ToString);
 
     Id2 := Mem.Store('El usuario prefiere respuestas concisas sin bullets innecesarios',
                      mt_Preference, 8, 'ux', nil, 0);
-    Check(Id2 > 0, 'Store Preference devuelve Id > 0');
+    Check(Id2 > 0, 'Store Preference returns Id > 0');
 
     Id3 := Mem.Store('TAiMemory usa FireDAC + FTS5 para búsqueda léxica',
                      mt_Fact, 7, 'architecture,firedac', nil, 0);
-    Check(Id3 > 0, 'Store Fact devuelve Id > 0');
+    Check(Id3 > 0, 'Store Fact returns Id > 0');
 
     Id4 := Mem.Store('El decay exponencial modela la curva de olvido de Ebbinghaus',
                      mt_Pattern, 5, 'decay,memory', nil, 0);
-    Check(Id4 > 0, 'Store Pattern devuelve Id > 0');
+    Check(Id4 > 0, 'Store Pattern returns Id > 0');
 
     Id5 := Mem.Store('Error al compilar: E2003 TComparer no funciona con tipos locales',
                      mt_ErrorFix, 6, 'delphi,generics', nil, 0);
-    Check(Id5 > 0, 'Store segundo ErrorFix devuelve Id > 0');
+    Check(Id5 > 0, 'Store second ErrorFix returns Id > 0');
 
-    // Duplicado — debe reutilizar el mismo Id
+    // Duplicate — must reuse the same Id
     IdDup := Mem.Store('Delphi usa Ln() en lugar de Log() para logaritmo natural',
                             mt_ErrorFix, 9, 'delphi,math', nil, 0);
     Check(IdDup = Id1, 'Store duplicado devuelve mismo Id (dedup por content_hash)',
@@ -107,13 +107,13 @@ begin
 
     Entry := Mem.Get(Id1);
     try
-      Check(Assigned(Entry), 'Get por Id devuelve entry');
+      Check(Assigned(Entry), 'Get by Id returns entry');
       if Assigned(Entry) then
       begin
-        Check(Entry.MemoryType = mt_ErrorFix, 'Tipo correcto: mt_ErrorFix');
+        Check(Entry.MemoryType = mt_ErrorFix, 'Correct type: mt_ErrorFix');
         Check(Entry.Importance = 9, 'Importance = 9');
         Check(Entry.Namespace = 'test', 'Namespace = test');
-        Check(Pos('Ln()', Entry.Content) > 0, 'Content contiene "Ln()"');
+        Check(Pos('Ln()', Entry.Content) > 0, 'Content contains "Ln()"');
       end;
     finally
       Entry.Free;
@@ -134,16 +134,16 @@ begin
         Results[I].Entry.Free;
     end;
 
-    // Búsqueda sin resultados
+    // Search with no results
     Results := Mem.Search('xyzabc123notfound', 10, ms_FTS);
-    Check(Length(Results) = 0, 'FTS sin match devuelve array vacío');
+    Check(Length(Results) = 0, 'FTS with no match returns empty array');
 
-    // ── 4. Search Hybrid (sin embedder → igual que FTS) ─────────────────────
+    // ── 4. Search Hybrid (without embedder → same as FTS) ─────────────────────
     Section('4. Search Hybrid');
 
     Results := Mem.Search('TComparer generics error', 5, ms_Hybrid);
     try
-      Check(Length(Results) > 0, 'Hybrid "TComparer generics" devuelve resultados');
+      Check(Length(Results) > 0, 'Hybrid "TComparer generics" returns results');
     finally
       for I := 0 to High(Results) do
         Results[I].Entry.Free;
@@ -154,7 +154,7 @@ begin
 
     RecallList := Mem.Recall(7, 20);
     try
-      // Entries con importance >= 7: Id1(9), Id2(8), Id3(7) = 3
+      // Entries with importance >= 7: Id1(9), Id2(8), Id3(7) = 3
       Check(RecallList.Count >= 3, 'Recall(importance>=7) devuelve al menos 3 entries',
             'Count=' + RecallList.Count.ToString);
       for I := 0 to RecallList.Count - 1 do
@@ -189,7 +189,7 @@ begin
     Check(Ctx.MemoryCount > 0, 'Context devuelve al menos 1 entry',
           'Count=' + Ctx.MemoryCount.ToString);
     Check(Ctx.TokenEstimate > 0, 'Context.TokenEstimate > 0');
-    Check(Ctx.FormattedText <> '', 'Context.FormattedText no vacío');
+    Check(Ctx.FormattedText <> '', 'Context.FormattedText not empty');
     Writeln('       MemoryCount=' + Ctx.MemoryCount.ToString +
             '  Tokens~' + Ctx.TokenEstimate.ToString +
             '  Truncated=' + BoolToStr(Ctx.Truncated, True));
@@ -202,24 +202,24 @@ begin
     Mem.Update(Id4, 'El decay exponencial modela la curva de olvido (actualizado)', 7);
     Entry := Mem.Get(Id4);
     try
-      Check(Assigned(Entry), 'Get después de Update devuelve entry');
+      Check(Assigned(Entry), 'Get after Update returns entry');
       if Assigned(Entry) then
       begin
-        Check(Entry.Importance = 7, 'Update cambia importance a 7');
-        Check(Pos('actualizado', Entry.Content) > 0, 'Update cambia content');
+        Check(Entry.Importance = 7, 'Update changes importance to 7');
+        Check(Pos('actualizado', Entry.Content) > 0, 'Update changes content');
       end;
     finally
       Entry.Free;
     end;
 
-    // Update solo importance (content vacío → mantiene el anterior)
+    // Update only importance (empty content → keeps the previous one)
     Mem.Update(Id4, '', 10);
     Entry := Mem.Get(Id4);
     try
       if Assigned(Entry) then
       begin
-        Check(Entry.Importance = 10, 'Update solo importance funciona');
-        Check(Pos('actualizado', Entry.Content) > 0, 'Content se mantiene cuando AContent=""');
+        Check(Entry.Importance = 10, 'Update only importance works');
+        Check(Pos('actualizado', Entry.Content) > 0, 'Content is kept when AContent=""');
       end;
     finally
       Entry.Free;
@@ -231,7 +231,7 @@ begin
     Mem.Delete(Id5);
     Entry := Mem.Get(Id5);
     try
-      Check(not Assigned(Entry), 'Delete: Get devuelve nil tras borrar');
+      Check(not Assigned(Entry), 'Delete: Get returns nil after deletion');
     finally
       Entry.Free;
     end;
@@ -255,7 +255,7 @@ begin
     Mem.Unlink(Id1, Id3);
     Links := Mem.Links(Id1);
     try
-      Check(Links.Count = 0, 'Links(Id1) vacío tras Unlink');
+      Check(Links.Count = 0, 'Links(Id1) empty after Unlink');
     finally
       Links.Free;
     end;
@@ -264,19 +264,19 @@ begin
     Section('11. Prune');
 
     // Prune agresivo: importance < 8 con decay < 0.99 → debería dejar solo Id1(9) e Id2(8)
-    // Con AutoDecay=False todos tienen decay=1.0, así que prune por importance+age
+    // With AutoDecay=False all have decay=1.0, so prune by importance+age
     Mem.Prune(8, 0); // MinImportance=8, MaxAgeDays=0 → entries de hoy también
     Stats := Mem.Stats;
-    // Nota: Prune(8, 0) elimina entries con importance < 8 Y age >= 0 días Y decay < threshold
-    // Con decay=1.0 (fresco) el threshold es 0.1 → ninguno se poda por decay
-    // El behavior real depende de la implementación — solo verificamos que no crashea
-    Check(Stats.TotalCount >= 0, 'Prune no lanza excepción');
-    Writeln('       Entries restantes=' + Stats.TotalCount.ToString);
+    // Note: Prune(8, 0) removes entries with importance < 8 AND age >= 0 days AND decay < threshold
+    // With decay=1.0 (fresh) the threshold is 0.1 → none are pruned by decay
+    // The actual behavior depends on the implementation — we only verify it does not crash
+    Check(Stats.TotalCount >= 0, 'Prune does not raise an exception');
+    Writeln('       Remaining entries=' + Stats.TotalCount.ToString);
 
-    // ── Resultado final ─────────────────────────────────────────────────────
+    // ── Final result ─────────────────────────────────────────────────────
     Writeln;
     Writeln('=================================================');
-    Writeln(Format(' Resultado: %d OK  /  %d FAIL', [GPass, GFail]));
+    Writeln(Format(' Result: %d OK  /  %d FAIL', [GPass, GFail]));
     Writeln('=================================================');
 
     if GFail > 0 then
@@ -284,10 +284,10 @@ begin
 
   finally
     Mem.Free;
-    // Limpiar archivo de test
+    // Clean up test file
     if TFile.Exists(DbPath) then
       TFile.Delete(DbPath);
-    Writeln('DB eliminada: ' + DbPath);
+    Writeln('DB deleted: ' + DbPath);
   end;
 end;
 

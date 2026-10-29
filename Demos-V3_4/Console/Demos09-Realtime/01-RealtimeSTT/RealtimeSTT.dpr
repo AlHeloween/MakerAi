@@ -6,14 +6,14 @@
 // =============================================================================
 // MakerAI — 09-Realtime / 01-RealtimeSTT
 // =============================================================================
-// Transcripcion en tiempo real via OpenAI Realtime API (WebSocket).
+// Real-time transcription via OpenAI Realtime API (WebSocket).
 //
 // Flujo:
-//   1. TAIVoiceMonitor captura audio del microfono (PCM16 44100 Hz)
-//   2. El audio se reenvía automaticamente a TAiOpenAiRealtimeSTT
-//   3. El componente resamplea a 24kHz y lo envía al servidor via WebSocket
-//   4. El VAD del servidor detecta inicio/fin de habla
-//   5. La transcripcion llega en tiempo real (delta) y como texto final
+//   1. TAIVoiceMonitor captures audio from the microphone (PCM16 44100 Hz)
+//   2. The audio is automatically forwarded to TAiOpenAiRealtimeSTT
+//   3. The component resamples to 24kHz and sends it to the server via WebSocket
+//   4. The server VAD detects speech start/end
+//   5. The transcription arrives in real time (delta) and as final text
 //
 // Controles:
 //   - Presionar Enter para detener y salir
@@ -46,7 +46,7 @@ type
   private
     FSTT:   TAiOpenAiRealtimeSTT;
     FMic:   TAIVoiceMonitor;
-    FLine:  string; // acumula el delta actual (se limpia al completar)
+    FLine:  string; // accumulates the current delta (cleared on completion)
     procedure OnConnected(Sender: TObject);
     procedure OnDisconnected(Sender: TObject);
     procedure OnSessionReady(Sender: TObject);
@@ -70,15 +70,15 @@ constructor TRealtimeDemo.Create;
 begin
   inherited;
 
-  // ── Componente STT ──────────────────────────────────────────────────────
+  // ── STT component ──────────────────────────────────────────────────────
   FSTT := TAiOpenAiRealtimeSTT.Create(nil);
   FSTT.ApiKey             := API_KEY;
   FSTT.Model              := MODEL;
-  FSTT.Language           := 'es';          // 'es' = español, '' = auto-detect
-  FSTT.VADMode            := rvmServerVad;  // VAD en el servidor
-  FSTT.SilenceDurationMs  := 600;           // ms de silencio para cortar turno
+  FSTT.Language           := 'es';          // 'es' = Spanish, '' = auto-detect
+  FSTT.VADMode            := rvmServerVad;  // VAD on the server
+  FSTT.SilenceDurationMs  := 600;           // ms of silence to cut the turn
   FSTT.PrefixPaddingMs    := 300;
-  FSTT.NoiseReduction     := rnrNearField;  // headset / auriculares
+  FSTT.NoiseReduction     := rnrNearField;  // headset / headphones
   FSTT.TranscriptionModel := otmGptLiveTranscribe;
 
   FSTT.OnConnected         := OnConnected;
@@ -90,11 +90,11 @@ begin
   FSTT.OnTranscriptCompleted := OnTranscriptCompleted;
   FSTT.OnError             := OnError;
 
-  // ── Microfono ────────────────────────────────────────────────────────────
+  // ── Microphone ────────────────────────────────────────────────────────────
   FMic := TAIVoiceMonitor.Create(nil);
   FMic.SampleRate         := 44100;
   FMic.SilenceDuration    := 800;
-  FMic.RealtimeSTT        := FSTT;  // conectar mic → STT
+  FMic.RealtimeSTT        := FSTT;  // connect mic → STT
   FMic.OnCalibrated       := OnCalibrated;
 
   FLine := '';
@@ -112,12 +112,12 @@ end;
 procedure TRealtimeDemo.Run;
 begin
   Writeln('=== MakerAI — Realtime STT (OpenAI) ===');
-  Writeln('Modelo : ', MODEL);
-  Writeln('Idioma : es (español)');
+  Writeln('Model : ', MODEL);
+  Writeln('Language : es (Spanish)');
   Writeln;
-  Writeln('Conectando...');
+  Writeln('Connecting...');
 
-  // Conectar al servidor (async, no bloquea)
+  // Connect to the server (async, does not block)
   FSTT.Connect;
 
   // Esperar un momento a que el WebSocket se establezca antes de activar el mic
@@ -129,17 +129,17 @@ end;
 
 procedure TRealtimeDemo.OnConnected(Sender: TObject);
 begin
-  Writeln('[+] WebSocket conectado');
+  Writeln('[+] WebSocket connected');
 end;
 
 procedure TRealtimeDemo.OnDisconnected(Sender: TObject);
 begin
-  Writeln('[x] Desconectado');
+  Writeln('[x] Disconnected');
 end;
 
 procedure TRealtimeDemo.OnSessionReady(Sender: TObject);
 begin
-  Writeln('[✓] Sesion configurada — iniciando calibracion del microfono...');
+  Writeln('[✓] Session configured — starting microphone calibration...');
   // Activar el mic DESPUES de que el servidor confirme la sesion
   FMic.Active := True;
 end;
@@ -150,14 +150,14 @@ begin
   Writeln(Format('[mic] Calibrado — ruido=%d  umbral-inicio=%d  umbral-stop=%d',
     [NoiseLevel, Sensitivity, StopSensitivity]));
   Writeln;
-  Writeln('Listo. Habla en el microfono. Presiona Enter para salir.');
+  Writeln('Ready. Speak into the microphone. Press Enter to exit.');
   Writeln;
 end;
 
 procedure TRealtimeDemo.OnSpeechStarted(Sender: TObject; AudioMs: Int64;
   const ItemId: string);
 begin
-  Write('[habla] ');
+  Write('[speech] ');
   FLine := '';
 end;
 
@@ -177,15 +177,15 @@ end;
 procedure TRealtimeDemo.OnTranscriptCompleted(Sender: TObject;
   const Transcript, ItemId: string);
 begin
-  // Ya mostramos los deltas; aqui solo confirmamos la transcripcion final
+  // We already showed the deltas; here we only confirm the final transcription
   if Transcript <> FLine then
   begin
-    // El servidor envio una version diferente al acumulado de deltas
+    // The server sent a version different from the accumulated deltas
     Writeln;
     Writeln('[ok] ', Transcript);
   end
   else
-    Writeln;  // solo salto de linea para separar frases
+    Writeln;  // just a line break to separate phrases
   FLine := '';
 end;
 
@@ -210,22 +210,22 @@ begin
   try
     Demo.Run;
 
-    // Hilo auxiliar: espera Enter mientras el main pump procesa los callbacks
+    // Auxiliary thread: waits for Enter while the main pump processes callbacks
     TThread.CreateAnonymousThread(procedure begin
       Readln;
       GDone := True;
     end).Start;
 
-    // Pump principal: procesa TThread.Queue callbacks
+    // Main pump: processes TThread.Queue callbacks
     while not GDone do
       CheckSynchronize(50);
 
     Writeln;
-    Writeln('Deteniendo...');
+    Writeln('Stopping...');
   finally
     Demo.Free;
   end;
 
-  Writeln('Listo.');
+  Writeln('Done.');
   Readln;
 end.

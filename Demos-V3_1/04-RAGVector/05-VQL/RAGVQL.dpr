@@ -6,18 +6,18 @@ program RAGVQL;
 // =============================================================================
 // MakerAI — 04-RAGVector / 05-VQL
 // =============================================================================
-// VQL (Vector Query Language) — consultas avanzadas sobre el vector store
-// usando una sintaxis tipo SQL adaptada a búsqueda vectorial.
+// VQL (Vector Query Language) — advanced queries on the vector store
+// using SQL-like syntax adapted to vector search.
 //
 // Conceptos que cubre:
-//   - TAiRAGVector.ExecuteVGQL() para consultas VQL
+//   - TAiRAGVector.ExecuteVGQL() for VQL queries
 //   - SELECT, SEARCH NEAR, WHERE, ORDER BY, LIMIT
-//   - Filtrado por metadatos con operadores
-//   - Combinación de búsqueda semántica + filtros estructurados
+//   - Metadata filtering with operators
+//   - Combination of semantic search + structured filters
 //
-// Sintaxis VQL básica:
-//   SEARCH "<query>" NEAR <campo>
-//   WHERE metadata.<campo> = <valor>
+// Basic VQL syntax:
+//   SEARCH "<query>" NEAR <field>
+//   WHERE metadata.<field> = <value>
 //   ORDER BY score DESC
 //   LIMIT N
 // =============================================================================
@@ -36,7 +36,7 @@ const
   EMB_MODEL   = 'text-embedding-3-small';
   EMB_API_KEY = '@OPENAI_API_KEY';
 
-// Corpus con metadatos
+// Corpus with metadata
 type
   TDocMeta = record
     Text    : String;
@@ -58,14 +58,14 @@ const
   );
 
 // =============================================================================
-//  Indexa el corpus con metadatos
+//  Indexes the corpus with metadata
 // =============================================================================
 procedure IndexarCorpus(RAG: TAiRAGVector);
 var
   I   : Integer;
   Meta: TAiEmbeddingMetaData;
 begin
-  Writeln('Indexando corpus con metadatos...');
+  Writeln('Indexing corpus with metadata...');
   for I := 0 to High(CORPUS) do
   begin
     Meta := TAiEmbeddingMetaData.Create;
@@ -82,12 +82,12 @@ begin
   Writeln;
   RAG.BuildIndex;
   RAG.BuildLexicalIndex;
-  Writeln(Format('%d documentos indexados.', [RAG.Count]));
+  Writeln(Format('%d documents indexed.', [RAG.Count]));
   Writeln;
 end;
 
 // =============================================================================
-//  Ejecuta una consulta VQL y muestra el resultado
+//  Executes a VQL query and shows the result
 // =============================================================================
 procedure EjecutarVQL(RAG: TAiRAGVector; const Descripcion, Query: String);
 var
@@ -100,11 +100,11 @@ begin
   Writeln;
   try
     Resultado := RAG.ExecuteVGQL(Query);
-    Writeln('Resultado:');
+    Writeln('Result:');
     Writeln(Resultado);
   except
     on E: Exception do
-      Writeln('Error en VQL: ', E.Message);
+      Writeln('Error in VQL: ', E.Message);
   end;
   Writeln;
 end;
@@ -134,21 +134,21 @@ begin
 
     IndexarCorpus(RAG);
 
-    // Consultas VQL progresivas
+    // Progressive VQL queries
     EjecutarVQL(RAG,
-      'Busqueda semantica simple',
+      'Simple semantic search',
       'SEARCH "inteligencia artificial y redes neuronales" LIMIT 3');
 
     EjecutarVQL(RAG,
-      'Busqueda filtrada por categoria',
+      'Search filtered by category',
       'SEARCH "aprendizaje automatico" WHERE metadata.categoria = "IA" LIMIT 3');
 
     EjecutarVQL(RAG,
-      'Busqueda filtrada por año',
+      'Search filtered by year',
       'SEARCH "lenguajes de programacion" WHERE metadata.año >= 2023 LIMIT 3');
 
     EjecutarVQL(RAG,
-      'Busqueda con multiples filtros',
+      'Search with multiple filters',
       'SEARCH "machine learning" WHERE metadata.categoria = "IA" AND metadata.año = 2024 LIMIT 3');
 
   finally

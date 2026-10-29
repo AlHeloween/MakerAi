@@ -6,20 +6,20 @@ program MCPServerHTTP;
 // =============================================================================
 // MakerAI — 06-MCP / 02-Server-HTTP
 // =============================================================================
-// Servidor MCP via protocolo HTTP (JSON-RPC sobre HTTP).
-// Protocolo ideal para clientes REST o integraciones remotas.
+// MCP server via HTTP protocol (JSON-RPC over HTTP).
+// Protocol ideal for REST clients or remote integrations.
 //
-// Conceptos que cubre:
-//   - TAiMCPHttpServer: servidor MCP via HTTP
-//   - Server.Port: puerto de escucha (defecto 8080)
-//   - Server.CorsEnabled / CorsAllowedOrigins: CORS para acceso web
-//   - Mismo conjunto de herramientas que el servidor StdIO
+// Concepts covered:
+//   - TAiMCPHttpServer: MCP server via HTTP
+//   - Server.Port: listening port (default 8080)
+//   - Server.CorsEnabled / CorsAllowedOrigins: CORS for web access
+//   - Same set of tools as the StdIO server
 //
 // Endpoints:
-//   GET  http://localhost:8080/mcp  -> Info del servidor
-//   POST http://localhost:8080/mcp  -> Comandos JSON-RPC
+//   GET  http://localhost:8080/mcp  -> Server info
+//   POST http://localhost:8080/mcp  -> JSON-RPC commands
 //
-// Herramientas: get_datetime, greet (identicas al 01-Server-StdIO)
+// Tools: get_datetime, greet (same as 01-Server-StdIO)
 // =============================================================================
 
 uses
@@ -29,7 +29,7 @@ uses
   uMakerAi.MCPServer.Http;
 
 // =============================================================================
-//  Herramienta: get_datetime
+//  Tool: get_datetime
 // =============================================================================
 type
   TDateTimeParams = class
@@ -69,7 +69,7 @@ begin
 end;
 
 // =============================================================================
-//  Herramienta: greet
+//  Tool: greet
 // =============================================================================
 type
   TGreetParams = class
@@ -128,7 +128,7 @@ begin
       Server.CorsEnabled      := True;
       Server.CorsAllowedOrigins := '*';
 
-      // Registrar herramientas
+      // Register tools
       Server.RegisterTool('get_datetime',
         function: IAiMCPTool begin Result := TDateTimeMCPTool.Create; end);
       Server.RegisterTool('greet',
@@ -138,14 +138,14 @@ begin
 
       Writeln;
       Writeln('=== MCPServerHTTP ===');
-      Writeln(Format('Servidor HTTP escuchando en puerto %d', [Server.Port]));
-      Writeln('Herramientas registradas: get_datetime, greet');
+      Writeln(Format('HTTP server listening on port %d', [Server.Port]));
+      Writeln('Registered tools: get_datetime, greet');
       Writeln;
       Writeln('Endpoints:');
-      Writeln(Format('  GET  http://localhost:%d/mcp  -> Info del servidor', [Server.Port]));
-      Writeln(Format('  POST http://localhost:%d/mcp  -> Comandos JSON-RPC', [Server.Port]));
+      Writeln(Format('  GET  http://localhost:%d/mcp  -> Server info', [Server.Port]));
+      Writeln(Format('  POST http://localhost:%d/mcp  -> JSON-RPC commands', [Server.Port]));
       Writeln;
-      Writeln('Presiona Enter para detener...');
+      Writeln('Press Enter to stop...');
       Readln;
 
     finally
@@ -154,6 +154,6 @@ begin
     end;
   except
     on E: Exception do
-      Writeln('Error fatal: ', E.ClassName, ': ', E.Message);
+      Writeln('Fatal error: ', E.ClassName, ': ', E.Message);
   end;
 end.

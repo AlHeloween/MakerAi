@@ -52,14 +52,14 @@ type
     procedure BuildGraph;
     procedure WaitForCompletion;
     procedure Println(const Msg: string);
-    // Eventos del agente — firmas exactas segun TAIAgentsOnXxx
+    // Agent events — exact signatures according to TAIAgentsOnXxx
     procedure DoPrint(Sender: TObject; Value: string);
     procedure DoEnd(Node: TAIAgentsNode; Value: string);
     procedure DoError(Sender: TObject; Node: TAIAgentsNode;
       Link: TAIAgentsLink; E: Exception; var Abort: Boolean);
     procedure DoSuspend(Sender: TObject;
       const AThreadID, ANodeName, AReason, AContext: string);
-    // Executors de nodos — firma TAIAgentsNodeOnExecute
+    // Node executors — TAIAgentsNodeOnExecute signature
     procedure InicioExec(Node, BeforeNode: TAIAgentsNode;
       Link: TAIAgentsLink; Input: string; var Output: string);
     procedure ProcesarExec(Node, BeforeNode: TAIAgentsNode;
@@ -118,7 +118,7 @@ begin
   FConnection.Params.Values['OpenMode'] := 'CreateUTF8';
   FConnection.LoginPrompt := False;
   FConnection.Open;
-  Println('BD SQLite: ' + DBPath);
+  Println('SQLite DB: ' + DBPath);
 end;
 
 procedure TDemo.BuildGraph;
@@ -143,7 +143,7 @@ begin
     Sleep(50);
   end;
   CheckSynchronize;
-  Println('--- Ciclo de ejecucion terminado. ---');
+  Println('--- Execution cycle finished. ---');
 end;
 
 procedure TDemo.DoPrint(Sender: TObject; Value: string);
@@ -157,8 +157,8 @@ procedure TDemo.DoEnd(Node: TAIAgentsNode; Value: string);
 begin
   TThread.Synchronize(nil, procedure begin
     Writeln;
-    Println('Flujo completado con exito.');
-    Println('Output final: "' + Value + '"');
+    Println('Flow completed successfully.');
+    Println('Final output: "' + Value + '"');
   end);
 end;
 
@@ -172,7 +172,7 @@ begin
   LMsg := '';
   if Assigned(E) then LMsg := E.ClassName + ': ' + E.Message;
   TThread.Synchronize(nil, procedure begin
-    Writeln('[ERROR] Nodo: ' + LNodeName);
+    Writeln('[ERROR] Node: ' + LNodeName);
     if LMsg <> '' then
       Writeln('[ERROR] ' + LMsg);
   end);
@@ -199,7 +199,7 @@ procedure TDemo.InicioExec(Node, BeforeNode: TAIAgentsNode;
   Link: TAIAgentsLink; Input: string; var Output: string);
 begin
   TThread.Synchronize(nil, procedure begin
-    Println('[Inicio] Proceso recibido: "' + Input + '"');
+    Println('[Start] Process received: "' + Input + '"');
   end);
   Output := 'Proceso iniciado: ' + Input;
 end;
@@ -208,7 +208,7 @@ procedure TDemo.ProcesarExec(Node, BeforeNode: TAIAgentsNode;
   Link: TAIAgentsLink; Input: string; var Output: string);
 begin
   TThread.Synchronize(nil, procedure begin
-    Println('[Procesar] Procesando datos...');
+    Println('[Process] Processing data...');
   end);
   Sleep(400);
   Output := 'Datos procesados. ' + Input;
@@ -218,10 +218,10 @@ procedure TDemo.AprobarExec(Node, BeforeNode: TAIAgentsNode;
   Link: TAIAgentsLink; Input: string; var Output: string);
 begin
   TThread.Synchronize(nil, procedure begin
-    Println('[Aprobar] Solicitud enviada al operador. Suspendiendo...');
+    Println('[Approve] Request sent to operator. Suspending...');
   end);
   Output := Input;
-  // Suspende la ejecucion; el framework guarda el checkpoint automaticamente
+  // Suspends execution; the framework saves the checkpoint automatically
   Node.Suspend('Aprobacion requerida por operador', 'Datos listos: ' + Input);
 end;
 
@@ -229,7 +229,7 @@ procedure TDemo.FinalizarExec(Node, BeforeNode: TAIAgentsNode;
   Link: TAIAgentsLink; Input: string; var Output: string);
 begin
   TThread.Synchronize(nil, procedure begin
-    Println('[Finalizar] Proceso completado. Input: "' + Input + '"');
+    Println('[Finish] Process completed. Input: "' + Input + '"');
   end);
   Output := 'COMPLETADO: ' + Input;
 end;
@@ -246,7 +246,7 @@ begin
   Writeln('============================================');
   Writeln('   MakerAI — Demo 054: Checkpoint DB      ');
   Writeln('============================================');
-  Writeln('Flujo: Inicio -> Procesar -> Aprobar (SUSPEND) -> Finalizar');
+  Writeln('Flow: Start -> Process -> Approve (SUSPEND) -> Finish');
   Writeln('Checkpointer: TAiDatabaseCheckpointer (SQLite via FireDAC)');
   Writeln;
 
@@ -264,15 +264,15 @@ begin
     if Choice.Trim.ToUpper = 'S' then
     begin
       BuildGraph;
-      Println('Reanudando thread: ' + ActiveThreads[0]);
-      // 'Finalizar' es el nodo que sigue al punto de suspension ('Aprobar')
+      Println('Resuming thread: ' + ActiveThreads[0]);
+      // 'Finish' is the node that follows the suspension point ('Approve')
       FAgents.ResumeThread(ActiveThreads[0], 'Finalizar', 'Aprobado desde BD');
       WaitForCompletion;
       FCheckpointer.DeleteCheckpoint(ActiveThreads[0]);
       Println('Checkpoint eliminado de la BD.');
     end
     else
-      Println('Operacion cancelada.');
+      Println('Operation cancelled.');
     Exit;
   end;
 
@@ -280,9 +280,9 @@ begin
   // FASE 1: Primera ejecucion — el agente se suspende en "Aprobar"
   // =========================================================================
   Writeln;
-  Println('=== FASE 1: Primera ejecucion ===');
+  Println('=== PHASE 1: First run ===');
   Writeln;
-  Writeln('  Inicio -> Procesar -> Aprobar (se suspende) -> Finalizar (pendiente)');
+  Writeln('  Start -> Process -> Approve (suspends) -> Finish (pending)');
   Writeln;
 
   BuildGraph;
@@ -297,9 +297,9 @@ begin
 
   // Mostrar estado guardado en BD
   Writeln;
-  Println('=== CHECKPOINT GUARDADO EN BD SQLITE ===');
+  Println('=== CHECKPOINT SAVED IN SQLITE DB ===');
   Println('Thread ID : ' + FSuspendedThreadID);
-  Println('BD file   : ' + ChangeFileExt(ParamStr(0), '.db'));
+  Println('DB file   : ' + ChangeFileExt(ParamStr(0), '.db'));
   Println('El estado persiste. Puedes reiniciar la app y el thread');
   Println('aparecera como suspendido al volver a ejecutar el demo.');
   Writeln;
@@ -307,13 +307,13 @@ begin
   // =========================================================================
   // FASE 2: Resume — simula aprobacion del operador
   // =========================================================================
-  Println('=== FASE 2: Reanudar tras aprobacion ===');
-  Write('Presione ENTER para simular la aprobacion del operador...');
+  Println('=== PHASE 2: Resume after approval ===');
+  Write('Press ENTER to simulate operator approval...');
   Readln;
 
   Writeln;
-  Println('Reanudando ejecucion desde "Finalizar"...');
-  // 'Finalizar' es el primer nodo pendiente tras el punto de suspension
+  Println('Resuming execution from "Finish"...');
+  // 'Finish' is the first pending node after the suspension point
   FAgents.ResumeThread(FSuspendedThreadID, 'Finalizar',
     'Aprobado por operador humano');
   WaitForCompletion;
@@ -322,7 +322,7 @@ begin
   FCheckpointer.DeleteCheckpoint(FSuspendedThreadID);
   Writeln;
   Println('Checkpoint eliminado de la BD.');
-  Println('Demo finalizado correctamente.');
+  Println('Demo finished successfully.');
 end;
 
 // ---------------------------------------------------------------------------

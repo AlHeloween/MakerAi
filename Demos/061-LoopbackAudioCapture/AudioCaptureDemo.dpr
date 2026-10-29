@@ -20,7 +20,7 @@ const
   RECORD_SECONDS = 10;
 
 type
-  // Los eventos del componente requieren metodos de objeto
+  // Component events require object methods
   TCaptureHandler = class
   public
     Pcm: TMemoryStream;
@@ -34,7 +34,7 @@ type
 
 procedure TCaptureHandler.HandleFormat(Sender: TObject; aNativeSampleRate, aNativeChannels, aOutSampleRate, aOutChannels: Integer);
 begin
-  WriteLn(Format('Formato nativo: %d Hz x %d canales  ->  salida: %d Hz x %d canales (PCM16)',
+  WriteLn(Format('Native format: %d Hz x %d channels  ->  output: %d Hz x %d channels (PCM16)',
     [aNativeSampleRate, aNativeChannels, aOutSampleRate, aOutChannels]));
 end;
 
@@ -67,11 +67,11 @@ begin
   try
     WriteLn('=== Demo TAiAudioCapture (WASAPI loopback) ===');
     WriteLn;
-    WriteLn('Dispositivos de reproduccion disponibles:');
+    WriteLn('Available playback devices:');
     Devices := TAiAudioCapture.GetAudioDevices(asLoopback);
     for D in Devices do
       if D.IsDefault then
-        WriteLn('  * ' + D.DeviceName + '  (predeterminado)')
+        WriteLn('  * ' + D.DeviceName + '  (default)')
       else
         WriteLn('  - ' + D.DeviceName);
     WriteLn;
@@ -88,12 +88,12 @@ begin
         Capture.OnData := Handler.HandleData;
         Capture.OnError := Handler.HandleError;
 
-        WriteLn(Format('Grabando %d segundos del audio del sistema (reproduce algo!)...', [RECORD_SECONDS]));
+        WriteLn(Format('Recording %d seconds of system audio (play something!)...', [RECORD_SECONDS]));
         Capture.Active := True;
 
         Watch := TStopwatch.StartNew;
         while (Watch.Elapsed.TotalSeconds < RECORD_SECONDS) and not Handler.HasError do
-          CheckSynchronize(50); // procesa los eventos TThread.Queue en consola
+          CheckSynchronize(50); // processes TThread.Queue events in the console
 
         Capture.Active := False;
         CheckSynchronize(100);
@@ -105,15 +105,15 @@ begin
           if ConvertPCMStreamToWAVStream(Handler.Pcm, Wav, Handler.SampleRate, Handler.Channels, 16) then
             try
               Wav.SaveToFile(OutFile);
-              WriteLn('Audio guardado en: ' + OutFile);
+              WriteLn('Audio saved to: ' + OutFile);
             finally
               Wav.Free;
             end
           else
-            WriteLn('Error convirtiendo PCM a WAV.');
+            WriteLn('Error converting PCM to WAV.');
         end
         else
-          WriteLn('No se capturo audio.');
+          WriteLn('No audio was captured.');
       finally
         Handler.Pcm.Free;
       end;
@@ -123,7 +123,7 @@ begin
     end;
 
     WriteLn;
-    WriteLn('Pulsa ENTER para salir...');
+    WriteLn('Press ENTER to exit...');
     ReadLn;
   except
     on E: Exception do

@@ -10,7 +10,7 @@ program Sequential;
 // La salida de cada nodo es la entrada del siguiente.
 // Patron fundamental de composicion de agentes.
 //
-// Conceptos que cubre:
+// Concepts it covers:
 //   - TAIAgentsLink encadenando nodos linealmente
 //   - Salidas intermedias via Blackboard.GetString('Nodo.output')
 //   - Especializacion por SystemPrompt
@@ -41,7 +41,7 @@ var
   Resultado : String;
 begin
   Writeln(StringOfChar('=', 60));
-  Writeln('Tema: ', ATema);
+  Writeln('Topic: ', ATema);
   Writeln(StringOfChar('=', 60));
 
   Manager := TAIAgentManager.Create(nil);
@@ -101,18 +101,18 @@ begin
     Manager.Compile;
 
     Writeln;
-    Writeln('Ejecutando pipeline secuencial...');
+    Writeln('Running sequential pipeline...');
     Resultado := Manager.Run(ATema);
 
-    // Mostrar salidas intermedias del blackboard
+    // Show intermediate blackboard outputs
     Writeln;
-    Writeln('--- Conceptos clave (Analizador) ---');
+    Writeln('--- Key concepts (Analizador) ---');
     Writeln(Manager.Blackboard.GetString('Analizador.output'));
     Writeln;
-    Writeln('--- Conceptos expandidos (Expansor) ---');
+    Writeln('--- Expanded concepts (Expansor) ---');
     Writeln(Manager.Blackboard.GetString('Expansor.output'));
     Writeln;
-    Writeln('--- Articulo final (Redactor) ---');
+    Writeln('--- Final article (Redactor) ---');
     Writeln(Resultado);
 
   finally
@@ -124,7 +124,7 @@ end;
 procedure RunDemo;
 begin
   Writeln('=== Sequential ===');
-  Writeln('Patron: [Analizador] -> [Expansor] -> [Redactor]');
+  Writeln('Pattern: [Analizador] -> [Expansor] -> [Redactor]');
   Writeln;
 
   RunPipeline('Inteligencia Artificial Generativa');
@@ -139,6 +139,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

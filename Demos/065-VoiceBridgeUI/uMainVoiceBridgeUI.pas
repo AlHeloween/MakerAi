@@ -477,7 +477,7 @@ begin
 
   FRunning := True;
   BtnStart.Text := 'DETENER';
-  SetStatus('Puente activo. STT conectando...');
+  SetStatus('Bridge active. STT connecting...');
 end;
 
 procedure TFormVoiceBridge.StopBridge;
@@ -507,7 +507,7 @@ begin
 
   FClosing := False;
   BtnStart.Text := 'INICIAR';
-  SetStatus('Puente detenido.');
+  SetStatus('Bridge stopped.');
 end;
 
 procedure TFormVoiceBridge.BtnStartClick(Sender: TObject);
@@ -519,7 +519,7 @@ end;
 
 procedure TFormVoiceBridge.OnSttSessionReady(Sender: TObject);
 begin
-  TThread.Queue(nil, procedure begin SetStatus('STT conectado y listo.'); end);
+  TThread.Queue(nil, procedure begin SetStatus('STT connected and ready.'); end);
 end;
 
 procedure TFormVoiceBridge.OnSttError(Sender: TObject; const aMsg, aCode: string);
@@ -534,12 +534,12 @@ end;
 
 procedure TFormVoiceBridge.OnCaptMicError(Sender: TObject; const aMsg: string);
 begin
-  TThread.Queue(nil, procedure begin SetStatus('Error mic: ' + aMsg); end);
+  TThread.Queue(nil, procedure begin SetStatus('Mic error: ' + aMsg); end);
 end;
 
 procedure TFormVoiceBridge.OnPlayerCableError(Sender: TObject; const aMsg: string);
 begin
-  TThread.Queue(nil, procedure begin SetStatus('Error player cable: ' + aMsg); end);
+  TThread.Queue(nil, procedure begin SetStatus('Cable player error: ' + aMsg); end);
 end;
 
 procedure TFormVoiceBridge.OnPlayerCableState(Sender: TObject; aIsPlaying: Boolean);
@@ -559,7 +559,7 @@ begin
   begin
     TThread.Queue(nil, procedure
     begin
-      SetStatus('ECO detectado: el microfono captura el audio del TTS. Usa auriculares.');
+      SetStatus('ECHO detected: the microphone captures TTS audio. Use headphones.');
     end);
     Exit;
   end;
@@ -604,7 +604,7 @@ begin
       end;
     except
       on E: Exception do
-        TThread.Queue(nil, procedure begin SetStatus('Error YO TTS: ' + E.Message); end);
+        TThread.Queue(nil, procedure begin SetStatus('ME TTS error: ' + E.Message); end);
     end;
   end);
 end;
@@ -620,7 +620,7 @@ end;
 
 procedure TFormVoiceBridge.OnCaptLoopError(Sender: TObject; const aMsg: string);
 begin
-  TThread.Queue(nil, procedure begin SetStatus('Error loopback: ' + aMsg); end);
+  TThread.Queue(nil, procedure begin SetStatus('Loopback error: ' + aMsg); end);
 end;
 
 procedure TFormVoiceBridge.OnPlayerLocalState(Sender: TObject; aIsPlaying: Boolean);
@@ -631,7 +631,7 @@ end;
 
 procedure TFormVoiceBridge.OnPlayerLocalError(Sender: TObject; const aMsg: string);
 begin
-  TThread.Queue(nil, procedure begin SetStatus('Error player local: ' + aMsg); end);
+  TThread.Queue(nil, procedure begin SetStatus('Local player error: ' + aMsg); end);
 end;
 
 procedure TFormVoiceBridge.ProcessSegment(const aPcm: TBytes);
@@ -645,7 +645,7 @@ begin
       ProcessSegmentWork(LData);
     except
       on E: Exception do
-        TThread.Queue(nil, procedure begin SetStatus('Error diarizando: ' + E.Message); end);
+        TThread.Queue(nil, procedure begin SetStatus('Diarizing error: ' + E.Message); end);
     end;
   end);
 end;
@@ -718,7 +718,7 @@ begin
       begin
         LEdit := GetSpeakerEdit(LIdx);
         if Assigned(LEdit) then LEdit.Text := LNameCopy;
-        LogEllos('(nuevo hablante registrado: ' + LNameCopy + ')');
+        LogEllos('(new speaker registered: ' + LNameCopy + ')');
       end);
       Result := True;
     finally
@@ -835,7 +835,7 @@ begin
           if Pos('known_speaker', LowerCase(E.Message)) > 0 then
           begin
             TThread.Queue(nil, procedure begin
-              SetStatus('Muestras de hablantes rechazadas; reiniciando registro...');
+              SetStatus('Speaker samples rejected; restarting registration...');
             end);
             FAudioApi.ClearKnownSpeakers;
             FillChar(FSpeakerNames,   SizeOf(FSpeakerNames),   0);
@@ -1003,7 +1003,7 @@ begin
         FSttMic.Connect;
         SetStatus('STT reconectando...');
       except
-        on E: Exception do SetStatus('Error reconectando STT: ' + E.Message);
+        on E: Exception do SetStatus('Error reconnecting STT: ' + E.Message);
       end;
     end);
   end);

@@ -13,7 +13,7 @@
 //   - qwen/qwen3-32b        (reasoning, preview)
 //   - meta-llama/llama-4-scout-17b-16e-instruct (vision, preview)
 //
-// Configurar GROQ_API_KEY como variable de entorno antes de ejecutar.
+// Configure GROQ_API_KEY as an environment variable before running.
 // =============================================================================
 
 uses
@@ -184,7 +184,7 @@ begin
 
   if FRawChunkLog.Count > 0 then
   begin
-    Writeln('--- RAW SSE chunks (primeros ' + IntToStr(FRawChunkLog.Count) + ') ---');
+    Writeln('--- RAW SSE chunks (first ' + IntToStr(FRawChunkLog.Count) + ') ---');
     var i: Integer;
     for i := 0 to FRawChunkLog.Count - 1 do
       Writeln('  [' + IntToStr(i) + '] ' + FRawChunkLog[i]);
@@ -198,17 +198,17 @@ begin
     Writeln;
   end
   else
-    Writeln('Thinking chunks : 0  (sin reasoning en este modelo/modo)');
+    Writeln('Thinking chunks : 0  (no reasoning in this model/mode)');
 
-  Writeln(Format('Texto chunks    : %d  (%d chars en buffer)', [FTokenCount, Length(FBuffer)]));
+  Writeln(Format('Text chunks     : %d  (%d chars in buffer)', [FTokenCount, Length(FBuffer)]));
 
   if FConn.GetLastMessage <> nil then
   begin
     LHistorial := FConn.GetLastMessage.Prompt;
     LReasoning := FConn.GetLastMessage.ReasoningContent;
-    Writeln(Format('Historial Prompt: %d chars', [Length(LHistorial)]));
+    Writeln(Format('History Prompt: %d chars', [Length(LHistorial)]));
     if LReasoning <> '' then
-      Writeln(Format('Historial Reason: %d chars', [Length(LReasoning)]));
+      Writeln(Format('History Reason: %d chars', [Length(LReasoning)]));
 
     if LHistorial <> FBuffer then
     begin
@@ -241,10 +241,10 @@ begin
     else if Response = '' then
       Writeln('Respuesta: <vacia>')
     else
-      Writeln('Respuesta: ', Response);
+      Writeln('Answer: ', Response);
   except
     on E: Exception do
-      Writeln('EXCEPCION: ', E.ClassName, ' - ', E.Message);
+      Writeln('EXCEPTION: ', E.ClassName, ' - ', E.Message);
   end;
 end;
 
@@ -271,7 +271,7 @@ begin
     on E: Exception do
     begin
       Writeln;
-      Writeln('ERROR al llamar AddMessageAndRun: ', E.Message);
+      Writeln('ERROR calling AddMessageAndRun: ', E.Message);
       Exit;
     end;
   end;
@@ -295,8 +295,8 @@ procedure TGroqTester.TestMultiTurnAsync(const AModel: String);
     WaitResult: TWaitResult;
   begin
     Writeln;
-    Writeln(Format('-- Turno %d --', [ATurn]));
-    Writeln('Usuario: ', AQuestion);
+    Writeln(Format('-- Turn %d --', [ATurn]));
+    Writeln('User: ', AQuestion);
 
     ResetBuffers;
     FDoneEvent.ResetEvent;
@@ -315,7 +315,7 @@ procedure TGroqTester.TestMultiTurnAsync(const AModel: String);
       begin
         if FThinkCount > 0 then
           Writeln(Format('  [thinking: %d chunks]', [FThinkCount]));
-        Writeln(Format('  [texto: %d chunks, %d chars]', [FTokenCount, Length(FBuffer)]));
+        Writeln(Format('  [text: %d chunks, %d chars]', [FTokenCount, Length(FBuffer)]));
       end;
     end
     else
@@ -327,12 +327,12 @@ begin
   FConn.Model := AModel;
   FConn.NewChat;
 
-  SendTurn('Hola! Mi nombre es Gustavo. Recuerdalo.', 1);
-  SendTurn('Cual es mi nombre?', 2);
-  SendTurn('Cuantos mensajes llevamos en esta conversacion?', 3);
+  SendTurn('Hello! My name is Gustavo. Remember it.', 1);
+  SendTurn('What is my name?', 2);
+  SendTurn('How many messages have we exchanged in this conversation?', 3);
 
   Writeln;
-  Writeln(Format('Mensajes en historial: %d', [FConn.Messages.Count]));
+  Writeln(Format('Messages in history: %d', [FConn.Messages.Count]));
 end;
 
 // =============================================================================
@@ -349,7 +349,7 @@ begin
 
   Tester := TGroqTester.Create;
   try
-    // --- Produccion: llama-3.1-8b-instant (ultra-rapido) ---
+    // --- Production: llama-3.1-8b-instant (ultra-fast) ---
     Tester.TestSync(
       'En una sola oracion: cual es la capital de Francia?',
       MODEL_FAST, 'Test 1 - Sync basico (llama-3.1-8b)');
@@ -358,7 +358,7 @@ begin
       'En una sola oracion: cual es la capital de Japon?',
       MODEL_FAST, 'Test 2 - Async basico (llama-3.1-8b)');
 
-    // --- Produccion: llama-3.3-70b-versatile ---
+    // --- Production: llama-3.3-70b-versatile ---
     Tester.TestAsync(
       'Explica en 2 parrafos breves que es el machine learning.',
       MODEL_QUALITY, 'Test 3 - Async calidad (llama-3.3-70b)');
@@ -372,7 +372,7 @@ begin
       'Cuanto es 347 multiplicado por 28? Muestra el razonamiento.',
       MODEL_REASON, 'Test 5 - Async reasoning (qwen-3-32b)');
 
-    // --- Produccion: openai/gpt-oss-120b (reasoning nativo) ---
+    // --- Production: openai/gpt-oss-120b (native reasoning) ---
     Tester.TestSync(
       'Cuanto es 347 multiplicado por 28? Muestra el razonamiento.',
       MODEL_REASON2, 'Test 6 - Sync gpt-oss-120b (reasoning)');
@@ -381,7 +381,7 @@ begin
       'Explica en 2 parrafos breves que es la inteligencia artificial.',
       MODEL_REASON2, 'Test 7 - Async gpt-oss-120b');
 
-    // --- Multi-turno con llama-3.3-70b ---
+    // --- Multi-turn with llama-3.3-70b ---
     Tester.TestMultiTurnAsync(MODEL_QUALITY);
 
   finally
@@ -389,6 +389,6 @@ begin
   end;
 
   Writeln;
-  Writeln('Demo finalizado. Presiona Enter para salir.');
+  Writeln('Demo finished. Press Enter to exit.');
   Readln;
 end.

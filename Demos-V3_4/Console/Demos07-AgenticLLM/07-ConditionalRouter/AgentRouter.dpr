@@ -14,7 +14,7 @@ program AgentRouter;
 //                                                         |
 //                                                  [FinalFormatter] (jmAny)
 //
-// Conceptos que cubre:
+// Concepts it covers:
 //   - TAIAgentsLink.Mode = lmConditional: enrutamiento por valor del blackboard
 //   - TAIAgentsLink.ConditionalKey: clave que se evalua en el blackboard
 //   - TAIAgentsLink.AddConditionalTarget: mapeo valor -> nodo destino
@@ -36,7 +36,7 @@ const
   API_KEY = '@CLAUDE_API_KEY';
 
 // -----------------------------------------------------------------------------
-// TRouterHelper: lee la clasificacion del blackboard y escribe la clave 'route'
+// TRouterHelper: reads the classification from the blackboard and writes the 'route' key
 // -----------------------------------------------------------------------------
 type
   TRouterHelper = class
@@ -54,7 +54,7 @@ var
 begin
   Classification := Trim(LowerCase(Node.Graph.Blackboard.GetString('Classifier.output')));
 
-  // Normalizar: tomar la primera palabra (el LLM a veces genera texto extra)
+  // Normalize: take the first word (the LLM sometimes generates extra text)
   Route     := 'history';  // valor por defecto
   FirstWord := '';
   if Length(Classification) > 0 then
@@ -64,15 +64,15 @@ begin
   else if FirstWord = 'science' then Route := 'science'
   else if FirstWord = 'history' then Route := 'history'
   else begin
-    // Fallback: buscar en el texto completo
+    // Fallback: search the full text
     if      Pos('math',    Classification) > 0 then Route := 'math'
     else if Pos('science', Classification) > 0 then Route := 'science';
   end;
 
   Node.Graph.Blackboard.SetString('route', Route);
-  Writeln(Format('  [Router] Clasificacion="%s" -> Ruta="%s"', [Classification, Route]));
+  Writeln(Format('  [Router] Classification="%s" -> Route="%s"', [Classification, Route]));
 
-  // Pasar la pregunta original (no el texto de clasificacion)
+  // Pass the original question (not the classification text)
   if Assigned(BeforeNode) then
     Output := BeforeNode.Input
   else
@@ -97,9 +97,9 @@ procedure RunQuery(Manager: TAIAgentManager; const AQuestion: String);
 begin
   Manager.Blackboard.Clear;
   Writeln(StringOfChar('-', 60));
-  Writeln('Pregunta: ', AQuestion);
+  Writeln('Question: ', AQuestion);
   try
-    Writeln('Respuesta: ', Manager.Run(AQuestion));
+    Writeln('Answer: ', Manager.Run(AQuestion));
   except
     on E: Exception do
       Writeln('ERROR: ', E.Message);
@@ -130,20 +130,20 @@ begin
     Manager.Asynchronous := False;
     Manager.TimeoutMs    := 90000;
 
-    // Clasificador: emite UNA palabra (math/science/history)
+    // Classifier: emits ONE word (math/science/history)
     Classifier := MakeLLMNode(Manager, 'Classifier',
       'You are a CLASSIFIER. Output ONE word only. Do not answer the question.' + #10 +
       'Given a question, output EXACTLY one of: math  science  history' + #10 +
       'No explanations. No punctuation. Just one word.');
     Classifier.MaxTokens := 3;
 
-    // Nodo router: lee la clasificacion y escribe 'route' en el blackboard
+    // Router node: reads the classification and writes 'route' in the blackboard
     RouterNode := TAIAgentsNode.Create(Manager);
     RouterNode.Name      := 'Router';
     RouterNode.Graph     := Manager;
     RouterNode.OnExecute := RouterHelper.Execute;
 
-    // Especialistas
+    // Specialists
     MathSpec := MakeLLMNode(Manager, 'MathSpecialist',
       'You are a math expert. Answer clearly, showing all steps if needed.');
 
@@ -153,7 +153,7 @@ begin
     HistorySpec := MakeLLMNode(Manager, 'HistorySpecialist',
       'You are a history expert. Answer with historical context and key facts.');
 
-    // Formateador final: acepta el primero que llege (jmAny, solo uno activa)
+    // Final formatter: accepts the first one that arrives (jmAny, only one activates)
     FinalFmt := MakeLLMNode(Manager, 'FinalFormatter',
       'You receive an expert answer. Format it nicely: add a brief title, ' +
       'then the answer. Keep it concise and well-structured.');
@@ -166,7 +166,7 @@ begin
     RouterLink.NextA := RouterNode;
     Classifier.Next  := RouterLink;
 
-    // RouterNode -> especialista segun 'route'
+    // RouterNode -> specialist according to 'route'
     CondLink := TAIAgentsLink.Create(Manager);
     CondLink.Name           := 'CondLink';
     CondLink.Graph          := Manager;
@@ -185,7 +185,7 @@ begin
     end;
     RouterNode.Next := CondLink;
 
-    // Cada especialista -> FinalFormatter
+    // Each specialist -> FinalFormatter
     JoinMath := TAIAgentsLink.Create(Manager);
     JoinMath.Name := 'JoinMath'; JoinMath.Graph := Manager; JoinMath.NextA := FinalFmt;
     MathSpec.Next := JoinMath;
@@ -216,7 +216,7 @@ end;
 
 begin
   Writeln('=== AgentRouter ===');
-  Writeln('Patron: Clasificador -> Router (lmConditional) -> Especialista -> Formateador');
+  Writeln('Pattern: Classifier -> Router (lmConditional) -> Specialist -> Formatter');
   Writeln;
   try
     RunDemo;
@@ -225,6 +225,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

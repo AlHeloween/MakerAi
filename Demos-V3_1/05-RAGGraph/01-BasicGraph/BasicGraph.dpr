@@ -6,18 +6,18 @@ program BasicGraph;
 // =============================================================================
 // MakerAI — 05-RAGGraph / 01-BasicGraph
 // =============================================================================
-// Grafo de conocimiento básico: nodos, aristas y búsqueda semántica.
-// Un Knowledge Graph combina vectores semánticos con relaciones estructuradas.
+// Basic knowledge graph: nodes, edges, and semantic search.
+// A Knowledge Graph combines semantic vectors with structured relationships.
 //
 // Conceptos que cubre:
-//   - TAiRagGraph: componente principal de grafo vectorial
-//   - AddNode(id, label, name): agrega entidades al grafo
-//   - AddEdge(from, to, id, label, name): agrega relaciones
-//   - Node.Text := '...': texto para búsqueda semántica
-//   - Node.Properties['key'] := value: metadatos del nodo
-//   - RebuildIndexes: construye índices vectoriales y lexicales
-//   - Search(prompt, depth, limit, precision): búsqueda semántica
-//   - SearchText(prompt, depth, showProps, limit, precision): resultado texto
+//   - TAiRagGraph: main vector graph component
+//   - AddNode(id, label, name): adds entities to the graph
+//   - AddEdge(from, to, id, label, name): adds relationships
+//   - Node.Text := '...': text for semantic search
+//   - Node.Properties['key'] := value: node metadata
+//   - RebuildIndexes: builds vector and lexical indexes
+//   - Search(prompt, depth, limit, precision): semantic search
+//   - SearchText(prompt, depth, showProps, limit, precision): text result
 // =============================================================================
 
 uses
@@ -34,7 +34,7 @@ const
   EMB_API_KEY = '@OPENAI_API_KEY';
 
 // =============================================================================
-//  Construye un grafo de empresas tecnológicas
+//  Builds a technology companies graph
 // =============================================================================
 procedure ConstruirGrafo(RAG: TAiRagGraph);
 var
@@ -44,7 +44,7 @@ var
 begin
   Writeln('Creando nodos de personas...');
 
-  // --- PERSONAS ---
+  // --- PEOPLE ---
   Jobs := RAG.AddNode('p001', 'PERSONA', 'Steve Jobs');
   Jobs.Text := 'Steve Jobs, visionario y cofundador de Apple, creó el iPhone y la Mac.';
   Jobs.Properties['nacimiento'] := 1955;
@@ -67,7 +67,7 @@ begin
 
   Writeln('Creando nodos de empresas...');
 
-  // --- EMPRESAS ---
+  // --- COMPANIES ---
   Apple := RAG.AddNode('e001', 'EMPRESA', 'Apple Inc.');
   Apple.Text := 'Apple Inc., empresa creadora del iPhone, Mac y el ecosistema iOS.';
   Apple.Properties['fundacion'] := 1976;
@@ -90,7 +90,7 @@ begin
 
   Writeln('Creando nodos de productos...');
 
-  // --- PRODUCTOS ---
+  // --- PRODUCTS ---
   IPhone := RAG.AddNode('pr001', 'PRODUCTO', 'iPhone');
   IPhone.Text := 'iPhone, smartphone revolucionario que transformó la industria móvil.';
   IPhone.Properties['lanzamiento'] := 2007;
@@ -109,19 +109,19 @@ begin
 
   Writeln('Creando relaciones...');
 
-  // --- RELACIONES persona → empresa ---
+  // --- RELATIONSHIPS person → company ---
   RAG.AddEdge(Jobs,   Apple,     'r001', 'COFUNDO', 'cofundó', 0.9);
   RAG.AddEdge(Gates,  Microsoft, 'r002', 'COFUNDO', 'cofundó', 0.9);
   RAG.AddEdge(Page,   Google,    'r003', 'COFUNDO', 'cofundó', 0.9);
   RAG.AddEdge(Altman, OpenAI,    'r004', 'DIRIGE',  'dirige',  0.8);
 
-  // --- RELACIONES empresa → producto ---
+  // --- RELATIONSHIPS company → product ---
   RAG.AddEdge(Apple,     IPhone,  'r005', 'CREO', 'creó', 0.9);
   RAG.AddEdge(Microsoft, Windows, 'r006', 'CREO', 'creó', 0.9);
   RAG.AddEdge(Google,    Search,  'r007', 'CREO', 'creó', 0.9);
   RAG.AddEdge(OpenAI,    GPT,     'r008', 'CREO', 'creó', 0.9);
 
-  // --- RELACIONES entre empresas ---
+  // --- RELATIONSHIPS between companies ---
   RAG.AddEdge(Microsoft, OpenAI, 'r009', 'INVIRTIO_EN', 'invirtió en', 0.7);
 
   Writeln(Format('Grafo creado: %d nodos, %d aristas.',
@@ -130,14 +130,14 @@ begin
 end;
 
 // =============================================================================
-//  Búsqueda semántica en el grafo
+//  Semantic search in the graph
 // =============================================================================
 procedure BuscarEnGrafo(RAG: TAiRagGraph; const Query: String);
 var
   Resultado: String;
 begin
   Writeln(StringOfChar('-', 60));
-  Writeln('Busqueda: "', Query, '"');
+  Writeln('Search: "', Query, '"');
   Resultado := RAG.SearchText(Query, 0, True, 3, 0.2);
   Writeln(Resultado);
 end;
@@ -163,35 +163,35 @@ begin
 
     RAG.Embeddings := EmbConn.AiEmbeddings;
 
-    // Construir el grafo
+    // Build the graph
     ConstruirGrafo(RAG);
 
-    // Generar embeddings e índices
-    Writeln('Generando embeddings y construyendo indices...');
+    // Generate embeddings and indexes
+    Writeln('Generating embeddings and building indexes...');
     RAG.RebuildIndexes;
-    Writeln('Indices listos.');
+    Writeln('Indexes ready.');
     Writeln;
 
-    // Búsquedas semánticas
+    // Semantic searches
     BuscarEnGrafo(RAG, 'fundadores de empresas tecnologicas');
     BuscarEnGrafo(RAG, 'inteligencia artificial y LLMs');
     BuscarEnGrafo(RAG, 'sistemas operativos y software');
     BuscarEnGrafo(RAG, 'busqueda en internet y publicidad');
 
-    // Estadísticas
+    // Statistics
     Writeln(StringOfChar('=', 60));
-    Writeln('Estadisticas del grafo:');
-    Writeln('  Total de nodos: ', RAG.NodeCount);
-    Writeln('  Total de aristas: ', RAG.EdgeCount);
+    Writeln('Graph statistics:');
+    Writeln('  Total nodes: ', RAG.NodeCount);
+    Writeln('  Total edges: ', RAG.EdgeCount);
 
-    // Etiuetas únicas de nodos
+    // Unique node labels
     var Labels := RAG.GetUniqueNodeLabels;
-    Write('  Tipos de nodos: ');
+    Write('  Node types: ');
     for var L in Labels do Write(L, ' ');
     Writeln;
 
     var EdgeLabels := RAG.GetUniqueEdgeLabels;
-    Write('  Tipos de aristas: ');
+    Write('  Edge types: ');
     for var EL in EdgeLabels do Write(EL, ' ');
     Writeln;
 

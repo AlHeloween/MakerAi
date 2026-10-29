@@ -6,22 +6,22 @@
 // =============================================================================
 // MakerAI — 03-Embeddings / 05-SemanticSearch
 // =============================================================================
-// Pipeline completo de busqueda semantica en 5 fases + FAQ Bot.
-// Contrasta busqueda sintactica vs semantica y demuestra que los embeddings
-// encuentran significado, no solo texto exacto.
+// Complete semantic search pipeline in 5 phases + FAQ Bot.
+// Contrasts syntactic vs semantic search and demonstrates that embeddings
+// find meaning, not just exact text.
 //
-// Conceptos que cubre (secciones 21.0 y 21.10 del libro):
-//   - Busqueda sintactica vs semantica (contraste practico)
-//   - Fase 1: Preparacion de documentos
-//   - Fase 2-3: Vectorizacion e Indexacion con TAiEmbeddingConnection
-//   - Fase 4: Vectorizacion de la consulta del usuario
-//   - Fase 5: Busqueda, ranking y Top-K con FindTopK
-//   - FAQ Bot: responder preguntas en lenguaje natural
-//   - Advertencia: modelo de embedding inmutable en el indice
+// Concepts covered (sections 21.0 and 21.10 of the book):
+//   - Syntactic vs semantic search (practical contrast)
+//   - Phase 1: Document preparation
+//   - Phase 2-3: Vectorization and indexing with TAiEmbeddingConnection
+//   - Phase 4: User query vectorization
+//   - Phase 5: Search, ranking and Top-K with FindTopK
+//   - FAQ Bot: answer questions in natural language
+//   - Warning: embedding model is immutable in the index
 //
-// Proveedor: Ollama local (sin costo, sin API key)
-//   Modelo principal: mxbai-embed-large:latest
-//   Alternativas:     snowflake-arctic-embed:latest
+// Provider: local Ollama (no cost, no API key)
+//   Main model: mxbai-embed-large:latest
+//   Alternatives:     snowflake-arctic-embed:latest
 //                     embeddinggemma:latest
 // =============================================================================
 
@@ -54,7 +54,7 @@ type
   end;
 
 // =============================================================================
-//  Base de documentos (libro sec. 21.10.2)
+//  Document base (book sec. 21.10.2)
 // =============================================================================
 const
   DOCS: array[0..6] of TDocumento = (
@@ -75,7 +75,7 @@ const
   );
 
 // =============================================================================
-//  FAQ de ejemplo (libro sec. 21.10.8)
+//  Example FAQ (book sec. 21.10.8)
 // =============================================================================
 type
   TFAQItem = record
@@ -109,13 +109,13 @@ begin
 end;
 
 // =============================================================================
-//  Seccion 0 — Busqueda sintactica vs semantica (libro sec. 21.0)
+//  Section 0 — Syntactic vs semantic search (book sec. 21.0)
 // =============================================================================
 procedure MostrarContraste;
 begin
   Titulo('Sec. 21.0 — Busqueda sintactica vs semantica');
 
-  Writeln('  Busqueda SINTACTICA busca texto exacto:');
+  Writeln('  SYNTACTIC search looks for exact text:');
   Writeln;
 
   var Termino := 'medico';
@@ -125,21 +125,21 @@ begin
       IfThen(SameText(S, Termino), 'ENCONTRADO', 'no encontrado')]));
 
   Writeln;
-  Writeln('  La busqueda SEMANTICA encontraria todos los anteriores');
-  Writeln('  porque entiende que son sinonimos. Lo demostramos abajo.');
+  Writeln('  SEMANTIC search would find all of the above');
+  Writeln('  because it understands they are synonyms. We demonstrate this below.');
 end;
 
 // =============================================================================
-//  Fases 1-3 — Preparacion, vectorizacion e indexacion (libro sec. 21.10.2-3)
+//  Phases 1-3 — Preparation, vectorization and indexing (book sec. 21.10.2-3)
 // =============================================================================
 function CrearIndice(Conn: TAiEmbeddingConnection): TArray<TDocVectorizado>;
 var
   I: Integer;
 begin
-  Titulo('Sec. 21.10.2-21.10.3 — Fases 1-3: Vectorizacion e Indexacion');
+  Titulo('Sec. 21.10.2-21.10.3 — Phases 1-3: Vectorization and indexing');
 
-  Writeln(Format('  Indexando %d documentos con %s/%s ...', [Length(DOCS), DRIVER, MODEL]));
-  Writeln(Format('  Modelo usado: %s  <- NO cambiar al hacer consultas', [MODEL]));
+  Writeln(Format('  Indexing %d documents with %s/%s ...', [Length(DOCS), DRIVER, MODEL]));
+  Writeln(Format('  Model used: %s  <- DO NOT change when querying', [MODEL]));
   Writeln;
 
   SetLength(Result, Length(DOCS));
@@ -154,7 +154,7 @@ begin
 end;
 
 // =============================================================================
-//  Fases 4-5 — Consulta y ranking (libro sec. 21.10.4-5)
+//  Phases 4-5 — Query and ranking (book sec. 21.10.4-5)
 // =============================================================================
 procedure BuscarEn(Conn: TAiEmbeddingConnection;
   const Indice: TArray<TDocVectorizado>;
@@ -163,7 +163,7 @@ var
   I: Integer;
   Candidatos: TAiEmbeddingList;
 begin
-  Writeln(Format('  Consulta: "%s"', [Consulta]));
+  Writeln(Format('  Query: "%s"', [Consulta]));
 
   var QVec := Conn.CreateEmbedding(Consulta, 'user');
 
@@ -181,8 +181,8 @@ end;
 procedure SeccionBusqueda(Conn: TAiEmbeddingConnection;
   const Indice: TArray<TDocVectorizado>);
 begin
-  Titulo('Sec. 21.10.4-21.10.5 — Fases 4-5: Consulta y Ranking');
-  Writeln('  Notar: las consultas usan sinonimos, no texto exacto de los documentos');
+  Titulo('Sec. 21.10.4-21.10.5 — Phases 4-5: Query and ranking');
+  Writeln('  Note: queries use synonyms, not exact text from the documents');
   Writeln;
 
   BuscarEn(Conn, Indice, 'doctor y hospital', 3);
@@ -193,16 +193,16 @@ begin
 end;
 
 // =============================================================================
-//  FAQ Bot (libro sec. 21.10.8)
+//  FAQ Bot (book sec. 21.10.8)
 // =============================================================================
 procedure SeccionFAQBot(Conn: TAiEmbeddingConnection);
 var
   Vectores: TAiEmbeddingList;
   I: Integer;
 begin
-  Titulo('Sec. 21.10.8 — FAQ Bot: respuestas sin coincidencia exacta de texto');
+  Titulo('Sec. 21.10.8 — FAQ Bot: answers without exact text match');
 
-  Writeln('  Indexando preguntas del FAQ...');
+  Writeln('  Indexing FAQ questions...');
   SetLength(Vectores, Length(FAQ));
   for I := 0 to High(FAQ) do
   begin
@@ -211,7 +211,7 @@ begin
   end;
 
   Writeln;
-  Writeln('  Respondiendo preguntas del usuario (formuladas diferente):');
+  Writeln('  Answering user questions (phrased differently):');
   Writeln;
 
   var Preguntas: TArray<String> := [
@@ -231,9 +231,9 @@ begin
     begin
       var Idx  := Res[0].Index;
       var Conf := Res[0].Score;
-      Writeln(Format('  Usuario  : "%s"', [Pregunta]));
-      Writeln(Format('  FAQ match: "%s"  (confianza: %.0f%%)', [FAQ[Idx].Pregunta, Conf*100]));
-      Writeln(Format('  Respuesta: %s', [FAQ[Idx].Respuesta]));
+      Writeln(Format('  User     : "%s"', [Pregunta]));
+      Writeln(Format('  FAQ match: "%s"  (confidence: %.0f%%)', [FAQ[Idx].Pregunta, Conf*100]));
+      Writeln(Format('  Answer   : %s', [FAQ[Idx].Respuesta]));
       Writeln;
     end;
   end;
@@ -246,8 +246,8 @@ procedure RunDemo;
 var
   Conn: TAiEmbeddingConnection;
 begin
-  Writeln('=== SemanticSearch — Pipeline completo de busqueda semantica ===');
-  Writeln('Driver: ', DRIVER, ' | Modelo: ', MODEL);
+  Writeln('=== SemanticSearch — Complete semantic search pipeline ===');
+  Writeln('Driver: ', DRIVER, ' | Model: ', MODEL);
 
   Conn := TAiEmbeddingConnection.Create(nil);
   try
@@ -262,12 +262,12 @@ begin
     SeccionBusqueda(Conn, Indice);
     SeccionFAQBot(Conn);
 
-    Titulo('Resumen');
-    Writeln('  Pipeline de 5 fases ejecutado con exito');
-    Writeln('  La busqueda semantica encontro documentos por significado,');
-    Writeln('  no por coincidencia exacta de texto.');
-    Writeln('  El FAQ Bot respondio sin necesitar texto identico al indexado.');
-    Writeln(Format('  Modelo: %s — reindexar si cambia el modelo', [MODEL]));
+    Titulo('Summary');
+    Writeln('  5-phase pipeline executed successfully');
+    Writeln('  Semantic search found documents by meaning,');
+    Writeln('  not by exact text match.');
+    Writeln('  The FAQ Bot answered without needing text identical to the indexed one.');
+    Writeln(Format('  Model: %s — reindex if the model changes', [MODEL]));
 
   finally
     Conn.Free;
@@ -282,6 +282,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

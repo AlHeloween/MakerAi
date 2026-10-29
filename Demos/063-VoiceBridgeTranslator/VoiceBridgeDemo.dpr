@@ -61,7 +61,7 @@ const
   STT_APIKEY = '@OPENAI_API_KEY';
   STT_MODEL = 'gpt-realtime-2.1';
 
-  // El TTS de OpenAI con formato trfPcm devuelve PCM16 a 24 kHz mono
+  // OpenAI TTS with trfPcm format returns PCM16 at 24 kHz mono
   TTS_PCM_RATE = 24000;
 
   // Subcadena para localizar el cable virtual entre los dispositivos de
@@ -82,7 +82,7 @@ begin
 end;
 
 type
-  // Un "lado" del puente: captura + STT + traduccion + TTS + reproduccion
+  // One "side" of the bridge: capture + STT + translation + TTS + playback
   TBridgeSide = class
   private
     FTag: string;
@@ -123,7 +123,7 @@ begin
   FClosing := False;
   FChatLock := TCriticalSection.Create;
 
-  // --- Traductor ---
+  // --- Translator ---
   FChat := TAiChatConnection.Create(nil);
   FChat.DriverName := TRANSLATOR_DRIVER;
   FChat.Model := TRANSLATOR_MODEL;
@@ -141,17 +141,17 @@ begin
   FTTS.TTSResponseFormat := TAiTTSResponseFormat.trfPcm; // PCM16 24 kHz mono
   FTTS.TTSSpeed := 1.0;
 
-  // --- Reproductor (dispositivo seleccionable) ---
+  // --- Player (selectable device) ---
   FPlayer := TAiAudioPlayer.Create(nil);
   FPlayer.DeviceId := aPlayerDeviceId;
   FPlayer.OnError := PlayerError;
   FPlayer.OnStateChange := PlayerStateChange;
 
-  // --- STT en tiempo real ---
+  // --- Real-time STT ---
   FSTT := TAiOpenAiRealtimeSTT.Create(nil);
   FSTT.ApiKey := STT_APIKEY;
   FSTT.Model := STT_MODEL;
-  // gpt-live-transcribe (ago 2026): mejor WER con ruido de reunion y acentos
+  // gpt-live-transcribe (Aug 2026): better WER with meeting noise and accents
   FSTT.TranscriptionModel := otmGptLiveTranscribe;
   FSTT.TranscriptionPrompt := 'Reunion de trabajo traducida en tiempo real';
   FSTT.Language := aSttLanguage; // el driver lo envia como languages[]
@@ -159,7 +159,7 @@ begin
   FSTT.OnTranscriptCompleted := SttTranscriptCompleted;
   FSTT.OnError := SttError;
 
-  // --- Captura ---
+  // --- Capture ---
   FCapture := TAiAudioCapture.Create(nil);
   FCapture.Source := aSource;
   FCapture.OutputSampleRate := 16000;
@@ -206,7 +206,7 @@ end;
 
 procedure TBridgeSide.SttSessionReady(Sender: TObject);
 begin
-  SafeWriteLn(FTag + ' STT conectado y listo.');
+  SafeWriteLn(FTag + ' STT connected and ready.');
 end;
 
 procedure TBridgeSide.SttError(Sender: TObject; const ErrorMsg, ErrorCode: string);
@@ -216,7 +216,7 @@ end;
 
 procedure TBridgeSide.CaptureError(Sender: TObject; const ErrorMessage: string);
 begin
-  SafeWriteLn(FTag + ' ERROR captura: ' + ErrorMessage);
+  SafeWriteLn(FTag + ' ERROR capture: ' + ErrorMessage);
 end;
 
 procedure TBridgeSide.PlayerError(Sender: TObject; const ErrorMessage: string);
@@ -289,7 +289,7 @@ begin
         FPlayer.PlayPCM16(Pcm, TTS_PCM_RATE, 1);
       except
         on E: Exception do
-          SafeWriteLn(Format('%s ERROR traduciendo/TTS: %s', [FTag, E.Message]));
+          SafeWriteLn(Format('%s ERROR translating/TTS: %s', [FTag, E.Message]));
       end;
     end);
 end;
@@ -325,19 +325,19 @@ begin
   GConsoleLock := TCriticalSection.Create;
   try
     try
-      WriteLn('=== Puente de voz bidireccional en tiempo real (MakerAI) ===');
+      WriteLn('=== Bidirectional voice bridge in real time (MakerAI) ===');
       WriteLn;
 
       if GetEnvironmentVariable('OPENAI_API_KEY') = '' then
       begin
-        WriteLn('ERROR: la variable de entorno OPENAI_API_KEY no esta definida.');
+        WriteLn('ERROR: the environment variable OPENAI_API_KEY is not defined.');
         Exit;
       end;
 
-      WriteLn('Dispositivos de salida:');
+      WriteLn('Output devices:');
       for D in TAiAudioPlayer.GetPlaybackDevices do
         if D.IsDefault then
-          WriteLn('  * ' + D.DeviceName + '  (predeterminado)')
+          WriteLn('  * ' + D.DeviceName + '  (default)')
         else
           WriteLn('  - ' + D.DeviceName);
       WriteLn;
@@ -379,7 +379,7 @@ begin
         TAiTTSVoice.tvNova, '');
       Remote.MuteCapture := Remote.Capture;
 
-      // [YO]: microfono -> en; su TTS va al cable virtual (la reunion lo oye).
+      // [ME]: microphone -> en; their TTS goes to the virtual cable (the meeting hears it).
       Local := TBridgeSide.Create(asMicrophone, '[YO]   ', TARGET_LANG_LOCAL, STT_LANG_LOCAL,
         TAiTTSVoice.tvOnyx, MeetingDeviceId);
       if not HasCable then
@@ -389,7 +389,7 @@ begin
         Remote.Start;
         Local.Start;
 
-        WriteLn('Puente activo... pulsa ENTER para terminar.');
+        WriteLn('Bridge active... press ENTER to finish.');
         WriteLn;
 
         TTask.Run(
@@ -402,7 +402,7 @@ begin
         while not StopRequested do
           CheckSynchronize(50);
 
-        WriteLn('Deteniendo...');
+        WriteLn('Stopping...');
         Remote.Stop;
         Local.Stop;
         CheckSynchronize(200);

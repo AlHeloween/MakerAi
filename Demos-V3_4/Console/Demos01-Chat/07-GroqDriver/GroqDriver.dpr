@@ -6,19 +6,19 @@ program GroqDriver;
 // =============================================================================
 // MakerAI — 01-Chat / 07-GroqDriver
 // =============================================================================
-// Validacion del driver Groq tras los fixes de Abr 2026:
+// Validation of the Groq driver after the Apr 2026 fixes:
 //
-//   Fix 1 — tool_choice:          era 'tools_choice' (typo silencioso)
-//   Fix 2 — logprobs eliminados:  Groq rechaza logprobs, logit_bias, top_logprobs
-//   Fix 3 — vision multi-turn:    antes solo enviaba LastMsg; ahora GetMessages
-//   Fix 4 — max_completion_tokens: reasoning models deben usarlo (no max_tokens)
+//   Fix 1 — tool_choice:          was 'tools_choice' (silent typo)
+//   Fix 2 — logprobs removed:     Groq rejects logprobs, logit_bias, top_logprobs
+//   Fix 3 — vision multi-turn:    previously only sent LastMsg; now GetMessages
+//   Fix 4 — max_completion_tokens: reasoning models must use it (not max_tokens)
 //
-//   Test 1 — Chat basico         llama-3.1-8b-instant
+//   Test 1 — Basic chat         llama-3.1-8b-instant
 //   Test 2 — Tool calling        llama-3.3-70b-versatile  (fix 1)
 //   Test 3 — Reasoning           qwen/qwen3-32b           (fix 4)
 //   Test 4 — Vision multi-turn   llama-4-scout            (fix 3)
 //
-// Prerequisito: GROQ_API_KEY definida como variable de entorno
+// Prerequisite: GROQ_API_KEY defined as an environment variable
 // =============================================================================
 
 uses
@@ -68,13 +68,13 @@ var
   Conn: TAiChatConnection;
   Res : String;
 begin
-  Section('Test 1 — Chat basico  [llama-3.1-8b-instant]');
+  Section('Test 1 — Basic chat  [llama-3.1-8b-instant]');
   Conn := MakeConn('llama-3.1-8b-instant');
   try
     Conn.SystemPrompt.Text := 'Responde siempre en una sola oracion en espanol.';
     Res := Conn.AddMessageAndRun(
       'Cual es el planeta mas grande del sistema solar?', 'user', []);
-    Writeln('  Respuesta : ', Res);
+    Writeln('  Response : ', Res);
     if Trim(Res) <> '' then
       Writeln('  => PASS')
     else
@@ -102,7 +102,7 @@ procedure TToolTest.OnGetDate(Sender: TObject; FunctionAction: TFunctionActionIt
   FunctionName: String; ToolCall: TAiToolsFunction; var Handled: Boolean);
 begin
   Inc(FCallCount);
-  Writeln('  [tool invocado] get_current_date  args=', ToolCall.Arguments);
+  Writeln('  [tool invoked] get_current_date  args=', ToolCall.Arguments);
   ToolCall.Response := Format(
     '{"date":"%s","day_of_week":"%s","iso":"%s"}',
     [FormatDateTime('dd/mm/yyyy', Now),
@@ -136,12 +136,12 @@ begin
 
       Res := Conn.AddMessageAndRun(
         'What day of the week is today and what is the exact date?', 'user', []);
-      Writeln('  Respuesta final: ', Res);
+      Writeln('  Final response: ', Res);
 
       if FCallCount > 0 then
-        Writeln('  => PASS  (funcion invocada ', FCallCount, ' vez/veces)')
+        Writeln('  => PASS  (function invoked ', FCallCount, ' time(s))')
       else
-        Writeln('  => WARN  (LLM respondio sin invocar la funcion)');
+        Writeln('  => WARN  (LLM responded without invoking the function)');
     finally
       Conn.Free;
     end;
@@ -160,7 +160,7 @@ var
   Res : String;
 begin
   Section('Test 3 — Reasoning  [qwen/qwen3-32b]  (fix: max_completion_tokens)');
-  Writeln('  Problema: secuencia a(1)=2, a(n+1)=a(n)+3.  Cuanto es a(5)?');
+  Writeln('  Problem: sequence a(1)=2, a(n+1)=a(n)+3.  What is a(5)?');
   Conn := MakeConn('qwen/qwen3-32b', 8192);
   try
     Conn.SystemPrompt.Text :=
@@ -168,10 +168,10 @@ begin
     Res := Conn.AddMessageAndRun(
       'Sequence: a(1)=2, a(n+1)=a(n)+3. Compute a(5). Show each step.',
       'user', []);
-    Writeln('  Respuesta:');
+    Writeln('  Response:');
     Writeln('  ', Res);
     if Trim(Res) <> '' then
-      Writeln('  => PASS  (max_completion_tokens aceptado por Groq)')
+      Writeln('  => PASS  (max_completion_tokens accepted by Groq)')
     else
       Writeln('  => FAIL: respuesta vacia');
   finally
@@ -194,12 +194,12 @@ begin
 
   if not TFile.Exists(IMG_PATH) then
   begin
-    Writeln('  [SKIP] Imagen no encontrada: ', IMG_PATH);
-    Writeln('  Ajusta IMG_PATH en el demo a una imagen existente.');
+    Writeln('  [SKIP] Image not found: ', IMG_PATH);
+    Writeln('  Adjust IMG_PATH in the demo to an existing image.');
     Exit;
   end;
 
-  Writeln('  Imagen: ', IMG_PATH);
+  Writeln('  Image: ', IMG_PATH);
   Writeln;
 
   Conn := MakeConn('meta-llama/llama-4-scout-17b-16e-instruct', 1024);
@@ -207,23 +207,23 @@ begin
     Conn.SystemPrompt.Text :=
       'You are a visual assistant. Answer concisely in Spanish.';
 
-    // Turno 1: descripcion con imagen adjunta
-    // NOTA: AddMediaFile transfiere ownership al mensaje (TObjectList OwnsObjects=True).
-    //       No llamar Media.Free — Conn.Free lo destruye al liberar los mensajes.
+    // Turn 1: description with attached image
+    // NOTE: AddMediaFile transfers ownership to the message (TObjectList OwnsObjects=True).
+    //       Do not call Media.Free — Conn.Free destroys it when freeing the messages.
     Media := TAiMediaFile.Create;
     Media.LoadFromFile(IMG_PATH);
     SetLength(MediaList, 1);
     MediaList[0] := Media;
-    Writeln('  Turno 1 (imagen adjunta): descripcion general');
+    Writeln('  Turn 1 (image attached): general description');
     Res1 := Conn.AddMessageAndRun(
       'Describe brevemente lo que ves en esta imagen.', 'user', MediaList);
     Writeln('  R1: ', Res1);
 
-    // Turno 2: follow-up SIN nueva imagen
-    // Con el fix, GetMessages envia TODO el historial (incluyendo la imagen del turno 1)
-    // Sin el fix, solo enviaria este ultimo mensaje → el modelo no sabe de que imagen hablar
+    // Turn 2: follow-up WITHOUT a new image
+    // With the fix, GetMessages sends the ENTIRE history (including the image from turn 1)
+    // Without the fix, it would only send this last message → the model wouldn't know which image to talk about
     Writeln;
-    Writeln('  Turno 2 (sin nueva imagen, pero historial incluye la del turno 1):');
+    Writeln('  Turn 2 (without a new image, but history includes the one from turn 1):');
     Res2 := Conn.AddMessageAndRun(
       'Cual es el color predominante en lo que acabas de describir?', 'user', []);
     Writeln('  R2: ', Res2);
@@ -231,10 +231,10 @@ begin
     if (Trim(Res1) <> '') and (Trim(Res2) <> '') then
     begin
       Writeln;
-      Writeln('  => PASS  (multi-turn con imagen funciona — historial completo enviado)');
+      Writeln('  => PASS  (multi-turn with image works — full history sent)');
     end
     else
-      Writeln('  => FAIL: alguno de los turnos devolvio respuesta vacia');
+      Writeln('  => FAIL: one of the turns returned an empty response');
   finally
     Conn.Free;
   end;
@@ -247,14 +247,14 @@ end;
 var
   ApiKeyOk: Boolean;
 begin
-  Writeln('=== GroqDriver — Validacion de fixes (Abr 2026) ===');
+  Writeln('=== GroqDriver — Validation of fixes (Apr 2026) ===');
   ApiKeyOk := GetEnvironmentVariable('GROQ_API_KEY') <> '';
-  Writeln('GROQ_API_KEY : ', IfThen(ApiKeyOk, '[OK]', '[FALTANTE — define la variable]'));
+  Writeln('GROQ_API_KEY : ', IfThen(ApiKeyOk, '[OK]', '[MISSING — define the variable]'));
   Writeln;
 
   if not ApiKeyOk then
   begin
-    Writeln('ERROR: Define GROQ_API_KEY antes de ejecutar.');
+    Writeln('ERROR: Define GROQ_API_KEY before running.');
     Writeln;
     Writeln('Presiona Enter para salir...');
     Readln;
@@ -273,7 +273,7 @@ begin
 
   Writeln;
   Writeln(StringOfChar('=', 62));
-  Writeln('  Demo completo.');
+  Writeln('  Demo complete.');
   Writeln(StringOfChar('=', 62));
   Writeln;
   Writeln('Presiona Enter para salir...');

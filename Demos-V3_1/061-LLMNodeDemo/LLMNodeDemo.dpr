@@ -5,15 +5,15 @@ program LLMNodeDemo;
 // =============================================================================
 // MakerAI - Demo 061: TLLMNode con TAiToolRegistry
 // =============================================================================
-// Demuestra la Phase 2 del rediseno de agentes: un nodo TLLMNode que usa el
-// loop ReAct integrado para resolver preguntas que requieren herramientas.
+// Demonstrates Phase 2 of the agent redesign: a TLLMNode that uses the
+// integrated ReAct loop to solve questions that require tools.
 //
-// Herramientas registradas en este demo:
-//   - Calculadora: suma, resta, multiplicacion, division
-//   - Fecha y hora actual
-//   - Conversor de temperaturas: Celsius <-> Fahrenheit
+// Tools registered in this demo:
+//   - Calculator: addition, subtraction, multiplication, division
+//   - Current date and time
+//   - Temperature converter: Celsius <-> Fahrenheit
 //
-// Configura DRIVER / MODEL / API_KEY antes de compilar.
+// Configure DRIVER / MODEL / API_KEY before compiling.
 // =============================================================================
 
 uses
@@ -26,9 +26,9 @@ uses
   uMakerAi.Agents.ToolRegistry,
   uMakerAi.Agents.Node.LLM,
   uMakerAi.Chat.Initializations, // parametros de modelos
-  // ── Importar los drivers que se vayan a usar ────────────────────────────
-  // Cada unit registra su driver en initialization via TAiChatFactory.
-  // Sin este import el driver no se linkea y TAiChatConnection falla.
+  // ── Import the drivers to be used ────────────────────────────
+  // Each unit registers its driver in initialization via TAiChatFactory.
+  // Without this import the driver is not linked and TAiChatConnection fails.
   uMakerAi.Chat.Claude,          // 'Claude'
   uMakerAi.Chat.OpenAi,          // 'OpenAI'
   uMakerAi.Chat.Ollama,          // 'Ollama'
@@ -36,7 +36,7 @@ uses
   uMakerAi.Chat.Groq;            // 'Groq'
 
 const
-  // ── Cambiar segun el proveedor disponible ──────────────────────────────────
+  // ── Change according to the available provider ──────────────────────────────────
   DRIVER  = 'Claude';
   MODEL   = 'claude-haiku-4-5-20251001';
   API_KEY = '@CLAUDE_API_KEY';          // resuelto via GetEnvironmentVariable
@@ -72,7 +72,7 @@ var
   Req: TJSONArray;
 begin
   inherited Create;
-  // Construir inputSchema (formato OpenAI)
+  // Build inputSchema (OpenAI format)
   FSchema := TJSONObject.Create;
   FSchema.AddPair('type', 'object');
 
@@ -158,8 +158,8 @@ end;
 
 // -----------------------------------------------------------------------------
 //  TCurrentDateTimeTool
-//  Devuelve la fecha y hora actuales en ISO-8601.
-//  Args: {} (sin argumentos)
+//  Returns the current date and time in ISO-8601.
+//  Args: {} (no arguments)
 // -----------------------------------------------------------------------------
 type
   TCurrentDateTimeTool = class(TInterfacedObject, IAiTool)
@@ -209,7 +209,7 @@ end;
 
 // -----------------------------------------------------------------------------
 //  TTempConverterTool
-//  Convierte temperaturas entre Celsius y Fahrenheit.
+//  Converts temperatures between Celsius and Fahrenheit.
 //  Args: { "value": N, "from": "C"|"F", "to": "C"|"F" }
 // -----------------------------------------------------------------------------
 type
@@ -324,12 +324,12 @@ var
 begin
   Writeln;
   Writeln(StringOfChar('-', 70));
-  Writeln('Pregunta: ', AQuestion);
+  Writeln('Question: ', AQuestion);
   Writeln(StringOfChar('-', 70));
   try
     Response := AManager.Run(AQuestion);
     Writeln;
-    Writeln('Respuesta: ', Response);
+    Writeln('Answer: ', Response);
   except
     on E: Exception do
       Writeln('ERROR: ', E.ClassName, ' — ', E.Message);
@@ -347,22 +347,22 @@ begin
   Writeln('Model  : ', MODEL);
   Writeln;
 
-  // ── 1. Registrar herramientas en el registry global ─────────────────────
+  // ── 1. Register tools in the global registry ─────────────────────
   Registry := TAiToolRegistry.Instance;
   Registry.Register(TCalculatorTool.Create,    'local', 'demo');
   Registry.Register(TCurrentDateTimeTool.Create,'local', 'demo');
   Registry.Register(TTempConverterTool.Create,  'local', 'demo');
 
-  Writeln(Format('Registry: %d herramientas registradas.', [Registry.Count]));
+  Writeln(Format('Registry: %d tools registered.', [Registry.Count]));
   Writeln;
 
-  // ── 2. Crear el agente ───────────────────────────────────────────────────
+  // ── 2. Create the agent ───────────────────────────────────────────────────
   Manager := TAIAgentManager.Create(nil);
   try
     Manager.Asynchronous := False;
     Manager.TimeoutMs    := 120000;
 
-    // ── 3. Crear y configurar el TLLMNode ──────────────────────────────────
+    // ── 3. Create and configure the TLLMNode ──────────────────────────────────
     LLMNode := TLLMNode.Create(Manager);    // Manager = Owner (auto-add)
     LLMNode.Name         := 'ReActAgent';
     LLMNode.Graph        := Manager;
@@ -375,12 +375,12 @@ begin
       'When needed, use the tools to give accurate, precise answers. ' +
       'Always use the calculator for math, never guess numerical results.';
 
-    // Grafo mínimo: un solo nodo que es inicio y fin
+    // Minimal graph: a single node that is both start and end
     Manager.StartNode := LLMNode;
     Manager.EndNode   := LLMNode;
     Manager.Compile;
 
-    // ── 4. Ejecutar consultas ──────────────────────────────────────────────
+    // ── 4. Run queries ──────────────────────────────────────────────
     RunQuery(Manager, '¿Cuánto es 347 multiplicado por 28?');
     RunQuery(Manager, '¿Qué fecha y hora es ahora?');
     RunQuery(Manager, '¿Cuánto es 100°F en Celsius? ¿Y 37°C en Fahrenheit?');
@@ -401,6 +401,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' — ', E.Message);
   end;
   Writeln;
-  Writeln('Demo finalizado. Presiona Enter para salir.');
+  Writeln('Demo finished. Press Enter to exit.');
   Readln;
 end.

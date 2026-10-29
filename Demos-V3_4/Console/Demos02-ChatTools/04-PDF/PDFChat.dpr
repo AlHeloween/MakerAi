@@ -9,7 +9,7 @@ program PDFChat;
 // Envía documentos PDF al LLM para que los lea, resuma y responda preguntas
 // sobre su contenido.
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - Adjuntar PDFs igual que imágenes (TAiMediaFile.LoadFromFile)
 //   - Activar Tfc_Pdf en NativeInputFiles y Tcm_Pdf en ChatMediaSupports
 //   - Extracción de información estructurada de documentos
@@ -17,7 +17,7 @@ program PDFChat;
 //   - Resumen automático
 //   - Proveedores con soporte nativo: Claude, Gemini
 //
-// Nota: Si no tienes un PDF disponible, el demo crea uno de prueba.
+// Note: If you don't have a PDF available, the demo creates a test one.
 // =============================================================================
 
 uses
@@ -78,13 +78,13 @@ begin
   Writeln('Driver: ', DRIVER, ' / Model: ', MODEL);
   Writeln;
 
-  // Verificar que existe el PDF
+  // Verify that the PDF exists
   PdfPath := PDF_PATH;
 
   // Buscar un PDF del sistema si no existe el configurado
   if not TFile.Exists(PdfPath) then
   begin
-    Writeln('PDF de prueba no encontrado en: ', PdfPath);
+    Writeln('Test PDF not found at: ', PdfPath);
     Writeln;
     Writeln('Para ejecutar este demo necesitas un archivo PDF.');
     Writeln('Opciones:');
@@ -100,18 +100,18 @@ begin
     if Length(Files) > 0 then
     begin
       PdfPath := Files[0];
-      Writeln(Format('PDF encontrado automáticamente: %s', [PdfPath]));
+      Writeln(Format('PDF found automatically: %s', [PdfPath]));
       Writeln;
     end
     else
     begin
-      Writeln('No se encontró ningún PDF. Demo cancelado.');
+      Writeln('No PDF found. Demo canceled.');
       Exit;
     end;
   end;
 
-  Writeln(Format('PDF a analizar: %s', [TPath.GetFileName(PdfPath)]));
-  Writeln(Format('Tamaño       : %.1f KB', [TFile.GetSize(PdfPath) / 1024]));
+  Writeln(Format('PDF to analyze: %s', [TPath.GetFileName(PdfPath)]));
+  Writeln(Format('Size         : %.1f KB', [TFile.GetSize(PdfPath) / 1024]));
   Writeln;
 
   Conn := TAiChatConnection.Create(nil);
@@ -133,18 +133,18 @@ begin
       'Lee el documento adjunto con atención y responde con precisión. ' +
       'Responde en español.';
 
-    // ── Demo 1: Resumen ejecutivo ─────────────────────────────────────────
+    // ── Demo 1: Executive summary ─────────────────────────────────────────
     Writeln(StringOfChar('-', 60));
-    Writeln('1. Resumen ejecutivo del documento');
+    Writeln('1. Executive summary of the document');
     Response := AskAboutPDF(Conn, PdfPath,
       'Por favor proporciona un resumen ejecutivo de este documento en ' +
       'máximo 5 puntos clave.');
     Writeln(Response);
     Writeln;
 
-    // ── Demo 2: Preguntas específicas ─────────────────────────────────────
+    // ── Demo 2: Specific questions ─────────────────────────────────────
     Writeln(StringOfChar('-', 60));
-    Writeln('2. Preguntas específicas sobre el contenido');
+    Writeln('2. Specific questions about the content');
 
     Response := AskAboutPDF(Conn, PdfPath,
       '¿Cuáles son los temas principales que trata este documento? ' +
@@ -152,9 +152,9 @@ begin
     Writeln(Response);
     Writeln;
 
-    // ── Demo 3: Extracción de datos ───────────────────────────────────────
+    // ── Demo 3: Data extraction ───────────────────────────────────────
     Writeln(StringOfChar('-', 60));
-    Writeln('3. Extracción de datos estructurados');
+    Writeln('3. Structured data extraction');
 
     Response := AskAboutPDF(Conn, PdfPath,
       'Extrae en formato JSON los siguientes datos del documento: ' +

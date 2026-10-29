@@ -9,13 +9,13 @@ program ForkJoin;
 // Patron Fork/Join: una entrada se bifurca en dos ramas paralelas que se
 // reunen en un nodo de sintesis que espera ambos resultados (jmAll).
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - TAIAgentsLink con NextA + NextB: bifurcacion (fork)
 //   - TLLMNode.JoinMode := jmAll: espera TODOS los inputs entrantes
 //   - Ejecucion paralela de dos ramas independientes
 //   - Blackboard para inspeccionar cada rama por separado
 //
-// Estructura:
+// Structure:
 //   [Preparador] --fork--> [AnalistaPros]  --join--\
 //                      \-> [AnalistaCons] --join--> [Sintetizador (jmAll)]
 // =============================================================================
@@ -46,7 +46,7 @@ var
   Resultado   : String;
 begin
   Writeln(StringOfChar('=', 60));
-  Writeln('Tema: ', ATema);
+  Writeln('Topic: ', ATema);
   Writeln(StringOfChar('=', 60));
 
   Manager := TAIAgentManager.Create(nil);
@@ -54,7 +54,7 @@ begin
     Manager.Asynchronous := False;
     Manager.TimeoutMs    := 120000;
 
-    // Nodo 0: Preparador — formula la pregunta de investigacion
+    // Node 0: Preparador — formulates the research question
     Preparador := TLLMNode.Create(Manager);
     Preparador.Name         := 'Preparador';
     Preparador.Graph        := Manager;
@@ -66,7 +66,7 @@ begin
       'Eres un coordinador de investigacion. Dado un tema, formula una ' +
       'pregunta de investigacion clara y concisa. Escribe SOLO la pregunta, nada mas.';
 
-    // Rama A: Analista de ventajas
+    // Branch A: Advantages analyst
     AnalistaPros := TLLMNode.Create(Manager);
     AnalistaPros.Name         := 'AnalistaPros';
     AnalistaPros.Graph        := Manager;
@@ -82,7 +82,7 @@ begin
       '3. [ventaja en una frase]' + #10 +
       'Solo eso. Sin texto adicional.';
 
-    // Rama B: Analista de desventajas
+    // Branch B: Disadvantages analyst
     AnalistaCons := TLLMNode.Create(Manager);
     AnalistaCons.Name         := 'AnalistaCons';
     AnalistaCons.Graph        := Manager;
@@ -98,7 +98,7 @@ begin
       '3. [desventaja en una frase]' + #10 +
       'Solo eso. Sin texto adicional.';
 
-    // Nodo Join: Sintetizador (jmAll — espera ambas ramas)
+    // Join node: Sintetizador (jmAll — waits for both branches)
     Sintetizador := TLLMNode.Create(Manager);
     Sintetizador.Name         := 'Sintetizador';
     Sintetizador.Graph        := Manager;
@@ -113,7 +113,7 @@ begin
       'Sintetiza ambas en un veredicto balanceado de 3-4 oraciones en espanol. ' +
       'Termina con una recomendacion clara.';
 
-    // Fork: Preparador -> (AnalistaPros, AnalistaCons) en paralelo
+    // Fork: Preparador -> (AnalistaPros, AnalistaCons) in parallel
     ForkLink := TAIAgentsLink.Create(Manager);
     ForkLink.Name  := 'Fork'; ForkLink.Graph := Manager;
     ForkLink.NextA := AnalistaPros;
@@ -135,20 +135,20 @@ begin
     Manager.Compile;
 
     Writeln;
-    Writeln('Ejecutando Fork/Join en paralelo...');
+    Writeln('Running Fork/Join in parallel...');
     Resultado := Manager.Run(ATema);
 
     Writeln;
-    Writeln('--- Pregunta de investigacion (Preparador) ---');
+    Writeln('--- Research question (Preparador) ---');
     Writeln(Manager.Blackboard.GetString('Preparador.output'));
     Writeln;
-    Writeln('--- Analisis VENTAJAS (AnalistaPros) ---');
+    Writeln('--- ADVANTAGES analysis (AnalistaPros) ---');
     Writeln(Manager.Blackboard.GetString('AnalistaPros.output'));
     Writeln;
-    Writeln('--- Analisis DESVENTAJAS (AnalistaCons) ---');
+    Writeln('--- DISADVANTAGES analysis (AnalistaCons) ---');
     Writeln(Manager.Blackboard.GetString('AnalistaCons.output'));
     Writeln;
-    Writeln('--- Veredicto final (Sintetizador) ---');
+    Writeln('--- Final verdict (Sintetizador) ---');
     Writeln(Resultado);
 
   finally
@@ -176,13 +176,13 @@ end;
 procedure RunDemo;
 begin
   Writeln('=== ForkJoin ===');
-  Writeln('Patron: [Preparador] --fork--> [Pros + Cons] --join--> [Sintetizador]');
+  Writeln('Pattern: [Preparador] --fork--> [Pros + Cons] --join--> [Sintetizador]');
   Writeln;
 
-  RunForkJoin('Inteligencia Artificial en la educacion');
-  Writeln('Pausa entre temas (10s)...');
+  RunForkJoin('Artificial Intelligence in education');
+  Writeln('Pause between topics (10s)...');
   Sleep(10000);
-  RunForkJoin('Trabajo remoto para desarrolladores de software');
+  RunForkJoin('Remote work for software developers');
 end;
 
 begin

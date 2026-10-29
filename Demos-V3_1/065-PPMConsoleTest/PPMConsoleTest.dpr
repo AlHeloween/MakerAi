@@ -1,7 +1,7 @@
 ﻿// MIT License
 // MakerAI - Demo 065: PPM Console Test
-// Prueba aislada del flujo PPM: search → download → extract → initialize
-// Ejecutar desde consola: PPMConsoleTest.exe
+// Isolated test of PPM flow: search → download → extract → initialize
+// Run from console: PPMConsoleTest.exe
 
 program PPMConsoleTest;
 
@@ -17,7 +17,7 @@ uses
   uMakerAi.Chat.Initializations;
 
 // ---------------------------------------------------------------------------
-// Helpers de output
+// Output helpers
 // ---------------------------------------------------------------------------
 procedure Log(const S: string); begin Writeln(S); end;
 procedure Sep; begin Writeln(StringOfChar('-', 60)); end;
@@ -26,7 +26,7 @@ procedure ERR(const S: string); begin Writeln('[ERR] ' + S); end;
 procedure INFO(const S: string); begin Writeln('[..] ' + S); end;
 
 // ---------------------------------------------------------------------------
-// Test 1: Verificar conectividad con el registry
+// Test 1: Verify connectivity with registry
 // ---------------------------------------------------------------------------
 procedure TestHealth;
 var
@@ -34,13 +34,13 @@ var
   LResp: IHTTPResponse;
 begin
   Sep;
-  Log('TEST 1 — Health check del registry');
+  Log('TEST 1 — Registry health check');
   LClient := THTTPClient.Create;
   try
     try
       LResp := LClient.Get('https://registry.cimamaker.com/v1/health');
       if LResp.StatusCode = 200 then
-        OK('Registry accesible. Respuesta: ' + LResp.ContentAsString(TEncoding.UTF8))
+        OK('Registry accessible. Response: ' + LResp.ContentAsString(TEncoding.UTF8))
       else
         ERR('Status: ' + IntToStr(LResp.StatusCode));
     except
@@ -53,7 +53,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Test 2: Buscar herramientas MCP
+// Test 2: Search MCP tools
 // ---------------------------------------------------------------------------
 procedure TestSearch(const AQuery: string);
 var
@@ -71,16 +71,16 @@ begin
       LResult := LFunctions.SearchPPMMCP(AQuery);
       if not Assigned(LResult) then
       begin
-        ERR('SearchPPMMCP devolvio nil');
+        ERR('SearchPPMMCP returned nil');
         Exit;
       end;
       try
-        Log('JSON recibido (primeros 300 chars): ' +
+        Log('JSON received (first 300 chars): ' +
             Copy(LResult.ToJSON, 1, 300));
 
         if LResult.TryGetValue<TJSONArray>('tools', LTools) then
         begin
-          OK(Format('Encontradas %d herramientas', [LTools.Count]));
+          OK(Format('Found %d tools', [LTools.Count]));
           for I := 0 to Min(LTools.Count - 1, 4) do
           begin
             var LTool := LTools.Items[I] as TJSONObject;
@@ -91,7 +91,7 @@ begin
           end;
         end
         else
-          ERR('No se encontro campo "tools" en la respuesta');
+          ERR('Field "tools" not found in response');
       finally
         LResult.Free;
       end;
@@ -105,7 +105,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Test 3: Resolver versión de un paquete
+// Test 3: Resolve package version
 // ---------------------------------------------------------------------------
 procedure TestResolveVersion(const AName: string);
 var
@@ -116,14 +116,14 @@ var
   LBody, LVersion: string;
 begin
   Sep;
-  Log('TEST 3 — Resolver versión de "' + AName + '"');
+  Log('TEST 3 — Resolve version of "' + AName + '"');
   LClient := THTTPClient.Create;
   try
     try
       LResp := LClient.Get('https://registry.cimamaker.com/v1/packages/' + AName);
       Log('Status: ' + IntToStr(LResp.StatusCode));
       LBody := LResp.ContentAsString(TEncoding.UTF8);
-      Log('Body (primeros 400): ' + Copy(LBody, 1, 400));
+      Log('Body (first 400): ' + Copy(LBody, 1, 400));
 
       if LResp.StatusCode = 200 then
       begin
@@ -136,15 +136,15 @@ begin
           begin
             LVer := LVersions.Items[0] as TJSONObject;
             LVer.TryGetValue<string>('version', LVersion);
-            OK('Version resuelta: ' + LVersion);
+            OK('Version resolved: ' + LVersion);
           end
           else
-            ERR('Estructura JSON inesperada');
+            ERR('Unexpected JSON structure');
         finally
           LJson.Free;
         end
         else
-          ERR('No se pudo parsear JSON');
+          ERR('Could not parse JSON');
       end;
     except
       on E: Exception do
@@ -156,7 +156,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Test 4: Descargar .paipkg y listar su contenido
+// Test 4: Download .paipkg and list its contents
 // ---------------------------------------------------------------------------
 procedure TestDownloadAndInspect(const AName: string);
 var
@@ -168,14 +168,14 @@ var
   I: Integer;
 begin
   Sep;
-  Log('TEST 4 — Download + inspeccion de "' + AName + '"');
+  Log('TEST 4 — Download + inspect "' + AName + '"');
 
-  // Primero resolver versión manualmente para el test
+  // First resolve version manually for test
   LUrl := Format('https://registry.cimamaker.com/v1/packages/%s/latest/download', [AName]);
-  // Intentar con "latest" como alias
+  // Try with "latest" as alias
   LTempFile := TPath.Combine(TPath.GetTempPath, AName + '-test.paipkg');
 
-  INFO('Descargando desde: ' + LUrl);
+  INFO('Downloading from: ' + LUrl);
   LClient := THTTPClient.Create;
   try
     try
@@ -191,29 +191,29 @@ begin
       if (LResp.StatusCode = 200) and TFile.Exists(LTempFile) and
          (TFile.GetSize(LTempFile) > 0) then
       begin
-        OK('Archivo descargado: ' + LTempFile);
-        // Inspeccionar el ZIP
+        OK('File downloaded: ' + LTempFile);
+        // Inspect ZIP
         LZip := TZipFile.Create;
         try
           try
             LZip.Open(LTempFile, zmRead);
-            Log('Entradas en el ZIP:');
+            Log('Entries in ZIP:');
             for I := 0 to LZip.FileCount - 1 do
               Log('  ' + LZip.FileName[I]);
             LZip.Close;
           except
             on E: Exception do
-              ERR('Error al abrir ZIP: ' + E.ClassName + ' — ' + E.Message);
+              ERR('Error opening ZIP: ' + E.ClassName + ' — ' + E.Message);
           end;
         finally
           LZip.Free;
         end;
       end
       else
-        ERR('Descarga fallida o archivo vacio');
+        ERR('Download failed or empty file');
     except
       on E: Exception do
-        ERR('Excepcion en descarga: ' + E.ClassName + ' — ' + E.Message);
+        ERR('Exception during download: ' + E.ClassName + ' — ' + E.Message);
     end;
   finally
     LClient.Free;
@@ -223,7 +223,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Test 5: InstallMCPFromPPM completo
+// Test 5: Complete InstallMCPFromPPM
 // ---------------------------------------------------------------------------
 procedure TestInstall(const AName: string);
 var
@@ -239,23 +239,23 @@ begin
       LItem := LFunctions.InstallMCPFromPPM(AName);
       if Assigned(LItem) then
       begin
-        OK('Instalado. Exe: ' + LItem.Params.Values['Command']);
-        INFO('Inicializando cliente MCP...');
+        OK('Installed. Exe: ' + LItem.Params.Values['Command']);
+        INFO('Initializing MCP client...');
         try
           if LItem.MCPClient.Initialize then
-            OK('Cliente inicializado. Tools disponibles via MCP.')
+            OK('Client initialized. Tools available via MCP.')
           else
-            ERR('No se pudo inicializar el cliente MCP');
+            ERR('Could not initialize MCP client');
         except
           on E: Exception do
-            ERR('Excepcion en Initialize: ' + E.ClassName + ' — ' + E.Message);
+            ERR('Exception in Initialize: ' + E.ClassName + ' — ' + E.Message);
         end;
       end
       else
-        ERR('InstallMCPFromPPM devolvio nil');
+        ERR('InstallMCPFromPPM returned nil');
     except
       on E: Exception do
-        ERR('Excepcion en InstallMCPFromPPM: ' + E.ClassName + ' — ' + E.Message);
+        ERR('Exception in InstallMCPFromPPM: ' + E.ClassName + ' — ' + E.Message);
     end;
   finally
     LFunctions.Free;
@@ -263,7 +263,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Test 6: CallTool directo (reproduce el "Invalid pointer operation")
+// Test 6: Direct CallTool (reproduces "Invalid pointer operation")
 // ---------------------------------------------------------------------------
 procedure TestCallTool(const AName, AToolName: string);
 var
@@ -278,27 +278,27 @@ begin
   LFunctions := TAiFunctions.Create(nil);
   try
     try
-      // Instalar (o recuperar si ya existe)
+      // Install (or retrieve if already exists)
       LItem := LFunctions.InstallMCPFromPPM(AName);
       if not Assigned(LItem) then
       begin
-        ERR('No se pudo obtener el cliente para: ' + AName);
+        ERR('Could not get client for: ' + AName);
         Exit;
       end;
-      OK('Cliente listo. Exe: ' + LItem.Params.Values['Command']);
+      OK('Client ready. Exe: ' + LItem.Params.Values['Command']);
 
-      // Inicializar (obtiene lista de tools y marca Available=True)
-      INFO('Llamando Initialize...');
+      // Initialize (gets tool list and marks Available=True)
+      INFO('Calling Initialize...');
       if not LItem.MCPClient.Initialize then
       begin
-        ERR('Initialize devolvio False — el cliente no esta disponible');
+        ERR('Initialize returned False — client not available');
         Exit;
       end;
       OK('Initialize OK. Available=' + BoolToStr(LItem.MCPClient.Available, True));
 
-      // Llamar la tool directamente
+      // Call tool directly
       // mcp-postgres: tool = 'postgres', args = {connection:{...}, operation:'tables'}
-      INFO('Llamando CallTool("' + AToolName + '")...');
+      INFO('Calling CallTool("' + AToolName + '")...');
       LMedia := TObjectList<TAiMediaFile>.Create(True);
       LArgs  := TJSONObject.Create;
       var LConn := TJSONObject.Create;
@@ -311,7 +311,7 @@ begin
       LArgs.AddPair('operation',  'tables');
       try
         LResult := LItem.MCPClient.CallTool(AToolName, LArgs, LMedia);
-        // NOTA: LArgs pasa ownership a CallTool — no llamar LArgs.Free
+        // NOTE: LArgs ownership passes to CallTool — do not call LArgs.Free
         if Assigned(LResult) then
         begin
           OK('CallTool exitoso. Respuesta (primeros 200 chars): ' +
@@ -319,16 +319,16 @@ begin
           LResult.Free;
         end
         else
-          ERR('CallTool devolvio nil (timeout o error del servidor)');
+          ERR('CallTool returned nil (timeout or server error)');
       except
         on E: Exception do
-          ERR('EXCEPCION en CallTool: ' + E.ClassName + ' — ' + E.Message);
+          ERR('EXCEPTION in CallTool: ' + E.ClassName + ' — ' + E.Message);
       end;
       LMedia.Free;
 
     except
       on E: Exception do
-        ERR('EXCEPCION en TestCallTool: ' + E.ClassName + ' — ' + E.Message);
+        ERR('EXCEPTION in TestCallTool: ' + E.ClassName + ' — ' + E.Message);
     end;
   finally
     LFunctions.Free;
@@ -357,11 +357,11 @@ begin
   except
     on E: Exception do
     begin
-      ERR('EXCEPCION FATAL: ' + E.ClassName + ' — ' + E.Message);
+      ERR('FATAL EXCEPTION: ' + E.ClassName + ' — ' + E.Message);
     end;
   end;
 
   Writeln;
-  Write('Presiona Enter para salir...');
+  Write('Press Enter to exit...');
   Readln;
 end.

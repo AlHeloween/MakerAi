@@ -6,20 +6,20 @@ program BasicEmbeddings;
 // =============================================================================
 // MakerAI — 03-Embeddings / 01-BasicEmbeddings
 // =============================================================================
-// Genera embeddings de texto usando un proveedor LLM y explora el vector
-// resultante. Primer acercamiento al concepto de representación vectorial.
+// Generates text embeddings using an LLM provider and explores the vector
+// result. First approach to the concept of vector representation.
 //
-// Conceptos que cubre:
-//   - Crear y configurar TAiEmbeddingConnection
-//   - Llamar CreateEmbedding() para obtener un vector de floats
-//   - Inspeccionar dimensiones del vector
-//   - Comparar dos textos con CosineSimilarity
-//   - Diferencia entre textos similares y distintos
+// Concepts covered:
+//   - Create and configure TAiEmbeddingConnection
+//   - Call CreateEmbedding() to obtain a vector of floats
+//   - Inspect vector dimensions
+//   - Compare two texts with CosineSimilarity
+//   - Difference between similar and different texts
 //
-// Proveedores soportados: OpenAI, Gemini, Ollama, Cohere, Mistral
-// Para OpenAI: model = 'text-embedding-3-small' (1536 dims)
-// Para Gemini: model = 'models/text-embedding-004'
-// Para Ollama: model = 'nomic-embed-text' (768 dims), URL local
+// Supported providers: OpenAI, Gemini, Ollama, Cohere, Mistral
+// For OpenAI: model = 'text-embedding-3-small' (1536 dims)
+// For Gemini: model = 'models/text-embedding-004'
+// For Ollama: model = 'nomic-embed-text' (768 dims), local URL
 // =============================================================================
 
 uses
@@ -37,7 +37,7 @@ const
   API_KEY = '@OPENAI_API_KEY';
 
 // =============================================================================
-//  Imprime un resumen del vector (primeros 8 valores)
+//  Prints a vector summary (first 8 values)
 // =============================================================================
 procedure PrintVectorSummary(const V: TAiEmbeddingData; const Name: String);
 var
@@ -71,18 +71,18 @@ begin
     Conn.Model      := MODEL;
     Conn.ApiKey     := API_KEY;
 
-    // ── Demo 1: generar embedding de un texto ─────────────────────────────
-    Writeln('--- Demo 1: Generar un embedding ---');
-    Writeln('Texto: "La inteligencia artificial transforma la industria"');
+    // ── Demo 1: generate an embedding from text ─────────────────────────────
+    Writeln('--- Demo 1: Generate an embedding ---');
+    Writeln('Text: "La inteligencia artificial transforma la industria"');
     V1 := Conn.CreateEmbedding(
       'La inteligencia artificial transforma la industria', 'user');
     PrintVectorSummary(V1, 'V1');
-    Writeln(Format('  Tokens usados: prompt=%d, total=%d',
+    Writeln(Format('  Tokens used: prompt=%d, total=%d',
       [Conn.prompt_tokens, Conn.total_tokens]));
     Writeln;
 
-    // ── Demo 2: textos similares vs. distintos ────────────────────────────
-    Writeln('--- Demo 2: Similitud coseno ---');
+    // ── Demo 2: similar vs. different texts ────────────────────────────
+    Writeln('--- Demo 2: Cosine similarity ---');
 
     V2 := Conn.CreateEmbedding(
       'La IA y el machine learning cambian la industria', 'user');
@@ -92,27 +92,27 @@ begin
     Sim12 := TAiEmbeddingsCore.CosineSimilarity(V1, V2);
     Sim13 := TAiEmbeddingsCore.CosineSimilarity(V1, V3);
 
-    Writeln('  Texto A: "La inteligencia artificial transforma la industria"');
-    Writeln('  Texto B: "La IA y el machine learning cambian la industria"  (similar)');
-    Writeln('  Texto C: "Las recetas de cocina mexicana son muy sabrosas"  (distinto)');
+    Writeln('  Text A: "La inteligencia artificial transforma la industria"');
+    Writeln('  Text B: "La IA y el machine learning cambian la industria"  (similar)');
+    Writeln('  Text C: "Las recetas de cocina mexicana son muy sabrosas"  (different)');
     Writeln;
-    Writeln(Format('  Similitud A↔B: %.4f  (esperado: alto ~0.85+)', [Sim12]));
-    Writeln(Format('  Similitud A↔C: %.4f  (esperado: bajo ~0.10-0.30)', [Sim13]));
+    Writeln(Format('  Similarity A↔B: %.4f  (expected: high ~0.85+)', [Sim12]));
+    Writeln(Format('  Similarity A↔C: %.4f  (expected: low ~0.10-0.30)', [Sim13]));
     Writeln;
 
     if Sim12 > Sim13 then
-      Writeln('  Correcto: A es mas similar a B que a C.')
+      Writeln('  Correct: A is more similar to B than to C.')
     else
       Writeln('  Nota: resultado inesperado — verifica el modelo/driver.');
 
-    // ── Demo 3: magnitud del vector ───────────────────────────────────────
+    // ── Demo 3: vector magnitude ───────────────────────────────────────
     Writeln;
-    Writeln('--- Demo 3: Propiedades del vector ---');
-    Writeln(Format('  Dimensiones      : %d', [Length(V1)]));
-    Writeln(Format('  Magnitud (norma) : %.6f', [TAiEmbeddingsCore.Magnitude(V1)]));
-    Writeln(Format('  Distancia Eucl.  : %.6f', [TAiEmbeddingsCore.EuclideanDistance(V1, V2)]));
+    Writeln('--- Demo 3: Vector properties ---');
+    Writeln(Format('  Dimensions      : %d', [Length(V1)]));
+    Writeln(Format('  Magnitude (norm) : %.6f', [TAiEmbeddingsCore.Magnitude(V1)]));
+    Writeln(Format('  Euclidean dist.  : %.6f', [TAiEmbeddingsCore.EuclideanDistance(V1, V2)]));
     Writeln;
-    Writeln('Nota: Un embedding con magnitud ~1.0 esta normalizado (L2 norm).');
+    Writeln('Note: An embedding with magnitude ~1.0 is normalized (L2 norm).');
 
   finally
     Conn.Free;
@@ -127,6 +127,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

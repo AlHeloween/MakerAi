@@ -8,7 +8,7 @@
 // Prueba el driver TAiKimiChat en modo sincrono y asincronico (streaming).
 // Muestra cada token recibido en async para detectar problemas de parseo.
 //
-// Configurar KIMI_API_KEY como variable de entorno antes de ejecutar.
+// Configure KIMI_API_KEY as an environment variable before running.
 // =============================================================================
 
 uses
@@ -26,7 +26,7 @@ uses
 
 const
   API_KEY = '@KIMI_API_KEY';
-  // Modelos disponibles:
+  // Available models:
   //   'kimi-k2'          - texto + tools, 256K ctx
   //   'kimi-k2.5'        - vision + PDF + reasoning + tools
   //   'kimi-k2-thinking' - reasoning + tools, sin vision
@@ -120,7 +120,7 @@ end;
 procedure TKimiTester.OnData(const Sender: TObject; aMsg: TAiChatMessage;
   aResponse: TJSONObject; aRole, aText: String);
 begin
-  // Capturar primeros 5 chunks raw para ver la estructura JSON de Kimi
+  // Capture first 5 raw chunks to see Kimi's JSON structure
   if Assigned(aResponse) and (FRawChunkLog.Count < 5) then
     FRawChunkLog.Add(aResponse.ToString);
 
@@ -189,10 +189,10 @@ begin
     else if Response = '' then
       Writeln('Respuesta: <vacia>')
     else
-      Writeln('Respuesta: ', Response);
+      Writeln('Answer: ', Response);
   except
     on E: Exception do
-      Writeln('EXCEPCION: ', E.ClassName, ' - ', E.Message);
+      Writeln('EXCEPTION: ', E.ClassName, ' - ', E.Message);
   end;
 end;
 
@@ -221,7 +221,7 @@ begin
   except
     on E: Exception do
     begin
-      Writeln('ERROR al llamar AddMessageAndRun: ', E.Message);
+      Writeln('ERROR calling AddMessageAndRun: ', E.Message);
       Exit;
     end;
   end;
@@ -237,17 +237,17 @@ begin
         Writeln('ERROR recibido: ', FError)
       else
       begin
-        // Dump de los primeros chunks raw para diagnostico de campo de reasoning
+        // Dump first raw chunks for reasoning field diagnostics
         if FRawChunkLog.Count > 0 then
         begin
-          Writeln('--- RAW SSE chunks (primeros ' + IntToStr(FRawChunkLog.Count) + ') ---');
+          Writeln('--- RAW SSE chunks (first ' + IntToStr(FRawChunkLog.Count) + ') ---');
           var i: Integer;
           for i := 0 to FRawChunkLog.Count - 1 do
             Writeln('  [' + IntToStr(i) + '] ' + Copy(FRawChunkLog[i], 1, 200));
           Writeln;
         end;
 
-        // Resumen de thinking (si hubo)
+        // Thinking summary (if any)
         if FThinkCount > 0 then
         begin
           Writeln(Format('Thinking chunks : %d  (%d chars)', [FThinkCount, Length(FThinkBuffer)]));
@@ -255,37 +255,37 @@ begin
           Writeln;
         end
         else
-          Writeln('Thinking chunks : 0  (sin reasoning en este modelo/modo)');
+          Writeln('Thinking chunks : 0  (no reasoning in this model/mode)');
 
-        Writeln(Format('Texto chunks    : %d  (%d chars en buffer)', [FTokenCount, Length(FBuffer)]));
+        Writeln(Format('Text chunks     : %d  (%d chars in buffer)', [FTokenCount, Length(FBuffer)]));
 
-        // Verificar coherencia con historial
+        // Verify consistency with history
         if FConn.GetLastMessage <> nil then
         begin
           var LHistorial := FConn.GetLastMessage.Prompt;
           var LReasoning := FConn.GetLastMessage.ReasoningContent;
-          Writeln(Format('Historial Prompt: %d chars', [Length(LHistorial)]));
+          Writeln(Format('History Prompt: %d chars', [Length(LHistorial)]));
           if LReasoning <> '' then
-            Writeln(Format('Historial Reason: %d chars', [Length(LReasoning)]));
+            Writeln(Format('History Reason: %d chars', [Length(LReasoning)]));
 
           Writeln;
-          Writeln('--- Respuesta (buffer streaming) ---');
+          Writeln('--- Answer (streaming buffer) ---');
           Writeln(FBuffer);
 
           if LHistorial <> FBuffer then
           begin
             Writeln;
-            Writeln('*** DISCREPANCIA buffer vs historial ***');
+            Writeln('*** DISCREPANCY buffer vs history ***');
             Writeln(Format('  Buffer    : %d chars', [Length(FBuffer)]));
             Writeln(Format('  Historial : %d chars', [Length(LHistorial)]));
-            // Mostrar primeros/ultimos chars para ver diferencia
-            Writeln('  Buffer    inicio: [' + Copy(FBuffer, 1, 30) + ']');
-            Writeln('  Historial inicio: [' + Copy(LHistorial, 1, 30) + ']');
-            Writeln('  Buffer    final : [' + Copy(FBuffer, Length(FBuffer)-29, 30) + ']');
-            Writeln('  Historial final : [' + Copy(LHistorial, Length(LHistorial)-29, 30) + ']');
+            // Show first/last chars to see difference
+            Writeln('  Buffer    start: [' + Copy(FBuffer, 1, 30) + ']');
+            Writeln('  History start: [' + Copy(LHistorial, 1, 30) + ']');
+            Writeln('  Buffer    end   : [' + Copy(FBuffer, Length(FBuffer)-29, 30) + ']');
+            Writeln('  History end     : [' + Copy(LHistorial, Length(LHistorial)-29, 30) + ']');
           end
           else
-            Writeln('  [OK] Buffer y historial coinciden.');
+            Writeln('  [OK] Buffer and history match.');
         end;
       end;
     wrTimeout:
@@ -305,8 +305,8 @@ procedure TKimiTester.TestMultiTurnAsync;
     WaitResult: TWaitResult;
   begin
     Writeln;
-    Writeln(Format('-- Turno %d --', [ATurn]));
-    Writeln('Usuario: ', AQuestion);
+    Writeln(Format('-- Turn %d --', [ATurn]));
+    Writeln('User: ', AQuestion);
 
     ResetBuffers;
     FDoneEvent.ResetEvent;
@@ -325,7 +325,7 @@ procedure TKimiTester.TestMultiTurnAsync;
       begin
         if FThinkCount > 0 then
           Writeln(Format('  [thinking: %d chunks]', [FThinkCount]));
-        Writeln(Format('  [texto: %d chunks, %d chars]', [FTokenCount, Length(FBuffer)]));
+        Writeln(Format('  [text: %d chunks, %d chars]', [FTokenCount, Length(FBuffer)]));
       end;
     end
     else
@@ -336,12 +336,12 @@ begin
   PrintSeparator('Multi-turno Async');
   FConn.NewChat;
 
-  SendTurn('Hola! Mi nombre es Gustavo. Recuerdalo.', 1);
-  SendTurn('Cual es mi nombre?', 2);
-  SendTurn('Cuantos mensajes llevamos en esta conversacion?', 3);
+  SendTurn('Hello! My name is Gustavo. Remember it.', 1);
+  SendTurn('What is my name?', 2);
+  SendTurn('How many messages have we exchanged in this conversation?', 3);
 
   Writeln;
-  Writeln(Format('Mensajes en historial: %d', [FConn.Messages.Count]));
+  Writeln(Format('Messages in history: %d', [FConn.Messages.Count]));
 end;
 
 // =============================================================================
@@ -378,6 +378,6 @@ begin
   end;
 
   Writeln;
-  Writeln('Demo finalizado. Presiona Enter para salir.');
+  Writeln('Demo finished. Press Enter to exit.');
   Readln;
 end.

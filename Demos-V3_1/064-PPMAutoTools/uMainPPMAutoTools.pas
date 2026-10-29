@@ -1,15 +1,15 @@
 ﻿// MIT License
 //
 // MakerAI - Demo 064: PPM Auto Tools
-// Demuestra cómo el LLM puede descubrir, instalar y ejecutar herramientas MCP
-// del registry PPM de forma totalmente autónoma.
+// Demonstrates how the LLM can discover, install, and run MCP tools
+// from the PPM registry fully autonomously.
 //
-// Flujo autónomo:
-//   1. Usuario pide algo que requiere acceso externo (ej: "busca repos de Pascal en GitHub")
-//   2. LLM llama a ppm_search("github") → ve mcp-github disponible
-//   3. LLM llama a ppm_install("mcp-github") → binario descargado y configurado
-//   4. LLM llama a call_mcp_tool("mcp-github", "search_repos", '{"query":"pascal"}')
-//   5. Resultado devuelto al LLM → respuesta al usuario
+// Autonomous flow:
+//   1. User asks for something requiring external access (e.g.: "search Pascal repos on GitHub")
+//   2. LLM calls ppm_search("github") → sees mcp-github available
+//   3. LLM calls ppm_install("mcp-github") → binary downloaded and configured
+//   4. LLM calls call_mcp_tool("mcp-github", "search_repos", '{"query":"pascal"}')
+//   5. Result returned to LLM → response to user
 
 unit uMainPPMAutoTools;
 
@@ -36,14 +36,14 @@ uses
 
 type
   TfrmPPMAutoTools = class(TForm)
-    // -- Componentes no visuales --
+    // -- Non-visual components --
     AiConn: TAiChatConnection;
     AiFunctions1: TAiFunctions;
 
-    // -- Layout principal --
+    // -- Main layout --
     MainLayout: TLayout;
 
-    // -- Panel izquierdo (configuración) --
+    // -- Left panel (configuration) --
     LeftPanel: TLayout;
     RectLeft: TRectangle;
     LblTitulo: TLabel;
@@ -61,7 +61,7 @@ type
     LblLog: TLabel;
     MemoLog: TMemo;
 
-    // -- Panel derecho (chat) --
+    // -- Right panel (chat) --
     ChatPanel: TLayout;
     ChatList1: TChatList;
     AniIndicator1: TAniIndicator;
@@ -88,7 +88,7 @@ type
     procedure AiFunctions1StatusUpdate(Sender: TObject; const StatusMsg: string);
     procedure FormDestroy(Sender: TObject);
 
-    // -- Handlers de las 3 funciones PPM --
+    // -- Handlers for the 3 PPM functions --
     procedure OnPpmSearch(Sender: TObject; FunctionAction: TFunctionActionItem;
       FunctionName: string; ToolCall: TAiToolsFunction; var Handled: Boolean);
     procedure OnPpmInstall(Sender: TObject; FunctionAction: TFunctionActionItem;
@@ -213,7 +213,7 @@ begin
         if (LName = '') or (LCmd = '') then Continue;
         if not FileExists(LCmd) then
         begin
-          AddLog('LoadTools: ejecutable no encontrado para "' + LName + '", ignorando.');
+          AddLog('LoadTools: executable not found for "' + LName + '", ignoring.');
           Continue;
         end;
         if Assigned(AiFunctions1.MCPClients.GetClientByName(LName)) then Continue;
@@ -228,14 +228,14 @@ begin
         LItem.UpdateClientProperties;
 
         AddInstalledTool(LName, LCmd);
-        AddLog('LoadTools: "' + LName + '" restaurado desde disco.');
+        AddLog('LoadTools: "' + LName + '" restored from disk.');
       end;
     finally
       LArr.Free;
     end;
   except
     on E: Exception do
-      AddLog('LoadTools: error cargando herramientas — ' + E.Message);
+      AddLog('LoadTools: error loading tools — ' + E.Message);
   end;
   UpdateSystemPromptWithInstalledTools;
 end;
@@ -255,11 +255,11 @@ begin
     LSb.Append(SYSTEM_PROMPT);
     LSb.AppendLine;
     LSb.AppendLine;
-    LSb.AppendLine('HERRAMIENTAS MCP YA INSTALADAS (no uses ppm_install para estas):');
+    LSb.AppendLine('MCP TOOLS ALREADY INSTALLED (do not use ppm_install for these):');
     for I := 0 to AiFunctions1.MCPClients.Count - 1 do
       LSb.AppendLine('- ' + AiFunctions1.MCPClients[I].Name +
         ' (usa call_mcp_tool directamente, sin ppm_install)');
-    LSb.AppendLine('Para estas herramientas: omite ppm_search y ppm_install, ve directo al paso 3.');
+    LSb.AppendLine('For these tools: skip ppm_search and ppm_install, go straight to step 3.');
     AiConn.SystemPrompt.Text := LSb.ToString;
   finally
     LSb.Free;
@@ -278,13 +278,13 @@ begin
   FLastBubble := nil;
   FMCPLock := TCriticalSection.Create;
 
-  // Registrar drivers disponibles
+  // Register available drivers
   InitDrivers;
 
-  // Configurar las 3 funciones PPM en AiFunctions1
+  // Configure the 3 PPM functions in AiFunctions1
   InitFunctions;
 
-  // Asignar el system prompt base
+  // Assign base system prompt
   InitSystemPrompt;
 
   // Conectar AiFunctions1 con AiConn
@@ -427,12 +427,12 @@ begin
     LArgsS.Free;
   end;
   AddLog('ppm_search: "' + LQuery + '"...');
-  SetStatus('Buscando "' + LQuery + '" en el registry PPM...');
+  SetStatus('Searching "' + LQuery + '" in PPM registry...');
 
   LResult := AiFunctions1.SearchPPMMCP(LQuery);
   if not Assigned(LResult) then
   begin
-    ToolCall.Response := 'No se pudo conectar con el registry PPM. Verifica la conexión.';
+    ToolCall.Response := 'Could not connect to PPM registry. Check connection.';
     Handled := True;
     Exit;
   end;
@@ -443,7 +443,7 @@ begin
     try
       if LResult.TryGetValue<TJSONArray>('tools', LTools) and (LTools.Count > 0) then
       begin
-        LSb.AppendLine(Format('Se encontraron %d herramientas para "%s":', [LTools.Count, LQuery]));
+        LSb.AppendLine(Format('Found %d tools for "%s":', [LTools.Count, LQuery]));
         LSb.AppendLine;
         for I := 0 to LTools.Count - 1 do
         begin
@@ -486,10 +486,10 @@ begin
           end;
           LSb.AppendLine;
         end;
-        LSb.AppendLine('Para usar una herramienta: primero llama ppm_install("<nombre>"), luego call_mcp_tool.');
+        LSb.AppendLine('To use a tool: first call ppm_install("<name>"), then call_mcp_tool.');
       end
       else
-        LSb.AppendLine(Format('No se encontraron herramientas para "%s" en el registry PPM.', [LQuery]));
+        LSb.AppendLine(Format('No tools found for "%s" in PPM registry.', [LQuery]));
 
       ToolCall.Response := LSb.ToString;
     finally
@@ -520,32 +520,32 @@ begin
   end;
   AddLog('ppm_install: "' + LToolName + '"...');
 
-  // Si el cliente ya está registrado, reutilizarlo sin volver a descargar
+  // If client already registered, reuse it without downloading again
   LItem := AiFunctions1.MCPClients.GetClientByName(LToolName);
   if Assigned(LItem) then
   begin
-    AddLog('ppm_install: "' + LToolName + '" ya instalado, reutilizando.');
-    SetStatus('"' + LToolName + '" ya disponible.');
+    AddLog('ppm_install: "' + LToolName + '" already installed, reusing.');
+    SetStatus('"' + LToolName + '" already available.');
   end
   else
   begin
-    SetStatus('Instalando paquete "' + LToolName + '" desde PPM...');
+    SetStatus('Installing package "' + LToolName + '" from PPM...');
     LItem := AiFunctions1.InstallMCPFromPPM(LToolName);
   end;
 
   if Assigned(LItem) then
   begin
-    // Inicializar el cliente MCP (arranca el proceso e interroga tools/list)
-    AddLog('ppm_install: inicializando proceso "' + LToolName + '"...');
+    // Initialize MCP client (starts process and queries tools/list)
+    AddLog('ppm_install: initializing process "' + LToolName + '"...');
     if LItem.MCPClient.Initialize then
     begin
-      // Desactivar el cliente para que GetTools no exponga sus herramientas
-      // directamente al LLM. Así el LLM solo puede acceder a ellas a través
-      // de call_mcp_tool (nuestro handler), evitando llamadas paralelas
-      // no controladas que causarían race conditions en TMCPClientStdIo.
+      // Disable client so GetTools does not expose its tools
+      // directly to LLM. Thus LLM can only access them through
+      // call_mcp_tool (our handler), avoiding parallel calls
+      // uncontrolled that would cause race conditions in TMCPClientStdIo.
       LItem.Enabled := False;
 
-      // Extraer los nombres reales de funciones del tools/list para informar al LLM
+      // Extract real function names from tools/list to inform LLM
       var LFuncNames := TStringList.Create;
       try
         var LToolsJson := TJSONObject.ParseJSONValue(LItem.MCPClient.Tools.Text);
@@ -563,7 +563,7 @@ begin
           LToolsJson.Free;
         end;
       except
-        // si falla el parse, continuamos sin lista de funciones
+        // if parse fails, continue without function list
       end;
 
       var LFuncList := '';
@@ -590,7 +590,7 @@ begin
       ToolCall.Response := Format(
         'Herramienta "%s" instalada pero no se pudo inicializar el proceso. ' +
         'Verifica que el ejecutable exista y sea compatible.', [LToolName]);
-      AddLog('ppm_install: WARN - proceso no iniciado para ' + LToolName);
+      AddLog('ppm_install: WARN - process not started for ' + LToolName);
     end;
   end
   else
@@ -613,9 +613,9 @@ var
   LResult: TJSONObject;
   LMedia: TObjectList<TAiMediaFile>;
 begin
-  // Sección crítica global: serializa llamadas concurrentes a cualquier MCP client
-  // (TMCPClientStdIo no es thread-safe — dos llamadas paralelas al mismo cliente
-  //  producen race conditions → EInvalidPointer)
+  // Global critical section: serializes concurrent calls to any MCP client
+  // (TMCPClientStdIo is not thread-safe — two parallel calls to same client
+  //  produce race conditions → EInvalidPointer)
   FMCPLock.Enter;
   try
 
@@ -635,7 +635,7 @@ begin
   AddLog(Format('call_mcp_tool: %s → %s', [LToolName, LFuncName]));
   SetStatus(Format('Ejecutando %s.%s...', [LToolName, LFuncName]));
 
-  // Buscar el cliente instalado
+  // Find installed client
   LClientItem := AiFunctions1.MCPClients.GetClientByName(LToolName);
   if not Assigned(LClientItem) then
   begin
@@ -645,11 +645,11 @@ begin
     Exit;
   end;
 
-  // Conectar log del cliente MCP al log de la demo para ver errores del servidor
+  // Connect MCP client log to demo log to see server errors
   LClientItem.MCPClient.OnLog := AiFunctions1Log;
   LClientItem.MCPClient.OnStatusUpdate := AiFunctions1StatusUpdate;
 
-  // Parsear argumentos antes de verificar connection_string
+  // Parse arguments before checking connection_string
   LArgsJson := nil;
   if (LArgStr <> '') and (LArgStr <> '{}') then
   begin
@@ -664,9 +664,9 @@ begin
   else
     LArgsJson := TJSONObject.Create;
 
-  // Si el LLM pasa connection_string, usarlo como argumento de startup del proceso.
-  // mcp-postgres (y muchos otros MCP tools) necesitan la conexión como argumento
-  // posicional al iniciar el proceso (ej: mcp-postgres.exe postgresql://user:pass@host/db).
+  // If LLM passes connection_string, use it as process startup argument.
+  // mcp-postgres (and many other MCP tools) need connection as argument
+  // positional when starting process (e.g.: mcp-postgres.exe postgresql://user:pass@host/db).
   var LConnStr: string;
   var LConnStrUpdated := False;
   if LArgsJson.TryGetValue<string>('connection_string', LConnStr) and (LConnStr <> '') then
@@ -677,12 +677,12 @@ begin
     AddLog('call_mcp_tool: connection_string → startup arg: ' + LConnStr);
   end;
 
-  // Inicializar si aún no fue hecho, O re-inicializar si se actualizó la connection_string.
-  // Re-inicializar es necesario porque ppm_install arrancó el servidor sin connection_string,
-  // por lo que el tools/list previo puede estar vacío o incompleto.
+  // Initialize if not done yet, OR re-initialize if connection_string updated.
+  // Re-initialize needed because ppm_install started server without connection_string,
+  // so previous tools/list may be empty or incomplete.
   if not LClientItem.MCPClient.Initialized or LConnStrUpdated then
   begin
-    AddLog('call_mcp_tool: inicializando ' + LToolName + '...');
+    AddLog('call_mcp_tool: initializing ' + LToolName + '...');
     LClientItem.MCPClient.Initialized := False;
     if not LClientItem.MCPClient.Initialize then
     begin
@@ -697,12 +697,12 @@ begin
   LMedia := TObjectList<TAiMediaFile>.Create(True);
   try
     try
-      AddLog('call_mcp_tool: iniciando CallTool...');
+      AddLog('call_mcp_tool: starting CallTool...');
       // NOTA: CallTool toma ownership de LArgsJson y lo libera internamente.
       // NO llamar LArgsJson.Free después de esta llamada.
       LResult := LClientItem.MCPClient.CallTool(LFuncName, LArgsJson, LMedia);
       LArgsJson := nil; // Ya fue liberado por CallTool
-      AddLog('call_mcp_tool: CallTool completado. Result=' + BoolToStr(Assigned(LResult), True));
+      AddLog('call_mcp_tool: CallTool completed. Result=' + BoolToStr(Assigned(LResult), True));
       try
         if Assigned(LResult) then
           ToolCall.Response := LResult.Format
@@ -743,8 +743,8 @@ begin
     except
       on E: Exception do
       begin
-        AddLog('EXCEPCION en CallTool [' + E.ClassName + ']: ' + E.Message);
-        ToolCall.Response := Format('Error ejecutando "%s": %s — %s', [LFuncName, E.ClassName, E.Message]);
+        AddLog('EXCEPTION in CallTool [' + E.ClassName + ']: ' + E.Message);
+        ToolCall.Response := Format('Error executing "%s": %s — %s', [LFuncName, E.ClassName, E.Message]);
         LArgsJson := nil; // ya liberado o no — evitar doble-free
       end;
     end;
@@ -769,17 +769,17 @@ procedure TfrmPPMAutoTools.ChatInput1SendEvent(Sender: TObject; APrompt: string;
 var
   LFiles: TAiMediaFilesArray;
 begin
-  // Configurar parámetros del chat antes de cada llamada
+  // Configure chat parameters before each call
   AiConn.Params.Values['Asynchronous'] := BoolToStr(ChAsync.IsChecked, True);
   AiConn.Params.Values['Tool_Active']  := 'True';
 
   FLastBubble := nil;
   ChatList1.AddBubble(APrompt, 'Usuario', aMediaFiles, False);
 
-  // Clonar MediaFiles en el hilo principal ANTES de TTask.Run.
-  // DoSendEvent (TChatInput) libera aMediaFiles al retornar este handler;
-  // si lo capturamos en el closure, el hilo en background accedería a un
-  // objeto ya liberado → EInvalidPointer.
+  // Clone MediaFiles in main thread BEFORE TTask.Run.
+  // DoSendEvent (TChatInput) frees aMediaFiles when this handler returns;
+  // if captured in closure, background thread would access a
+  // freed object → EInvalidPointer.
   LFiles := aMediaFiles.ToMediaFileArray;
 
   AniIndicator1.Visible := True;
@@ -858,7 +858,7 @@ begin
       var LExClass := '';
       if Assigned(Exception) then LExClass := '[' + Exception.ClassName + '] ';
       AddLog('ERROR ' + LExClass + ': ' + ErrorMsg);
-      ChatList1.AddBubble('⚠ ' + LExClass + ErrorMsg, 'Sistema', nil);
+      ChatList1.AddBubble('⚠ ' + LExClass + ErrorMsg, 'System', nil);
     end);
 end;
 
@@ -881,7 +881,7 @@ begin
   LDriverName := Trim(ComboDriver.Selected.Text);
   AiConn.DriverName := LDriverName;
 
-  // Auto-detectar variable de entorno del API key
+  // Auto-detect API key environment variable
   LNeedsKey := True;
   for I := Low(NO_KEY_DRIVERS) to High(NO_KEY_DRIVERS) do
     if SameText(LDriverName, NO_KEY_DRIVERS[I]) then
@@ -905,7 +905,7 @@ begin
   else
   begin
     AiConn.Params.Values['ApiKey'] := '';
-    EditApiKey.Text := '(no requerido)';
+    EditApiKey.Text := '(not required)';
   end;
 
   LModels := AiConn.GetModels;
@@ -927,7 +927,7 @@ var
   LKey: string;
 begin
   LKey := EditApiKey.Text;
-  // Ignorar los placeholders informativos
+  // Ignore informational placeholders
   if Copy(LKey, 1, 1) = '(' then Exit;
   AiConn.Params.Values['ApiKey'] := LKey;
 end;
@@ -956,16 +956,16 @@ procedure TfrmPPMAutoTools.AiConnStateChange(Sender: TObject; State: TAiChatStat
 const
   STATE_ICONS: array[TAiChatState] of string = (
     '',                          // acsIdle
-    'Conectando...',             // acsConnecting
+    'Connecting...',             // acsConnecting
     '',                          // acsCreated
-    'Razonando...',              // acsReasoning
-    'Generando respuesta...',    // acsWriting
-    'Llamando herramienta...',   // acsToolCalling
-    'Ejecutando herramienta...', // acsToolExecuting
+    'Reasoning...',              // acsReasoning
+    'Generating response...',    // acsWriting
+    'Calling tool...',           // acsToolCalling
+    'Executing tool...',         // acsToolExecuting
     '',                          // acsFinished
     '',                          // acsAborted
-    'Cargando...',               // acsLoading
-    'Procesando...',             // acsProcessing
+    'Loading...',                // acsLoading
+    'Processing...',             // acsProcessing
     ''                           // acsError
   );
 begin
@@ -974,7 +974,7 @@ end;
 
 procedure TfrmPPMAutoTools.AiFunctions1Log(Sender: TObject; const Msg: string);
 begin
-  // Filtrar mensajes de bajo nivel (muy verbosos) para no saturar el status
+  // Filter low-level messages (very verbose) to not saturate status
   if (Pos('DEBUG', Msg) > 0) or (Pos('Waiting for', Msg) > 0) or
      (Pos('TIMEOUT', Msg) > 0) then
     Exit;

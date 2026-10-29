@@ -6,19 +6,19 @@ program Streaming;
 // =============================================================================
 // MakerAI — 01-Chat / 03-Streaming
 // =============================================================================
-// Muestra la respuesta del LLM token a token conforme llega (streaming),
-// sin esperar a que termine la generación.
+// Shows the LLM response token by token as it arrives (streaming),
+// without waiting for generation to finish.
 //
-// Conceptos que cubre:
-//   - Evento OnReceiveData    (dispara por cada fragmento recibido)
-//   - Evento OnReceiveDataEnd (dispara al terminar el stream)
-//   - Diferencia visual entre esperar respuesta completa vs. streaming
-//   - Medición de tiempo hasta primer token (TTFT) y tiempo total
+// Concepts covered:
+//   - OnReceiveData event    (fires for each fragment received)
+//   - OnReceiveDataEnd event (fires when the stream ends)
+//   - Visual difference between waiting for the full response vs. streaming
+//   - Measuring time to first token (TTFT) and total time
 //
-// Nota: Asynchronous = False sigue siendo síncrono en cuanto a que
-// AddMessageAndRun() no retorna hasta terminar, pero los eventos
-// OnReceiveData se disparan en hilo principal conforme llegan
-// los fragmentos → se puede imprimir progresivamente.
+// Note: Asynchronous = False is still synchronous in that
+// AddMessageAndRun() does not return until it finishes, but the events
+// OnReceiveData fire on the main thread as the fragments
+// arrive → you can print progressively.
 // =============================================================================
 
 uses
@@ -40,27 +40,27 @@ const
   API_KEY = '@CLAUDE_API_KEY';
 
 // =============================================================================
-//  TStreamingDemo — encapsula la conexión y los handlers de streaming
+//  TStreamingDemo — encapsulates the connection and streaming handlers
 // =============================================================================
 type
   TStreamingDemo = class
   private
     FConn        : TAiChatConnection;
-    // Métricas para Demo 2
+    // Metrics for Demo 2
     FSW          : TStopwatch;
     FFirstTokenMs: Int64;
     FTokenCount  : Integer;
-    // Estado para Demo 3
+    // State for Demo 3
     FFullResponse: String;
     FFragCount   : Integer;
 
-    // ── Handlers Demo 2: imprime cada fragmento en tiempo real ──────────────
+    // ── Demo 2 handlers: print each fragment in real time ──────────────
     procedure OnChunk(const Sender: TObject; aMsg: TAiChatMessage;
       aResponse: TJSONObject; aRole, aText: String);
     procedure OnDone(const Sender: TObject; aMsg: TAiChatMessage;
       aResponse: TJSONObject; aRole, aText: String);
 
-    // ── Handlers Demo 3: acumula + muestra puntos de progreso ───────────────
+    // ── Demo 3 handlers: accumulate + show progress dots ───────────────
     procedure OnProgressChunk(const Sender: TObject; aMsg: TAiChatMessage;
       aResponse: TJSONObject; aRole, aText: String);
     procedure OnProgressDone(const Sender: TObject; aMsg: TAiChatMessage;
@@ -123,12 +123,12 @@ var
   SW      : TStopwatch;
   Response: String;
 begin
-  Writeln('--- SIN STREAMING ---');
-  Writeln('(Espera hasta que la respuesta esté completa antes de mostrarla)');
+  Writeln('--- WITHOUT STREAMING ---');
+  Writeln('(Waits until the response is complete before displaying it)');
   Writeln;
 
   FConn.Messages.Clear;
-  // Sin eventos de streaming asignados
+  // No streaming events assigned
   FConn.OnReceiveData    := nil;
   FConn.OnReceiveDataEnd := nil;
 
@@ -140,7 +140,7 @@ begin
 
   Writeln(Response);
   Writeln;
-  Writeln(Format('Tiempo total: %d ms', [SW.ElapsedMilliseconds]));
+  Writeln(Format('Total time: %d ms', [SW.ElapsedMilliseconds]));
   Writeln;
 end;
 
@@ -151,8 +151,8 @@ procedure TStreamingDemo.DemoConStreaming;
 var
   SW: TStopwatch;
 begin
-  Writeln('--- CON STREAMING ---');
-  Writeln('(Cada fragmento se imprime conforme llega del servidor)');
+  Writeln('--- WITH STREAMING ---');
+  Writeln('(Each fragment is printed as it arrives from the server)');
   Writeln;
 
   FConn.Messages.Clear;
@@ -171,9 +171,9 @@ begin
 
   Writeln;
   Writeln;
-  Writeln(Format('Tiempo hasta primer token: %d ms', [FFirstTokenMs]));
-  Writeln(Format('Tiempo total             : %d ms', [SW.ElapsedMilliseconds]));
-  Writeln(Format('Fragmentos recibidos     : %d', [FTokenCount]));
+  Writeln(Format('Time to first token: %d ms', [FFirstTokenMs]));
+  Writeln(Format('Total time             : %d ms', [SW.ElapsedMilliseconds]));
+  Writeln(Format('Fragments received     : %d', [FTokenCount]));
   Writeln;
 end;
 
@@ -182,8 +182,8 @@ end;
 // =============================================================================
 procedure TStreamingDemo.DemoStreamingConProgreso;
 begin
-  Writeln('--- STREAMING CON PROGRESO VISUAL ---');
-  Writeln('(Los puntos representan fragmentos; la respuesta se muestra al final)');
+  Writeln('--- STREAMING WITH VISUAL PROGRESS ---');
+  Writeln('(The dots represent fragments; the response is shown at the end)');
   Writeln;
 
   FConn.Messages.Clear;
@@ -244,6 +244,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

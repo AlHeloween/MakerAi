@@ -9,7 +9,7 @@ program AgentSingleTool;
 // El agente usa una herramienta personalizada vía TAiToolRegistry.
 // El LLM decide automáticamente cuándo llamarla (ciclo ReAct automático).
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - IAiTool: interfaz de herramienta para agentes
 //   - TAiToolRegistry.Instance.Register: registrar herramientas globalmente
 //   - TLLMNode.UseAllTools=True: exponer todas las herramientas registradas
@@ -17,8 +17,8 @@ program AgentSingleTool;
 //   - Execute: implementación de la herramienta
 //   - Ciclo ReAct: LLM decide → llama tool → LLM interpreta resultado
 //
-// Herramienta: calculadora (add, subtract, multiply, divide)
-// Estructura: [Start] --> [CalculatorAgent] --> [End]
+// Tool: calculator (add, subtract, multiply, divide)
+// Structure: [Start] --> [CalculatorAgent] --> [End]
 // =============================================================================
 
 uses
@@ -145,10 +145,10 @@ procedure RunQuery(Manager: TAIAgentManager; const AQuestion: String);
 begin
   Manager.Blackboard.Clear;
   Writeln(StringOfChar('-', 60));
-  Writeln('Pregunta: ', AQuestion);
+  Writeln('Question: ', AQuestion);
   Writeln;
   try
-    Writeln('Respuesta: ', Manager.Run(AQuestion));
+    Writeln('Answer: ', Manager.Run(AQuestion));
   except
     on E: Exception do
       Writeln('ERROR: ', E.Message);
@@ -167,9 +167,9 @@ begin
   Writeln('Driver: ', DRIVER, ' / ', MODEL);
   Writeln;
 
-  // Registrar la herramienta en el registry global
+  // Register the tool in the global registry
   TAiToolRegistry.Instance.Register(TCalculatorTool.Create, 'local', 'math');
-  Writeln('Herramientas registradas: ', TAiToolRegistry.Instance.Count);
+  Writeln('Registered tools: ', TAiToolRegistry.Instance.Count);
   Writeln;
 
   Manager := TAIAgentManager.Create(nil);
@@ -204,10 +204,10 @@ begin
     Manager.EndNode   := Finish;
     Manager.Compile;
 
-    RunQuery(Manager, 'Cuanto es 1234 multiplicado por 5678?');
-    RunQuery(Manager, 'Cuanto es (100 + 200) dividido entre 15?');
-    RunQuery(Manager, 'Calcula el 15 por ciento de 840.');
-    RunQuery(Manager, 'Cuanto es 999 menos 456, y luego multiplica ese resultado por 3?');
+    RunQuery(Manager, 'What is 1234 multiplied by 5678?');
+    RunQuery(Manager, 'What is (100 + 200) divided by 15?');
+    RunQuery(Manager, 'Calculate 15 percent of 840.');
+    RunQuery(Manager, 'What is 999 minus 456, and then multiply that result by 3?');
 
   finally
     Manager.Free;

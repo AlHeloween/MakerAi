@@ -38,7 +38,7 @@ uses
   uMakerAi.Gemini.Speech;
 
 // ---------------------------------------------------------------------------
-// Captura errores del chat (TAiErrorEvent es "of object", necesita clase)
+// Captures chat errors (TAiErrorEvent is "of object", needs a class)
 // ---------------------------------------------------------------------------
 type
   TErrorCapture = class
@@ -84,7 +84,7 @@ end;
 // ---------------------------------------------------------------------------
 const
   OLLAMA_URL = 'http://localhost:11434/';
-  MODEL      = 'gemma3:4b';     // modelo SIN capacidad de audio nativa
+  MODEL      = 'gemma3:4b';     // model WITHOUT native audio capability
   DIV_LINE   = '------------------------------------------------------------';
 
 // ---------------------------------------------------------------------------
@@ -101,7 +101,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// ESCENARIO A: Audio → Gemini STT bridge → gemma3:4b → respuesta texto
+// SCENARIO A: Audio → Gemini STT bridge → gemma3:4b → text response
 // ---------------------------------------------------------------------------
 function RunSTTBridge(const AAudioFile, AQuestion: String): String;
 var
@@ -112,7 +112,7 @@ var
 begin
   Result := '';
   Writeln;
-  Writeln('=== ESCENARIO A — STT bridge ===');
+  Writeln('=== SCENARIO A — STT bridge ===');
   Writeln('  Audio   : ', AAudioFile);
   Writeln('  Pregunta: ', AQuestion);
   Writeln(DIV_LINE);
@@ -121,12 +121,12 @@ begin
   SpeechTool := TAiGeminiSpeechTool.Create(nil);
   Conn       := TAiChatConnection.Create(nil);
   try
-    // -- Configurar SpeechTool (Gemini STT) --
+    // -- Configure SpeechTool (Gemini STT) --
     SpeechTool.ApiKey             := '@GEMINI_API_KEY';
     SpeechTool.TranscriptionModel := 'gemini-2.0-flash';
     SpeechTool.TranscriptionPrompt := 'Transcribe this audio accurately.';
 
-    // -- Configurar conexión Ollama --
+    // -- Configure Ollama connection --
     Conn.DriverName := 'Ollama';
     Conn.Params.Values['URL']          := OLLAMA_URL;
     Conn.Params.Values['Model']        := MODEL;
@@ -140,7 +140,7 @@ begin
     Conn.Params.Values['Max_Tokens']   := '1024';
     Conn.OnError := ErrCap.OnError;
 
-    // -- Asignar el SpeechTool al bridge --
+    // -- Assign the SpeechTool to the bridge --
     Conn.SpeechTool := SpeechTool;
 
     // -- Cargar audio --
@@ -148,10 +148,10 @@ begin
     // NO liberar AudioFile; la lista FMessages lo libera al destruir la conexión.
     AudioFile := TAiMediaFile.Create;
     AudioFile.LoadFromFile(AAudioFile);
-    Writeln('  Cargado : ', AudioFile.Content.Size, ' bytes',
+    Writeln('  Loaded : ', AudioFile.Content.Size, ' bytes',
             ' | MIME: ', AudioFile.MimeType,
             ' | Cat: ', GetEnumName(TypeInfo(TAiFileCategory), Ord(AudioFile.FileCategory)));
-    Writeln('  Transcribiendo con Gemini + enviando a ', MODEL, ' (espera...)');
+    Writeln('  Transcribing with Gemini + sending to ', MODEL, ' (please wait...)');
 
     // El orquestador detecta Gap=[cap_Audio]:
     //   FASE 1 → TAiGeminiSpeechTool.ExecuteTranscription(audioFile, ...)
@@ -165,11 +165,11 @@ begin
       PrintError(ErrCap)
     else if Result <> '' then
     begin
-      Writeln('=== RESPUESTA DE ', MODEL, ' ===');
+      Writeln('=== RESPONSE FROM ', MODEL, ' ===');
       Writeln(Result);
     end
     else
-      Writeln('[SIN RESPUESTA] El modelo devolvió string vacío sin error.');
+      Writeln('[NO RESPONSE] The model returned an empty string without error.');
 
   finally
     Conn.Free;
@@ -179,7 +179,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// ESCENARIO B: Texto → Gemini TTS → archivo .wav
+// SCENARIO B: Text → Gemini TTS → .wav file
 // ---------------------------------------------------------------------------
 procedure RunTTSGeneration(const AText: String);
 var
@@ -187,17 +187,17 @@ var
   OutputFile  : String;
 begin
   Writeln;
-  Writeln('=== ESCENARIO B — TTS (respuesta → audio) ===');
-  Writeln('  Texto: ', Copy(AText, 1, 80), IfThen(Length(AText) > 80, '...', ''));
+  Writeln('=== SCENARIO B — TTS (response → audio) ===');
+  Writeln('  Text: ', Copy(AText, 1, 80), IfThen(Length(AText) > 80, '...', ''));
   Writeln(DIV_LINE);
 
   if AText = '' then
   begin
-    Writeln('  [SKIP] No hay texto para convertir a audio.');
+    Writeln('  [SKIP] No text to convert to audio.');
     Exit;
   end;
 
-  Writeln('  Generando audio con Gemini TTS (espera...)');
+  Writeln('  Generating audio with Gemini TTS (please wait...)');
   AudioResult := TAiGeminiSpeechTool.GenerateSpeech(
     GetEnvironmentVariable('GEMINI_API_KEY'),
     AText,
@@ -209,14 +209,14 @@ begin
     OutputFile := ExtractFilePath(ParamStr(0)) + 'respuesta_audio.wav';
     try
       AudioResult.Content.SaveToFile(OutputFile);
-      Writeln('  Audio guardado: ', OutputFile,
+      Writeln('  Audio saved: ', OutputFile,
               ' (', AudioResult.Content.Size, ' bytes)');
     finally
       AudioResult.Free;
     end;
   end
   else
-    Writeln('  [ERROR] Gemini TTS no devolvió audio. Verifica GEMINI_API_KEY.');
+    Writeln('  [ERROR] Gemini TTS did not return audio. Check GEMINI_API_KEY.');
 end;
 
 // ---------------------------------------------------------------------------
@@ -230,29 +230,29 @@ begin
   Writeln;
 
   try
-    // -- Ruta del archivo de audio --
+    // -- Audio file path --
     if ParamCount >= 1 then
       AudioPath := ParamStr(1)
     else
     begin
-      Write('Ruta del archivo de audio (wav / mp3 / ogg / m4a / flac): ');
+      Write('Path of the audio file (wav / mp3 / ogg / m4a / flac): ');
       Readln(AudioPath);
     end;
     AudioPath := Trim(AudioPath);
 
     if not FileExists(AudioPath) then
-      raise Exception.CreateFmt('Archivo no encontrado: "%s"', [AudioPath]);
+      raise Exception.CreateFmt('File not found: "%s"', [AudioPath]);
 
-    // -- Pregunta --
+    // -- Question --
     if ParamCount >= 2 then
       Question := ParamStr(2)
     else
       Question := 'Resume brevemente qué dice el audio.';
 
-    // -- Escenario A: STT bridge --
+    // -- Scenario A: STT bridge --
     ModelResponse := RunSTTBridge(AudioPath, Question);
 
-    // -- Escenario B: TTS de la respuesta --
+    // -- Scenario B: TTS of the response --
     RunTTSGeneration(ModelResponse);
 
   except
@@ -264,6 +264,6 @@ begin
   end;
 
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

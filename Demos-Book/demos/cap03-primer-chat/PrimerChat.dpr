@@ -4,45 +4,45 @@
 {$R *.res}
 
 // =============================================================================
-// MakerAI — Capítulo 3: Tu Primer Chat con MakerAI
+// MakerAI — Chapter 3: Your First Chat with MakerAI
 // =============================================================================
 // El demo más simple posible con TAiChatConnection: configurar el proveedor,
 // enviar mensajes en un bucle y recibir respuestas.
 //
-// Conceptos que cubre:
-//   - Crear y configurar TAiChatConnection
-//   - Seleccionar provider con DriverName
-//   - API key desde variable de entorno con la sintaxis @VARNAME
-//   - Llamada síncrona con AddMessageAndRun()
-//   - Historial automático: el modelo "recuerda" sin código adicional
-//   - Limpiar historial con NewChat
-//   - Inspeccionar Messages.Count
+// Concepts it covers:
+//   - Create and configure TAiChatConnection
+//   - Select provider with DriverName
+//   - API key from environment variable with @VARNAME syntax
+//   - Synchronous call with AddMessageAndRun()
+//   - Automatic history: the model "remembers" without additional code
+//   - Clear history with NewChat
+//   - Inspect Messages.Count
 //
-// Cómo cambiar de provider:
-//   Modifica DRIVER, MODEL y API_KEY. El resto del código no cambia.
-//   Esa es la propuesta de valor central de MakerAI.
+// How to change provider:
+//   Modify DRIVER, MODEL and API_KEY. The rest of the code does not change.
+//   That is MakerAI's core value proposition.
 //
-// Configurar antes de compilar:
-//   Define GROQ_API_KEY como variable de entorno del sistema.
-//   Alternativas gratuitas: Ollama (local, sin key), Gemini (GEMINI_API_KEY).
+// Configure before compiling:
+//   Define GROQ_API_KEY as a system environment variable.
+//   Free alternatives: Ollama (local, no key), Gemini (GEMINI_API_KEY).
 // =============================================================================
 
 uses
   System.SysUtils,
   uMakerAi.Chat,
   uMakerAi.Chat.AiConnection,
-  // ── Importar el driver activa su auto-registro en el factory ──────────────
-  // Solo se necesita importar la unidad; TAiChatConnection lo encuentra por nombre.
+  // ── Importing the driver activates its auto-registration in the factory ──────────────
+  // You only need to import the unit; TAiChatConnection finds it by name.
   uMakerAi.Chat.OpenAi,
   uMakerAi.Chat.Groq;      // DriverName = 'Groq'
 
   // uMakerAi.Chat.Claude;  // DriverName = 'Claude'
   // uMakerAi.Chat.OpenAi;  // DriverName = 'OpenAI'
   // uMakerAi.Chat.Gemini;  // DriverName = 'Gemini'
-  // uMakerAi.Chat.Ollama;  // DriverName = 'Ollama'  (local, sin API key)
+  // uMakerAi.Chat.Ollama;  // DriverName = 'Ollama'  (local, no API key)
 
 const
-  // ── Cambiar aquí para usar otro provider ──────────────────────────────────
+  // ── Change here to use another provider ──────────────────────────────────
   DRIVER  = 'Groq';
   MODEL   = 'llama-3.3-70b-versatile';
   API_KEY = '@GROQ_API_KEY';   // '@VAR' → GetEnvironmentVariable('VAR')
@@ -66,14 +66,14 @@ begin
       'Eres un asistente amable y conciso. Responde siempre en español.';
 
     WriteLn('');
-    WriteLn('=== MakerAI — Capítulo 3: Primer Chat ===');
+    WriteLn('=== MakerAI — Chapter 3: First Chat ===');
     WriteLn('Provider : ', DRIVER);
-    WriteLn('Modelo   : ', MODEL);
-    WriteLn('Comandos : "salir", "limpiar", "mensajes"');
+    WriteLn('Model   : ', MODEL);
+    WriteLn('Commands : "salir", "limpiar", "mensajes"');
     WriteLn('');
 
     repeat
-      Write('Tú > ');
+      Write('You > ');
       ReadLn(Prompt);
       Prompt := Trim(Prompt);
 
@@ -86,21 +86,21 @@ begin
       if SameText(Prompt, 'limpiar') then
       begin
         Conn.NewChat;   // Libera los objetos correctamente y limpia el historial
-        WriteLn('   [Historial borrado]');
+        WriteLn('   [History cleared]');
         WriteLn('');
         Continue;
       end;
 
       if SameText(Prompt, 'mensajes') then
       begin
-        WriteLn('   [Mensajes en historial: ', Conn.Messages.Count, ']');
+        WriteLn('   [Messages in history: ', Conn.Messages.Count, ']');
         WriteLn('');
         Continue;
       end;
 
       try
         Respuesta := Conn.AddMessageAndRun(Prompt, 'user', []);
-        WriteLn('IA  > ', Respuesta);
+        WriteLn('AI  > ', Respuesta);
       except
         on E: Exception do
           WriteLn('ERROR: ', E.ClassName, ' — ', E.Message);
@@ -110,7 +110,7 @@ begin
     until False;
 
     WriteLn('');
-    WriteLn('Sesión terminada. Total mensajes: ', Conn.Messages.Count);
+    WriteLn('Session ended. Total messages: ', Conn.Messages.Count);
 
   finally
     Conn.Free;
@@ -124,6 +124,6 @@ begin
     on E: Exception do
       WriteLn('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
-  WriteLn('Presiona Enter para salir...');
+  WriteLn('Press Enter to exit...');
   ReadLn;
 end.

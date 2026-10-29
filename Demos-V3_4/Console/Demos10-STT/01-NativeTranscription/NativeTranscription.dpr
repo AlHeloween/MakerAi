@@ -16,7 +16,7 @@
 //   - Cohere   : cohere-transcribe-03-2026
 //                (endpoint /v2/audio/transcriptions; language obligatorio)
 //
-// Como referencia/baseline se prueba tambi?n OpenAI whisper-1.
+// As a reference/baseline, OpenAI whisper-1 is also tested.
 //
 // Configuraci?n clave:
 //   ChatMode = cmTranscription  -->  RunNew va directo a InternalRunTranscription
@@ -29,7 +29,7 @@
 // Uso:
 //   NativeTranscription.exe [ruta_audio]
 //
-// Formatos soportados: WAV, MP3, OGG, M4A, FLAC, WEBM (seg?n provider).
+// Supported formats: WAV, MP3, OGG, M4A, FLAC, WEBM (depending on provider).
 // Variables de entorno: OPENAI_API_KEY  GROQ_API_KEY  MISTRAL_API_KEY  COHERE_API_KEY
 // =============================================================================
 
@@ -81,7 +81,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// TTestResult — registro de resultados para el resumen final
+// TTestResult — result record for the final summary
 // ---------------------------------------------------------------------------
 type
   TTestResult = record
@@ -136,8 +136,8 @@ begin
   EC   := TErrorCapture.Create;
   Conn := TAiChatConnection.Create(nil);
   try
-    // --- Configuraci?n b?sica ---
-    // IMPORTANTE: OnError se asigna ANTES de DriverName, igual que AudioBridge.
+    // --- Basic configuration ---
+    // IMPORTANT: OnError is assigned BEFORE DriverName, just like AudioBridge.
     Conn.OnError                       := EC.OnError;
     Conn.DriverName                    := ADriver;
     Conn.Params.Values['Model']        := AModel;
@@ -145,7 +145,7 @@ begin
     Conn.ChatMode                      := cmTranscription;
     // Sin SpeechTool: el driver cae en InternalRunNativeTranscription
 
-    // --- Par?metros de transcripci?n ---
+    // --- Transcription parameters ---
     if ALanguage <> '' then
       Conn.TranscriptionParams.Language := ALanguage;
     if AResponseFormat <> '' then
@@ -157,7 +157,7 @@ begin
     MF := TAiMediaFile.Create;
     MF.LoadFromFile(AAudioFile);
 
-    // --- Llamada ---
+    // --- Call ---
     Resp := Conn.AddMessageAndRun('', 'user', [MF]);
 
     if EC.HasError then
@@ -207,16 +207,16 @@ begin
     Conn.Params.Values['Asynchronous'] := 'False';
     Conn.ChatMode                      := cmTranscription;
 
-    // MF vac?o (sin LoadFromFile). RunNew detecta Content.Size=0 y llama OnError.
+    // Empty MF (without LoadFromFile). RunNew detects Content.Size=0 and calls OnError.
     MF   := TAiMediaFile.Create;
     Resp := Conn.AddMessageAndRun('', 'user', [MF]);
 
     if EC.HasError then
       Writeln('OK (error capturado: ', Copy(EC.Msg, 1, 60), ')')
     else if Resp = '' then
-      Writeln('OK (respuesta vacia — validaci?n previa al driver)')
+      Writeln('OK (empty response — validation before the driver)')
     else
-      Writeln('SIN ERROR (inesperado — respuesta: "', Copy(Resp, 1, 40), '")');
+      Writeln('NO ERROR (unexpected — response: "', Copy(Resp, 1, 40), '")');
   finally
     Conn.Free;
     EC.Free;
@@ -238,7 +238,7 @@ begin
   Writeln;
   Writeln('Drivers: OpenAI (baseline), Groq, Mistral, Cohere');
   Writeln('Hook:    InternalRunNativeTranscription override');
-  Writeln('Ruta:    ChatMode=cmTranscription → InternalRunTranscription → override');
+  Writeln('Route:   ChatMode=cmTranscription → InternalRunTranscription → override');
   Writeln;
 
   // --- Ruta del archivo de audio ---
@@ -256,7 +256,7 @@ begin
   begin
     if not FileExists(AudioPath) then
     begin
-      Writeln('ERROR: Archivo no encontrado: "', AudioPath, '"');
+      Writeln('ERROR: File not found: "', AudioPath, '"');
       Write('Presiona Enter...');
       Readln;
       Halt(1);
@@ -330,12 +330,12 @@ begin
     Writeln(SEP);
     Writeln('BLOQUE 4: Cohere (language obligatorio, sin response_format)');
     Writeln(SEP);
-    // Sin language → override usa 'en' autom?ticamente
+    // Without language → override uses 'en' automatically
     TestTranscription('Cohere', 'cohere-transcribe-03-2026', AudioPath, '',   '');
-    // Language expl?cito
+    // Explicit language
     TestTranscription('Cohere', 'cohere-transcribe-03-2026', AudioPath, 'en', '');
     TestTranscription('Cohere', 'cohere-transcribe-03-2026', AudioPath, 'es', '');
-    // response_format ignorado por Cohere — el override no lo env?a; no debe fallar
+    // response_format ignored by Cohere — the override does not send it; must not fail
     TestTranscription('Cohere', 'cohere-transcribe-03-2026', AudioPath, 'en', 'verbose_json');
     Writeln;
   end;
@@ -369,6 +369,6 @@ begin
   Writeln(WIDE);
 
   Writeln;
-  Write('Presiona Enter para salir...');
+  Write('Press Enter to exit...');
   Readln;
 end.

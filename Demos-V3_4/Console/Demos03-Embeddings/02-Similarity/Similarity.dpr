@@ -6,15 +6,15 @@ program Similarity;
 // =============================================================================
 // MakerAI — 03-Embeddings / 02-Similarity
 // =============================================================================
-// Exploración profunda de la similitud semántica entre textos.
-// Construye una mini-matriz de similitud y encuentra el más similar
-// a una consulta usando búsqueda lineal.
+// Deep exploration of semantic similarity between texts.
+// Builds a mini similarity matrix and finds the most similar
+// to a query using linear search.
 //
-// Conceptos que cubre:
-//   - Similitud coseno, distancia euclidiana, producto punto
-//   - Matriz NxN de similitudes entre un corpus de textos
-//   - Búsqueda del top-K más similares a una consulta
-//   - Caso de uso: recomendación, deduplicación, clustering básico
+// Concepts covered:
+//   - Cosine similarity, Euclidean distance, dot product
+//   - NxN similarity matrix between a text corpus
+//   - Search for the top-K most similar to a query
+//   - Use case: recommendation, deduplication, basic clustering
 // =============================================================================
 
 uses
@@ -31,7 +31,7 @@ const
   MODEL   = 'text-embedding-3-small';
   API_KEY = '@OPENAI_API_KEY';
 
-// Corpus de ejemplo — frases sobre tecnología y otros temas
+// Example corpus — phrases about technology and other topics
 const
   CORPUS: array[0..7] of String = (
     'Machine learning models learn patterns from data',
@@ -45,7 +45,7 @@ const
   );
 
 // =============================================================================
-//  Imprime los resultados de similitud ordenados
+//  Prints sorted similarity results
 // =============================================================================
 procedure PrintTopK(const Query: String; const Corpus: array of String;
   const Embeddings: array of TAiEmbeddingData; const QEmb: TAiEmbeddingData; K: Integer);
@@ -70,8 +70,8 @@ begin
         TempI := Idx[J]; Idx[J] := Idx[J+1]; Idx[J+1] := TempI;
       end;
 
-  Writeln(Format('  Consulta: "%s"', [Query]));
-  Writeln(Format('  Top %d mas similares:', [K]));
+  Writeln(Format('  Query: "%s"', [Query]));
+  Writeln(Format('  Top %d most similar:', [K]));
   for I := 0 to Min(K - 1, High(Corpus)) do
     Writeln(Format('    [%d] %.4f — %s', [I+1, Scores[Idx[I]], Corpus[Idx[I]]]));
   Writeln;
@@ -98,7 +98,7 @@ begin
     Conn.ApiKey     := API_KEY;
 
     // ── Paso 1: generar embeddings del corpus ─────────────────────────────
-    Writeln('Generando embeddings del corpus (', Length(CORPUS), ' textos)...');
+    Writeln('Generating corpus embeddings (', Length(CORPUS), ' texts)...');
     for I := 0 to High(CORPUS) do
     begin
       Write(Format('  [%d/%d] ', [I+1, Length(CORPUS)]));
@@ -118,8 +118,8 @@ begin
     QueryEmb := Conn.CreateEmbedding('Plants and nature', 'user');
     PrintTopK('Plants and nature', CORPUS, Embeddings, QueryEmb, 3);
 
-    // ── Paso 3: matriz de similitud parcial ──────────────────────────────
-    Writeln('--- Matriz de similitud (primeros 4 textos) ---');
+    // ── Step 3: partial similarity matrix ──────────────────────────────
+    Writeln('--- Similarity matrix (first 4 texts) ---');
     Write(Format('%-6s', ['']));
     for I := 0 to 3 do
       Write(Format('  T%-3d', [I+1]));
@@ -132,7 +132,7 @@ begin
       Writeln;
     end;
     Writeln;
-    Writeln('  (1.000 = identico, 0.000 = ortogonal, ~0.8+ = muy similar)');
+    Writeln('  (1.000 = identical, 0.000 = orthogonal, ~0.8+ = very similar)');
 
   finally
     Conn.Free;
@@ -147,6 +147,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

@@ -2,7 +2,7 @@
 
 // =============================================================================
 // MakerAI — Demo FMX Voice Chat (STT + LLM + TTS)
-// Conversacion de voz completa con MakerAI Realtime API.
+// Full voice conversation with MakerAI Realtime API.
 //
 // Componentes: TAiMakerAiRealtimeChat + TAIVoiceMonitor + TAudioPushStream
 //
@@ -13,7 +13,7 @@
 //   4. LLM genera respuesta → OnAssistantText
 //   5. TTS devuelve audio PCM16 → OnAudioChunk → TAudioPushStream reproduce
 //
-// Requiere: variable de entorno MAKERAI_API_KEY configurada.
+// Requires: MAKERAI_API_KEY environment variable configured.
 // =============================================================================
 
 interface
@@ -167,7 +167,7 @@ begin
   FCalibThreshold  := 0;
   ProgressBarLevel.Max := 5000;
 
-  // Poblar lista de micrófonos disponibles
+  // Populate available microphone list
   FMicDevices := TAIVoiceMonitor.GetWaveInDevices;
   for var I := 0 to High(FMicDevices) do
     CbxMic.Items.Add(FMicDevices[I].DeviceName);
@@ -226,9 +226,9 @@ begin
     FChat.Language := Trim(EdLanguage.Text);
     FChat.Voice    := Trim(EdVoice.Text);
     FChat.SttModel := Trim(EdSttModel.Text);
-    SetStatus('Conectando...');
+    SetStatus('Connecting...');
     SetStateColor(CLR_ORANGE);
-    BtnConnect.Text := 'Desconectar';
+    BtnConnect.Text := 'Disconnect';
     FChat.Connect;
   end;
 end;
@@ -238,18 +238,18 @@ begin
   MemoConversation.Lines.Clear;
 end;
 
-{ Eventos del driver — todos llegan en el hilo principal (TThread.Queue) }
+{ Driver events — all arrive on the main thread (TThread.Queue) }
 
 procedure TFrmVoiceChat.OnChatConnected(Sender: TObject);
 begin
-  Log('>> WS conectado - enviando sesion...');
-  SetStatus('WebSocket conectado. Enviando configuracion de sesion...');
+  Log('>> WS connected - sending session...');
+  SetStatus('WebSocket connected. Sending session configuration...');
   SetStateColor(CLR_ORANGE);
 end;
 
 procedure TFrmVoiceChat.OnChatDisconnected(Sender: TObject);
 begin
-  Log('>> WS desconectado');
+  Log('>> WS disconnected');
   FMic.Active := False;
   BtnRecalibrar.Enabled := False;
   if FPlayerStarted then
@@ -257,14 +257,14 @@ begin
     FPlayer.Stop;
     FPlayerStarted := False;
   end;
-  SetStatus('Desconectado. Presione Conectar para iniciar.');
+  SetStatus('Disconnected. Press Connect to start.');
   SetStateColor(CLR_GRAY);
   BtnConnect.Text := 'Conectar';
 end;
 
 procedure TFrmVoiceChat.OnChatSessionReady(Sender: TObject);
 begin
-  Log('>> Sesion ready - iniciando microfono');
+  Log('>> Session ready - starting microphone');
   if not FPlayerStarted then
   begin
     FPlayer.Start(24000, 1, 16);
@@ -274,13 +274,13 @@ begin
   if (CbxMic.ItemIndex >= 0) and (CbxMic.ItemIndex < Length(FMicDevices)) then
   begin
     FMic.DeviceID := FMicDevices[CbxMic.ItemIndex].DeviceID;
-    Log('>> [MIC] Dispositivo: ' + FMicDevices[CbxMic.ItemIndex].DeviceName);
+    Log('>> [MIC] Device: ' + FMicDevices[CbxMic.ItemIndex].DeviceName);
   end;
-  // Leer umbral mínimo del campo de UI (valor absoluto: 200=muy sensible, 500=normal, 1000=poco sensible)
+  // Read the minimum threshold from the UI field (absolute value: 200=very sensitive, 500=normal, 1000=less sensitive)
   FMic.MinSensitivity    := StrToIntDef(Trim(EdSensitivity.Text), 500);
   FMic.MinStopSensitivity := FMic.MinSensitivity div 2;
   Log(Format('>> [SENS] SensMin=%d  StopMin=%d', [FMic.MinSensitivity, FMic.MinStopSensitivity]));
-  SetStatus('Sesion lista. Calibrando microfono...');
+  SetStatus('Session ready. Calibrating microphone...');
   SetStateColor(CLR_ORANGE);
   BtnRecalibrar.Enabled := True;
   FMic.Active := True;
@@ -313,7 +313,7 @@ procedure TFrmVoiceChat.OnChatTranscriptCompleted(Sender: TObject;
 begin
   FLiveText     := '';
   MemoLive.Text := '';
-  AddConvLine('Usuario:', Transcript);
+  AddConvLine('User:', Transcript);
   SetStatus('Asistente procesando...');
   SetStateColor(CLR_BLUE);
 end;
@@ -321,7 +321,7 @@ end;
 procedure TFrmVoiceChat.OnChatAssistantText(Sender: TObject;
   const AText: string);
 begin
-  AddConvLine('Asistente:', AText);
+  AddConvLine('Assistant:', AText);
   SetStatus('Asistente respondiendo...');
 end;
 
@@ -355,7 +355,7 @@ end;
 procedure TFrmVoiceChat.OnMicError(Sender: TObject; const ErrorMessage: string);
 begin
   Log('>> [MIC ERROR] ' + ErrorMessage);
-  SetStatus('Error de microfono: ' + ErrorMessage);
+  SetStatus('Microphone error: ' + ErrorMessage);
   SetStateColor(CLR_RED);
 end;
 
@@ -365,15 +365,15 @@ begin
   if aUserSpeak then
   begin
     SetStateColor(CLR_RED);
-    Log('>> [MIC] habla detectada');
+    Log('>> [MIC] speech detected');
   end
   else
   begin
-    // Fin de turno del usuario: avisar al servidor para procesar STT→LLM→TTS
+    // End of user turn: notify the server to process STT→LLM→TTS
     if FChat.IsConnected then
     begin
       FChat.CommitAudio;
-      Log('>> [MIC] silencio detectado - commit enviado');
+      Log('>> [MIC] silence detected - commit sent');
     end;
     SetStateColor(CLR_BLUE);
   end;
@@ -392,7 +392,7 @@ begin
   if FChat.IsConnected then
   begin
     FChat.CommitAudio;
-    Log('>> [MANUAL] commit enviado');
+    Log('>> [MANUAL] commit sent');
   end;
 end;
 
@@ -404,8 +404,8 @@ begin
     FMic.DeviceID := FMicDevices[CbxMic.ItemIndex].DeviceID;
   FMic.MinSensitivity    := StrToIntDef(Trim(EdSensitivity.Text), 500);
   FMic.MinStopSensitivity := FMic.MinSensitivity div 2;
-  Log(Format('>> [RECAL] SensMin=%d  recalibrando...', [FMic.MinSensitivity]));
-  SetStatus('Recalibrando microfono...');
+  Log(Format('>> [RECAL] SensMin=%d  recalibrating...', [FMic.MinSensitivity]));
+  SetStatus('Recalibrating microphone...');
   SetStateColor(CLR_ORANGE);
   FMic.Active := True;
 end;

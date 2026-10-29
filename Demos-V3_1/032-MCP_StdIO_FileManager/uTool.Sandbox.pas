@@ -7,49 +7,49 @@ uses
   uMakerAi.MCPServer.Core; // Tu núcleo MCP
 
 const
-  // Carpeta raíz que controlará la IA.
+  // Root folder that the AI will control.
   SANDBOX_ROOT = 'd:\taller\mcpdir';
 
 type
   // ===========================================================================
-  // Argumentos (DTOs) para las herramientas
+  // Arguments (DTOs) for the tools
   // ===========================================================================
 
-  // Argumentos para Listar y Leer (Solo piden un path)
+  // Arguments for List and Read (They only request a path)
   TPathArgs = class
   private
     FPath: string;
   public
-    [AiMCPSchemaDescription('Ruta relativa del archivo o carpeta (ej: "notas/lista.txt" o "." para la raíz)')]
+    [AiMCPSchemaDescription('Relative path of the file or folder (e.g.: "notas/lista.txt" or "." for the root)')]
     property Path: string read FPath write FPath;
   end;
 
-  // Argumentos para Escribir (Path + Contenido)
+  // Arguments for Write (Path + Content)
   TWriteArgs = class
   private
     FPath: string;
     FContent: string;
   public
-    [AiMCPSchemaDescription('Ruta relativa donde guardar el archivo')]
+    [AiMCPSchemaDescription('Relative path where to save the file')]
     property Path: string read FPath write FPath;
-    [AiMCPSchemaDescription('Contenido de texto a guardar en el archivo')]
+    [AiMCPSchemaDescription('Text content to save in the file')]
     property Content: string read FContent write FContent;
   end;
 
-  // Argumentos para Copiar (Origen + Destino)
+  // Arguments for Copy (Source + Destination)
   TCopyArgs = class
   private
     FSource: string;
     FDestination: string;
   public
-    [AiMCPSchemaDescription('Ruta relativa del archivo origen')]
+    [AiMCPSchemaDescription('Relative path of the source file')]
     property Source: string read FSource write FSource;
-    [AiMCPSchemaDescription('Ruta relativa del nuevo destino')]
+    [AiMCPSchemaDescription('Relative path of the new destination')]
     property Destination: string read FDestination write FDestination;
   end;
 
   // ===========================================================================
-  // Clases de Herramientas
+  // Tool Classes
   // ===========================================================================
 
   TListFilesTool = class(TAiMCPToolBase<TPathArgs>)
@@ -87,13 +87,13 @@ type
     constructor Create; override;
   end;
 
-// Procedimiento para registrar todo de una vez
+// Procedure to register everything at once
 procedure RegisterSandboxTools(ALogicServer: TAiMCPServer);
 
 implementation
 
 // =============================================================================
-// Helpers de Seguridad (Sandboxing)
+// Security Helpers (Sandboxing)
 // =============================================================================
 
 procedure EnsureSandboxExists;
@@ -102,22 +102,22 @@ begin
     TDirectory.CreateDirectory(SANDBOX_ROOT);
 end;
 
-// Convierte una ruta relativa en absoluta y verifica que esté dentro del ROOT
+// Converts a relative path to an absolute one and verifies that it is inside the ROOT
 function ResolvePath(const ARelativePath: string): string;
 var
   LFullPath: string;
   LCleanRel: string;
 begin
-  // Normalizar entrada
+  // Normalize input
   if (ARelativePath = '') or (ARelativePath = '.') then
     LCleanRel := ''
   else
     LCleanRel := ARelativePath;
 
-  // Construir ruta absoluta
+  // Build absolute path
   LFullPath := TPath.GetFullPath(TPath.Combine(SANDBOX_ROOT, LCleanRel));
 
-  // Verificar seguridad (Evitar Path Traversal: "..\..\windows")
+  // Security check (Avoid Path Traversal: "..\..\windows")
   if not LFullPath.StartsWith(SANDBOX_ROOT, True) then
     raise Exception.CreateFmt('SEGURIDAD: Acceso denegado. La ruta "%s" está fuera del sandbox.', [ARelativePath]);
 
@@ -125,7 +125,7 @@ begin
 end;
 
 // =============================================================================
-// Registro de Herramientas
+// Tool Registration
 // =============================================================================
 
 procedure RegisterSandboxTools(ALogicServer: TAiMCPServer);
@@ -140,14 +140,14 @@ begin
 end;
 
 // =============================================================================
-// Implementación: Listar Archivos
+// Implementation: List Files
 // =============================================================================
 
 constructor TListFilesTool.Create;
 begin
   inherited;
   FName := 'fs_list';
-  FDescription := 'Lista los archivos y carpetas dentro del directorio de trabajo.';
+  FDescription := 'Lists the files and folders inside the working directory.';
 end;
 
 function TListFilesTool.ExecuteWithParams(const AParams: TPathArgs; const AuthContext: TAiAuthContext): TJSONObject;
@@ -161,11 +161,11 @@ begin
     LPath := ResolvePath(AParams.Path);
 
     if not TDirectory.Exists(LPath) then
-      Exit(TAiMCPResponseBuilder.New.AddText('Error: El directorio no existe.').Build);
+      Exit(TAiMCPResponseBuilder.New.AddText('Error: The directory does not exist.').Build);
 
     LList := TStringBuilder.Create;
     try
-      LList.AppendLine('Contenido de: ' + AParams.Path);
+      LList.AppendLine('Contents of: ' + AParams.Path);
       LList.AppendLine('-----------------------------------');
 
       LDirs := TDirectory.GetDirectories(LPath);
@@ -182,19 +182,19 @@ begin
     end;
   except
     on E: Exception do
-      Result := TAiMCPResponseBuilder.New.AddText('Error listando: ' + E.Message).Build;
+      Result := TAiMCPResponseBuilder.New.AddText('Error listing: ' + E.Message).Build;
   end;
 end;
 
 // =============================================================================
-// Implementación: Leer Archivo
+// Implementation: Read File
 // =============================================================================
 
 constructor TReadTool.Create;
 begin
   inherited;
   FName := 'fs_read';
-  FDescription := 'Lee el contenido de un archivo de texto.';
+  FDescription := 'Reads the content of a text file.';
 end;
 
 function TReadTool.ExecuteWithParams(const AParams: TPathArgs; const AuthContext: TAiAuthContext): TJSONObject;
@@ -206,23 +206,23 @@ begin
     if not TFile.Exists(LPath) then
       raise Exception.Create('Archivo no encontrado.');
 
-    // Usamos el Helper de Core que ya maneja streams o texto
+    // We use the Core Helper that already handles streams or text
     Result := TAiMCPResponseBuilder.New.AddFile(LPath).Build;
   except
     on E: Exception do
-      Result := TAiMCPResponseBuilder.New.AddText('Error leyendo archivo: ' + E.Message).Build;
+      Result := TAiMCPResponseBuilder.New.AddText('Error reading file: ' + E.Message).Build;
   end;
 end;
 
 // =============================================================================
-// Implementación: Escribir Archivo
+// Implementation: Write File
 // =============================================================================
 
 constructor TWriteTool.Create;
 begin
   inherited;
   FName := 'fs_write';
-  FDescription := 'Crea un nuevo archivo o sobrescribe uno existente con el contenido proporcionado.';
+  FDescription := 'Creates a new file or overwrites an existing one with the provided content.';
 end;
 
 function TWriteTool.ExecuteWithParams(const AParams: TWriteArgs; const AuthContext: TAiAuthContext): TJSONObject;
@@ -231,27 +231,27 @@ var
 begin
   try
     LPath := ResolvePath(AParams.Path);
-    // Asegurar que la carpeta padre existe
+    // Ensure the parent folder exists
     TDirectory.CreateDirectory(TPath.GetDirectoryName(LPath));
 
     TFile.WriteAllText(LPath, AParams.Content, TEncoding.UTF8);
 
-    Result := TAiMCPResponseBuilder.New.AddText('✅ Archivo guardado correctamente: ' + AParams.Path).Build;
+    Result := TAiMCPResponseBuilder.New.AddText('✅ File saved successfully: ' + AParams.Path).Build;
   except
     on E: Exception do
-      Result := TAiMCPResponseBuilder.New.AddText('Error escribiendo archivo: ' + E.Message).Build;
+      Result := TAiMCPResponseBuilder.New.AddText('Error writing file: ' + E.Message).Build;
   end;
 end;
 
 // =============================================================================
-// Implementación: Borrar Archivo
+// Implementation: Delete File
 // =============================================================================
 
 constructor TDeleteTool.Create;
 begin
   inherited;
   FName := 'fs_delete';
-  FDescription := 'Elimina un archivo permanentemente.';
+  FDescription := 'Permanently deletes a file.';
 end;
 
 function TDeleteTool.ExecuteWithParams(const AParams: TPathArgs; const AuthContext: TAiAuthContext): TJSONObject;
@@ -263,31 +263,31 @@ begin
     if TFile.Exists(LPath) then
     begin
       TFile.Delete(LPath);
-      Result := TAiMCPResponseBuilder.New.AddText('🗑️ Archivo eliminado: ' + AParams.Path).Build;
+      Result := TAiMCPResponseBuilder.New.AddText('🗑️ File deleted: ' + AParams.Path).Build;
     end
     else if TDirectory.Exists(LPath) then
     begin
-       // Opcional: Permitir borrar carpetas
+       // Optional: Allow deleting folders
        TDirectory.Delete(LPath, True);
-       Result := TAiMCPResponseBuilder.New.AddText('🗑️ Carpeta eliminada: ' + AParams.Path).Build;
+       Result := TAiMCPResponseBuilder.New.AddText('🗑️ Folder deleted: ' + AParams.Path).Build;
     end
     else
-      Result := TAiMCPResponseBuilder.New.AddText('El archivo no existe.').Build;
+      Result := TAiMCPResponseBuilder.New.AddText('The file does not exist.').Build;
   except
     on E: Exception do
-      Result := TAiMCPResponseBuilder.New.AddText('Error eliminando: ' + E.Message).Build;
+      Result := TAiMCPResponseBuilder.New.AddText('Error deleting: ' + E.Message).Build;
   end;
 end;
 
 // =============================================================================
-// Implementación: Copiar Archivo
+// Implementation: Copy File
 // =============================================================================
 
 constructor TCopyTool.Create;
 begin
   inherited;
   FName := 'fs_copy';
-  FDescription := 'Copia un archivo de una ubicación a otra.';
+  FDescription := 'Copies a file from one location to another.';
 end;
 
 function TCopyTool.ExecuteWithParams(const AParams: TCopyArgs; const AuthContext: TAiAuthContext): TJSONObject;
@@ -299,16 +299,16 @@ begin
     LDst := ResolvePath(AParams.Destination);
 
     if not TFile.Exists(LSrc) then
-      raise Exception.Create('Archivo origen no encontrado.');
+      raise Exception.Create('Source file not found.');
 
     // Asegurar directorio destino
     TDirectory.CreateDirectory(TPath.GetDirectoryName(LDst));
 
-    TFile.Copy(LSrc, LDst, True); // True = Sobrescribir
-    Result := TAiMCPResponseBuilder.New.AddText(Format('✅ Copiado de "%s" a "%s"', [AParams.Source, AParams.Destination])).Build;
+    TFile.Copy(LSrc, LDst, True); // True = Overwrite
+    Result := TAiMCPResponseBuilder.New.AddText(Format('✅ Copied from "%s" to "%s"', [AParams.Source, AParams.Destination])).Build;
   except
     on E: Exception do
-      Result := TAiMCPResponseBuilder.New.AddText('Error copiando: ' + E.Message).Build;
+      Result := TAiMCPResponseBuilder.New.AddText('Error copying: ' + E.Message).Build;
   end;
 end;
 

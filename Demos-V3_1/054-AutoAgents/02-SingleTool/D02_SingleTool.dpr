@@ -5,10 +5,10 @@
 // =============================================================================
 // MakerAI - AutoAgents Demo 02: SingleTool
 // =============================================================================
-// Introduce TAiToolRegistry con una sola herramienta (calculadora).
-// El LLM decide cuando llamarla; el ciclo ReAct es completamente automatico.
+// Introduces TAiToolRegistry with a single tool (calculator).
+// The LLM decides when to call it; the ReAct cycle is completely automatic.
 //
-// Estructura del grafo:
+// Graph structure:
 //   [Start] --(lmFanout)--> [CalculatorAgent] --(lmFanout)--> [End]
 // =============================================================================
 
@@ -29,7 +29,7 @@ const
 
 // -----------------------------------------------------------------------------
 // TCalculatorTool
-// Operaciones: add, subtract, multiply, divide
+// Operations: add, subtract, multiply, divide
 // Args: { "operation": string, "a": number, "b": number }
 // -----------------------------------------------------------------------------
 type
@@ -132,7 +132,7 @@ begin
 end;
 
 // =============================================================================
-// DEMO PRINCIPAL
+// MAIN DEMO
 // =============================================================================
 
 procedure RunQuery(Manager: TAIAgentManager; const AQuestion: String);
@@ -141,10 +141,10 @@ begin
   Manager.Blackboard.Clear;
 
   Writeln(StringOfChar('-', 60));
-  Writeln('Pregunta: ', AQuestion);
+  Writeln('Question: ', AQuestion);
   Writeln;
   try
-    Writeln('Respuesta: ', Manager.Run(AQuestion));
+    Writeln('Answer: ', Manager.Run(AQuestion));
   except
     on E: Exception do
       Writeln('ERROR: ', E.Message);
@@ -163,9 +163,9 @@ begin
   Writeln('Driver: ', DRIVER, '  Model: ', MODEL);
   Writeln;
 
-  // Registrar la unica herramienta
+  // Register the only tool
   TAiToolRegistry.Instance.Register(TCalculatorTool.Create, 'local', 'math');
-  Writeln('Registry: ', TAiToolRegistry.Instance.Count, ' herramienta(s) registrada(s).');
+  Writeln('Registry: ', TAiToolRegistry.Instance.Count, ' tool(s) registered.');
   Writeln;
 
   Manager := TAIAgentManager.Create(nil);
@@ -216,6 +216,6 @@ begin
     on E: Exception do
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
-  Writeln('Demo finalizado. Presiona Enter para salir.');
+  Writeln('Demo finished. Press Enter to exit.');
   Readln;
 end.

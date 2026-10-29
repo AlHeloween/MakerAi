@@ -9,17 +9,17 @@ program SmartDispatch;
 // Valida el modo cmSmartDispatch: despacho inteligente para modelos pequeños
 // sin function calling nativo.
 //
-// Flujo por mensaje:
+// Flow per message:
 //   Pase 1 (silencioso) — el LLM recibe un system prompt especial y elige
 //                         herramienta + reescribe el prompt.
 //   Pase 2              — se ejecuta la herramienta elegida, o se usa la
 //                         respuesta del Pase 1 directamente si elige [CHAT].
 //
-// Herramientas simuladas (mock):
+// Simulated tools (mock):
 //   TMockImageTool     — imprime el prompt en lugar de generar imagen real
 //   TMockWebSearchTool — imprime la consulta en lugar de buscar en internet
 //
-// Requisitos:
+// Requirements:
 //   - Ollama corriendo en http://localhost:11434
 //   - Modelo gemma3:4b (o cualquier modelo local sin function calling)
 //   - Cambiar DRIVER/MODEL/OLLAMA_URL si se usa otro proveedor
@@ -58,7 +58,7 @@ type
 
 procedure TMockImageTool.ExecuteImageGeneration(const APrompt: string; ResMsg, AskMsg: TAiChatMessage);
 begin
-  Writeln('  >> [ImageTool] prompt recibido: "', APrompt, '"');
+  Writeln('  >> [ImageTool] prompt received: "', APrompt, '"');
   ResMsg.Prompt := '[IMAGEN SIMULADA] ' + APrompt;
   ResMsg.Role   := 'assistant';
   ReportDataEnd(ResMsg, 'assistant', ResMsg.Prompt);
@@ -66,7 +66,7 @@ end;
 
 procedure TMockWebSearchTool.ExecuteSearch(const AQuery: string; ResMsg, AskMsg: TAiChatMessage);
 begin
-  Writeln('  >> [WebSearchTool] consulta recibida: "', AQuery, '"');
+  Writeln('  >> [WebSearchTool] query received: "', AQuery, '"');
   ResMsg.Prompt := '[BUSQUEDA WEB SIMULADA] ' + AQuery;
   ResMsg.Role   := 'assistant';
   ReportDataEnd(ResMsg, 'assistant', ResMsg.Prompt);
@@ -84,7 +84,7 @@ begin
   Writeln('[', Etiqueta, '] ', Mensaje);
   try
     Resp := Conn.AddMessageAndRun(Mensaje, 'user', []);
-    Writeln('  Resultado: ', Copy(Resp, 1, 120));
+    Writeln('  Result: ', Copy(Resp, 1, 120));
   except
     on E: Exception do
       Writeln('  ERROR: ', E.ClassName, ': ', E.Message);
@@ -105,7 +105,7 @@ begin
   Writeln('=== SmartDispatch Demo ===');
   Writeln('Driver : ', DRIVER, ' / ', MODEL);
   Writeln('Modo   : cmSmartDispatch');
-  Writeln('Nota   : Asynchronous=False requerido en este modo');
+  Writeln('Note   : Asynchronous=False required in this mode');
   Writeln;
 
   ImageTool  := TMockImageTool.Create(nil);
@@ -128,36 +128,36 @@ begin
     Conn.ChatMode := cmSmartDispatch;
     Conn.SystemPrompt.Text := 'Eres un asistente util. Responde en espanol.';
 
-    Writeln('Herramientas disponibles para el despachador:');
+    Writeln('Tools available to the dispatcher:');
     Writeln('  - ImageTool     => tag [IMAGEGEN]');
     Writeln('  - WebSearchTool => tag [WEBSEARCH]');
-    Writeln('  - Sin tool      => tag [CHAT]');
+    Writeln('  - No tool      => tag [CHAT]');
     Writeln;
 
-    // --- Casos de prueba ---
+    // --- Test cases ---
 
-    // Debe ir a [CHAT] — pregunta de conversacion
+    // Should go to [CHAT] — conversation question
     Probar(Conn, 'CHAT esperado',
       'Cual es la capital de Francia?');
 
-    // Debe ir a [IMAGEGEN] — solicitud de imagen
+    // Should go to [IMAGEGEN] — image request
     Probar(Conn, 'IMAGEGEN esperado',
       'Genera una imagen de un gato con sombrero de cowboy');
 
-    // Debe ir a [WEBSEARCH] — solicitud de busqueda
+    // Should go to [WEBSEARCH] — search request
     Probar(Conn, 'WEBSEARCH esperado',
       'Busca las ultimas noticias sobre inteligencia artificial en 2025');
 
-    // Debe ir a [CHAT] — calculo matematico
+    // Should go to [CHAT] — math calculation
     Probar(Conn, 'CHAT esperado',
       'Cuanto es 15 multiplicado por 7?');
 
-    // Ambiguo: imagen o chat?
+    // Ambiguous: image or chat?
     Probar(Conn, 'AMBIGUO (imagen o chat?)',
       'Muestrame como se ve un arcoiris');
 
     Writeln(StringOfChar('=', 65));
-    Writeln('Demo finalizado. Total mensajes en historial: ',
+    Writeln('Demo finished. Total messages in history: ',
       Conn.AiChat.Messages.Count);
 
   finally

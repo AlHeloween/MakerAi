@@ -10,7 +10,7 @@ program HumanApproval;
 // El usuario puede aprobar el borrador o rechazarlo con feedback,
 // lo que relanza el agente con instrucciones de mejora.
 //
-// Conceptos que cubre:
+// Concepts it covers:
 //   - Manager.Asynchronous = True: ejecucion en hilo separado
 //   - Manager.OnSuspend: callback cuando el agente se suspende
 //   - Manager.OnFinish: callback cuando termina
@@ -19,7 +19,7 @@ program HumanApproval;
 //   - Manager.Abort: cancelar ejecucion actual
 //   - Blackboard para pasar datos entre OnExecute y el loop principal
 //
-// Estructura: [Drafter] -> [HumanReviewer (suspend)] -> [Finalizer]
+// Structure: [Drafter] -> [HumanReviewer (suspend)] -> [Finalizer]
 // =============================================================================
 
 uses
@@ -35,7 +35,7 @@ const
   MODEL   = 'claude-haiku-4-5-20251001';
   API_KEY = '@CLAUDE_API_KEY';
 
-// Estado global del ciclo suspend/resume
+// Global state of the suspend/resume cycle
 var
   GSuspendThreadID : String  = '';
   GSuspendNodeName : String  = '';
@@ -99,14 +99,14 @@ begin
   ReviewResult := Node.Graph.Blackboard.GetString('review_result');
   if ReviewResult = '' then
   begin
-    // Primera llamada: suspender para revision humana
+    // First call: suspend for human review
     Node.Graph.Blackboard.SetString('current_draft', Input);
     Node.Suspend('Human review required', Input);
-    // Output ignorado; el agente no avanza mientras FSuspended=True
+    // Output ignored; the agent does not advance while FSuspended=True
   end
   else
   begin
-    // Reanudacion: usuario aprobo
+    // Resumption: user approved
     Output := ReviewResult;
     Node.Graph.Blackboard.SetString('review_result', '');
   end;
@@ -122,7 +122,7 @@ begin
   FManager.OnSuspend    := OnSuspend;
   FManager.OnFinish     := OnFinish;
 
-  // Nodo 1: Redactor
+  // Node 1: Drafter
   FDrafter := TLLMNode.Create(FManager);
   FDrafter.Name         := 'Drafter';
   FDrafter.Graph        := FManager;
@@ -135,13 +135,13 @@ begin
     '(80-120 palabras) sobre el tema dado. Si recibes instrucciones de ' +
     'mejora, incorpóralas completamente. Responde en espanol.';
 
-  // Nodo 2: Revisor humano (suspende para aprobacion)
+  // Node 2: Human reviewer (suspends for approval)
   FReviewer := TAIAgentsNode.Create(FManager);
   FReviewer.Name      := 'HumanReviewer';
   FReviewer.Graph     := FManager;
   FReviewer.OnExecute := ReviewerExec;
 
-  // Nodo 3: Finalizador
+  // Node 3: Finalizer
   FFinalizer := TLLMNode.Create(FManager);
   FFinalizer.Name         := 'Finalizer';
   FFinalizer.Graph        := FManager;
@@ -155,7 +155,7 @@ begin
     'de palabras. Mantén el mismo significado y longitud. ' +
     'Devuelve solo el texto pulido en espanol.';
 
-  // Encadenar: Drafter -> HumanReviewer -> Finalizer
+  // Chain: Drafter -> HumanReviewer -> Finalizer
   FLink1 := TAIAgentsLink.Create(FManager);
   FLink1.Name := 'L1'; FLink1.Graph := FManager; FLink1.NextA := FReviewer;
   FDrafter.Next := FLink1;
@@ -183,7 +183,7 @@ var
   NewPrompt : String;
 begin
   Writeln(StringOfChar('=', 60));
-  Writeln('Tarea: ', ATask);
+  Writeln('Task: ', ATask);
   Writeln(StringOfChar('=', 60));
 
   GSuspended   := False;
@@ -198,7 +198,7 @@ begin
   repeat
     Inc(Iteration);
 
-    // Esperar hasta suspension o fin
+    // Wait until suspension or completion
     while (not GSuspended) and (not GFinished) do
     begin
       CheckSynchronize;
@@ -212,10 +212,10 @@ begin
       GSuspended := False;
 
       Writeln;
-      Writeln(Format('--- Borrador (iteracion %d) ---', [Iteration]));
+      Writeln(Format('--- Draft (iteration %d) ---', [Iteration]));
       Writeln(GSuspendContext);
       Writeln;
-      Write('Apruebas este borrador? (s=si / escribe feedback para mejorar): ');
+      Write('Do you approve this draft? (y=yes / type feedback to improve): ');
       Readln(UserInput);
       Writeln;
 
@@ -229,11 +229,11 @@ begin
       end
       else
       begin
-        // Rechazado: relanzar con feedback
+        // Rejected: relaunch with feedback
         if Trim(UserInput) = '' then
           UserInput := 'Por favor mejora la calidad del texto.';
 
-        Writeln('Regenerando con tu feedback...');
+        Writeln('Regenerating with your feedback...');
         FManager.Abort;
         Sleep(200);
 
@@ -251,7 +251,7 @@ begin
 
   until Approved or GFinished;
 
-  // Esperar resultado final
+  // Wait for final result
   while not GFinished do
   begin
     CheckSynchronize;
@@ -260,7 +260,7 @@ begin
   CheckSynchronize;
 
   Writeln;
-  Writeln('--- Texto final (pulido por Finalizer) ---');
+  Writeln('--- Final text (polished by Finalizer) ---');
   Writeln(GFinalOutput);
   Writeln;
 end;
@@ -270,8 +270,8 @@ var
   App: TApprovalApp;
 begin
   Writeln('=== HumanApproval ===');
-  Writeln('Patron: Drafter -> [REVISION HUMANA] -> Finalizer');
-  Writeln('El agente se pausara esperando tu aprobacion.');
+  Writeln('Pattern: Drafter -> [HUMAN REVIEW] -> Finalizer');
+  Writeln('The agent will pause waiting for your approval.');
   Writeln;
 
   App := TApprovalApp.Create;
@@ -290,6 +290,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

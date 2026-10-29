@@ -30,7 +30,7 @@ const
   API_KEY = '@CLAUDE_API_KEY';
 
 // =============================================================================
-// Estado compartido para el ciclo suspend/resume
+// Shared state for the suspend/resume cycle
 // =============================================================================
 var
   GSuspendThreadID : String = '';
@@ -42,7 +42,7 @@ var
   GFinalOutput     : String = '';
 
 // =============================================================================
-// TDemoApp — encapsula el agente y el ciclo de aprobacion
+// TDemoApp — encapsulates the agent and the approval cycle
 // =============================================================================
 type
   TDemoApp = class
@@ -103,16 +103,16 @@ begin
   ReviewResult := Node.Graph.Blackboard.GetString('review_result');
   if ReviewResult = '' then
   begin
-    // Primera llamada: guardar borrador y suspender para aprobacion humana
+    // First call: save the draft and suspend for human approval
     Node.Graph.Blackboard.SetString('current_draft', Input);
     Node.Suspend('Human review required', Input);
-    // Output se ignora (DoTraverseLinks no enrutara gracias a FSuspended=True)
+    // Output is ignored (DoTraverseLinks will not route thanks to FSuspended=True)
   end
   else
   begin
-    // Reanudacion: el usuario aprobo; pasar el borrador aprobado al Finalizer
+    // Resumption: the user approved; pass the approved draft to the Finalizer
     Output := ReviewResult;
-    Node.Graph.Blackboard.SetString('review_result', ''); // limpiar para proxima vuelta
+    Node.Graph.Blackboard.SetString('review_result', ''); // clear for next round
   end;
 end;
 
@@ -126,7 +126,7 @@ begin
   FManager.OnSuspend    := OnSuspend;
   FManager.OnFinish     := OnFinish;
 
-  // Nodo 1: Redactor — genera el borrador inicial
+  // Node 1: Drafter — generates the initial draft
   FDrafter := TLLMNode.Create(FManager);
   FDrafter.Name         := 'Drafter';
   FDrafter.Graph        := FManager;
@@ -138,13 +138,13 @@ begin
     'You are a professional writer. Write a clear, engaging paragraph (100-150 words) ' +
     'about the given topic. If you receive feedback/instructions, incorporate them fully.';
 
-  // Nodo 2: Revisor humano — suspende la ejecucion para aprobacion
+  // Node 2: Human reviewer — suspends execution for approval
   FReviewer := TAIAgentsNode.Create(FManager);
   FReviewer.Name     := 'HumanReviewer';
   FReviewer.Graph    := FManager;
   FReviewer.OnExecute := ReviewerExec;
 
-  // Nodo 3: Finalizador — pule el texto aprobado
+  // Node 3: Finalizer — polishes the approved text
   FFinalizer := TLLMNode.Create(FManager);
   FFinalizer.Name         := 'Finalizer';
   FFinalizer.Graph        := FManager;
@@ -157,7 +157,7 @@ begin
     'Polish it: fix any awkward phrasing, improve word choice, ensure good flow. ' +
     'Keep the same meaning and length. Output only the polished text.';
 
-  // Encadenar: Drafter -> HumanReviewer -> Finalizer
+  // Chain: Drafter -> HumanReviewer -> Finalizer
   FLink1 := TAIAgentsLink.Create(FManager);
   FLink1.Name := 'L1'; FLink1.Graph := FManager; FLink1.NextA := FReviewer;
   FDrafter.Next := FLink1;
@@ -184,7 +184,7 @@ var
   Iteration   : Integer;
 begin
   Writeln(StringOfChar('=', 60));
-  Writeln('Tarea: ', ATask);
+  Writeln('Task: ', ATask);
   Writeln(StringOfChar('=', 60));
 
   GSuspended := False;
@@ -200,7 +200,7 @@ begin
   repeat
     Inc(Iteration);
 
-    // Esperar hasta que el agente se suspenda o termine
+    // Wait until the agent suspends or finishes
     while (not GSuspended) and (not GFinished) do
     begin
       CheckSynchronize;
@@ -214,19 +214,19 @@ begin
     begin
       GSuspended := False;
 
-      // Mostrar el borrador al usuario
+      // Show the draft to the user
       Writeln;
-      Writeln(Format('--- Borrador (iteracion %d) ---', [Iteration]));
+      Writeln(Format('--- Draft (iteration %d) ---', [Iteration]));
       Writeln(GSuspendContext);
       Writeln;
-      Write('Apruebas este borrador? (s=si, n=no con feedback): ');
+      Write('Approve this draft? (y=yes, n=no with feedback): ');
       Readln(UserInput);
       Writeln;
 
       if (Trim(LowerCase(UserInput)) = 's') or (Trim(LowerCase(UserInput)) = 'si') or (Trim(LowerCase(UserInput)) = 'y') then
       begin
         Approved := True;
-        // Guardar el resultado de la revision en el blackboard
+        // Save the review result in the blackboard
         FManager.Blackboard.SetString('review_result', GSuspendContext);
         FManager.ResumeThread(GSuspendThreadID, GSuspendNodeName, GSuspendContext);
       end
@@ -236,17 +236,17 @@ begin
         if Trim(UserInput) = '' then
           UserInput := 'Please improve the text quality.';
 
-        Writeln('Regenerando con tu feedback...');
-        // Cancelar la ejecucion actual y relanzar con instrucciones
+        Writeln('Regenerating with your feedback...');
+        // Cancel the current execution and relaunch with instructions
         FManager.Abort;
         Sleep(200);
 
-        // Reiniciar flags
+        // Reset flags
         GSuspended := False;
         GFinished  := False;
         GFinalOutput := '';
 
-        // Relanzar con las instrucciones del usuario como parte del prompt
+        // Relaunch with the user's instructions as part of the prompt
         var NewPrompt := ATask + sLineBreak + sLineBreak +
           'PREVIOUS DRAFT (needs improvement):' + sLineBreak + GSuspendContext + sLineBreak + sLineBreak +
           'IMPROVEMENT INSTRUCTIONS: ' + UserInput;
@@ -257,7 +257,7 @@ begin
 
   until Approved or GFinished;
 
-  // Esperar resultado final si el agente sigue corriendo
+  // Wait for the final result if the agent is still running
   while not GFinished do
   begin
     CheckSynchronize;
@@ -266,7 +266,7 @@ begin
   CheckSynchronize;
 
   Writeln;
-  Writeln('--- Texto final (pulido por Finalizer) ---');
+  Writeln('--- Final text (polished by Finalizer) ---');
   Writeln(GFinalOutput);
   Writeln;
 end;
@@ -296,6 +296,6 @@ begin
     on E: Exception do
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
-  Writeln('Demo finalizado. Presiona Enter para salir.');
+  Writeln('Demo finished. Press Enter to exit.');
   Readln;
 end.

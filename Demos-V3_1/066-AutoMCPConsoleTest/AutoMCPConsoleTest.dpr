@@ -1,13 +1,13 @@
 // MIT License
 // MakerAI — Demo 066: AutoMCP Console Test (v2 — API actualizada)
 //
-// Prueba end-to-end del sistema AutoMCP:
-//   1. Instala mcp-postgres via PPM
-//   2. Lista sus herramientas
-//   3. Verifica conectividad con PostgreSQL local
-//   4. Chat interactivo con LLM + AutoMCP activo
+// End-to-end test of AutoMCP system:
+//   1. Installs mcp-postgres via PPM
+//   2. Lists its tools
+//   3. Verifies connectivity with local PostgreSQL
+//   4. Interactive chat with LLM + active AutoMCP
 //
-// Variables de entorno:
+// Environment variables:
 //   DEMO_DRIVER  = Ollama (default)
 //   DEMO_MODEL   = gpt-oss:20b (default)
 //   DEMO_API_KEY = @OLLAMA_API_KEY (default)
@@ -43,7 +43,7 @@ begin
 end;
 
 // ============================================================================
-// Test principal
+// Main test
 // ============================================================================
 type
   TPostgresAutoMCPTest = class
@@ -79,7 +79,7 @@ begin
   inherited Create;
   FPGConn := APGConn;
 
-  // TAiFunctions — AutoMCP activo
+  // TAiFunctions — AutoMCP active
   FFunctions := TAiFunctions.Create(nil);
   FFunctions.OnLog          := OnLog;
   FFunctions.OnStatusUpdate := OnStatus;
@@ -113,7 +113,7 @@ begin
   inherited;
 end;
 
-// --- Eventos ----------------------------------------------------------------
+// --- Events ----------------------------------------------------------------
 procedure TPostgresAutoMCPTest.OnLog(Sender: TObject; const Msg: string);
 begin Writeln('  [MCP]  ' + Msg); end;
 
@@ -137,49 +137,49 @@ begin
 end;
 
 // ============================================================================
-// TEST 1 — Instalar mcp-postgres via PPM
+// TEST 1 — Install mcp-postgres via PPM
 // ============================================================================
 procedure TPostgresAutoMCPTest.TestInstallPostgres;
 var
   LItem: TMCPClientItem;
 begin
-  HDR('TEST 1 — Instalar mcp-postgres desde PPM');
+  HDR('TEST 1 — Install mcp-postgres from PPM');
 
-  // Verificar si ya está
+  // Check if already present
   LItem := FFunctions.MCPClients.GetClientByName('mcp-postgres');
   if Assigned(LItem) then
   begin
-    INFO('mcp-postgres ya registrado: ' + LItem.Params.Values['Command']);
+    INFO('mcp-postgres already registered: ' + LItem.Params.Values['Command']);
     INFO('Available: ' + BoolToStr(LItem.MCPClient.Available, True));
     Exit;
   end;
 
-  // Instalar
-  INFO('Descargando e instalando mcp-postgres...');
+  // Install
+  INFO('Downloading and installing mcp-postgres...');
   LItem := FFunctions.InstallMCPFromPPM('mcp-postgres', '', '',
     'https://registry.cimamaker.com');
 
   if not Assigned(LItem) then
   begin
-    ERR('InstallMCPFromPPM retornó nil. Verificar conectividad con PPM.');
+    ERR('InstallMCPFromPPM returned nil. Verify connectivity with PPM.');
     Exit;
   end;
 
   OK('Instalado en: ' + LItem.Params.Values['Command']);
 
-  // Inicializar el proceso MCP
+  // Initialize MCP process
   INFO('Inicializando proceso MCP...');
   if not LItem.MCPClient.Initialized then
     LItem.MCPClient.Initialize;
 
   if LItem.MCPClient.Available then
-    OK('Proceso MCP activo y disponible.')
+    OK('MCP process active and available.')
   else
     ERR('El proceso MCP NO quedó disponible tras Initialize.');
 end;
 
 // ============================================================================
-// TEST 2 — Listar herramientas del servidor mcp-postgres
+// TEST 2 — List tools of mcp-postgres server
 // ============================================================================
 procedure TPostgresAutoMCPTest.TestListTools;
 var
@@ -189,36 +189,36 @@ var
   LArr: TJSONArray;
   LName, LDesc: string;
 begin
-  HDR('TEST 2 — Listar herramientas de mcp-postgres');
+  HDR('TEST 2 — List tools of mcp-postgres');
 
   LItem := FFunctions.MCPClients.GetClientByName('mcp-postgres');
   if not Assigned(LItem) then
   begin
-    ERR('mcp-postgres no está registrado. Ejecuta TEST 1 primero.');
+    ERR('mcp-postgres is not registered. Run TEST 1 first.');
     Exit;
   end;
 
   if not LItem.MCPClient.Available then
   begin
-    ERR('Proceso MCP no disponible.');
+    ERR('MCP process not available.');
     Exit;
   end;
 
   LToolsJson := LItem.MCPClient.Tools.Text;
-  INFO('JSON tools raw (primeros 400 chars):');
+  INFO('JSON tools raw (first 400 chars):');
   Writeln('  ' + Copy(LToolsJson, 1, 400));
   Writeln;
 
   LRoot := TJSONObject.ParseJSONValue(LToolsJson) as TJSONObject;
   if not Assigned(LRoot) then
   begin
-    ERR('Tools JSON no es un objeto válido.');
+    ERR('Tools JSON is not a valid object.');
     Exit;
   end;
   try
     if LRoot.TryGetValue<TJSONArray>('tools', LArr) then
     begin
-      INFO(Format('%d herramienta(s) disponibles:', [LArr.Count]));
+      INFO(Format('%d tool(s) available:', [LArr.Count]));
       for var I := 0 to LArr.Count - 1 do
       begin
         LTool := LArr.Items[I] as TJSONObject;
@@ -230,14 +230,14 @@ begin
       end;
     end
     else
-      ERR('Sin campo "tools" en la respuesta del servidor.');
+      ERR('No "tools" field in server response.');
   finally
     LRoot.Free;
   end;
 end;
 
 // ============================================================================
-// TEST 3 — Llamada directa a la función query (sin LLM)
+// TEST 3 — Direct call to query function (without LLM)
 // ============================================================================
 procedure TPostgresAutoMCPTest.TestDirectQuery;
 var
@@ -245,7 +245,7 @@ var
   LArgs, LResult: TJSONObject;
   LMedia: TObjectList<TAiMediaFile>;
 begin
-  HDR('TEST 3 — Llamada directa: mcp-postgres → query "SELECT version()"');
+  HDR('TEST 3 — Direct call: mcp-postgres → query "SELECT version()"');
 
   LItem := FFunctions.MCPClients.GetClientByName('mcp-postgres');
   if not Assigned(LItem) or not LItem.MCPClient.Available then
@@ -254,12 +254,12 @@ begin
     Exit;
   end;
 
-  // mcp-postgres es un dispatcher con parámetro "operation"
+  // mcp-postgres is a dispatcher with "operation" parameter
   // operations: query, execute, tables, schema, describe
   LArgs := TJSONObject.Create;
   LMedia := TObjectList<TAiMediaFile>.Create(True);
   try
-    // mcp-postgres espera parámetros individuales, no connectionString
+    // mcp-postgres expects individual parameters, not connectionString
     LArgs.AddPair('operation', 'query');
     LArgs.AddPair('host',     'localhost');
     LArgs.AddPair('port',     TJSONNumber.Create(5432));
@@ -268,11 +268,11 @@ begin
     LArgs.AddPair('password', 'masterkey');
     LArgs.AddPair('sql', 'SELECT version()');
 
-    INFO('Llamando mcp-postgres (op=query) con: ' + LArgs.ToJSON);
+    INFO('Calling mcp-postgres (op=query) with: ' + LArgs.ToJSON);
     LResult := LItem.MCPClient.CallTool('mcp-postgres', LArgs, LMedia);
     if Assigned(LResult) then
     try
-      OK('Respuesta: ' + Copy(LResult.ToJSON, 1, 400));
+      OK('Response: ' + Copy(LResult.ToJSON, 1, 400));
     finally
       LResult.Free;
     end
@@ -285,21 +285,21 @@ begin
 end;
 
 // ============================================================================
-// TEST 4 — Chat con LLM + AutoMCP (mismo escenario que el usuario)
+// TEST 4 — Chat with LLM + AutoMCP (same scenario as user)
 // ============================================================================
 procedure TPostgresAutoMCPTest.TestChatPostgres;
 var
   LResp: string;
 begin
-  HDR('TEST 4 — Chat LLM + AutoMCP: verificar postgres local');
+  HDR('TEST 4 — LLM chat + AutoMCP: verify local postgres');
   FAiConn.NewChat;
-  // Actualizar system prompt para incluir mcp-postgres si ya está instalado
+  // Update system prompt to include mcp-postgres if already installed
   FAiConn.SystemPrompt.Text := FFunctions.GetAutoMCPSystemPrompt;
 
   INFO('System prompt:');
   Writeln(Copy(FAiConn.SystemPrompt.Text, 1, 600));
   Writeln;
-  INFO('Enviando prompt...');
+  INFO('Sending prompt...');
 
   FLastError := '';
   try
@@ -320,31 +320,31 @@ begin
     Writeln;
   end
   else if FLastError <> '' then
-    ERR('Sin respuesta, error: ' + FLastError)
+    ERR('No response, error: ' + FLastError)
   else
     ERR('Sin respuesta y sin error registrado.');
 end;
 
 // ============================================================================
-// TEST 5 — Instalar mcp-tts-gemini desde PPM (v1.1.0 — formato estándar)
+// TEST 5 — Install mcp-tts-gemini from PPM (v1.1.0 — standard format)
 // ============================================================================
 procedure TPostgresAutoMCPTest.TestTTSGeminiSetup;
 var
   LItem: TMCPClientItem;
 begin
-  HDR('TEST 5 — Instalar mcp-tts-gemini v1.1.0 desde PPM');
+  HDR('TEST 5 — Install mcp-tts-gemini v1.1.0 from PPM');
 
   LItem := FFunctions.MCPClients.GetClientByName('mcp-tts-gemini');
   if Assigned(LItem) then
-    INFO('mcp-tts-gemini ya registrado: ' + LItem.Params.Values['Command'])
+    INFO('mcp-tts-gemini already registered: ' + LItem.Params.Values['Command'])
   else
   begin
-    INFO('Descargando mcp-tts-gemini desde PPM...');
+    INFO('Downloading mcp-tts-gemini from PPM...');
     LItem := FFunctions.InstallMCPFromPPM('mcp-tts-gemini', '', '',
       'https://registry.cimamaker.com');
     if not Assigned(LItem) then
     begin
-      ERR('InstallMCPFromPPM retornó nil.');
+      ERR('InstallMCPFromPPM returned nil.');
       Exit;
     end;
     OK('Instalado en: ' + LItem.Params.Values['Command']);
@@ -356,14 +356,14 @@ begin
 
   if LItem.MCPClient.Available then
   begin
-    OK('Proceso activo.');
+    OK('Process active.');
     var LRoot := TJSONObject.ParseJSONValue(LItem.MCPClient.Tools.Text) as TJSONObject;
     if Assigned(LRoot) then
     try
       var LArr: TJSONArray;
       if LRoot.TryGetValue<TJSONArray>('tools', LArr) then
       begin
-        INFO(Format('%d herramienta(s):', [LArr.Count]));
+        INFO(Format('%d tool(s):', [LArr.Count]));
         for var I := 0 to LArr.Count - 1 do
         begin
           var LTool := LArr.Items[I] as TJSONObject;
@@ -378,11 +378,11 @@ begin
     end;
   end
   else
-    ERR('Proceso MCP no disponible. Verificar GEMINI_API_KEY.');
+    ERR('MCP process not available. Verify GEMINI_API_KEY.');
 end;
 
 // ============================================================================
-// TEST 6 — Llamada directa a tts-gemini (sin LLM): ver JSON raw de retorno
+// TEST 6 — Direct call to tts-gemini (without LLM): see raw returned JSON
 // ============================================================================
 procedure TPostgresAutoMCPTest.TestTTSGeminiDirect;
 var
@@ -391,16 +391,16 @@ var
   LMedia: TObjectList<TAiMediaFile>;
   LToolName, LRawJson: string;
 begin
-  HDR('TEST 6 — Llamada directa a tts-gemini: "hola"');
+  HDR('TEST 6 — Direct call to tts-gemini: "hola"');
 
   LItem := FFunctions.MCPClients.GetClientByName('mcp-tts-gemini');
   if not Assigned(LItem) or not LItem.MCPClient.Available then
   begin
-    ERR('mcp-tts-gemini no disponible. Ejecuta TEST 5 primero.');
+    ERR('mcp-tts-gemini not available. Run TEST 5 first.');
     Exit;
   end;
 
-  // Determinar nombre real del tool TTS en el servidor
+  // Determine real TTS tool name on server
   LToolName := '';
   var LToolsRoot := TJSONObject.ParseJSONValue(LItem.MCPClient.Tools.Text) as TJSONObject;
   if Assigned(LToolsRoot) then
@@ -414,11 +414,11 @@ begin
 
   if LToolName = '' then
   begin
-    ERR('No se encontró ningún tool en tts-gemini.');
+    ERR('No tool found in tts-gemini.');
     Exit;
   end;
 
-  INFO('Llamando tool: "' + LToolName + '" con texto "hola"');
+  INFO('Calling tool: "' + LToolName + '" with text "hola"');
 
   LArgs  := TJSONObject.Create;
   LMedia := TObjectList<TAiMediaFile>.Create(True);
@@ -430,17 +430,17 @@ begin
     try
       LRawJson := LResult.ToJSON;
       Writeln;
-      Writeln('  JSON raw completo:');
+      Writeln('  Complete raw JSON:');
       Writeln('  ' + Copy(LRawJson, 1, 1000));
       if Length(LRawJson) > 1000 then
         Writeln(Format('  ... [total %d chars]', [Length(LRawJson)]));
       Writeln;
 
-      // ¿Hay audio en el contenido?
+      // Is there audio in content?
       var LContent: TJSONArray;
       if LResult.TryGetValue<TJSONArray>('content', LContent) then
       begin
-        INFO(Format('%d elemento(s) en "content":', [LContent.Count]));
+        INFO(Format('%d element(s) in "content":', [LContent.Count]));
         for var I := 0 to LContent.Count - 1 do
         begin
           var LObj := LContent.Items[I] as TJSONObject;
@@ -453,27 +453,27 @@ begin
         end;
       end;
 
-      // ¿Llegaron archivos media extraídos?
+      // Did extracted media files arrive?
       if LMedia.Count > 0 then
       begin
-        INFO(Format('%d archivo(s) media extraído(s):', [LMedia.Count]));
+        INFO(Format('%d extracted media file(s):', [LMedia.Count]));
         for var MF in LMedia do
         begin
           var LStream := MF.Content; // GetContent ahora resetea Position := 0
           Writeln(Format('  • %s  cat=%d  stream.Size=%d  stream.Position=%d',
             [MF.FileName, Ord(MF.FileCategory), LStream.Size, LStream.Position]));
 
-          // Guardar a disco para poder reproducirlo manualmente
+          // Save to disk to play manually
           if LStream.Size > 0 then
           begin
             var LSavePath := TPath.Combine(TPath.GetTempPath, MF.FileName);
             LStream.SaveToFile(LSavePath);
-            OK('Audio guardado en: ' + LSavePath);
+            OK('Audio saved at: ' + LSavePath);
           end;
         end;
       end
       else
-        INFO('(sin archivos media extraídos — el audio puede estar inline en JSON)');
+        INFO('(no extracted media files — audio may be inline in JSON)');
     finally
       LResult.Free;
     end
@@ -486,22 +486,22 @@ begin
 end;
 
 // ============================================================================
-// TEST 7 — Chat LLM: pedir a la IA que use tts-gemini para decir "hola"
+// TEST 7 — LLM chat: ask AI to use tts-gemini to say "hola"
 // ============================================================================
 procedure TPostgresAutoMCPTest.TestTTSGeminiChat;
 var
   LResp: string;
 begin
-  HDR('TEST 7 — Chat LLM + AutoMCP: usa tts-gemini para decir "hola"');
+  HDR('TEST 7 — LLM chat + AutoMCP: use tts-gemini to say "hola"');
   FAiConn.NewChat;
   // Actualizar system prompt — tts-gemini debería aparecer como ya instalado
   FAiConn.SystemPrompt.Text := FFunctions.GetAutoMCPSystemPrompt;
 
-  INFO('System prompt (primeros 400):');
+  INFO('System prompt (first 400):');
   Writeln(Copy(FAiConn.SystemPrompt.Text, 1, 400));
   Writeln;
 
-  INFO('Prompt: usar tts-gemini para decir hola...');
+  INFO('Prompt: use tts-gemini to say hello...');
   FLastError := '';
   try
     LResp := FAiConn.AddMessageAndRun(
@@ -520,20 +520,20 @@ begin
     Writeln(LResp);
   end
   else
-    ERR('Sin respuesta. Error: ' + FLastError);
+    ERR('No response. Error: ' + FLastError);
 end;
 
 // ============================================================================
-// Modo interactivo
+// Interactive mode
 // ============================================================================
 procedure TPostgresAutoMCPTest.InteractiveLoop;
 var
   LInput, LResp: string;
 begin
-  HDR('MODO INTERACTIVO (AutoMCP activo — Ollama + gpt-oss)');
-  Writeln('  /new    = nueva conversación');
-  Writeln('  /tools  = listar tools disponibles');
-  Writeln('  /exit   = salir');
+  HDR('INTERACTIVE MODE (AutoMCP active — Ollama + gpt-oss)');
+  Writeln('  /new    = new conversation');
+  Writeln('  /tools  = list available tools');
+  Writeln('  /exit   = exit');
   Writeln;
   FAiConn.NewChat;
   FAiConn.SystemPrompt.Text := FFunctions.GetAutoMCPSystemPrompt;
@@ -603,7 +603,7 @@ begin
   TestTTSGeminiChat;
 
   Sep;
-  Write('¿Iniciar modo interactivo? (s/n): ');
+  Write('Start interactive mode? (y/n): ');
   Readln(LYN);
   if SameText(Trim(LYN), 's') or SameText(Trim(LYN), 'y') then
     InteractiveLoop;
@@ -657,6 +657,6 @@ begin
   end;
 
   Writeln;
-  Write('Presiona Enter para salir...');
+  Write('Press Enter to exit...');
   Readln;
 end.

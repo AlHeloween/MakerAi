@@ -6,16 +6,16 @@ program PromptCaching;
 // =============================================================================
 // MakerAI — 01-Chat / 06-PromptCaching
 // =============================================================================
-// Verifica el soporte de Prompt Caching en Claude, OpenAI y DeepSeek.
+// Verifies Prompt Caching support in Claude, OpenAI and DeepSeek.
 //
 // Conceptos que cubre:
 //   - Claude: CacheSystemPrompt + CacheTTL  → cache_read/write_input_tokens
-//   - OpenAI: automático (≥1024 tokens)     → cached_tokens en usage
-//   - DeepSeek: automático por prefijo      → prompt_cache_hit_tokens en usage
+//   - OpenAI: automatic (≥1024 tokens)     → cached_tokens in usage
+//   - DeepSeek: automatic by prefix      → prompt_cache_hit_tokens in usage
 //
 // Observar en la salida:
-//   Llamada 1: cached_read=0, cache_write>0   (MISS: se escribe al caché)
-//   Llamada 2: cached_read>0, cache_write=0   (HIT:  se lee del caché)
+//   Call 1: cached_read=0, cache_write>0   (MISS: written to cache)
+//   Call 2: cached_read>0, cache_write=0   (HIT:  read from cache)
 // =============================================================================
 
 uses
@@ -29,10 +29,10 @@ uses
   uMakerAi.Chat.Initializations;
 
 // -----------------------------------------------------------------------------
-// System prompt suficientemente largo para superar el umbral de caché:
-//   claude-haiku-4-5  : mínimo 4096 tokens (~16000 chars)
-//   claude-sonnet-4-6 : mínimo 2048 tokens (~8000 chars)
-//   OpenAI / DeepSeek : mínimo 1024 tokens (~4000 chars)
+// System prompt long enough to exceed the cache threshold:
+//   claude-haiku-4-5  : minimum 4096 tokens (~16000 chars)
+//   claude-sonnet-4-6 : minimum 2048 tokens (~8000 chars)
+//   OpenAI / DeepSeek : minimum 1024 tokens (~4000 chars)
 // -----------------------------------------------------------------------------
 function BuildLongSystemPrompt: String;
 const
@@ -98,15 +98,15 @@ begin
     Conn.Params.Values['Max_Tokens']   := '256';
     Conn.SystemPrompt.Text := BuildLongSystemPrompt;
 
-    // Activar caching del system prompt con TTL extendido
+    // Enable system prompt caching with extended TTL
     if Conn.AiChat is TAiClaudeChat then
     begin
       (Conn.AiChat as TAiClaudeChat).CacheSystemPrompt := True;
       (Conn.AiChat as TAiClaudeChat).CacheTTL          := '1h';
     end;
 
-    // Llamada 1 — esperar MISS: el system prompt se escribe al caché
-    Writeln('  Llamada 1 (esperando MISS + cache_write):');
+    // Call 1 — expect MISS: the system prompt is written to cache
+    Writeln('  Call 1 (expecting MISS + cache_write):');
     Conn.Messages.Clear;
     Resp := Conn.AddMessageAndRun(PREGUNTA, 'user', []);
     Writeln('  Respuesta: ', Copy(Resp, 1, 80), '...');
@@ -114,7 +114,7 @@ begin
 
     Writeln;
 
-    // Llamada 2 — esperar HIT: el system prompt ya está en caché
+    // Call 2 — expect HIT: the system prompt is already in cache
     Writeln('  Llamada 2 (esperando HIT):');
     Conn.Messages.Clear;
     Resp := Conn.AddMessageAndRun(PREGUNTA, 'user', []);
@@ -150,7 +150,7 @@ begin
     Conn.Params.Values['Max_Tokens']   := '256';
     Conn.SystemPrompt.Text := BuildLongSystemPrompt;
 
-    // Sin configuración adicional: OpenAI cachea automáticamente prefijos ≥1024 tokens
+    // No additional configuration: OpenAI automatically caches prefixes ≥1024 tokens
 
     Writeln('  Llamada 1 (esperando MISS):');
     Conn.Messages.Clear;
@@ -195,7 +195,7 @@ begin
     Conn.Params.Values['Max_Tokens']   := '256';
     Conn.SystemPrompt.Text := BuildLongSystemPrompt;
 
-    // Sin configuración: DeepSeek cachea automáticamente prefijos repetidos
+    // No configuration: DeepSeek automatically caches repeated prefixes
 
     Writeln('  Llamada 1 (esperando MISS):');
     Conn.Messages.Clear;
@@ -222,8 +222,8 @@ end;
 // =============================================================================
 begin
   Writeln('=== PromptCaching Demo — MakerAI Suite ===');
-  Writeln('Verifica que cached_read > 0 en la Llamada 2 de cada provider.');
-  Writeln('Nota: los HITs de caché pueden tardar algunos segundos en activarse.');
+  Writeln('Verifies that cached_read > 0 in Call 2 of each provider.');
+  Writeln('Note: cache HITs may take a few seconds to activate.');
   Writeln;
   try
     TestClaude;
@@ -233,6 +233,6 @@ begin
     on E: Exception do
       Writeln('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

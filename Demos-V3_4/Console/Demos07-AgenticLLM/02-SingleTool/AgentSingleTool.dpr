@@ -6,18 +6,18 @@ program AgentSingleTool;
 // =============================================================================
 // MakerAI — 07-AgenticLLM / 02-SingleTool
 // =============================================================================
-// El agente usa una herramienta personalizada vía TAiToolRegistry.
-// El LLM decide automáticamente cuándo llamarla (ciclo ReAct automático).
+// The agent uses a custom tool via TAiToolRegistry.
+// The LLM automatically decides when to call it (automatic ReAct cycle).
 //
-// Conceptos que cubre:
-//   - IAiTool: interfaz de herramienta para agentes
-//   - TAiToolRegistry.Instance.Register: registrar herramientas globalmente
-//   - TLLMNode.UseAllTools=True: exponer todas las herramientas registradas
-//   - GetSchema: JSON Schema de parámetros de la herramienta
-//   - Execute: implementación de la herramienta
-//   - Ciclo ReAct: LLM decide → llama tool → LLM interpreta resultado
+// Concepts it covers:
+//   - IAiTool: tool interface for agents
+//   - TAiToolRegistry.Instance.Register: register tools globally
+//   - TLLMNode.UseAllTools=True: expose all registered tools
+//   - GetSchema: JSON Schema of the tool parameters
+//   - Execute: tool implementation
+//   - ReAct cycle: LLM decides → calls tool → LLM interprets result
 //
-// Herramienta: calculadora (add, subtract, multiply, divide)
+// Tool: calculator (add, subtract, multiply, divide)
 // Estructura: [Start] --> [CalculatorAgent] --> [End]
 // =============================================================================
 
@@ -67,7 +67,7 @@ begin
 
   Op := TJSONObject.Create;
   Op.AddPair('type', 'string');
-  Op.AddPair('description', 'Operacion a realizar');
+  Op.AddPair('description', 'Operation to perform');
   Enum := TJSONArray.Create;
   Enum.Add('add'); Enum.Add('subtract'); Enum.Add('multiply'); Enum.Add('divide');
   Op.AddPair('enum', Enum);
@@ -75,12 +75,12 @@ begin
 
   Num := TJSONObject.Create;
   Num.AddPair('type', 'number');
-  Num.AddPair('description', 'Primer operando');
+  Num.AddPair('description', 'First operand');
   Props.AddPair('a', Num);
 
   Num := TJSONObject.Create;
   Num.AddPair('type', 'number');
-  Num.AddPair('description', 'Segundo operando');
+  Num.AddPair('description', 'Second operand');
   Props.AddPair('b', Num);
 
   FSchema.AddPair('properties', Props);
@@ -97,7 +97,7 @@ begin
 end;
 
 function TCalculatorTool.GetName       : String; begin Result := 'calculator'; end;
-function TCalculatorTool.GetDescription: String; begin Result := 'Realiza operaciones aritmeticas: suma, resta, multiplicacion y division'; end;
+function TCalculatorTool.GetDescription: String; begin Result := 'Performs arithmetic operations: addition, subtraction, multiplication, and division'; end;
 function TCalculatorTool.GetCategory   : String; begin Result := 'Math'; end;
 function TCalculatorTool.GetSchema     : TJSONObject; begin Result := FSchema; end;
 function TCalculatorTool.IsAvailable   : Boolean; begin Result := True; end;
@@ -126,7 +126,7 @@ begin
     if B = 0 then
     begin
       Result := TJSONObject.Create;
-      Result.AddPair('error', 'Division por cero');
+      Result.AddPair('error', 'Division by zero');
       Exit;
     end;
     Res := A / B;
@@ -145,10 +145,10 @@ procedure RunQuery(Manager: TAIAgentManager; const AQuestion: String);
 begin
   Manager.Blackboard.Clear;
   Writeln(StringOfChar('-', 60));
-  Writeln('Pregunta: ', AQuestion);
+  Writeln('Question: ', AQuestion);
   Writeln;
   try
-    Writeln('Respuesta: ', Manager.Run(AQuestion));
+    Writeln('Answer: ', Manager.Run(AQuestion));
   except
     on E: Exception do
       Writeln('ERROR: ', E.Message);
@@ -169,7 +169,7 @@ begin
 
   // Registrar la herramienta en el registry global
   TAiToolRegistry.Instance.Register(TCalculatorTool.Create, 'local', 'math');
-  Writeln('Herramientas registradas: ', TAiToolRegistry.Instance.Count);
+  Writeln('Registered tools: ', TAiToolRegistry.Instance.Count);
   Writeln;
 
   Manager := TAIAgentManager.Create(nil);
@@ -204,10 +204,10 @@ begin
     Manager.EndNode   := Finish;
     Manager.Compile;
 
-    RunQuery(Manager, 'Cuanto es 1234 multiplicado por 5678?');
-    RunQuery(Manager, 'Cuanto es (100 + 200) dividido entre 15?');
-    RunQuery(Manager, 'Calcula el 15 por ciento de 840.');
-    RunQuery(Manager, 'Cuanto es 999 menos 456, y luego multiplica ese resultado por 3?');
+    RunQuery(Manager, 'What is 1234 multiplied by 5678?');
+    RunQuery(Manager, 'What is (100 + 200) divided by 15?');
+    RunQuery(Manager, 'Calculate 15 percent of 840.');
+    RunQuery(Manager, 'What is 999 minus 456, and then multiply that result by 3?');
 
   finally
     Manager.Free;

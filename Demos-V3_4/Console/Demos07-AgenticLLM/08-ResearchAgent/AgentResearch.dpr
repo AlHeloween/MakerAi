@@ -5,7 +5,7 @@ program AgentResearch;
 // =============================================================================
 // MakerAI — 07-AgenticLLM / 08-ResearchAgent
 // =============================================================================
-// Agente de investigacion multi-hop con herramientas especializadas:
+// Multi-hop research agent with specialized tools:
 //
 //   [Planner] -> [Researcher (web_search + save_note)] -> [Analyst] -> [Writer]
 //
@@ -13,7 +13,7 @@ program AgentResearch;
 //   - web_search: busqueda mock con datos predefinidos por palabra clave
 //   - save_note:  persiste hallazgos en el blackboard por clave
 //
-// Conceptos que cubre:
+// Concepts it covers:
 //   - TLLMNode.Registry: registry de herramientas propio por nodo
 //   - TAiToolRegistry.Create (instancia propia, no singleton)
 //   - IAiTool con acceso al blackboard (TNoteTool recibe referencia)
@@ -138,7 +138,7 @@ begin
       Format('Latest findings on "%s" show growing research interest from academia and industry.', [Query]));
   end;
 
-  Writeln(Format('  [web_search] => %d resultados', [Results.Count]));
+  Writeln(Format('  [web_search] => %d results', [Results.Count]));
   Result := TJSONObject.Create;
   Result.AddPair('results', Results);
   Result.AddPair('count',   TJSONNumber.Create(Results.Count));
@@ -198,14 +198,14 @@ begin
   AArgs.TryGetValue<String>('content', Content);
   if Assigned(FBlackboard) then
     FBlackboard.SetString('note.' + Key, Content);
-  Writeln(Format('  [save_note] key="%s" guardado (%d chars)', [Key, Length(Content)]));
+  Writeln(Format('  [save_note] key="%s" saved (%d chars)', [Key, Length(Content)]));
   Result := TJSONObject.Create;
   Result.AddPair('status', 'saved');
   Result.AddPair('key',    Key);
 end;
 
 // =============================================================================
-// DEMO PRINCIPAL
+// MAIN DEMO
 // =============================================================================
 
 function MakeLLMNode(Manager: TAIAgentManager; const AName, ASystemPrompt: String;
@@ -232,7 +232,7 @@ var
   Link1, Link2, Link3: TAIAgentsLink;
 begin
   Writeln(StringOfChar('=', 60));
-  Writeln('Investigacion: ', ATopic);
+  Writeln('Research: ', ATopic);
   Writeln(StringOfChar('=', 60));
 
   Manager          := TAIAgentManager.Create(nil);
@@ -241,7 +241,7 @@ begin
     Manager.Asynchronous := False;
     Manager.TimeoutMs    := 180000;
 
-    // Registrar herramientas en el registry del investigador
+    // Register tools in the researcher's registry
     ResearchRegistry.Register(TMockSearchTool.Create, 'local', 'research');
     ResearchRegistry.Register(TNoteTool.Create(Manager.Blackboard), 'local', 'research');
 
@@ -284,10 +284,10 @@ begin
     var FinalReport := Manager.Run(ATopic);
 
     Writeln;
-    Writeln('--- Plan de investigacion ---');
+    Writeln('--- Research plan ---');
     Writeln(Manager.Blackboard.GetString('Planner.output'));
     Writeln;
-    Writeln('--- Reporte final ---');
+    Writeln('--- Final report ---');
     Writeln(FinalReport);
 
   finally
@@ -308,6 +308,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

@@ -4,26 +4,26 @@
 {$R *.res}
 
 // =============================================================================
-// MakerAI — Capítulo 6: Trabajando con Múltiples Providers
+// MakerAI — Chapter 6: Working with Multiple Providers
 // =============================================================================
 // Demuestra el principio central de portabilidad de MakerAI: el código de
 // aplicación NO cambia al cambiar de provider. Solo cambia DriverName.
 //
-// Demuestra:
+// Demonstrates:
 //   - Demo 1: La misma pregunta a múltiples providers — código idéntico,
 //             resultados comparables, tiempos y estilos distintos.
 //   - Demo 2: Patrón Fallback — si el provider primario falla (timeout, API key
 //             inválida, rate limit), el código intenta automáticamente con el
 //             secundario. La lógica de aplicación no sabe qué provider respondió.
 //
-// Configurar providers:
-//   GROQ_API_KEY   → gratuito, recomendado para empezar (Enabled: True)
+// Configure providers:
+//   GROQ_API_KEY   → free, recommended to get started (Enabled: True)
 //   CLAUDE_API_KEY → Anthropic Claude
 //   OPENAI_API_KEY → OpenAI GPT
 //   GEMINI_API_KEY → Google Gemini
-//   Ollama         → local, sin API key (requiere Ollama instalado y corriendo)
+//   Ollama         → local, no API key (requires Ollama installed and running)
 //
-//   Pon Enabled = False en los providers cuya API key no tengas configurada.
+//   Set Enabled = False for providers whose API key you have not configured.
 // =============================================================================
 
 uses
@@ -36,7 +36,7 @@ uses
   uMakerAi.Chat.OpenAi,   // DriverName = 'OpenAI'
   uMakerAi.Chat.Gemini,   // DriverName = 'Gemini'
   uMakerAi.Chat.Groq,     // DriverName = 'Groq'
-  uMakerAi.Chat.Ollama;   // DriverName = 'Ollama' (local, sin API key)
+  uMakerAi.Chat.Ollama;   // DriverName = 'Ollama' (local, no API key)
 
 // =============================================================================
 //  Configuración de providers
@@ -109,7 +109,7 @@ begin
 
     if not Cfg.Enabled then
     begin
-      WriteLn('[', Cfg.Driver, '] — deshabilitado (pon Enabled = True en PROVIDERS)');
+      WriteLn('[', Cfg.Driver, '] — disabled (set Enabled = True in PROVIDERS)');
       Continue;
     end;
 
@@ -136,8 +136,8 @@ begin
   end;
 
   WriteLn('');
-  WriteLn('→ El código de envío/recepción es literalmente el mismo para cada provider.');
-  WriteLn('  Cambiar de provider = cambiar DriverName. Nada más.');
+  WriteLn('→ The send/receive code is literally the same for each provider.');
+  WriteLn('  Changing provider = changing DriverName. Nothing else.');
 end;
 
 // =============================================================================
@@ -149,12 +149,12 @@ end;
 // =============================================================================
 function PreguntarConFallback(const Pregunta: string): string;
 const
-  // Provider primario: Groq (rápido, gratuito)
+  // Primary provider: Groq (fast, free)
   PRIMARY: TProviderCfg = (
     Driver: 'Groq'; Model: 'llama-3.3-70b-versatile';
     ApiKey: '@GROQ_API_KEY'; Enabled: True);
 
-  // Provider de respaldo: Claude (confiable, pago)
+  // Fallback provider: Claude (reliable, paid)
   FALLBACK: TProviderCfg = (
     Driver: 'Claude'; Model: 'claude-haiku-4-5-20251001';
     ApiKey: '@CLAUDE_API_KEY'; Enabled: True);
@@ -164,32 +164,32 @@ begin
   Result := '';
 
   // Intentar con el provider primario
-  Write('  Intentando con ', PRIMARY.Driver, ' (primario)...');
+  Write('  Trying with ', PRIMARY.Driver, ' (primary)...');
   Conn := CrearConexion(PRIMARY);
   try
     try
       Result := Conn.AddMessageAndRun(Pregunta, 'user', []);
-      WriteLn(' OK (', PRIMARY.Driver, ' respondió)');
+      WriteLn(' OK (', PRIMARY.Driver, ' responded)');
       Exit;
     except
       on E: Exception do
-        WriteLn(' FALLÓ: ', E.Message);
+        WriteLn(' FAILED: ', E.Message);
     end;
   finally
     Conn.Free;
   end;
 
   // El primario falló — intentar con el fallback
-  Write('  Intentando con ', FALLBACK.Driver, ' (fallback)...');
+  Write('  Trying with ', FALLBACK.Driver, ' (fallback)...');
   Conn := CrearConexion(FALLBACK);
   try
     try
       Result := Conn.AddMessageAndRun(Pregunta, 'user', []);
-      WriteLn(' OK (fallback ', FALLBACK.Driver, ' respondió)');
+      WriteLn(' OK (fallback ', FALLBACK.Driver, ' responded)');
     except
       on E: Exception do
       begin
-        WriteLn(' TAMBIÉN FALLÓ: ', E.Message);
+        WriteLn(' ALSO FAILED: ', E.Message);
         Result := '[Error: ningún provider disponible]';
       end;
     end;
@@ -202,17 +202,17 @@ procedure Demo2_Fallback;
 var
   R: string;
 begin
-  Separador('Demo 2 — Patrón Fallback');
+  Separador('Demo 2 — Fallback pattern');
   WriteLn('Pregunta: "', PREGUNTA, '"');
   WriteLn('');
 
   R := PreguntarConFallback(PREGUNTA);
 
   WriteLn('');
-  WriteLn('Respuesta final: ', R);
+  WriteLn('Final response: ', R);
   WriteLn('');
-  WriteLn('→ El código que llama a PreguntarConFallback() no sabe qué provider');
-  WriteLn('  respondió. La lógica de resiliencia está encapsulada.');
+  WriteLn('→ The code that calls PreguntarConFallback() does not know which provider');
+  WriteLn('  answered. The resilience logic is encapsulated.');
 end;
 
 // =============================================================================
@@ -221,14 +221,14 @@ end;
 procedure RunDemo;
 begin
   WriteLn('=== MakerAI — Capítulo 6: Múltiples Providers ===');
-  WriteLn('Modifica el array PROVIDERS para habilitar más providers.');
+  WriteLn('Modify the PROVIDERS array to enable more providers.');
 
   Demo1_MultiProvider;
   Demo2_Fallback;
 
   WriteLn('');
   WriteLn(StringOfChar('=', 62));
-  WriteLn('  Demo completado.');
+  WriteLn('  Demo completed.');
   WriteLn(StringOfChar('=', 62));
 end;
 
@@ -240,6 +240,6 @@ begin
       WriteLn('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   WriteLn('');
-  WriteLn('Presiona Enter para salir...');
+  WriteLn('Press Enter to exit...');
   ReadLn;
 end.

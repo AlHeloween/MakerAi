@@ -16,14 +16,14 @@ type
     FAgents: TAIAgents;
     procedure Println(const S: string);
 
-    // --- Event Handlers for the Agents ---
+    // --- Event handlers for the Agents ---
     procedure DoPrint(Sender: TObject; Value: string);
     procedure DoEnd(Node: TAIAgentsNode; Value: string);
     procedure DoError(Sender: TObject; Node: TAIAgentsNode; Link: TAIAgentsLink; E: Exception; var Abort: Boolean);
     procedure DoConfirm(Sender: TObject; Node: TAIAgentsNode; const AQuestion: string; Buttons: TMsgStates; var AResponse: string;
       var AModalResult: TMsgState);
 
-    // --- Node Executor Procedures ---
+    // --- Node executor procedures ---
     procedure StartExec(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
     procedure WorkExec(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
     procedure DecideExec(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
@@ -33,7 +33,7 @@ type
     procedure ParallelA_Exec(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
     procedure ParallelB_Exec(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
 
-    // --- Test Runners ---
+    // --- Test runners ---
     procedure WaitForCompletion;
     procedure RunConditionalFlow;
     procedure RunParallelFlow;
@@ -106,7 +106,7 @@ begin
   Println(Format('  [%s] %s', [Who, Value]));
 end;
 
-// --- Node Executors Implementation ---
+// --- Node executors implementation ---
 
 procedure TDemo.StartExec(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
 begin
@@ -128,7 +128,7 @@ var
 begin
   Node.Print('DecideExec: evaluating decision...');
   TThread.Sleep(100);
-  // Decision based on random value
+  // Decision based on a random value
   if Random(100) < 60 then
     Decision := 'ok'
   else
@@ -156,7 +156,7 @@ procedure TDemo.FinishExec(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink;
 begin
   Node.Print('FinishExec: joining results...');
   TThread.Sleep(100);
-  // Input here contains combined outputs from all incoming branches
+  // Input here contains the combined outputs from all incoming branches
   Output := 'FINAL RESULT:' + sLineBreak + Input;
 end;
 
@@ -177,7 +177,7 @@ begin
 end;
 
 
-// --- Test Runners Implementation ---
+// --- Test runners implementation ---
 
 procedure TDemo.WaitForCompletion;
 begin

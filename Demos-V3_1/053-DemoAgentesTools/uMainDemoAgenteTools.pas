@@ -127,7 +127,7 @@ begin
   Dm := TFDataModule.Create(Nil);
   Try
     If Dm.CrearTablaVectoRAG then
-      ShowMessage('La tabla se cre� con �xito');
+      ShowMessage('The table was created successfully');
   Finally
     Dm.Free;
   End;
@@ -160,7 +160,7 @@ begin
   Try
     Var
     NoItems := Dm.LoadRAGV;
-    ShowMessage('Se crearon ' + NoItems.toString + ' items nuevos');
+    ShowMessage('Created ' + NoItems.toString + ' new items');
   Finally
     Dm.Free;
   End;

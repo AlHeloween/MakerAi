@@ -35,7 +35,7 @@ type
     ComboBoxDevices: TComboBox;
     LabelCurrentDevice: TLabel;
     ChWakeUp: TCheckBox;
-    // NUEVO: Controles para configurar la duración de la palabra de activación
+    // NEW: Controls to configure the wake word duration
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure ButtonStartClick(Sender: TObject);
@@ -44,7 +44,7 @@ type
     procedure FloatSpinEditStartChange(Sender: TObject);
     procedure FloatSpinEditStopChange(Sender: TObject);
     procedure AnimationTimerTimer(Sender: TObject);
-    // NUEVO: Evento para el nuevo control
+    // NEW: Event for the new control
     procedure SpinEditWakeWordChange(Sender: TObject);
     procedure AIVoiceMonitorChangeState(Sender: TObject; aState, aIsValidForIA: Boolean; aStream: TMemoryStream);
     procedure AIVoiceMonitorCalibrated(Sender: TObject; const aNoiseLevel, aSensitivity, aStopSensitivity: Integer);
@@ -75,7 +75,7 @@ var
 implementation
 
 {$R *.dfm}
-// --- Implementación de los Manejadores de Eventos del TVoiceMonitor ---
+// --- Implementation of TVoiceMonitor event handlers ---
 
 procedure TForm6.FormCreate(Sender: TObject);
 begin
@@ -85,29 +85,29 @@ begin
     TDirectory.CreateDirectory('c:\temp');
   except
     on E: Exception do
-      ShowMessage('No se pudo crear el directorio c:\temp. Por favor, créelo manualmente. Error: ' + E.Message);
+      ShowMessage('Could not create directory c:\temp. Please create it manually. Error: ' + E.Message);
   end;
 
-  // --- Configuración de la Interfaz de Usuario ---
+  // --- User Interface Configuration ---
   FMaxLevelSeen := 8000;
-  Label1.Caption := 'Pausa para silencio (ms):';
+  Label1.Caption := 'Silence pause (ms):';
   SpinEditSilence.MinValue := 300;
   SpinEditSilence.MaxValue := 5000;
   SpinEditSilence.Value := DEFAULT_SILENCE_DURATION_MS * 2;
   AIVoiceMonitor.SilenceDuration := SpinEditSilence.Value;
 
-  Label3.Caption := 'Mult. Inicio:';
+  Label3.Caption := 'Start mult.:';
   FloatSpinEditStart.MinValue := 15; // Representa 1.5
   FloatSpinEditStart.MaxValue := 100; // Representa 10.0
   FloatSpinEditStart.Value := Round(AIVoiceMonitor.SensitivityMultiplier * 10);
 
-  Label4.Caption := 'Mult. Parada:';
+  Label4.Caption := 'Stop mult.:';
   FloatSpinEditStop.MinValue := 10; // Representa 1.0
   FloatSpinEditStop.MaxValue := 50; // Representa 5.0
   FloatSpinEditStop.Value := Round(AIVoiceMonitor.StopSensitivityMultiplier * 10);
 
-  // NUEVO: Configurar control para duración de palabra de activación.
-  Label5.Caption := 'Duración Wake Word (ms):';
+  // NEW: Configure control for wake word duration.
+  Label5.Caption := 'Wake Word duration (ms):';
   SpinEditWakeWord.MinValue := 500;
   SpinEditWakeWord.MaxValue := 5000;
   SpinEditWakeWord.Value := DEFAULT_WAKE_WORD_DURATION_MS;
@@ -137,22 +137,22 @@ var
   I: Integer;
   DeviceID: UINT;
 begin
-  // Guardar la selección actual si es posible
-  // (Aunque al recargar solemos querer ver el estado real del componente)
+  // Save the current selection if possible
+  // (Although when reloading we usually want to see the component's actual state)
 
   ComboBoxDevices.Items.Clear;
 
-  // Obtener la lista del componente (que ahora YA INCLUYE el Default en la posición 0)
+  // Get the component list (which now ALREADY INCLUDES Default at position 0)
   Devices := TAIVoiceMonitor.GetWaveInDevices;
 
   for I := 0 to High(Devices) do
   begin
-    // Guardamos el ID en el objeto del Item.
-    // Hacemos cast a NativeInt para compatibilidad 32/64 bits.
+    // We save the ID in the Item object.
+    // We cast to NativeInt for 32/64-bit compatibility.
     ComboBoxDevices.Items.AddObject(Devices[I].DeviceName, TObject(NativeInt(Devices[I].DeviceID)));
   end;
 
-  // Seleccionar en el ComboBox el dispositivo que tiene el componente configurado actualmente
+  // Select in the ComboBox the device configured in the component
   if ComboBoxDevices.Items.Count > 0 then
   begin
     ComboBoxDevices.ItemIndex := 0; // Por defecto al primero (WAVE_MAPPER)
@@ -168,7 +168,7 @@ begin
     end;
   end;
 
-  MemoLog.Lines.Add(Format('Se encontraron %d dispositivos de audio.', [Length(Devices)]));
+  MemoLog.Lines.Add(Format('Found %d audio devices.', [Length(Devices)]));
 end;
 
 function TForm6.NewWhisper: TAIWhisper;
@@ -184,20 +184,20 @@ procedure TForm6.BtnRefreshDevicesClick(Sender: TObject);
 begin
   LoadAudioDevices;
   UpdateCurrentDeviceLabel;
-  MemoLog.Lines.Add('Lista de dispositivos actualizada.');
+  MemoLog.Lines.Add('Device list updated.');
 end;
 
 procedure TForm6.ButtonStartClick(Sender: TObject);
 begin
   MemoLog.Clear;
-  MemoLog.Lines.Add('Activando monitor... Por favor, guarde silencio para la calibración.');
+  MemoLog.Lines.Add('Activating monitor... Please keep quiet for calibration.');
 
   FCurrentSoundLevel := 0;
   FMaxLevelSeen := 8000; // Resetear el máximo para que la barra se ajuste
   ProgressBarLevel.Max := FMaxLevelSeen;
   AnimationTimer.Enabled := True;
 
-  // Deshabilitar controles
+  // Disable controls
   SpinEditSilence.Enabled := False;
   FloatSpinEditStart.Enabled := False;
   FloatSpinEditStop.Enabled := False;
@@ -213,9 +213,9 @@ procedure TForm6.ButtonStopClick(Sender: TObject);
 begin
   AIVoiceMonitor.Active := False;
   AnimationTimer.Enabled := False;
-  MemoLog.Lines.Add('Monitor desactivado.');
+  MemoLog.Lines.Add('Monitor deactivated.');
 
-  // Habilitar controles
+  // Enable controls
   ButtonStart.Enabled := True;
   ButtonStop.Enabled := False;
   SpinEditSilence.Enabled := True;
@@ -240,18 +240,18 @@ begin
   if ComboBoxDevices.ItemIndex < 0 then
     Exit;
 
-  // Recuperar el ID del objeto guardado
+  // Retrieve the saved object ID
   SelectedDeviceID := UINT(NativeInt(ComboBoxDevices.Items.Objects[ComboBoxDevices.ItemIndex]));
 
   try
-    // Si el monitor está activo, debemos detenerlo antes de cambiar (el componente lanzaría error si no)
+    // If the monitor is active, we must stop it before changing (the component would raise an error otherwise)
     if AIVoiceMonitor.Active then
     begin
       AIVoiceMonitor.Active := False;
       AIVoiceMonitor.DeviceID := SelectedDeviceID;
       UpdateCurrentDeviceLabel;
-      MemoLog.Lines.Add('Monitor detenido para cambiar dispositivo.');
-      // Opcional: Reiniciar automáticamente
+      MemoLog.Lines.Add('Monitor stopped to change device.');
+      // Optional: Restart automatically
       // AIVoiceMonitor.Active := True;
     end
     else
@@ -260,12 +260,12 @@ begin
       UpdateCurrentDeviceLabel;
     end;
 
-    MemoLog.Lines.Add(Format('Dispositivo seleccionado: %s', [ComboBoxDevices.Items[ComboBoxDevices.ItemIndex]]));
+    MemoLog.Lines.Add(Format('Selected device: %s', [ComboBoxDevices.Items[ComboBoxDevices.ItemIndex]]));
 
   except
     on E: Exception do
     begin
-      MemoLog.Lines.Add('Error al cambiar dispositivo: ' + E.Message);
+      MemoLog.Lines.Add('Error changing device: ' + E.Message);
       ShowMessage('Error: ' + E.Message);
     end;
   end;
@@ -297,18 +297,18 @@ end;
 procedure TForm6.UpdateCurrentDeviceLabel;
 begin
   if Assigned(AIVoiceMonitor) then
-    LabelCurrentDevice.Caption := 'Dispositivo actual: ' + AIVoiceMonitor.CurrentDeviceName
+    LabelCurrentDevice.Caption := 'Current device: ' + AIVoiceMonitor.CurrentDeviceName
   else
-    LabelCurrentDevice.Caption := 'Dispositivo actual: ---';
+    LabelCurrentDevice.Caption := 'Current device: ---';
 end;
 
 procedure TForm6.AIVoiceMonitorCalibrated(Sender: TObject; const aNoiseLevel, aSensitivity, aStopSensitivity: Integer);
 begin
-  MemoLog.Lines.Add('--- Calibración Finalizada ---');
-  MemoLog.Lines.Add(Format('Nivel de ruido base: %d', [aNoiseLevel]));
-  MemoLog.Lines.Add(Format('Umbral de INICIO ajustado a: %d', [aSensitivity]));
-  MemoLog.Lines.Add(Format('Umbral de PARADA ajustado a: %d', [aStopSensitivity]));
-  MemoLog.Lines.Add('¡Listo! Esperando palabra de activación...');
+  MemoLog.Lines.Add('--- Calibration Finished ---');
+  MemoLog.Lines.Add(Format('Base noise level: %d', [aNoiseLevel]));
+  MemoLog.Lines.Add(Format('START threshold adjusted to: %d', [aSensitivity]));
+  MemoLog.Lines.Add(Format('STOP threshold adjusted to: %d', [aStopSensitivity]));
+  MemoLog.Lines.Add('Ready! Waiting for wake word...');
 end;
 
 procedure TForm6.AIVoiceMonitorChangeState(Sender: TObject; aState, aIsValidForIA: Boolean; aStream: TMemoryStream);
@@ -317,15 +317,15 @@ var
 begin
   if aState then
   begin
-    // El monitor ha detectado que el usuario ha empezado a hablar.
-    MemoLog.Lines.Add('-> Empezaste a hablar...');
+    // The monitor detected that the user started speaking.
+    MemoLog.Lines.Add('-> You started speaking...');
   end
   else
   begin
-    // El monitor ha detectado silencio y ha terminado la grabación.
-    MemoLog.Lines.Add('<- Dejaste de hablar. Fin del segmento de audio.');
+    // The monitor detected silence and finished recording.
+    MemoLog.Lines.Add('<- You stopped speaking. End of audio segment.');
 
-    // Crear una copia local del stream ANTES de que sea liberado por el llamador
+    // Create a local copy of the stream BEFORE it is released by the caller
     LocalStream := TMemoryStream.Create;
     try
       if Assigned(aStream) then
@@ -335,33 +335,33 @@ begin
         LocalStream.Position := 0; // Resetear posición para uso posterior
       end;
 
-      // Aquí está la lógica clave: solo procesamos el audio completo si la palabra de activación fue validada.
+      // Here is the key logic: we only process the complete audio if the wake word was validated.
       if aIsValidForIA then
       begin
-        MemoLog.Lines.Add('   >> ¡PALABRA CLAVE CORRECTA! Procesando el comando completo...');
-        // En una aplicación real, aquí es donde enviarías el 'LocalStream' completo a Whisper
-        // para transcribir el comando que sigue a la palabra de activación.
+        MemoLog.Lines.Add('   >> CORRECT KEYWORD! Processing the complete command...');
+        // In a real application, this is where you would send the complete 'LocalStream' to Whisper
+        // to transcribe the command following the wake word.
         LocalStream.SaveToFile('c:\temp\grabacion_COMPLETA_VALIDA.wav');
-        MemoLog.Lines.Add('      Audio completo guardado en: c:\temp\grabacion_COMPLETA_VALIDA.wav');
+        MemoLog.Lines.Add('      Complete audio saved to: c:\temp\grabacion_COMPLETA_VALIDA.wav');
       end
       else
       begin
-        MemoLog.Lines.Add('   -- Palabra clave incorrecta o no detectada. Audio descartado.');
-        // Opcional: puedes guardar el audio descartado para fines de depuración.
+        MemoLog.Lines.Add('   -- Incorrect or undetected keyword. Audio discarded.');
+        // Optional: you can save the discarded audio for debugging purposes.
         LocalStream.SaveToFile('c:\temp\grabacion_descartada.wav');
       end;
     finally
       // Liberamos nuestra copia local
       LocalStream.Free;
     end;
-    // NOTA: NO liberamos aStream aquí, es responsabilidad del llamador (TAIVoiceMonitor)
+    // NOTE: We do NOT free aStream here; it is the caller's responsibility (TAIVoiceMonitor)
   end;
 end;
 
 procedure TForm6.AIVoiceMonitorError(Sender: TObject; const ErrorMessage: string);
 begin
   MemoLog.Lines.Add('ERROR: ' + ErrorMessage);
-  ShowMessage('Ocurrió un error en el monitor de audio: ' + sLineBreak + ErrorMessage);
+  ShowMessage('An error occurred in the audio monitor: ' + sLineBreak + ErrorMessage);
   ButtonStopClick(Sender);
 end;
 
@@ -374,7 +374,7 @@ begin
   // Crear una copia local del stream para uso seguro
   LocalStream := TMemoryStream.Create;
   try
-    // Copiar el contenido del stream recibido
+    // Copy the received stream content
     if Assigned(aStream) then
     begin
       aStream.Position := 0;
@@ -385,26 +385,26 @@ begin
     // Verificar que tenemos datos válidos
     if LocalStream.Size = 0 then
     begin
-      MemoLog.Lines.Add('--- Advertencia: Stream de audio vacío ---');
+      MemoLog.Lines.Add('--- Warning: Empty audio stream ---');
       Exit;
     end;
 
     try
-      // Verificar si la wake word fue validada
+      // Check whether the wake word was validated
       if aIsValidForIA then
       begin
         MemoLog.Lines.Add('');
         MemoLog.Lines.Add('========================================');
-        MemoLog.Lines.Add('   PROCESANDO COMANDO COMPLETO');
-        MemoLog.Lines.Add('   Wake Word VALIDADA ✓');
-        MemoLog.Lines.Add('   Tamaño de audio: ' + FormatFloat('#,##0', LocalStream.Size) + ' bytes');
+        MemoLog.Lines.Add('   PROCESSING COMPLETE COMMAND');
+        MemoLog.Lines.Add('   Wake Word VALIDATED ✓');
+        MemoLog.Lines.Add('   Audio size: ' + FormatFloat('#,##0', LocalStream.Size) + ' bytes');
         MemoLog.Lines.Add('========================================');
 
-        // Opcional: Guardar el audio completo validado para depuración
+        // Optional: Save the validated complete audio for debugging
 {$IFDEF DEBUG}
         LocalStream.SaveToFile('c:\temp\comando_completo_' + FormatDateTime('yyyymmdd_hhnnss', Now) + '.wav');
 {$ENDIF}
-        // Enviar el audio completo a Whisper para transcripción
+        // Send the complete audio to Whisper for transcription
         LWhisper := NewWhisper;
         Try
           TranscriptionResult := LWhisper.Transcription(LocalStream, 'comando_completo.wav', 'transcribe al español');
@@ -412,30 +412,30 @@ begin
           LWhisper.Free;
         End;
 
-        // Mostrar el resultado de la transcripción
+        // Show the transcription result
         if TranscriptionResult <> '' then
         begin
           MemoLog.Lines.Add('');
-          MemoLog.Lines.Add('>>> TRANSCRIPCIÓN COMPLETA:');
+          MemoLog.Lines.Add('>>> COMPLETE TRANSCRIPTION:');
           MemoLog.Lines.Add(TranscriptionResult);
           MemoLog.Lines.Add('');
 
-          // Aquí puedes procesar el comando completo
-          // Por ejemplo: enviar a GPT, ejecutar acción, etc.
+          // Here you can process the complete command
+          // For example: send to GPT, execute an action, etc.
           ProcessVoiceCommand(TranscriptionResult);
         end
         else
         begin
-          MemoLog.Lines.Add('⚠ No se pudo transcribir el audio');
+          MemoLog.Lines.Add('⚠ Could not transcribe the audio');
         end;
       end
       else
       begin
         MemoLog.Lines.Add('');
-        MemoLog.Lines.Add('--- Audio descartado (Wake Word NO validada) ---');
-        MemoLog.Lines.Add('   Tamaño: ' + FormatFloat('#,##0', LocalStream.Size) + ' bytes');
+        MemoLog.Lines.Add('--- Discarded audio (Wake Word NOT validated) ---');
+        MemoLog.Lines.Add('   Size: ' + FormatFloat('#,##0', LocalStream.Size) + ' bytes');
 
-        // ---la transcripción del total del audio
+        // --- transcription of the total audio
 
         LWhisper := NewWhisper;
         Try
@@ -447,19 +447,19 @@ begin
         // Mostrar el resultado de la transcripción del fragmento
         if TranscriptionResult <> '' then
         begin
-          MemoLog.Lines.Add('--- total audio transcrito ---');
+          MemoLog.Lines.Add('--- total audio transcribed ---');
           MemoLog.Lines.Add(TranscriptionResult);
           MemoLog.Lines.Add('');
 
-          MemoTranscription.Lines.Add('--- total audio transcrito ---');
+          MemoTranscription.Lines.Add('--- total audio transcribed ---');
           MemoTranscription.Lines.Add('');
           MemoTranscription.Lines.Text := MemoTranscription.Lines.Text + ' -- ' + TranscriptionResult;
         end;
 
-        // Opcional: Guardar audio descartado para análisis
+        // Optional: Save discarded audio for analysis
 {$IFDEF DEBUG}
         LocalStream.SaveToFile('c:\temp\descartado_' + FormatDateTime('yyyymmdd_hhnnss', Now) + '.wav');
-        MemoLog.Lines.Add('   Guardado en: c:\temp\descartado_*.wav (para análisis)');
+        MemoLog.Lines.Add('   Saved to: c:\temp\descartado_*.wav (for analysis)');
 {$ENDIF}
       end;
 
@@ -473,16 +473,16 @@ begin
     end;
 
   finally
-    // Liberar nuestra copia local
+    // Free our local copy
     LocalStream.Free;
   end;
 
-  // Auto-scroll al final del memo
+  // Auto-scroll to the end of the memo
   MemoLog.SelStart := Length(MemoLog.Text);
   MemoLog.Perform(EM_SCROLLCARET, 0, 0);
 end;
 
-// --- FUNCIÓN AUXILIAR PARA PROCESAR COMANDOS ---
+// --- HELPER FUNCTION TO PROCESS COMMANDS ---
 procedure TForm6.ProcessVoiceCommand(const Command: String);
 var
   LowerCommand: String;
@@ -490,47 +490,47 @@ begin
   LowerCommand := LowerCase(Trim(Command));
 
   MemoLog.Lines.Add('');
-  MemoLog.Lines.Add('🎯 Procesando comando...');
+  MemoLog.Lines.Add('🎯 Processing command...');
 
-  // Aquí puedes implementar tu lógica de procesamiento
-  // Ejemplos:
+  // Here you can implement your processing logic
+  // Examples:
 
   if Pos('abrir', LowerCommand) > 0 then
   begin
-    MemoLog.Lines.Add('   → Comando de apertura detectado');
-    // Implementar lógica de apertura
+    MemoLog.Lines.Add('   → Open command detected');
+    // Implement open logic
   end
   else if Pos('cerrar', LowerCommand) > 0 then
   begin
-    MemoLog.Lines.Add('   → Comando de cierre detectado');
-    // Implementar lógica de cierre
+    MemoLog.Lines.Add('   → Close command detected');
+    // Implement close logic
   end
   else if Pos('buscar', LowerCommand) > 0 then
   begin
-    MemoLog.Lines.Add('   → Comando de búsqueda detectado');
-    // Implementar lógica de búsqueda
+    MemoLog.Lines.Add('   → Search command detected');
+    // Implement search logic
   end
   else
   begin
-    MemoLog.Lines.Add('   → Enviando a IA para procesamiento general...');
-    // Enviar a GPT u otro LLM para procesamiento
+    MemoLog.Lines.Add('   → Sending to AI for general processing...');
+    // Send to GPT or another LLM for processing
     SendToAI(Command);
   end;
 end;
 
-// --- FUNCIÓN AUXILIAR PARA ENVIAR A IA ---
+// --- HELPER FUNCTION TO SEND TO AI ---
 procedure TForm6.SendToAI(const Command: String);
 begin
-  // Aquí implementarías la llamada a tu LLM preferido
-  // Ejemplo con OpenAI, Claude, etc.
+  // Here you would implement the call to your preferred LLM
+  // Example with OpenAI, Claude, etc.
 
-  MemoLog.Lines.Add('   → Procesando con IA...');
+  MemoLog.Lines.Add('   → Processing with AI...');
 
-  // TODO: Implementar llamada a API de IA
-  // Ejemplo:
+  // TODO: Implement AI API call
+  // Example:
   // var Response: String;
   // Response := OpenAI.Chat(Command);
-  // MemoLog.Lines.Add('   Respuesta IA: ' + Response);
+  // MemoLog.Lines.Add('   AI response: ' + Response);
 end;
 
 procedure TForm6.AIVoiceMonitorTranscriptionFragment(Sender: TObject; aFragmentStream: TMemoryStream);
@@ -542,7 +542,7 @@ begin
   // Crear una copia local del stream para uso seguro
   LocalStream := TMemoryStream.Create;
   try
-    // Copiar el contenido del fragmento recibido
+    // Copy the received fragment content
     if Assigned(aFragmentStream) then
     begin
       aFragmentStream.Position := 0;
@@ -555,8 +555,8 @@ begin
       Exit;
 
     try
-      // Enviar el fragmento a Whisper para transcripción
-      // Nota: No necesitamos guardar el archivo, enviamos el stream directamente
+      // Send the fragment to Whisper for transcription
+      // Note: We don't need to save the file, we send the stream directly
       LWhisper := NewWhisper;;
       Try
         TranscriptionResult := LWhisper.Transcription(LocalStream, 'fragment.wav', // Nombre virtual del archivo
@@ -569,7 +569,7 @@ begin
       // Mostrar el resultado de la transcripción del fragmento
       if TranscriptionResult <> '' then
       begin
-        MemoLog.Lines.Add('--- Fragmento transcrito ---');
+        MemoLog.Lines.Add('--- Transcribed fragment ---');
         MemoLog.Lines.Add(TranscriptionResult);
         MemoLog.Lines.Add('');
 
@@ -582,7 +582,7 @@ begin
       end;
     end;
   finally
-    // Siempre liberar nuestra copia local
+    // Always free our local copy
     LocalStream.Free;
   end;
 end;
@@ -609,57 +609,57 @@ var
   Distance: Integer;
   DetectedWord: string; // Para mostrar en el log cuál disparó
 begin
-  // 1. Validación de seguridad
+  // 1. Security validation
   if (aWakeWordStream = nil) or (aWakeWordStream.Size < 100) then
   begin
     IsValid := False;
     Exit;
   end;
 
-  // Cálculo de duración
+  // Duration calculation
   BytesPerSec := AIVoiceMonitor.SampleRate * AIVoiceMonitor.Channels * (AIVoiceMonitor.BitsPerSample div 8);
   if BytesPerSec > 0 then DurationMs := (aWakeWordStream.Size * 1000) div BytesPerSec else DurationMs := 0;
 
   TThread.Queue(nil, procedure
   begin
-    MemoLog.Lines.Add(Format('--- Verificando Wake Word (%d ms) ---', [DurationMs]));
+    MemoLog.Lines.Add(Format('--- Verifying Wake Word (%d ms) ---', [DurationMs]));
   end);
 
-  // 2. REINICIAR POSICIÓN
+  // 2. RESET POSITION
   aWakeWordStream.Position := 0;
 
   try
     LWhisper := NewWhisper;
     try
-      // Transcribir audio
+      // Transcribe audio
       Res := LWhisper.Transcription(aWakeWordStream, 'wakeword.wav', '');
     finally
       LWhisper.Free;
     end;
 
-    // 3. LIMPIEZA INICIAL
+    // 3. INITIAL CLEANUP
     Res := Trim(Res);
 
-    // Obtener Target y limpiarlo también
+    // Get Target and clean it too
     TargetWakeWord := Trim(AIVoiceMonitor.WakeWord);
     if TargetWakeWord = '' then TargetWakeWord := 'andrea';
 
-    // Normalizamos el objetivo (sin acentos, minúsculas)
+    // Normalize the target (no accents, lowercase)
     CleanTarget := LowerCase( TAIVoiceMonitor.RemoveAccents(TargetWakeWord));
 
-    // 4. LÓGICA DE DETECCIÓN DIFUSA (FUZZY MATCHING)
+    // 4. FUZZY DETECTION LOGIC (FUZZY MATCHING)
     IsValid := False;
     DetectedWord := '';
 
-    // Dividimos la frase en palabras (separando por espacios y puntuación)
+    // Split the phrase into words (separating by spaces and punctuation)
     Words := Res.Split([' ', ',', '.', '!', '?', ';', ':'], TStringSplitOptions.ExcludeEmpty);
 
     for Word in Words do
     begin
-      // Limpiamos la palabra capturada (sin acentos, minúsculas)
+      // Clean the captured word (no accents, lowercase)
       CleanWord := LowerCase(TAIVoiceMonitor.RemoveAccents(Word));
 
-      // A) Coincidencia exacta
+      // A) Exact match
       if CleanWord = CleanTarget then
       begin
         IsValid := True;
@@ -667,12 +667,12 @@ begin
         Break;
       end;
 
-      // B) Coincidencia aproximada (Levenshtein)
-      // Calculamos la distancia
+      // B) Approximate match (Levenshtein)
+      // Calculate the distance
       Distance := TAIVoiceMonitor.LevenshteinDistance(CleanWord, CleanTarget);
 
-      // Permitimos hasta 2 errores (ej: "Andrea" vs "Andreas" es 1, "Andrea" vs "Andre" es 1)
-      // Ajustamos tolerancia: Si la palabra es muy corta (<=4), solo permitimos 1 error.
+      // Allow up to 2 errors (e.g.: "Andrea" vs "Andreas" is 1, "Andrea" vs "Andre" is 1)
+      // Adjust tolerance: If the word is very short (<=4), allow only 1 error.
       if (Length(CleanTarget) > 4) and (Distance <= 2) then
       begin
         IsValid := True;
@@ -687,8 +687,8 @@ begin
       end;
     end;
 
-    // 5. LOG DE RESULTADO
-    var ValidoLocal := IsValid; // Capturar variable para thread anónimo
+    // 5. RESULT LOG
+    var ValidoLocal := IsValid; // Capture variable for anonymous thread
     var ResLocal := Res;
     var TargetLocal := TargetWakeWord;
     var DetectedLocal := DetectedWord;
@@ -696,9 +696,9 @@ begin
     TThread.Queue(nil, procedure
     begin
       if ValidoLocal then
-        MemoLog.Lines.Add(Format('  [OK] ACTIVADO! Detecté "%s" (similar a "%s") en la frase: "%s"', [DetectedLocal, TargetLocal, ResLocal]))
+        MemoLog.Lines.Add(Format('  [OK] ACTIVATED! Detected "%s" (similar to "%s") in the phrase: "%s"', [DetectedLocal, TargetLocal, ResLocal]))
       else
-        MemoLog.Lines.Add(Format('  [X] Ignorado. Frase: "%s" (Ninguna palabra similar a "%s")', [ResLocal, TargetLocal]));
+        MemoLog.Lines.Add(Format('  [X] Ignored. Phrase: "%s" (No word similar to "%s")', [ResLocal, TargetLocal]));
     end);
 
   except
@@ -707,7 +707,7 @@ begin
       IsValid := False;
       TThread.Queue(nil, procedure
       begin
-        MemoLog.Lines.Add('Error en WakeWord: ' + E.Message);
+        MemoLog.Lines.Add('Error in WakeWord: ' + E.Message);
       end);
     end;
   end;
@@ -719,12 +719,12 @@ procedure TForm6.AIVoiceMonitorWakeWordCheck(Sender: TObject; aWakeWordStream: T
 var
   StreamCopy: TMemoryStream;
 begin
-  // Creamos una copia del stream porque el original se liberará al salir de este evento
+  // We create a copy of the stream because the original will be freed when leaving this event
   StreamCopy := TMemoryStream.Create;
   StreamCopy.CopyFrom(aWakeWordStream, 0);
   StreamCopy.Position := 0;
 
-  // Lanzamos la validación pesada en un hilo aparte
+  // We launch the heavy validation in a separate thread
   TTask.Run(procedure
     var
       Res, TargetWakeWord, CleanTarget, CleanWord, DetectedWord: string;
@@ -743,12 +743,12 @@ begin
             LWhisper.Free;
           end;
 
-          // --- Lógica de limpieza y comparación ---
+          // --- Cleanup and comparison logic ---
           Res := Trim(Res);
           TargetWakeWord := Trim(AIVoiceMonitor.WakeWord);
           if TargetWakeWord = '' then TargetWakeWord := 'andrea';
 
-          //RemoveAccents es solo una estrategía en el idioma español, cambiar para otros idiomas
+          // RemoveAccents is only a strategy in Spanish; change for other languages
           CleanTarget := LowerCase(TAIVoiceMonitor.RemoveAccents(TargetWakeWord));
 
           IsValidResult := False;
@@ -770,16 +770,16 @@ begin
             end;
           end;
 
-          // --- NOTIFICAR AL COMPONENTE EL RESULTADO ---
+          // --- NOTIFY THE COMPONENT OF THE RESULT ---
           AIVoiceMonitor.ConfirmWakeWord(IsValidResult);
 
-          // Log en el hilo principal
+          // Log on the main thread
           TThread.Queue(nil, procedure
           begin
             if IsValidResult then
-              MemoLog.Lines.Add('WakeWord detectada: ' + DetectedWord)
+              MemoLog.Lines.Add('WakeWord detected: ' + DetectedWord)
             else
-              MemoLog.Lines.Add('WakeWord no reconocida en: ' + Res);
+              MemoLog.Lines.Add('WakeWord not recognized in: ' + Res);
           end);
 
         finally
@@ -809,7 +809,7 @@ begin
     TargetPos := 0;
 
   if TargetPos > ProgressBarLevel.Max then
-    ProgressBarLevel.Max := Round(TargetPos * 1.2); // Dar un margen
+    ProgressBarLevel.Max := Round(TargetPos * 1.2); // Give some margin
 
   CurrentPos := ProgressBarLevel.Position;
   NewPos := CurrentPos + Round((TargetPos - CurrentPos) * SMOOTHING_FACTOR);
@@ -828,7 +828,7 @@ begin
     StateStr := 'Inactivo';
   end;
 
-  Self.Caption := Format('Estado: %s | Nivel: %d | Umbrales: %d / %d | Hablando: %s', [StateStr, TargetPos, AIVoiceMonitor.Sensitivity, AIVoiceMonitor.StopSensitivity, BoolToStr(AIVoiceMonitor.IsSpeaking, True)]);
+  Self.Caption := Format('State: %s | Level: %d | Thresholds: %d / %d | Speaking: %s', [StateStr, TargetPos, AIVoiceMonitor.Sensitivity, AIVoiceMonitor.StopSensitivity, BoolToStr(AIVoiceMonitor.IsSpeaking, True)]);
 end;
 
 end.

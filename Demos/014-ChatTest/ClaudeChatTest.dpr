@@ -23,7 +23,7 @@ const
   CPdfAgentes = 'medios\agentes.pdf';
   CPdfRag     = 'medios\rag.pdf';
 
-// ─── Helper async ────────────────────────────────────────────────────────────
+// ─── Async helper ────────────────────────────────────────────────────────────
 
 type
   TAsyncHelper = class
@@ -113,7 +113,7 @@ begin
   WriteLn('==============================');
 end;
 
-// ─── SECCION 1: Claude PDF (sync) ────────────────────────────────────────────
+// ─── SECTION 1: Claude PDF (sync) ────────────────────────────────────────────
 
 procedure ConfigureClaude(A: TAiChatConnection);
 begin
@@ -133,7 +133,7 @@ var
   Ai:  TAiChatConnection;
   Res: string;
 begin
-  PrintHeader('CLAUDE — PDF Agentes (sync)');
+  PrintHeader('CLAUDE — Agents PDF (sync)');
   if not FileExists(CPdfAgentes) then begin WriteLn('Archivo no encontrado: ' + CPdfAgentes); Exit; end;
 
   Ai := TAiChatConnection.Create(nil);
@@ -153,7 +153,7 @@ var
   Ai:  TAiChatConnection;
   Res: string;
 begin
-  PrintHeader('CLAUDE — PDF RAG (sync)');
+  PrintHeader('CLAUDE — RAG PDF (sync)');
   if not FileExists(CPdfRag) then begin WriteLn('Archivo no encontrado: ' + CPdfRag); Exit; end;
 
   Ai := TAiChatConnection.Create(nil);
@@ -173,16 +173,16 @@ var
   Ai:  TAiChatConnection;
   Res: string;
 begin
-  PrintHeader('CLAUDE — PDF multi-turno (sync)');
+  PrintHeader('CLAUDE — PDF multi-turn (sync)');
   if not FileExists(CPdfAgentes) then begin WriteLn('Archivo no encontrado: ' + CPdfAgentes); Exit; end;
 
   Ai := TAiChatConnection.Create(nil);
   try
     ConfigureClaude(Ai);
-    WriteLn('--- Turno 1 ---');
+    WriteLn('--- Turn 1 ---');
     Res := Ai.AddMessageAndRun('Qué es TAIBlackboard?', 'user', MakePdf(CPdfAgentes));
     WriteLn(Res);
-    WriteLn('--- Turno 2 ---');
+    WriteLn('--- Turn 2 ---');
     Res := Ai.AddMessageAndRun('Dame un ejemplo corto de uso de TAIBlackboard.', 'user', []);
     WriteLn(Res);
   finally
@@ -190,7 +190,7 @@ begin
   end;
 end;
 
-// ─── SECCION 2: MakerAI PDF ───────────────────────────────────────────────────
+// ─── SECTION 2: MakerAI PDF ───────────────────────────────────────────────────
 
 procedure SetMakerAiCaps(Chat: TAiMakerAiChat; const AModel: string);
 begin
@@ -217,7 +217,7 @@ end;
 
 procedure OnMakerAiProgress(AStep, AFile: string; APct: Integer);
 begin
-  WriteLn(Format('  [progreso] %-10s  %s  %d%%', [AStep, AFile, APct]));
+  WriteLn(Format('  [progress] %-10s  %s  %d%%', [AStep, AFile, APct]));
 end;
 
 procedure Test_MakerAiPdf_Sync;
@@ -226,7 +226,7 @@ var
   Res:  string;
   H:    TAsyncHelper;
 begin
-  PrintHeader('MAKERAI mk-scout — PDF Agentes (sync)');
+  PrintHeader('MAKERAI mk-scout — Agents PDF (sync)');
   if not FileExists(CPdfAgentes) then begin WriteLn('Archivo no encontrado: ' + CPdfAgentes); Exit; end;
 
   H := TAsyncHelper.Create;
@@ -254,7 +254,7 @@ var
   Res:  string;
   H:    TAsyncHelper;
 begin
-  PrintHeader('MAKERAI mk-scout — PDF RAG (async)');
+  PrintHeader('MAKERAI mk-scout — RAG PDF (async)');
   if not FileExists(CPdfRag) then begin WriteLn('Archivo no encontrado: ' + CPdfRag); Exit; end;
 
   H := TAsyncHelper.Create;
@@ -285,7 +285,7 @@ var
   Res:  string;
   H:    TAsyncHelper;
 begin
-  PrintHeader('MAKERAI mk-gpt-oss-20b — PDF multi-turno (async)');
+  PrintHeader('MAKERAI mk-gpt-oss-20b — PDF multi-turn (async)');
   if not FileExists(CPdfAgentes) then begin WriteLn('Archivo no encontrado: ' + CPdfAgentes); Exit; end;
 
   H := TAsyncHelper.Create;
@@ -299,7 +299,7 @@ begin
     Chat.OnProgress       := OnMakerAiProgress;
 
     // Turno 1: con PDF
-    WriteLn('--- Turno 1 (con PDF) ---');
+    WriteLn('--- Turn 1 (with PDF) ---');
     H.Reset;
     Chat.AddMessageAndRun('Qué es TAIBlackboard y para qué se usa?',
       'user', MakePdf(CPdfAgentes));
@@ -309,20 +309,20 @@ begin
 
     // Turno 2: sin PDF (misma sesión → session_id preservado)
     WriteLn;
-    WriteLn('--- Turno 2 (sin PDF, follow-up) ---');
+    WriteLn('--- Turn 2 (without PDF, follow-up) ---');
     H.Reset;
     Chat.AddMessageAndRun('Dame un ejemplo corto de uso de TAIBlackboard.', 'user', []);
     Res := H.WaitAsync;
     WriteLn;
     if Res.StartsWith('ERROR:') then WriteLn(Res)
-    else if Res.IsEmpty then WriteLn('[RESPUESTA VACIA]');
+    else if Res.IsEmpty then WriteLn('[EMPTY RESPONSE]');
   finally
     Chat.Free;
     H.Free;
   end;
 end;
 
-// ─── SECCION 3: Groq gpt-oss-20b + code_interpreter ─────────────────────────
+// ─── SECTION 3: Groq gpt-oss-20b + code_interpreter ─────────────────────────
 
 const
   // gpt-oss-20b ejecuta el codigo con la herramienta code_interpreter y el stdout
@@ -482,19 +482,19 @@ begin
   begin
     Preview := StringReplace(Copy(FResult, 1, 3000), #10, ' ', [rfReplaceAll]);
     Preview := StringReplace(Preview, #13, '', [rfReplaceAll]);
-    WriteLn('  Texto: ' + Preview);
-    if Length(FResult) > 3000 then WriteLn('  ...[truncado ' + IntToStr(Length(FResult)) + ' chars]');
+    WriteLn('  Text: ' + Preview);
+    if Length(FResult) > 3000 then WriteLn('  ...[truncated ' + IntToStr(Length(FResult)) + ' chars]');
   end
   else
-    WriteLn('  Texto: (vacio)');
+    WriteLn('  Text: (empty)');
   // Mostrar estado de archivos
   if FError <> '' then
     WriteLn('  ERROR: ' + FError)
   else if FSavedFiles.Count = 0 then
-    WriteLn('  Archivos: (sin archivos ejecutados)')
+    WriteLn('  Files: (no executed files)')
   else
     for I := 0 to FSavedFiles.Count - 1 do
-      WriteLn('  Archivo guardado: ' + FSavedFiles[I]);
+      WriteLn('  Saved file: ' + FSavedFiles[I]);
 end;
 
 // gpt-oss-20b: scatter plot 200x200 JPG via matplotlib.
@@ -579,7 +579,7 @@ begin
     Ai.OnReceiveDataEnd := H.OnDataEnd;
     Ai.OnError          := H.OnError;
     H.Reset;
-    WriteLn('Enviando (async)...');
+    WriteLn('Sending (async)...');
     Ai.AddMessageAndRun(CPromptWav, 'user', []);
     H.WaitAsync;
     WriteLn;
@@ -616,7 +616,7 @@ begin
     Ai.OnReceiveDataEnd := H.OnDataEnd;
     Ai.OnError          := H.OnError;
     H.Reset;
-    WriteLn('Enviando (sync, dur=3s)...');
+    WriteLn('Sending (sync, dur=3s)...');
     Res := Ai.AddMessageAndRun(CPromptWav3s, 'user', []);
     WriteLn;
     WriteLn('Texto del modelo:');
@@ -657,7 +657,7 @@ begin
   end;
 end;
 
-// ─── SECCION 4: MakerAI code_execution PNG ───────────────────────────────────
+// ─── SECTION 4: MakerAI code_execution PNG ───────────────────────────────────
 
 const
   CPromptPng =
@@ -687,7 +687,7 @@ begin
     Chat.OnReceiveDataEnd := H.OnDataEnd;
     Chat.OnError          := H.OnError;
     H.Reset;
-    WriteLn('Enviando (sync, code_execution)...');
+    WriteLn('Sending (sync, code_execution)...');
     Chat.AddMessageAndRun(CPromptPng, 'user', []);
     H.WaitAsync;
     WriteLn;
@@ -702,7 +702,7 @@ end;
 
 begin
   try
-    // --groq: pruebas de code_interpreter en Groq (gpt-oss-20b), sync y async
+    // --groq: code_interpreter tests in Groq (gpt-oss-20b), sync and async
     if SameText(ParamStr(1), '--groq') then
     begin
       WriteLn('=== GROQ code_interpreter — openai/gpt-oss-20b ===');
@@ -713,7 +713,7 @@ begin
       Exit;
     end;
 
-    WriteLn('=== MAKERAI code_execution PNG — mk-gpt-oss-20b y mk-claude-sonnet ===');
+    WriteLn('=== MAKERAI code_execution PNG — mk-gpt-oss-20b and mk-claude-sonnet ===');
 
     Test_MakerAi_CodeExec_Png('mk-gpt-oss-20b',    'scatter_gpt');
     Test_MakerAi_CodeExec_Png('mk-claude-sonnet',  'scatter_claude');

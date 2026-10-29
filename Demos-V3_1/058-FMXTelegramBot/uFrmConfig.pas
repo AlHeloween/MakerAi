@@ -17,7 +17,7 @@ uses
   uDmTelegramBot;
 
 type
-  // Controles de un slot (primario o fallback)
+  // Controls for a slot (primary or fallback)
   TProviderRow = record
     CboDriver: TComboBox;
     EdModel  : TEdit;
@@ -25,7 +25,7 @@ type
     EdExtra  : TEdit;
   end;
 
-  // Par de rows por categoria
+  // Pair of rows per category
   TCategoryUI = record
     Row: array[0..1] of TProviderRow;  // [0]=primario [1]=fallback
   end;
@@ -38,9 +38,9 @@ type
     FBtnCancel: TButton;
     FDm      : TDmTelegramBot;
 
-    // Drivers disponibles por categoria
+    // Drivers available per category
     class function DriversFor(ACat: Integer): TArray<string>;
-    // Extra label por categoria
+    // Extra label per category
     class function ExtraLabel(ACat: Integer): string;
 
     procedure BuildUI;
@@ -108,7 +108,7 @@ constructor TFrmConfig.CreateConfig(AOwner: TComponent; ADm: TDmTelegramBot);
 begin
   inherited CreateNew(AOwner);
   FDm := ADm;
-  Caption      := 'Configuracion de Proveedores';
+  Caption      := 'Provider Configuration';
   Width        := 720;
   Height       := 520;
   Position     := TFormPosition.ScreenCenter;
@@ -130,7 +130,7 @@ begin
   for i := 0 to 5 do
     BuildCategoryTab(i, CAT_TITLES[i], DriversFor(i), ExtraLabel(i));
 
-  // Barra de botones abajo
+  // Button bar at the bottom
   LayBottom := TLayout.Create(Self);
   LayBottom.Parent := Self;
   LayBottom.Align  := TAlignLayout.Bottom;
@@ -143,7 +143,7 @@ begin
   FBtnCancel.Margins.Right  := 8;
   FBtnCancel.Margins.Top    := 8;
   FBtnCancel.Margins.Bottom := 8;
-  FBtnCancel.Text    := 'Cancelar';
+  FBtnCancel.Text    := 'Cancel';
   FBtnCancel.OnClick := BtnCancelClick;
 
   FBtnSave := TButton.Create(Self);
@@ -153,7 +153,7 @@ begin
   FBtnSave.Margins.Right  := 4;
   FBtnSave.Margins.Top    := 8;
   FBtnSave.Margins.Bottom := 8;
-  FBtnSave.Text    := 'Guardar';
+  FBtnSave.Text    := 'Save';
   FBtnSave.OnClick := BtnSaveClick;
 end;
 
@@ -173,11 +173,11 @@ begin
   Scroll.Align  := TAlignLayout.Client;
   Scroll.ShowScrollBars := True;
 
-  // --- Seccion Primario ---
+  // --- Primary section ---
   LblPri := TLabel.Create(Self);
   LblPri.Parent := Scroll;
   LblPri.Align  := TAlignLayout.Top;
-  LblPri.Text   := 'Proveedor Principal';
+  LblPri.Text   := 'Primary Provider';
   LblPri.Font.Style := [TFontStyle.fsBold];
   LblPri.Height := 28;
   LblPri.Margins.Left := 8;
@@ -185,17 +185,17 @@ begin
 
   BuildSlotGroup(Scroll, 0, ATabIdx, ADrivers, AExtraLbl);
 
-  // Separador visual
+  // Visual separator
   Sep := TLayout.Create(Self);
   Sep.Parent := Scroll;
   Sep.Align  := TAlignLayout.Top;
   Sep.Height := 16;
 
-  // --- Seccion Fallback ---
+  // --- Fallback section ---
   LblFal := TLabel.Create(Self);
   LblFal.Parent := Scroll;
   LblFal.Align  := TAlignLayout.Top;
-  LblFal.Text   := 'Proveedor Alternativo (Fallback)';
+  LblFal.Text   := 'Alternative Provider (Fallback)';
   LblFal.Font.Style := [TFontStyle.fsBold];
   LblFal.Height := 28;
   LblFal.Margins.Left := 8;

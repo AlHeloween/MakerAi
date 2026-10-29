@@ -42,11 +42,11 @@ const
   // CONFIGURACION
   // ==========================================================================
 
-  // A que idioma traducir cada lado
+  // Target language for each side
   TARGET_LANG_REMOTE = 'espanol'; // lo que dice el otro lado -> espanol
   TARGET_LANG_LOCAL = 'ingles'; // lo que digo yo -> ingles
 
-  // Pista de idioma para el STT (ISO-639-1: 'en', 'es'... vacio = autodetectar)
+  // Language hint for STT (ISO-639-1: 'en', 'es'... empty = auto-detect)
   STT_LANG_REMOTE = '';
   STT_LANG_LOCAL = '';
 
@@ -76,7 +76,7 @@ begin
 end;
 
 type
-  // Un "lado" del traductor: captura + STT + traduccion
+  // One "side" of the translator: capture + STT + translation
   TTranslatorSide = class
   private
     FTag: string; // '[ELLOS]' / '[YO]'
@@ -106,7 +106,7 @@ begin
   FClosing := False;
   FChatLock := TCriticalSection.Create;
 
-  // --- Traductor (un chat por lado, asi las llamadas no se cruzan) ---
+  // --- Translator (one chat per side, so calls do not cross) ---
   FChat := TAiChatConnection.Create(nil);
   FChat.DriverName := TRANSLATOR_DRIVER;
   FChat.Model := TRANSLATOR_MODEL;
@@ -116,7 +116,7 @@ begin
   if TRANSLATOR_URL <> '' then
     FChat.Params.Values['Url'] := TRANSLATOR_URL;
 
-  // --- STT en tiempo real (VAD del servidor decide inicio/fin de frase) ---
+  // --- Real-time STT (server VAD decides start/end of utterance) ---
   FSTT := TAiOpenAiRealtimeSTT.Create(nil);
   FSTT.ApiKey := STT_APIKEY;
   FSTT.Model := STT_MODEL;
@@ -127,7 +127,7 @@ begin
   FSTT.Language := aSttLanguage;
   if aSttLanguage = '' then
   begin
-    // Autodeteccion guiada: los dos idiomas que puede traer la llamada
+    // Guided auto-detection: the two languages the call may contain
     FSTT.Languages.Add('en');
     FSTT.Languages.Add('es');
   end;
@@ -135,7 +135,7 @@ begin
   FSTT.OnTranscriptCompleted := SttTranscriptCompleted;
   FSTT.OnError := SttError;
 
-  // --- Captura de audio (loopback o microfono) ---
+  // --- Audio capture (loopback or microphone) ---
   FCapture := TAiAudioCapture.Create(nil);
   FCapture.Source := aSource;
   FCapture.OutputSampleRate := 16000;
@@ -147,7 +147,7 @@ end;
 destructor TTranslatorSide.Destroy;
 begin
   Stop;
-  // Esperar a que ninguna tarea de traduccion este usando FChat
+  // Wait until no translation task is using FChat
   FChatLock.Enter;
   try
     FClosing := True;
@@ -163,7 +163,7 @@ end;
 
 procedure TTranslatorSide.Start;
 begin
-  FSTT.Connect; // asincrono: cuando conecte, los chunks empiezan a fluir
+  FSTT.Connect; // asynchronous: when connected, chunks start flowing
   FCapture.Active := True;
 end;
 
@@ -178,7 +178,7 @@ end;
 
 procedure TTranslatorSide.SttSessionReady(Sender: TObject);
 begin
-  SafeWriteLn(FTag + ' STT conectado y listo.');
+  SafeWriteLn(FTag + ' STT connected and ready.');
 end;
 
 procedure TTranslatorSide.SttError(Sender: TObject; const ErrorMsg, ErrorCode: string);
@@ -188,7 +188,7 @@ end;
 
 procedure TTranslatorSide.CaptureError(Sender: TObject; const ErrorMessage: string);
 begin
-  SafeWriteLn(FTag + ' ERROR captura: ' + ErrorMessage);
+  SafeWriteLn(FTag + ' ERROR capture: ' + ErrorMessage);
 end;
 
 procedure TTranslatorSide.SttTranscriptCompleted(Sender: TObject; const Transcript: string; const ItemId: string);
@@ -204,7 +204,7 @@ end;
 
 procedure TTranslatorSide.Translate(const aText: string);
 begin
-  // Traducir en un task para no bloquear el bucle de eventos de la consola
+  // Translate in a task so the console event loop is not blocked
   TTask.Run(
     procedure
     var
@@ -215,7 +215,7 @@ begin
         try
           if FClosing then
             Exit;
-          FChat.NewChat; // traduccion sin estado: cada frase es independiente
+          FChat.NewChat; // stateless translation: each utterance is independent
           Prompt := Format('Traduce al %s el siguiente texto. Responde UNICAMENTE con la traduccion, ' +
             'sin comentarios ni comillas:'#10'%s', [FTargetLang, aText]);
           Res := FChat.AddMessageAndRun(Prompt, 'user', []);
@@ -225,7 +225,7 @@ begin
         SafeWriteLn(Format('%s    -> %s', [FTag, Trim(Res)]));
       except
         on E: Exception do
-          SafeWriteLn(Format('%s ERROR traduciendo: %s', [FTag, E.Message]));
+          SafeWriteLn(Format('%s ERROR translating: %s', [FTag, E.Message]));
       end;
     end);
 end;
@@ -242,7 +242,7 @@ begin
   GConsoleLock := TCriticalSection.Create;
   try
     try
-      WriteLn('=== Traductor bidireccional en tiempo real (MakerAI) ===');
+      WriteLn('=== Bidirectional real-time translator (MakerAI) ===');
       WriteLn;
       WriteLn('  [ELLOS] audio del sistema (loopback)  -> ' + TARGET_LANG_REMOTE);
       WriteLn('  [YO]    microfono                     -> ' + TARGET_LANG_LOCAL);
@@ -264,7 +264,7 @@ begin
         Remote.Start;
         Local.Start;
 
-        WriteLn('Traduciendo... pulsa ENTER para terminar.');
+        WriteLn('Translating... press ENTER to finish.');
         WriteLn;
 
         // ReadLn en un task; el hilo principal procesa los eventos TThread.Queue
@@ -278,7 +278,7 @@ begin
         while not StopRequested do
           CheckSynchronize(50);
 
-        WriteLn('Deteniendo...');
+        WriteLn('Stopping...');
         Remote.Stop;
         Local.Stop;
         CheckSynchronize(200); // drenar eventos pendientes

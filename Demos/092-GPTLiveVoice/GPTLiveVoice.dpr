@@ -1,7 +1,7 @@
 ﻿program GPTLiveVoice;
 
-// MakerAI — Demo 092: OpenAI GPT-Live (voz full-duplex con delegacion).
-// Ver uMainGPTLive.pas y CLAUDE.md.
+// MakerAI — Demo 092: OpenAI GPT-Live (full-duplex voice with delegation).
+// See uMainGPTLive.pas and CLAUDE.md.
 
 uses
   System.StartUpCopy,

@@ -24,7 +24,7 @@ end;
 
 procedure PrintColor(const S: string; AColor: Byte);
 begin
-  // ANSI colors: 32=verde, 33=amarillo, 34=azul, 36=cyan, 90=gris
+  // ANSI colors: 32=green, 33=yellow, 34=blue, 36=cyan, 90=gray
   Write(#27'[', AColor, 'm', S, #27'[0m');
 end;
 
@@ -39,9 +39,9 @@ function ReadApiKey(const AProvider: string): string;
 var
   EnvVar: string;
 begin
-  // Intentar variable de entorno primero
+  // Try environment variable first
   EnvVar := UpperCase(AProvider) + '_API_KEY';
-  // Algunos providers tienen nombres compuestos
+  // Some providers have compound names
   if AProvider = 'OpenAI'  then EnvVar := 'OPENAI_API_KEY';
   if AProvider = 'Claude'  then EnvVar := 'CLAUDE_API_KEY';
   if AProvider = 'Gemini'  then EnvVar := 'GEMINI_API_KEY';
@@ -50,12 +50,12 @@ begin
   Result := GetEnvironmentVariable(EnvVar);
   if Result <> '' then
   begin
-    PrintColor('  API key leída de $' + EnvVar, 32);
+    PrintColor('  API key read from $' + EnvVar, 32);
     PrintLine;
     Exit;
   end;
 
-  Write('  API key para ', AProvider, ' (o presiona Enter para omitir): ');
+  Write('  API key for ', AProvider, ' (or press Enter to skip): ');
   Readln(Result);
 end;
 
@@ -66,7 +66,7 @@ var
   S: TMemoryStats;
 begin
   S := AMemory.Stats;
-  PrintColor(Format('  Memorias: %d  |  Importancia media: %.1f  |  Decay medio: %.2f',
+  PrintColor(Format('  Memories: %d  |  Average importance: %.1f  |  Average decay: %.2f',
     [S.TotalCount, S.AvgImportance, S.AvgDecay]), 36);
   PrintLine;
 end;
@@ -79,19 +79,19 @@ begin
   if AQuery <> '' then
   begin
     Results := AMemory.Search(AQuery, 10, ms_Hybrid);
-    PrintColor(Format('  Resultados para "%s":', [AQuery]), 33);
+    PrintColor(Format('  Results for "%s":', [AQuery]), 33);
     PrintLine;
   end
   else
   begin
     Results := AMemory.Search('', 10, ms_FTS);
-    PrintColor('  Últimas memorias:', 33);
+    PrintColor('  Latest memories:', 33);
     PrintLine;
   end;
 
   if Length(Results) = 0 then
   begin
-    PrintLine('  (sin resultados)');
+    PrintLine('  (no results)');
     Exit;
   end;
 
@@ -126,17 +126,17 @@ begin
   PrintSep;
   PrintColor('  MakerAI — DemoMemoryChat', 36);
   PrintLine;
-  PrintColor('  Chat con memoria persistente entre sesiones', 90);
+  PrintColor('  Chat with persistent memory across sessions', 90);
   PrintLine;
   PrintSep;
   PrintLine;
 
-  // ── Configuración ─────────────────────────────────────────────────────────
+  // ── Configuration ─────────────────────────────────────────────────────────
   Provider := 'Claude';
   Model    := 'claude-haiku-4-5-20251001';
   DbPath   := TPath.Combine(TPath.GetHomePath, 'makerAI_memory_demo.db');
 
-  PrintLine('Configuración (Enter = usar valor por defecto):');
+  PrintLine('Configuration (Enter = use default value):');
   Write(Format('  Provider [%s]: ', [Provider]));
   var Tmp: string;
   Readln(Tmp);
@@ -154,7 +154,7 @@ begin
   var ApiKey := ReadApiKey(Provider);
   PrintLine;
 
-  // ── Inicializar memoria ────────────────────────────────────────────────────
+  // ── Initialize memory ────────────────────────────────────────────────────
   Memory       := TAiMemory.Create(nil);
   Conn         := TAiChatConnection.Create(nil);
   AnalyzerConn := TAiChatConnection.Create(nil);
@@ -176,7 +176,7 @@ begin
     Conn.MemoryTokenBudget := 1500;
     Conn.AutoStoreMemories := True;
 
-    // ── LLM analizador (barato/rápido) para extracción automática de memorias ──
+    // ── Analyzer LLM (cheap/fast) for automatic memory extraction ──
     AnalyzerConn.DriverName := 'Groq';
     AnalyzerConn.Model      := 'llama-3.1-8b-instant';
     AnalyzerConn.Params.Values['ApiKey']       := ReadApiKey('Groq');
@@ -190,7 +190,7 @@ begin
     PrintSep;
     PrintColor(Format('  Provider : %s / %s', [Provider, Model]), 32);
     PrintLine;
-    PrintColor(Format('  Memoria  : %s', [DbPath]), 32);
+    PrintColor(Format('  Memory  : %s', [DbPath]), 32);
     PrintLine;
     PrintColor('  AutoStore: ON  |  TokenBudget: 1500', 32);
     PrintLine;
@@ -201,7 +201,7 @@ begin
 
     ShowStats(Memory);
     PrintLine;
-    PrintLine('Comandos: /quit /new /stats /memories [query] /store <texto>');
+    PrintLine('Commands: /quit /new /stats /memories [query] /store <text>');
     PrintLine('          /importance N  /debug  /analyze');
     PrintLine;
 
@@ -213,13 +213,13 @@ begin
       Input := Trim(Input);
       if Input = '' then Continue;
 
-      // ── Comandos ────────────────────────────────────────────────────────
+      // ── Commands ────────────────────────────────────────────────────────
       if Input = '/quit' then Break;
 
       if Input = '/new' then
       begin
         Conn.NewChat;
-        PrintColor('  Nueva sesión iniciada (memoria conservada)', 33);
+        PrintColor('  New session started (memory preserved)', 33);
         PrintLine;
         Continue;
       end;
@@ -241,7 +241,7 @@ begin
       if Input = '/analyze' then
       begin
         var N := Memory.AnalyzeNow;
-        PrintColor(Format('  Analyzer → %d memoria(s) extraída(s) del buffer acumulado', [N]), 33);
+        PrintColor(Format('  Analyzer → %d memory/memories extracted from the accumulated buffer', [N]), 33);
         PrintLine;
         Continue;
       end;
@@ -274,13 +274,13 @@ begin
         Continue;
       end;
 
-      // ── Debug: mostrar contexto a inyectar ──────────────────────────────
+      // ── Debug: show context to inject ──────────────────────────────
       if DebugMode then
       begin
         var Ctx := Memory.Context(Input, 1500);
         if Ctx.MemoryCount > 0 then
         begin
-          PrintColor(Format('  [memoria] %d entrada(s) a inyectar:', [Ctx.MemoryCount]), 90);
+          PrintColor(Format('  [memory] %d entry/entries to inject:', [Ctx.MemoryCount]), 90);
           PrintLine;
           for var Line in Ctx.FormattedText.Split([#10]) do
             if Line.Trim <> '' then
@@ -292,19 +292,19 @@ begin
         end
         else
         begin
-          PrintColor('  [memoria] sin contexto relevante', 90);
+          PrintColor('  [memory] no relevant context', 90);
           PrintLine;
         end;
       end;
 
-      // ── Llamada al LLM (síncrona) ─────────────────────────────────────
+      // ── LLM call (synchronous) ─────────────────────────────────────
       try
         var LMsg := Conn.AddMessage(Input, 'user');
         PrintLine;
         PrintColor('AI: ', 34);
         var Response := Conn.Run(LMsg);
         if Response = '' then
-          Response := '(sin respuesta)';
+          Response := '(no response)';
         // La respuesta ya se imprimió en streaming si hay OnReceiveData,
         // pero como es síncrona sin handler imprimimos el resultado final
         Writeln(Response);
@@ -327,7 +327,7 @@ begin
   end;
 
   PrintLine;
-  PrintColor('  Sesión terminada. Memoria guardada en: ' + DbPath, 32);
+  PrintColor('  Session ended. Memory saved to: ' + DbPath, 32);
   PrintLine;
   PrintLine;
 end;

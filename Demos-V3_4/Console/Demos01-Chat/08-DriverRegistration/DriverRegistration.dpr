@@ -9,10 +9,10 @@ program DriverRegistration;
 // Demuestra por qué GetDriversNames() retorna TODOS los providers aunque
 // el uses solo mencione uMakerAi.Chat.Ollama explícitamente.
 //
-// Causa raíz:
+// Root cause:
 //   uMakerAi.Chat.AiConnection  (interface uses)
 //     └─ uMakerAi.Chat.Initializations
-//          └─ implementation uses todos los drivers:
+//          └─ implementation uses all drivers:
 //               OpenAI, Claude, Gemini, Ollama, Groq, DeepSeek, ...
 //          Cada uno ejecuta su bloque initialization que llama
 //          TAiChatFactory.Instance.RegisterDriver(...)
@@ -20,7 +20,7 @@ program DriverRegistration;
 // El import de uMakerAi.Chat.Ollama en el uses del programa es redundante
 // (no hace daño, pero no es necesario — Initializations ya lo registra).
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - Cómo funciona el auto-registro de drivers por initialization sections
 //   - Por qué TAiChatConnection siempre tiene todos los drivers disponibles
 //   - Diferencia entre "qué importé" y "qué quedó registrado"
@@ -50,10 +50,10 @@ var
   Drivers : TStringList;
   i       : Integer;
 begin
-  Writeln('=== PARTE 1: Drivers registrados en el factory ===');
+  Writeln('=== PART 1: Drivers registered in the factory ===');
   Writeln;
-  Writeln('  uses del programa solo declara explicitamente: uMakerAi.Chat.Ollama');
-  Writeln('  Aun asi, los drivers registrados son:');
+  Writeln('  The program''s uses clause only explicitly declares: uMakerAi.Chat.Ollama');
+  Writeln('  Even so, the registered drivers are:');
   Writeln;
 
   Conn := TAiChatConnection.Create(nil);
@@ -63,7 +63,7 @@ begin
       for i := 0 to Drivers.Count - 1 do
         Writeln('    [', i + 1, '] ', Drivers[i]);
       Writeln;
-      Writeln('  Total: ', Drivers.Count, ' drivers registrados.');
+      Writeln('  Total: ', Drivers.Count, ' registered drivers.');
     finally
       Drivers.Free;
     end;
@@ -79,22 +79,22 @@ end;
 procedure ExplicarCausa;
 begin
   Writeln;
-  Writeln('=== PARTE 2: Por que pasa esto? ===');
+  Writeln('=== PART 2: Why does this happen? ===');
   Writeln;
-  Writeln('  Cada driver se auto-registra en su propio bloque initialization:');
+  Writeln('  Each driver auto-registers in its own initialization block:');
   Writeln;
-  Writeln('  Tu programa');
+  Writeln('  Your program');
   Writeln('    uses uMakerAi.Chat.Ollama');
   Writeln('      -> initialization: TAiChatFactory.RegisterDriver(TAiOllamaChat)');
-  Writeln('         = solo Ollama queda en el listado');
+  Writeln('         = only Ollama remains in the list');
   Writeln;
-  Writeln('  Si agregas mas drivers al uses, cada uno se registra:');
+  Writeln('  If you add more drivers to uses, each one registers:');
   Writeln('    uses uMakerAi.Chat.Ollama, uMakerAi.Chat.OpenAi, uMakerAi.Chat.Gemini');
-  Writeln('      -> listado: Ollama, OpenAi, Gemini');
+  Writeln('      -> list: Ollama, OpenAi, Gemini');
   Writeln;
-  Writeln('  Si quieres TODOS los drivers de una vez, agrega el convenio:');
+  Writeln('  If you want ALL drivers at once, add the convention unit:');
   Writeln('    uses uMakerAi.Chat.Initializations');
-  Writeln('      -> carga todos los drivers + configura params de modelos especificos');
+  Writeln('      -> loads all drivers + configures params for specific models');
   Writeln('         (qwen3 reasoning, gemma3 vision, o3 thinking level, etc.)');
 end;
 
@@ -107,10 +107,10 @@ var
   Conn: TAiChatConnection;
 begin
   Writeln;
-  Writeln('=== PARTE 3: Usar solo Ollama aunque todos esten registrados ===');
+  Writeln('=== PART 3: Use only Ollama even when all are registered ===');
   Writeln;
-  Writeln('  Todos los drivers registrados no significan que se usen todos.');
-  Writeln('  Con DriverName := ''Ollama'' solo Ollama procesa tus mensajes.');
+  Writeln('  All registered drivers do not mean all are used.');
+  Writeln('  With DriverName := ''Ollama'' only Ollama processes your messages.');
   Writeln;
 
   Conn := TAiChatConnection.Create(nil);
@@ -122,8 +122,8 @@ begin
     Conn.Params.Values['Max_Tokens']   := '256';
     Conn.SystemPrompt.Text             := 'Responde siempre muy brevemente, en una frase.';
 
-    Writeln('  Driver activo: ', Conn.DriverName);
-    Writeln('  Modelo activo: ', Conn.Model);
+    Writeln('  Active driver: ', Conn.DriverName);
+    Writeln('  Active model: ', Conn.Model);
     Writeln;
     Writeln('  (Nota: este demo no hace la llamada real a Ollama para no');
     Writeln('  requerir que el servidor este corriendo. La configuracion');
@@ -147,6 +147,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

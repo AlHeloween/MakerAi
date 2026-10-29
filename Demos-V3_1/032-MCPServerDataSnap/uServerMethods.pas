@@ -60,18 +60,18 @@ begin
   if TDSSessionManager.GetThreadSession <> nil then
     MCPDirect.User := TDSSessionManager.GetThreadSession.UserName;
 
-  // 1. Crear configuraci�n personalizada para este usuario
+  // 1. Create custom configuration for this user
   UserConfig := TFileAccessConfig.Create;
 
-  // Limpiar defaults si quieres ser estricto
+  // Clear defaults if you want to be strict
   UserConfig.ClearPermissions;
 
-  // Agregar carpeta privada del usuario
+  // Add the user's private folder
   UserConfig.AddAllowedPath('C:\Users\' + TDSSessionManager.GetThreadSession.UserName);
   UserConfig.AddAllowedPath('C:\Empresa\DocumentosPublicos');
   UserConfig.AddAllowedPath(TPath.GetTempPath);
 
-  // Agregar extensiones permitidas
+  // Add allowed extensions
   UserConfig.AddAllowedExtension('.txt');
   UserConfig.AddAllowedExtension('.pdf');
 
@@ -98,7 +98,7 @@ function TSSE.CallTool(ToolName: string; Args: TJSONObject): TJSONObject;
 var
   ArgsClone: TJSONObject;
 begin
-  // Recordando el tema de ownership: clonamos para que McpDirect sea due�o de su copia
+  // Remembering the ownership issue: we clone so McpDirect owns its copy
   if Assigned(Args) then
     ArgsClone := Args.Clone as TJSONObject
   else

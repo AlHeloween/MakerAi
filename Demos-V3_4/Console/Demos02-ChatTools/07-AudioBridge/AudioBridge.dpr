@@ -6,7 +6,7 @@ program AudioBridge;
 // =============================================================================
 // MakerAI — 02-ChatTools / 07-AudioBridge
 // =============================================================================
-// Demuestra los modos de entrada de audio con gemma4 (Ollama local):
+// Demonstrates audio input modes with gemma4 (Ollama local):
 //
 //   ESCENARIO 1 — Audio nativo (cap_Audio en ModelCaps → sin bridge)
 //     gemma4:e4b / gemma4:e2b tienen cap_Audio nativo registrado.
@@ -22,15 +22,15 @@ program AudioBridge;
 //   ESCENARIO 3 — TTS directo (texto → Gemini TTS → WAV)
 //     Usa TAiGeminiSpeechTool.GenerateSpeech() directamente.
 //
-//   ESCENARIO 4 — Pipeline completo (audio → STT bridge → gemma4 → TTS)
+//   SCENARIO 4 — Full pipeline (audio → STT bridge → gemma4 → TTS)
 //
-// Requisitos:
+// Requirements:
 //   - Ollama corriendo en http://localhost:11434 con gemma4:e4b y gemma4:e2b
 //   - Variable de entorno GEMINI_API_KEY con una clave válida
 //   - Archivo de audio WAV/MP3/OGG/M4A (primer argumento o se pide interactivo)
 //
-// Uso:
-//   AudioBridge.exe [ruta_audio] [pregunta]
+// Usage:
+//   AudioBridge.exe [audio_path] [question]
 // =============================================================================
 
 uses
@@ -135,7 +135,7 @@ begin
   Conn.Params.Values['Max_Tokens']   := '1024';
   if ForceSttBridge then
   begin
-    // Gap=[cap_Audio] → Fase 1 activa TAiGeminiSpeechTool.ExecuteTranscription
+    // Gap=[cap_Audio] → Phase 1 activates TAiGeminiSpeechTool.ExecuteTranscription
     Conn.Params.Values['ModelCaps']    := '[]';
     Conn.Params.Values['SessionCaps']  := '[cap_Audio]';
     Conn.Params.Values['Tool_Active']  := 'False';
@@ -143,7 +143,7 @@ begin
   else
   begin
     // gemma4 registrado con cap_Audio nativo → se usan valores del registro
-    // Nota: Ollama no serializa audio en la API → el modelo recibirá texto vacío
+    // Note: Ollama does not serialize audio in the API → the model will receive empty text
     Conn.Params.Values['Tool_Active']  := 'True';
   end;
   Result := Conn;
@@ -161,8 +161,8 @@ var
 begin
   Result := '';
   Writeln;
-  Writeln('>>> ESCENARIO 1 — Audio nativo');
-  Writeln('    Modelo  : ', AModel, ' (cap_Audio en ModelCaps → sin STT bridge)');
+  Writeln('>>> SCENARIO 1 — Native audio');
+  Writeln('    Model   : ', AModel, ' (cap_Audio in ModelCaps → no STT bridge)');
   Writeln('    Audio   : ', AAudioFile);
   Writeln('    Pregunta: ', AQuestion);
   Writeln(SEP);
@@ -178,14 +178,14 @@ begin
     Writeln('  Nota: Ollama serializa audio como imagen en la API multimodal.');
     Writeln('        Si el modelo responde "adjunta el audio", la API de Ollama');
     Writeln('        no soporta audio nativo — usar STT bridge (Escenario 2).');
-    Writeln('  Enviando audio directamente a ', AModel, ' via Ollama...');
+    Writeln('  Sending audio directly to ', AModel, ' via Ollama...');
 
     Result := Conn.AddMessageAndRun(AQuestion, 'user', [AudioFile]);
 
     if EC.HasError then
       PrintError(EC)
     else
-      PrintResult('Respuesta de ' + AModel + ' (nativo)', Result);
+      PrintResult('Response from ' + AModel + ' (native)', Result);
   finally
     Conn.Free;
     EC.Free;
@@ -204,7 +204,7 @@ var
 begin
   Result := '';
   Writeln;
-  Writeln('>>> ESCENARIO 2 — STT Bridge (Gemini transcribe → ', AModel, ')');
+  Writeln('>>> SCENARIO 2 — STT Bridge (Gemini transcribes → ', AModel, ')');
   Writeln('    ModelCaps=[]  /  SessionCaps=[cap_Audio]  →  Gap=[cap_Audio]');
   Writeln('    Audio   : ', AAudioFile);
   Writeln('    Pregunta: ', AQuestion);
@@ -219,14 +219,14 @@ begin
     AudioFile := TAiMediaFile.Create;
     AudioFile.LoadFromFile(AAudioFile);
     Writeln('  Cargado: ', AudioFile.Content.Size, ' bytes  MIME: ', AudioFile.MimeType);
-    Writeln('  Transcribiendo con Gemini y enviando texto a ', AModel, '...');
+    Writeln('  Transcribing with Gemini and sending text to ', AModel, '...');
 
     Result := Conn.AddMessageAndRun(AQuestion, 'user', [AudioFile]);
 
     if EC.HasError then
       PrintError(EC)
     else
-      PrintResult('Respuesta de ' + AModel + ' (STT bridge)', Result);
+      PrintResult('Response from ' + AModel + ' (STT bridge)', Result);
   finally
     Conn.Free;
     EC.Free;
@@ -241,12 +241,12 @@ var
   Audio: TAiMediaFile;
 begin
   Writeln;
-  Writeln('>>> ESCENARIO 3 — TTS Directo (Gemini TTS → WAV)');
-  Writeln('    Texto : ', Copy(AText, 1, 80), IfThen(Length(AText) > 80, '...', ''));
-  Writeln('    Salida: ', AOutFile);
-  Writeln('    Voz   : ', TTS_VOICE);
+  Writeln('>>> SCENARIO 3 — Direct TTS (Gemini TTS → WAV)');
+  Writeln('    Text  : ', Copy(AText, 1, 80), IfThen(Length(AText) > 80, '...', ''));
+  Writeln('    Output: ', AOutFile);
+  Writeln('    Voice : ', TTS_VOICE);
   Writeln(SEP);
-  Writeln('  Generando audio con Gemini TTS...');
+  Writeln('  Generating audio with Gemini TTS...');
 
   Audio := TAiGeminiSpeechTool.GenerateSpeech(
     GetEnvironmentVariable('GEMINI_API_KEY'),
@@ -256,13 +256,13 @@ begin
   begin
     try
       Audio.Content.SaveToFile(AOutFile);
-      Writeln('  Guardado: ', AOutFile, '  (', Audio.Content.Size, ' bytes)');
+      Writeln('  Saved: ', AOutFile, '  (', Audio.Content.Size, ' bytes)');
     finally
       Audio.Free;
     end;
   end
   else
-    Writeln('  [ERROR] Gemini TTS no devolvió audio. Verifica GEMINI_API_KEY.');
+    Writeln('  [ERROR] Gemini TTS did not return audio. Check GEMINI_API_KEY.');
 end;
 
 // ===========================================================================
@@ -275,14 +275,14 @@ var
   OutFile       : String;
 begin
   Writeln;
-  Writeln('>>> ESCENARIO 4 — Pipeline completo (audio → STT → ', AModel, ' → TTS)');
+  Writeln('>>> SCENARIO 4 — Full pipeline (audio → STT → ', AModel, ' → TTS)');
   Writeln(SEP);
 
   ModelResponse := RunSTTBridge(AModel, AAudioFile, AQuestion, SpeechTool);
 
   if ModelResponse = '' then
   begin
-    Writeln('  [SKIP] No hay respuesta del LLM para convertir a audio.');
+    Writeln('  [SKIP] No LLM response to convert to audio.');
     Exit;
   end;
 
@@ -299,7 +299,7 @@ var
   HasAudio            : Boolean;
 begin
   Writeln('=== MakerAI — AudioBridge Demo (gemma4) ===');
-  Writeln('Modelos Ollama : ', E4B_MODEL, '  /  ', E2B_MODEL);
+  Writeln('Ollama models  : ', E4B_MODEL, '  /  ', E2B_MODEL);
   Writeln('Bridge STT     : TAiGeminiSpeechTool (gemini-2.0-flash)');
   Writeln('TTS            : TAiGeminiSpeechTool (gemini-2.5-flash-preview-tts)');
   Writeln;
@@ -314,7 +314,7 @@ begin
       SpeechTool.Model               := 'gemini-2.5-flash-preview-tts';
       SpeechTool.Voice               := TTS_VOICE;
 
-      // -- Ruta del archivo de audio -------------------------------------------
+      // -- Audio file path -----------------------------------------------------
       HasAudio := False;
       if ParamCount >= 1 then
         AudioPath := Trim(ParamStr(1))
@@ -332,7 +332,7 @@ begin
         HasAudio := True;
       end;
 
-      // -- Pregunta ------------------------------------------------------------
+      // -- Question ------------------------------------------------------------
       if ParamCount >= 2 then
         Question := ParamStr(2)
       else if HasAudio then
@@ -354,17 +354,17 @@ begin
       if HasAudio then
       begin
         Writeln;
-        Writeln('=== PRUEBAS CON AUDIO: ', ExtractFileName(AudioPath), ' ===');
+        Writeln('=== TESTS WITH AUDIO: ', ExtractFileName(AudioPath), ' ===');
 
-        // -- Escenario 1: Audio nativo con e4b y e2b --
+        // -- Scenario 1: Native audio with e4b and e2b --
         RunNativeAudio(E4B_MODEL, AudioPath, Question, SpeechTool);
         RunNativeAudio(E2B_MODEL, AudioPath, Question, SpeechTool);
 
-        // -- Escenario 2: STT Bridge con e4b y e2b --
+        // -- Scenario 2: STT Bridge with e4b and e2b --
         RunSTTBridge(E4B_MODEL, AudioPath, Question, SpeechTool);
         RunSTTBridge(E2B_MODEL, AudioPath, Question, SpeechTool);
 
-        // -- Escenario 4: Pipeline completo con e4b --
+        // -- Scenario 4: Full pipeline with e4b --
         RunFullPipeline(E4B_MODEL, AudioPath, Question, SpeechTool);
       end
       else
@@ -390,6 +390,6 @@ begin
   end;
 
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

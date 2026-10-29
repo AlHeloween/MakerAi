@@ -10,7 +10,7 @@ program HumanApproval;
 // El usuario puede aprobar el borrador o rechazarlo con feedback,
 // lo que relanza el agente con instrucciones de mejora.
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - Manager.Asynchronous = True: ejecucion en hilo separado
 //   - Manager.OnSuspend: callback cuando el agente se suspende
 //   - Manager.OnFinish: callback cuando termina
@@ -99,14 +99,14 @@ begin
   ReviewResult := Node.Graph.Blackboard.GetString('review_result');
   if ReviewResult = '' then
   begin
-    // Primera llamada: suspender para revision humana
+    // First call: suspend for human review
     Node.Graph.Blackboard.SetString('current_draft', Input);
     Node.Suspend('Human review required', Input);
-    // Output ignorado; el agente no avanza mientras FSuspended=True
+    // Output ignored; the agent does not advance while FSuspended=True
   end
   else
   begin
-    // Reanudacion: usuario aprobo
+    // Resumption: user approved
     Output := ReviewResult;
     Node.Graph.Blackboard.SetString('review_result', '');
   end;
@@ -183,7 +183,7 @@ var
   NewPrompt : String;
 begin
   Writeln(StringOfChar('=', 60));
-  Writeln('Tarea: ', ATask);
+  Writeln('Task: ', ATask);
   Writeln(StringOfChar('=', 60));
 
   GSuspended   := False;
@@ -212,10 +212,10 @@ begin
       GSuspended := False;
 
       Writeln;
-      Writeln(Format('--- Borrador (iteracion %d) ---', [Iteration]));
+      Writeln(Format('--- Draft (iteration %d) ---', [Iteration]));
       Writeln(GSuspendContext);
       Writeln;
-      Write('Apruebas este borrador? (s=si / escribe feedback para mejorar): ');
+      Write('Do you approve this draft? (y=yes / type feedback to improve): ');
       Readln(UserInput);
       Writeln;
 
@@ -233,7 +233,7 @@ begin
         if Trim(UserInput) = '' then
           UserInput := 'Por favor mejora la calidad del texto.';
 
-        Writeln('Regenerando con tu feedback...');
+        Writeln('Regenerating with your feedback...');
         FManager.Abort;
         Sleep(200);
 
@@ -260,7 +260,7 @@ begin
   CheckSynchronize;
 
   Writeln;
-  Writeln('--- Texto final (pulido por Finalizer) ---');
+  Writeln('--- Final text (polished by Finalizer) ---');
   Writeln(GFinalOutput);
   Writeln;
 end;
@@ -270,13 +270,13 @@ var
   App: TApprovalApp;
 begin
   Writeln('=== HumanApproval ===');
-  Writeln('Patron: Drafter -> [REVISION HUMANA] -> Finalizer');
-  Writeln('El agente se pausara esperando tu aprobacion.');
+  Writeln('Pattern: Drafter -> [HUMAN REVIEW] -> Finalizer');
+  Writeln('The agent will pause waiting for your approval.');
   Writeln;
 
   App := TApprovalApp.Create;
   try
-    App.Run('Los beneficios de aprender a programar desde nino');
+    App.Run('The benefits of learning to program as a child');
   finally
     App.Free;
   end;

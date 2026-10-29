@@ -6,22 +6,22 @@ program RAGInMemory;
 // =============================================================================
 // MakerAI — 04-RAGVector / 01-InMemory
 // =============================================================================
-// RAG (Retrieval-Augmented Generation) con vector store en memoria.
-// Crea un índice de documentos, busca los más relevantes y usa el LLM
-// para responder preguntas con ese contexto.
+// RAG (Retrieval-Augmented Generation) with in-memory vector store.
+// Creates a document index, searches for the most relevant ones and uses the LLM
+// to answer questions with that context.
 //
-// Conceptos que cubre:
-//   - TAiRAGVector como almacén de vectores en memoria
-//   - AddItem() para indexar documentos de texto
-//   - BuildIndex() / BuildLexicalIndex() para optimizar búsqueda
-//   - SearchText() para recuperar fragmentos relevantes
-//   - Patrón completo: pregunta → recuperar contexto → generar respuesta
+// Concepts covered:
+//   - TAiRAGVector as an in-memory vector store
+//   - AddItem() to index text documents
+//   - BuildIndex() / BuildLexicalIndex() to optimize search
+//   - SearchText() to retrieve relevant fragments
+//   - Complete pattern: question → retrieve context → generate answer
 //
-// Flujo RAG:
-//   1. Indexar documentos (una sola vez)
-//   2. Para cada pregunta: buscar top-K fragmentos relevantes
-//   3. Construir prompt con [contexto + pregunta]
-//   4. LLM genera respuesta fundamentada en el contexto
+// RAG flow:
+//   1. Index documents (once)
+//   2. For each question: search top-K relevant fragments
+//   3. Build prompt with [context + question]
+//   4. LLM generates an answer grounded in the context
 // =============================================================================
 
 uses
@@ -48,7 +48,7 @@ const
   LLM_API_KEY = '@CLAUDE_API_KEY';
 
 // =============================================================================
-//  Base de conocimiento de ejemplo
+//  Example knowledge base
 // =============================================================================
 const
   DOCUMENTOS: array[0..8] of String = (
@@ -81,7 +81,7 @@ const
   );
 
 // =============================================================================
-//  Pregunta al RAG y genera respuesta con LLM
+//  Ask the RAG and generate an answer with the LLM
 // =============================================================================
 procedure AskRAG(RAG: TAiRAGVector; Chat: TAiChatConnection; const Question: String);
 var
@@ -90,7 +90,7 @@ var
   Response: String;
 begin
   Writeln(StringOfChar('-', 60));
-  Writeln('Pregunta: ', Question);
+  Writeln('Question: ', Question);
   Writeln;
 
   // Recuperar fragmentos relevantes
@@ -98,14 +98,14 @@ begin
 
   if Contexto = '' then
   begin
-    Writeln('(Sin contexto recuperado)');
+    Writeln('(No context retrieved)');
     Exit;
   end;
 
-  Writeln('Contexto recuperado:');
+  Writeln('Retrieved context:');
   Writeln(Contexto);
 
-  // Construir prompt RAG
+  // Build RAG prompt
   Prompt :=
     'Contexto de referencia:' + sLineBreak +
     Contexto + sLineBreak +
@@ -116,7 +116,7 @@ begin
   // Generar respuesta
   Chat.Messages.Clear;
   Response := Chat.AddMessageAndRun(Prompt, 'user', []);
-  Writeln('Respuesta LLM:');
+  Writeln('LLM answer:');
   Writeln(Response);
   Writeln;
 end;
@@ -140,18 +140,18 @@ begin
   RAG     := TAiRAGVector.Create(nil);
   Chat    := TAiChatConnection.Create(nil);
   try
-    // ── Configurar embeddings ─────────────────────────────────────────────
+    // ── Configure embeddings ─────────────────────────────────────────────
     EmbConn.DriverName := EMB_DRIVER;
     EmbConn.Model      := EMB_MODEL;
     EmbConn.ApiKey     := EMB_API_KEY;
 
-    // ── Configurar RAG ────────────────────────────────────────────────────
+    // ── Configure RAG ────────────────────────────────────────────────────
     RAG.Embeddings          := EmbConn.AiEmbeddings;
     RAG.NameVec             := 'KnowledgeBase';
     RAG.InMemoryIndexType   := TAIHNSWIndex;
 
-    // ── Indexar documentos ────────────────────────────────────────────────
-    Writeln('Indexando ', Length(DOCUMENTOS), ' documentos...');
+    // ── Index documents ────────────────────────────────────────────────
+    Writeln('Indexing ', Length(DOCUMENTOS), ' documents...');
     for I := 0 to High(DOCUMENTOS) do
     begin
       RAG.AddItem(DOCUMENTOS[I]);
@@ -161,10 +161,10 @@ begin
 
     RAG.BuildIndex;
     RAG.BuildLexicalIndex;
-    Writeln(Format('Indice construido: %d documentos', [RAG.Count]));
+    Writeln(Format('Index built: %d documents', [RAG.Count]));
     Writeln;
 
-    // ── Configurar LLM ────────────────────────────────────────────────────
+    // ── Configure LLM ────────────────────────────────────────────────────
     Chat.DriverName := LLM_DRIVER;
     Chat.Model      := LLM_MODEL;
     Chat.Params.Values['ApiKey']       := LLM_API_KEY;
@@ -174,7 +174,7 @@ begin
       'Eres un asistente tecnico de MakerAI. ' +
       'Responde en espanol de forma concisa y precisa.';
 
-    // ── Preguntas al RAG ──────────────────────────────────────────────────
+    // ── Questions to RAG ──────────────────────────────────────────────────
     AskRAG(RAG, Chat, 'Que es MakerAI y para que sirve?');
     AskRAG(RAG, Chat, 'Como puedo usar un LLM local sin internet?');
     AskRAG(RAG, Chat, 'Que es RAG y como funciona?');
@@ -194,6 +194,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

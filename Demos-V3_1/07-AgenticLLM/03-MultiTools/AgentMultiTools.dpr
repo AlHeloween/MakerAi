@@ -9,14 +9,14 @@ program AgentMultiTools;
 // Un agente con múltiples herramientas disponibles.
 // El LLM elige qué herramienta(s) usar según la consulta.
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - Múltiples herramientas en el mismo TLLMNode
 //   - GetCategory: organizar herramientas por dominio
 //   - Llamadas encadenadas: LLM puede usar varias tools en secuencia
 //   - Tool result → LLM integra los resultados → respuesta final
 //
-// Herramientas: calculadora, fecha/hora, temperatura, URL encode
-// Estructura: [Start] --> [MultiAgent] --> [End]
+// Tools: calculator, date/time, temperature, URL encode
+// Structure: [Start] --> [MultiAgent] --> [End]
 // =============================================================================
 
 uses
@@ -226,10 +226,10 @@ procedure RunQuery(Manager: TAIAgentManager; const AQuestion: String);
 begin
   Manager.Blackboard.Clear;
   Writeln(StringOfChar('-', 60));
-  Writeln('Pregunta: ', AQuestion);
+  Writeln('Question: ', AQuestion);
   Writeln;
   try
-    Writeln('Respuesta:', sLineBreak, Manager.Run(AQuestion));
+    Writeln('Answer:', sLineBreak, Manager.Run(AQuestion));
   except
     on E: Exception do
       Writeln('ERROR: ', E.Message);
@@ -245,7 +245,7 @@ var
   Finish   : TAIAgentsNode;
 begin
   Writeln('=== AgentMultiTools ===');
-  Writeln('4 herramientas: calculator, datetime, temperature, url_encode');
+  Writeln('4 tools: calculator, datetime, temperature, url_encode');
   Writeln;
 
   // Registrar herramientas en el registry global
@@ -253,7 +253,7 @@ begin
   TAiToolRegistry.Instance.Register(TDateTimeTool.Create,     'local', 'utility');
   TAiToolRegistry.Instance.Register(TTemperatureTool.Create,  'local', 'utility');
   TAiToolRegistry.Instance.Register(TUrlEncodeTool.Create,    'local', 'text');
-  Writeln('Herramientas registradas: ', TAiToolRegistry.Instance.Count);
+  Writeln('Registered tools: ', TAiToolRegistry.Instance.Count);
   Writeln;
 
   Manager := TAIAgentManager.Create(nil);
@@ -289,13 +289,13 @@ begin
     Manager.EndNode   := Finish;
     Manager.Compile;
 
-    // Cada pregunta requiere una herramienta diferente
-    RunQuery(Manager, 'Cuanto es 347 por 28?');
-    RunQuery(Manager, 'Que fecha y hora es ahora?');
-    RunQuery(Manager, 'Cuanto es 37 grados Celsius en Fahrenheit?');
-    RunQuery(Manager, 'Codifica esta URL: busqueda de inteligencia artificial');
-    // Esta requiere dos herramientas: temperatura + calculadora
-    RunQuery(Manager, 'Cuanto es 100 Fahrenheit en Celsius? Y cuanto es ese valor al cuadrado?');
+    // Each question requires a different tool
+    RunQuery(Manager, 'What is 347 times 28?');
+    RunQuery(Manager, 'What date and time is it now?');
+    RunQuery(Manager, 'What is 37 degrees Celsius in Fahrenheit?');
+    RunQuery(Manager, 'Encode this URL: artificial intelligence search');
+    // This one requires two tools: temperature + calculator
+    RunQuery(Manager, 'What is 100 Fahrenheit in Celsius? And what is that value squared?');
 
   finally
     Manager.Free;

@@ -3,14 +3,14 @@ program MCPClientTest;
 {$APPTYPE CONSOLE}
 
 // =============================================================================
-// MakerAI - Demo 067: Cliente de prueba para FileSystemMCP (Demo 037)
+// MakerAI - Demo 067: Test client for FileSystemMCP (Demo 037)
 // =============================================================================
-// Conecta via StdIO al servidor MCP compilado en Demo 037,
-// lista las herramientas disponibles y las ejecuta:
-//   - ReadDirectory: lista contenido de un directorio
-//   - CreateDirectory: crea un directorio nuevo
+// Connects via StdIO to MCP server compiled in Demo 037,
+// lists available tools and runs them:
+//   - ReadDirectory: lists directory contents
+//   - CreateDirectory: creates a new directory
 //
-// Asegurate de que el servidor este compilado:
+// Make sure the server is compiled:
 //   C:\mcp\servers\FileSystemMCP.exe
 // =============================================================================
 
@@ -28,7 +28,7 @@ const
   TEST_NEW_DIR   = 'C:\mcp\test_demo067';
 
 // -----------------------------------------------------------------------------
-// Helpers de presentacion
+// Presentation helpers
 // -----------------------------------------------------------------------------
 
 procedure PrintSep(const Title: string = '');
@@ -53,7 +53,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// Extrae el texto de la respuesta MCP (array "content" -> type:text -> text)
+// Extract text from MCP response (array "content" -> type:text -> text)
 // -----------------------------------------------------------------------------
 function ExtractTextFromMCPResult(AResult: TJSONObject): string;
 var
@@ -85,7 +85,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// Prueba principal
+// Main test
 // -----------------------------------------------------------------------------
 procedure RunTest;
 var
@@ -106,33 +106,33 @@ begin
   Client    := TMCPClientStdIo.Create(nil);
   MediaList := TObjectList<TAiMediaFile>.Create(True);
   try
-    // ── 1. Configurar la conexion StdIO ──────────────────────────────────────
+    // ── 1. Configure StdIO connection ──────────────────────────────────────
     Client.Params.Values['Command'] := MCP_SERVER_EXE;
     Client.Params.Values['Timeout'] := '10000';
 
-    // ── 2. Inicializar (handshake MCP) ───────────────────────────────────────
-    PrintSep('PASO 1: Initialize');
+    // ── 2. Initialize (MCP handshake) ───────────────────────────────────────
+    PrintSep('STEP 1: Initialize');
     if not Client.Initialize then
     begin
-      Writeln('ERROR: No se pudo inicializar el servidor MCP.');
-      Writeln('  Verifica que exista: ', MCP_SERVER_EXE);
+      Writeln('ERROR: Could not initialize MCP server.');
+      Writeln('  Verify it exists: ', MCP_SERVER_EXE);
       Exit;
     end;
     Writeln('Inicializacion OK.');
 
-    // ── 3. Listar herramientas ───────────────────────────────────────────────
-    PrintSep('PASO 2: tools/list');
+    // ── 3. List tools ───────────────────────────────────────────────
+    PrintSep('STEP 2: tools/list');
     ToolsJson := Client.ListTools;
     try
       if not Assigned(ToolsJson) then
       begin
-        Writeln('ERROR: ListTools devolvio nil.');
+        Writeln('ERROR: ListTools returned nil.');
         Exit;
       end;
 
       if ToolsJson.TryGetValue<TJSONArray>('tools', ToolsArr) then
       begin
-        Writeln(Format('Herramientas encontradas: %d', [ToolsArr.Count]));
+        Writeln(Format('Tools found: %d', [ToolsArr.Count]));
         PrintSep;
         for Tool in ToolsArr do
         begin
@@ -145,13 +145,13 @@ begin
         end;
       end
       else
-        Writeln('Respuesta: ', ToolsJson.Format(2));
+        Writeln('Response: ', ToolsJson.Format(2));
     finally
       ToolsJson.Free;
     end;
 
-    // ── 4. Llamar ReadDirectory ──────────────────────────────────────────────
-    PrintSep(Format('PASO 3: ReadDirectory("%s")', [TEST_LIST_DIR]));
+    // ── 4. Call ReadDirectory ──────────────────────────────────────────────
+    PrintSep(Format('STEP 3: ReadDirectory("%s")', [TEST_LIST_DIR]));
     Args := TJSONObject.Create;
     try
       Args.AddPair('DirectoryPath', TEST_LIST_DIR);
@@ -171,8 +171,8 @@ begin
       Result_.Free;
     end;
 
-    // ── 5. Llamar CreateDirectory ────────────────────────────────────────────
-    PrintSep(Format('PASO 4: CreateDirectory("%s")', [TEST_NEW_DIR]));
+    // ── 5. Call CreateDirectory ────────────────────────────────────────────
+    PrintSep(Format('STEP 4: CreateDirectory("%s")', [TEST_NEW_DIR]));
     Args := TJSONObject.Create;
     try
       Args.AddPair('DirectoryPath', TEST_NEW_DIR);
@@ -192,17 +192,17 @@ begin
       Result_.Free;
     end;
 
-    // ── 6. Verificar que el directorio fue creado ────────────────────────────
-    PrintSep('PASO 5: Verificacion');
+    // ── 6. Verify directory was created ────────────────────────────
+    PrintSep('STEP 5: Verification');
     if System.SysUtils.DirectoryExists(TEST_NEW_DIR) then
-      Writeln('OK - Directorio creado exitosamente: ', TEST_NEW_DIR)
+      Writeln('OK - Directory created successfully: ', TEST_NEW_DIR)
     else
       Writeln('AVISO - El directorio no existe (puede ser restriccion de permisos)');
 
-    // ── 7. Desconectar ───────────────────────────────────────────────────────
+    // ── 7. Disconnect ───────────────────────────────────────────────────────
     Client.Disconnect;
     Writeln;
-    Writeln('Servidor desconectado.');
+    Writeln('Server disconnected.');
 
   finally
     MediaList.Free;
@@ -219,6 +219,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' — ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

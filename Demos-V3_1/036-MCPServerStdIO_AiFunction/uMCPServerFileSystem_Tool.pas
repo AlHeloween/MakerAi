@@ -46,19 +46,19 @@ begin
   Ruta := 'D:\Taller\mcpdir\';
   ArchivosListados := '';
 
-  // Si no hay filtro, usar *.*
+  // If there is no filter, use *.*
   if Filtro = '' then
     Filtro := '*.*';
 
-  // Buscar archivos
+  // Search files
   if FindFirst(Ruta + Filtro, faAnyFile, SearchRec) = 0 then
   begin
     try
       repeat
-        // Excluir directorios '.' y '..'
+        // Exclude directories '.' and '..'
         if (SearchRec.Name <> '.') and (SearchRec.Name <> '..') then
         begin
-          // Agregar a la lista
+          // Add to the list
           if ArchivosListados <> '' then
             ArchivosListados := ArchivosListados + #13#10;
 

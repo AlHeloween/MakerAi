@@ -5,12 +5,12 @@
 // =============================================================================
 // MakerAI - AutoAgents Demo 08: ValidateAndRetry
 // =============================================================================
-// Pipeline de generacion con validacion y reescritura:
+// Generation pipeline with validation and rewriting:
 //   [DraftWriter] -> [Critic] -> [Rewriter]
 //
-// El Critic evalua el borrador con criterios especificos y proporciona
-// feedback estructurado. El Rewriter incorpora el feedback para mejorar.
-// Demuestra paso de contexto y retroalimentacion entre nodos LLM.
+// The Critic evaluates the draft with specific criteria and provides
+// structured feedback. The Rewriter incorporates the feedback to improve.
+// Demonstrates context passing and feedback between LLM nodes.
 // =============================================================================
 
 uses
@@ -118,7 +118,7 @@ begin
 end;
 
 // =============================================================================
-// DEMO PRINCIPAL
+// MAIN DEMO
 // =============================================================================
 
 function MakeLLMNode(Manager: TAIAgentManager; const AName, ASystemPrompt: String;
@@ -144,7 +144,7 @@ var
   Link1, Link2: TAIAgentsLink;
 begin
   Writeln(StringOfChar('=', 60));
-  Writeln('Tarea: ', ATask);
+  Writeln('Task: ', ATask);
   Writeln(StringOfChar('=', 60));
 
   Manager := TAIAgentManager.Create(nil);
@@ -188,13 +188,13 @@ begin
     var FinalText := Manager.Run(ATask);
 
     Writeln;
-    Writeln('--- Borrador inicial ---');
+    Writeln('--- Initial draft ---');
     Writeln(Manager.Blackboard.GetString('DraftWriter.output'));
     Writeln;
-    Writeln('--- Feedback del critico ---');
+    Writeln('--- Critic feedback ---');
     Writeln(Manager.Blackboard.GetString('Critic.output'));
     Writeln;
-    Writeln('--- Version final reescrita ---');
+    Writeln('--- Final rewritten version ---');
     Writeln(FinalText);
 
   finally
@@ -207,7 +207,7 @@ end;
 procedure RunDemo;
 begin
   Writeln('=== Demo 08 - ValidateAndRetry ===');
-  Writeln('Pipeline: DraftWriter -> Critic (con check_quality tool) -> Rewriter');
+  Writeln('Pipeline: DraftWriter -> Critic (with check_quality tool) -> Rewriter');
   Writeln;
 
   RunPipeline('The importance of sleep for productivity');
@@ -221,6 +221,6 @@ begin
     on E: Exception do
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
-  Writeln('Demo finalizado. Presiona Enter para salir.');
+  Writeln('Demo finished. Press Enter to exit.');
   Readln;
 end.

@@ -96,12 +96,12 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-//  Inicializacion
+//  Initialization
 // ---------------------------------------------------------------------------
 
 procedure TForm21.FormCreate(Sender: TObject);
 begin
-  // Ejemplo de consulta VQL para orientar al usuario
+  // Example VQL query to guide the user
   MemoPrompt.Lines.Text :=
     'MATCH documentos'                                     + sLineBreak +
     'SEARCH ''inteligencia artificial'''                   + sLineBreak +
@@ -114,11 +114,11 @@ begin
     'RETURN TEXT, METADATA, SCORE'                         + sLineBreak +
     'LIMIT 5';
 
-  SetStatus('Listo. Cargue un archivo de texto para comenzar.');
+  SetStatus('Ready. Load a text file to begin.');
 end;
 
 // ---------------------------------------------------------------------------
-//  Base de Conocimientos
+//  Knowledge Base
 // ---------------------------------------------------------------------------
 
 procedure TForm21.BtnUploadFileClick(Sender: TObject);
@@ -135,7 +135,7 @@ begin
   BtnCancelar.Enabled   := True;
   rag.Clear;
 
-  SetStatus('Importando: ' + ExtractFileName(FileName));
+  SetStatus('Importing: ' + ExtractFileName(FileName));
 
   TTask.Run(
     procedure
@@ -176,9 +176,9 @@ begin
             ShowAllRAG;
 
             if FUserCancelled then
-              SetStatus('Importacion cancelada por el usuario.')
+              SetStatus('Import canceled by the user.')
             else
-              SetStatus('Importacion completada. Nodos: ' + NodosCreados.ToString);
+              SetStatus('Import completed. Nodes: ' + NodosCreados.ToString);
           end);
 
       except
@@ -189,8 +189,8 @@ begin
             begin
               BtnCancelar.Enabled   := False;
               BtnUploadFile.Enabled := True;
-              SetStatus('Error al importar: ' + E.Message);
-              ShowMessage('Error al procesar: ' + E.Message);
+              SetStatus('Error importing: ' + E.Message);
+              ShowMessage('Error processing: ' + E.Message);
             end);
         end;
       end;
@@ -225,7 +225,7 @@ procedure TForm21.BtnSaveToFileClick(Sender: TObject);
 begin
   SaveDialog1.DefaultExt := 'mkVRag';
   SaveDialog1.Filter     := 'MakerAI Vector Files (*.mkVRag)|*.mkVRag|Todos los archivos (*.*)|*.*';
-  SaveDialog1.Title      := 'Guardar Base de Vectores';
+  SaveDialog1.Title      := 'Save Vector Database';
 
   if SaveDialog1.Execute then
   begin
@@ -233,8 +233,8 @@ begin
     try
       rag.SaveToFile(SaveDialog1.FileName);
       OpenDialog1.FileName := SaveDialog1.FileName;
-      SetStatus('Base guardada: ' + ExtractFileName(SaveDialog1.FileName));
-      ShowMessage('Base de conocimientos guardada exitosamente.');
+      SetStatus('Database saved: ' + ExtractFileName(SaveDialog1.FileName));
+      ShowMessage('Knowledge base saved successfully.');
     finally
       Cursor := crDefault;
     end;
@@ -256,8 +256,8 @@ begin
       Rag.BuildIndex;
       SaveDialog1.FileName := OpenDialog1.FileName;
       ShowAllRAG;
-      SetStatus('Base cargada: ' + IntToStr(ItemsCargados) + ' nodos  [' + ExtractFileName(OpenDialog1.FileName) + ']');
-      ShowMessage('Archivo cargado correctamente.' + sLineBreak + 'Nodos recuperados: ' + IntToStr(ItemsCargados));
+      SetStatus('Database loaded: ' + IntToStr(ItemsCargados) + ' nodes  [' + ExtractFileName(OpenDialog1.FileName) + ']');
+      ShowMessage('File loaded successfully.' + sLineBreak + 'Nodes recovered: ' + IntToStr(ItemsCargados));
     finally
       Cursor := crDefault;
     end;
@@ -267,7 +267,7 @@ end;
 procedure TForm21.BtnCreateTableClick(Sender: TObject);
 begin
   PgDriver.CreateSchema(PgDriver.TableName, 1024);
-  SetStatus('Tabla PostgreSQL creada: ' + PgDriver.TableName);
+  SetStatus('PostgreSQL table created: ' + PgDriver.TableName);
 end;
 
 procedure TForm21.BtnMostrarTodosClick(Sender: TObject);
@@ -276,7 +276,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-//  Busqueda simple
+//  Simple search
 // ---------------------------------------------------------------------------
 
 procedure TForm21.BtnConsultarClick(Sender: TObject);
@@ -290,7 +290,7 @@ begin
   LPrompt := MemoPrompt.Lines.Text.Trim;
   if LPrompt.IsEmpty then
   begin
-    ShowMessage('Por favor ingrese una consulta.');
+    ShowMessage('Please enter a query.');
     Exit;
   end;
 
@@ -302,8 +302,8 @@ begin
   LUseABC         := ChReorderABC.IsChecked;
 
   BtnConsultar.Enabled := False;
-  MemoResponse.Lines.Text := 'Buscando...';
-  SetStatus('Buscando (modo simple)...');
+  MemoResponse.Lines.Text := 'Searching...';
+  SetStatus('Searching (simple mode)...');
 
   TTask.Run(
     procedure
@@ -336,7 +336,7 @@ begin
 
             BtnConsultar.Enabled := True;
             Cursor := crDefault;
-            SetStatus('Busqueda completada.');
+            SetStatus('Search completed.');
           end);
 
       except
@@ -345,7 +345,7 @@ begin
           TThread.Queue(nil,
             procedure
             begin
-              MemoResponse.Lines.Text := 'Error en la busqueda: ' + E.Message;
+              MemoResponse.Lines.Text := 'Error in search: ' + E.Message;
               BtnConsultar.Enabled := True;
               Cursor := crDefault;
               SetStatus('Error: ' + E.Message);
@@ -356,7 +356,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-//  Busqueda VQL
+//  VQL search
 // ---------------------------------------------------------------------------
 
 procedure TForm21.BtnBuscarVGQLClick(Sender: TObject);
@@ -366,30 +366,30 @@ begin
   LPrompt := MemoPrompt.Lines.Text.Trim;
   if LPrompt.IsEmpty then
   begin
-    ShowMessage('Por favor, escribe una consulta VQL.');
+    ShowMessage('Please write a VQL query.');
     Exit;
   end;
 
   MemoResponse.Lines.Clear;
-  MemoResponse.Lines.Add('Ejecutando consulta VQL...');
-  SetStatus('Ejecutando VQL...');
+  MemoResponse.Lines.Add('Executing VQL query...');
+  SetStatus('Executing VQL...');
   Application.ProcessMessages;
 
   try
     LRes := Rag.ExecuteVQL(LPrompt);
 
     if LRes.IsEmpty then
-      MemoResponse.Lines.Text := 'No se encontraron resultados que coincidan con los criterios.'
+      MemoResponse.Lines.Text := 'No results found matching the criteria.'
     else
       MemoResponse.Lines.Text := LRes;
 
-    SetStatus('VQL ejecutado correctamente.');
+    SetStatus('VQL executed successfully.');
 
   except
     on E: Exception do
     begin
-      MemoResponse.Lines.Text := 'ERROR EN CONSULTA VQL:' + sLineBreak + E.Message;
-      SetStatus('Error VQL: ' + E.Message);
+      MemoResponse.Lines.Text := 'ERROR IN VQL QUERY:' + sLineBreak + E.Message;
+      SetStatus('VQL error: ' + E.Message);
       MemoPrompt.SetFocus;
     end;
   end;
@@ -482,7 +482,7 @@ begin
         Compiler.Free;
       end;
 
-      SB.AppendLine('=== VQL DEBUG REPORT (Compilado) ===').AppendLine;
+      SB.AppendLine('=== VQL DEBUG REPORT (Compiled) ===').AppendLine;
 
       SB.AppendFormat('ENTITY: %s', [Req.Entity]);
       if Req.ALabel <> '' then SB.AppendFormat(' [Alias: %s]', [Req.ALabel]);
@@ -498,16 +498,16 @@ begin
       end;
       SB.AppendLine;
 
-      SB.AppendFormat('  - Pesos: Sem[%.2f] Lex[%.2f]', [Req.WeightSemantic, Req.WeightLexical]).AppendLine;
+      SB.AppendFormat('  - Weights: Sem[%.2f] Lex[%.2f]', [Req.WeightSemantic, Req.WeightLexical]).AppendLine;
       SB.Append('  - Fusion: ');
       if Req.Fusion = fmRRF then SB.Append('RRF') else SB.Append('Weighted');
       SB.AppendLine.AppendLine;
 
-      SB.AppendLine('FILTROS (arbol):');
+      SB.AppendLine('FILTERS (tree):');
       if (Req.Filter <> nil) and (Req.Filter.Count > 0) then
         RenderCriteria(Req.Filter, '')
       else
-        SB.AppendLine('  (Sin filtros)');
+        SB.AppendLine('  (No filters)');
       SB.AppendLine;
 
       if Req.RerankQuery <> '' then
@@ -520,13 +520,13 @@ begin
     except
       on E: Exception do
       begin
-        SB.AppendLine.AppendLine('!!! ERROR DE SINTAXIS !!!');
+        SB.AppendLine.AppendLine('!!! SYNTAX ERROR !!!');
         SB.AppendLine(E.Message);
       end;
     end;
 
     MemoResponse.Lines.Text := SB.ToString;
-    SetStatus('Reporte VQL generado.');
+    SetStatus('VQL report generated.');
 
   finally
     if Assigned(AST) then AST.Free;
@@ -552,7 +552,7 @@ begin
 
   SB := TStringBuilder.Create;
   try
-    SB.AppendLine('=== CONFIG DEBUG REPORT (Modo Simple) ===').AppendLine;
+    SB.AppendLine('=== CONFIG DEBUG REPORT (Simple Mode) ===').AppendLine;
 
     SB.AppendLine('ENTITY (Target): [Global / Default]').AppendLine;
 
@@ -595,8 +595,8 @@ begin
     SB.AppendLine('RERANKING: Inactivo');
     SB.AppendLine('  (Usar VQL para activar RERANK)').AppendLine;
 
-    SB.AppendLine('OPTIMIZACIONES:');
-    SB.AppendFormat('  - Reordenar Contexto (Lost-in-Middle): %s',
+    SB.AppendLine('OPTIMIZATIONS:');
+    SB.AppendFormat('  - Reorder Context (Lost-in-Middle): %s',
       [BoolToStr(ChReorderABC.IsChecked, True)]).AppendLine.AppendLine;
 
     SB.AppendLine('OUTPUT:');
@@ -605,7 +605,7 @@ begin
       [BoolToStr(ChShowProperties.IsChecked, True)]).AppendLine;
 
     MemoResponse.Lines.Text := SB.ToString;
-    SetStatus('Reporte de configuracion generado.');
+    SetStatus('Configuration report generated.');
 
   finally
     SB.Free;
@@ -613,7 +613,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-//  Cambios en checkboxes de modo de busqueda
+//  Changes in search mode checkboxes
 // ---------------------------------------------------------------------------
 
 procedure TForm21.ChEnableRRFChange(Sender: TObject);
@@ -635,7 +635,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-//  Visualizacion de todos los nodos
+//  Display of all nodes
 // ---------------------------------------------------------------------------
 
 procedure TForm21.ShowAllRAG;
@@ -646,7 +646,7 @@ var
 begin
   if rag.Count = 0 then
   begin
-    ShowMessage('La base de conocimientos esta vacia.');
+    ShowMessage('The knowledge base is empty.');
     Exit;
   end;
 
@@ -685,7 +685,7 @@ begin
     MemoResponse.Lines.EndUpdate;
   end;
 
-  SetStatus('Mostrando ' + rag.Count.ToString + ' nodos en la base.');
+  SetStatus('Showing ' + rag.Count.ToString + ' nodes in the database.');
 end;
 
 end.

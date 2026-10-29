@@ -13,7 +13,7 @@
 //   - Vision con grok-4-0709 (si el usuario tiene acceso)
 //   - Multi-turno async
 //
-// Configurar GROK_API_KEY como variable de entorno antes de ejecutar.
+// Configure GROK_API_KEY as an environment variable before running.
 // =============================================================================
 
 uses
@@ -31,7 +31,7 @@ uses
 
 const
   API_KEY = '@GROK_API_KEY';
-  // Modelos disponibles:
+  // Available models:
   //   'grok-3'               - texto + tools, 131K ctx
   //   'grok-3-fast'          - texto + tools, 131K ctx (mismas caps, infra rapida)
   //   'grok-3-mini'          - texto + reasoning + tools (reasoning_effort: low/high)
@@ -131,7 +131,7 @@ end;
 procedure TGrokTester.OnData(const Sender: TObject; aMsg: TAiChatMessage;
   aResponse: TJSONObject; aRole, aText: String);
 begin
-  // Capturar primeros 3 chunks raw para ver la estructura SSE de Grok
+  // Capture first 3 raw chunks to see Grok's SSE structure
   if Assigned(aResponse) and (FRawChunkLog.Count < 3) then
     FRawChunkLog.Add(Copy(aResponse.ToString, 1, 250));
 
@@ -193,7 +193,7 @@ begin
   // Raw chunks
   if FRawChunkLog.Count > 0 then
   begin
-    Writeln('--- RAW SSE chunks (primeros ' + IntToStr(FRawChunkLog.Count) + ') ---');
+    Writeln('--- RAW SSE chunks (first ' + IntToStr(FRawChunkLog.Count) + ') ---');
     var i: Integer;
     for i := 0 to FRawChunkLog.Count - 1 do
       Writeln('  [' + IntToStr(i) + '] ' + FRawChunkLog[i]);
@@ -208,36 +208,36 @@ begin
     Writeln;
   end
   else
-    Writeln('Thinking chunks : 0  (sin reasoning en este modelo/modo)');
+    Writeln('Thinking chunks : 0  (no reasoning in this model/mode)');
 
-  Writeln(Format('Texto chunks    : %d  (%d chars en buffer)', [FTokenCount, Length(FBuffer)]));
+  Writeln(Format('Text chunks     : %d  (%d chars in buffer)', [FTokenCount, Length(FBuffer)]));
 
-  // Coherencia con historial
+  // Consistency with history
   if FConn.GetLastMessage <> nil then
   begin
     LHistorial := FConn.GetLastMessage.Prompt;
     LReasoning := FConn.GetLastMessage.ReasoningContent;
-    Writeln(Format('Historial Prompt: %d chars', [Length(LHistorial)]));
+    Writeln(Format('History Prompt: %d chars', [Length(LHistorial)]));
     if LReasoning <> '' then
-      Writeln(Format('Historial Reason: %d chars', [Length(LReasoning)]));
+      Writeln(Format('History Reason: %d chars', [Length(LReasoning)]));
 
     Writeln;
-    Writeln('--- Respuesta ---');
+    Writeln('--- Answer ---');
     Writeln(FBuffer);
 
     if LHistorial <> FBuffer then
     begin
       Writeln;
-      Writeln('*** DISCREPANCIA buffer vs historial ***');
+      Writeln('*** DISCREPANCY buffer vs history ***');
       Writeln(Format('  Buffer    : %d chars', [Length(FBuffer)]));
       Writeln(Format('  Historial : %d chars', [Length(LHistorial)]));
-      Writeln('  Buffer    inicio: [' + Copy(FBuffer, 1, 40) + ']');
-      Writeln('  Historial inicio: [' + Copy(LHistorial, 1, 40) + ']');
-      Writeln('  Buffer    final : [' + Copy(FBuffer, Length(FBuffer)-39, 40) + ']');
-      Writeln('  Historial final : [' + Copy(LHistorial, Length(LHistorial)-39, 40) + ']');
+      Writeln('  Buffer    start: [' + Copy(FBuffer, 1, 40) + ']');
+      Writeln('  History start: [' + Copy(LHistorial, 1, 40) + ']');
+      Writeln('  Buffer    end   : [' + Copy(FBuffer, Length(FBuffer)-39, 40) + ']');
+      Writeln('  History end     : [' + Copy(LHistorial, Length(LHistorial)-39, 40) + ']');
     end
     else
-      Writeln('  [OK] Buffer y historial coinciden.');
+      Writeln('  [OK] Buffer and history match.');
   end;
 end;
 
@@ -263,10 +263,10 @@ begin
     else if Response = '' then
       Writeln('Respuesta: <vacia>')
     else
-      Writeln('Respuesta: ', Response);
+      Writeln('Answer: ', Response);
   except
     on E: Exception do
-      Writeln('EXCEPCION: ', E.ClassName, ' - ', E.Message);
+      Writeln('EXCEPTION: ', E.ClassName, ' - ', E.Message);
   end;
 end;
 
@@ -295,7 +295,7 @@ begin
     on E: Exception do
     begin
       Writeln;
-      Writeln('ERROR al llamar AddMessageAndRun: ', E.Message);
+      Writeln('ERROR calling AddMessageAndRun: ', E.Message);
       Exit;
     end;
   end;
@@ -321,8 +321,8 @@ procedure TGrokTester.TestMultiTurnAsync(const AModel: String);
     WaitResult: TWaitResult;
   begin
     Writeln;
-    Writeln(Format('-- Turno %d --', [ATurn]));
-    Writeln('Usuario: ', AQuestion);
+    Writeln(Format('-- Turn %d --', [ATurn]));
+    Writeln('User: ', AQuestion);
 
     ResetBuffers;
     FDoneEvent.ResetEvent;
@@ -341,7 +341,7 @@ procedure TGrokTester.TestMultiTurnAsync(const AModel: String);
       begin
         if FThinkCount > 0 then
           Writeln(Format('  [thinking: %d chunks]', [FThinkCount]));
-        Writeln(Format('  [texto: %d chunks, %d chars]', [FTokenCount, Length(FBuffer)]));
+        Writeln(Format('  [text: %d chunks, %d chars]', [FTokenCount, Length(FBuffer)]));
       end;
     end
     else
@@ -353,12 +353,12 @@ begin
   FConn.Model := AModel;
   FConn.NewChat;
 
-  SendTurn('Hola! Mi nombre es Gustavo. Recuerdalo.', 1);
-  SendTurn('Cual es mi nombre?', 2);
-  SendTurn('Cuantos mensajes llevamos en esta conversacion?', 3);
+  SendTurn('Hello! My name is Gustavo. Remember it.', 1);
+  SendTurn('What is my name?', 2);
+  SendTurn('How many messages have we exchanged in this conversation?', 3);
 
   Writeln;
-  Writeln(Format('Mensajes en historial: %d', [FConn.Messages.Count]));
+  Writeln(Format('Messages in history: %d', [FConn.Messages.Count]));
 end;
 
 // =============================================================================
@@ -375,7 +375,7 @@ begin
 
   Tester := TGrokTester.Create;
   try
-    // --- grok-3 (texto + tools, sin reasoning) ---
+    // --- grok-3 (text + tools, no reasoning) ---
     Tester.TestSync(
       'En una sola oracion: cual es la capital de Francia?',
       MODEL_TEXT, 'Test 1 - Sync basico');
@@ -388,7 +388,7 @@ begin
       'Explica en 3 parrafos breves que es la inteligencia artificial.',
       MODEL_TEXT, 'Test 3 - Async respuesta larga');
 
-    // --- grok-3-mini (reasoning: reasoning_effort=low, sin vision) ---
+    // --- grok-3-mini (reasoning: reasoning_effort=low, no vision) ---
     // Verifica que NO se envia frequency/presence/stop (error 400 si se enviaran)
     Tester.TestSync(
       'Cuanto es 347 multiplicado por 28? Muestra el razonamiento paso a paso.',
@@ -398,7 +398,7 @@ begin
       'Cuanto es 347 multiplicado por 28? Muestra el razonamiento paso a paso.',
       MODEL_REASON, 'Test 5 - Async reasoning');
 
-    // --- grok-4-0709 (vision + reasoning siempre activo) ---
+    // --- grok-4-0709 (vision + reasoning always active) ---
     // Verifica que NO se envia reasoning_effort (error si se enviara)
     Tester.TestSync(
       'En una sola oracion: cual es la capital de Australia?',
@@ -408,7 +408,7 @@ begin
       'Explica en 2 oraciones breves que es el machine learning.',
       MODEL_VISION, 'Test 7 - Async grok-4');
 
-    // --- Multi-turno con grok-3 ---
+    // --- Multi-turn with grok-3 ---
     Tester.TestMultiTurnAsync(MODEL_TEXT);
 
   finally
@@ -416,6 +416,6 @@ begin
   end;
 
   Writeln;
-  Writeln('Demo finalizado. Presiona Enter para salir.');
+  Writeln('Demo finished. Press Enter to exit.');
   Readln;
 end.

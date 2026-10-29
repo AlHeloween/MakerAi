@@ -6,19 +6,19 @@ program ComplexPipeline;
 // =============================================================================
 // MakerAI — 08-Orquestacion / 05-ComplexPipeline
 // =============================================================================
-// Pipeline complejo que combina todos los patrones:
+// Complex pipeline that combines all patterns:
 //   1. Sequential: Clasificador -> Contextualizador
-//   2. Fork/Join: dos ramas paralelas (Pros + Cons) -> Sintetizador
+//   2. Fork/Join: two parallel branches (Pros + Cons) -> Sintetizador
 //   3. Sequential final: Sintetizador -> Redactor
 //
 // Dado un tema:
 //   [Contextualizador] --fork--> [AnalistaPros]  \
 //                             \-> [AnalistaCons] --> [Sintetizador (jmAll)] -> [Redactor]
 //
-// Conceptos que cubre:
-//   - Combinacion de patrones Sequential + Fork/Join en un solo grafo
-//   - Pipeline con 5 nodos LLM en topologia mixta
-//   - Inspección completa del blackboard
+// Concepts it covers:
+//   - Combination of Sequential + Fork/Join patterns in a single graph
+//   - Pipeline with 5 LLM nodes in mixed topology
+//   - Complete inspection of the blackboard
 // =============================================================================
 
 uses
@@ -60,7 +60,7 @@ var
   Resultado        : String;
 begin
   Writeln(StringOfChar('=', 60));
-  Writeln('Tema: ', ATema);
+  Writeln('Topic: ', ATema);
   Writeln(StringOfChar('=', 60));
 
   Manager := TAIAgentManager.Create(nil);
@@ -127,24 +127,24 @@ begin
     Manager.Compile;
 
     Writeln;
-    Writeln('Ejecutando pipeline complejo...');
+    Writeln('Running complex pipeline...');
     Resultado := Manager.Run(ATema);
 
     // Inspeccionar todos los checkpoints
     Writeln;
-    Writeln('--- Contexto (Contextualizador) ---');
+    Writeln('--- Context (Contextualizador) ---');
     Writeln(Manager.Blackboard.GetString('Contextualizador.output'));
     Writeln;
-    Writeln('--- Ventajas (AnalistaPros) ---');
+    Writeln('--- Advantages (AnalistaPros) ---');
     Writeln(Manager.Blackboard.GetString('AnalistaPros.output'));
     Writeln;
-    Writeln('--- Desventajas (AnalistaCons) ---');
+    Writeln('--- Disadvantages (AnalistaCons) ---');
     Writeln(Manager.Blackboard.GetString('AnalistaCons.output'));
     Writeln;
-    Writeln('--- Sintesis (Sintetizador) ---');
+    Writeln('--- Synthesis (Sintetizador) ---');
     Writeln(Manager.Blackboard.GetString('Sintetizador.output'));
     Writeln;
-    Writeln('--- Articulo final (Redactor) ---');
+    Writeln('--- Final article (Redactor) ---');
     Writeln(Resultado);
 
   finally
@@ -172,7 +172,7 @@ end;
 procedure RunDemo;
 begin
   Writeln('=== ComplexPipeline ===');
-  Writeln('Patrones combinados: Sequential + Fork/Join');
+  Writeln('Combined patterns: Sequential + Fork/Join');
   Writeln('Contextualizador -> [Pros + Cons] -> Sintetizador -> Redactor');
   Writeln;
 
@@ -190,6 +190,6 @@ begin
     end;
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

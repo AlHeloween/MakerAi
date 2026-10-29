@@ -6,21 +6,21 @@ program MCPServerStdIO;
 // =============================================================================
 // MakerAI — 06-MCP / 01-Server-StdIO
 // =============================================================================
-// Servidor MCP via protocolo StdIO (entrada/salida estandar).
-// Protocolo ideal para integracion local como subproceso.
+// MCP server via StdIO protocol (standard input/output).
+// Protocol ideal for local integration as a subprocess.
 //
-// Conceptos que cubre:
-//   - TAiMCPStdioServer: servidor MCP via stdin/stdout
-//   - TAiMCPToolBase<TParams>: clase base para implementar herramientas MCP
-//   - Server.RegisterTool(name, factory): registrar herramientas
-//   - Server.Start: iniciar el loop de JSON-RPC
-//   - Usar ErrOutput para logs (no contamina el canal JSON)
+// Concepts it covers:
+//   - TAiMCPStdioServer: MCP server via stdin/stdout
+//   - TAiMCPToolBase<TParams>: base class for implementing MCP tools
+//   - Server.RegisterTool(name, factory): register tools
+//   - Server.Start: start the JSON-RPC loop
+//   - Use ErrOutput for logs (does not contaminate the JSON channel)
 //
-// Herramientas: get_datetime, greet
-// Protocolo: StdIO (JSON-RPC via stdin/stdout)
+// Tools: get_datetime, greet
+// Protocol: StdIO (JSON-RPC via stdin/stdout)
 //
-// Para probar: compilar y ejecutar directamente, o apuntar el
-//              Cliente (04-Client-Basic) a este ejecutable.
+// To test: compile and run directly, or point the
+//              Client (04-Client-Basic) to this executable.
 // =============================================================================
 
 uses
@@ -30,15 +30,15 @@ uses
   uMakerAi.MCPServer.Stdio;
 
 // =============================================================================
-//  Herramienta: get_datetime
-//  Devuelve la fecha y hora actual
+//  Tool: get_datetime
+//  Returns the current date and time
 // =============================================================================
 type
   TDateTimeParams = class
   private
     FFormat: String;
   public
-    [AiMCPSchemaDescription('Formato deseado: "iso" (por defecto) o "readable"')]
+    [AiMCPSchemaDescription('Desired format: "iso" (default) or "readable"')]
     property Format: String read FFormat write FFormat;
   end;
 
@@ -65,7 +65,7 @@ var
 begin
   Fmt := Trim(LowerCase(AParams.Format));
   if Fmt = 'readable' then
-    Resultado := FormatDateTime('"Hoy es" dddd, d "de" mmmm "de" yyyy, "a las" hh:nn:ss', Now)
+    Resultado := FormatDateTime('"Today is" dddd, d "of" mmmm "of" yyyy, "at" hh:nn:ss', Now)
   else
     Resultado := FormatDateTime('yyyy-mm-dd"T"hh:nn:ss', Now);
 
@@ -73,8 +73,8 @@ begin
 end;
 
 // =============================================================================
-//  Herramienta: greet
-//  Devuelve un saludo personalizado
+//  Tool: greet
+//  Returns a personalized greeting
 // =============================================================================
 type
   TGreetParams = class
@@ -82,9 +82,9 @@ type
     FName    : String;
     FLanguage: String;
   public
-    [AiMCPSchemaDescription('Nombre de la persona a saludar')]
+    [AiMCPSchemaDescription('Name of the person to greet')]
     property Name: String read FName write FName;
-    [AiMCPSchemaDescription('Idioma del saludo: "es" espanol (defecto), "en" ingles')]
+    [AiMCPSchemaDescription('Greeting language: "es" Spanish (default), "en" English')]
     property Language: String read FLanguage write FLanguage;
   end;
 
@@ -133,21 +133,21 @@ begin
     try
       Server.ServerName := 'MakerAI-Demo-StdIO';
 
-      // Registrar herramientas via factory
+      // Register tools via factory
       Server.RegisterTool('get_datetime',
         function: IAiMCPTool begin Result := TDateTimeMCPTool.Create; end);
 
       Server.RegisterTool('greet',
         function: IAiMCPTool begin Result := TGreetMCPTool.Create; end);
 
-      // Iniciar el loop de JSON-RPC (bloqueante)
+      // Start the JSON-RPC loop (blocking)
       Server.Start;
 
-      // Los logs van a ErrOutput para no contaminar el canal JSON en StdIO
-      WriteLn(ErrOutput, '[MCPServerStdIO] Servidor iniciado. Esperando comandos JSON-RPC...');
-      WriteLn(ErrOutput, '[MCPServerStdIO] Herramientas: get_datetime, greet');
+      // Logs go to ErrOutput so they do not contaminate the JSON channel in StdIO
+      WriteLn(ErrOutput, '[MCPServerStdIO] Server started. Waiting for JSON-RPC commands...');
+      WriteLn(ErrOutput, '[MCPServerStdIO] Tools: get_datetime, greet');
 
-      // Mantener el proceso vivo
+      // Keep the process alive
       while True do
         Sleep(1000);
 
@@ -157,7 +157,7 @@ begin
   except
     on E: Exception do
     begin
-      WriteLn(ErrOutput, '[MCPServerStdIO] Error fatal: ' + E.ClassName + ': ' + E.Message);
+      WriteLn(ErrOutput, '[MCPServerStdIO] Fatal error: ' + E.ClassName + ': ' + E.Message);
       ExitCode := 1;
     end;
   end;

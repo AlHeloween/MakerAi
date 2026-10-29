@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr�quez
-// Redes Sociales:
+// Name: Gustavo Enriquez
+// Social networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -204,7 +204,7 @@ type
   private
     FCurrentEntidad: String;
 
-    // Variables para b�squedas por match
+    // Variables for match searches
     FCurrentQuery: TGraphMatchQuery;
     FNodeVarCounter: Integer;
 
@@ -285,10 +285,10 @@ var
   SourcePattern, TargetPattern: TMatchNodePattern;
   EdgePattern: TMatchEdgePattern;
 begin
-  // Si es el primer paso, usamos el ancla
+  // If it is the first step, we use the anchor
   if FCurrentQuery.MatchClauses.Count = 0 then
   begin
-    // Crear el nodo de origen (ancla)
+    // Create the source node (anchor)
     SourceVar := MatchBuilder_GetNextNodeVar; // n0
     SourcePattern := TMatchNodePattern.Create;
     SourcePattern.Variable := SourceVar;
@@ -299,18 +299,18 @@ begin
   end
   else
   begin
-    // Si no, el origen es el destino del paso anterior
+    // Otherwise, the source is the destination of the previous step
     SourceVar := FCurrentQuery.MatchClauses.Last.TargetNodeVar;
   end;
 
-  // Crear el nodo de destino para este paso
+  // Create the destination node for this step
   TargetVar := MatchBuilder_GetNextNodeVar; // n1, n2, ...
   TargetPattern := TMatchNodePattern.Create;
   TargetPattern.Variable := TargetVar;
   TargetPattern.NodeLabel := cbTargetNodeLabel.Text;
   FCurrentQuery.AddNodePattern(TargetPattern);
 
-  // Crear el patr�n de la arista
+  // Create the edge pattern
   EdgePattern := TMatchEdgePattern.Create;
   EdgePattern.Variable := 'e' + IntToStr(FCurrentQuery.MatchClauses.Count);
   EdgePattern.EdgeLabel := cbEdgeLabel.Text;
@@ -323,10 +323,10 @@ begin
       EdgePattern.Direction := gdBoth;
   end;
 
-  // A�adir la cl�usula a la consulta
+  // Add the clause to the query
   FCurrentQuery.AddMatchClause(TMatchClause.Create(SourceVar, EdgePattern, TargetVar));
 
-  // Actualizar la visualizaci�n
+  // Update the visualization
   MatchBuilder_UpdateQueryVisualizer;
 end;
 
@@ -370,7 +370,7 @@ Begin
   FCurrentQuery := TGraphMatchQuery.Create;
   FNodeVarCounter := 0;
 
-  // Limpiar la UI
+  // Clear the UI
   lbQuerySteps.Clear;
   MemoResults.Lines.Clear;
 end;
@@ -399,7 +399,7 @@ begin
     Try
       Self.Cursor := crHourGlass; // Cambiar el cursor para indicar que se est� trabajando
 
-      // --- Paso 1: Obtener la consulta del usuario y construir el prompt para el LLM ---
+      // --- Step 1: Get the user query and build the prompt for the LLM ---
       Ent := MemoPrompt.Lines.Text;
       if Trim(Ent) = '' then
       begin
@@ -418,14 +418,14 @@ begin
       Res := AiConn.AddMessageAndRun(Prompt, 'user', []);
       Msg := AiConn.GetLastMessage;
 
-      // --- Paso 3: Parsear el JSON y ejecutar la consulta ---
+      // --- Step 3: Parse the JSON and execute the query ---
       if (Msg.MediaFiles = nil) or (Msg.MediaFiles.Count = 0) then
       begin
         ShowMessage('El LLM no devolvi� un plan de consulta estructurado.');
         Exit;
       end;
 
-      // Asumimos que el LLM devuelve un solo archivo con el plan
+      // We assume the LLM returns a single file with the plan
       JSonPlanStr := Msg.MediaFiles[0].ToString;
       Log.Add('Plan JSON recibido del LLM:');
       Log.Add(JSonPlanStr);
@@ -436,7 +436,7 @@ begin
       // Verificaci�n b�sica de que el plan es v�lido
       if (Plan.AnchorPrompt <> '') and (Plan.AnchorVariable <> '') then
       begin
-        // ---- INICIO DEL BLOQUE COMPLETADO ----
+        // ---- START OF COMPLETED BLOCK ----
 
         Log.Add('Ejecutando el plan de consulta...');
 
@@ -444,7 +444,7 @@ begin
         // Usamos valores por defecto para profundidad, l�mite y precisi�n por ahora.
         Results := RAG.Query(Plan, Depth, Limit, Precision);
 
-        // Formatear y mostrar los resultados
+        // Format and display the results
         Log.Add('');
         Log.Add('--- Resultados de la Consulta ---');
         if Length(Results) > 0 then
@@ -557,7 +557,7 @@ var
   TripletList: TStringList;
   Subject, Predicate, Obj: string;
 begin
-  // 1. Asegurarse de que el grafo est� asignado
+  // 1. Make sure the graph is assigned
   Graph := RAG;
   if not Assigned(Graph) then
   begin
@@ -565,32 +565,32 @@ begin
     Exit;
   end;
 
-  // 2. Usar un TStringList para recolectar y ordenar las tripletas
+  // 2. Use a TStringList to collect and sort the triplets
   TripletList := TStringList.Create;
   try
-    // 3. Iterar sobre todas las aristas del grafo
-    // Graph.Edges devuelve un TAiRAGVector, y su propiedad Items es una lista de los nodos de embedding (en este caso, las aristas)
+    // 3. Iterate over all edges of the graph
+    // Graph.Edges returns a TAiRAGVector, and its Items property is a list of embedding nodes (in this case, the edges)
     for EdgeNode in Graph.Edges.Items do
     begin
-      // Asegurarse de que el elemento es realmente una arista
+      // Make sure the element is really an edge
       if EdgeNode is TAiRagGraphEdge then
       begin
         Edge := EdgeNode as TAiRagGraphEdge;
 
-        // 4. Formatear la tripleta en un formato legible
+        // 4. Format the triplet in a readable format
         Subject := Format('%s (%s)', [Edge.FromNode.Name, Edge.FromNode.NodeLabel]);
         Predicate := Edge.EdgeLabel;
         Obj := Format('%s (%s)', [Edge.ToNode.Name, Edge.ToNode.NodeLabel]);
 
-        // A�adir la tripleta formateada a la lista
+        // Add the formatted triplet to the list
         TripletList.Add(Format('%-35s --[%s]--> %s', [Subject, Predicate, Obj]));
       end;
     end;
 
-    // 5. Ordenar la lista para que sea m�s f�cil de leer
+    // 5. Sort the list to make it easier to read
     TripletList.Sort;
 
-    // 6. Mostrar los resultados en el TMemo
+    // 6. Display the results in the TMemo
     MemoResults.Lines.Clear;
     MemoResults.Lines.Add(Format('--- Se encontraron %d tripletas en el grafo ---', [TripletList.Count]));
     MemoResults.Lines.Add('');
@@ -631,39 +631,39 @@ end;
 
 procedure TMainRagGraphDemo.BtnSaveClick(Sender: TObject);
 begin
-  // --- Configurar el di�logo de guardado ---
+  // --- Configure the save dialog ---
   SaveDialog1.Title := 'Guardar Grafo de Conocimiento';
   SaveDialog1.InitialDir := 'c:\temp\';
 
-  // Configurar los filtros. La primera l�nea es la que se selecciona por defecto.
+  // Configure the filters. The first line is the one selected by default.
   SaveDialog1.Filter := 'MakerAI Graph (*.mkai)|*.mkai|' + // Formato nativo (completo o ligero)
     'GraphML File (*.graphml)|*.graphml|' + // Para Gephi, yEd
     'Graphviz DOT File (*.dot)|*.dot|' + // Para Graphviz
     'JSON Graph (Legacy) (*.json)|*.json|' + // Si quieres mantener compatibilidad
     'Todos los archivos (*.*)|*.*';
 
-  // Establecer la extensi�n por defecto que se a�adir� si el usuario no escribe una.
+  // Set the default extension that will be added if the user does not type one.
   SaveDialog1.DefaultExt := '.mkai';
   SaveDialog1.FileName := 'mi_grafo_de_conocimiento'; // Nombre de archivo sugerido
 
-  // --- Ejecutar el di�logo y guardar ---
+  // --- Execute the dialog and save ---
   if SaveDialog1.Execute then
   begin
     try
-      // Opci�n A: Siempre guardado completo.
+      // Option A: Always full save.
       // RAG.SaveToFile(SaveDialog1.FileName, True);
 
       var
       SaveWithEmbeddings := MessageDlg('�Desea incluir los datos de embeddings en el archivo?' + sLineBreak + '(El archivo ser� mucho m�s grande)', TMsgDlgType.mtConfirmation, [TMsgDlgBtn.mbYes, TMsgDlgBtn.mbNo], 0) = mrYes;
       RAG.SaveToFile(SaveDialog1.FileName, SaveWithEmbeddings);
 
-      // Por ahora, usemos la Opci�n A para simplicidad.
+      // For now, let's use Option A for simplicity.
       // RAG.SaveToFile(SaveDialog1.FileName, True);
 
-      // Informar al usuario (opcional pero recomendado)
+      // Inform the user (optional but recommended)
       ShowMessage('Grafo guardado exitosamente en: ' + SaveDialog1.FileName);
 
-      // Actualizar el di�logo de apertura por conveniencia
+      // Update the open dialog for convenience
       OpenDialog1.FileName := SaveDialog1.FileName;
     except
       on E: Exception do
@@ -769,7 +769,7 @@ end;
 
 procedure TMainRagGraphDemo.edtStartNodeNameExit(Sender: TObject);
 begin
-  // Peque�o retraso para permitir que el clic en el ListBox se procese primero
+  // Small delay to allow the click on the ListBox to be processed first
   TThread.Queue(nil,
     procedure
     begin
@@ -950,7 +950,7 @@ begin
 
     if not Query.Eof then
     begin
-      // Funci�n auxiliar para "hidratar" un nodo desde un TFDQuery
+      // Auxiliary function to "hydrate" a node from a TFDQuery
       ResultNode := HydrateNodeFromQuery(Query, Graph);
       Handled := True;
     end
@@ -1139,11 +1139,11 @@ begin
     begin
       EdgeID := Query.FieldByName('id').AsString;
 
-      // --- �L�GICA CORREGIDA Y LIMPIA! ---
-      // Usamos la nueva funci�n p�blica para comprobar si la arista ya existe en memoria.
+      // --- CORRECTED AND CLEAN LOGIC! ---
+      // We use the new public function to check whether the edge already exists in memory.
       if not Graph.EdgeExistsInMemory(EdgeID) then
       begin
-        // La arista no existe en memoria, as� que la creamos e hidratamos.
+        // The edge does not exist in memory, so we create and hydrate it.
         EdgeData.ID := EdgeID;
         EdgeData.EdgeLabel := Query.FieldByName('edge_label').AsString;
         EdgeData.Name := Query.FieldByName('name').AsString;
@@ -1161,11 +1161,11 @@ begin
         else
           EdgeData.EmbeddingStr := '[]';
 
-        // Usamos el m�todo protegido del grafo para crear el objeto desde los datos.
-        // Para llamarlo, S� necesitamos el class helper aqu�.
+        // We use the graph's protected method to create the object from the data.
+        // To call it, we DO need the class helper here.
         Graph.InternalHydrateEdge(EdgeData);
       end;
-      // --- FIN DE LA L�GICA ---
+      // --- END OF LOGIC ---
 
       Query.Next;
     end;
@@ -1402,7 +1402,7 @@ begin
 
     if not Query.IsEmpty then
     begin
-      // En lugar de crear un objeto, llenamos el record con los datos crudos.
+      // Instead of creating an object, we fill the record with the raw data.
       ANodeData.ID := Query.FieldByName('id').AsString;
       ANodeData.NodeLabel := Query.FieldByName('node_label').AsString;
       ANodeData.Name := Query.FieldByName('name').AsString;
@@ -1561,7 +1561,7 @@ begin
       Query.Next;
     end;
 
-    // Si la b�squeda fue con expansi�n, necesitamos determinar los nodos semilla por separado.
+    // If the search was with expansion, we need to determine the seed nodes separately.
     if ADepth > 0 then
     begin
       Query.SQL.Text := 'SELECT id FROM graph_nodes ' + 'WHERE entidad = :entidad AND (embedding <-> ''' + EmbeddingStr + ''') < :distance_threshold ' + 'ORDER BY embedding <-> ''' + EmbeddingStr + ''' LIMIT :limit';
@@ -1644,7 +1644,7 @@ begin
           Node := VarName.Value as TAiRagGraphNode;
           MemoResults.Lines.Add(Format('  %s (%s): %s', [VarName.Key, Node.NodeLabel, Node.Name]));
 
-          // --- NUEVA L�GICA: Mostrar Texto Descriptivo ---
+          // --- NEW LOGIC: Show Descriptive Text ---
           if not Node.Text.IsEmpty then
             MemoResults.Lines.Add(Format('    [Contexto]: %s', [Node.Text]));
 
@@ -1656,7 +1656,7 @@ begin
           Edge := VarName.Value as TAiRagGraphEdge;
           MemoResults.Lines.Add(Format('  %s (%s): %s --%s--> %s', [VarName.Key, Edge.EdgeLabel, Edge.FromNode.Name, Edge.EdgeLabel, Edge.ToNode.Name]));
 
-          // --- NUEVA L�GICA: Mostrar Texto de la Relaci�n ---
+          // --- NEW LOGIC: Show Relationship Text ---
           if not Edge.Text.IsEmpty then
             MemoResults.Lines.Add(Format('    [Relaci�n]: %s', [Edge.Text]));
 
@@ -1712,13 +1712,13 @@ begin
         // 2. Extraer el objeto real (Nodo o Arista)
         if Item.TryGetValue('element', ElementObj) then
         begin
-          // --- PROCESAR NODO ---
+          // --- PROCESS NODE ---
           if (ElementTypeStr = 'node') and (ElementObj is TAiRagGraphNode) then
           begin
             Node := TAiRagGraphNode(ElementObj);
             NodeList.Add(Format('- %s (%s)', [Node.Name, Node.NodeLabel]));
 
-            // Mostrar texto descriptivo (Contexto RAG)
+            // Show descriptive text (RAG Context)
             if not Node.Text.IsEmpty then
               NodeList.Add(Format('    [Contexto]: %s', [Node.Text]));
 
@@ -1727,13 +1727,13 @@ begin
               MatchBuilder_DisplayProperties(Node.Properties, NodeList, '    ');
           end
 
-          // --- PROCESAR ARISTA ---
+          // --- PROCESS EDGE ---
           else if (ElementTypeStr = 'edge') and (ElementObj is TAiRagGraphEdge) then
           begin
             Edge := TAiRagGraphEdge(ElementObj);
             EdgeList.Add(Format('- %s --[%s]--> %s', [Edge.FromNode.Name, Edge.EdgeLabel, Edge.ToNode.Name]));
 
-            // Mostrar texto descriptivo de la relaci�n
+            // Show descriptive text of the relationship
             if not Edge.Text.IsEmpty then
               EdgeList.Add(Format('    [Relaci�n]: %s', [Edge.Text]));
 
@@ -1748,12 +1748,12 @@ begin
         if Item.TryGetValue('type', ElementTypeObj) then
           ElementTypeObj.Free;
 
-        // Liberamos el diccionario de la fila (los Nodos/Aristas NO se liberan, son del Grafo)
+        // We free the row dictionary (Nodes/Edges are NOT freed, they belong to the Graph)
         Item.Free;
       end;
     end;
 
-    // --- RENDERIZADO FINAL EN EL MEMO ---
+    // --- FINAL RENDERING IN THE MEMO ---
     MemoResults.Lines.BeginUpdate;
     try
       MemoResults.Lines.Clear;
@@ -1761,7 +1761,7 @@ begin
       MemoResults.Lines.Add(StringOfChar('-', 40));
       MemoResults.Lines.Add('');
 
-      // Mostrar Nodos ordenados
+      // Show sorted nodes
       MemoResults.Lines.Add('--- ENTIDADES (NODOS) ---');
       if NodeList.Count > 0 then
       begin
@@ -1773,7 +1773,7 @@ begin
 
       MemoResults.Lines.Add('');
 
-      // Mostrar Aristas ordenadas
+      // Show sorted edges
       MemoResults.Lines.Add('--- RELACIONES (ARISTAS) ---');
       if EdgeList.Count > 0 then
       begin
@@ -1858,15 +1858,15 @@ var
   SuggestedNames: TArray<string>;
   AName: string;
 begin
-  // Si no hay texto, ocultamos el popup y salimos
+  // If there is no text, hide the popup and exit
   if SearchText.Trim.IsEmpty then
   begin
     popSuggestions.IsOpen := False;
     Exit;
   end;
 
-  // Obtenemos la etiqueta seleccionada.
-  if (cbStartNodeLabel.ItemIndex <= 0) or (cbStartNodeLabel.Selected = nil) then // <= 0 para ignorar el item vac�o
+  // We get the selected label.
+  if (cbStartNodeLabel.ItemIndex <= 0) or (cbStartNodeLabel.Selected = nil) then // <= 0 to ignore the empty item
   begin
     popSuggestions.IsOpen := False;
     Exit;
@@ -1878,24 +1878,24 @@ begin
     Exit;
   end;
 
-  // Limpiamos la lista de sugerencias anterior
+  // We clear the previous suggestions list
   lbSuggestions.Clear;
 
-  // --- L�NEA CLAVE CORREGIDA ---
-  // Llamamos a la nueva funci�n del grafo, que delegar� a nuestra consulta SQL.
+  // --- KEY LINE CORRECTED ---
+  // We call the new graph function, which will delegate to our SQL query.
   SuggestedNames := RAG.FindNodeNamesByLabel(SelectedLabel, SearchText, 15); // L�mite de 15 sugerencias
 
-  // Poblamos el ListBox con los resultados
+  // We populate the ListBox with the results
   for AName in SuggestedNames do
   begin
     lbSuggestions.Items.Add(AName);
   end;
-  // --- FIN DE LA CORRECCI�N ---
+  // --- END OF CORRECTION ---
 
-  // Mostramos u ocultamos el popup basado en si encontramos resultados
+  // We show or hide the popup based on whether we found results
   if lbSuggestions.Items.Count > 0 then
   begin
-    // Posicionar el popup debajo del TEdit
+    // Position the popup below the TEdit
     {
       var LPoint := TPointF.Create(0, edtStartNodeName.Height);
       LPoint := edtStartNodeName.LocalToAbsolute(LPoint);
@@ -1922,7 +1922,7 @@ begin
   if FCurrentQuery.MatchClauses.Count = 0 then
     Exit;
 
-  // Visualizar la primera cl�usula de forma completa
+  // Visualize the first clause in full
   Clause := FCurrentQuery.MatchClauses[0];
   SourcePattern := FCurrentQuery.NodePatternByVariable[Clause.SourceNodeVar];
   TargetPattern := FCurrentQuery.NodePatternByVariable[Clause.TargetNodeVar];
@@ -1936,7 +1936,7 @@ begin
   end;
   lbQuerySteps.Items.Add(Format('(%s:%s) %s (%s:%s)', [SourcePattern.Variable, SourcePattern.NodeLabel, DirectionStr, TargetPattern.Variable, TargetPattern.NodeLabel]));
 
-  // Visualizar las cl�usulas siguientes
+  // Visualize the following clauses
   for i := 1 to FCurrentQuery.MatchClauses.Count - 1 do
   begin
     Clause := FCurrentQuery.MatchClauses[i];

@@ -2,7 +2,7 @@
 
 // =============================================================================
 // MakerAI - Demo 055: FMX Multi-Agent Debate
-// DataModule con los componentes del grafo de agentes.
+// DataModule with the agent graph components.
 //
 // Grafo:
 //   [Moderador] -> [Propositor] -> [Critico] -> [Rebatidor] -> [Juez]
@@ -73,7 +73,7 @@ const
   API_KEY = '@CLAUDE_API_KEY';
 
 // ---------------------------------------------------------------------------
-// Retorna la etiqueta de rol segun el nombre del nodo.
+// Returns the role label according to the node name.
 // ---------------------------------------------------------------------------
 function TDmDebate.NodeRoleLabel(const ANodeName: string): string;
 begin
@@ -146,7 +146,7 @@ begin
   if FDebateHistory <> '' then
     Node.Input := FDebateHistory;
 
-  // Log de entrada al nodo (llamada directa: ya estamos en el hilo principal)
+  // Log node entry (direct call: we are already on the main thread)
   Sep := StringOfChar('=', 50);
   Hdr := '>> ' + NodeRoleLabel(Node.Name);
   if Assigned(FOnLog) then FOnLog(Sep);
@@ -163,12 +163,12 @@ var
 begin
   Label_ := NodeRoleLabel(Node.Name);
 
-  // Agregar salida del nodo al historial acumulado
+  // Add the node's output to the accumulated history
   FDebateHistory := FDebateHistory +
     '[' + Label_ + ']:' + sLineBreak +
     Node.Output + sLineBreak + sLineBreak;
 
-  // Log de la salida del nodo
+  // Log the node's output
   if Assigned(FOnLog) then
   begin
     FOnLog('[' + Label_ + ']:');
@@ -213,7 +213,7 @@ end;
 
 procedure TDmDebate.RunDebate(const ATopic: string);
 begin
-  // Inicializar historial con el tema del debate
+  // Initialize history with the debate topic
   FDebateHistory := 'DEBATE TOPIC: ' + ATopic + sLineBreak + sLineBreak;
   AgentManager.Run(ATopic);
 end;

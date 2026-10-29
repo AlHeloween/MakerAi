@@ -6,15 +6,15 @@ program RAGHybrid;
 // =============================================================================
 // MakerAI — 04-RAGVector / 04-HybridSearch
 // =============================================================================
-// Combina búsqueda vectorial (semántica) con búsqueda lexica (BM25).
-// La búsqueda híbrida supera a cada método por separado en muchos casos.
+// Combines vector (semantic) search with lexical (BM25) search.
+// Hybrid search outperforms each method alone in many cases.
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - TAiSearchOptions: UseEmbeddings, UseBM25, UseRRF
-//   - Reciprocal Rank Fusion (RRF): combina rankings vectorial + BM25
-//   - Cuándo falla la búsqueda vectorial (términos técnicos exactos)
-//   - Cuándo falla BM25 (sinónimos, paráfrasis)
-//   - La combinación híbrida captura ambos casos
+//   - Reciprocal Rank Fusion (RRF): combines vector + BM25 rankings
+//   - When vector search fails (exact technical terms)
+//   - When BM25 fails (synonyms, paraphrases)
+//   - The hybrid combination captures both cases
 // =============================================================================
 
 uses
@@ -30,7 +30,7 @@ const
   EMB_MODEL   = 'text-embedding-3-small';
   EMB_API_KEY = '@OPENAI_API_KEY';
 
-// Corpus con términos técnicos y texto semántico mezclado
+// Corpus with technical terms and mixed semantic text
 const
   CORPUS: array[0..9] of String = (
     'La funcion SHA256 genera un hash criptografico de 256 bits.',
@@ -54,20 +54,20 @@ var
   Results: String;
 begin
   Writeln(StringOfChar('-', 60));
-  Writeln('Consulta: "', Query, '"');
+  Writeln('Query: "', Query, '"');
   Writeln;
 
   Opts := RAG.SearchOptions;
 
-  // Modo 1: solo vectorial
+  // Mode 1: vector only
   Opts.UseEmbeddings := True;
   Opts.UseBM25       := False;
   Opts.UseRRF        := False;
   Results := RAG.SearchText(Query, 3, 0.0, nil, False, True);
-  Writeln('VECTORIAL (semantico):');
+  Writeln('VECTOR (semantic):');
   Writeln(Results);
 
-  // Modo 2: solo BM25 (lexical)
+  // Mode 2: BM25 only (lexical)
   Opts.UseEmbeddings := False;
   Opts.UseBM25       := True;
   Opts.UseRRF        := False;
@@ -75,12 +75,12 @@ begin
   Writeln('BM25 (lexical):');
   Writeln(Results);
 
-  // Modo 3: híbrido RRF
+  // Mode 3: hybrid RRF
   Opts.UseEmbeddings := True;
   Opts.UseBM25       := True;
   Opts.UseRRF        := True;
   Results := RAG.SearchText(Query, 3, 0.0, nil, False, True);
-  Writeln('HIBRIDO (RRF):');
+  Writeln('HYBRID (RRF):');
   Writeln(Results);
 end;
 
@@ -108,22 +108,22 @@ begin
     RAG.NameVec           := 'TechDocs';
     RAG.InMemoryIndexType := TAIHNSWIndex;
 
-    Writeln('Indexando corpus...');
+    Writeln('Indexing corpus...');
     for I := 0 to High(CORPUS) do
       RAG.AddItem(CORPUS[I]);
 
     RAG.BuildIndex;
     RAG.BuildLexicalIndex;
-    Writeln(Format('%d documentos indexados.', [RAG.Count]));
+    Writeln(Format('%d documents indexed.', [RAG.Count]));
     Writeln;
 
-    // Consulta 1: término técnico exacto → BM25 gana
+    // Query 1: exact technical term → BM25 wins
     CompararModos(RAG, 'SHA256 hash');
 
-    // Consulta 2: semántica → vectorial gana
+    // Query 2: semantic → vector wins
     CompararModos(RAG, 'proteccion de comunicaciones en internet');
 
-    // Consulta 3: mix → híbrido gana
+    // Query 3: mix → hybrid wins
     CompararModos(RAG, 'seguridad en bases de datos SQL');
 
   finally
@@ -140,6 +140,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

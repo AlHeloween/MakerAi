@@ -6,19 +6,19 @@ program ReActBasic;
 // =============================================================================
 // MakerAI — 07-AgenticLLM / 01-ReAct-Basic
 // =============================================================================
-// El patrón ReAct (Reasoning + Acting) es la base de todos los agentes LLM.
-// En MakerAI se implementa con TAIAgentManager + TLLMNode.
+// The ReAct pattern (Reasoning + Acting) is the basis of all LLM agents.
+// In MakerAI it is implemented with TAIAgentManager + TLLMNode.
 //
-// Conceptos que cubre:
-//   - TAIAgentManager: orquestador del grafo de agentes
-//   - TLLMNode: nodo que contiene el loop ReAct con el proveedor LLM
-//   - TAIAgentsNode: nodo genérico (pasante o con OnExecute)
-//   - TAIAgentsLink: arista que conecta nodos
+// Concepts it covers:
+//   - TAIAgentManager: agent graph orchestrator
+//   - TLLMNode: node that contains the ReAct loop with the LLM provider
+//   - TAIAgentsNode: generic node (pass-through or with OnExecute)
+//   - TAIAgentsLink: edge that connects nodes
 //   - Manager.StartNode / EndNode / Compile / Run
-//   - Manager.Blackboard: estado compartido entre nodos
-//   - Manager.Asynchronous=False: ejecución síncrona
+//   - Manager.Blackboard: shared state between nodes
+//   - Manager.Asynchronous=False: synchronous execution
 //
-// Estructura del grafo:
+// Graph structure:
 //   [Start] --> [LLMAgent] --> [End]
 // =============================================================================
 
@@ -41,9 +41,9 @@ procedure Preguntar(Manager: TAIAgentManager; const Pregunta: String);
 begin
   Manager.Blackboard.Clear;
   Writeln(StringOfChar('-', 60));
-  Writeln('Pregunta: ', Pregunta);
+  Writeln('Question: ', Pregunta);
   try
-    Writeln('Respuesta: ', Manager.Run(Pregunta));
+    Writeln('Answer: ', Manager.Run(Pregunta));
   except
     on E: Exception do
       Writeln('ERROR: ', E.Message);
@@ -70,12 +70,12 @@ begin
     Manager.Asynchronous := False;
     Manager.TimeoutMs    := 60000;
 
-    // Nodo de entrada (pasante: propaga Input -> Output)
+    // Input node (pass-through: propagates Input -> Output)
     Start       := TAIAgentsNode.Create(Manager);
     Start.Name  := 'Start';
     Start.Graph := Manager;
 
-    // Nodo LLM: el agente ejecuta el ciclo ReAct
+    // LLM node: the agent runs the ReAct cycle
     LLMAgent              := TLLMNode.Create(Manager);
     LLMAgent.Name         := 'LLMAgent';
     LLMAgent.Graph        := Manager;
@@ -87,12 +87,12 @@ begin
       'Eres un asistente conciso que responde en espanol. ' +
       'Responde siempre en una o dos frases directas y al grano.';
 
-    // Nodo de salida (pasante)
+    // Output node (pass-through)
     Finish       := TAIAgentsNode.Create(Manager);
     Finish.Name  := 'End';
     Finish.Graph := Manager;
 
-    // Conectar: Start -> LLMAgent -> End
+    // Connect: Start -> LLMAgent -> End
     Manager.AddEdge('Start',    'LLMAgent');
     Manager.AddEdge('LLMAgent', 'End');
 
@@ -100,18 +100,18 @@ begin
     Manager.EndNode   := Finish;
     Manager.Compile;
 
-    Writeln('Grafo compilado. Iniciando preguntas...');
+    Writeln('Graph compiled. Starting questions...');
     Writeln;
 
-    Preguntar(Manager, 'Cual es la capital de Mexico?');
-    Preguntar(Manager, 'Quien escribio Cien anos de soledad?');
-    Preguntar(Manager, 'Cuanto es 2 elevado a la decima potencia?');
-    Preguntar(Manager, 'Explica en una frase que es un algoritmo.');
-    Preguntar(Manager, 'Cual es el lenguaje de programacion mas antiguo aun en uso?');
+    Preguntar(Manager, 'What is the capital of Mexico?');
+    Preguntar(Manager, 'Who wrote One Hundred Years of Solitude?');
+    Preguntar(Manager, 'What is 2 to the tenth power?');
+    Preguntar(Manager, 'Explain in one sentence what an algorithm is.');
+    Preguntar(Manager, 'What is the oldest programming language still in use?');
 
-    // Mostrar estado del blackboard tras la última ejecución
+    // Show blackboard state after the last execution
     Writeln(StringOfChar('=', 60));
-    Writeln('Blackboard tras ultima ejecucion:');
+    Writeln('Blackboard after last execution:');
     Writeln('  LLMAgent.output = "',
       Copy(Manager.Blackboard.GetString('LLMAgent.output'), 1, 80), '..."');
 

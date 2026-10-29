@@ -2,7 +2,7 @@
 
 // =============================================================================
 // MakerAI - Demo 055: FMX Multi-Agent Debate
-// Formulario principal - interfaz visual del debate.
+// Main form - visual debate interface.
 //
 // UI:
 //   [Top]    Tema del debate + boton Iniciar + estado
@@ -53,7 +53,7 @@ type
   private
     procedure OnAgentLog(const Value: string);
     procedure OnAgentFinished(const Value: string);
-    // Los eventos son del tipo TDebateLogEvent / TDebateFinishedEvent (procedure of object)
+    // The events are of type TDebateLogEvent / TDebateFinishedEvent (procedure of object)
   end;
 
 var
@@ -73,7 +73,7 @@ begin
   DmDebate := TDmDebate.Create(Self);
   DmDebate.OnLog      := OnAgentLog;
   DmDebate.OnFinished := OnAgentFinished;
-  LblStatus.Text := 'Listo. Ingresa un tema y presiona Iniciar Debate.';
+  LblStatus.Text := 'Ready. Enter a topic and press Start Debate.';
 end;
 
 procedure TFrmDebate.FormDestroy(Sender: TObject);
@@ -89,16 +89,16 @@ begin
   Topic := Trim(EdTopic.Text);
   if Topic = '' then
   begin
-    ShowMessage('Ingresa un tema para el debate.');
+    ShowMessage('Enter a debate topic.');
     Exit;
   end;
 
   MemoLog.Lines.Clear;
   MemoVeredicto.Lines.Clear;
   BtnStart.Enabled := False;
-  LblStatus.Text := 'Debate en progreso...';
+  LblStatus.Text := 'Debate in progress...';
 
-  MemoLog.Lines.Add('TEMA: ' + Topic);
+  MemoLog.Lines.Add('TOPIC: ' + Topic);
   MemoLog.Lines.Add(StringOfChar('=', 60));
 
   DmDebate.RunDebate(Topic);
@@ -107,17 +107,17 @@ end;
 procedure TFrmDebate.OnAgentLog(const Value: string);
 begin
   MemoLog.Lines.Add(Value);
-  // Scroll al final
+  // Scroll to the end
   MemoLog.GoToTextEnd;
 end;
 
 procedure TFrmDebate.OnAgentFinished(const Value: string);
 begin
   MemoVeredicto.Lines.Text := Value;
-  LblStatus.Text := 'Debate finalizado.';
+  LblStatus.Text := 'Debate finished.';
   BtnStart.Enabled := True;
   MemoLog.Lines.Add(StringOfChar('=', 60));
-  MemoLog.Lines.Add('Debate completado.');
+  MemoLog.Lines.Add('Debate completed.');
 end;
 
 end.

@@ -18,7 +18,7 @@ uses
   uDmDebate in 'uDmDebate.pas' {DmDebate: TDataModule};
 
 type
-  // Wrapper necesario porque TDebateLogEvent / TDebateFinishedEvent son 'of object'
+  // Wrapper needed because TDebateLogEvent / TDebateFinishedEvent are 'of object'
   TConsoleOut = class
   private
     FFinished : Boolean;
@@ -53,7 +53,7 @@ begin
     Topic := 'Artificial Intelligence will replace most human jobs by 2040';
 
     Writeln('=== TestDebateConsole ===');
-    Writeln('Tema: ', Topic);
+    Writeln('Topic: ', Topic);
     Writeln(StringOfChar('-', 60));
 
     Console := TConsoleOut.Create;
@@ -62,11 +62,11 @@ begin
       Dm.OnLog      := Console.OnLog;
       Dm.OnFinished := Console.OnFinished;
 
-      Writeln('[INFO] Iniciando debate...');
+      Writeln('[INFO] Starting debate...');
       Dm.RunDebate(Topic);
 
       // Esperar resultado procesando TThread.Queue pendientes
-      Writeln('[INFO] Esperando resultado (max 5 min)...');
+      Writeln('[INFO] Waiting for result (max 5 min)...');
       var TimeoutMs := 5 * 60 * 1000;  // 5 minutos
       var Elapsed   := 0;
       while (not Console.Finished) and (Elapsed < TimeoutMs) do
@@ -80,11 +80,11 @@ begin
       begin
         Writeln;
         Writeln(StringOfChar('=', 60));
-        Writeln('=== VEREDICTO FINAL ===');
+        Writeln('=== FINAL VERDICT ===');
         Writeln(Console.Output);
       end
       else
-        Writeln('[TIMEOUT] El debate no terminó en el tiempo esperado.');
+        Writeln('[TIMEOUT] The debate did not finish within the expected time.');
 
     finally
       Dm.Free;
@@ -94,11 +94,11 @@ begin
   except
     on E: Exception do
     begin
-      Writeln('EXCEPCION: ', E.ClassName, ' - ', E.Message);
+      Writeln('EXCEPTION: ', E.ClassName, ' - ', E.Message);
     end;
   end;
 
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

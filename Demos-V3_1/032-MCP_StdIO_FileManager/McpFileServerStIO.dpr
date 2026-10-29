@@ -13,25 +13,25 @@ var
 
 begin
   try
-    // 1. Crear el servidor (Modo Stdio para integración local)
-    // Nota: Usamos Stdio porque es el estándar para herramientas locales de IA
+    // 1. Create the server (Stdio mode for local integration)
+    // Note: We use Stdio because it is the standard for local AI tools
     MCPServer := TAiMCPStdioServer.Create(nil);
     try
-      // 2. Configuración básica
+      // 2. Basic configuration
       MCPServer.ServerName := 'Delphi-FileManager-MCP';
 
-      // 3. Registrar las herramientas del Sandbox
+      // 3. Register the Sandbox tools
       WriteLn(ErrOutput, 'Registrando herramientas de archivo...'); // ErrOutput para no ensuciar Stdin/Stdout
       uTool.Sandbox.RegisterSandboxTools(MCPServer);
       uTool.WorldTime.RegisterWorldTimeTool(MCPServer);
 
-      // 4. Iniciar servidor
+      // 4. Start server
       MCPServer.Start;
-      WriteLn(ErrOutput, '✅ Servidor MCP de Archivos iniciado.');
-      WriteLn(ErrOutput, '📂 Carpeta controlada: ' + uTool.Sandbox.SANDBOX_ROOT);
-      WriteLn(ErrOutput, 'Esperando comandos JSON-RPC vía Stdin...');
+      WriteLn(ErrOutput, '✅ MCP File Server started.');
+      WriteLn(ErrOutput, '📂 Controlled folder: ' + uTool.Sandbox.SANDBOX_ROOT);
+      WriteLn(ErrOutput, 'Waiting for JSON-RPC commands via Stdin...');
 
-      // 5. Bucle infinito para mantener la app viva
+      // 5. Infinite loop to keep the app alive
       while True do
         Sleep(1000);
 

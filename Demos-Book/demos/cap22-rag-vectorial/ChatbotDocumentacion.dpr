@@ -27,7 +27,7 @@ var
   Count   : Integer;
 begin
   Archivos := TDirectory.GetFiles(Carpeta, '*.txt');
-  WriteLn('Indexando ', Length(Archivos), ' documentos...');
+  WriteLn('Indexing ', Length(Archivos), ' documents...');
   for Archivo in Archivos do
   begin
     Count := RAG.AddItemsFromPlainText(
@@ -40,7 +40,7 @@ begin
   end;
   RAG.BuildIndex;
   RAG.SaveToFile(INDEX_FILE);
-  WriteLn('Indexacion completa: ', RAG.Count, ' fragmentos totales.');
+  WriteLn('Indexing complete: ', RAG.Count, ' total fragments.');
 end;
 
 function ObtenerContexto(const Pregunta: string): string;
@@ -72,12 +72,12 @@ begin
     sLineBreak +
     'Todos los productos incluyen garantia de 1 año.'
   );
-  WriteLn('Documentos de ejemplo creados en: ', DOCS_FOLDER);
+  WriteLn('Sample documents created in: ', DOCS_FOLDER);
 end;
 
 begin
   WriteLn('=================================================');
-  WriteLn('  Cap. 22 - RAG Vectorial: Chatbot Demo');
+  WriteLn('  Cap. 22 - Vector RAG: Chatbot Demo');
   WriteLn('=================================================');
   WriteLn;
 
@@ -93,7 +93,7 @@ begin
     if TFile.Exists(INDEX_FILE) then
     begin
       RAG.LoadFromFile(INDEX_FILE);
-      WriteLn('Indice cargado: ', RAG.Count, ' fragmentos.');
+      WriteLn('Index loaded: ', RAG.Count, ' fragments.');
     end
     else
     begin
@@ -112,15 +112,15 @@ begin
     AiConn.Params.Values['Asynchronous'] := 'False';
 
     WriteLn;
-    WriteLn('Chatbot RAG listo. Preguntas de ejemplo:');
-    WriteLn('  "?Cual es el plazo para devolver un producto?"');
-    WriteLn('  "?Cuanto cuesta la Laptop Pro X?"');
-    WriteLn('  "?Hay envio gratis?"');
-    WriteLn('Escribe "salir" para terminar.');
+    WriteLn('RAG chatbot ready. Example questions:');
+    WriteLn('  "What is the deadline to return a product?"');
+    WriteLn('  "How much does the Laptop Pro X cost?"');
+    WriteLn('  "Is shipping free?"');
+    WriteLn('Type "salir" to quit.');
     WriteLn;
 
     repeat
-      Write('Tu > ');
+      Write('You > ');
       ReadLn(Pregunta);
       if SameText(Trim(Pregunta), 'salir') then Break;
       if Trim(Pregunta) = '' then Continue;
@@ -130,7 +130,7 @@ begin
 
       if Contexto = '' then
       begin
-        WriteLn('IA  > No encontre informacion relevante en la base de conocimiento.');
+        WriteLn('IA  > No relevant information found in the knowledge base.');
         WriteLn;
         Continue;
       end;

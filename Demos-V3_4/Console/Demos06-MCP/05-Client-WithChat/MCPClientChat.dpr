@@ -6,19 +6,19 @@ program MCPClientChat;
 // =============================================================================
 // MakerAI — 06-MCP / 05-Client-WithChat
 // =============================================================================
-// Integra un servidor MCP con un chat LLM via TAiFunctions.
-// El LLM puede llamar herramientas MCP de forma transparente.
+// Integrates an MCP server with an LLM chat via TAiFunctions.
+// The LLM can call MCP tools transparently.
 //
-// Conceptos que cubre:
-//   - TAiFunctions: coleccion de herramientas para el LLM
-//   - TAiFunctions.MCPClients.Add: registrar un servidor MCP manualmente
+// Concepts it covers:
+//   - TAiFunctions: collection of tools for the LLM
+//   - TAiFunctions.MCPClients.Add: register an MCP server manually
 //   - TMCPClientItem.TransportType := tpStdIo
-//   - TMCPClientItem.Params.Values['Command']: ruta al servidor
-//   - TAiChatConnection: conexion de chat con soporte de tools
-//   - FAiConn.AiFunctions: enlazar herramientas al chat
-//   - El LLM llama automaticamente las herramientas MCP cuando las necesita
+//   - TMCPClientItem.Params.Values['Command']: path to the server
+//   - TAiChatConnection: chat connection with tool support
+//   - FAiConn.AiFunctions: bind tools to the chat
+//   - The LLM automatically calls MCP tools when needed
 //
-// Prerequisito: compilar 01-Server-StdIO (Win64 Release).
+// Prerequisite: compile 01-Server-StdIO (Win64 Release).
 // =============================================================================
 
 uses
@@ -53,7 +53,7 @@ var
   Respuesta   : String;
 begin
   Writeln('=== MCPClientChat ===');
-  Writeln('LLM + herramientas MCP (get_datetime, greet)');
+  Writeln('LLM + MCP tools (get_datetime, greet)');
   Writeln;
 
   ServerPath := ExpandFileName(ExtractFilePath(ParamStr(0)) + SERVER_EXE_REL);
@@ -63,7 +63,7 @@ begin
   Functions := TAiFunctions.Create(nil);
   AiConn    := TAiChatConnection.Create(nil);
   try
-    // Registrar el servidor MCP StdIO manualmente en TAiFunctions
+    // Register the MCP StdIO server manually in TAiFunctions
     if TFile.Exists(ServerPath) then
     begin
       ClientItem := Functions.MCPClients.Add;
@@ -71,23 +71,23 @@ begin
       ClientItem.TransportType           := tpStdIo;
       ClientItem.Params.Values['Command'] := ServerPath;
 
-      // Inicializar el proceso del servidor
+      // Initialize the server process
       if not ClientItem.MCPClient.Initialized then
         ClientItem.MCPClient.Initialize;
 
       if ClientItem.MCPClient.Available then
-        Writeln('Servidor MCP conectado y disponible.')
+        Writeln('MCP server connected and available.')
       else
-        Writeln('AVISO: Servidor MCP no disponible. Verificar que exista el exe.');
+        Writeln('WARNING: MCP server not available. Verify that the exe exists.');
     end
     else
     begin
-      Writeln('AVISO: Servidor no encontrado. Continuando sin herramientas MCP.');
-      Writeln('Compila primero 01-Server-StdIO (Win64 Release).');
+      Writeln('WARNING: Server not found. Continuing without MCP tools.');
+      Writeln('Compile 01-Server-StdIO first (Win64 Release).');
     end;
     Writeln;
 
-    // Configurar TAiChatConnection con las funciones MCP
+    // Configure TAiChatConnection with the MCP functions
     AiConn.AiFunctions              := Functions;
     AiConn.DriverName               := DRIVER;
     AiConn.Model                    := MODEL;
@@ -102,23 +102,23 @@ begin
       'get_datetime (para saber la fecha y hora) y greet (para saludar). ' +
       'Usa las herramientas cuando sea apropiado. Responde en espanol.';
 
-    // Ejecutar consultas que usan las herramientas MCP
+    // Run queries that use the MCP tools
     Writeln(StringOfChar('-', 60));
-    Pregunta := 'Que fecha y hora es ahora?';
+    Pregunta := 'What date and time is it now?';
     Writeln('Pregunta: ', Pregunta);
     Respuesta := AiConn.AddMessageAndRun(Pregunta, 'user', []);
     Writeln('Respuesta: ', Respuesta);
     Writeln;
 
     Writeln(StringOfChar('-', 60));
-    Pregunta := 'Saluda a "MakerAI" en espanol.';
+    Pregunta := 'Greet "MakerAI" in Spanish.';
     Writeln('Pregunta: ', Pregunta);
     Respuesta := AiConn.AddMessageAndRun(Pregunta, 'user', []);
     Writeln('Respuesta: ', Respuesta);
     Writeln;
 
     Writeln(StringOfChar('-', 60));
-    Pregunta := 'Saluda a "Developer" en ingles y dime tambien la hora actual en formato ISO.';
+    Pregunta := 'Greet "Developer" in English and also tell me the current time in ISO format.';
     Writeln('Pregunta: ', Pregunta);
     Respuesta := AiConn.AddMessageAndRun(Pregunta, 'user', []);
     Writeln('Respuesta: ', Respuesta);

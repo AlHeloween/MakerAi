@@ -2,7 +2,7 @@
 
 // =============================================================================
 // MakerAI - Demo 056: FMX Analysis Pipeline
-// DataModule con el grafo de analisis.
+// DataModule with the analysis graph.
 //
 // Pipeline:
 //   [Analyzer] -> [Extractor] -> [Summarizer]

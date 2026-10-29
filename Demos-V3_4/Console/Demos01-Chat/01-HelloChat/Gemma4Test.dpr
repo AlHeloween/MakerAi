@@ -4,10 +4,10 @@ program Gemma4Test;
 {$R *.res}
 
 // =============================================================================
-// Gemma4Test — prueba gemma4:e2b via Ollama con el framework MakerAI
+// Gemma4Test — tests gemma4:e2b via Ollama with the MakerAI framework
 //
-// TEST 1: Chat basico + reasoning (verifica que think:true activa el campo thinking)
-// TEST 2: Vision (imagen roja 1x1)
+// TEST 1: Basic chat + reasoning (verifies that think:true activates the thinking field)
+// TEST 2: Vision (red 1x1 image)
 // =============================================================================
 
 uses
@@ -47,7 +47,7 @@ procedure TEvHandler.OnThinking(const Sender: TObject; aMsg: TAiChatMessage;
 begin
   GThinking := aText;
   Writeln;
-  Writeln('--- Razonamiento interno ---');
+  Writeln('--- Internal reasoning ---');
   Writeln(aText);
   Writeln('----------------------------');
 end;
@@ -90,7 +90,7 @@ var
   Resp: String;
 begin
   Writeln;
-  Writeln('TEST 1 - Chat basico + reasoning');
+  Writeln('TEST 1 - Basic chat + reasoning');
   Writeln(LINE);
 
   GThinking := '';
@@ -103,9 +103,9 @@ begin
     Writeln;
 
     if (Resp <> '') and (GThinking <> '') then
-      Writeln('PASS: respuesta + thinking recibidos (think:true activo)')
+      Writeln('PASS: response + thinking received (think:true active)')
     else if Resp <> '' then
-      Writeln('WARN: respuesta OK pero thinking vacio')
+      Writeln('WARN: response OK but thinking empty')
     else
       Writeln('FAIL: sin respuesta');
   finally
@@ -119,7 +119,7 @@ end;
 // ---------------------------------------------------------------------------
 procedure Test2_Vision;
 const
-  // PNG 1x1 pixel rojo (generado con System.Drawing, valido)
+  // PNG 1x1 red pixel (generated with System.Drawing, valid)
   RED_PNG_B64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6Q' +
                 'AAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhX' +
                 'Y/jPwPAfAAUAAf+mXJtdAAAAAElFTkSuQmCC';
@@ -130,7 +130,7 @@ var
   Resp  : String;
 begin
   Writeln;
-  Writeln('TEST 2 - Vision (imagen roja 1x1)');
+  Writeln('TEST 2 - Vision (red 1x1 image)');
   Writeln(LINE);
 
   Ev   := TEvHandler.Create;
@@ -144,12 +144,12 @@ begin
       'What is the dominant color in this image? One word only.',
       'user', [Media]);
 
-    Writeln('Respuesta: ', Resp);
+    Writeln('Response: ', Resp);
 
     if Resp.ToLower.Contains('red') then
-      Writeln('PASS: vision funciona correctamente')
+      Writeln('PASS: vision works correctly')
     else if Resp <> '' then
-      Writeln('INFO: respuesta recibida: "', Resp, '" (verificar si es correcto)');
+      Writeln('INFO: response received: "', Resp, '" (check if correct)');
   finally
     Conn.Free;
     Ev.Free;
@@ -170,13 +170,13 @@ var
   Resp  : String;
 begin
   Writeln;
-  Writeln('TEST 3 - Audio (transcripcion WAV)');
+  Writeln('TEST 3 - Audio (WAV transcription)');
   Writeln(LINE);
-  Writeln('Archivo: ', AUDIO_FILE);
+  Writeln('File: ', AUDIO_FILE);
 
   if not FileExists(AUDIO_FILE) then
   begin
-    Writeln('SKIP: archivo no encontrado');
+    Writeln('SKIP: file not found');
     Exit;
   end;
 
@@ -193,7 +193,7 @@ begin
     Writeln;
 
     if Resp <> '' then
-      Writeln('PASS: audio transcrito correctamente')
+      Writeln('PASS: audio transcribed correctly')
     else
       Writeln('FAIL: sin respuesta');
   finally
@@ -218,6 +218,6 @@ begin
 
   Writeln;
   Writeln(LINE);
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

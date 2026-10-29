@@ -56,16 +56,16 @@ type
     FIncludeSubdirs: Boolean;
     FShowDetails: Boolean;
   public
-    [AiMCPSchemaDescription('Ruta de la carpeta a listar')]
+    [AiMCPSchemaDescription('Path of the folder to list')]
     property Path: string read FPath write FPath;
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Patrón de búsqueda (ej: "*.pas", "*.txt") - default: "*.*"')]
+    [AiMCPSchemaDescription('Search pattern (e.g.: "*.pas", "*.txt") - default: "*.*"')]
     property Pattern: string read FPattern write FPattern;
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Incluir subdirectorios (default: false)')]
+    [AiMCPSchemaDescription('Include subdirectories (default: false)')]
     property IncludeSubdirs: Boolean read FIncludeSubdirs write FIncludeSubdirs;
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Mostrar detalles (tamaño, fecha) - default: false)')]
+    [AiMCPSchemaDescription('Show details (size, date) - default: false)')]
     property ShowDetails: Boolean read FShowDetails write FShowDetails;
   end;
 
@@ -97,7 +97,7 @@ type
   private
     FFilePath: string;
   public
-    [AiMCPSchemaDescription('Ruta completa del archivo a leer')]
+    [AiMCPSchemaDescription('Full path of the file to read')]
     property FilePath: string read FFilePath write FFilePath;
   end;
 
@@ -122,15 +122,15 @@ type
     FAppend: Boolean;
     FCreateDirs: Boolean;
   public
-    [AiMCPSchemaDescription('Ruta completa del archivo a escribir')]
+    [AiMCPSchemaDescription('Full path of the file to write')]
     property FilePath: string read FFilePath write FFilePath;
-    [AiMCPSchemaDescription('Contenido a escribir en el archivo')]
+    [AiMCPSchemaDescription('Content to write to the file')]
     property Content: string read FContent write FContent;
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Agregar al final del archivo (default: false = sobrescribir)')]
+    [AiMCPSchemaDescription('Append to the end of the file (default: false = overwrite)')]
     property Append: Boolean read FAppend write FAppend;
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Crear directorios si no existen (default: true)')]
+    [AiMCPSchemaDescription('Create directories if they do not exist (default: true)')]
     property CreateDirs: Boolean read FCreateDirs write FCreateDirs;
   end;
 
@@ -178,7 +178,7 @@ constructor TListFilesTool.Create;
 begin
   inherited;
   FName := 'list_files';
-  FDescription := 'Lista archivos en carpetas permitidas con filtros de seguridad';
+  FDescription := 'Lists files in allowed folders with security filters';
 end;
 
 class procedure TListFilesTool.SetDefaultConfiguration;
@@ -280,10 +280,10 @@ var
 begin
   try
     if not TDirectory.Exists(AParams.Path) then
-      raise Exception.Create('La carpeta no existe: ' + AParams.Path);
+      raise Exception.Create('The folder does not exist: ' + AParams.Path);
 
     if not IsPathAllowed(AParams.Path) then
-      raise Exception.Create('Acceso denegado a la carpeta: ' + AParams.Path);
+      raise Exception.Create('Access denied to the folder: ' + AParams.Path);
 
     SearchPattern := AParams.Pattern;
     if SearchPattern.IsEmpty then
@@ -321,15 +321,15 @@ begin
     end;
 
     ResultObject.AddPair('count', FilesArray.Count);
-    ResultObject.AddPair('message', Format('%d archivos encontrados en "%s".', [FilesArray.Count, AParams.Path]));
+    ResultObject.AddPair('message', Format('%d files found in "%s".', [FilesArray.Count, AParams.Path]));
 
-    // Devolvemos el JSON de la lista de archivos dentro del formato de respuesta "content"
+    // We return the JSON of the file list inside the "content" response format
     Result := TAiMCPResponseBuilder.New.AddText(ResultObject.ToJSON).Build;
     ResultObject.Free;
 
   except
     on E: Exception do
-      Result := TAiMCPResponseBuilder.New.AddText('❌ Error listando archivos: ' + E.Message).Build;
+      Result := TAiMCPResponseBuilder.New.AddText('❌ Error listing files: ' + E.Message).Build;
   end;
 end;
 
@@ -339,7 +339,7 @@ constructor TReadFileTool.Create;
 begin
   inherited;
   FName := 'read_file';
-  FDescription := 'Lee y devuelve el contenido de un archivo (texto o binario) con restricciones de seguridad.';
+  FDescription := 'Reads and returns the content of a file (text or binary) with security restrictions.';
 end;
 
 // CAMBIO: La función ahora devuelve el archivo usando el builder.
@@ -349,25 +349,25 @@ var
 begin
   try
     if not TFile.Exists(AParams.FilePath) then
-      raise Exception.Create('El archivo no existe: ' + AParams.FilePath);
+      raise Exception.Create('The file does not exist: ' + AParams.FilePath);
 
     if not TListFilesTool.IsPathAllowed(ExtractFileDir(AParams.FilePath)) then
-      raise Exception.Create('Acceso denegado a la ruta del archivo.');
+      raise Exception.Create('Access denied to the file path.');
 
     if not TListFilesTool.IsExtensionAllowed(AParams.FilePath) then
-      raise Exception.Create('Tipo de archivo no permitido para lectura: ' + TPath.GetExtension(AParams.FilePath));
+      raise Exception.Create('File type not allowed for reading: ' + TPath.GetExtension(AParams.FilePath));
 
     FileSize := TFile.GetSize(AParams.FilePath);
     if FileSize > MAX_FILE_SIZE then
-      raise Exception.CreateFmt('Archivo demasiado grande: %d bytes (máximo permitido: %d bytes)', [FileSize, MAX_FILE_SIZE]);
+      raise Exception.CreateFmt('File too large: %d bytes (maximum allowed: %d bytes)', [FileSize, MAX_FILE_SIZE]);
 
-    // Usamos el builder para devolver el archivo. Él se encarga de todo.
+    // We use the builder to return the file. It handles everything.
     Result := TAiMCPResponseBuilder.New
       .AddFile(AParams.FilePath)
       .Build;
   except
     on E: Exception do
-      Result := TAiMCPResponseBuilder.New.AddText('❌ Error leyendo archivo: ' + E.Message).Build;
+      Result := TAiMCPResponseBuilder.New.AddText('❌ Error reading file: ' + E.Message).Build;
   end;
 end;
 
@@ -377,7 +377,7 @@ constructor TWriteFileTool.Create;
 begin
   inherited;
   FName := 'write_file';
-  FDescription := 'Escribe o agrega contenido a archivos de texto con restricciones de seguridad.';
+  FDescription := 'Writes or appends content to text files with security restrictions.';
 end;
 
 // CAMBIO: La función ahora devuelve un JSON simple de confirmación.
@@ -390,10 +390,10 @@ begin
     FileDir := ExtractFileDir(AParams.FilePath);
 
     if not TListFilesTool.IsPathAllowed(FileDir) then
-      raise Exception.Create('Acceso denegado para escribir en: ' + FileDir);
+      raise Exception.Create('Access denied for writing to: ' + FileDir);
 
     if not TListFilesTool.IsExtensionAllowed(AParams.FilePath) then
-      raise Exception.Create('Tipo de archivo no permitido para escritura: ' + TPath.GetExtension(AParams.FilePath));
+      raise Exception.Create('File type not allowed for writing: ' + TPath.GetExtension(AParams.FilePath));
 
     CreateDirs := AParams.CreateDirs;
     if CreateDirs and not TDirectory.Exists(FileDir) then
@@ -409,7 +409,7 @@ begin
       .Build;
   except
     on E: Exception do
-      Result := TAiMCPResponseBuilder.New.AddText('❌ Error escribiendo archivo: ' + E.Message).Build;
+      Result := TAiMCPResponseBuilder.New.AddText('❌ Error writing file: ' + E.Message).Build;
   end;
 end;
 

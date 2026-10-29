@@ -6,17 +6,17 @@ program GraphGQL;
 // =============================================================================
 // MakerAI — 05-RAGGraph / 04-GQL
 // =============================================================================
-// MakerGQL: lenguaje de consulta tipo Cypher para grafos de MakerAI.
-// Permite consultar el grafo con sintaxis declarativa MATCH/WHERE/RETURN.
+// MakerGQL: Cypher-like query language for MakerAI graphs.
+// Allows querying the graph with declarative MATCH/WHERE/RETURN syntax.
 //
 // Conceptos que cubre:
-//   - ExecuteMakerGQL(code): ejecuta una consulta GQL
-//   - SHOW LABELS: lista etiquetas de nodos presentes
-//   - SHOW EDGES: lista tipos de aristas
-//   - MATCH (n:Label) RETURN n: buscar por etiqueta
-//   - MATCH (a)-[r:LABEL]->(b) RETURN a, r, b: relaciones
-//   - WHERE: filtros sobre propiedades
-//   - SHORTEST PATH FROM (...) TO (...): camino mínimo
+//   - ExecuteMakerGQL(code): executes a GQL query
+//   - SHOW LABELS: lists node labels present
+//   - SHOW EDGES: lists edge types
+//   - MATCH (n:Label) RETURN n: search by label
+//   - MATCH (a)-[r:LABEL]->(b) RETURN a, r, b: relationships
+//   - WHERE: filters on properties
+//   - SHORTEST PATH FROM (...) TO (...): shortest path
 // =============================================================================
 
 uses
@@ -33,7 +33,7 @@ const
   EMB_API_KEY = '@OPENAI_API_KEY';
 
 // =============================================================================
-//  Grafo de películas y directores
+//  Movies and directors graph
 // =============================================================================
 procedure ConstruirGrafoPeliculas(RAG: TAiRagGraph);
 var
@@ -185,40 +185,40 @@ begin
 
     ConstruirGrafoPeliculas(RAG);
 
-    Writeln('Generando embeddings...');
+    Writeln('Generating embeddings...');
     RAG.RebuildIndexes;
     Writeln;
 
-    // ── Comandos de exploración ───────────────────────────────────────────
+    // ── Exploration commands ───────────────────────────────────────────
     EjecutarGQL(RAG,
-      'Listar etiquetas de nodos',
+      'List node labels',
       'SHOW LABELS');
 
     EjecutarGQL(RAG,
-      'Listar tipos de aristas',
+      'List edge types',
       'SHOW EDGES');
 
-    // ── Consultas MATCH básicas ───────────────────────────────────────────
+    // ── Basic MATCH queries ───────────────────────────────────────────
     EjecutarGQL(RAG,
-      'Todos los directores',
+      'All directors',
       'MATCH (d:DIRECTOR) RETURN d');
 
     EjecutarGQL(RAG,
-      'Peliculas de Christopher Nolan',
+      'Movies by Christopher Nolan',
       'MATCH (d:DIRECTOR)-[r:DIRIGIO]->(p:PELICULA) WHERE d.nombre = "Christopher Nolan" RETURN p');
 
-    // ── Consultas con WHERE ───────────────────────────────────────────────
+    // ── Queries with WHERE ───────────────────────────────────────────────
     EjecutarGQL(RAG,
-      'Peliculas con nota > 8.5',
+      'Movies with rating > 8.5',
       'MATCH (p:PELICULA) WHERE p.nota > 8.5 RETURN p');
 
     EjecutarGQL(RAG,
-      'Peliculas anteriores a 1990',
+      'Movies before 1990',
       'MATCH (p:PELICULA) WHERE p.año < 1990 RETURN p');
 
-    // ── Relaciones completas ──────────────────────────────────────────────
+    // ── Complete relationships ──────────────────────────────────────────────
     EjecutarGQL(RAG,
-      'Peliculas de ciencia ficcion con su director',
+      'Science fiction movies with their director',
       'MATCH (d:DIRECTOR)-[r:DIRIGIO]->(p:PELICULA)-[g:ES_DE_GENERO]->(gen:GENERO) ' +
       'WHERE gen.nombre = "Ciencia Ficcion" RETURN d, p');
 

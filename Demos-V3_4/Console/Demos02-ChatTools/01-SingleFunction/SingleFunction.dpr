@@ -9,14 +9,14 @@ program SingleFunction;
 // Demuestra cómo exponer UNA función Delphi al LLM para que la invoque
 // cuando lo necesite (Tool Use / Function Calling).
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - Crear TAiFunctions y registrar una función con AddFunction()
 //   - Asignar TAiFunctions a TAiChatConnection.AiFunctions
 //   - Implementar el handler como método de clase (TFunctionEvent)
 //   - El LLM decide CUÁNDO llamar la función según el contexto
 //   - La función devuelve un resultado en ToolCall.Response
 //
-// Flujo:
+// Flow:
 //   Usuario → LLM detecta que necesita la función → llama get_weather →
 //   handler Delphi produce JSON → LLM redacta respuesta final
 // =============================================================================
@@ -117,7 +117,7 @@ begin
   Writeln('Driver: ', DRIVER, ' / Model: ', MODEL);
   Writeln;
 
-  // ── Crear y configurar TAiFunctions ────────────────────────────────────────
+  // ── Create and configure TAiFunctions ────────────────────────────────────────
   FAiFunctions := TAiFunctions.Create(nil);
   try
     LFn := FAiFunctions.Functions.AddFunction('get_weather', True, OnFnGetWeather);
@@ -131,7 +131,7 @@ begin
     LParam.Required    := True;
     LParam.Description.Text := 'Nombre de la ciudad (ej: "Monterrey", "Ciudad de México")';
 
-    // ── Crear conexión ────────────────────────────────────────────────────────
+    // ── Create connection ────────────────────────────────────────────────
     Conn := TAiChatConnection.Create(nil);
     try
       Conn.DriverName := DRIVER;
@@ -146,22 +146,22 @@ begin
         'Eres un asistente de clima. Cuando el usuario pregunte por el clima, ' +
         'usa la función get_weather para obtener datos reales. Responde en español.';
 
-      // ── Pregunta 1: necesita la función ────────────────────────────────────
-      Writeln('── Pregunta 1 (necesita la función) ──');
+      // ── Question 1: needs the function ────────────────────────────────────
+      Writeln('── Question 1 (needs the function) ──');
       Res := Conn.AddMessageAndRun('¿Cómo está el clima en Monterrey hoy?', 'user', []);
       Writeln('Respuesta: ', Res);
       Writeln;
       Conn.Messages.Clear;
 
-      // ── Pregunta 2: NO necesita la función ─────────────────────────────────
-      Writeln('── Pregunta 2 (no necesita la función) ──');
+      // ── Question 2: does NOT need the function ─────────────────────────────────
+      Writeln('── Question 2 (does not need the function) ──');
       Res := Conn.AddMessageAndRun('¿Cuál es la capital de México?', 'user', []);
       Writeln('Respuesta: ', Res);
       Writeln;
       Conn.Messages.Clear;
 
-      // ── Pregunta 3: función con otra ciudad ────────────────────────────────
-      Writeln('── Pregunta 3 (invoca función con otra ciudad) ──');
+      // ── Question 3: function with another city ────────────────────────────────
+      Writeln('── Question 3 (invokes function with another city) ──');
       Res := Conn.AddMessageAndRun(
         '¿Necesito llevar paraguas si salgo en CDMX?', 'user', []);
       Writeln('Respuesta: ', Res);
@@ -190,6 +190,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

@@ -39,7 +39,7 @@ var
   I  : Integer;
 begin
   Writeln(StringOfChar('=', 65));
-  Writeln('DEMO 1: Llamada directa (TAiGeminiWebSearchTool.Search)');
+  Writeln('DEMO 1: Direct call (TAiGeminiWebSearchTool.Search)');
   Writeln(StringOfChar('=', 65));
   Writeln;
 
@@ -49,7 +49,7 @@ begin
       'Cuales son los modelos LLM mas potentes disponibles en abril 2025?',
       'gemini-2.0-flash');
     try
-      Writeln('Respuesta:');
+      Writeln('Response:');
       Writeln(Copy(Msg.Prompt, 1, 600));
       Writeln;
       Writeln(Format('  Tokens — prompt: %d  completion: %d  total: %d',
@@ -58,13 +58,13 @@ begin
 
       if Msg.Citations.Count > 0 then
       begin
-        Writeln(Format('  Citaciones: %d', [Msg.Citations.Count]));
+        Writeln(Format('  Citations: %d', [Msg.Citations.Count]));
         for I := 0 to Min(2, Msg.Citations.Count - 1) do
           if Msg.Citations[I].Sources.Count > 0 then
             Writeln(Format('    [%d] %s', [I+1, Msg.Citations[I].Sources[0].DataSource.Url]));
       end
       else
-        Writeln('  (sin citaciones en metadata)');
+        Writeln('  (no citations in metadata)');
     finally
       Msg.Free;
     end;
@@ -87,7 +87,7 @@ begin
   Writeln(StringOfChar('=', 65));
   Writeln('DEMO 2: TAiGeminiWebSearchTool + Ollama cmSmartDispatch');
   Writeln(StringOfChar('=', 65));
-  Writeln('  Clasifica con modelo local, busca con Gemini Google Search');
+  Writeln('  Classifies with local model, searches with Gemini Google Search');
   Writeln;
 
   SearchTool := TAiGeminiWebSearchTool.Create(nil);
@@ -107,15 +107,15 @@ begin
     Conn.ChatMode          := cmSmartDispatch;
     Conn.SystemPrompt.Text := 'Eres un asistente util. Responde en espanol.';
 
-    // CHAT — no debe buscar
+    // CHAT — should not search
     Writeln(StringOfChar('-', 65));
-    Write('[CHAT] Cuanto es 25 por 4? => ');
+    Write('[CHAT] What is 25 times 4? => ');
     Resp := Conn.AddMessageAndRun('Cuanto es 25 por 4?', 'user', []);
     Writeln(Copy(Resp, 1, 150));
 
-    // WEBSEARCH — debe buscar
+    // WEBSEARCH — should search
     Writeln(StringOfChar('-', 65));
-    Writeln('[WEBSEARCH] Noticias recientes de IA en 2025:');
+    Writeln('[WEBSEARCH] Recent AI news in 2025:');
     try
       Resp := Conn.AddMessageAndRun(
         'Busca las ultimas noticias sobre inteligencia artificial en 2025',
@@ -123,7 +123,7 @@ begin
       Writeln(Copy(Resp, 1, 500));
     except
       on E: Exception do
-        Writeln('ERROR en busqueda: ', E.Message);
+        Writeln('ERROR in search: ', E.Message);
     end;
 
   finally
@@ -142,6 +142,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Write('Presiona Enter para salir...');
+  Write('Press Enter to exit...');
   Readln;
 end.

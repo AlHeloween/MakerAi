@@ -3,13 +3,13 @@ program TallerChatTest;
 {$APPTYPE CONSOLE}
 
 // =============================================================================
-// Demo 067 — Validacion de codigo del Taller Chat Multimodal
+// Demo 067 — Validation of Multimodal Chat Workshop code
 // =============================================================================
-// Prueba los 3 patrones clave del taller en modo consola (sincrono):
-//   Test 1: Chat de texto basico con Ollama (ModelCaps/SessionCaps)
-//   Test 2: Function Calling — GuardarArchivo
-//   Test 3: Vision — descripcion de imagen
-//   Test 4: Modelo unificado vision + tools (qwen2.5vl:7b)
+// Tests the 3 key patterns of the workshop in console mode (synchronous):
+//   Test 1: Basic text chat with Ollama (ModelCaps/SessionCaps)
+//   Test 2: Function Calling — SaveFile
+//   Test 3: Vision — image description
+//   Test 4: Unified vision + tools model (qwen2.5vl:7b)
 // =============================================================================
 
 uses
@@ -29,7 +29,7 @@ uses
   uMakerAi.Chat.Ollama;          // driver Ollama
 
 // =============================================================================
-// Helpers de consola
+// Console helpers
 // =============================================================================
 
 procedure PrintSep(const titulo: string);
@@ -45,7 +45,7 @@ procedure PrintFAIL(const msg: string); begin WriteLn('[FAIL] ' + msg); end;
 procedure PrintINFO(const msg: string); begin WriteLn('       ' + msg); end;
 
 // =============================================================================
-// Clase helper para event handlers
+// Helper class for event handlers
 // =============================================================================
 
 type
@@ -85,7 +85,7 @@ begin
       '" ha sido guardado (' + IntToStr(Length(Contenido)) + ' caracteres).';
     ArchivoGuardado   := True;
     ArchivoCreadoPath := NombreArchivo;
-    PrintINFO('[Tool invocado] GuardarArchivo("' + NombreArchivo + '")');
+    PrintINFO('[Tool invoked] SaveFile("' + NombreArchivo + '")');
   except
     on Ex: Exception do
     begin
@@ -105,14 +105,14 @@ begin
 end;
 
 // =============================================================================
-// Configuracion de modelos — identica al taller
+// Model configuration — identical to workshop
 // =============================================================================
 
 procedure InitChatModels;
 var
   Model: string;
 begin
-  // Parametros globales Ollama (IMPORTANTE: Asynchronous=False para modo consola)
+  // Global Ollama parameters (IMPORTANT: Asynchronous=False for console mode)
   TAiChatFactory.Instance.RegisterUserParam('Ollama', 'Max_Tokens',   '4000');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', 'Temperature',  '0.7');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', 'Asynchronous', 'False');
@@ -122,14 +122,14 @@ begin
   TAiChatFactory.Instance.RegisterUserParam('Ollama', 'Url',
     'http://localhost:11434/');
 
-  // Test 1: modelo de razonamiento para texto puro
+  // Test 1: reasoning model for pure text
   Model := 'deepseek-r1:1.5b';
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'ModelCaps',    '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'SessionCaps',  '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'SystemPrompt',
     'Eres un asistente tecnico. Responde siempre en espanol y de forma concisa.');
 
-  // Test 2: modelo con tools (texto puro)
+  // Test 2: model with tools (pure text)
   Model := 'qwen3.5:0.8b';
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'Tool_Active',  'True');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'ModelCaps',    '[]');
@@ -137,8 +137,8 @@ begin
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'SystemPrompt',
     'Eres un asistente tecnico. Usa las herramientas disponibles cuando sea necesario.');
 
-  // Tests 3 y 4 paso-1: modelo de vision puro (gemma3:4b)
-  // Nota: qwen3-vl falla al procesar imagenes en Ollama 0.20.2 (bug del runner)
+  // Tests 3 and 4 step-1: pure vision model (gemma3:4b)
+  // Note: qwen3-vl fails to process images in Ollama 0.20.2 (runner bug)
   Model := 'gemma3:4b';
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'Tool_Active',  'False');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'ModelCaps',    '[cap_Image]');
@@ -148,7 +148,7 @@ begin
 end;
 
 // =============================================================================
-// Helper: crea TAiChatConnection sincronizada para Ollama
+// Helper: creates synchronized TAiChatConnection for Ollama
 // =============================================================================
 
 function CreateConn(const AModel: string; AHelper: TTestHelper): TAiChatConnection;
@@ -157,20 +157,20 @@ begin
   Result.DriverName := 'Ollama';
   Result.Model      := AModel;
 
-  // Aseguramos modo sincrono directamente en el objeto subyacente
-  // (evita dependencia del mecanismo RTTI de ApplyParamsToChat)
+  // Ensure synchronous mode directly in underlying object
+  // (avoids dependency on RTTI mechanism of ApplyParamsToChat)
   if Assigned(Result.AiChat) then
     Result.AiChat.Asynchronous := False;
 
-  // Tambien lo marcamos en FParams como respaldo
+  // Also mark it in FParams as fallback
   Result.Params.Values['Asynchronous'] := 'False';
 
-  // Capturar errores del driver
+  // Capture driver errors
   Result.OnError := AHelper.OnConnError;
 end;
 
 // =============================================================================
-// Funcion para definir la funcion GuardarArchivo en TAiFunctions
+// Function to define SaveFile function in TAiFunctions
 // =============================================================================
 
 procedure DefinirGuardarArchivo(Funcs: TAiFunctions; Helper: TTestHelper);
@@ -197,7 +197,7 @@ begin
 end;
 
 // =============================================================================
-// TEST 1 — Chat de texto basico
+// TEST 1 — Basic text chat
 // =============================================================================
 
 function Test1_TextoBasico: Boolean;
@@ -226,7 +226,7 @@ begin
         Result := True;
       end
       else
-        PrintFAIL('Respuesta vacia (sin error reportado)');
+        PrintFAIL('Empty response (no error reported)');
     except
       on E: Exception do PrintFAIL('Excepcion: ' + E.Message);
     end;
@@ -237,7 +237,7 @@ begin
 end;
 
 // =============================================================================
-// TEST 2 — Function Calling: GuardarArchivo
+// TEST 2 — Function Calling: SaveFile
 // =============================================================================
 
 function Test2_FunctionCalling: Boolean;
@@ -279,11 +279,11 @@ begin
       end
       else if Resp.Trim <> '' then
       begin
-        PrintFAIL('La herramienta NO fue invocada por el modelo.');
-        PrintINFO('Respuesta: ' + Resp.Trim.Substring(0, Min(200, Resp.Trim.Length)));
+        PrintFAIL('Tool was NOT invoked by model.');
+        PrintINFO('Response: ' + Resp.Trim.Substring(0, Min(200, Resp.Trim.Length)));
       end
       else
-        PrintFAIL('Sin respuesta del modelo.');
+        PrintFAIL('No response from model.');
     except
       on E: Exception do PrintFAIL('Excepcion: ' + E.Message);
     end;
@@ -295,12 +295,12 @@ begin
 end;
 
 // =============================================================================
-// TEST 3 — Vision: descripcion de imagen (gemma3:4b)
+// TEST 3 — Vision: image description (gemma3:4b)
 // =============================================================================
 
 function MakeTinyPng: TBytes;
 begin
-  // PNG valido 10x10 pixel rojo (generado con System.Drawing, checksum correcto)
+  // Valid 10x10 red pixel PNG (generated with System.Drawing, correct checksum)
   Result := TBytes.Create(
     $89,$50,$4E,$47,$0D,$0A,$1A,$0A,
     $00,$00,$00,$0D,$49,$48,$44,$52,
@@ -345,8 +345,8 @@ begin
         Attachment.LoadFromFile(ImgPath);
         MediaFiles.Add(Attachment);
 
-        PrintINFO('Imagen: PNG 10x10 rojo — ' + ImgPath);
-        PrintINFO('Prompt: "Que ves en esta imagen? Describe el color principal."');
+        PrintINFO('Image: 10x10 red PNG — ' + ImgPath);
+        PrintINFO('Prompt: "What do you see in this image? Describe the main color."');
 
         Resp := Conn.AddMessageAndRun(
           'Que ves en esta imagen? Describe brevemente el color principal.',
@@ -376,10 +376,10 @@ begin
 end;
 
 // =============================================================================
-// TEST 4 — Vision + Tools (encadenado: gemma3:4b describe -> qwen3.5:0.8b guarda)
-// Nota: en Ollama 0.20.2, los modelos que soportan vision+tools en el registro
-// (qwen3-vl) fallan al procesar imagenes por un bug del runner. El patron de
-// encadenamiento es una alternativa valida y real para produccion.
+// TEST 4 — Vision + Tools (chained: gemma3:4b describes -> qwen3.5:0.8b saves)
+// Note: in Ollama 0.20.2, models that support vision+tools in registry
+// (qwen3-vl) fail to process images due to a runner bug. The chaining
+// pattern is a valid and real alternative for production.
 // =============================================================================
 
 function Test4_Unificado: Boolean;
@@ -408,8 +408,8 @@ begin
   ConnTools  := CreateConn('qwen3.5:0.8b', Helper);
   try
     try
-      // Paso 1: describir la imagen con el modelo de vision
-      PrintINFO('[Paso 1] gemma3:4b describe la imagen...');
+      // Step 1: describe image with vision model
+      PrintINFO('[Step 1] gemma3:4b describes image...');
       MediaFiles := TAiMediaFiles.Create;
       try
         Attachment := TAiMediaFile.Create;
@@ -426,19 +426,19 @@ begin
 
       if Helper.LastError <> '' then
       begin
-        PrintFAIL('Error en paso vision: ' + Helper.LastError);
+        PrintFAIL('Error in vision step: ' + Helper.LastError);
         Exit;
       end;
       if Descripcion.Trim.IsEmpty then
       begin
-        PrintFAIL('Sin descripcion del modelo vision.');
+        PrintFAIL('No description from vision model.');
         Exit;
       end;
-      PrintOK('Descripcion: ' + Descripcion.Trim.Substring(0, Min(150, Descripcion.Trim.Length)));
+      PrintOK('Description: ' + Descripcion.Trim.Substring(0, Min(150, Descripcion.Trim.Length)));
       Helper.LastError := '';
 
-      // Paso 2: guardar la descripcion con el modelo de tools
-      PrintINFO('[Paso 2] qwen3.5:0.8b guarda la descripcion en archivo...');
+      // Step 2: save description with tools model
+      PrintINFO('[Step 2] qwen3.5:0.8b saves description to file...');
       DefinirGuardarArchivo(Funcs, Helper);
       ConnTools.AiFunctions := Funcs;
 
@@ -447,22 +447,22 @@ begin
         'user', []);
 
       if Helper.LastError <> '' then
-        PrintFAIL('Error en paso tools: ' + Helper.LastError)
+        PrintFAIL('Error in tools step: ' + Helper.LastError)
       else if Helper.ArchivoGuardado and TFile.Exists(ArchPath) then
       begin
         PrintOK('Archivo creado: ' + ArchPath);
-        PrintOK('Respuesta final: ' + Resp.Trim.Substring(0, Min(150, Resp.Trim.Length)));
+        PrintOK('Final response: ' + Resp.Trim.Substring(0, Min(150, Resp.Trim.Length)));
         Result := True;
         TFile.Delete(ArchPath);
       end
       else if Resp.Trim <> '' then
       begin
-        PrintINFO('Modelo respondio pero NO invoco la herramienta:');
+        PrintINFO('Model responded but did NOT invoke tool:');
         PrintINFO(Resp.Trim.Substring(0, Min(200, Resp.Trim.Length)));
-        PrintFAIL('Tool call no ejecutado.');
+        PrintFAIL('Tool call not executed.');
       end
       else
-        PrintFAIL('Sin respuesta del modelo tools.');
+        PrintFAIL('No response from tools model.');
     except
       on E: Exception do PrintFAIL('Excepcion: ' + E.Message);
     end;
@@ -476,13 +476,13 @@ begin
 end;
 
 // =============================================================================
-// NOTA DIDACTICA — Error conocido con qwen3-vl en Ollama 0.20.2
+// DIDACTIC NOTE — Known error with qwen3-vl in Ollama 0.20.2
 // =============================================================================
-// Este procedimiento NO es un test que deba pasar. Su proposito es mostrar
-// en el taller:
-//   1. Como se veria el codigo ideal (un solo modelo con vision + tools)
-//   2. Que error produce qwen3-vl al procesar imagenes en Ollama 0.20.2
-//   3. Que significa ese error y como resolverlo
+// This procedure is NOT a test that must pass. Its purpose is to show
+// in the workshop:
+//   1. How ideal code would look (a single model with vision + tools)
+//   2. What error qwen3-vl produces when processing images in Ollama 0.20.2
+//   3. What that error means and how to resolve it
 // =============================================================================
 
 procedure Demo_ErrorQwenVL;
@@ -501,9 +501,9 @@ begin
   ArchPath := TPath.Combine(TPath.GetTempPath, 'qwen_descripcion.txt');
   TFile.WriteAllBytes(ImgPath, MakeTinyPng);
 
-  PrintSep('NOTA DIDACTICA — Vision + Tools con un solo modelo (qwen3-vl:2b)');
+  PrintSep('DIDACTIC NOTE — Vision + Tools with a single model (qwen3-vl:2b)');
   WriteLn;
-  WriteLn('  Este es el codigo IDEAL cuando el modelo soporta vision + tools:');
+  WriteLn('  This is the IDEAL code when model supports vision + tools:');
   WriteLn('  (un solo TAiChatConnection con cap_Image y Tool_Active = True)');
   WriteLn;
   WriteLn('    Conn.DriverName  := ''Ollama'';');
@@ -514,7 +514,7 @@ begin
   WriteLn('    Conn.AiFunctions := Funcs;');
   WriteLn('    Resp := Conn.AddMessageAndRun(prompt, ''user'', [imagen]);');
   WriteLn;
-  WriteLn('  Intentando ejecutarlo ahora...');
+  WriteLn('  Trying to run it now...');
   WriteLn;
 
   Helper := TTestHelper.Create;
@@ -554,44 +554,44 @@ begin
   end;
 
   // Mostrar el error y la explicacion
-  WriteLn('  Resultado: ERROR');
+  WriteLn('  Result: ERROR');
   if ErrorCapturado <> '' then
     WriteLn('  Mensaje  : ' + ErrorCapturado)
   else
-    WriteLn('  Mensaje  : model runner has unexpectedly stopped (HTTP 500)');
+    WriteLn('  Message  : model runner has unexpectedly stopped (HTTP 500)');
   WriteLn;
   WriteLn(StringOfChar('-', 70));
-  WriteLn('  POR QUE FALLA');
+  WriteLn('  WHY IT FAILS');
   WriteLn(StringOfChar('-', 70));
   WriteLn;
-  WriteLn('  qwen3-vl:2b soporta vision + tools segun el registro de Ollama,');
-  WriteLn('  pero en Ollama 0.20.2 el runner llm-runner falla al cargar las');
-  WriteLn('  imagenes en memoria antes de procesarlas (bug interno del runner).');
-  WriteLn('  El servidor devuelve HTTP 500 con el mensaje:');
+  WriteLn('  qwen3-vl:2b supports vision + tools according to Ollama registry,');
+  WriteLn('  but in Ollama 0.20.2 the llm-runner fails to load the');
+  WriteLn('  images into memory before processing them (internal runner bug).');
+  WriteLn('  Server returns HTTP 500 with message:');
   WriteLn('    "model runner has unexpectedly stopped"');
   WriteLn;
   WriteLn(StringOfChar('-', 70));
-  WriteLn('  COMO RESOLVERLO');
+  WriteLn('  HOW TO RESOLVE IT');
   WriteLn(StringOfChar('-', 70));
   WriteLn;
-  WriteLn('  Opcion A — Actualizar Ollama (recomendado):');
-  WriteLn('    Descarga la ultima version desde https://ollama.com/download');
-  WriteLn('    El bug de qwen3-vl esta corregido en versiones > 0.20.2');
-  WriteLn('    Con Ollama actualizado, el codigo de arriba funcionara sin');
-  WriteLn('    ningun cambio; solo un TAiChatConnection con vision + tools.');
+  WriteLn('  Option A — Update Ollama (recommended):');
+  WriteLn('    Download latest version from https://ollama.com/download');
+  WriteLn('    qwen3-vl bug is fixed in versions > 0.20.2');
+  WriteLn('    With updated Ollama, code above will work without');
+  WriteLn('    any change; just a TAiChatConnection with vision + tools.');
   WriteLn;
-  WriteLn('  Opcion B — Patron de encadenamiento (workaround sin actualizar):');
-  WriteLn('    Paso 1: gemma3:4b describe la imagen  -> obtiene texto');
-  WriteLn('    Paso 2: qwen3.5:0.8b usa ese texto con la herramienta');
-  WriteLn('    (Es lo que hace el Test 4 de este taller)');
+  WriteLn('  Option B — Chaining pattern (workaround without updating):');
+  WriteLn('    Step 1: gemma3:4b describes image  -> gets text');
+  WriteLn('    Step 2: qwen3.5:0.8b uses that text with tool');
+  WriteLn('    (This is what Test 4 of this workshop does)');
   WriteLn;
-  WriteLn('  Opcion C — Modelo alternativo vision+tools:');
-  WriteLn('    Si se dispone de acceso a la nube, usar Claude o GPT-4o que');
-  WriteLn('    soportan vision + function calling de forma nativa y estable.');
-  WriteLn('    En MakerAI basta cambiar DriverName y las credenciales:');
+  WriteLn('  Option C — Alternative vision+tools model:');
+  WriteLn('    If cloud access available, use Claude or GPT-4o that');
+  WriteLn('    support vision + function calling natively and stably.');
+  WriteLn('    In MakerAI just change DriverName and credentials:');
   WriteLn('      Conn.DriverName := ''Claude'';');
   WriteLn('      Conn.Model      := ''claude-opus-4-6'';');
-  WriteLn('      // El mismo codigo de vision + tools funciona sin cambios.');
+  WriteLn('      // Same vision + tools code works without changes.');
   WriteLn(StringOfChar('=', 70));
 end;
 
@@ -604,12 +604,12 @@ var
 
 begin
   try
-    WriteLn('MakerAI v3.3 — Validacion Taller Chat Multimodal');
-    WriteLn('Fecha: ' + FormatDateTime('yyyy-mm-dd hh:nn:ss', Now));
+    WriteLn('MakerAI v3.3 — Multimodal Chat Workshop Validation');
+    WriteLn('Date: ' + FormatDateTime('yyyy-mm-dd hh:nn:ss', Now));
     WriteLn;
-    WriteLn('Registrando configuracion de modelos...');
+    WriteLn('Registering model configuration...');
     InitChatModels;
-    WriteLn('[OK]   Factory configurada.');
+    WriteLn('[OK]   Factory configured.');
 
     R1 := Test1_TextoBasico;
     R2 := Test2_FunctionCalling;
@@ -622,23 +622,23 @@ begin
     if R3 then Inc(Passed);
     if R4 then Inc(Passed);
 
-    PrintSep('RESUMEN');
-    WriteLn(Format('  Test 1 - Texto basico      (deepseek-r1:1.5b):          %s', [IfThen(R1,'PASS','FAIL')]));
+    PrintSep('SUMMARY');
+    WriteLn(Format('  Test 1 - Basic text      (deepseek-r1:1.5b):          %s', [IfThen(R1,'PASS','FAIL')]));
     WriteLn(Format('  Test 2 - Function Calling  (qwen3.5:0.8b):              %s', [IfThen(R2,'PASS','FAIL')]));
     WriteLn(Format('  Test 3 - Vision            (gemma3:4b):                 %s', [IfThen(R3,'PASS','FAIL')]));
     WriteLn(Format('  Test 4 - Vision+Tools      (gemma3:4b -> qwen3.5:0.8b): %s', [IfThen(R4,'PASS','FAIL')]));
     WriteLn;
-    WriteLn(Format('  Resultado: %d/4 tests pasaron', [Passed]));
+    WriteLn(Format('  Result: %d/4 tests passed', [Passed]));
     WriteLn(StringOfChar('=', 70));
 
     // Seccion didactica: muestra el error de qwen3-vl y explica la solucion
     Demo_ErrorQwenVL;
   except
     on E: Exception do
-      WriteLn('ERROR FATAL: ' + E.ClassName + ': ' + E.Message);
+      WriteLn('FATAL ERROR: ' + E.ClassName + ': ' + E.Message);
   end;
 
   WriteLn;
-  Write('Presiona ENTER para salir...');
+  Write('Press ENTER to exit...');
   ReadLn;
 end.

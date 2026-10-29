@@ -6,20 +6,20 @@ program MCPServerHTTP;
 // =============================================================================
 // MakerAI — 06-MCP / 02-Server-HTTP
 // =============================================================================
-// Servidor MCP via protocolo HTTP (JSON-RPC sobre HTTP).
-// Protocolo ideal para clientes REST o integraciones remotas.
+// MCP server via HTTP protocol (JSON-RPC over HTTP).
+// Protocol ideal for REST clients or remote integrations.
 //
-// Conceptos que cubre:
-//   - TAiMCPHttpServer: servidor MCP via HTTP
-//   - Server.Port: puerto de escucha (defecto 8080)
-//   - Server.CorsEnabled / CorsAllowedOrigins: CORS para acceso web
-//   - Mismo conjunto de herramientas que el servidor StdIO
+// Concepts it covers:
+//   - TAiMCPHttpServer: MCP server via HTTP
+//   - Server.Port: listening port (default 8080)
+//   - Server.CorsEnabled / CorsAllowedOrigins: CORS for web access
+//   - Same tool set as the StdIO server
 //
 // Endpoints:
-//   GET  http://localhost:8080/mcp  -> Info del servidor
-//   POST http://localhost:8080/mcp  -> Comandos JSON-RPC
+//   GET  http://localhost:8080/mcp  -> Server info
+//   POST http://localhost:8080/mcp  -> JSON-RPC commands
 //
-// Herramientas: get_datetime, greet (identicas al 01-Server-StdIO)
+// Tools: get_datetime, greet (identical to 01-Server-StdIO)
 // =============================================================================
 
 uses
@@ -36,7 +36,7 @@ type
   private
     FFormat: String;
   public
-    [AiMCPSchemaDescription('Formato: "iso" (ISO-8601, defecto) o "readable" (texto legible)')]
+    [AiMCPSchemaDescription('Format: "iso" (ISO-8601, default) or "readable" (readable text)')]
     property Format: String read FFormat write FFormat;
   end;
 
@@ -52,7 +52,7 @@ constructor TDateTimeMCPTool.Create;
 begin
   inherited;
   FName        := 'get_datetime';
-  FDescription := 'Retorna la fecha y hora actual del servidor en el formato solicitado.';
+  FDescription := 'Returns the current server date and time in the requested format.';
 end;
 
 function TDateTimeMCPTool.ExecuteWithParams(const AParams: TDateTimeParams;
@@ -77,9 +77,9 @@ type
     FName    : String;
     FLanguage: String;
   public
-    [AiMCPSchemaDescription('Nombre de la persona a saludar')]
+    [AiMCPSchemaDescription('Name of the person to greet')]
     property Name: String read FName write FName;
-    [AiMCPSchemaDescription('Idioma: "es" espanol (defecto), "en" ingles')]
+    [AiMCPSchemaDescription('Language: "es" Spanish (default), "en" English')]
     property Language: String read FLanguage write FLanguage;
   end;
 
@@ -95,7 +95,7 @@ constructor TGreetMCPTool.Create;
 begin
   inherited;
   FName        := 'greet';
-  FDescription := 'Genera un saludo personalizado en espanol o ingles.';
+  FDescription := 'Generates a personalized greeting in Spanish or English.';
 end;
 
 function TGreetMCPTool.ExecuteWithParams(const AParams: TGreetParams;
@@ -128,7 +128,7 @@ begin
       Server.CorsEnabled      := True;
       Server.CorsAllowedOrigins := '*';
 
-      // Registrar herramientas
+      // Register tools
       Server.RegisterTool('get_datetime',
         function: IAiMCPTool begin Result := TDateTimeMCPTool.Create; end);
       Server.RegisterTool('greet',
@@ -138,14 +138,14 @@ begin
 
       Writeln;
       Writeln('=== MCPServerHTTP ===');
-      Writeln(Format('Servidor HTTP escuchando en puerto %d', [Server.Port]));
-      Writeln('Herramientas registradas: get_datetime, greet');
+      Writeln(Format('HTTP server listening on port %d', [Server.Port]));
+      Writeln('Registered tools: get_datetime, greet');
       Writeln;
       Writeln('Endpoints:');
-      Writeln(Format('  GET  http://localhost:%d/mcp  -> Info del servidor', [Server.Port]));
-      Writeln(Format('  POST http://localhost:%d/mcp  -> Comandos JSON-RPC', [Server.Port]));
+      Writeln(Format('  GET  http://localhost:%d/mcp  -> Server info', [Server.Port]));
+      Writeln(Format('  POST http://localhost:%d/mcp  -> JSON-RPC commands', [Server.Port]));
       Writeln;
-      Writeln('Presiona Enter para detener...');
+      Writeln('Press Enter to stop...');
       Readln;
 
     finally

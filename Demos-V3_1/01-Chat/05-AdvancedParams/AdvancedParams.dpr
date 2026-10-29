@@ -6,7 +6,7 @@ program AdvancedParams;
 // =============================================================================
 // MakerAI — 01-Chat / 05-AdvancedParams
 // =============================================================================
-// Exploración de todos los parámetros avanzados de TAiChatConnection.
+// Exploration of all advanced parameters of TAiChatConnection.
 //
 // Conceptos que cubre:
 //   - Temperature     : controla aleatoriedad (0=determinista, 1=creativo)
@@ -35,7 +35,7 @@ const
   MODEL   = 'claude-haiku-4-5-20251001';
   API_KEY = '@CLAUDE_API_KEY';
 
-// Helper para separar secciones en la salida
+// Helper to separate sections in the output
 procedure Section(const Title: String);
 begin
   Writeln;
@@ -45,7 +45,7 @@ begin
 end;
 
 // =============================================================================
-//  DEMO 1 — Efecto de Temperature
+//  DEMO 1 — Temperature effect
 // =============================================================================
 procedure DemoTemperature(Conn: TAiChatConnection);
 const
@@ -55,7 +55,7 @@ var
   T   : String;
   Res : String;
 begin
-  Section('Temperature (0.0 = determinista  /  1.5 = muy creativo)');
+  Section('Temperature (0.0 = deterministic  /  1.5 = very creative)');
 
   for T in TEMPS do
   begin
@@ -67,12 +67,12 @@ begin
     Writeln;
   end;
 
-  // Restaurar valor normal
+  // Restore normal value
   Conn.Params.Values['Temperature'] := '0.7';
 end;
 
 // =============================================================================
-//  DEMO 2 — MaxTokens: respuesta corta vs. larga
+//  DEMO 2 — MaxTokens: short vs. long response
 // =============================================================================
 procedure DemoMaxTokens(Conn: TAiChatConnection);
 const
@@ -81,14 +81,14 @@ var
   Tokens : String;
   Res    : String;
 begin
-  Section('MaxTokens (controla la longitud máxima de la respuesta)');
+  Section('MaxTokens (controls the maximum response length)');
 
   for Tokens in ['50', '200', '1000'] do
   begin
     Conn.Messages.Clear;
     Conn.Params.Values['Max_Tokens'] := Tokens;
     Res := Conn.AddMessageAndRun(PROMPT, 'user', []);
-    Writeln(Format('  MaxTokens=%s → %d caracteres', [Tokens, Length(Res)]));
+    Writeln(Format('  MaxTokens=%s → %d characters', [Tokens, Length(Res)]));
     Writeln('  ', Copy(Res, 1, 120), '...');
     Writeln;
   end;
@@ -98,7 +98,7 @@ begin
 end;
 
 // =============================================================================
-//  DEMO 3 — SystemPrompt: cambia la personalidad del LLM
+//  DEMO 3 — SystemPrompt: changes the LLM personality
 // =============================================================================
 procedure DemoSystemPrompt(Conn: TAiChatConnection);
 const
@@ -113,8 +113,8 @@ var
   Res : String;
   I   : Integer;
 begin
-  Section('SystemPrompt (cambia la personalidad sin cambiar la pregunta)');
-  Writeln('  Misma pregunta: "', PREGUNTA, '"');
+  Section('SystemPrompt (changes personality without changing the question)');
+  Writeln('  Same question: "', PREGUNTA, '"');
   Writeln;
 
   I := 1;
@@ -123,7 +123,7 @@ begin
     Conn.Messages.Clear;
     Conn.SystemPrompt.Text := S;
     Res := Conn.AddMessageAndRun(PREGUNTA, 'user', []);
-    Writeln(Format('  Persona %d: %s', [I, Copy(S, 1, 45), '...']));
+    Writeln(Format('  Person %d: %s', [I, Copy(S, 1, 45), '...']));
     Writeln('  Respuesta: ', Copy(Res, 1, 150));
     Writeln;
     Inc(I);
@@ -134,14 +134,14 @@ begin
 end;
 
 // =============================================================================
-//  DEMO 4 — Respuesta en formato JSON estructurado
+//  DEMO 4 — Response in structured JSON format
 // =============================================================================
 procedure DemoJSONMode(Conn: TAiChatConnection);
 var
   Res    : String;
   JObj   : TJSONObject;
 begin
-  Section('JSON Mode (respuesta estructurada como JSON)');
+  Section('JSON Mode (structured response as JSON)');
 
   Conn.Messages.Clear;
   Conn.SystemPrompt.Text :=
@@ -153,25 +153,25 @@ begin
   Conn.Params.Values['Max_Tokens']      := '256';
 
   Res := Conn.AddMessageAndRun('Dame info sobre México.', 'user', []);
-  Writeln('  Respuesta raw:');
+  Writeln('  Raw response:');
   Writeln('  ', Res);
 
-  // Parsear y acceder a campos
+  // Parse and access fields
   try
     JObj := TJSONObject.ParseJSONValue(Res) as TJSONObject;
     if Assigned(JObj) then
     try
       Writeln;
       Writeln('  Parsed:');
-      Writeln('    Nombre    : ', JObj.GetValue<String>('nombre', '?'));
+      Writeln('    Name    : ', JObj.GetValue<String>('nombre', '?'));
       Writeln('    Capital   : ', JObj.GetValue<String>('capital', '?'));
-      Writeln('    Población : ', JObj.GetValue<Double>('poblacion_millones', 0):0:1, 'M');
-      Writeln('    Idioma    : ', JObj.GetValue<String>('idioma_oficial', '?'));
+      Writeln('    Population : ', JObj.GetValue<Double>('poblacion_millones', 0):0:1, 'M');
+      Writeln('    Language    : ', JObj.GetValue<String>('idioma_oficial', '?'));
     finally
       JObj.Free;
     end;
   except
-    Writeln('  (No se pudo parsear el JSON)');
+    Writeln('  (Could not parse JSON)');
   end;
 
   // Restaurar
@@ -186,9 +186,9 @@ procedure DemoThinkingLevel(Conn: TAiChatConnection);
 var
   Res: String;
 begin
-  Section('ThinkingLevel (razonamiento extendido — Claude)');
-  Writeln('  Nota: Requiere modelo que soporte Extended Thinking.');
-  Writeln('  En modelos que no lo soporten, se ignora el parámetro.');
+  Section('ThinkingLevel (extended reasoning — Claude)');
+  Writeln('  Note: Requires a model that supports Extended Thinking.');
+  Writeln('  On models that do not support it, the parameter is ignored.');
   Writeln;
 
   Conn.Messages.Clear;
@@ -200,7 +200,7 @@ begin
     'y regalo la mitad de todas las pelotas, ¿cuántas me quedan?',
     'user', []);
 
-  Writeln('  Respuesta (con razonamiento):');
+  Writeln('  Response (with reasoning):');
   Writeln('  ', Res);
 
   // Restaurar
@@ -209,7 +209,7 @@ begin
 end;
 
 // =============================================================================
-//  DEMO principal
+//  Main DEMO
 // =============================================================================
 procedure RunDemo;
 var
@@ -250,6 +250,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

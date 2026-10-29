@@ -5,7 +5,7 @@ program W01_SimpleCalculator;
 // =============================================================================
 // MakerAI - AgentWorkflows W01: SimpleCalculator
 // =============================================================================
-// Pipeline lineal de 3 nodos configurados en tiempo de diseno:
+// Linear pipeline of 3 nodes configured at design time:
 //
 //   [Parser:TLLMNode] -> [Calculator:TAIAgentsNode] -> [Formatter:TLLMNode]
 //
@@ -13,7 +13,7 @@ program W01_SimpleCalculator;
 // El Calculator (OnExecute) evalua la expresion aritmeticamente.
 // El Formatter (LLM) redacta la respuesta final en lenguaje natural.
 //
-// Todos los componentes, propiedades y eventos estan en el DataModule (DFM).
+// All components, properties and events are in the DataModule (DFM).
 // =============================================================================
 
 uses

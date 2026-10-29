@@ -6,17 +6,17 @@ program GraphGQL;
 // =============================================================================
 // MakerAI — 05-RAGGraph / 04-GQL
 // =============================================================================
-// MakerGQL: lenguaje de consulta para grafos basado en GQL (ISO/IEC 39075:2024).
-// Permite consultar el grafo con sintaxis declarativa MATCH/WHERE/RETURN.
+// MakerGQL: graph query language based on GQL (ISO/IEC 39075:2024).
+// Allows querying the graph with declarative MATCH/WHERE/RETURN syntax.
 //
-// Conceptos que cubre:
-//   - ExecuteMakerGQL(code): ejecuta una consulta GQL
-//   - SHOW LABELS: lista etiquetas de nodos presentes
-//   - SHOW EDGES: lista tipos de aristas
-//   - MATCH (n:Label) RETURN n: buscar por etiqueta
-//   - MATCH (a)-[r:LABEL]->(b) RETURN a, r, b: relaciones
-//   - WHERE: filtros sobre propiedades
-//   - SHORTEST PATH FROM (...) TO (...): camino mínimo
+// Concepts it covers:
+//   - ExecuteMakerGQL(code): executes a GQL query
+//   - SHOW LABELS: lists node labels present
+//   - SHOW EDGES: lists edge types
+//   - MATCH (n:Label) RETURN n: search by label
+//   - MATCH (a)-[r:LABEL]->(b) RETURN a, r, b: relationships
+//   - WHERE: filters on properties
+//   - SHORTEST PATH FROM (...) TO (...): shortest path
 // =============================================================================
 
 uses
@@ -33,7 +33,7 @@ const
   EMB_API_KEY = '@OPENAI_API_KEY';
 
 // =============================================================================
-//  Grafo de películas y directores
+//  Movies and directors graph
 // =============================================================================
 procedure ConstruirGrafoPeliculas(RAG: TAiRagGraph);
 var
@@ -137,19 +137,19 @@ begin
   RAG.AddEdge(Avatar,       SciFi,    'g009', 'ES_DE_GENERO', 'es de género');
   RAG.AddEdge(Avatar,       Aventura, 'g010', 'ES_DE_GENERO', 'es de género');
 
-  Writeln(Format('Grafo listo: %d nodos, %d aristas.', [RAG.NodeCount, RAG.EdgeCount]));
+  Writeln(Format('Graph ready: %d nodes, %d edges.', [RAG.NodeCount, RAG.EdgeCount]));
   Writeln;
 end;
 
 // =============================================================================
-//  Ejecuta una consulta GQL y muestra el resultado
+//  Executes a GQL query and shows the result
 // =============================================================================
 procedure EjecutarGQL(RAG: TAiRagGraph; const Descripcion, Query: String);
 var
   Resultado: String;
 begin
   Writeln(StringOfChar('-', 60));
-  Writeln('Consulta: ', Descripcion);
+  Writeln('Query: ', Descripcion);
   Writeln('GQL: ', Query);
   Writeln;
   try
@@ -191,34 +191,34 @@ begin
 
     // ── Comandos de exploración ───────────────────────────────────────────
     EjecutarGQL(RAG,
-      'Listar etiquetas de nodos',
+      'List node labels',
       'SHOW LABELS');
 
     EjecutarGQL(RAG,
-      'Listar tipos de aristas',
+      'List edge types',
       'SHOW EDGES');
 
     // ── Consultas MATCH básicas ───────────────────────────────────────────
     EjecutarGQL(RAG,
-      'Todos los directores',
+      'All directors',
       'MATCH (d:DIRECTOR) RETURN d');
 
     EjecutarGQL(RAG,
-      'Peliculas de Christopher Nolan',
+      'Movies by Christopher Nolan',
       'MATCH (d:DIRECTOR)-[r:DIRIGIO]->(p:PELICULA) WHERE d.nombre = "Christopher Nolan" RETURN p');
 
     // ── Consultas con WHERE ───────────────────────────────────────────────
     EjecutarGQL(RAG,
-      'Peliculas con nota > 8.5',
+      'Movies with rating > 8.5',
       'MATCH (p:PELICULA) WHERE p.nota > 8.5 RETURN p');
 
     EjecutarGQL(RAG,
-      'Peliculas anteriores a 1990',
+      'Movies before 1990',
       'MATCH (p:PELICULA) WHERE p.año < 1990 RETURN p');
 
     // ── Relaciones completas ──────────────────────────────────────────────
     EjecutarGQL(RAG,
-      'Peliculas de ciencia ficcion con su director',
+      'Science fiction movies with their director',
       'MATCH (d:DIRECTOR)-[r:DIRIGIO]->(p:PELICULA)-[g:ES_DE_GENERO]->(gen:GENERO) ' +
       'WHERE gen.nombre = "Ciencia Ficcion" RETURN d, p');
 

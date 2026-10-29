@@ -187,7 +187,7 @@ end;
 
 procedure TDmW01.DataModuleCreate(Sender: TObject);
 begin
-  // NodeCalc se crea en codigo porque TAIAgentsNode no tiene componente de paleta
+  // NodeCalc is created in code because TAIAgentsNode has no palette component
   FNodeCalc           := TAIAgentsNode.Create(Manager);
   FNodeCalc.Name      := 'Calculator';
   FNodeCalc.Graph     := Manager;
@@ -195,7 +195,7 @@ begin
   FNodeCalc.Next      := LinkCF;
   LinkPC.NextA        := FNodeCalc;
 
-  // Asegurar el grafo (pueden estar ya en el DFM; asignar aqui es inofensivo)
+  // Ensure the graph (it may already be in the DFM; assigning here is harmless)
   NodeParser.Next     := LinkPC;
   Manager.StartNode   := NodeParser;
   Manager.EndNode     := NodeFmt;
@@ -212,7 +212,7 @@ begin
   Expr := Trim(Input);
   try
     Value  := TExprCalc.Evaluate(Expr);
-    // Mostrar sin decimales innecesarios
+    // Show without unnecessary decimals
     if Frac(Value) = 0 then
       FmtVal := IntToStr(Round(Value))
     else
@@ -241,7 +241,7 @@ procedure TDmW01.RunDemo;
 begin
   Writeln('=== W01 - SimpleCalculator ===');
   Writeln('Pipeline: Parser(LLM) -> Calculator(OnExecute) -> Formatter(LLM)');
-  Writeln('Componentes configurados en tiempo de diseno (DataModule).');
+  Writeln('Components configured at design time (DataModule).');
   Writeln;
 
   Solve('What is 15 percent of 240?');

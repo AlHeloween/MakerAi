@@ -63,7 +63,7 @@ const
   TTS_PCM_RATE = 24000;
   MEETING_DEVICE_HINT = 'CABLE Input';
 
-  // --- Segmentador VAD local del canal [ELLOS] (PCM16 16 kHz mono) ---
+  // --- Local VAD segmenter for the [THEM] channel (PCM16 16 kHz mono) ---
   SEG_SAMPLE_RATE = 16000;
   SEG_START_LEVEL = 400; // nivel medio para considerar inicio de habla
   SEG_STOP_LEVEL = 250; // por debajo se acumula silencio
@@ -72,7 +72,7 @@ const
   SEG_MAX_MS = 25000; // corte forzado de segmentos largos
   SEG_PREBUF_MS = 400; // pre-buffer para no perder el arranque de la frase
 
-  // Voz TTS por hablante registrado (Hablante 1..4)
+  // TTS voice per registered speaker (Speaker 1..4)
   SPEAKER_VOICES: array [0 .. 3] of TAiTTSVoice = (TAiTTSVoice.tvNova, TAiTTSVoice.tvShimmer,
     TAiTTSVoice.tvCoral, TAiTTSVoice.tvSage);
 
@@ -301,7 +301,7 @@ procedure TDiarizedRemoteSide.Start;
 begin
   FPlayer.Active := True;
   FCapture.Active := True;
-  SafeWriteLn(FTag + ' canal diarizado activo (VAD local + gpt-4o-transcribe-diarize).');
+  SafeWriteLn(FTag + ' diarized channel active (local VAD + gpt-4o-transcribe-diarize).');
 end;
 
 procedure TDiarizedRemoteSide.Stop;
@@ -427,7 +427,7 @@ begin
       FAudioApi.AddKnownSpeaker(aName, Wav, 'audio/wav');
       FSpeakerNames := FSpeakerNames + [aName];
       Result := True;
-      SafeWriteLn(Format('%s (nuevo hablante registrado: %s)', [FTag, aName]));
+      SafeWriteLn(Format('%s (new speaker registered: %s)', [FTag, aName]));
     finally
       Wav.Free;
     end;
@@ -485,7 +485,7 @@ var
       Exit;
     SafeWriteLn(Format('%s    -> %s', [FTag, Translated]));
 
-    // Voz TTS segun el hablante registrado
+    // TTS voice according to the registered speaker
     VIdx := SpeakerIndex(GroupSpeaker);
     if (VIdx >= 0) and (VIdx <= High(SPEAKER_VOICES)) then
       FAudioApi.TTSVoice := SPEAKER_VOICES[VIdx]
@@ -540,7 +540,7 @@ begin
           // el registro y reintentar sin ellas (se re-registraran mas adelante).
           if Pos('known_speaker', LowerCase(E.Message)) > 0 then
           begin
-            SafeWriteLn(FTag + ' (muestras de hablantes rechazadas por la API: reiniciando registro)');
+            SafeWriteLn(FTag + ' (speaker samples rejected by the API: restarting registration)');
             FAudioApi.ClearKnownSpeakers;
             FSpeakerNames := nil;
             Res := FAudioApi.Transcribe(Media);
@@ -556,9 +556,9 @@ begin
     try
       if Length(Res.Segments) = 0 then
       begin
-        // Sin segmentos (silencio/musica): nada que traducir
+        // No segments (silence/music): nothing to translate
         if Trim(Res.Text) <> '' then
-          SafeWriteLn(Format('%s (sin hablantes) %s', [FTag, Trim(Res.Text)]));
+          SafeWriteLn(Format('%s (no speakers) %s', [FTag, Trim(Res.Text)]));
         Exit;
       end;
 
@@ -721,7 +721,7 @@ end;
 
 procedure TLocalSide.SttSessionReady(Sender: TObject);
 begin
-  SafeWriteLn(FTag + ' STT conectado y listo.');
+  SafeWriteLn(FTag + ' STT connected and ready.');
 end;
 
 procedure TLocalSide.SttError(Sender: TObject; const ErrorMsg, ErrorCode: string);
@@ -794,7 +794,7 @@ begin
         end;
       except
         on E: Exception do
-          SafeWriteLn(Format('%s ERROR traduciendo/TTS: %s', [FTag, E.Message]));
+          SafeWriteLn(Format('%s ERROR translating/TTS: %s', [FTag, E.Message]));
       end;
     end);
 end;
@@ -831,7 +831,7 @@ begin
   GConsoleLock := TCriticalSection.Create;
   try
     try
-      WriteLn('=== Puente de voz con DIARIZACION (MakerAI) ===');
+      WriteLn('=== Voice bridge with DIARIZATION (MakerAI) ===');
       WriteLn;
       WriteLn('  [ELLOS] loopback -> diarizacion -> traduccion por hablante -> TTS');
       WriteLn('          (cada hablante de la reunion con una voz distinta)');
@@ -840,14 +840,14 @@ begin
 
       if GetEnvironmentVariable('OPENAI_API_KEY') = '' then
       begin
-        WriteLn('ERROR: la variable de entorno OPENAI_API_KEY no esta definida.');
+        WriteLn('ERROR: the environment variable OPENAI_API_KEY is not defined.');
         Exit;
       end;
 
       HasCable := FindMeetingDevice(MeetingDeviceId, MeetingDeviceName);
       if HasCable then
       begin
-        WriteLn('Cable virtual: ' + MeetingDeviceName + '  (mic de la reunion = CABLE Output)');
+        WriteLn('Virtual cable: ' + MeetingDeviceName + '  (meeting mic = CABLE Output)');
         for D in TAiAudioPlayer.GetPlaybackDevices do
           if D.IsDefault and SameText(D.EndpointId, MeetingDeviceId) then
           begin
@@ -873,7 +873,7 @@ begin
         Remote.Start;
         Local.Start;
 
-        WriteLn('Puente activo... pulsa ENTER para terminar.');
+        WriteLn('Bridge active... press ENTER to finish.');
         WriteLn;
 
         TTask.Run(
@@ -886,7 +886,7 @@ begin
         while not StopRequested do
           CheckSynchronize(50);
 
-        WriteLn('Deteniendo...');
+        WriteLn('Stopping...');
         Remote.Stop;
         Local.Stop;
         CheckSynchronize(200);

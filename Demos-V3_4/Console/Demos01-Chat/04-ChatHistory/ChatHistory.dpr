@@ -6,19 +6,19 @@ program ChatHistory;
 // =============================================================================
 // MakerAI — 01-Chat / 04-ChatHistory
 // =============================================================================
-// Conversación multi-turno: el LLM recuerda lo que se dijo anteriormente
-// porque cada llamada a AddMessageAndRun() acumula el historial internamente.
+// Multi-turn conversation: the LLM remembers what was said previously
+// because each call to AddMessageAndRun() accumulates the history internally.
 //
 // Conceptos que cubre:
-//   - Historial de mensajes automático (user / assistant alternados)
-//   - Referencia a mensajes anteriores dentro de la conversación
-//   - Limpiar historial con ClearMessages()
-//   - Inspeccionar el historial con Messages.Count
-//   - Gestionar el tamaño del contexto (truncar historial cuando crece)
+//   - Automatic message history (user / assistant alternated)
+//   - Reference to previous messages within the conversation
+//   - Clear history with ClearMessages()
+//   - Inspect the history with Messages.Count
+//   - Manage context size (truncate history when it grows)
 //
 // Importante:
-//   Cada proveedor tiene un límite de tokens de contexto. Si la conversación
-//   es muy larga, eventualmente hay que limpiar o resumir el historial.
+//   Each provider has a context token limit. If the conversation
+//   is very long, eventually the history must be cleared or summarized.
 // =============================================================================
 
 uses
@@ -43,9 +43,9 @@ procedure PrintTurn(const Role, Text: String; TurnNum: Integer);
 begin
   Writeln;
   if Role = 'user' then
-    Writeln(Format('[Turno %d] Usuario: %s', [TurnNum, Text]))
+    Writeln(Format('[Turn %d] User: %s', [TurnNum, Text]))
   else
-    Writeln(Format('[Turno %d] Asistente: %s', [TurnNum, Text]));
+    Writeln(Format('[Turn %d] Assistant: %s', [TurnNum, Text]));
 end;
 
 // =============================================================================
@@ -63,7 +63,7 @@ var
   I       : Integer;
   Response: String;
 begin
-  Writeln('─── Conversación simple (4 turnos) ───');
+  Writeln('─── Simple conversation (4 turns) ───');
   Conn.Messages.Clear;
 
   for I := 0 to High(PREGUNTAS) do
@@ -90,19 +90,19 @@ begin
   Conn.AddMessageAndRun('El código secreto de hoy es ALFA-7.', 'user', []);
   Conn.AddMessageAndRun('¿Recuerdas el código secreto?', 'user', []);
 
-  Writeln('Antes del reset — el LLM recuerda el código:');
+  Writeln('Before reset — the LLM remembers the code:');
   Response := Conn.AddMessageAndRun('¿Cuál era el código exacto?', 'user', []);
   Writeln('  ', Response);
 
   // Reset del historial
   Conn.Messages.Clear;
   Writeln;
-  Writeln(Format('Historial limpiado. Mensajes: %d', [Conn.Messages.Count]));
+  Writeln(Format('History cleared. Messages: %d', [Conn.Messages.Count]));
 
   // Segunda conversación — no recuerda nada de la anterior
   Response := Conn.AddMessageAndRun(
     '¿Cuál era el código secreto que te mencioné?', 'user', []);
-  Writeln('Después del reset — el LLM ya no recuerda:');
+  Writeln('After reset — the LLM no longer remembers:');
   Writeln('  ', Response);
   Writeln;
 end;
@@ -116,12 +116,12 @@ var
   Response: String;
   Turn    : Integer;
 begin
-  Writeln('─── Chat interactivo (escribe "salir" para terminar) ───');
+  Writeln('─── Interactive chat (type "salir" to finish) ───');
   Conn.Messages.Clear;
   Turn := 0;
 
   repeat
-    Write('Tú: ');
+    Write('You: ');
     Readln(Input);
     Input := Trim(Input);
 
@@ -130,12 +130,12 @@ begin
 
     Inc(Turn);
     Response := Conn.AddMessageAndRun(Input, 'user', []);
-    Writeln('IA: ', Response);
-    Writeln(Format('  [%d mensajes en historial]', [Conn.Messages.Count]));
+    Writeln('AI: ', Response);
+    Writeln(Format('  [%d messages in history]', [Conn.Messages.Count]));
     Writeln;
   until False;
 
-  Writeln(Format('Conversación terminada. Total de turnos: %d', [Turn]));
+  Writeln(Format('Conversation finished. Total turns: %d', [Turn]));
   Writeln;
 end;
 
@@ -180,6 +180,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

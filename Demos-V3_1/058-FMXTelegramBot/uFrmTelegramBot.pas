@@ -70,7 +70,7 @@ begin
   else
     EdToken.Text := '@TELEGRAM_BOT_TOKEN';
   BtnStop.Enabled := False;
-  LblStatus.Text  := 'Ingresa el token y presiona Start.';
+  LblStatus.Text  := 'Enter the token and press Start.';
   LblUsers.Text   := 'Skills: shell_exec | file_read | file_write | file_list | memory | agent_run';
 end;
 
@@ -101,7 +101,7 @@ begin
   Token := Trim(EdToken.Text);
   if Token = '' then
   begin
-    ShowMessage('Ingresa el token del bot (@TELEGRAM_BOT_TOKEN o token literal).');
+    ShowMessage('Enter the bot token (@TELEGRAM_BOT_TOKEN or literal token).');
     Exit;
   end;
 
@@ -109,7 +109,7 @@ begin
   BtnStart.Enabled := False;
   BtnStop.Enabled  := True;
   EdToken.Enabled  := False;
-  LblStatus.Text   := 'Bot activo — esperando mensajes...';
+  LblStatus.Text   := 'Bot active — waiting for messages...';
   LblUsers.Text    := 'Skills: shell | files | memory | agent_run  |  Mode: open  |  Owner: -';
 
   DmTelegramBot.Start(Token);
@@ -121,7 +121,7 @@ begin
   BtnStart.Enabled := True;
   BtnStop.Enabled  := False;
   EdToken.Enabled  := True;
-  LblStatus.Text   := 'Bot detenido.';
+  LblStatus.Text   := 'Bot stopped.';
   LblUsers.Text    := 'Skills: shell_exec | file_read | file_write | file_list | memory | agent_run';
 end;
 

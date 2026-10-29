@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr�quez
+// Name: Gustavo Enr�quez
 // Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -47,7 +47,7 @@ uses
 
 type
   // =============================================================================
-  // CLASE BASE CON L�GICA DE SEGURIDAD (Permisos por Instancia)
+  // BASE CLASS WITH SECURITY LOGIC (Permissions per Instance)
   // =============================================================================
   TFileAccessConfig = class
   private
@@ -67,7 +67,7 @@ type
     function NormalizePath(const APath: string): string;
   end;
 
-  // Clase base gen�rica para herramientas de archivo que comparten configuraci�n
+  // Generic base class for file tools that share configuration
   TAiFileToolBase<T: class, constructor> = class(TAiMCPToolBase<T>)
   protected
     FConfig: TFileAccessConfig;
@@ -80,7 +80,7 @@ type
   end;
 
   // =============================================================================
-  // HERRAMIENTA PARA LISTAR ARCHIVOS
+  // TOOL FOR LISTING FILES
   // =============================================================================
   TListFilesParams = class
   private
@@ -89,16 +89,16 @@ type
     FIncludeSubdirs: Boolean;
     FShowDetails: Boolean;
   public
-    [AiMCPSchemaDescription('Ruta de la carpeta a listar')]
+    [AiMCPSchemaDescription('Path of the folder to list')]
     property Path: string read FPath write FPath;
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Patr�n de b�squeda (ej: "*.pas", "*.txt") - default: "*.*"')]
+    [AiMCPSchemaDescription('Search pattern (e.g.: "*.pas", "*.txt") - default: "*.*"')]
     property Pattern: string read FPattern write FPattern;
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Incluir subdirectorios (default: false)')]
+    [AiMCPSchemaDescription('Include subdirectories (default: false)')]
     property IncludeSubdirs: Boolean read FIncludeSubdirs write FIncludeSubdirs;
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Mostrar detalles (tama�o, fecha) - default: false)')]
+    [AiMCPSchemaDescription('Show details (size, date) - default: false)')]
     property ShowDetails: Boolean read FShowDetails write FShowDetails;
   end;
 
@@ -110,13 +110,13 @@ type
   end;
 
   // =============================================================================
-  // HERRAMIENTA PARA LEER ARCHIVOS
+  // TOOL FOR READING FILES
   // =============================================================================
   TReadFileParams = class
   private
     FFilePath: string;
   public
-    [AiMCPSchemaDescription('Ruta completa del archivo a leer')]
+    [AiMCPSchemaDescription('Full path of the file to read')]
     property FilePath: string read FFilePath write FFilePath;
   end;
 
@@ -130,7 +130,7 @@ type
   end;
 
   // =============================================================================
-  // HERRAMIENTA PARA ESCRIBIR ARCHIVOS
+  // TOOL FOR WRITING FILES
   // =============================================================================
   TWriteFileParams = class
   private
@@ -139,15 +139,15 @@ type
     FAppend: Boolean;
     FCreateDirs: Boolean;
   public
-    [AiMCPSchemaDescription('Ruta completa del archivo a escribir')]
+    [AiMCPSchemaDescription('Full path of the file to write')]
     property FilePath: string read FFilePath write FFilePath;
-    [AiMCPSchemaDescription('Contenido a escribir en el archivo')]
+    [AiMCPSchemaDescription('Content to write to the file')]
     property Content: string read FContent write FContent;
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Agregar al final del archivo (default: false = sobrescribir)')]
+    [AiMCPSchemaDescription('Append to the end of the file (default: false = overwrite)')]
     property Append: Boolean read FAppend write FAppend;
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Crear directorios si no existen (default: true)')]
+    [AiMCPSchemaDescription('Create directories if they do not exist (default: true)')]
     property CreateDirs: Boolean read FCreateDirs write FCreateDirs;
   end;
 
@@ -158,7 +158,7 @@ type
     constructor Create(AConfig: TFileAccessConfig = nil);
   end;
 
-// Helper para registrar con configuraci�n compartida o por defecto
+// Helper to register with shared or default configuration
 procedure RegisterTools(ALogicServer: TAiMCPServer; AConfig: TFileAccessConfig = nil);
 
 implementation
@@ -171,7 +171,7 @@ uses
 // =============================================================================
 procedure RegisterTools(ALogicServer: TAiMCPServer; AConfig: TFileAccessConfig = nil);
 var
-  // Si no se pasa config, creamos una compartida para este grupo de herramientas
+  // If no config is passed, we create a shared one for this group of tools
   SharedConfig: TFileAccessConfig;
 begin
   if not Assigned(ALogicServer) then
@@ -187,7 +187,7 @@ begin
     function: IAiMCPTool
     begin
       // Si AConfig es nil, el tool crea una nueva y se hace due�o.
-      // Si AConfig NO es nil, el tool la usa pero NO se hace due�o (referencia compartida).
+      // If AConfig is NOT nil, the tool uses it but does NOT become its owner (shared reference).
       Result := TListFilesTool.Create(AConfig);
     end);
 
@@ -232,11 +232,11 @@ end;
 procedure TFileAccessConfig.SetDefaultConfiguration;
 begin
   ClearPermissions;
-  // Permisos por defecto seguros
+  // Secure default permissions
   AddAllowedPath(TPath.GetTempPath);
   AddAllowedPath(TPath.GetDocumentsPath);
 
-  // Extensiones seguras por defecto
+  // Secure default extensions
   AddAllowedExtension('.txt'); AddAllowedExtension('.json'); AddAllowedExtension('.xml');
   AddAllowedExtension('.csv'); AddAllowedExtension('.log'); AddAllowedExtension('.md');
   AddAllowedExtension('.png'); AddAllowedExtension('.jpg'); AddAllowedExtension('.jpeg');

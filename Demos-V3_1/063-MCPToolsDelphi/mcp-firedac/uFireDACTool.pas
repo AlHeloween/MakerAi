@@ -1,27 +1,27 @@
 ﻿unit uFireDACTool;
 
 // =============================================================================
-// mcp-firedac  —  MCP server universal para bases de datos via FireDAC
+// mcp-firedac  —  Universal MCP server for databases via FireDAC
 //
-// Soporta cualquier driver FireDAC: SQLite, PostgreSQL, Firebird, MySQL,
+// Supports any FireDAC driver: SQLite, PostgreSQL, Firebird, MySQL,
 // MSSQL, Oracle, InterBase, etc.
 //
-// Herramientas expuestas:
-//   db_query    — Ejecuta SELECT, devuelve resultados como tabla de texto o JSON
-//   db_execute  — Ejecuta INSERT/UPDATE/DELETE/DDL
-//   db_tables   — Lista tablas y vistas de la base de datos
-//   db_describe — Describe columnas de una tabla
-//   db_info     — Información de la conexión activa
+// Exposed tools:
+//   db_query    — Executes SELECT, returns results as a text table or JSON
+//   db_execute  — Executes INSERT/UPDATE/DELETE/DDL
+//   db_tables   — Lists tables and views of the database
+//   db_describe — Describes the columns of a table
+//   db_info     — Information about the active connection
 //
-// Configuración (pasada desde el .dpr después de parsear CLI args):
+// Configuration (passed from the .dpr after parsing CLI args):
 //   TDbConfig.Driver      — FireDAC DriverID (SQLite, PG, FB, MySQL, MSSQL...)
-//   TDbConfig.Database    — Ruta archivo (SQLite) o nombre BD (otros)
-//   TDbConfig.Host        — Servidor (solo drivers de red)
-//   TDbConfig.Port        — Puerto (0 = usar default del driver)
-//   TDbConfig.Username    — Usuario
-//   TDbConfig.Password    — Contraseña
-//   TDbConfig.Charset     — Charset (opcional, ej. UTF8)
-//   TDbConfig.ConnString  — Connection string FireDAC completo (alternativa)
+//   TDbConfig.Database    — File path (SQLite) or database name (others)
+//   TDbConfig.Host        — Server (network drivers only)
+//   TDbConfig.Port        — Port (0 = use driver default)
+//   TDbConfig.Username    — User
+//   TDbConfig.Password    — Password
+//   TDbConfig.Charset     — Charset (optional, e.g. UTF8)
+//   TDbConfig.ConnString  — Complete FireDAC connection string (alternative)
 // =============================================================================
 
 interface
@@ -52,14 +52,14 @@ uses
 type
   TDbConfig = record
     Driver     : string;  // FireDAC DriverID
-    Database   : string;  // archivo (SQLite) o nombre BD
+    Database   : string;  // file (SQLite) or database name
     Host       : string;
     Port       : Integer; // 0 = default del driver
     Username   : string;
     Password   : string;
     Charset    : string;
-    ConnString : string;  // si se usa connection string directo
-    MaxRows    : Integer; // límite global de filas (default 200)
+    ConnString : string;  // if a direct connection string is used
+    MaxRows    : Integer; // global row limit (default 200)
   end;
 
 var
@@ -203,7 +203,7 @@ begin
 
   if GDbConfig.ConnString <> '' then
   begin
-    // Modo connection string directo
+    // Direct connection string mode
     Params := TStringList.Create;
     try
       TStringList(Params).Delimiter     := ';';
@@ -215,7 +215,7 @@ begin
   end
   else
   begin
-    // Modo parámetros individuales
+    // Individual parameters mode
     GConnection.Params.DriverID := GDbConfig.Driver;
 
     if GDbConfig.Database <> '' then
@@ -262,7 +262,7 @@ end;
 // Formateo de resultados
 // =============================================================================
 
-// Devuelve el valor de un campo como string legible
+// Returns a field value as a readable string
 function FieldToStr(Field: TField): string;
 begin
   if Field.IsNull then
@@ -286,7 +286,7 @@ begin
     end;
 end;
 
-// Formatea el resultado de una query como tabla ASCII
+// Formats a query result as an ASCII table
 function ResultToTable(AQuery: TFDQuery; AMaxRows: Integer): string;
 var
   ColWidths  : array of Integer;
@@ -304,11 +304,11 @@ begin
 
   SetLength(ColWidths, AQuery.FieldCount);
 
-  // Calcular anchos: mínimo = largo del nombre de columna
+  // Calculate widths: minimum = length of column name
   for I := 0 to AQuery.FieldCount - 1 do
     ColWidths[I] := Length(AQuery.Fields[I].FieldName);
 
-  // Primera pasada: calcular anchos máximos (limitado a 50 chars para legibilidad)
+  // First pass: calculate maximum widths (limited to 50 chars for readability)
   AQuery.First;
   Row := 0;
   while not AQuery.Eof and (Row < AMaxRows) do
@@ -325,13 +325,13 @@ begin
 
   SB := TStringBuilder.Create;
   try
-    // Separador
+    // Separator
     TotalWidth := 1;
     for I := 0 to AQuery.FieldCount - 1 do
       Inc(TotalWidth, ColWidths[I] + 3);
     Sep := '+' + StringOfChar('-', TotalWidth - 2) + '+';
 
-    // Reconstruir separador por columnas
+    // Rebuild separator by columns
     Sep := '+';
     for I := 0 to AQuery.FieldCount - 1 do
       Sep := Sep + StringOfChar('-', ColWidths[I] + 2) + '+';
@@ -358,7 +358,7 @@ begin
         FieldVal := FieldToStr(AQuery.Fields[I]);
         if Length(FieldVal) > ColWidths[I] then
           FieldVal := Copy(FieldVal, 1, ColWidths[I] - 3) + '...';
-        // Números alineados a la derecha
+        // Numbers right-aligned
         if AQuery.Fields[I].DataType in [ftInteger, ftLargeint, ftSmallint,
             ftWord, ftFloat, ftCurrency, ftBCD, ftFMTBcd, ftAutoInc] then
           RowLine := RowLine + ' ' + FieldVal.PadLeft(ColWidths[I]) + ' |'
@@ -383,7 +383,7 @@ begin
   end;
 end;
 
-// Formatea el resultado como JSON array de objetos
+// Formats the result as a JSON array of objects
 function ResultToJSON(AQuery: TFDQuery; AMaxRows: Integer): string;
 var
   JArr  : TJSONArray;
@@ -428,7 +428,7 @@ begin
   end;
 end;
 
-// Formatea el resultado como CSV
+// Formats the result as CSV
 function ResultToCSV(AQuery: TFDQuery; AMaxRows: Integer): string;
 var
   SB  : TStringBuilder;
@@ -495,7 +495,7 @@ begin
   if Trim(AParams.SQL) = '' then
     raise Exception.Create('SQL parameter is required');
 
-  // Validación básica de seguridad: solo SELECT permitido en db_query
+  // Basic security validation: only SELECT allowed in db_query
   var SQLUp := UpperCase(Trim(AParams.SQL));
   if not (SQLUp.StartsWith('SELECT') or SQLUp.StartsWith('WITH')
       or SQLUp.StartsWith('SHOW') or SQLUp.StartsWith('EXPLAIN')
@@ -611,7 +611,7 @@ begin
   SB   := TStringBuilder.Create;
   try
     Meta.Connection   := DbConnection;
-    // mkTables devolverá tanto tablas como vistas; filtramos por TABLE_TYPE
+    // mkTables returns both tables and views; filter by TABLE_TYPE
     Meta.MetaInfoKind := mkTables;
     if AParams.Schema <> '' then
       Meta.SchemaName := AParams.Schema;
@@ -724,7 +724,7 @@ begin
       if not Meta.FieldByName('COLUMN_DEFAULT').IsNull then
         ColDefault := Meta.FieldByName('COLUMN_DEFAULT').AsString;
 
-      // Mostrar largo para tipos que lo admiten
+      // Show length for types that support it
       var TypeStr := ColType;
       if Len > 0 then
         TypeStr := Format('%s(%d)', [ColType, Len]);
@@ -775,7 +775,7 @@ begin
       SB.AppendFormat('Status    : ERROR — %s', [E.Message]).AppendLine;
     end;
 
-    // Mostrar config global (sin contraseña)
+    // Show global config (without password)
     SB.AppendLine;
     SB.AppendFormat('MaxRows   : %d', [GDbConfig.MaxRows]).AppendLine;
 

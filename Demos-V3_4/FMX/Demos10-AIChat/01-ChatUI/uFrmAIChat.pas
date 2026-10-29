@@ -2,7 +2,7 @@
 
 // =============================================================================
 // MakerAI — Demo FMX Chat UI
-// Muestra TAIChatView + TAIChatInput sobre un formulario FMX.
+// Shows TAIChatView + TAIChatInput on an FMX form.
 //
 // Componentes declarados en uFrmAIChat.fmx (diseñador de formularios):
 //   TAIChatView  — renderizado Skia de burbujas con Markdown
@@ -230,7 +230,7 @@ end;
 
 procedure TFrmAIChat.LoadSampleConversation;
 begin
-  ChatView.AddUserMessage('Hola, ¿qué es TAIChatView?');
+  ChatView.AddUserMessage('Hello, what is TAIChatView?');
 
   ChatView.AddMessage(TChatRole.crAssistant,
     '**TAIChatView** es un componente FMX que renderiza conversaciones de chat con IA ' +
@@ -243,7 +243,7 @@ begin
     '- Virtualización para conversaciones largas' + #10 +
     '- Multiplataforma: Windows, Android, macOS, iOS');
 
-  ChatView.AddUserMessage('¿Cómo lo uso en streaming?');
+  ChatView.AddUserMessage('How do I use it in streaming?');
 
   ChatView.AddMessage(TChatRole.crAssistant,
     'El flujo es sencillo:' + #10 +

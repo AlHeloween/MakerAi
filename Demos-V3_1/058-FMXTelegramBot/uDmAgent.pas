@@ -67,11 +67,11 @@ begin
     Exit;
   end;
 
-  DoLog('TOOL', '[PPM] Buscando: ' + Capability);
+  DoLog('TOOL', '[PPM] Searching: ' + Capability);
 
   if InstallMCPPackage(Capability, PkgName, ToolsList) then
   begin
-    DoLog('TOOL', Format('[PPM] %s instalado - tools: %s', [PkgName, ToolsList]));
+    DoLog('TOOL', Format('[PPM] %s installed - tools: %s', [PkgName, ToolsList]));
     JResult := TJSONObject.Create;
     JArr    := TJSONArray.Create;
     try
@@ -91,7 +91,7 @@ begin
   begin
     ToolCall.Response := Format('{"error": "Could not install capability: %s. ' +
       'Try a more specific keyword."}', [Capability]);
-    DoLog('TOOL', '[PPM] Instalación fallida para: ' + Capability);
+    DoLog('TOOL', '[PPM] Installation failed for: ' + Capability);
   end;
   Handled := True;
 end;

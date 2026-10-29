@@ -3,7 +3,7 @@ program mcp_firedac;
 // =============================================================================
 // mcp-firedac  —  Universal FireDAC database MCP server
 //
-// Uso:
+// Usage:
 //   mcp-firedac.exe --driver SQLite --database C:\data\mydb.sqlite
 //   mcp-firedac.exe --driver PG --host localhost --port 5432 --database mydb --username user --password pass
 //   mcp-firedac.exe --driver FB --host localhost --database /path/to/db.fdb --username SYSDBA --password masterkey
@@ -12,12 +12,12 @@ program mcp_firedac;
 //   mcp-firedac.exe --connection-string "DriverID=SQLite;Database=C:\data\mydb.sqlite"
 //   mcp-firedac.exe --max-rows 500 --driver SQLite --database mydb.sqlite
 //
-// Herramientas MCP expuestas:
-//   db_query    — SELECT con salida table/json/csv
+// Exposed MCP tools:
+//   db_query    — SELECT with table/json/csv output
 //   db_execute  — INSERT/UPDATE/DELETE/DDL
-//   db_tables   — listar tablas y vistas
-//   db_describe — describir columnas de una tabla
-//   db_info     — información de la conexión
+//   db_tables   — list tables and views
+//   db_describe — describe the columns of a table
+//   db_info     — connection information
 // =============================================================================
 
 {$APPTYPE CONSOLE}
@@ -34,8 +34,8 @@ uses
   FireDAC.Phys.Intf,
   FireDAC.DApt,
 
-  // ── Drivers FireDAC (incluir todos para que se registren automáticamente) ──
-  // SQLite (embebido estático — sin DLL)
+  // ── FireDAC drivers (include all so they register automatically) ──
+  // SQLite (statically embedded — no DLL)
   FireDAC.Phys.SQLite,
   FireDAC.Phys.SQLiteDef,
   FireDAC.Phys.SQLiteWrapper.Stat,
@@ -60,7 +60,7 @@ uses
   FireDAC.Phys.Oracle,
   FireDAC.Phys.OracleDef,
 
-  // Console wait cursor (evita diálogos UI en apps de consola)
+  // Console wait cursor (avoids UI dialogs in console apps)
   FireDAC.ConsoleUI.Wait,
 
   // MakerAI MCP server
@@ -70,7 +70,7 @@ uses
   uFireDACTool in 'uFireDACTool.pas';
 
 // =============================================================================
-// Parser de argumentos CLI
+// CLI argument parser
 // =============================================================================
 
 function GetArg(const AName: string; const ADefault: string = ''): string;
@@ -151,7 +151,7 @@ var
 
 begin
   try
-    // ── Mostrar ayuda si se pide ────────────────────────────────────────────
+    // ── Show help if requested ────────────────────────────────────────────
     if HasFlag('--help') or HasFlag('-h') or HasFlag('/?') then
     begin
       PrintUsage;
@@ -159,7 +159,7 @@ begin
       Exit;
     end;
 
-    // ── Leer configuración de CLI ───────────────────────────────────────────
+    // ── Read CLI configuration ───────────────────────────────────────────
     GDbConfig.Driver       := GetArg('--driver',            'SQLite');
     GDbConfig.Database     := GetArg('--database',          '');
     GDbConfig.Host         := GetArg('--host',              '');
@@ -170,7 +170,7 @@ begin
     GDbConfig.ConnString   := GetArg('--connection-string', '');
     GDbConfig.MaxRows      := GetArgInt('--max-rows',       500);
 
-    // Validación mínima
+    // Minimum validation
     if (GDbConfig.ConnString = '') and (GDbConfig.Database = '') and
        SameText(GDbConfig.Driver, 'SQLite') then
     begin
@@ -180,7 +180,7 @@ begin
       Exit;
     end;
 
-    // ── Conectar a la BD ────────────────────────────────────────────────────
+    // ── Connect to the DB ────────────────────────────────────────────────────
     WriteLn(ErrOutput, Format('[mcp-firedac] Connecting: driver=%s database=%s host=%s',
       [GDbConfig.Driver, GDbConfig.Database, GDbConfig.Host]));
     try
@@ -194,7 +194,7 @@ begin
     end;
     end;
 
-    // ── Crear y configurar servidor MCP ─────────────────────────────────────
+    // ── Create and configure MCP server ─────────────────────────────────────
     Server := TAiMCPStdioServer.Create(nil);
     try
       Server.ServerName := 'MCP FireDAC (' + GDbConfig.Driver + ')';

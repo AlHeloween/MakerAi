@@ -4,29 +4,29 @@
 {$R *.res}
 
 // =============================================================================
-// MakerAI — Capítulo 7: ChatTools — Superpoderes para Cualquier Modelo
+// MakerAI — Chapter 7: ChatTools — Superpowers for Any Model
 // =============================================================================
-// Demuestra el sistema ChatTools de MakerAI: el mecanismo que permite dar
-// capacidades adicionales a modelos que no las tienen nativamente.
+// Demonstrates the MakerAI ChatTools system: the mechanism that lets you give
+// additional capabilities to models that do not have them natively.
 //
-// Concepto central: Gap = SessionCaps - ModelCaps
-//   Cuando el modelo no tiene una capacidad que la sesión necesita,
-//   MakerAI busca un ChatTool asignado para cubrir esa brecha.
-//   El modelo nunca sabe que está recibiendo ayuda externa.
+// Central concept: Gap = SessionCaps - ModelCaps
+//   When the model does not have a capability the session needs,
+//   MakerAI looks for an assigned ChatTool to cover that gap.
+//   The model never knows it is receiving external help.
 //
-// Demuestra:
-//   - Demo 1: Bridge de visión — Groq (texto puro) "ve" imágenes via Ollama
-//             gemma3:4b describe la imagen → Groq razona sobre la descripción
-//   - Demo 2: Uso directo del VisionTool — sin pasar por el LLM
-//             TAiOllamaVisionTool.DescribeFromFile() como llamada directa
-//   - Demo 3: Patrón Camino A/B — cómo fluye la información en ChatTools
+// Demonstrates:
+//   - Demo 1: Vision bridge — Groq (pure text) "sees" images via Ollama
+//             gemma3:4b describes the image → Groq reasons about the description
+//   - Demo 2: Direct use of VisionTool — without going through the LLM
+//             TAiOllamaVisionTool.DescribeFromFile() as a direct call
+//   - Demo 3: Path A/B pattern — how information flows in ChatTools
 //
-// Prerequisitos:
-//   GROQ_API_KEY  → variable de entorno (para el LLM principal en Demo 1)
-//   Ollama        → corriendo en localhost:11434 con modelo gemma3:4b
-//                   Instalar: https://ollama.com
-//                   Descargar modelo: ollama pull gemma3:4b
-//   El Demo 3 es conceptual y no requiere servicios externos.
+// Prerequisites:
+//   GROQ_API_KEY  → environment variable (for the main LLM in Demo 1)
+//   Ollama        → running on localhost:11434 with model gemma3:4b
+//                   Install: https://ollama.com
+//                   Download model: ollama pull gemma3:4b
+//   Demo 3 is conceptual and requires no external services.
 // =============================================================================
 
 uses
@@ -36,20 +36,20 @@ uses
   uMakerAi.Core,
   uMakerAi.Chat,
   uMakerAi.Chat.AiConnection,
-  uMakerAi.Chat.Groq,       // DriverName = 'Groq' — LLM principal (solo texto)
-  uMakerAi.Ollama.Vision;   // TAiOllamaVisionTool — bridge de visión via Ollama
+  uMakerAi.Chat.Groq,       // DriverName = 'Groq' — main LLM (text only)
+  uMakerAi.Ollama.Vision;   // TAiOllamaVisionTool — vision bridge via Ollama
 
 const
-  // LLM principal — texto puro, ModelCaps = []  (sin visión nativa)
+  // Main LLM — pure text, ModelCaps = []  (no native vision)
   LLM_DRIVER  = 'Groq';
   LLM_MODEL   = 'llama-3.3-70b-versatile';
   LLM_API_KEY = '@GROQ_API_KEY';
 
-  // VisionTool — modelo de visión en Ollama
+  // VisionTool — vision model in Ollama
   OLLAMA_URL   = 'http://localhost:11434/';
   VISION_MODEL = 'gemma3:4b';   // Alternativas: 'llava:latest', 'moondream:latest'
 
-  // Imagen de prueba (presente en todas las instalaciones de Windows)
+  // Test image (present in all Windows installations)
   IMG_PATH = 'C:\Windows\Web\Wallpaper\Windows\img0.jpg';
 
 procedure Separador(const Titulo: string);
@@ -61,7 +61,7 @@ begin
 end;
 
 // =============================================================================
-//  Verifica si Ollama está corriendo en el puerto local.
+//  Checks whether Ollama is running on the local port.
 // =============================================================================
 function OllamaDisponible: Boolean;
 var
@@ -82,20 +82,20 @@ begin
 end;
 
 // =============================================================================
-//  Demo 1 — Bridge de visión: Groq (texto puro) + Ollama (visión)
+//  Demo 1 — Vision bridge: Groq (pure text) + Ollama (vision)
 //
-//  Groq llama-3.3-70b-versatile no tiene capacidad de visión (ModelCaps = []).
-//  Al asignar TAiOllamaVisionTool, MakerAI activa el bridge automáticamente:
+//  Groq llama-3.3-70b-versatile has no vision capability (ModelCaps = []).
+//  By assigning TAiOllamaVisionTool, MakerAI activates the bridge automatically:
 //
-//    1. App envía: imagen + "describe 3 elementos visuales"
-//    2. MakerAI detecta: Groq no puede ver imágenes (Gap)
-//    3. VisionTool llama a gemma3:4b en Ollama:
-//       → gemma3 describe la imagen en texto
-//    4. MakerAI inyecta la descripción como contexto para Groq:
-//       → "Descripción de la imagen: [texto de gemma3]"
-//    5. Groq razona sobre la descripción y responde
+//    1. App sends: image + "describe 3 visual elements"
+//    2. MakerAI detects: Groq cannot see images (Gap)
+//    3. VisionTool calls gemma3:4b in Ollama:
+//       → gemma3 describes the image in text
+//    4. MakerAI injects the description as context for Groq:
+//       → "Image description: [gemma3 text]"
+//    5. Groq reasons about the description and responds
 //
-//  Groq nunca recibió la imagen directamente. Solo texto.
+//  Groq never received the image directly. Only text.
 // =============================================================================
 procedure Demo1_VisionBridge;
 var
@@ -110,20 +110,20 @@ begin
   if not TFile.Exists(IMG_PATH) then
   begin
     WriteLn('  Imagen no encontrada: ', IMG_PATH);
-    WriteLn('  Ajusta IMG_PATH a una imagen JPEG en tu sistema.');
+    WriteLn('  Adjust IMG_PATH to a JPEG image on your system.');
     Exit;
   end;
 
-  WriteLn('  LLM principal: ', LLM_DRIVER, ' / ', LLM_MODEL, '  [ModelCaps = []]');
-  WriteLn('  VisionTool   : Ollama / ', VISION_MODEL, '         [ve la imagen]');
-  WriteLn('  Imagen       : ', TPath.GetFileName(IMG_PATH));
+  WriteLn('  Main LLM: ', LLM_DRIVER, ' / ', LLM_MODEL, '  [ModelCaps = []]');
+  WriteLn('  VisionTool   : Ollama / ', VISION_MODEL, '         [sees the image]');
+  WriteLn('  Image        : ', TPath.GetFileName(IMG_PATH));
   WriteLn('');
 
   // El VisionTool: describe imágenes usando gemma3:4b en Ollama
   VisionTool := TAiOllamaVisionTool.Create(nil);
   VisionTool.Url   := OLLAMA_URL;
   VisionTool.Model := VISION_MODEL;
-  // Prompt que se envía al modelo de visión (en español)
+  // Prompt sent to the vision model (in Spanish)
   VisionTool.Prompt := 'Describe esta imagen en detalle en español.';
 
   // La conexión principal con Groq — texto puro
@@ -134,34 +134,34 @@ begin
     Conn.Params.Values['ApiKey']       := LLM_API_KEY;
     Conn.Params.Values['Asynchronous'] := 'False';
     Conn.Params.Values['Max_Tokens']   := '512';
-    // SessionCaps indica que esta sesión necesita visión.
-    // Gap = [cap_Image] - [] = [cap_Image] → MakerAI activa el VisionTool bridge.
+    // SessionCaps indicates that this session needs vision.
+    // Gap = [cap_Image] - [] = [cap_Image] → MakerAI activates the VisionTool bridge.
     Conn.Params.Values['SessionCaps']  := '[cap_Image]';
 
-    // Asignar el bridge: Groq ahora "ve" a través de Ollama
+    // Assign the bridge: Groq now "sees" through Ollama
     Conn.VisionTool := VisionTool;
 
     Conn.SystemPrompt.Text :=
       'Eres un asistente de análisis visual. Recibirás descripciones en texto ' +
       'de imágenes y responderás preguntas sobre ellas. Responde en español, conciso.';
 
-    // Cargar la imagen en un TAiMediaFile
-    // NOTA: AddMessageAndRun toma ownership de los TAiMediaFile en el array.
-    // No llamar MF.Free después — el mensaje interno los libera.
+    // Load the image into a TAiMediaFile
+    // NOTE: AddMessageAndRun takes ownership of the TAiMediaFile items in the array.
+    // Do not call MF.Free afterwards — the internal message releases them.
     MF := TAiMediaFile.Create;
     MF.LoadFromFile(IMG_PATH);
     SetLength(Files, 1);
     Files[0] := MF;
 
-    // Enviar imagen + pregunta al LLM
-    // El bridge se activa automáticamente: gemma3 describe → Groq razona
-    Write('  Procesando (gemma3 describe imagen, Groq razona)... ');
+    // Send image + question to the LLM
+    // The bridge activates automatically: gemma3 describes → Groq reasons
+    Write('  Processing (gemma3 describes image, Groq reasons)... ');
     R := Conn.AddMessageAndRun(
       'Describe 3 elementos visuales principales que observas en la imagen.',
       'user', Files);
     WriteLn('OK');
     WriteLn('');
-    WriteLn('  Respuesta de Groq (razonó sobre descripción de gemma3):');
+    WriteLn('  Groq response (reasoned about gemma3 description):');
     WriteLn('  ', R);
 
   finally
@@ -170,24 +170,24 @@ begin
   end;
 
   WriteLn('');
-  WriteLn('→ Groq nunca recibió la imagen directamente.');
-  WriteLn('  Recibió la descripción en texto generada por gemma3:4b en Ollama.');
-  WriteLn('  Cambiar de VisionTool = cambiar VisionTool.Model. Nada más.');
+  WriteLn('→ Groq never received the image directly.');
+  WriteLn('  It received the text description generated by gemma3:4b in Ollama.');
+  WriteLn('  Changing VisionTool = changing VisionTool.Model. Nothing else.');
 end;
 
 // =============================================================================
-//  Demo 2 — Uso directo del VisionTool (sin LLM)
+//  Demo 2 — Direct use of VisionTool (without LLM)
 //
-//  Los ChatTools son componentes independientes que pueden usarse directamente,
-//  sin necesidad de configurar un TAiChatConnection completo.
+//  ChatTools are independent components that can be used directly,
+//  without needing to configure a complete TAiChatConnection.
 //
-//  TAiOllamaVisionTool.DescribeFromFile() es un método de clase que:
-//    - Crea una conexión temporal a Ollama
-//    - Envía la imagen al modelo de visión
-//    - Devuelve la descripción como string
-//    - Cierra la conexión
+//  TAiOllamaVisionTool.DescribeFromFile() is a class method that:
+//    - Creates a temporary connection to Ollama
+//    - Sends the image to the vision model
+//    - Returns the description as a string
+//    - Closes the connection
 //
-//  Útil cuando solo necesitas describir una imagen sin conversación.
+//  Useful when you only need to describe an image without conversation.
 // =============================================================================
 procedure Demo2_DirectTool;
 var
@@ -201,12 +201,12 @@ begin
     Exit;
   end;
 
-  WriteLn('  Llamando TAiOllamaVisionTool.DescribeFromFile() directamente...');
-  WriteLn('  (Sin TAiChatConnection — el VisionTool opera de forma independiente)');
+  WriteLn('  Calling TAiOllamaVisionTool.DescribeFromFile() directly...');
+  WriteLn('  (Without TAiChatConnection — VisionTool operates independently)');
   WriteLn('');
 
-  // Método de clase: no necesita Create/Free, llama directamente al modelo
-  Write('  Describiendo imagen con gemma3:4b... ');
+  // Class method: no Create/Free needed, calls the model directly
+  Write('  Describing image with gemma3:4b... ');
   try
     Descripcion := TAiOllamaVisionTool.DescribeFromFile(
       IMG_PATH,
@@ -214,7 +214,7 @@ begin
       OLLAMA_URL);
     WriteLn('OK');
     WriteLn('');
-    WriteLn('  Descripcion de gemma3:4b:');
+    WriteLn('  Description from gemma3:4b:');
     WriteLn('  ', Descripcion);
   except
     on E: Exception do
@@ -225,49 +225,49 @@ begin
   end;
 
   WriteLn('');
-  WriteLn('→ Los ChatTools son componentes reutilizables e independientes.');
-  WriteLn('  Puedes llamarlos directamente en cualquier parte de tu código.');
+  WriteLn('→ ChatTools are reusable, independent components.');
+  WriteLn('  You can call them directly anywhere in your code.');
 end;
 
 // =============================================================================
-//  Demo 3 — Camino A vs Camino B (conceptual)
+//  Demo 3 — Path A vs Path B (conceptual)
 //
-//  Cuando un ChatTool procesa un archivo, tiene dos caminos para comunicar
-//  el resultado. La elección determina si el LLM ve el resultado o no.
+//  When a ChatTool processes a file, it has two paths to communicate
+//  the result. The choice determines whether the LLM sees the result or not.
 //
-//  Este demo no requiere servicios externos — es una explicación ilustrada.
+//  This demo requires no external services — it is an illustrated explanation.
 // =============================================================================
 procedure Demo3_CaminoAvsB;
 begin
   Separador('Demo 3 — Patron Camino A vs Camino B');
 
   WriteLn('  Cuando un ChatTool procesa un archivo, elige cómo comunicar');
-  WriteLn('  el resultado. Esta decisión define completamente el flujo de datos.');
+  WriteLn('  the result. This decision completely defines the data flow.');
   WriteLn('');
-  WriteLn('  CAMINO A — resultado va al LLM (herramienta de comprension):');
+  WriteLn('  PATH A — result goes to the LLM (comprehension tool):');
   WriteLn('  ─────────────────────────────────────────────────────────────');
   WriteLn('');
-  WriteLn('    aMediaFile.Transcription := TextoExtraido;  // LLM verá esto');
-  WriteLn('    aMediaFile.Procesado      := True;           // señal al orquestador');
+  WriteLn('    aMediaFile.Transcription := TextoExtraido;  // LLM will see this');
+  WriteLn('    aMediaFile.Procesado      := True;           // signal to the orchestrator');
   WriteLn('');
-  WriteLn('    Flujo: Imagen ──> VisionTool describe ──> texto en Transcription');
-  WriteLn('                                               ──> LLM recibe ──> razona');
+  WriteLn('    Flow: Image ──> VisionTool describes ──> text in Transcription');
+  WriteLn('                                               ──> LLM receives ──> reasons');
   WriteLn('');
-  WriteLn('    Herramientas Camino A (comprensión de entrada):');
-  WriteLn('      VisionTool  → imagen  convierte a descripción de texto');
-  WriteLn('      SpeechTool  → audio   convierte a transcripción de texto');
-  WriteLn('      PdfTool     → PDF     convierte a texto extraído');
+  WriteLn('    Path A tools (input comprehension):');
+  WriteLn('      VisionTool  → image  converts to text description');
+  WriteLn('      SpeechTool  → audio   converts to text transcription');
+  WriteLn('      PdfTool     → PDF     converts to extracted text');
   WriteLn('');
-  WriteLn('  CAMINO B — resultado va al usuario (herramienta de generacion):');
+  WriteLn('  PATH B — result goes to the user (generation tool):');
   WriteLn('  ─────────────────────────────────────────────────────────────');
   WriteLn('');
   WriteLn('    MFAudio := TAiMediaFile.Create;');
   WriteLn('    MFAudio.LoadFromStream(''respuesta.mp3'', AudioStream);');
-  WriteLn('    ResMsg.AddMediaFile(MFAudio);   // va directo al usuario');
+  WriteLn('    ResMsg.AddMediaFile(MFAudio);   // goes directly to the user');
   WriteLn('');
-  WriteLn('    Flujo: Texto LLM ──> TTSTool genera audio ──> MP3');
-  WriteLn('                                                 ──> usuario recibe');
-  WriteLn('                                   (el LLM nunca vio el audio)');
+  WriteLn('    Flow: LLM text ──> TTSTool generates audio ──> MP3');
+  WriteLn('                                                 ──> user receives');
+  WriteLn('                                   (the LLM never saw the audio)');
   WriteLn('');
   WriteLn('    Herramientas Camino B (generación de salida):');
   WriteLn('      SpeechTool  → texto  convierte a audio generado (MP3/WAV)');

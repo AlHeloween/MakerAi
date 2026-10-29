@@ -3,16 +3,16 @@
 {$APPTYPE CONSOLE}
 
 // =============================================================================
-// MakerAI — Capítulo 20: ChatTools Comunitarios
-// Demo: Cuatro modalidades de uso de ChatTools
+// MakerAI — Chapter 20: Community ChatTools
+// Demo: Four usage modes of ChatTools
 // =============================================================================
 //
-//   Demo 4: Instanciar herramientas y mostrar propiedades (sin API key)
-//   Demo 1: Búsqueda directa sin LLM (requiere TAVILY_API_KEY)
-//   Demo 2: Visión directa sin LLM   (requiere OPENAI_API_KEY + imagen)
-//   Demo 3: Integración completa con Ollama + ChatTools (requiere ambas keys)
+//   Demo 4: Instantiate tools and show properties (without API key)
+//   Demo 1: Direct search without LLM (requires TAVILY_API_KEY)
+//   Demo 2: Direct vision without LLM   (requires OPENAI_API_KEY + image)
+//   Demo 3: Full integration with Ollama + ChatTools (requires both keys)
 //
-// Patrón de llamada directa (sin LLM):
+// Direct call pattern (without LLM):
 //   ResMsg := TAiChatMessage.Create;
 //   AskMsg := TAiChatMessage.Create;
 //   (Tool as IInterface).ExecuteXxx(input, ResMsg, AskMsg);
@@ -32,7 +32,7 @@ uses
   uMakerAi.ChatTools.OpenAIVision,
   uMakerAi.ChatTools.OpenAISpeech;
 
-// ---------- Demo 1: Búsqueda directa sin LLM ----------
+// ---------- Demo 1: Direct search without LLM ----------
 procedure DemoDirectSearch;
 var
   Search: TAiTavilyWebSearchTool;
@@ -40,8 +40,8 @@ var
   AskMsg: TAiChatMessage;
   Resultado: string;
 begin
-  WriteLn('=== DEMO 1: Búsqueda directa (sin LLM) ===');
-  WriteLn('Herramienta: TAiTavilyWebSearchTool');
+  WriteLn('=== DEMO 1: Direct search (without LLM) ===');
+  WriteLn('Tool: TAiTavilyWebSearchTool');
   WriteLn;
 
   Search := TAiTavilyWebSearchTool.Create(nil);
@@ -51,14 +51,14 @@ begin
     Search.ApiKey     := '@TAVILY_API_KEY';
     Search.MaxResults := 3;
 
-    WriteLn('Buscando: "últimas novedades Delphi 2025"');
+    WriteLn('Searching: "últimas novedades Delphi 2025"');
     // ExecuteSearch es protected → se invoca via interfaz
     (Search as IAiWebSearchTool).ExecuteSearch(
       'últimas novedades Delphi 2025', ResMsg, AskMsg);
 
     Resultado := ResMsg.Prompt;
 
-    WriteLn('Resultados (primeros 600 chars):');
+    WriteLn('Results (first 600 chars):');
     if Length(Resultado) > 600 then
       WriteLn(Copy(Resultado, 1, 600), #13#10'...')
     else
@@ -70,7 +70,7 @@ begin
   end;
 end;
 
-// ---------- Demo 2: Visión directa sin LLM ----------
+// ---------- Demo 2: Direct vision without LLM ----------
 procedure DemoDirectVision(const ImagePath: string);
 var
   Vision: TAiOpenAIVisionTool;
@@ -78,14 +78,14 @@ var
   ResMsg: TAiChatMessage;
   AskMsg: TAiChatMessage;
 begin
-  WriteLn('=== DEMO 2: Visión directa (sin LLM) ===');
-  WriteLn('Herramienta: TAiOpenAIVisionTool');
+  WriteLn('=== DEMO 2: Direct vision (without LLM) ===');
+  WriteLn('Tool: TAiOpenAIVisionTool');
   WriteLn;
 
   if not FileExists(ImagePath) then
   begin
-    WriteLn('Imagen no encontrada: ', ImagePath);
-    WriteLn('(Se requiere una imagen .jpg o .png para este demo)');
+    WriteLn('Image not found: ', ImagePath);
+    WriteLn('(An image .jpg or .png is required for this demo)');
     Exit;
   end;
 
@@ -99,12 +99,12 @@ begin
     Vision.MaxTokens := 512;
 
     Media.LoadFromFile(ImagePath);
-    WriteLn('Analizando imagen: ', ImagePath);
+    WriteLn('Analyzing image: ', ImagePath);
 
     // ExecuteImageDescription es protected → se invoca via interfaz
     (Vision as IAiVisionTool).ExecuteImageDescription(Media, ResMsg, AskMsg);
 
-    WriteLn('Descripción:');
+    WriteLn('Description:');
     WriteLn(ResMsg.Prompt);
   finally
     ResMsg.Free;
@@ -114,7 +114,7 @@ begin
   end;
 end;
 
-// ---------- Demo 3: Integración completa con TAiChatConnection ----------
+// ---------- Demo 3: Full integration with TAiChatConnection ----------
 procedure DemoIntegrated;
 var
   AiConn: TAiChatConnection;
@@ -122,9 +122,9 @@ var
   Speech: TAiOpenAISpeechTool;
   Resp  : string;
 begin
-  WriteLn('=== DEMO 3: Integración completa (Ollama + ChatTools) ===');
-  WriteLn('Modelo base: Ollama llama3.2 (local, sin costo)');
-  WriteLn('ChatTools: Tavily (búsqueda) + OpenAI Speech');
+  WriteLn('=== DEMO 3: Full integration (Ollama + ChatTools) ===');
+  WriteLn('Base model: Ollama llama3.2 (local, no cost)');
+  WriteLn('ChatTools: Tavily (search) + OpenAI Speech');
   WriteLn;
 
   AiConn := TAiChatConnection.Create(nil);
@@ -146,15 +146,15 @@ begin
     Speech.Language   := 'es';
     AiConn.SpeechTool := Speech;
 
-    WriteLn('Pregunta: "¿Qué novedades trae Delphi 13 Florence?"');
-    WriteLn('(Gap Analysis detectará cap_WebSearch y llamará Tavily)');
+    WriteLn('Question: "What''s new in Delphi 13 Florence?"');
+    WriteLn('(Gap Analysis will detect cap_WebSearch and call Tavily)');
     WriteLn;
 
     Resp := AiConn.AddMessageAndRun(
       '¿Qué novedades trae Delphi 13 Florence? Busca información actualizada.',
       'user', []);
 
-    WriteLn('Respuesta del modelo:');
+    WriteLn('Model response:');
     WriteLn(Resp);
   finally
     AiConn.WebSearchTool := nil;  // evitar doble liberación
@@ -165,14 +165,14 @@ begin
   end;
 end;
 
-// ---------- Demo 4: Instanciar y mostrar herramientas disponibles ----------
+// ---------- Demo 4: Instantiate and show available tools ----------
 procedure DemoShowTools;
 var
   Search: TAiTavilyWebSearchTool;
   Vision: TAiOpenAIVisionTool;
   Speech: TAiOpenAISpeechTool;
 begin
-  WriteLn('=== DEMO 4: Instanciar y mostrar herramientas disponibles ===');
+  WriteLn('=== DEMO 4: Instantiate and show available tools ===');
   WriteLn;
 
   Search := TAiTavilyWebSearchTool.Create(nil);
@@ -183,17 +183,17 @@ begin
     Vision.ApiKey := '@OPENAI_API_KEY';
     Speech.ApiKey := '@OPENAI_API_KEY';
 
-    WriteLn('Herramientas instanciadas correctamente:');
+    WriteLn('Tools instantiated correctly:');
     WriteLn('  [WebSearch] ', Search.ClassName, ' — MaxResults: ', Search.MaxResults);
     WriteLn('  [Vision]    ', Vision.ClassName, ' — Detail: ',     Vision.Detail);
-    WriteLn('  [Speech]    ', Speech.ClassName, ' — Language: "',  Speech.Language, '" (vacío=autodetect)');
+    WriteLn('  [Speech]    ', Speech.ClassName, ' — Language: "',  Speech.Language, '" (empty=autodetect)');
     WriteLn;
-    WriteLn('Patrón de asignación a TAiChatConnection:');
-    WriteLn('  AiConn.WebSearchTool := Search;  // activa gap cap_WebSearch');
-    WriteLn('  AiConn.VisionTool    := Vision;  // activa gap cap_Image');
-    WriteLn('  AiConn.SpeechTool    := Speech;  // activa gap cap_Speech');
+    WriteLn('Assignment pattern to TAiChatConnection:');
+    WriteLn('  AiConn.WebSearchTool := Search;  // activates gap cap_WebSearch');
+    WriteLn('  AiConn.VisionTool    := Vision;  // activates gap cap_Image');
+    WriteLn('  AiConn.SpeechTool    := Speech;  // activates gap cap_Speech');
     WriteLn;
-    WriteLn('Patrón de llamada directa sin LLM:');
+    WriteLn('Direct call pattern without LLM:');
     WriteLn('  ResMsg := TAiChatMessage.Create;');
     WriteLn('  AskMsg := TAiChatMessage.Create;');
     WriteLn('  (Search as IAiWebSearchTool).ExecuteSearch(query, ResMsg, AskMsg);');
@@ -213,40 +213,40 @@ begin
   WriteLn;
 
   try
-    // Demo 4: sin API keys
+    // Demo 4: without API keys
     DemoShowTools;
     WriteLn;
 
-    // Demo 1: requiere TAVILY_API_KEY
+    // Demo 1: requires TAVILY_API_KEY
     if GetEnvironmentVariable('TAVILY_API_KEY') <> '' then
     begin
       DemoDirectSearch;
       WriteLn;
     end
     else
-      WriteLn('SKIP Demo 1: TAVILY_API_KEY no configurada' + sLineBreak);
+      WriteLn('SKIP Demo 1: TAVILY_API_KEY not configured' + sLineBreak);
 
-    // Demo 2: requiere OPENAI_API_KEY + imagen de prueba
+    // Demo 2: requires OPENAI_API_KEY + test image
     if GetEnvironmentVariable('OPENAI_API_KEY') <> '' then
     begin
       DemoDirectVision('test_image.jpg');
       WriteLn;
     end
     else
-      WriteLn('SKIP Demo 2: OPENAI_API_KEY no configurada' + sLineBreak);
+      WriteLn('SKIP Demo 2: OPENAI_API_KEY not configured' + sLineBreak);
 
-    // Demo 3: requiere ambas keys + Ollama corriendo
+    // Demo 3: requires both keys + Ollama running
     if (GetEnvironmentVariable('TAVILY_API_KEY') <> '') and
        (GetEnvironmentVariable('OPENAI_API_KEY') <> '') then
     begin
-      Write('Ejecutar Demo 3 (integración Ollama+ChatTools)? [S/N]: ');
+      Write('Run Demo 3 (Ollama+ChatTools integration)? [S/N]: ');
       var LResp: string;
       ReadLn(LResp);
       if SameText(Trim(LResp), 'S') then
         DemoIntegrated;
     end
     else
-      WriteLn('SKIP Demo 3: requiere TAVILY_API_KEY y OPENAI_API_KEY');
+      WriteLn('SKIP Demo 3: requires TAVILY_API_KEY and OPENAI_API_KEY');
 
   except
     on E: Exception do

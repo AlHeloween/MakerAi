@@ -9,7 +9,7 @@ uses
 
 type
   // =============================================================================
-  // HERRAMIENTA PARA OBTENER HORA DE UNA CIUDAD
+  // TOOL TO GET THE TIME OF A CITY
   // =============================================================================
   
   TGetCityTimeParams = class
@@ -63,15 +63,15 @@ begin
     // =========================================================================
     // AQUÃ IMPLEMENTA TU LÃ“GICA PARA OBTENER LA HORA DE LA CIUDAD
     // =========================================================================
-    // Puedes:
-    // 1. Consultar una API externa de zonas horarias (WorldTimeAPI, TimeZoneDB, etc.)
+    // You can:
+    // 1. Query an external time zone API (WorldTimeAPI, TimeZoneDB, etc.)
     // 2. Usar una base de datos local con informaciÃ³n de zonas horarias
     // 3. Implementar tu propia lÃ³gica de conversiÃ³n de zonas horarias
     //
     // Ejemplo de estructura que podrÃ­as retornar:
-    // - DateTime: fecha y hora actual en esa ciudad
-    // - TimeZone: nombre de la zona horaria (ej: "UTC-5", "Europe/Madrid")
-    // - UTCOffset: diferencia en horas respecto a UTC
+    // - DateTime: current date and time in that city
+    // - TimeZone: name of the time zone (e.g.: "UTC-5", "Europe/Madrid")
+    // - UTCOffset: difference in hours from UTC
     // - IsDST: si estÃ¡ en horario de verano
     
     // EJEMPLO TEMPORAL (reemplazar con implementaciÃ³n real):                 ewrqwr
@@ -83,7 +83,7 @@ begin
     // FIN DEL ESPACIO PARA IMPLEMENTACIÃ“N
     // =========================================================================
 
-    // Construir respuesta estructurada
+    // Build structured response
     ResultObject := TJSONObject.Create;
     try
       ResultObject.AddPair('country', AParams.Country);
@@ -93,7 +93,7 @@ begin
       ResultObject.AddPair('time', FormatDateTime('hh:nn:ss', CityDateTime));
       ResultObject.AddPair('timezone', 'UTC' + IfThen(TimeZoneOffset >= 0, '+', '') + IntToStr(TimeZoneOffset));
       ResultObject.AddPair('utc_offset', TimeZoneOffset);
-      ResultObject.AddPair('message', Format('Hora actual en %s, %s', [AParams.City, AParams.Country]));
+      ResultObject.AddPair('message', Format('Current time in %s, %s', [AParams.City, AParams.Country]));
 
       Result := TAiMCPResponseBuilder.New
         .AddText(ResultObject.ToJSON)
@@ -113,7 +113,7 @@ end;
 procedure RegisterWorldTimeTool(ALogicServer: TAiMCPServer);
 begin
   if not Assigned(ALogicServer) then
-    raise Exception.Create('LogicServer no puede ser nulo para registrar herramientas.');
+    raise Exception.Create('LogicServer cannot be null to register tools.');
     
   ALogicServer.RegisterTool('get_city_time', 
     function: IAiMCPTool 

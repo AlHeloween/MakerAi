@@ -11,11 +11,11 @@ program ComplexPipeline;
 //   2. Fork/Join: dos ramas paralelas (Pros + Cons) -> Sintetizador
 //   3. Sequential final: Sintetizador -> Redactor
 //
-// Dado un tema:
+// Given a topic:
 //   [Contextualizador] --fork--> [AnalistaPros]  \
 //                             \-> [AnalistaCons] --> [Sintetizador (jmAll)] -> [Redactor]
 //
-// Conceptos que cubre:
+// Concepts it covers:
 //   - Combinacion de patrones Sequential + Fork/Join en un solo grafo
 //   - Pipeline con 5 nodos LLM en topologia mixta
 //   - Inspección completa del blackboard
@@ -60,7 +60,7 @@ var
   Resultado        : String;
 begin
   Writeln(StringOfChar('=', 60));
-  Writeln('Tema: ', ATema);
+  Writeln('Topic: ', ATema);
   Writeln(StringOfChar('=', 60));
 
   Manager := TAIAgentManager.Create(nil);
@@ -68,38 +68,38 @@ begin
     Manager.Asynchronous := False;
     Manager.TimeoutMs    := 180000;
 
-    // Nodo 1 (secuencial): Contextualizador — prepara el contexto del tema
+    // Node 1 (sequential): Contextualizador — prepares the topic context
     Contextualizador := MakeLLM(Manager, 'Contextualizador',
       'Eres un analista de contexto. Dado un tema, escribe una ' +
       'descripcion breve (2 oraciones) que establezca el contexto para ' +
       'un analisis de pros y contras. Responde en espanol.');
 
-    // Rama A (fork): Analista de ventajas
+    // Branch A (fork): advantages analyst
     AnalistaPros := MakeLLM(Manager, 'AnalistaPros',
       'Eres un analista de ventajas. Recibes contexto sobre un tema. ' +
       'Lista 3 ventajas principales, una por linea. ' +
       'Formato: "PROS:\n+ [ventaja 1]\n+ [ventaja 2]\n+ [ventaja 3]"');
 
-    // Rama B (fork): Analista de desventajas
+    // Branch B (fork): disadvantages analyst
     AnalistaCons := MakeLLM(Manager, 'AnalistaCons',
       'Eres un analista de desventajas. Recibes contexto sobre un tema. ' +
       'Lista 3 desventajas principales, una por linea. ' +
       'Formato: "CONS:\n- [desventaja 1]\n- [desventaja 2]\n- [desventaja 3]"');
 
-    // Nodo join (jmAll): Sintetizador — combina pros y cons
+    // Join node (jmAll): Sintetizador — combines pros and cons
     Sintetizador := MakeLLM(Manager, 'Sintetizador',
       'Eres un sintetizador. Recibes la salida combinada de dos analistas: ' +
       'uno con PROS y otro con CONS. Sintetiza en 2 parrafos en espanol: ' +
       'el primero resume las ventajas, el segundo las desventajas.');
     Sintetizador.JoinMode := jmAll;
 
-    // Nodo final (secuencial): Redactor — genera el articulo final
+    // Final node (sequential): Redactor — generates the final article
     Redactor := MakeLLM(Manager, 'Redactor',
       'Eres un redactor. Recibes un analisis de pros y cons sintetizado. ' +
       'Escribe un articulo de opinion de 3 parrafos en espanol que ' +
       'presente el tema de forma equilibrada y concluya con una recomendacion.');
 
-    // Enlace secuencial: Contextualizador -> Fork
+    // Sequential link: Contextualizador -> Fork
     ForkLink := TAIAgentsLink.Create(Manager);
     ForkLink.Name := 'Fork'; ForkLink.Graph := Manager;
     ForkLink.NextA := AnalistaPros;
@@ -116,7 +116,7 @@ begin
     JoinB.Name := 'JoinB'; JoinB.Graph := Manager; JoinB.NextA := Sintetizador;
     AnalistaCons.Next := JoinB;
 
-    // Enlace secuencial: Sintetizador -> Redactor
+    // Sequential link: Sintetizador -> Redactor
     SintToRedactor := TAIAgentsLink.Create(Manager);
     SintToRedactor.Name := 'SintToRed'; SintToRedactor.Graph := Manager;
     SintToRedactor.NextA := Redactor;
@@ -127,24 +127,24 @@ begin
     Manager.Compile;
 
     Writeln;
-    Writeln('Ejecutando pipeline complejo...');
+    Writeln('Running complex pipeline...');
     Resultado := Manager.Run(ATema);
 
     // Inspeccionar todos los checkpoints
     Writeln;
-    Writeln('--- Contexto (Contextualizador) ---');
+    Writeln('--- Context (Contextualizador) ---');
     Writeln(Manager.Blackboard.GetString('Contextualizador.output'));
     Writeln;
-    Writeln('--- Ventajas (AnalistaPros) ---');
+    Writeln('--- Advantages (AnalistaPros) ---');
     Writeln(Manager.Blackboard.GetString('AnalistaPros.output'));
     Writeln;
-    Writeln('--- Desventajas (AnalistaCons) ---');
+    Writeln('--- Disadvantages (AnalistaCons) ---');
     Writeln(Manager.Blackboard.GetString('AnalistaCons.output'));
     Writeln;
-    Writeln('--- Sintesis (Sintetizador) ---');
+    Writeln('--- Synthesis (Sintetizador) ---');
     Writeln(Manager.Blackboard.GetString('Sintetizador.output'));
     Writeln;
-    Writeln('--- Articulo final (Redactor) ---');
+    Writeln('--- Final article (Redactor) ---');
     Writeln(Resultado);
 
   finally
@@ -172,7 +172,7 @@ end;
 procedure RunDemo;
 begin
   Writeln('=== ComplexPipeline ===');
-  Writeln('Patrones combinados: Sequential + Fork/Join');
+  Writeln('Combined patterns: Sequential + Fork/Join');
   Writeln('Contextualizador -> [Pros + Cons] -> Sintetizador -> Redactor');
   Writeln;
 
@@ -190,6 +190,6 @@ begin
     end;
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

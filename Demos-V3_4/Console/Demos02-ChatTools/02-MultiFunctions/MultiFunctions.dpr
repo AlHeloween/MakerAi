@@ -9,13 +9,13 @@ program MultiFunctions;
 // El LLM tiene acceso a VARIAS funciones y decide cuál(es) usar según el
 // contexto. Puede invocar funciones en secuencia o combinar resultados.
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - Registrar múltiples funciones en TAiFunctions
 //   - El LLM encadena funciones automáticamente (multi-step tool use)
 //   - Cada función tiene su propio handler de clase (TFunctionEvent)
 //   - Una consulta puede requerir N llamadas a funciones antes de responder
 //
-// Funciones de este demo:
+// Functions in this demo:
 //   get_weather(city)                  → clima actual
 //   convert_currency(amount, from, to) → conversión de divisa
 //   calculate(expression)              → calculadora básica
@@ -248,7 +248,7 @@ var
 begin
   Writeln('=== MultiFunctions ===');
   Writeln('Driver: ', DRIVER, ' / Model: ', MODEL);
-  Writeln('Funciones disponibles: get_weather, convert_currency, calculate');
+  Writeln('Available functions: get_weather, convert_currency, calculate');
   Writeln;
 
   FAiFunctions := TAiFunctions.Create(nil);
@@ -269,17 +269,17 @@ begin
         'Eres un asistente inteligente con acceso a herramientas. ' +
         'Úsalas cuando el usuario lo necesite. Responde en español.';
 
-      // ── P1: una función ────────────────────────────────────────────────────
+      // ── P1: one function ────────────────────────────────────────────────────
       Writeln(StringOfChar('-', 60));
-      Writeln('P1 — Una función: "¿Cuánto es 347 × 28?"');
+      Writeln('P1 — One function: "What is 347 × 28?"');
       Res := Conn.AddMessageAndRun('¿Cuánto es 347 × 28?', 'user', []);
       Writeln('R: ', Res);
       Conn.Messages.Clear;
       Writeln;
 
-      // ── P2: dos funciones ──────────────────────────────────────────────────
+      // ── P2: two functions ──────────────────────────────────────────────────
       Writeln(StringOfChar('-', 60));
-      Writeln('P2 — Dos funciones: clima + conversión de moneda');
+      Writeln('P2 — Two functions: weather + currency conversion');
       Res := Conn.AddMessageAndRun(
         '¿Cómo está el clima en Guadalajara y cuánto son 500 USD en MXN?',
         'user', []);
@@ -287,9 +287,9 @@ begin
       Conn.Messages.Clear;
       Writeln;
 
-      // ── P3: encadenadas ────────────────────────────────────────────────────
+      // ── P3: chained ────────────────────────────────────────────────────
       Writeln(StringOfChar('-', 60));
-      Writeln('P3 — Encadenadas: conversión de temperatura + conversión de moneda');
+      Writeln('P3 — Chained: temperature conversion + currency conversion');
       Res := Conn.AddMessageAndRun(
         'Si en Ciudad de México hay 18°C, ¿cuánto es eso en Fahrenheit? ' +
         '(usa calculate: F = 18 * 9/5 + 32, es decir 18 * 1.8 + 32). ' +
@@ -321,6 +321,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

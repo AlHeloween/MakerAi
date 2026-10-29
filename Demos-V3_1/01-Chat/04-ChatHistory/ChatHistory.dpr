@@ -37,19 +37,19 @@ const
   API_KEY = '@CLAUDE_API_KEY';
 
 // =============================================================================
-//  Utilidad: imprime el turno de la conversación con formato
+//  Utility: prints the conversation turn with formatting
 // =============================================================================
 procedure PrintTurn(const Role, Text: String; TurnNum: Integer);
 begin
   Writeln;
   if Role = 'user' then
-    Writeln(Format('[Turno %d] Usuario: %s', [TurnNum, Text]))
+    Writeln(Format('[Turn %d] User: %s', [TurnNum, Text]))
   else
-    Writeln(Format('[Turno %d] Asistente: %s', [TurnNum, Text]));
+    Writeln(Format('[Turn %d] Assistant: %s', [TurnNum, Text]));
 end;
 
 // =============================================================================
-//  DEMO 1 — Conversación simple de 4 turnos
+//  DEMO 1 — Simple 4-turn conversation
 // =============================================================================
 procedure DemoConversacionSimple(Conn: TAiChatConnection);
 const
@@ -63,7 +63,7 @@ var
   I       : Integer;
   Response: String;
 begin
-  Writeln('─── Conversación simple (4 turnos) ───');
+  Writeln('─── Simple conversation (4 turns) ───');
   Conn.Messages.Clear;
 
   for I := 0 to High(PREGUNTAS) do
@@ -71,44 +71,44 @@ begin
     PrintTurn('user', PREGUNTAS[I], I + 1);
     Response := Conn.AddMessageAndRun(PREGUNTAS[I], 'user', []);
     PrintTurn('assistant', Response, I + 1);
-    Writeln(Format('  [Historial: %d mensajes acumulados]', [Conn.Messages.Count]));
+    Writeln(Format('  [History: %d accumulated messages]', [Conn.Messages.Count]));
   end;
   Writeln;
 end;
 
 // =============================================================================
-//  DEMO 2 — Conversación con reset a mitad
+//  DEMO 2 — Conversation with reset halfway through
 // =============================================================================
 procedure DemoConReset(Conn: TAiChatConnection);
 var
   Response: String;
 begin
-  Writeln('─── Conversación con reset ───');
+  Writeln('─── Conversation with reset ───');
   Conn.Messages.Clear;
 
-  // Primera conversación
+  // First conversation
   Conn.AddMessageAndRun('El código secreto de hoy es ALFA-7.', 'user', []);
   Conn.AddMessageAndRun('¿Recuerdas el código secreto?', 'user', []);
 
-  Writeln('Antes del reset — el LLM recuerda el código:');
+  Writeln('Before reset — the LLM remembers the code:');
   Response := Conn.AddMessageAndRun('¿Cuál era el código exacto?', 'user', []);
   Writeln('  ', Response);
 
-  // Reset del historial
+  // Reset history
   Conn.Messages.Clear;
   Writeln;
-  Writeln(Format('Historial limpiado. Mensajes: %d', [Conn.Messages.Count]));
+  Writeln(Format('History cleared. Messages: %d', [Conn.Messages.Count]));
 
-  // Segunda conversación — no recuerda nada de la anterior
+  // Second conversation — remembers nothing from the previous one
   Response := Conn.AddMessageAndRun(
     '¿Cuál era el código secreto que te mencioné?', 'user', []);
-  Writeln('Después del reset — el LLM ya no recuerda:');
+  Writeln('After reset — the LLM no longer remembers:');
   Writeln('  ', Response);
   Writeln;
 end;
 
 // =============================================================================
-//  DEMO 3 — Chat interactivo por consola (hasta escribir "salir")
+//  DEMO 3 — Interactive console chat (until typing "salir")
 // =============================================================================
 procedure DemoChatInteractivo(Conn: TAiChatConnection);
 var
@@ -116,12 +116,12 @@ var
   Response: String;
   Turn    : Integer;
 begin
-  Writeln('─── Chat interactivo (escribe "salir" para terminar) ───');
+  Writeln('─── Interactive chat (type "salir" to finish) ───');
   Conn.Messages.Clear;
   Turn := 0;
 
   repeat
-    Write('Tú: ');
+    Write('You: ');
     Readln(Input);
     Input := Trim(Input);
 
@@ -130,17 +130,17 @@ begin
 
     Inc(Turn);
     Response := Conn.AddMessageAndRun(Input, 'user', []);
-    Writeln('IA: ', Response);
-    Writeln(Format('  [%d mensajes en historial]', [Conn.Messages.Count]));
+    Writeln('AI: ', Response);
+    Writeln(Format('  [%d messages in history]', [Conn.Messages.Count]));
     Writeln;
   until False;
 
-  Writeln(Format('Conversación terminada. Total de turnos: %d', [Turn]));
+  Writeln(Format('Conversation ended. Total turns: %d', [Turn]));
   Writeln;
 end;
 
 // =============================================================================
-//  DEMO principal
+//  Main DEMO
 // =============================================================================
 procedure RunDemo;
 var
@@ -180,6 +180,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

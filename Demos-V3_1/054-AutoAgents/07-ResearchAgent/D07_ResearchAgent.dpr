@@ -5,12 +5,12 @@
 // =============================================================================
 // MakerAI - AutoAgents Demo 07: ResearchAgent
 // =============================================================================
-// Agente de investigacion multi-hop con herramientas:
-//   [Planner] -> [Researcher] (con mock search tool) -> [Analyst] -> [Writer]
+// Multi-hop research agent with tools:
+//   [Planner] -> [Researcher] (with mock search tool) -> [Analyst] -> [Writer]
 //
-// El Researcher usa una herramienta de busqueda mock que devuelve datos
-// predefinidos segun palabras clave. Demuestra el uso de herramientas
-// especializadas en un pipeline multi-nodo.
+// The Researcher uses a mock search tool that returns data
+// predefined by keywords. Demonstrates the use of tools
+// specialized in a multi-node pipeline.
 // =============================================================================
 
 uses
@@ -30,8 +30,8 @@ const
   API_KEY = '@CLAUDE_API_KEY';
 
 // -----------------------------------------------------------------------------
-// TMockSearchTool — busqueda web simulada
-// Devuelve datos predefinidos segun el query
+// TMockSearchTool — simulated web search
+// Returns predefined data based on the query
 // Args: { "query": string, "max_results": number (optional) }
 // -----------------------------------------------------------------------------
 type
@@ -121,7 +121,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// TNoteTool — guarda notas en el blackboard durante la investigacion
+// TNoteTool — saves notes in the blackboard during research
 // Args: { "key": string, "content": string }
 // -----------------------------------------------------------------------------
 type
@@ -180,7 +180,7 @@ begin
 end;
 
 // =============================================================================
-// DEMO PRINCIPAL
+// MAIN DEMO
 // =============================================================================
 
 function MakeLLMNode(Manager: TAIAgentManager; const AName, ASystemPrompt: String;
@@ -207,7 +207,7 @@ var
   Link1, Link2, Link3: TAIAgentsLink;
 begin
   Writeln(StringOfChar('=', 60));
-  Writeln('Investigacion: ', ATopic);
+  Writeln('Research: ', ATopic);
   Writeln(StringOfChar('=', 60));
 
   Manager := TAIAgentManager.Create(nil);
@@ -216,17 +216,17 @@ begin
     Manager.Asynchronous := False;
     Manager.TimeoutMs    := 180000;
 
-    // Registry propio para el nodo de investigacion
+    // Own registry for the research node
     ResearchRegistry.Register(TMockSearchTool.Create, 'local', 'research');
     ResearchRegistry.Register(TNoteTool.Create(Manager.Blackboard), 'local', 'research');
 
-    // Nodo 1: Planner — genera plan de investigacion
+    // Node 1: Planner — generates research plan
     PlannerNode := MakeLLMNode(Manager, 'Planner',
       'You are a research planner. Given a topic, output a research plan with ' +
       '3 specific search queries to investigate it. Format: "QUERY 1: ...\nQUERY 2: ...\nQUERY 3: ..."',
       False);
 
-    // Nodo 2: Researcher — usa web_search y save_note
+    // Node 2: Researcher — uses web_search and save_note
     ResearchNode := MakeLLMNode(Manager, 'Researcher',
       'You are a researcher. Execute the 3 search queries from the plan using web_search tool. ' +
       'After each search, save key findings using save_note tool with keys "finding1", "finding2", "finding3". ' +
@@ -234,21 +234,21 @@ begin
       True);  // UseAllTools=True pero usara el registry propio
     ResearchNode.Registry := ResearchRegistry;  // registry especializado
 
-    // Nodo 3: Analyst — analiza los hallazgos
+    // Node 3: Analyst — analyzes the findings
     AnalystNode := MakeLLMNode(Manager, 'Analyst',
       'You are a critical analyst. You receive research findings. ' +
       'Identify 3 key insights and 2 potential gaps or uncertainties. ' +
       'Format with clear headers: "KEY INSIGHTS:" and "GAPS:"',
       False);
 
-    // Nodo 4: Writer — escribe el reporte final
+    // Node 4: Writer — writes the final report
     WriterNode := MakeLLMNode(Manager, 'Writer',
       'You are a technical writer. You receive analysis of research findings. ' +
       'Write a structured mini-report with sections: Executive Summary, Key Findings, Conclusion. ' +
       'Keep it concise (3 short paragraphs total).',
       False);
 
-    // Encadenar nodos
+    // Chain nodes
     Link1 := TAIAgentsLink.Create(Manager); Link1.Name := 'L1'; Link1.Graph := Manager; Link1.NextA := ResearchNode; PlannerNode.Next := Link1;
     Link2 := TAIAgentsLink.Create(Manager); Link2.Name := 'L2'; Link2.Graph := Manager; Link2.NextA := AnalystNode;  ResearchNode.Next := Link2;
     Link3 := TAIAgentsLink.Create(Manager); Link3.Name := 'L3'; Link3.Graph := Manager; Link3.NextA := WriterNode;   AnalystNode.Next := Link3;
@@ -264,10 +264,10 @@ begin
     var FinalReport := Manager.Run(ATopic);
 
     Writeln;
-    Writeln('--- Plan de investigacion ---');
+    Writeln('--- Research plan ---');
     Writeln(Manager.Blackboard.GetString('Planner.output'));
     Writeln;
-    Writeln('--- Reporte final ---');
+    Writeln('--- Final report ---');
     Writeln(FinalReport);
 
   finally
@@ -294,6 +294,6 @@ begin
     on E: Exception do
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
-  Writeln('Demo finalizado. Presiona Enter para salir.');
+  Writeln('Demo finished. Press Enter to exit.');
   Readln;
 end.

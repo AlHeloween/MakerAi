@@ -1,7 +1,7 @@
 ﻿unit uBotMemory;
 
 // =============================================================================
-// TBotMemory — Módulo de memoria semántica para Demo 058 FMX Telegram Bot
+// TBotMemory — Semantic memory module for Demo 058 FMX Telegram Bot
 //
 // Combina dos capas de almacenamiento:
 //   1. KV store JSON  → acceso exacto rápido (save/get/delete/list)
@@ -41,12 +41,12 @@ type
   // ---------------------------------------------------------------------------
   TBotMemory = class
   private
-    // ── KV store (acceso exacto) ────────────────────────────────────────────
+    // ── KV store (exact access) ────────────────────────────────────────────
     FKVData : TJSONObject;   // key → {value, category, timestamp}
     FKVFile : string;
     FLock   : TCriticalSection;
 
-    // ── RAG (búsqueda semántica) ────────────────────────────────────────────
+    // ── RAG (semantic search) ────────────────────────────────────────────
     FRagVector  : TAiRAGVector;
     FDriver     : TAiMkVecDriver;
     FEmbConn    : TAiEmbeddingConnection;
@@ -93,7 +93,7 @@ begin
   try KVLoad;
   finally FLock.Leave; end;
 
-  // ── Inicializar RAG (no fatal si falla) ──────────────────────────────────
+  // ── Initialize RAG (non-fatal if it fails) ──────────────────────────────────
   FRagEnabled := False;
   FRagVector  := nil;
   FDriver     := nil;
@@ -106,7 +106,7 @@ begin
     if AEmbModel <> '' then
       FEmbConn.Model := AEmbModel;
 
-    // Binary file driver (sin dependencias externas)
+    // Binary file driver (no external dependencies)
     FDriver          := TAiMkVecDriver.Create(nil);
     FDriver.FilePath := TPath.Combine(ADataDir, 'bot_memory.mkvec');
 
@@ -117,7 +117,7 @@ begin
     FRagVector.Embeddings    := FEmbConn.AiEmbeddings;
     FRagVector.LexicalLanguage := alEnglish;
 
-    // Opciones de búsqueda: híbrido BM25 + semántica, fusión RRF
+    // Search options: hybrid BM25 + semantic, RRF fusion
     FRagVector.SearchOptions.UseEmbeddings := True;
     FRagVector.SearchOptions.UseBM25       := True;
     FRagVector.SearchOptions.UseRRF        := True;
@@ -190,12 +190,12 @@ var
 begin
   if not FRagEnabled then Exit;
   try
-    // Borrar registro previo con la misma clave (actualización)
+    // Delete previous record with the same key (update)
     RagDelete(AKey);
 
     Text := '[' + AKey + ']: ' + AValue;
     Node := FRagVector.CreateEmbeddingNode(Text);
-    Node.Tag := AKey;   // clave = ID en el .mkvec (permite Delete exacto)
+    Node.Tag := AKey;   // key = ID in the .mkvec (allows exact Delete)
 
     Meta := TAiEmbeddingMetaData.Create;
     try
@@ -231,7 +231,7 @@ var
 begin
   FLock.Enter;
   try
-    // Actualizar KV store
+    // Update KV store
     Pair := FKVData.RemovePair(AKey);
     Pair.Free;
 
@@ -245,7 +245,7 @@ begin
     FLock.Leave;
   end;
 
-  // Actualizar índice RAG (fuera del lock; puede ser lento por la red)
+  // Update RAG index (outside the lock; may be slow due to network)
   RagAdd(AKey, AValue, ACategory);
 
   JR := TJSONObject.Create;
@@ -318,7 +318,7 @@ begin
         JEntry.TryGetValue<string>('timestamp', Ts);
       end
       else
-        Value := P.JsonValue.Value;   // compatibilidad con formato antiguo
+        Value := P.JsonValue.Value;   // compatibility with old format
 
       JElem := TJSONObject.Create;
       JElem.AddPair('key',      P.JsonString.Value);

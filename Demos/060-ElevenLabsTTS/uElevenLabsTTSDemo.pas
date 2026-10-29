@@ -67,7 +67,7 @@ procedure TFrmElevenLabs.FormCreate(Sender: TObject);
 begin
   FTool := TAiElevenLabsSpeechTool.Create(Self);
 
-  // Modelos disponibles
+  // Available models
   CbModelo.Items.Add('eleven_multilingual_v2');
   CbModelo.Items.Add('eleven_flash_v2_5');
   CbModelo.Items.Add('eleven_turbo_v2_5');
@@ -75,7 +75,7 @@ begin
   CbModelo.Items.Add('eleven_multilingual_v1');
   CbModelo.ItemIndex := 0;
 
-  // Formatos de salida
+  // Output formats
   CbFormato.Items.Add('mp3_44100_128 (default)');
   CbFormato.Items.Add('mp3_44100_192 (alta calidad)');
   CbFormato.Items.Add('pcm_24000 (WAV)');
@@ -124,12 +124,12 @@ begin
 
   if LText = '' then
   begin
-    LblTTSStatus.Text := 'Ingresa texto para sintetizar.';
+    LblTTSStatus.Text := 'Enter text to synthesize.';
     Exit;
   end;
   if LVoiceId = '' then
   begin
-    LblTTSStatus.Text := 'Ingresa un Voice ID valido.';
+    LblTTSStatus.Text := 'Enter a valid Voice ID.';
     Exit;
   end;
 
@@ -144,7 +144,7 @@ begin
     'elevenlabs_demo_audio.' + LFormatExtension);
 
   EnableButtons(False);
-  LblTTSStatus.Text := 'Generando voz...';
+  LblTTSStatus.Text := 'Generating voice...';
   BtnReproducir.Enabled := False;
   BtnGuardar.Enabled    := False;
 
@@ -163,19 +163,19 @@ begin
 
         if Assigned(FLastAudioFile) then
         begin
-          // Guardar en temp para reproducir
+          // Save to temp to play
           FLastAudioFile.Content.Position := 0;
           FLastAudioFile.Content.SaveToFile(FTempAudioPath);
 
-          LblTTSStatus.Text := Format('Audio generado: %s (%d bytes)',
+          LblTTSStatus.Text := Format('Audio generated: %s (%d bytes)',
             [ExtractFileName(FTempAudioPath), FLastAudioFile.Content.Size]);
           BtnReproducir.Enabled := True;
           BtnGuardar.Enabled    := True;
-          SetStatus('TTS completado correctamente.');
+          SetStatus('TTS completed successfully.');
         end
         else
         begin
-          LblTTSStatus.Text := 'Error: no se genero audio.';
+          LblTTSStatus.Text := 'Error: no audio was generated.';
           SetStatus('Error al generar voz.');
         end;
         EnableButtons(True);
@@ -185,7 +185,7 @@ begin
         TThread.Queue(nil, procedure
         begin
           LblTTSStatus.Text := 'Error: ' + E.Message;
-          SetStatus('Error TTS: ' + E.Message);
+          SetStatus('TTS error: ' + E.Message);
           EnableButtons(True);
         end);
     end;
@@ -196,17 +196,17 @@ procedure TFrmElevenLabs.BtnReproducirClick(Sender: TObject);
 begin
   if not TFile.Exists(FTempAudioPath) then
   begin
-    LblTTSStatus.Text := 'No hay audio generado para reproducir.';
+    LblTTSStatus.Text := 'No generated audio to play.';
     Exit;
   end;
   try
     MediaPlayer.Stop;
     MediaPlayer.FileName := FTempAudioPath;
     MediaPlayer.Play;
-    SetStatus('Reproduciendo: ' + ExtractFileName(FTempAudioPath));
+    SetStatus('Playing: ' + ExtractFileName(FTempAudioPath));
   except
     on E: Exception do
-      SetStatus('Error al reproducir: ' + E.Message);
+      SetStatus('Error playing: ' + E.Message);
   end;
 end;
 
@@ -214,7 +214,7 @@ procedure TFrmElevenLabs.BtnGuardarClick(Sender: TObject);
 begin
   if not Assigned(FLastAudioFile) then
   begin
-    SetStatus('No hay audio para guardar.');
+    SetStatus('No audio to save.');
     Exit;
   end;
   SaveDlg.FileName    := 'elevenlabs_audio';
@@ -224,7 +224,7 @@ begin
   begin
     FLastAudioFile.Content.Position := 0;
     FLastAudioFile.Content.SaveToFile(SaveDlg.FileName);
-    SetStatus('Audio guardado en: ' + SaveDlg.FileName);
+    SetStatus('Audio saved to: ' + SaveDlg.FileName);
   end;
 end;
 
@@ -249,13 +249,13 @@ procedure TFrmElevenLabs.BtnTranscribirClick(Sender: TObject);
 begin
   if not Assigned(FLoadedAudioFile) then
   begin
-    SetStatus('Carga un archivo de audio primero.');
+    SetStatus('Load an audio file first.');
     Exit;
   end;
 
   EnableButtons(False);
-  MemoSTT.Text := 'Transcribiendo...';
-  SetStatus('Enviando audio a ElevenLabs Scribe...');
+  MemoSTT.Text := 'Transcribing...';
+  SetStatus('Sending audio to ElevenLabs Scribe...');
 
   TThread.CreateAnonymousThread(procedure
   var
@@ -269,7 +269,7 @@ begin
         TThread.Queue(nil, procedure
         begin
           MemoSTT.Text := LText;
-          SetStatus('Transcripcion completada.');
+          SetStatus('Transcription completed.');
           EnableButtons(True);
         end);
       except
@@ -277,7 +277,7 @@ begin
           TThread.Queue(nil, procedure
           begin
             MemoSTT.Text := 'Error: ' + E.Message;
-            SetStatus('Error en transcripcion: ' + E.Message);
+            SetStatus('Transcription error: ' + E.Message);
             EnableButtons(True);
           end);
       end;

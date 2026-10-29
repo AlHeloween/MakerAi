@@ -14,33 +14,33 @@ var
 
 begin
   try
-    // 1. Instanciar el servidor HTTP
+    // 1. Instantiate the HTTP server
     MCPServer := TAiMCPHttpServer.Create(nil);
     try
-      // 2. Configuración
-      MCPServer.Port := 8080; // Puerto donde escuchará
-      MCPServer.CorsEnabled := True; // Permitir acceso desde navegadores
+      // 2. Configuration
+      MCPServer.Port := 8080; // Port where it will listen
+      MCPServer.CorsEnabled := True; // Allow access from browsers
       MCPServer.CorsAllowedOrigins := '*';
       MCPServer.ServerName := 'Delphi-MCP-Http-Files';
 
-      // 3. Registrar las herramientas (Exactamente igual que antes)
-      WriteLn('Registrando herramientas de archivo...');
+      // 3. Register the tools (Exactly the same as before)
+      WriteLn('Registering file tools...');
       uTool.Sandbox.RegisterSandboxTools(MCPServer);
       uTool.WorldTime.RegisterWorldTimeTool(MCPServer);
 
-      // 4. Iniciar
+      // 4. Start
       MCPServer.Start;
 
       WriteLn('');
       WriteLn('==================================================');
-      WriteLn(Format('✅ Servidor HTTP Escuchando en el puerto %d', [MCPServer.Port]));
-      WriteLn(Format('📂 Carpeta controlada: %s', [uTool.Sandbox.SANDBOX_ROOT]));
+      WriteLn(Format('✅ HTTP Server Listening on port %d', [MCPServer.Port]));
+      WriteLn(Format('📂 Controlled folder: %s', [uTool.Sandbox.SANDBOX_ROOT]));
       WriteLn('==================================================');
-      WriteLn('Endpoints disponibles:');
-      WriteLn('  GET  http://localhost:8080/mcp  -> Info del servidor');
-      WriteLn('  POST http://localhost:8080/mcp  -> Enviar comandos JSON-RPC');
+      WriteLn('Available endpoints:');
+      WriteLn('  GET  http://localhost:8080/mcp  -> Server info');
+      WriteLn('  POST http://localhost:8080/mcp  -> Send JSON-RPC commands');
       WriteLn('==================================================');
-      WriteLn('Presiona Enter para salir...');
+      WriteLn('Press Enter to exit...');
 
       ReadLn; // Esperar a que el usuario presione Enter para cerrar
 

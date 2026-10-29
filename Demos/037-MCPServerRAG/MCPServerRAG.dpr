@@ -90,7 +90,7 @@ begin
         uTool.RAG.RegisterTools(MCPServer); // registra el tool y engancha la autenticacion
 
         MCPServer.Start;
-        WriteLn(ErrOutput, Format('[mcp-rag-vector] listo. protocolo=%s puerto=%d config=%s',
+        WriteLn(ErrOutput, Format('[mcp-rag-vector] ready. protocol=%s port=%d config=%s',
           [Cfg.Protocol, Cfg.Port, IniPath]));
 
         while True do

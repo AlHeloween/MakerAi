@@ -5,7 +5,7 @@ program AgentValidate;
 // =============================================================================
 // MakerAI — 07-AgenticLLM / 09-ValidateAndRetry
 // =============================================================================
-// Pipeline de generacion con validacion automatica y reescritura:
+// Generation pipeline with automatic validation and rewriting:
 //
 //   [DraftWriter] -> [Critic (check_quality tool)] -> [Rewriter]
 //
@@ -13,7 +13,7 @@ program AgentValidate;
 // objetivos (longitud, palabras de contraste, preguntas retorica).
 // El Rewriter incorpora el feedback para mejorar el texto.
 //
-// Conceptos que cubre:
+// Concepts it covers:
 //   - Registry privado por nodo (CriticNode.Registry)
 //   - Herramienta de validacion local (sin LLM, logica de negocio pura)
 //   - Paso de contexto: el output del Critic incluye DRAFT + FEEDBACK
@@ -36,7 +36,7 @@ const
   API_KEY = '@CLAUDE_API_KEY';
 
 // -----------------------------------------------------------------------------
-// TQualityCheckerTool — verifica criterios de calidad en un texto
+// TQualityCheckerTool — checks quality criteria in a text
 // Args:    { "text": string, "criteria": string }
 // Returns: { "score": number, "issues": string, "passed": bool, "word_count": number }
 // -----------------------------------------------------------------------------
@@ -111,7 +111,7 @@ begin
   end;
   if Score < 0 then Score := 0;
 
-  Writeln(Format('  [check_quality] palabras=%d score=%d/10 issues: %s',
+  Writeln(Format('  [check_quality] words=%d score=%d/10 issues: %s',
                  [WordCount, Score, Issues]));
 
   Result := TJSONObject.Create;
@@ -122,7 +122,7 @@ begin
 end;
 
 // =============================================================================
-// DEMO PRINCIPAL
+// MAIN DEMO
 // =============================================================================
 
 function MakeLLMNode(Manager: TAIAgentManager; const AName, ASystemPrompt: String;
@@ -148,7 +148,7 @@ var
   Link1, Link2   : TAIAgentsLink;
 begin
   Writeln(StringOfChar('=', 60));
-  Writeln('Tarea: ', ATask);
+  Writeln('Task: ', ATask);
   Writeln(StringOfChar('=', 60));
 
   Manager        := TAIAgentManager.Create(nil);
@@ -190,13 +190,13 @@ begin
     var FinalText := Manager.Run(ATask);
 
     Writeln;
-    Writeln('--- Borrador inicial ---');
+    Writeln('--- Initial draft ---');
     Writeln(Manager.Blackboard.GetString('DraftWriter.output'));
     Writeln;
-    Writeln('--- Feedback del critico ---');
+    Writeln('--- Critic feedback ---');
     Writeln(Manager.Blackboard.GetString('Critic.output'));
     Writeln;
-    Writeln('--- Version final reescrita ---');
+    Writeln('--- Final rewritten version ---');
     Writeln(FinalText);
 
   finally
@@ -217,6 +217,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

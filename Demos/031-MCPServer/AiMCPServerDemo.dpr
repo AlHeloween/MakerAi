@@ -51,7 +51,7 @@ uses
 var
   MCPServer: TAiMCPServer;
 
-  // --- Muestra la información de ayuda ---
+  // --- Shows help information ---
 procedure ShowHelp;
 begin
   WriteLn('');
@@ -111,15 +111,15 @@ begin
   WriteLn('==============================================================================');
 end;
 
-// --- Registro centralizado de herramientas ---
+// --- Centralized tool registration ---
 procedure RegisterAllToolsAndResources(ALogicServer: TAiMCPServer);
 begin
   if not Assigned(ALogicServer) then
     Exit;
-  // stderr: en modo stdio, stdout es exclusivo del protocolo MCP.
+  // stderr: in stdio mode, stdout is exclusive to the MCP protocol.
   WriteLn(ErrOutput, 'Registering tools...');
 
-  // Reutilizamos tus herramientas existentes sin modificar una sola línea de código
+  // We reuse your existing tools without modifying a single line of code
   uTool.FileAccess.RegisterTools(ALogicServer);
   uTool.SysInfo.RegisterTools(ALogicServer);
   uTool.WorldTime.RegisterWorldTimeTool(ALogicServer);
@@ -128,7 +128,7 @@ begin
   WriteLn(ErrOutput, 'Registration complete.');
 end;
 
-// --- Programa Principal ---
+// --- Main program ---
 var
   Protocol: string;
   Port: Integer;
@@ -142,7 +142,7 @@ var
 
 begin
 
-  // 1. Valores por defecto
+  // 1. Default values
   Protocol := 'sse'; // Por defecto SSE en este demo
   Port := 8080; // SSE suele usar 8080 u 8000
   CorsOrigins := '*';
@@ -153,7 +153,7 @@ begin
 
   MCPServer := nil;
 
-  // 2. Parsear parámetros
+  // 2. Parse parameters
   if ParamCount >= 1 then
   begin
     i := 1;
@@ -186,7 +186,7 @@ begin
         end;
       end
       else if Param = '--otel' then
-        // Exporta trazas OpenTelemetry (OTLP/HTTP) al collector local :4318
+        // Exports OpenTelemetry traces (OTLP/HTTP) to the local collector :4318
         OtelEnabled := True
       else if (Param = '--help') or (Param = '-h') then
         ShowHelpFlag := True;
@@ -219,19 +219,19 @@ begin
       else
         WriteLn(Format('Starting server with protocol: %s', [Protocol]));
 
-      // Observabilidad opt-in: --otel exporta trazas al collector OTLP local
+      // Opt-in observability: --otel exports traces to the local OTLP collector
       if OtelEnabled then
       begin
         Telemetry := TAiTelemetry.Create(nil);
         Telemetry.ServiceName := 'AiMCPServerDemo';
         Telemetry.Enabled := True;
-        WriteLn(ErrOutput, 'OpenTelemetry: exportando trazas a ' + Telemetry.Endpoint);
+        WriteLn(ErrOutput, 'OpenTelemetry: exporting traces to ' + Telemetry.Endpoint);
       end;
 
-      // 3. Crear instancia según protocolo
+      // 3. Create instance according to protocol
       if SameText(Protocol, 'sse') then
       begin
-        // --- AQUÍ INSTANCIAMOS EL SERVIDOR SSE ---
+        // --- HERE WE INSTANTIATE THE SSE SERVER ---
         MCPServer := TAiMCPSSEHttpServer.Create(nil);
       end
       else if SameText(Protocol, 'http') then
@@ -248,7 +248,7 @@ begin
         Halt(1);
       end;
 
-      // 4. Configuración
+      // 4. Configuration
       if LoadSettings then
       begin
         MCPServer.SettingsFile := FileSettings;
@@ -264,10 +264,10 @@ begin
         end;
       end;
 
-      // 5. Registrar herramientas
+      // 5. Register tools
       RegisterAllToolsAndResources(MCPServer);
 
-      // 6. Iniciar
+      // 6. Start
       if Assigned(MCPServer) then
       begin
         MCPServer.Start;
@@ -280,7 +280,7 @@ begin
         else if MCPServer is TAiMCPHttpServer then
           WriteLn(Format('✅ MCP HTTP Server listening on port %d.', [MCPServer.Port]))
         else
-          WriteLn(ErrOutput, 'MCP Stdio Server running.'); // stderr: stdout es solo protocolo
+          WriteLn(ErrOutput, 'MCP Stdio Server running.'); // stderr: stdout is protocol only
       end;
 
       if SameText(Protocol, 'stdio') then
@@ -288,7 +288,7 @@ begin
       else
         WriteLn('Press Ctrl+C to stop.');
 
-      // Bucle infinito
+      // Infinite loop
       while True do
         Sleep(1000);
 

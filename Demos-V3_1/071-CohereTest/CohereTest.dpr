@@ -9,7 +9,7 @@
 // Muestra cada token recibido en async para detectar problemas de parseo.
 // Incluye prueba con modelo reasoning (command-a-reasoning-08-2025).
 //
-// Configurar COHERE_API_KEY como variable de entorno antes de ejecutar.
+// Configure COHERE_API_KEY as an environment variable before running.
 // =============================================================================
 
 uses
@@ -27,7 +27,7 @@ uses
 
 const
   API_KEY = '@COHERE_API_KEY';
-  // Modelos disponibles:
+  // Available models:
   //   'command-a-03-2025'           - texto + tools, 256K ctx (flagship)
   //   'command-a-reasoning-08-2025' - texto + tools + reasoning, 32K output
   //   'command-a-vision-07-2025'    - vision, sin tools
@@ -123,7 +123,7 @@ end;
 procedure TCohereTest.OnData(const Sender: TObject; aMsg: TAiChatMessage;
   aResponse: TJSONObject; aRole, aText: String);
 begin
-  // Capturar primeros 3 chunks raw para ver la estructura SSE de Cohere
+  // Capture first 3 raw chunks to see Cohere's SSE structure
   if Assigned(aResponse) and (FRawChunkLog.Count < 3) then
     FRawChunkLog.Add(Copy(aResponse.ToString, 1, 250));
 
@@ -185,7 +185,7 @@ begin
   // Raw chunks
   if FRawChunkLog.Count > 0 then
   begin
-    Writeln('--- RAW SSE chunks (primeros ' + IntToStr(FRawChunkLog.Count) + ') ---');
+    Writeln('--- RAW SSE chunks (first ' + IntToStr(FRawChunkLog.Count) + ') ---');
     var i: Integer;
     for i := 0 to FRawChunkLog.Count - 1 do
       Writeln('  [' + IntToStr(i) + '] ' + FRawChunkLog[i]);
@@ -200,36 +200,36 @@ begin
     Writeln;
   end
   else
-    Writeln('Thinking chunks : 0  (sin reasoning en este modelo/modo)');
+    Writeln('Thinking chunks : 0  (no reasoning in this model/mode)');
 
-  Writeln(Format('Texto chunks    : %d  (%d chars en buffer)', [FTokenCount, Length(FBuffer)]));
+  Writeln(Format('Text chunks     : %d  (%d chars in buffer)', [FTokenCount, Length(FBuffer)]));
 
-  // Coherencia con historial
+  // Consistency with history
   if FConn.GetLastMessage <> nil then
   begin
     LHistorial := FConn.GetLastMessage.Prompt;
     LReasoning := FConn.GetLastMessage.ReasoningContent;
-    Writeln(Format('Historial Prompt: %d chars', [Length(LHistorial)]));
+    Writeln(Format('History Prompt: %d chars', [Length(LHistorial)]));
     if LReasoning <> '' then
-      Writeln(Format('Historial Reason: %d chars', [Length(LReasoning)]));
+      Writeln(Format('History Reason: %d chars', [Length(LReasoning)]));
 
     Writeln;
-    Writeln('--- Respuesta ---');
+    Writeln('--- Answer ---');
     Writeln(FBuffer);
 
     if LHistorial <> FBuffer then
     begin
       Writeln;
-      Writeln('*** DISCREPANCIA buffer vs historial ***');
+      Writeln('*** DISCREPANCY buffer vs history ***');
       Writeln(Format('  Buffer    : %d chars', [Length(FBuffer)]));
       Writeln(Format('  Historial : %d chars', [Length(LHistorial)]));
-      Writeln('  Buffer    inicio: [' + Copy(FBuffer, 1, 40) + ']');
-      Writeln('  Historial inicio: [' + Copy(LHistorial, 1, 40) + ']');
-      Writeln('  Buffer    final : [' + Copy(FBuffer, Length(FBuffer)-39, 40) + ']');
-      Writeln('  Historial final : [' + Copy(LHistorial, Length(LHistorial)-39, 40) + ']');
+      Writeln('  Buffer    start: [' + Copy(FBuffer, 1, 40) + ']');
+      Writeln('  History start: [' + Copy(LHistorial, 1, 40) + ']');
+      Writeln('  Buffer    end   : [' + Copy(FBuffer, Length(FBuffer)-39, 40) + ']');
+      Writeln('  History end     : [' + Copy(LHistorial, Length(LHistorial)-39, 40) + ']');
     end
     else
-      Writeln('  [OK] Buffer y historial coinciden.');
+      Writeln('  [OK] Buffer and history match.');
   end;
 end;
 
@@ -255,10 +255,10 @@ begin
     else if Response = '' then
       Writeln('Respuesta: <vacia>')
     else
-      Writeln('Respuesta: ', Response);
+      Writeln('Answer: ', Response);
   except
     on E: Exception do
-      Writeln('EXCEPCION: ', E.ClassName, ' - ', E.Message);
+      Writeln('EXCEPTION: ', E.ClassName, ' - ', E.Message);
   end;
 end;
 
@@ -287,7 +287,7 @@ begin
     on E: Exception do
     begin
       Writeln;
-      Writeln('ERROR al llamar AddMessageAndRun: ', E.Message);
+      Writeln('ERROR calling AddMessageAndRun: ', E.Message);
       Exit;
     end;
   end;
@@ -313,8 +313,8 @@ procedure TCohereTest.TestMultiTurnAsync(const AModel: String);
     WaitResult: TWaitResult;
   begin
     Writeln;
-    Writeln(Format('-- Turno %d --', [ATurn]));
-    Writeln('Usuario: ', AQuestion);
+    Writeln(Format('-- Turn %d --', [ATurn]));
+    Writeln('User: ', AQuestion);
 
     ResetBuffers;
     FDoneEvent.ResetEvent;
@@ -333,7 +333,7 @@ procedure TCohereTest.TestMultiTurnAsync(const AModel: String);
       begin
         if FThinkCount > 0 then
           Writeln(Format('  [thinking: %d chunks]', [FThinkCount]));
-        Writeln(Format('  [texto: %d chunks, %d chars]', [FTokenCount, Length(FBuffer)]));
+        Writeln(Format('  [text: %d chunks, %d chars]', [FTokenCount, Length(FBuffer)]));
       end;
     end
     else
@@ -345,12 +345,12 @@ begin
   FConn.Model := AModel;
   FConn.NewChat;
 
-  SendTurn('Hola! Mi nombre es Gustavo. Recuerdalo.', 1);
-  SendTurn('Cual es mi nombre?', 2);
-  SendTurn('Cuantos mensajes llevamos en esta conversacion?', 3);
+  SendTurn('Hello! My name is Gustavo. Remember it.', 1);
+  SendTurn('What is my name?', 2);
+  SendTurn('How many messages have we exchanged in this conversation?', 3);
 
   Writeln;
-  Writeln(Format('Mensajes en historial: %d', [FConn.Messages.Count]));
+  Writeln(Format('Messages in history: %d', [FConn.Messages.Count]));
 end;
 
 // =============================================================================
@@ -367,7 +367,7 @@ begin
 
   Tester := TCohereTest.Create;
   try
-    // --- command-a-03-2025 (texto + tools, sin reasoning) ---
+    // --- command-a-03-2025 (text + tools, no reasoning) ---
     Tester.TestSync(
       'En una sola oracion: cual es la capital de Francia?',
       MODEL_TEXT, 'Test 1 - Sync basico');
@@ -389,7 +389,7 @@ begin
       'Cuanto es 347 multiplicado por 28? Muestra el razonamiento.',
       MODEL_REASON, 'Test 5 - Async reasoning');
 
-    // --- Multi-turno con command-a ---
+    // --- Multi-turn with command-a ---
     Tester.TestMultiTurnAsync(MODEL_TEXT);
 
   finally
@@ -397,6 +397,6 @@ begin
   end;
 
   Writeln;
-  Writeln('Demo finalizado. Presiona Enter para salir.');
+  Writeln('Demo finished. Press Enter to exit.');
   Readln;
 end.

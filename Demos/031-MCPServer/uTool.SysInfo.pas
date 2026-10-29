@@ -49,15 +49,15 @@ type
     FIncludeDetails: Boolean;
     FFormatAsJson: Boolean; // <-- Nuevo parámetro
   public
-    [AiMCPSchemaDescription('Tipo de información: "basic", "memory", "disk", "network" o "all"')]
+    [AiMCPSchemaDescription('Type of information: "basic", "memory", "disk", "network" or "all"')]
     property InfoType: string read FInfoType write FInfoType;
 
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Incluir detalles adicionales (default: false)')]
+    [AiMCPSchemaDescription('Include additional details (default: false)')]
     property IncludeDetails: Boolean read FIncludeDetails write FIncludeDetails;
 
     [AiMCPOptional]
-    // <-- Nuevo parámetro para controlar el formato de salida
+    // <-- New parameter to control output format
     [AiMCPSchemaDescription
       ('Devolver la información como un objeto JSON estructurado (default: true). Si es false, devuelve texto formateado.')]
     property FormatAsJson: Boolean read FFormatAsJson write FFormatAsJson;
@@ -65,14 +65,14 @@ type
 
   TSysInfoTool = class(TAiMCPToolBase<TSysInfoParams>)
   private
-    // Funciones que devuelven JSON
+    // Functions that return JSON
     function GetBasicInfoAsJson: TJSONObject;
     function GetMemoryInfoAsJson: TJSONObject;
     function GetDiskInfoAsJson: TJSONArray;
     function GetNetworkInfoAsJson: TJSONObject;
     function GetAllInfoAsJson(IncludeDetails: Boolean): TJSONObject;
 
-    // Funciones antiguas que devuelven texto (para retrocompatibilidad)
+    // Old functions that return text (for backward compatibility)
     function GetBasicInfoAsText: string;
     function GetMemoryInfoAsText: string;
     function GetDiskInfoAsText: string;
@@ -80,7 +80,7 @@ type
     function GetAllInfoAsText(IncludeDetails: Boolean): string;
 
   protected
-    // CAMBIO: La firma ahora devuelve TJSONObject
+    // CHANGE: The signature now returns TJSONObject
     function ExecuteWithParams(const AParams: TSysInfoParams; const AuthContext: TAiAuthContext): TJSONObject; override;
   public
     constructor Create; Override;
@@ -270,7 +270,7 @@ begin
   FName := 'system_info';
   FDescription :=
     'Obtiene información del sistema (CPU, memoria, disco, etc.) donde se está ejecutando el servidor. Puede devolver la información como texto formateado o como un objeto JSON estructurado.';
-  // Por defecto, FormatAsJson será True
+  // By default, FormatAsJson will be True
   TSysInfoParams.Create.FFormatAsJson := True;
 end;
 
@@ -338,7 +338,7 @@ begin
     end;
   except
     on E: Exception do
-      Result := TAiMCPResponseBuilder.New.AddText('❌ Error obteniendo información del sistema: ' + E.Message).Build;
+      Result := TAiMCPResponseBuilder.New.AddText('❌ Error getting system information: ' + E.Message).Build;
   end;
 end;
 
@@ -442,7 +442,7 @@ function TSysInfoTool.GetBasicInfoAsText: string;
 var
   LName: string;
 begin
-  // Código original de GetBasicInfo
+  // Original code of GetBasicInfo
   Result := '🖥️ INFORMACIÓN BÁSICA DEL SISTEMA' + sLineBreak + sLineBreak;
   LName := SysHostName;
   if LName <> '' then
@@ -467,7 +467,7 @@ end;
 
 function TSysInfoTool.GetMemoryInfoAsText: string;
 begin
-  // Código original de GetMemoryInfo
+  // Original code of GetMemoryInfo
   var
     LTotal, LAvail: Double;
   var
@@ -501,12 +501,12 @@ begin
   LName := SysHostName;
   if LName <> '' then
     Result := Result + 'Nombre de red: ' + LName + sLineBreak;
-  Result := Result + 'Nota: Para más detalles de red, se requieren APIs específicas.';
+  Result := Result + 'Note: For more network details, specific APIs are required.';
 end;
 
 function TSysInfoTool.GetAllInfoAsText(IncludeDetails: Boolean): string;
 begin
-  // Código original de GetAllInfo
+  // Original code of GetAllInfo
   Result := GetBasicInfoAsText + sLineBreak + sLineBreak + GetMemoryInfoAsText + sLineBreak + sLineBreak + GetDiskInfoAsText + sLineBreak +
     sLineBreak + GetNetworkInfoAsText;
   if IncludeDetails then

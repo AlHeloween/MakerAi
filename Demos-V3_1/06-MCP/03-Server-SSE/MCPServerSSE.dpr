@@ -6,20 +6,20 @@ program MCPServerSSE;
 // =============================================================================
 // MakerAI — 06-MCP / 03-Server-SSE
 // =============================================================================
-// Servidor MCP via protocolo SSE (Server-Sent Events sobre HTTP).
-// Protocolo moderno compatible con Claude Desktop y clientes MCP estandar.
+// MCP server via SSE protocol (Server-Sent Events over HTTP).
+// Modern protocol compatible with Claude Desktop and standard MCP clients.
 //
-// Conceptos que cubre:
-//   - TAiMCPSSEHttpServer: servidor MCP via SSE + HTTP
-//   - Diferencia SSE vs HTTP vs StdIO
-//   - Endpoints SSE: /sse (stream) y /messages (comandos)
-//   - Configuracion para Claude Desktop
+// Concepts covered:
+//   - TAiMCPSSEHttpServer: MCP server via SSE + HTTP
+//   - Difference between SSE, HTTP, and StdIO
+//   - SSE endpoints: /sse (stream) and /messages (commands)
+//   - Configuration for Claude Desktop
 //
 // Endpoints:
 //   GET  http://localhost:8080/sse       -> Stream SSE (conectar primero)
-//   POST http://localhost:8080/messages  -> Comandos JSON-RPC
+//   POST http://localhost:8080/messages  -> JSON-RPC commands
 //
-// Herramientas: get_datetime, greet
+// Tools: get_datetime, greet
 // =============================================================================
 
 uses
@@ -30,7 +30,7 @@ uses
   uMakerAi.MCPServer.SSE;
 
 // =============================================================================
-//  Herramienta: get_datetime
+//  Tool: get_datetime
 // =============================================================================
 type
   TDateTimeParams = class
@@ -70,7 +70,7 @@ begin
 end;
 
 // =============================================================================
-//  Herramienta: greet
+//  Tool: greet
 // =============================================================================
 type
   TGreetParams = class
@@ -129,7 +129,7 @@ begin
       Server.CorsEnabled        := True;
       Server.CorsAllowedOrigins := '*';
 
-      // Registrar herramientas
+      // Register tools
       Server.RegisterTool('get_datetime',
         function: IAiMCPTool begin Result := TDateTimeMCPTool.Create; end);
       Server.RegisterTool('greet',
@@ -139,14 +139,14 @@ begin
 
       Writeln;
       Writeln('=== MCPServerSSE ===');
-      Writeln(Format('Servidor SSE activo en puerto %d', [Server.Port]));
-      Writeln('Herramientas: get_datetime, greet');
+      Writeln(Format('SSE server active on port %d', [Server.Port]));
+      Writeln('Tools: get_datetime, greet');
       Writeln;
       Writeln('Endpoints SSE:');
       Writeln(Format('  GET  http://localhost:%d/sse       -> Stream SSE', [Server.Port]));
-      Writeln(Format('  POST http://localhost:%d/messages  -> Comandos JSON-RPC', [Server.Port]));
+      Writeln(Format('  POST http://localhost:%d/messages  -> JSON-RPC commands', [Server.Port]));
       Writeln;
-      Writeln('Configuracion para Claude Desktop (claude_desktop_config.json):');
+      Writeln('Configuration for Claude Desktop (claude_desktop_config.json):');
       Writeln('{');
       Writeln('  "mcpServers": {');
       Writeln('    "makerai-demo": {');
@@ -156,7 +156,7 @@ begin
       Writeln('  }');
       Writeln('}');
       Writeln;
-      Writeln('Presiona Enter para detener...');
+      Writeln('Press Enter to stop...');
       Readln;
 
     finally
@@ -165,6 +165,6 @@ begin
     end;
   except
     on E: Exception do
-      Writeln('Error fatal: ', E.ClassName, ': ', E.Message);
+      Writeln('Fatal error: ', E.ClassName, ': ', E.Message);
   end;
 end.

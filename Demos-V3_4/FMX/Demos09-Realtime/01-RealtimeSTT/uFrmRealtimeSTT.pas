@@ -2,7 +2,7 @@
 
 // =============================================================================
 // MakerAI — Demo FMX Realtime STT
-// Transcripcion de voz en tiempo real usando OpenAI Realtime API.
+// Real-time voice transcription using OpenAI Realtime API.
 //
 // Componentes: TAiOpenAiRealtimeSTT + TAIVoiceMonitor
 //
@@ -12,7 +12,7 @@
 //   3. VAD del servidor detecta inicio/fin de habla
 //   4. Transcripcion llega en tiempo real (delta) y como texto final
 //
-// Requiere: variable de entorno OPENAI_API_KEY configurada.
+// Requires: OPENAI_API_KEY environment variable configured.
 // =============================================================================
 
 interface
@@ -128,7 +128,7 @@ begin
 
   FLiveText := '';
   SetStateColor(CLR_GRAY);
-  // Eliminar borde del circulo indicador
+  // Remove border of the status indicator circle
   CircleState.Stroke.Kind := TBrushKind.None;
 end;
 
@@ -162,9 +162,9 @@ begin
   begin
     FSTT.Model    := CbxModel.Items[CbxModel.ItemIndex];
     FSTT.Language := Trim(EdLanguage.Text);
-    SetStatus('Conectando...');
+    SetStatus('Connecting...');
     SetStateColor(CLR_ORANGE);
-    BtnConnect.Text := 'Desconectar';
+    BtnConnect.Text := 'Disconnect';
     FSTT.Connect;
   end;
 end;
@@ -174,25 +174,25 @@ begin
   MemoHistory.Lines.Clear;
 end;
 
-{ Eventos STT — todos llegan ya en el hilo principal (TThread.Queue en base class) }
+{ STT events — all arrive already on the main thread (TThread.Queue in base class) }
 
 procedure TFrmRealtimeSTT.OnSttConnected(Sender: TObject);
 begin
-  SetStatus('WebSocket conectado. Configurando sesion...');
+  SetStatus('WebSocket connected. Configuring session...');
   SetStateColor(CLR_ORANGE);
 end;
 
 procedure TFrmRealtimeSTT.OnSttDisconnected(Sender: TObject);
 begin
   FMic.Active := False;
-  SetStatus('Desconectado. Presione Conectar para iniciar.');
+  SetStatus('Disconnected. Press Connect to start.');
   SetStateColor(CLR_GRAY);
   BtnConnect.Text := 'Conectar';
 end;
 
 procedure TFrmRealtimeSTT.OnSttSessionReady(Sender: TObject);
 begin
-  SetStatus('Sesion lista. Calibrando microfono...');
+  SetStatus('Session ready. Calibrating microphone...');
   SetStateColor(CLR_ORANGE);
   FMic.Active := True;
 end;

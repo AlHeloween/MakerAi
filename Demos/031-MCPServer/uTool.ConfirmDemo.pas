@@ -9,24 +9,24 @@ uses
 
 type
   // =============================================================================
-  // HERRAMIENTA DEMO DEL PATRON MRTR (MCP spec 2026-07-28)
+  // DEMO TOOL FOR THE MRTR PATTERN (MCP spec 2026-07-28)
   // =============================================================================
-  // Primera llamada: el tool no ejecuta nada y devuelve un InputRequiredResult
-  // (resultType='input_required') con un ElicitRequest pidiendo confirmacion al
-  // usuario, mas un requestState opaco.
-  // Reintento: el cliente repite tools/call agregando inputResponses (con el
-  // ElicitResult) y el eco de requestState; el tool valida y ejecuta.
+  // First call: the tool does not execute anything and returns an InputRequiredResult
+  // (resultType='input_required') with an ElicitRequest asking the user for confirmation,
+  // plus an opaque requestState.
+  // Retry: the client repeats tools/call adding inputResponses (with the
+  // ElicitResult) and the echo of requestState; the tool validates and executes.
   //
-  // NOTA de seguridad: requestState viaja por el cliente y es entrada NO
-  // confiable. En produccion debe protegerse con HMAC/AEAD si influye en
-  // autorizacion o logica de negocio. Aqui solo transporta el mensaje en
-  // Base64 con fines demostrativos (una alteracion solo hace fallar el request).
+  // SECURITY NOTE: requestState travels through the client and is UNTRUSTED
+  // input. In production it must be protected with HMAC/AEAD if it affects
+  // authorization or business logic. Here it only transports the message in
+  // Base64 for demonstration purposes (an alteration only makes the request fail).
 
   TConfirmDemoParams = class
   private
     FOperation: string;
   public
-    [AiMCPSchemaDescription('Operacion que requiere confirmacion del usuario (ej: "borrar archivo temp.txt")')]
+    [AiMCPSchemaDescription('Operation that requires user confirmation (e.g.: "delete temp.txt file")')]
     property Operation: string read FOperation write FOperation;
   end;
 
@@ -95,22 +95,22 @@ var
   Action, DecodedState: string;
 begin
   if AParams.Operation.IsEmpty then
-    Exit(TAiMCPResponseBuilder.New.AddText('Error: el parametro "Operation" es obligatorio').Build);
+    Exit(TAiMCPResponseBuilder.New.AddText('Error: the "Operation" parameter is required').Build);
 
-  // Es un reintento MRTR con la respuesta de la elicitation?
+  // Is it an MRTR retry with the elicitation response?
   if Assigned(AuthContext.InputResponses) then
   begin
     V := AuthContext.InputResponses.GetValue('user_confirmation');
     if not(V is TJSONObject) then
-      // Falta la respuesta pedida: la spec dice re-pedir, no fallar.
+      // The requested response is missing: the spec says to ask again, not to fail.
       Exit(BuildInputRequired(AParams.Operation));
 
     ElicitResult := TJSONObject(V);
     Action := ElicitResult.GetValue<string>('action', '');
 
-    // Verificar el eco del requestState (demo de round-trip integro).
-    // requestState es entrada no confiable: un valor corrupto solo debe
-    // producir un rechazo limpio, nunca una excepcion interna.
+    // Verify the requestState echo (intact round-trip demo).
+    // requestState is untrusted input: a corrupted value should only
+    // produce a clean rejection, never an internal exception.
     DecodedState := '';
     if AuthContext.RequestState <> '' then
       try
@@ -119,22 +119,22 @@ begin
         DecodedState := '';
       end;
     if DecodedState <> AParams.Operation then
-      Exit(TAiMCPResponseBuilder.New.AddText('Error: requestState invalido o ausente en el reintento').Build);
+      Exit(TAiMCPResponseBuilder.New.AddText('Error: invalid or missing requestState in retry').Build);
 
     if SameText(Action, 'accept') then
-      Exit(TAiMCPResponseBuilder.New.AddText('CONFIRMADO y ejecutado: ' + AParams.Operation).Build)
+      Exit(TAiMCPResponseBuilder.New.AddText('CONFIRMED and executed: ' + AParams.Operation).Build)
     else
-      Exit(TAiMCPResponseBuilder.New.AddText('CANCELADO por el usuario: ' + AParams.Operation).Build);
+      Exit(TAiMCPResponseBuilder.New.AddText('CANCELLED by the user: ' + AParams.Operation).Build);
   end;
 
-  // Primera llamada: pedir confirmacion via MRTR.
+  // First call: request confirmation via MRTR.
   Result := BuildInputRequired(AParams.Operation);
 end;
 
 procedure RegisterConfirmDemoTool(ALogicServer: TAiMCPServer);
 begin
   if not Assigned(ALogicServer) then
-    raise Exception.Create('LogicServer no puede ser nulo para registrar herramientas.');
+    raise Exception.Create('LogicServer cannot be null to register tools.');
 
   ALogicServer.RegisterTool('confirm_demo',
     function: IAiMCPTool

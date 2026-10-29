@@ -9,14 +9,14 @@ program WebSearch;
 // El LLM busca en internet para responder preguntas con información reciente,
 // superando la limitación del "knowledge cutoff".
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - Activar búsqueda web con cap_WebSearch en Capabilities
 //   - Proveedores con búsqueda nativa: Gemini (Google Search), Grok (X/Twitter)
 //   - Proveedor Claude: usa Brave Search si se configura la API key
 //   - Diferencia entre respuestas con y sin búsqueda web
 //   - Las citas/fuentes que devuelve el LLM
 //
-// Proveedores soportados:
+// Supported providers:
 //   - Gemini    → Google Search integrado, sin configuración extra
 //   - Grok      → X/Twitter + web, sin configuración extra
 //   - Claude    → Requiere BRAVE_API_KEY (o Bing) configurado en el proveedor
@@ -56,24 +56,24 @@ var
   Res: String;
 begin
   Writeln(StringOfChar('-', 60));
-  Writeln('Pregunta: ', Question);
+  Writeln('Question: ', Question);
   Writeln;
 
-  // ── SIN búsqueda web ─────────────────────────────────────────────────
+  // ── WITHOUT web search ─────────────────────────────────────────────────
   Conn.Messages.Clear;
   Conn.Params.Values['WebSearch'] := 'False';
 
   Res := Conn.AddMessageAndRun(Question, 'user', []);
-  Writeln('SIN búsqueda web:');
+  Writeln('WITHOUT web search:');
   Writeln('  ', Copy(Res, 1, 200), '...');
   Writeln;
 
-  // ── CON búsqueda web ─────────────────────────────────────────────────
+  // ── WITH web search ─────────────────────────────────────────────────
   Conn.Messages.Clear;
   Conn.Params.Values['WebSearch'] := 'True';
 
   Res := Conn.AddMessageAndRun(Question, 'user', []);
-  Writeln('CON búsqueda web:');
+  Writeln('WITH web search:');
   Writeln('  ', Copy(Res, 1, 400));
   Writeln;
 end;
@@ -108,29 +108,29 @@ begin
       'Cuando uses búsqueda web, menciona las fuentes consultadas. ' +
       'Responde en español.';
 
-    // ── Demo 1: Comparación con/sin búsqueda ─────────────────────────────
-    Writeln('=== COMPARACIÓN: con vs. sin búsqueda web ===');
+    // ── Demo 1: Comparison with/without search ─────────────────────────────
+    Writeln('=== COMPARISON: with vs. without web search ===');
     CompararConSinBusqueda(Conn,
       '¿Cuál es el LLM más potente disponible hoy?');
 
-    // ── Demo 2: Preguntas que necesitan info actual ───────────────────────
-    Writeln('=== PREGUNTAS QUE REQUIEREN INFORMACIÓN ACTUAL ===');
+    // ── Demo 2: Questions that need current info ───────────────────────
+    Writeln('=== QUESTIONS THAT REQUIRE CURRENT INFORMATION ===');
     Conn.Params.Values['WebSearch'] := 'True';
 
     for I := Low(PREGUNTAS) to High(PREGUNTAS) do
     begin
       Conn.Messages.Clear;
       Writeln(StringOfChar('-', 60));
-      Writeln(Format('Pregunta %d: %s', [I+1, PREGUNTAS[I]]));
+      Writeln(Format('Question %d: %s', [I+1, PREGUNTAS[I]]));
       Res := Conn.AddMessageAndRun(PREGUNTAS[I], 'user', []);
-      Writeln('Respuesta: ');
+      Writeln('Response: ');
       Writeln(Copy(Res, 1, 500));
       Writeln;
     end;
 
-    // ── Demo 3: Citar fuentes ─────────────────────────────────────────────
+    // ── Demo 3: Cite sources ─────────────────────────────────────────────
     Writeln(StringOfChar('-', 60));
-    Writeln('Demo 3: Respuesta con fuentes citadas');
+    Writeln('Demo 3: Response with cited sources');
     Conn.Messages.Clear;
     Conn.SystemPrompt.Text :=
       'Responde con fuentes. Al final incluye una sección "Fuentes:" con ' +

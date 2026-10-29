@@ -4,72 +4,72 @@
 
 uses
   System.SysUtils,
-  // 1. Unidades del Servidor MCP
+  // 1. MCP Server Units
   uMakerAi.MCPServer.Core in '..\Source\MCPServer\uMakerAi.MCPServer.Core.pas',
-  uMakerAi.MCPServer.SSE in '..\Source\MCPServer\UMakerAi.MCPServer.SSE.pas', // La unidad SSE corregida
+  uMakerAi.MCPServer.SSE in '..\Source\MCPServer\UMakerAi.MCPServer.SSE.pas', // The corrected SSE unit
 
-  // 2. Unidades de Herramientas
-  uTool.Sandbox in 'uTool.Sandbox.pas'; // Tus herramientas de archivos
+  // 2. Tool Units
+  uTool.Sandbox in 'uTool.Sandbox.pas'; // Your file tools
 
 var
   MCPServer: TAiMCPSSEHttpServer;
 
 begin
   try
-    // --- 1. Crear Instancia del Servidor SSE ---
+    // --- 1. Create SSE Server Instance ---
     MCPServer := TAiMCPSSEHttpServer.Create(nil);
     try
-      // --- 2. Configuración ---
-      MCPServer.Port := 8080;          // Puerto TCP
-      MCPServer.CorsEnabled := True;   // Necesario para Claude Desktop
+      // --- 2. Configuration ---
+      MCPServer.Port := 8080;          // TCP Port
+      MCPServer.CorsEnabled := True;   // Required for Claude Desktop
       MCPServer.CorsAllowedOrigins := '*';
       MCPServer.ServerName := 'Delphi-MCP-SSE-Files';
 
-      // Configuración opcional de rutas (estos son los defaults)
+      // Optional route configuration (these are the defaults)
       // MCPServer.SseEndpoint := '/sse';
       // MCPServer.MessagesEndpoint := '/messages';
 
-      // --- 3. Registrar Herramientas ---
-      WriteLn('Registrando herramientas de archivo...');
+      // --- 3. Register Tools ---
+      WriteLn('Registering file tools...');
       uTool.Sandbox.RegisterSandboxTools(MCPServer);
 
-      // --- 4. Iniciar Servidor ---
+      // --- 4. Start Server ---
       MCPServer.Start;
 
       WriteLn('');
       WriteLn('===========================================================');
-      WriteLn('✅ SERVIDOR MCP SSE ACTIVO');
-      WriteLn(Format('   Puerto: %d', [MCPServer.Port]));
-      WriteLn(Format('   Carpeta: %s', [uTool.Sandbox.SANDBOX_ROOT]));
+      WriteLn('✅ MCP SSE SERVER ACTIVE');
+      WriteLn(Format('   Port: %d', [MCPServer.Port]));
+      WriteLn(Format('   Folder: %s', [uTool.Sandbox.SANDBOX_ROOT]));
       WriteLn('===========================================================');
       WriteLn('');
-      WriteLn('--- CONFIGURACIÓN PARA CLAUDE DESKTOP ---');
-      WriteLn('Copia y pega esto en tu "claude_desktop_config.json":');
+      WriteLn('--- CONFIGURATION FOR CLAUDE DESKTOP ---');
+      WriteLn('Copy and paste this into your "claude_desktop_config.json":');
       WriteLn('');
       WriteLn('{');
       WriteLn('  "mcpServers": {');
       WriteLn('    "delphi-sse-files": {');
-      WriteLn('      "command": "ruta\\al\\ejecutable\\McpFileServerSSE.exe",');
+      WriteLn('      "command": "path\\to\\executable\\McpFileServerSSE.exe",');
       WriteLn('      "args": []');
       WriteLn('    }');
       WriteLn('  }');
       WriteLn('}');
       WriteLn('');
-      WriteLn('NOTA: Claude Desktop lanzará este ejecutable automáticamente.');
-      WriteLn('Si quieres probarlo manualmente vía HTTP, el endpoint SSE es:');
+      WriteLn('NOTE: Claude Desktop will launch this executable automatically.');
+      WriteLn('If you want to test it manually via HTTP, the SSE endpoint is:');
       WriteLn('http://localhost:8080/sse');
       WriteLn('');
-      WriteLn('Presiona Enter para detener el servidor...');
+      WriteLn('Press Enter to stop the server...');
 
-      // Mantener vivo hasta que el usuario decida salir
+      // Keep alive until the user decides to exit
       ReadLn;
 
     except
       on E: Exception do
-        WriteLn('Error Fatal al iniciar: ' + E.Message);
+        WriteLn('Fatal error on startup: ' + E.Message);
     end;
   finally
-    // Limpieza
+    // Cleanup
     if Assigned(MCPServer) then
     begin
       MCPServer.Stop;
