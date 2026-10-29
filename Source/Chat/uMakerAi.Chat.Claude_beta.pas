@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: +57 3128441700
@@ -1763,8 +1763,8 @@ end;
 
 procedure TAiClaudeChat.ConfigureAutoContextClearing(TriggerTokens: Integer; KeepLast: Integer);
 begin
-  // Limpia configuraciones previas para evitar duplicados
-  // Limpia configuraciones previas para evitar duplicados
+  // Clears previous configurations to avoid duplicates
+  // Clears previous configurations to avoid duplicates
   FContextConfig.Clear;
 
   // Add the tool cleanup rule
@@ -1850,7 +1850,7 @@ end;
   end
 
   // -------------------------------------------------------------------------
-  // CASO 2: Mensaje del Asistente (Texto / Thinking / Tool Request)
+  // CASE 2: Assistant Message (Text / Thinking / Tool Request)
   // -------------------------------------------------------------------------
   else if (LMessage.Role = 'assistant') then
   begin
@@ -1980,7 +1980,7 @@ end;
   bHasContent := True;
   end;
 
-  // protection contra contenido empty
+  // protection against empty content
   if not bHasContent then
   begin
   LPartObj := TJSONObject.Create;
@@ -2030,7 +2030,7 @@ begin
     end
 
     // -------------------------------------------------------------------------
-    // CASO 2: Mensaje del Asistente (Texto / Thinking / Tool Request)
+    // CASE 2: Assistant Message (Text / Thinking / Tool Request)
     // -------------------------------------------------------------------------
     else if (LMessage.Role = 'assistant') then
     begin
@@ -2202,7 +2202,7 @@ begin
         bHasContent := True;
       end;
 
-      // protection contra contenido empty
+      // protection against empty content
       if not bHasContent then
       begin
         LPartObj := TJSONObject.Create;

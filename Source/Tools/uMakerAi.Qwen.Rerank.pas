@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -33,14 +33,14 @@
 // - Youtube: https://www.youtube.com/@cimamaker3945
 // - GitHub: https://github.com/gustavoeenriquez/
 
-// Reranker de Qwen (Alibaba Model Studio) para TAiRAGVector.Reranker.
+// Qwen reranker (Alibaba Model Studio) for TAiRAGVector.Reranker.
 // API nativa: POST api/v1/services/rerank/text-rerank/text-rerank
 //   {model, input:{query, documents[]}, parameters:{instruct}}
 //   -> output.results[] = {index, relevance_score 0..1}
-// Una sola llamada puntua hasta 500 documentos (el API rechaza 501); por encima
-// se parte en lotes. Instruct describe la tarea y afina el puntaje (probado: el
-// pasaje correcto sube de 0.85 a 0.91 con una instruccion contable).
-// Verificado en runtime (sep 2026): qwen3-rerank. gte-rerank-v2 no existe en la
+// A single call scores up to 500 documents (the API rejects 501); above that
+// it is split into batches. Instruct describes the task and refines the score (tested: the
+// correct passage rises from 0.85 to 0.91 with an accounting instruction).
+// Verified at runtime (Sep 2026): qwen3-rerank. gte-rerank-v2 does not exist in the
 // region internacional y gte-rerank responde AccessDenied.
 
 interface
@@ -64,25 +64,25 @@ type
     procedure ScoreBatch(const AQuery: string; const ATexts: TArray<string>; AFrom, ACount: Integer;
       var AScores: TArray<Double>);
   protected
-    // Transporte: recibe el cuerpo JSON y devuelve el JSON de respuesta. Virtual
-    // para poder probar el parseo sin red.
+    // Transport: receives the JSON body and returns the response JSON. Virtual
+    // to be able to test parsing without network.
     function Post(const ABody: string): string; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     function Score(const AQuery: string; const ATexts: TArray<string>): TArray<Double>; override;
-    // Tokens facturados en la ultima llamada a Score
+    // Tokens billed in the last call to Score
     property LastTokens: Integer read FLastTokens;
   published
-    // '@VARIABLE' lee la key de esa variable de entorno
+    // '@VARIABLE' reads the key from that environment variable
     property ApiKey: string read FApiKey write FApiKey;
     property Url: string read FUrl write FUrl;
     property Model: string read FModel write FModel;
-    // Descripcion de la tarea en ingles, p.ej. 'Given a web search query, retrieve
-    // relevant passages that answer the query'. Vacio = la del modelo.
+    // Task description in English, e.g. 'Given a web search query, retrieve
+    // relevant passages that answer the query'. Empty = that of the model.
     property Instruct: string read FInstruct write FInstruct;
-    // Los pasajes se recortan a este largo antes de enviarlos
+    // Passages are truncated to this length before sending them
     property MaxPassageChars: Integer read FMaxPassageChars write FMaxPassageChars default 4000;
-    // Documentos por llamada (maximo del API: 500)
+    // Documents per call (API maximum: 500)
     property BatchSize: Integer read FBatchSize write FBatchSize default 500;
   end;
 
@@ -176,11 +176,11 @@ begin
     if not (V is TJSONObject) then
     begin
       V.Free;
-      raise Exception.Create('Qwen rerank: la respuesta no es un objeto JSON');
+      raise Exception.Create('Qwen rerank: the response is not a JSON object');
     end;
     jRes := TJSONObject(V);
     if not jRes.TryGetValue<TJSONArray>('output.results', jResults) then
-      raise Exception.Create('Qwen rerank: respuesta sin output.results: ' + Copy(jRes.ToJSON, 1, 300));
+      raise Exception.Create('Qwen rerank: response without output.results: ' + Copy(jRes.ToJSON, 1, 300));
     for V in jResults do
       if V is TJSONObject then
       begin
@@ -202,7 +202,7 @@ var
 begin
   FLastTokens := 0;
   SetLength(Result, Length(ATexts));
-  // Un documento que el API no devuelva queda en 0 (menos relevante que cualquiera)
+  // A document not returned by the API remains at 0 (less relevant than any)
   for LFrom := 0 to High(Result) do
     Result[LFrom] := 0;
   if Length(ATexts) = 0 then

@@ -435,7 +435,7 @@ begin
   Client := TNetHTTPClient.Create(Nil);
   try
     // Batch-specific headers
-    Headers := [TNetHeader.Create('x-api-key', ApiKey), TNetHeader.Create('anthropic-version', CLAUDE_API_VERSION), TNetHeader.Create('anthropic-beta', 'message-batches-2024-09-24'), // Header obligatorio para Batches
+    Headers := [TNetHeader.Create('x-api-key', ApiKey), TNetHeader.Create('anthropic-version', CLAUDE_API_VERSION), TNetHeader.Create('anthropic-beta', 'message-batches-2024-09-24'), // Required header for Batches
     TNetHeader.Create('content-type', 'application/json')];
 
     // Build the body
@@ -1702,11 +1702,11 @@ begin
         ToolCall.ResMsg := ResMsg;
         ToolCall.AskMsg := AskMsg;
 
-        _CreateTask(ToolCall, I); // subrutina local garantiza captura por valor
+        _CreateTask(ToolCall, I); // local subroutine guarantees capture by value
         Inc(I);
       end;
       // Pump Synchronize/Queue while waiting, so as not to hang the app if a
-      // tool call accede a la VCL/FMX via TThread.Synchronize (issue #103).
+      // tool call accesses VCL/FMX via TThread.Synchronize (issue #103).
       // NOTE: CheckSynchronize is ONLY valid on the main thread; on
       // secondary threads (Indy workers of a headless service, agent TTask)
       // it THROWS exception "CheckSynchronize called from thread X". Outside the main
@@ -1744,7 +1744,7 @@ begin
       end
       else
       begin
-        // ISSUE #100: en async este ParseChat corre DENTRO del callback de recepción
+        // ISSUE #100: in async this ParseChat runs INSIDE the reception callback
         // (OnInternalReceiveData -> message_stop). Re-entering with Self.Run starts a new POST
         // whose finally frees the FCurrentPostStream of the request still in flight -> AV
         // in THTTPClient.ExecuteHTTPInternal. The continuation is deferred to
@@ -2226,7 +2226,7 @@ begin
               begin
                 MsgToProcess.Id := FMessages.Count + 1;
                 FMessages.Add(MsgToProcess);
-                MsgToProcess := nil; // propiedad transferida a FMessages; no liberar abajo
+                MsgToProcess := nil; // property transferred to FMessages; do not free below
               end;
               if Assigned(MsgToProcess) then
                 MsgToProcess.Free;
@@ -2350,11 +2350,11 @@ var
   LSupportsMidSystem: Boolean;
 begin
   Result := TJSonArray.Create;
-  LLastContent := nil; // contenido del ultimo mensaje emitido (auto-cache del ultimo turno)
+  LLastContent := nil; // content of the last emitted message (auto-cache of the last turn)
 
-  // Mensajes {role:"system"} dentro del historial (mid-conversation): solo
-  // opus-5/4.8/fable/mythos. En modelos sin soporte se degradan a un turno
-  // user envuelto en <system-reminder> (mismo perfil de cache, sin 400)
+  // Messages {role:"system"} within the history (mid-conversation): only
+  // opus-5/4.8/fable/mythos. In models without support they degrade to a turn
+  // user wrapped in <system-reminder> (same cache profile, no 400)
   LSupportsMidSystem := IsClaudeMidSystemCapable(
     TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model));
 
@@ -2697,7 +2697,7 @@ begin
 
     LMessageObj.AddPair('content', LContentArray);
     Result.Add(LMessageObj);
-    LLastContent := LContentArray; // referencia al contenido del ultimo mensaje emitido
+    LLastContent := LContentArray; // reference to the content of the last emitted message
   end;
 
   // Multi-turn convenience: caches the last turn (its last block) so that the
@@ -2790,7 +2790,7 @@ begin
     else
     begin
       // HTTP error handling
-      raise Exception.CreateFmt('Error al obtener modelos de Claude: %d - %s', [Res.StatusCode, Res.ContentAsString(TEncoding.UTF8)]);
+      raise Exception.CreateFmt('Error getting Claude models: %d - %s', [Res.StatusCode, Res.ContentAsString(TEncoding.UTF8)]);
     end;
 
   finally

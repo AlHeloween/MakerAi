@@ -485,10 +485,10 @@ var
   I: Integer;
   LModel: String;
   DataFilesList: TStringList;
-  StartIndex: Integer; // Variable nueva para control de historial
+  StartIndex: Integer; // New variable for history control
   LastMsg: TAiChatMessage;
   IsToolLoop: Boolean;
-  LEffortAsConfigUpdate: Boolean; // el effort viaja como item, no a nivel de peticion
+  LEffortAsConfigUpdate: Boolean; // the effort travels as an item, not at request level
   JConfigUpd: TJSonObject;
 
   // Local helper (NO CHANGES with respect to the last correction)
@@ -698,7 +698,7 @@ var
       if (PromptText <> '') or (ExtraFileRefs <> '') then
       begin
         JTextObj := TJSonObject.Create;
-        JTextObj.AddPair('type', 'input_text'); // Usuario siempre es input_text
+        JTextObj.AddPair('type', 'input_text'); // User is always input_text
         JTextObj.AddPair('text', PromptText + ExtraFileRefs);
         JContentArr.Add(JTextObj);
       end;
@@ -1141,7 +1141,7 @@ end;
 
 
 // -----------------------------------------------------------------------------
-// PROCESAMIENTO DE RESPUESTA
+// RESPONSE PROCESSING
 // -----------------------------------------------------------------------------
 
 procedure TAiOpenChat.ParseChat(jObj: TJSonObject; ResMsg: TAiChatMessage);
@@ -1158,12 +1158,12 @@ var
   NewMsg: TAiChatMessage;
   GeneratedFile: TAiMediaFile;
   WebItem: TAiWebSearchItem;
-  // Computer Use: astra suele emitir texto de comentario JUNTO con el
-  // computer_call (phase='commentary'), asi que FLastContent no queda vacio y
-  // la condicion normal de recursion no dispararia. Esta bandera fuerza el
-  // siguiente ciclo para que la IA vea el screenshot resultante.
+  // Computer Use: astra usually emits comment text TOGETHER with the
+  // computer_call (phase='commentary'), so FLastContent is not left empty and
+  // the normal recursion condition would not trigger. This flag forces the
+  // next cycle so the AI sees the resulting screenshot.
   LComputerCallDone: Boolean;
-  // Variables auxiliares para valores num?ricos
+  // Auxiliary variables for numeric values
   UnixDate: Int64;
   TokenCount: Int64;
 
@@ -1680,7 +1680,7 @@ begin
                 // 'actions', even if the batch is of a single action.
                 LDelegated := True;
                 FLastError := 'computer_call ' + SCallId +
-                  ': el item no trae el array "actions" esperado.';
+                  ': the item does not bring the expected "actions" array.';
                 DoError(FLastError, nil);
               end
               else
@@ -1753,8 +1753,8 @@ begin
                 // OnRequestScreenshot assigned -- sending it is a guaranteed 400
                 // so the turn is cut and recorded.
                 FLastError := 'computer_call ' + SCallId +
-                  ': no se pudo capturar la pantalla. Revise OnExecuteAction '
-                  + 'y OnRequestScreenshot del TAiComputerUseTool.';
+                  ': the screen could not be captured. Review OnExecuteAction '
+                  + 'and OnRequestScreenshot of TAiComputerUseTool.';
                 DoError(FLastError, nil);
               end
               else if not LDelegated then
@@ -2015,7 +2015,7 @@ begin
   FAbort := False;
   FLastError := '';
   FResponseStatus := '';
-  FLastContent := ''; // limpia el acumulado del turno anterior (streaming lee delta a delta)
+  FLastContent := ''; // clears the accumulated content of the previous turn (streaming reads delta by delta)
 
   // 1. Ensure the USER message is in the history
   if FMessages.IndexOf(AskMsg) < 0 then
@@ -2097,7 +2097,7 @@ var
   LTask: ITask;
 begin
   // 1. Initial Configuration (Main Thread)
-  Result := 'Iniciando generaci?n de video...';
+  Result := 'Starting video generation...';
 
   CaptureApiKey := ApiKey;
   CaptureUrl := Url;
@@ -2410,7 +2410,7 @@ var
   LUrl, LModel, LVoice, LResponseFormat: string;
   LBodyStream: TStringStream;
   LResponseStream: TMemoryStream;
-  LHeaders: TNetHeaders; // <--- Variable ya declarada, ahora la usaremos
+  LHeaders: TNetHeaders; // <--- Variable already declared, now we will use it
   LResponse: IHTTPResponse;
   LJsonObject: TJSonObject;
   LErrorResponse: string;
@@ -3165,7 +3165,7 @@ begin
                   begin
                     LDelegatedS := True;
                     FLastError := 'computer_call ' + CallId +
-                      ': el item no trae el array "actions" esperado.';
+                      ': the item does not bring the expected "actions" array.';
                     DoError(FLastError, nil);
                   end
                   else
@@ -3226,8 +3226,8 @@ begin
                     // See the synchronous path: a computer_call_output without
                     // image is a guaranteed 400, better to cut the turn.
                     FLastError := 'computer_call ' + CallId +
-                      ': no se pudo capturar la pantalla. Revise OnExecuteAction '
-                      + 'y OnRequestScreenshot del TAiComputerUseTool.';
+                      ': the screen could not be captured. Review OnExecuteAction '
+                      + 'and OnRequestScreenshot of TAiComputerUseTool.';
                     DoError(FLastError, nil);
                   end
                   else if not LDelegatedS then

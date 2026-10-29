@@ -388,7 +388,7 @@ type
     // ImportMCPFromPPM: registers an MCP tool from PPM as a StdIo stub without downloading.
     // Useful when the binary is already installed manually; the caller must assign
     // Params['Command'] with the path to the executable before enabling the item.
-    // AVersion vacío = resuelve la última versión disponible.
+    // AVersion empty = resolves the latest available version.
     function ImportMCPFromPPM(const AName: String; const AVersion: String = '';
       const ARegistryUrl: String = 'https://registry.cimamaker.com'): TMCPClientItem;
 
@@ -403,7 +403,7 @@ type
 
     // GetMCPSchema: returns the JSON Schema of an MCP tool from the registry.
     // The caller is responsible for freeing the returned TJSONObject.
-    // AVersion vacío = resuelve la última versión disponible.
+    // AVersion empty = resolves the latest available version.
     function GetMCPSchema(const AName: String; const AVersion: String = '';
       const ARegistryUrl: String = 'https://registry.cimamaker.com'): TJSONObject;
 
@@ -1300,14 +1300,14 @@ end;
   NewItem: TMCPClientItem;
   begin
   if not Assigned(aMCPClient) then
-  raise Exception.Create('Se intent� a�adir un objeto TMCPClient nulo.');
+  raise Exception.Create('Attempted to add a null TMCPClient object.');
 
   if aMCPClient.Name.Trim.IsEmpty then
-  raise Exception.Create('El TMCPClient debe tener una propiedad Name asignada antes de ser a�adido.');
+  raise Exception.Create('The TMCPClient must have a Name property assigned before being added.');
 
   // 1. Check whether a client with the same name already exists to avoid duplicates.
   if Assigned(FMCPClients.GetClientByName(aMCPClient.Name)) then
-  raise Exception.CreateFmt('Ya existe un cliente MCP con el nombre "%s".', [aMCPClient.Name]);
+  raise Exception.CreateFmt('An MCP client with the name "%s" already exists.', [aMCPClient.Name]);
 
   aMCPClient.OnStreamMessage := FOnMCPStreamMessage;
 
@@ -1342,14 +1342,14 @@ var
   NewItem: TMCPClientItem;
 begin
   if not Assigned(aMCPClient) then
-    raise Exception.Create('Se intent� a�adir un objeto TMCPClient nulo.');
+    raise Exception.Create('Attempted to add a null TMCPClient object.');
 
   if aMCPClient.Name.Trim.IsEmpty then
-    raise Exception.Create('El TMCPClient debe tener una propiedad Name asignada antes de ser a�adido.');
+    raise Exception.Create('The TMCPClient must have a Name property assigned before being added.');
 
   // 1. Check for duplicates
   if Assigned(FMCPClients.GetClientByName(aMCPClient.Name)) then
-    raise Exception.CreateFmt('Ya existe un cliente MCP con el nombre "%s".', [aMCPClient.Name]);
+    raise Exception.CreateFmt('An MCP client with the name "%s" already exists.', [aMCPClient.Name]);
 
   // Connect events
   aMCPClient.OnStreamMessage := FOnMCPStreamMessage;
@@ -1389,11 +1389,11 @@ var
   NewItem: TMCPClientItem;
 begin
   if not Assigned(aMCPClient) then
-    raise Exception.Create('Se intent� a�adir un objeto TMCPClient nulo.');
+    raise Exception.Create('Attempted to add a null TMCPClient object.');
   if aMCPClient.Name.Trim.IsEmpty then
     raise Exception.Create('The TMCPClient must have Name assigned.');
   if Assigned(FMCPClients.GetClientByName(aMCPClient.Name)) then
-    raise Exception.CreateFmt('Ya existe un cliente MCP con el nombre "%s".', [aMCPClient.Name]);
+    raise Exception.CreateFmt('An MCP client with the name "%s" already exists.', [aMCPClient.Name]);
 
   // Do NOT overwrite the client's existing event handlers — the pooled client
   // already has its log bridge wired from initialization.
@@ -1479,7 +1479,7 @@ begin
         end;
         AiSpanAttr(LSpan, 'guardrail.blocked', True);
         DoLog('Guardrails blocked the tool "' + ToolCall.Name + '": ' + LGuardReason);
-        Result := True; // atendido: se reporta al LLM sin ejecutar el tool
+        Result := True; // handled: it is reported to the LLM without executing the tool
         Exit;
       end;
     end;
@@ -1690,7 +1690,7 @@ begin
     JsonArray := TJSonArray(LParsedVal);
 
     try
-      // Iterar sobre cada elemento del array
+      // Iterate over each element of the array
       for I := 0 to JsonArray.Count - 1 do
       begin
         ArrayItem := JsonArray.Items[I];
@@ -1705,7 +1705,7 @@ begin
               FunctionObj := TJSonObject(ArrayItem).GetValue('function') as TJSonObject;
               if FunctionObj <> nil then
               begin
-                // Obtener el valor del campo "name"
+                // Get the value of the "name" field
                 NameValue := FunctionObj.GetValue('name');
                 if NameValue <> nil then
                 begin
@@ -1728,7 +1728,7 @@ begin
     on E: Exception do
     begin
       Result.Free;
-      raise Exception.Create('Error al procesar JSON: ' + E.Message);
+      raise Exception.Create('Error processing JSON: ' + E.Message);
     end;
   end;
 end;
@@ -1762,13 +1762,13 @@ end;
   ToolsArray := JsonObj.GetValue('tools') as TJSonArray;
   if ToolsArray <> nil then
   Begin
-  // Iterar sobre cada elemento del array
+  // Iterate over each element of the array
   for I := 0 to ToolsArray.Count - 1 do
   begin
   ToolItem := ToolsArray.Items[I];
   if ToolItem is TJSonObject then
   begin
-  // Obtener el valor del campo "name"
+  // Get the value of the "name" field
   NameValue := TJSonObject(ToolItem).GetValue('name');
   if NameValue <> nil then
   Result.Add(NameValue.Value);
@@ -1784,7 +1784,7 @@ end;
   on E: Exception do
   begin
   Result.Free;
-  raise Exception.Create('Error al procesar JSON: ' + E.Message);
+  raise Exception.Create('Error processing JSON: ' + E.Message);
   end;
   end;
   end;
@@ -2304,7 +2304,7 @@ var
   I: Integer;
 begin
   FOnMCPStreamMessage := Value;
-  // Propagar a todos los clientes actuales
+  // Propagate to all current clients
   for I := 0 to FMCPClients.Count - 1 do
     if Assigned(FMCPClients[I].MCPClient) then
       FMCPClients[I].MCPClient.OnStreamMessage := Value;
@@ -2702,10 +2702,10 @@ begin
           'Found %d tools for "%s" but they are all blocked by the AutoMCP policy.',
           [LFiltered, LQuery])
       else
-        ToolCall.Response := Format('No se encontraron herramientas para "%s" en el registry PPM.', [LQuery]);
+        ToolCall.Response := Format('No tools were found for "%s" in the PPM registry.', [LQuery]);
     end
     else
-      ToolCall.Response := Format('No se encontraron herramientas para "%s" en el registry PPM.', [LQuery]);
+      ToolCall.Response := Format('No tools were found for "%s" in the PPM registry.', [LQuery]);
   finally
     LSb.Free;
     LResult.Free;
@@ -2906,7 +2906,7 @@ begin
                 var LNormFunc   := StringReplace(LFuncName,   '-', '_', [rfReplaceAll]);
                 if SameText(LNormActual, LNormFunc) then
                 begin
-                  LFuncName := LActualName; // nombre exacto que el servidor reconoce
+                  LFuncName := LActualName; // exact name that the server recognizes
                   LFuncFound := True;
                 end;
               end;
@@ -2981,7 +2981,7 @@ begin
       'MCP tools covering GitHub, PostgreSQL, Slack, Jira, Stripe, DuckDB, ' +
       'Kubernetes, AWS S3, Azure, Kafka, GraphQL, and many more.');
     LSb.AppendLine;
-    LSb.AppendLine('Cuando el usuario te pida algo que requiere acceso a servicios externos, ' +
+    LSb.AppendLine('When the user asks you for something that requires access to external services, ' +
       'act AUTONOMOUSLY following this flow without asking for permission:');
     LSb.AppendLine('  1. Call ppm_search with keywords to find the appropriate tool.');
     LSb.AppendLine('  2. Call ppm_install with the exact package name to install it.');
@@ -3544,7 +3544,7 @@ begin
     FEnabled := Src.FEnabled;
     FConnected := Src.FConnected;
     FName := Src.FName;
-    SetTransportType(Src.GetTransportType); // recrea el cliente interno si el tipo difiere
+    SetTransportType(Src.GetTransportType); // recreates the internal client if the type differs
     FParams.Assign(Src.FParams);   // OnChange propaga a FMCPClient.Params
     FEnvVars.Assign(Src.FEnvVars); // OnChange propaga a FMCPClient.EnvVars
     UpdateClientProperties;        // sincroniza nombre/enabled al cliente interno
@@ -3685,7 +3685,7 @@ end;
   if Assigned(FMCPClient) and Assigned(Value) then
   begin
   FMCPClient.DisabledFunctions.Assign(Value);
-  Changed(False); // Notifica al IDE que el item ha cambiado.
+  Changed(False); // Notifies the IDE that the item has changed.
   end;
   end;
 }
@@ -3702,7 +3702,7 @@ end;
 procedure TMCPClientItem.SetEnvVars(const Value: TStrings);
 begin
   FEnvVars.Assign(Value);
-  // OnFEnvVarsChanged se dispara automáticamente por el OnChange de FEnvVars
+  // OnFEnvVarsChanged is triggered automatically by the OnChange event of FEnvVars
   Changed(False);
 end;
 
@@ -3755,7 +3755,7 @@ end;
 procedure TMCPClientItem.SetParams(const Value: TStrings);
 begin
   FParams.Assign(Value);
-  // OnFParamsChanged se dispara automáticamente por el OnChange de FParams
+  // OnFParamsChanged is triggered automatically by the OnChange event of FParams
   Changed(False);
 end;
 
@@ -3801,7 +3801,7 @@ begin
     Exit;
 
   // 1. Transfer the transport type
-  FMCPClient.TransportType := Self.GetTransportType; // Obtenemos el tipo desde el FMCPClient mismo
+  FMCPClient.TransportType := Self.GetTransportType; // We get the type from FMCPClient itself
 
   // 2. Transfer the name (using GetDisplayName, which is the 'Name' setter)
   FMCPClient.Name := FName;  //Self.GetDisplayName;
@@ -4207,7 +4207,7 @@ begin
       tfClaude:
         NormalizeFromAnthropic(LSourceTool, ANormalizedList);
 
-      tfOpenAI, tfOpenAIResponses: // Ambos usan el mismo normalizador de lectura
+      tfOpenAI, tfOpenAIResponses: // Both use the same reading normalizer
         NormalizeFromOpenAI(LSourceTool, ANormalizedList);
 
       tfGemini:
@@ -4343,7 +4343,7 @@ end;
 }
 
 // ==============================================================================
-// FUNCI�N DE FORMATEO PARA OPENAI (VERSI�N CORREGIDA Y DEFINITIVA)
+// FORMATTING FUNCTION FOR OPENAI (CORRECTED AND DEFINITIVE VERSION)
 // ==============================================================================
 class function TJsonToolUtils.FormatAsOpenAI(ANormalizedTool: TNormalizedTool): TJSonObject;
 var
@@ -4433,7 +4433,7 @@ begin
 
   if AOutputFormat = tfGemini then
   begin
-    // --- L�GICA ESPECIAL PARA GEMINI: Agrupar todo en un solo bloque ---
+    // --- SPECIAL LOGIC FOR GEMINI: Group everything into a single block ---
     var
     LDeclarationsArray := TJSonArray.Create;
     for LNormTool in ANormalizedList do
@@ -4448,7 +4448,7 @@ begin
   end
   else
   begin
-    // --- L�GICA EST�NDAR PARA OTROS FORMATOS: Una herramienta por objeto ---
+    // --- STANDARD LOGIC FOR OTHER FORMATS: One tool per object ---
     for LNormTool in ANormalizedList do
     begin
       LFormattedTool := nil;
@@ -4605,7 +4605,7 @@ begin
     // 4. Format and add to the target
     if AOutputFormat = tfGemini then
     begin
-      // --- L�GICA ESPECIAL PARA GEMINI: Agrupar todo en un solo bloque ---
+      // --- SPECIAL LOGIC FOR GEMINI: Group everything into a single block ---
       var
       LDeclarationsArray := TJSonArray.Create;
       for LNormTool in LNormalizedTools do
@@ -4624,7 +4624,7 @@ begin
     end
     else
     begin
-      // --- L�GICA EST�NDAR PARA OTROS FORMATOS: Una herramienta por objeto ---
+      // --- STANDARD LOGIC FOR OTHER FORMATS: One tool per object ---
       for LNormTool in LNormalizedTools do
       begin
         LFormattedTool := nil;

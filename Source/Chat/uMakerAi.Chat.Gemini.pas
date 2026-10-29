@@ -813,7 +813,7 @@ begin
             TargetCategories: TAiFileCategories;
 
           if (cap_CodeInterpreter in ModelConfig.ModelCaps) then
-            TargetCategories := [Low(TAiFileCategory) .. High(TAiFileCategory)] // Permitir todo
+            TargetCategories := [Low(TAiFileCategory) .. High(TAiFileCategory)] // Allow all
           else
             TargetCategories := GetModelInputFileTypes; // Standard strict filter
 
@@ -998,7 +998,7 @@ begin
         sNextPageToken := '';
       end;
 
-    until sNextPageToken = ''; // Repetir mientras haya más páginas
+    until sNextPageToken = ''; // Repeat while there are more pages
 
     // 4. Add Custom Models from the Factory
     CustomModels := TAiChatFactory.Instance.GetCustomModels(Self.GetDriverName);
@@ -1539,7 +1539,7 @@ begin
             var
             LNewMediaFile := TAiMediaFile.Create;
             try
-              // Determinar extensión usando la función central de MimeType->Ext
+              // Determine extension using the central MimeType->Ext function
               LNewMediaFile.LoadFromBase64('generated' + GetFileExtensionFromMimeType(LMimeType), LBase64Data);
               ResMsg.MediaFiles.Add(LNewMediaFile);
             except
@@ -1711,14 +1711,14 @@ begin
         ToolCall.ResMsg := ResMsg; // We pass references so the tool can write if it wants
         ToolCall.AskMsg := AskMsg;
 
-        _CreateTask(ToolCall, I); // subrutina local garantiza captura por valor
+        _CreateTask(ToolCall, I); // local subroutine guarantees capture by value
         Inc(I);
       End;
-      // Bombear Synchronize/Queue mientras se espera, para no colgar la app si un
-      // tool call accede a la VCL/FMX via TThread.Synchronize (issue #103).
-      // OJO: CheckSynchronize SOLO es valido en el hilo principal; en hilos
+      // Pump Synchronize/Queue while waiting, so the app does not hang if a
+      // tool call accesses VCL/FMX via TThread.Synchronize (issue #103).
+      // NOTE: CheckSynchronize is ONLY valid in the main thread; in threads
       // secundarios (workers Indy de un servicio headless, TTask de agentes)
-      // LANZA excepcion "CheckSynchronize called from thread X". Fuera del main
+      // it raises exception "CheckSynchronize called from thread X". Outside the main
       // thread solo esperamos. Mismo criterio que TMCPClientSSE.WaitForInitialization.
       while not TTask.WaitForAll(TaskList, 10) do
         if TThread.CurrentThread.ThreadID = MainThreadID then
@@ -2052,7 +2052,7 @@ begin
         begin
           LNewMediaFile := TAiMediaFile.Create;
           try
-            // Determinar extensión usando la función central de MimeType->Ext
+            // Determine extension using the central MimeType->Ext function
             LNewMediaFile.LoadFromBase64('generated' + GetFileExtensionFromMimeType(LMimeType), LBase64Data);
             ResMsg.MediaFiles.Add(LNewMediaFile);
           except
@@ -2951,7 +2951,7 @@ begin
                   end
                   else
                   begin
-                    // Gemini a veces responde SAFETY sin datos de audio
+                    // Gemini sometimes responds SAFETY without audio data
                     TThread.Queue(nil,
                       procedure
                       begin
@@ -2997,7 +2997,7 @@ begin
         end;
       end); // TTask.Run
 
-    Exit; // Retorna inmediatamente; el resultado llega por FOnReceiveDataEnd
+    Exit; // Returns immediately; the result arrives through FOnReceiveDataEnd
   end;
 
   // =========================================================================
@@ -3070,7 +3070,7 @@ begin
           end
           else
           begin
-            // Gemini a veces responde SAFETY sin datos de audio
+            // Gemini sometimes responds SAFETY without audio data
             DoError('No audio data received. Check safety settings or prompt.', nil);
           end;
         end;
@@ -3273,7 +3273,7 @@ Var
   JThoughtVal: TJSONValue;
   IsThought, IsStreamFinished: Boolean;
   LPartSig: String;
-  InString, Escape: Boolean; // Para el parser inteligente
+  InString, Escape: Boolean; // For the smart parser
 
   // Variables for finalization logic
   ResMsg, AskMsg: TAiChatMessage;
@@ -3594,7 +3594,7 @@ begin
               begin
                 LNewMediaFile := TAiMediaFile.Create;
                 try
-                  // Determinar extensión usando la función central de MimeType->Ext
+                  // Determine extension using the central MimeType->Ext function
                   LNewMediaFile.LoadFromBase64('generated' + GetFileExtensionFromMimeType(LMimeType), LBase64Data);
                   ResMsg.MediaFiles.Add(LNewMediaFile);
                 except
@@ -3667,11 +3667,11 @@ begin
             Inc(LTaskIdx);
           end;
 
-          // Bombear Synchronize/Queue mientras se espera, para no colgar la app si un
-          // tool call accede a la VCL/FMX via TThread.Synchronize (issue #103).
-          // OJO: CheckSynchronize SOLO es valido en el hilo principal; en hilos
+          // Pump Synchronize/Queue while waiting, so the app does not hang if a
+          // tool call accesses VCL/FMX via TThread.Synchronize (issue #103).
+          // NOTE: CheckSynchronize is ONLY valid in the main thread; in threads
           // secundarios (workers Indy de un servicio headless, TTask de agentes)
-          // LANZA excepcion "CheckSynchronize called from thread X". Fuera del main
+          // it raises exception "CheckSynchronize called from thread X". Outside the main
           // thread solo esperamos. Mismo criterio que TMCPClientSSE.WaitForInitialization.
           while not TTask.WaitForAll(LLocalTasks, 10) do
             if TThread.CurrentThread.ThreadID = MainThreadID then

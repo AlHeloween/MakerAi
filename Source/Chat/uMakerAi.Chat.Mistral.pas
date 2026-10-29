@@ -1202,7 +1202,7 @@ begin
     LResponse := FClient.Post(LUrl, LBodyStream, LResponseStream, LHeaders);
 
 {$IFDEF APIDEBUG}
-    LResponseStream.SaveToFile('c:\temp\respuesta_OCR.txt'); // For Debug
+    LResponseStream.SaveToFile('c:\temp\response_OCR.txt'); // For Debug
     LResponseStream.Position := 0;
 {$ENDIF}
     // 4. Process response

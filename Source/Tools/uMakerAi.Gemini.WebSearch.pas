@@ -27,7 +27,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    { Uso est?tico }
+    { Static use }
     class function Search(const AApiKey, AQuery: string; const AModel: string = 'gemini-3.8-flash'; const ADynamicThreshold: Single = 0.7): TAiChatMessage;
   published
     property ApiKey: string read GetApiKey write FApiKey;
@@ -52,8 +52,8 @@ begin
   inherited Create(AOwner);
   FApiKey           := '@GEMINI_API_KEY';
   FUrl              := 'https://generativelanguage.googleapis.com/v1beta/';
-  FModel            := 'gemini-3.8-flash';  // gemini-2.0-flash se apagó el 1 jun 2026
-  FDynamicThreshold := 0;  // 0 = google_search (todos los modelos)
+  FModel            := 'gemini-3.8-flash';  // gemini-2.0-flash was shut down on 1 Jun 2026
+  FDynamicThreshold := 0;  // 0 = google_search (all models)
                             // >0 = google_search_retrieval (solo gemini-1.5-*)
 end;
 
@@ -70,7 +70,7 @@ end;
 procedure TAiGeminiWebSearchTool.ExecuteSearch(const AQuery: string; ResMsg, AskMsg: TAiChatMessage);
 begin
   // Siempre síncrono: en async mode ya corremos en un hilo background;
-  // en sync mode (SmartDispatch, llamada directa) necesitamos el resultado
+  // in sync mode (SmartDispatch, direct call) we need the result
   // antes de retornar. TTask.Run aquí rompería ambos flujos.
   InternalRunGeminiSearch(AQuery, ResMsg);
 end;
@@ -134,7 +134,7 @@ begin
     LBody := TStringStream.Create(LRequestJson.ToJSON, TEncoding.UTF8);
     try
       HTTP.ContentType := 'application/json';
-      ReportState(acsReasoning, 'Buscando información actualizada en Google...');
+      ReportState(acsReasoning, 'Searching for updated information on Google...');
       LResponse := HTTP.Post(LUrl, LBody);
     finally
       LBody.Free;
@@ -224,23 +224,23 @@ begin
   end;
 end;
 
-{ --- CLASE FUNCI?N EST?TICA --- }
+{ --- STATIC CLASS FUNCTION --- }
 
 class function TAiGeminiWebSearchTool.Search(const AApiKey, AQuery, AModel: string; const ADynamicThreshold: Single): TAiChatMessage;
 var
   LInstance: TAiGeminiWebSearchTool;
 begin
-  // Creamos el mensaje que retornar? con la respuesta y las citas
+  // We create the message to be returned with the response and the citations
   Result := TAiChatMessage.Create('', 'assistant');
 
-  // Creamos una instancia temporal de la herramienta para realizar la labor
+  // We create a temporary instance of the tool to perform the task
   LInstance := TAiGeminiWebSearchTool.Create(nil);
   try
     LInstance.ApiKey := AApiKey;
     LInstance.Model := AModel;
     LInstance.DynamicThreshold := ADynamicThreshold;
 
-    // Ejecuci?n s?ncrona
+    // Synchronous execution
     LInstance.InternalRunGeminiSearch(AQuery, Result);
   finally
     LInstance.Free;

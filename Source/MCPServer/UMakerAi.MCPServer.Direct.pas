@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -110,12 +110,12 @@ begin
   if not IsActive then
     raise Exception.Create('Direct Connection is not active. Call Start first.');
 
-  // El owner de AParams es este method, se libera awhat.
-  // Si AParams es nil, creamos uno empty.
+  // The owner of AParams is this method, it is freed awhat.
+  // If AParams is nil, we create an empty one.
   if not Assigned(AParams) then
     AParams := TJSONObject.Create
   else
-    AParams.Owned := False; // Aseguramos que no se libere con su padre
+    AParams.Owned := False; // Ensure it is not freed with its parent
 
   RequestObj := TJSONObject.Create;
   try
@@ -123,19 +123,19 @@ begin
     RequestObj.AddPair('jsonrpc', '2.0');
     RequestObj.AddPair('id', FRequestIDCounter.ToString);
     RequestObj.AddPair('method', AMethod);
-    RequestObj.AddPair('params', AParams); // AParams es ahora propiedad de RequestObj
+    RequestObj.AddPair('params', AParams); // AParams is now property of RequestObj
 
     RequestStr := RequestObj.ToJSON;
   finally
     RequestObj.Free; // Libera RequestObj y AParams
   end;
 
-  // Ejecutar la request
+  // Execute the request
   ResponseStr := FLogicServer.ExecuteRequest(RequestStr, 'direct_connection');
 
   // Parse the response
   if ResponseStr = '' then
-    Exit; // notification, sin resultado
+    Exit; // notification, without result
 
   JsonValue := TJSONObject.ParseJSONValue(ResponseStr);
   if not(JsonValue is TJSONObject) then
@@ -146,7 +146,7 @@ begin
 
   ResponseJSON := TJSONObject(JsonValue);
   try
-    // Comprobar si hay un error en la respuesta JSON-RPC
+    // Check whether there is an error in JSON-RPC response
     if ResponseJSON.TryGetValue<TJSONObject>('error', ErrorObj) then
     begin
       raise Exception.CreateFmt('JSON-RPC Error: %s (Code: %d)', [ErrorObj.GetValue<string>('message', 'Unknown'),
@@ -190,7 +190,7 @@ function TAiMCPDirectConnection.CallTool(const AToolName: string; AArguments: TJ
 var
   Params: TJSONObject;
 begin
-  // AArguments es pasado al method ExecuteDirectRequest, que would take possession de ?l.
+  // AArguments is passed to method ExecuteDirectRequest, which would take possession of it.
   // The caller must not free AArguments.
   if not Assigned(AArguments) then
     AArguments := TJSONObject.Create;
@@ -215,7 +215,7 @@ begin
       ArgsObject.AddPair(AArguments.Names[i], AArguments.ValueFromIndex[i]);
     end;
   end;
-  // Llamamos a la version principal. A partir de awhat, no debemos liberar ArgsObject.
+  // We call the main version. From awhat, we must not free ArgsObject.
   Result := CallTool(AToolName, ArgsObject);
 end;
 

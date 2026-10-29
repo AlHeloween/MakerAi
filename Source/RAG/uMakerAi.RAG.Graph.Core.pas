@@ -814,7 +814,7 @@ end;
 
 function TAiRagGraphNode.PropertiesToJSON: TJSONObject;
 begin
-  // Delegamos la serializaci�n al nuevo objeto MetaData unificado.
+  // We delegate serialization to the new unified MetaData object.
   // This already correctly handles the conversion of Variant to JSON (Dates, Boolean, etc.)
   if Assigned(MetaData) then
     Result := MetaData.ToJSON
@@ -842,7 +842,7 @@ end;
 
 function TAiRagGraphEdge.PropertiesToJSON: TJSONObject;
 begin
-  // Delegamos la serializaci�n al nuevo objeto MetaData unificado.
+  // We delegate serialization to the new unified MetaData object.
   if Assigned(MetaData) then
     Result := MetaData.ToJSON
   else
@@ -1244,7 +1244,7 @@ end;
   PathObj: TObject;
   Score: Double;
 
-  // Variables para resoluci�n de algoritmos
+  // Variables for algorithm resolution
   StartNode, EndNode: TAiRagGraphNode;
   FinalDepth: Integer;
 
@@ -1272,7 +1272,7 @@ end;
   if APattern.Matches(Cand) then
   begin
   Result := Cand;
-  Exit; // Devolvemos el primero encontrado
+  Exit; // We return the first one found
   end;
   end;
   end;
@@ -1350,7 +1350,7 @@ end;
   if PathObj is TAiRagGraphNode then
   begin
   ResDict.Add('type', TStringWrapper.Create('node'));
-  ResDict.Add('element', PathObj); // Referencia al objeto vivo
+  ResDict.Add('element', PathObj); // Reference to the live object
   end
   else if PathObj is TAiRagGraphEdge then
   begin
@@ -1459,7 +1459,7 @@ var
   Score: Double;
   ElementType: string;
 
-  // Variables para resoluci�n de algoritmos
+  // Variables for algorithm resolution
   StartNode, EndNode: TAiRagGraphNode;
   FinalDepth: Integer;
 
@@ -2121,7 +2121,7 @@ procedure TAiRagGraph.UnregisterEdge(AEdge: TAiRagGraphEdge);
 begin
   if FEdgeRegistry.ContainsKey(AEdge.ID) then
     FEdgeRegistry.Remove(AEdge.ID);
-  FEdges.Items.Remove(AEdge); // Esto libera la memoria del objeto Edge
+  FEdges.Items.Remove(AEdge); // This frees the memory of the Edge object
 end;
 
 procedure TAiRagGraph.UnregisterNode(ANode: TAiRagGraphNode);
@@ -2205,7 +2205,7 @@ var
   FoundInDB: Boolean;
   EdgeData: TEdgeDataRecord;
 begin
-  // 1. Buscar en cach�.
+  // 1. Search in cache.
   if FEdgeRegistry.TryGetValue(AID, Result) then
     Exit;
 
@@ -2225,7 +2225,7 @@ begin
 
   // If it was not found in the driver or the driver was not assigned, FoundInDB is False.
 
-  // 3. Usar el nuevo helper para hidratar.
+  // 3. Use the new helper to hydrate.
   if FoundInDB then
     Result := InternalHydrateEdge(EdgeData);
 end;
@@ -2235,7 +2235,7 @@ var
   FoundInDB: Boolean;
   NodeData: TNodeDataRecord;
 begin
-  // 1. Buscar en cach�.
+  // 1. Search in cache.
   if FNodeRegistry.TryGetValue(AID, Result) then
     Exit;
 
@@ -2248,7 +2248,7 @@ begin
     FoundInDB := FDriver.FindNodeDataByID(AID, NodeData);
   end;
 
-  // 3. Usar el nuevo helper para hidratar.
+  // 3. Use the new helper to hydrate.
   if FoundInDB then
     Result := InternalHydrateNode(NodeData);
 end;
@@ -2287,13 +2287,13 @@ var
 begin
   Result := [];
 
-  // 1. Intentar delegar al Driver (BD)
+  // 1. Try to delegate to the Driver (DB)
   if Assigned(FDriver) then
   begin
     // The driver performs an efficient search in the DB and returns the array of names.
     Result := FDriver.FindNodeNamesByLabel(ANodeLabel, ASearchText, ALimit);
 
-    // Si la BD devolvi� resultados, salimos.
+    // If the DB returned results, we exit.
     if Length(Result) > 0 then
       Exit;
 
@@ -2328,7 +2328,7 @@ var
 begin
   Result := [];
 
-  // 1. Intentar delegar al Driver (BD)
+  // 1. Try to delegate to the Driver (DB)
   if Assigned(FDriver) then
   begin
     // The driver performs the search in the DB, handles hydration
@@ -2484,7 +2484,7 @@ begin
   try
     Queue.Enqueue(AStartNode);
     Distances.Add(AStartNode, 0);
-    Parents.Add(AStartNode, TList<TAiRagGraphNode>.Create); // El nodo de inicio no tiene padres
+    Parents.Add(AStartNode, TList<TAiRagGraphNode>.Create); // The start node has no parents
 
     while Queue.Count > 0 do
     begin
@@ -2652,7 +2652,7 @@ end;
   end;
 
   // 3. Build the text from the collected edges
-  ContextBuilder.AppendLine('Contexto extra�do del grafo de conocimiento:');
+  ContextBuilder.AppendLine('Context extracted from the knowledge graph:');
   ContextBuilder.AppendLine('The following relevant facts have been identified:');
 
   if RelevantEdges.Count > 0 then
@@ -2959,21 +2959,21 @@ var
   UniqueLabels: TDictionary<string, Boolean>;
   Edge: TAiRagGraphEdge;
 begin
-  // Inicializar
+  // Initialize
   Result := [];
 
-  // 1. Intentar delegar la operaci�n al Driver (BD)
+  // 1. Try to delegate the operation to the Driver (DB)
   if Assigned(FDriver) then
   begin
-    // El driver devuelve el array de etiquetas de la BD
+    // The driver returns the array of labels from the DB
     Result := FDriver.GetUniqueEdgeLabels;
 
-    // Si la BD devolvi� resultados, salimos.
+    // If the DB returned results, we exit.
     if Length(Result) > 0 then
       Exit;
   end;
 
-  // 2. Fallback a la l�gica por defecto en memoria.
+  // 2. Fallback to the default in-memory logic.
   UniqueLabels := TDictionary<string, Boolean>.Create;
   try
     for Edge in FEdgeRegistry.Values do
@@ -2988,21 +2988,21 @@ end;
 
 function TAiRagGraph.GetUniqueNodeLabels: TArray<string>;
 begin
-  // Inicializar
+  // Initialize
   Result := [];
 
-  // 1. Intentar delegar la operaci�n al Driver (BD)
+  // 1. Try to delegate the operation to the Driver (DB)
   if Assigned(FDriver) then
   begin
-    // El driver devuelve el array de etiquetas de la BD
+    // The driver returns the array of labels from the DB
     Result := FDriver.GetUniqueNodeLabels;
 
-    // Si la BD devolvi� resultados, salimos.
+    // If the DB returned results, we exit.
     if Length(Result) > 0 then
       Exit;
   end;
 
-  // 2. Fallback a la l�gica por defecto en memoria.
+  // 2. Fallback to the default in-memory logic.
   Result := FNodeLabelIndex.Keys.ToArray;
 end;
 
@@ -3146,7 +3146,7 @@ begin
     Exit; // The edge already exists, we return the in-memory instance.
   end;
 
-  // 2. L�GICA DE A�ADIR A ESTRUCTURAS EN MEMORIA
+  // 2. LOGIC FOR ADDING TO IN-MEMORY STRUCTURES
   FEdgeRegistry.Add(AEdge.ID, AEdge);
   FEdges.Items.Add(AEdge);
   // Connect the edge to the nodes
@@ -3189,7 +3189,7 @@ begin
     Exit;
   end;
 
-  // 2. L�GICA DE A�ADIR A ESTRUCTURAS EN MEMORIA
+  // 2. LOGIC FOR ADDING TO IN-MEMORY STRUCTURES
   // If it does not exist, we proceed to add it to all our structures.
   FNodeRegistry.Add(ANode.ID, ANode);
   FNodes.Items.Add(ANode);
@@ -3263,7 +3263,7 @@ begin
     NewEdge.FromNode := FromNode;
     NewEdge.ToNode := ToNode;
 
-    // --- CAMBIO CLAVE: Uso del nuevo MetaData unificado ---
+    // --- KEY CHANGE: Use of the new unified MetaData ---
     if not AEdgeData.PropertiesJSON.IsEmpty then
     begin
       JObj := TJSONObject.ParseJSONValue(AEdgeData.PropertiesJSON) as TJSONObject;
@@ -3313,7 +3313,7 @@ begin
     NewNode.Name := ANodeData.Name;
     NewNode.Text := ANodeData.NodeText;
 
-    // --- CAMBIO CLAVE: Uso del nuevo MetaData unificado ---
+    // --- KEY CHANGE: Use of the new unified MetaData ---
     if not ANodeData.PropertiesJSON.IsEmpty then
     begin
       JObj := TJSONObject.ParseJSONValue(ANodeData.PropertiesJSON) as TJSONObject;
@@ -3421,7 +3421,7 @@ begin
   // I only copy the beginning for brevity
   ContextBuilder := TStringBuilder.Create;
   try
-    ContextBuilder.AppendLine('Contexto extra�do del grafo de conocimiento:');
+    ContextBuilder.AppendLine('Context extracted from the knowledge graph:');
     // ... string construction logic ...
     Result := ContextBuilder.ToString;
   finally
@@ -3820,7 +3820,7 @@ begin
             Results.Clear;
             for Dict in ExpandedResults do
               Results.Add(Dict);
-            ExpandedResults.OwnsObjects := False; // Transferencia de propiedad
+            ExpandedResults.OwnsObjects := False; // Ownership transfer
           finally
             EdgeSet.Free;
             ExpandedResults.Free;
@@ -4291,7 +4291,7 @@ begin
       NodeElement := GraphNode.AddChild('node');
       NodeElement.Attributes['id'] := Node.ID;
 
-      // Datos base
+      // Base data
       DataElement := NodeElement.AddChild('data');
       DataElement.Attributes['key'] := 'd_name';
       DataElement.Text := Node.Name;
@@ -4321,7 +4321,7 @@ begin
       EdgeElement.Attributes['source'] := Edge.FromNode.ID;
       EdgeElement.Attributes['target'] := Edge.ToNode.ID;
 
-      // Datos base
+      // Base data
       DataElement := EdgeElement.AddChild('data');
       DataElement.Attributes['key'] := 'e_label';
       DataElement.Text := Edge.EdgeLabel;

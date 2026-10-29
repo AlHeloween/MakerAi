@@ -22,7 +22,7 @@ unit uMakerAi.Embeddings.OpenAi;
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -83,7 +83,7 @@ Var
   Client: TNetHTTPClient;
   Headers: TNetHeaders;
   jObj: TJSonObject;
-  jResp: TJSONObject; // respuesta aparte: reusar jObj perdia el request (fuga por llamada)
+  jResp: TJSONObject; // separate response: reusing jObj lost the request (leak per call)
   Res: IHTTPResponse;
   Response: TStringStream;
   St: TStringStream;
@@ -106,7 +106,7 @@ begin
     aDimensions := FDimensions;
 
   Try
-    jObj.AddPair('input', aInput); // Este se adiciona por compatibilidad con ollama
+    jObj.AddPair('input', aInput); // This is added for compatibility with ollama
     jObj.AddPair('prompt', aInput);
     jObj.AddPair('model', aModel);
     jObj.AddPair('user', aUser);
@@ -180,7 +180,7 @@ begin
   // var i := 0;
   For JVal in jData do
   Begin
-    // El embedding de OpenAi Retorna un array, pero solo se toma el primero de la fila
+    // OpenAi embedding returns an array, but only first row is taken
     JArr := TJSonObject(JVal).GetValue<TJSonArray>('embedding');
     j := JArr.Count;
     SetLength(Emb, j);
@@ -191,7 +191,7 @@ begin
 
     FData := Emb;
     // Inc(i);
-    Break; // Si el embedding de OpenAI retorna varios solo tomamos el primero, usualmente solo hay uno
+    Break; // If OpenAI embedding returns several, only first is taken, usually there is only one
   End;
 end;
 

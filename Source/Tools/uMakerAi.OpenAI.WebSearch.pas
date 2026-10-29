@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2026 Gustavo Enriquez
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -12,12 +12,12 @@
 // -------------------------------------------------------------------------
 // TAiOpenAiWebSearchTool: Busqueda web via OpenAI (gpt-4o-mini-search-preview)
 //
-// Implementa IAiWebSearchTool para usarse como WebSearchTool en TAiChat
-// (modos cmWebSearch y cmConversation con cap_WebSearch).
+// Implements IAiWebSearchTool to be used as WebSearchTool in TAiChat
+// (modes cmWebSearch and cmConversation with cap_WebSearch).
 //
-// El modelo gpt-4o-mini-search-preview recibe la consulta como un mensaje
-// de usuario en el endpoint /v1/chat/completions y devuelve la respuesta
-// con citas en el array "annotations" del mensaje de respuesta.
+// The model gpt-4o-mini-search-preview receives the query as a message
+// from the user at the endpoint /v1/chat/completions and returns the response
+// with citations in the "annotations" array of the response message.
 //
 // Uso:
 //   SearchTool := TAiOpenAiWebSearchTool.Create(Self);
@@ -113,7 +113,7 @@ var
   LSource      : TAiCitationSource;
   I            : Integer;
 begin
-  ReportState(acsReasoning, 'Buscando en la web...');
+  ReportState(acsReasoning, 'Searching the web...');
 
   HTTP     := TNetHTTPClient.Create(nil);
   LReqJson := TJSONObject.Create;
@@ -147,7 +147,7 @@ begin
       LRespJson := TJSONObject.ParseJSONValue(LResponse.ContentAsString) as TJSONObject;
       if not Assigned(LRespJson) then
       begin
-        ReportError('OpenAI WebSearch: respuesta JSON invalida', nil);
+        ReportError('OpenAI WebSearch: invalid JSON response', nil);
         Exit;
       end;
 
@@ -164,7 +164,7 @@ begin
         LMessage.TryGetValue<string>('content', LContent);
         ResMsg.Prompt := LContent;
 
-        // Citas: annotations[] con type = "url_citation"
+        // Citations: annotations[] with type = "url_citation"
         if LMessage.TryGetValue<TJSONArray>('annotations', LAnnotations) then
         begin
           for I := 0 to LAnnotations.Count - 1 do

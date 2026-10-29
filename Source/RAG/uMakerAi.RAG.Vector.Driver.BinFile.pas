@@ -468,7 +468,7 @@ begin
 
     FStream.ReadBuffer(Status, 1);
 
-    // Leer campos de cadena del registro
+    // Read string fields from the record
     FStream.ReadBuffer(EntLen, 2);   Entidad := ReadUTF8(EntLen);
     FStream.ReadBuffer(IDLen, 2);    ID      := ReadUTF8(IDLen);
     FStream.ReadBuffer(ModelLen, 2); Model   := ReadUTF8(ModelLen);
@@ -501,7 +501,7 @@ begin
     IDList.Add(ID);
 
     // --- Stub node for BM25 (without embedding) ---
-    Stub := TAiEmbeddingNode.Create(0); // dim=0: sin array de floats
+    Stub := TAiEmbeddingNode.Create(0); // dim=0: no float array
     Stub.Tag   := ID;
     Stub.Text  := TextStr;
     Stub.Model := Model;
@@ -1093,7 +1093,7 @@ begin
 end;
 
 // =============================================================================
-// Compact — reescribe el archivo sin registros borrados
+// Compact — rewrites the file without deleted records
 // =============================================================================
 
 procedure TAiMkVecDriver.Compact;

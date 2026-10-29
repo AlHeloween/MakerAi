@@ -405,7 +405,7 @@ type
     procedure SetSanitizerActive(const Value: Boolean);
     procedure SetOnSanitize(const Value: TAiSanitizeEvent);
     procedure SetEnabledFeatures(const Value: TAiChatMediaSupports);
-    // Nuevo sistema de orquestación (v3.3)
+    // New orchestration system (v3.3)
     function GetModelCaps: TAiCapabilities;
     function GetSessionCaps: TAiCapabilities;
     procedure SetModelCaps(const Value: TAiCapabilities);
@@ -707,7 +707,7 @@ type
     property ImageParams: TAiImageGenParams read FImageGenParams;
     property VideoParams: TAiVideoGenParams read FVideoGenParams;
     property WebSearchParams: TAiWebSearchParams read FWebSearchParams;
-    property ModelConfig: TAiModelConfig read FModelConfig; // configuración unificada del modelo (v3.3)
+    property ModelConfig: TAiModelConfig read FModelConfig; // unified model configuration (v3.3)
     property OnStateChange: TAiStateChangeEvent read FOnStateChange write FOnStateChange;
     // See comment on FOnHttpRequestDone: safe point to free the object.
     property OnHttpRequestDone: TNotifyEvent read FOnHttpRequestDone write FOnHttpRequestDone;
@@ -799,7 +799,7 @@ Var
   Msg: TAiChatMessage;
 begin
   Try
-    // Adiciona el mensaje a la lista
+    // Adds the message to the list
     Msg := TAiChatMessage.Create(aPrompt, aRole, aToolCallId, aFunctionName);
     Msg.Id := FMessages.Count + 1;
     FMessages.Add(Msg);
@@ -810,7 +810,7 @@ begin
   End;
 end;
 
-// ------- Metodo para el manejo de mensajes del chat normal
+// ------- Method for handling normal chat messages
 function TAiChat.InternalAddMessage(aPrompt, aRole: String; aMediaFiles: TAiMediaFilesArray): TAiChatMessage;
 Var
   Msg: TAiChatMessage;
@@ -818,7 +818,7 @@ Var
 begin
 
   Try
-    // Adiciona el mensaje a la lista
+    // Adds the message to the list
     Msg := TAiChatMessage.Create(aPrompt, aRole);
 
     If Length(aMediaFiles) > 0 then
@@ -836,7 +836,7 @@ begin
   End;
 end;
 
-// ------- Metodo para el manejo de mensajes del chat normal
+// ------- Method for handling normal chat messages
 function TAiChat.InternalAddMessage(aMsg: TAiChatMessage): TAiChatMessage;
 Var
   TmpMsg: TAiChatMessage;
@@ -865,7 +865,7 @@ begin
         FOnAddMessage(Self, TmpMsg, Nil, 'system', MensajeInicial);
     End;
 
-    // Adiciona el mensaje a la lista
+    // Adds the message to the list
     If Assigned(FMessages) and Assigned(aMsg) then
     Begin
       aMsg.Id := FMessages.Count + 1;
@@ -1009,7 +1009,7 @@ begin
         if not(LParsed is TJSonObject) then
         begin
           LParsed.Free;
-          raise Exception.CreateFmt('Error: Respuesta JSON inv?lida: %s', [Res.ContentAsString]);
+          raise Exception.CreateFmt('Error: Invalid JSON response: %s', [Res.ContentAsString]);
         end;
         jObj := TJSonObject(LParsed);
         Try
@@ -1221,7 +1221,7 @@ begin
   if FAsynchronous = False then
   Begin
     AddMessageAndRun(aPrompt, aRole, aMediaFiles);
-    Result := Self.GetLastMessage; // Retorna el mensaje
+    Result := Self.GetLastMessage; // Returns the message
   End
   Else
     Raise Exception.Create('This function is not compatible with asynchronous mode')
@@ -1795,8 +1795,8 @@ begin
   FResponse := TStringStream.Create('', TEncoding.UTF8);
   FClient := TNetHTTPClient.Create(Self);
 {$IF CompilerVersion >= 34} // ISSUE #119: SynchronizeEvents ya existe en 10.4 Sydney.
-  // Sin esto, en 10.4 los eventos del TNetHTTPClient corren en el hilo principal
-  // (SynchronizeEvents=True por defecto) y los tool calls async bloquean la UI.
+  // Without this, in 10.4 the TNetHTTPClient events run on the main thread
+  // (SynchronizeEvents=True by default) and async tool calls block the UI.
   FClient.SynchronizeEvents := False;
 {$ENDIF}
   FRequestDone := TEvent.Create(nil, True, True, '');
@@ -1961,10 +1961,10 @@ begin
 
   If Assigned(AiFunctions) and AiFunctions.DoCallFunction(ToolCall) then
   Begin
-    // Si ejecut? la funci?n
+    // If it executed the function
   End
   Else
-  Begin // Ejecuta la funci?n por defecto en el componente TAiChat
+  Begin // Executes the default function in the TAiChat component
     If Assigned(FOnCallToolFunction) then
       FOnCallToolFunction(Self, ToolCall)
   End;
@@ -2169,7 +2169,7 @@ begin
       if not(LParsedModels is TJSonObject) then
       begin
         LParsedModels.Free;
-        raise Exception.CreateFmt('Error: Respuesta JSON inv?lida: %s', [Res.ContentAsString]);
+        raise Exception.CreateFmt('Error: Invalid JSON response: %s', [Res.ContentAsString]);
       end;
       jRes := TJSonObject(LParsedModels);
       Try
@@ -2833,7 +2833,7 @@ Var
           Value := '';
           if Delta.TryGetValue<String>('reasoning', Value) or Delta.TryGetValue<String>('reasoning_content', Value) then
           begin
-            FLastReasoning := FLastReasoning + Value; // Acumular para incluir en historial
+            FLastReasoning := FLastReasoning + Value; // Accumulate to include in history
             if (Value <> '') and Assigned(FOnReceiveThinking) then
             begin
               Value := StringReplace(Value, #$A, sLineBreak, [rfReplaceAll]);
@@ -3022,7 +3022,7 @@ begin
       sJson := Trim(Copy(FTmpResponseText, 1, P - 1)); // Trim removes leading spaces as in your error
       Delete(FTmpResponseText, 1, P);
 
-      ProcessLine(sJson); // Procesamos la l?nea limpia
+      ProcessLine(sJson); // We process the clean line
     end;
 
     // 2. Safety Edge: last line without a newline
@@ -3032,7 +3032,7 @@ begin
     if (sJson = '[DONE]') or (sJson = 'data: [DONE]') then
     begin
       ProcessLine(sJson); // We process the final DONE
-      FTmpResponseText := ''; // Limpiamos el buffer
+      FTmpResponseText := ''; // We clear the buffer
     end;
 
   Except
@@ -3062,7 +3062,7 @@ begin
     // Always release the busy state on HTTP errors (e.g., 429 rate limit,
     // 500 server error, etc.). Without this the app hangs indefinitely.
     FBusy := False;
-    FPendingToolRun := False; // no continuar el ciclo tool-calling tras un error HTTP
+    FPendingToolRun := False; // do not continue the tool-calling cycle after an HTTP error
     FTmpToolCallBuffer.Clear;
     DoStateChange(acsError, aResponse.ContentAsString);
     if Assigned(FOnError) then
@@ -3095,7 +3095,7 @@ begin
           on E: Exception do
             // Without this the exception dies inside the task and the turn hangs
             // until the integrator timeout, without any clue as to the reason.
-            DoError('Error en la continuacion tool-calling: ' + E.Message, E);
+            DoError('Error in tool-calling continuation: ' + E.Message, E);
         end;
       end);
   end;
@@ -3376,10 +3376,10 @@ begin
       For Clave in LFunciones.Keys do
       Begin
         ToolCall := LFunciones[Clave];
-        ToolCall.ResMsg := ResMsg; // Se pasan los mensajes por si desean procesarlos
+        ToolCall.ResMsg := ResMsg; // The messages are passed in case they want to process them
         ToolCall.AskMsg := AskMsg;
 
-        _CreateTask(ToolCall, I); // subrutina local garantiza captura por valor
+        _CreateTask(ToolCall, I); // local subroutine guarantees capture by value
         Inc(I);
 
       End;
@@ -3529,7 +3529,7 @@ var
 begin
   if AExecutedToolsJSON = '' then
     Exit;
-  JArr := TJSonObject.ParseJSONValue(AExecutedToolsJSON) as TJSonArray; // ParseJSONValue es método de clase de TJSONObject (TJSonValue no lo expone en D10.4)
+  JArr := TJSonObject.ParseJSONValue(AExecutedToolsJSON) as TJSonArray; // ParseJSONValue is a class method of TJSONObject (TJSonValue does not expose it in D10.4)
   if not Assigned(JArr) then
     Exit;
   try
@@ -3759,7 +3759,7 @@ end;
   jUsage, jInputTokenDetails: TJSonObject;
   jArrWords, jArrSegments: TJSonArray;
 
-  // Datos extra?dos
+  // Extracted data
   sTextoTranscrito, sTextoWords, sTextoSegments: String;
   aTotal_tokens, aInput_tokens, aOutput_tokens: integer;
   aText_tokens, aAudio_tokens: integer; // Detailed input tokens
@@ -3774,7 +3774,7 @@ end;
 
   if not jObj.TryGetValue<string>('text', sTextoTranscrito) then
   begin
-  FLastError := 'La respuesta de la API no contiene el campo "text" con la transcripci?n.';
+  FLastError := 'The API response does not contain the "text" field with the transcription.';
   DoError(FLastError, nil);
   FBusy := False;
   Exit;
@@ -3834,7 +3834,7 @@ var
   jUsage, jInputTokenDetails: TJSonObject;
   jArrWords, jArrSegments: TJSonArray;
 
-  // Datos extra?dos
+  // Extracted data
   sTextoTranscrito, sTextoWords, sTextoSegments: String;
   aTotal_tokens, aInput_tokens, aOutput_tokens: Integer;
   aText_tokens, aAudio_tokens: Integer; // Detailed input tokens
@@ -3853,7 +3853,7 @@ begin
   // 1. Validate main text
   if not jObj.TryGetValue<string>('text', sTextoTranscrito) then
   begin
-    FLastError := 'La respuesta de la API no contiene el campo "text" con la transcripci?n.';
+    FLastError := 'The API response does not contain the "text" field with the transcription.';
     DoError(FLastError, nil);
     FBusy := False;
     Exit;
@@ -4015,12 +4015,12 @@ end;
 
 function TAiChat.RetrieveFile(aFileId: string): TAiMediaFile;
 begin
-  Result := Nil; // Clase base no hace nada
+  Result := Nil; // Base class does nothing
 end;
 
 function TAiChat.RetrieveFileList: TAiMediaFiles;
 begin
-  Result := Nil; // Clase base no hace nada
+  Result := Nil; // Base class does nothing
 end;
 
 { //original validated and tested
@@ -4322,7 +4322,7 @@ begin
       cmSmartDispatch:
         begin
           if FClient.Asynchronous then
-            raise Exception.Create('cmSmartDispatch no soporta modo asincrono. Usa Asynchronous = False.');
+            raise Exception.Create('cmSmartDispatch does not support asynchronous mode. Use Asynchronous = False.');
           InternalRunSmartDispatch(ResMsg, AskMsg);
         end;
     end;
@@ -4520,7 +4520,7 @@ end;
 
 function TAiChat.RemoveMesage(Msg: TAiChatMessage): Boolean;
 begin
-  // Remove devuelve el?ndice del elemento eliminado. Si es >= 0, fue exitoso.
+  // Remove returns the index of the removed element. If it is >= 0, it was successful.
   Result := FMessages.Remove(Msg) >= 0;
 end;
 

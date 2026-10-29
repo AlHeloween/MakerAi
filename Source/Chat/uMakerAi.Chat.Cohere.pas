@@ -951,7 +951,7 @@ begin
         // But the type comes in the 'type' field of the JSON data
         var LType: string;
         if not JsonData.TryGetValue<string>('type', LType) then
-          LType := EventName; // Fallback al header SSE
+          LType := EventName; // Fallback to the SSE header
 
         if LType = 'message-start' then
         begin

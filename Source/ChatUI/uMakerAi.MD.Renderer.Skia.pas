@@ -2027,7 +2027,7 @@ begin
     if Assigned(FOnLoadMedia) then
       FOnLoadMedia(nil, URL, ImgData, MimeType, Handled);
 
-    { Cachear como 'resuelto' SOLO con una respuesta definitiva: el host entregó
+    { Cache as 'resolved' ONLY with a definitive response: the host delivered
       datos (Handled=True) o no hay host a quien preguntar. Un host asíncrono que
       aún está descargando retorna Handled=False; en ese caso NO cacheamos, para
       que la siguiente pasada de layout vuelva a pedir hasta que lleguen los bytes. }
@@ -2302,7 +2302,7 @@ begin
     end;
   end;
 
-  // 2) Botón de una card de adjunto (audio/video/archivo) — lleva URL + MIME
+  // 2) Button of an attachment card (audio/video/file) — carries URL + MIME
   for I := 0 to FButtonAreas.Count - 1 do
   begin
     B := FButtonAreas[I];

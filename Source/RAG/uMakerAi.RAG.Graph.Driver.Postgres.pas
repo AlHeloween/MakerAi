@@ -105,7 +105,7 @@ begin
   FTableName := Value;
   FNodesTableName := FTableName + 'nodes';
   FEdgesTableName := FTableName + 'edges';
-  FChunksTableName := FNodesTableName + '_chunks'; // convention: nombre_tabla_nodes_chunks
+  FChunksTableName := FNodesTableName + '_chunks'; // convention: table_name_nodes_chunks
 end;
 
 function TAiRagGraphPostgresDriver.NewQuery: TFDQuery;

@@ -639,7 +639,7 @@ begin
   else
     DocLabel := FDefaultDocumentLabel;
 
-  // Crear nodo documento
+  // Create document node
   Result := FGraph.NewNode(TGUID.NewGuid.ToString, DocLabel, AName);
 
   // Descriptive text for node embedding
@@ -726,7 +726,7 @@ begin
   DocProps := AJSONObj.GetValue<TJSONObject>('properties', nil);
   DocParts := AJSONObj.GetValue<TJSONArray>('parts', nil);
 
-  // Crear nodo documento
+  // Create document node
   Result := FGraph.NewNode(TGUID.NewGuid.ToString, DocLabel, DocName);
 
   // Text for node embedding
@@ -1025,7 +1025,7 @@ begin
             if SubjectName.Trim.IsEmpty or ObjectName.Trim.IsEmpty then
               Continue;
 
-            // GetOrCreate para Subject
+            // GetOrCreate for Subject
             EntityKey := UpperCase(SubjectName + '|' + SubjectLabel);
             if not EntitySet.TryGetValue(EntityKey, SubjectNode) then
             begin
@@ -1042,7 +1042,7 @@ begin
               EntitySet.Add(EntityKey, SubjectNode);
             end;
 
-            // GetOrCreate para Object
+            // GetOrCreate for Object
             EntityKey := UpperCase(ObjectName + '|' + ObjectLabel);
             if not EntitySet.TryGetValue(EntityKey, ObjectNode) then
             begin
@@ -1425,7 +1425,7 @@ begin
             if SubjectName.Trim.IsEmpty or ObjectName.Trim.IsEmpty then
               Continue;
 
-            // GetOrCreate para Subject
+            // GetOrCreate for Subject
             EntityKey := UpperCase(SubjectName + '|' + SubjectLabel);
             if not EntitySet.TryGetValue(EntityKey, SubjectNode) then
             begin
@@ -1443,7 +1443,7 @@ begin
               EntitySet.Add(EntityKey, SubjectNode);
             end;
 
-            // GetOrCreate para Object
+            // GetOrCreate for Object
             EntityKey := UpperCase(ObjectName + '|' + ObjectLabel);
             if not EntitySet.TryGetValue(EntityKey, ObjectNode) then
             begin

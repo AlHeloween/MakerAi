@@ -1204,10 +1204,10 @@ end;
 
 procedure TAIBm25Index.LoadDefaultStopWords(Lang: TAiLanguage);
 const
-  S_ES = 'el,la,lo,los,las,un,una,unos,unas,de,del,al,y,o,u,e,ni,que,en,a,ante,bajo,con,contra,desde,donde,durante,' +
-         'este,esta,estos,estas,ese,esa,esos,esas,aquel,aquella,aquellos,aquellas,mi,tu,su,nuestro,vuestro,' +
-         'me,te,se,nos,os,le,les,ser,estar,haber,tener,hacer,hay,he,ha,han,son,es,fue,sido,' +
-         'está,están,estaba,como,más,pero,por,para,sin,sobre,también,muy,ya,sí,no,cuando,si,entre';
+  S_ES = 'the,the,it,the,the,a,a,some,some,of,of the,to the,and,or,or,and,nor,that,in,to,before,under,with,against,from,where,during,' +
+         'this,this,these,these,that,that,those,those,that,that,those,those,my,your,his,our,your,' +
+         'me,you,oneself,us,you,him,them,to be,to be,to have,to have,to do,there is,I have,has,have,are,is,was,been,' +
+         'is,are,was,as,more,but,for,for,without,over,also,very,already,yes,no,when,if,between';
   S_EN = 'the,a,an,and,or,but,if,then,else,when,at,from,by,for,with,about,against,between,into,through,' +
          'during,before,after,above,below,to,of,in,is,are,was,were,be,been,being,have,has,had,' +
          'do,does,did,will,would,should,could,may,might,can,this,that,these,those,i,you,he,she,it,we,they,me,him,her,us,them';

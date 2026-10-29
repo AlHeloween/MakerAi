@@ -1037,7 +1037,7 @@ begin
       if not IsServerRunning then
       begin
         DoLog('Failed to start server. Aborting CallTool.');
-        FreeAndNil(AArguments); // Liberar los argumentos si no se van a usar
+        FreeAndNil(AArguments); // Free arguments if not going to be used
         Exit;
       end;
 
@@ -1057,7 +1057,7 @@ begin
         if not Assigned(InitResponse) then
         begin
           DoLog('Initialization failed. Aborting CallTool.');
-          FreeAndNil(AArguments); // Liberar los argumentos si no se van a usar
+          FreeAndNil(AArguments); // Free arguments if not going to be used
           Exit;
         end;
         InitResponse.Free;
@@ -1461,10 +1461,10 @@ begin
         if Assigned(LInputResponses) then
         begin
           LParams.AddPair('inputResponses', LInputResponses);
-          LInputResponses := nil; // ahora es propiedad del request
+          LInputResponses := nil; // now it is property of request
         end;
         if LState <> '' then
-          LParams.AddPair('requestState', LState); // eco literal, sin inspeccionar
+          LParams.AddPair('requestState', LState); // literal echo, without inspecting
 
         DoLog(Format('Calling tool "%s" (round %d)...', [AToolName, LRound]));
         InternalSendRawMessage(RequestObj.ToJSON);
@@ -1488,7 +1488,7 @@ begin
         begin
           RawResult := TJSONObject(ResultPair);
 
-          // MRTR: el servidor pide informacion adicional?
+          // MRTR: does server request additional information?
           if TryGetInputRequired(RawResult, LReqs, LState) then
           begin
             if Assigned(LReqs) and Assigned(FOnInputRequired) then
@@ -1503,10 +1503,10 @@ begin
                 Result := ProcessAndExtractMedia(RawResult, AExtractedMedia);
                 Exit;
               end;
-              Continue; // reintentar con las respuestas
+              Continue; // retry with responses
             end
             else if not Assigned(LReqs) then
-              Continue // sin inputRequests: la spec permite reintento inmediato
+              Continue // without inputRequests: spec allows immediate retry
             else
             begin
               // No handler assigned: clear error via the guard
@@ -1539,12 +1539,12 @@ begin
       end;
     end;
 
-    // Rondas MRTR agotadas sin resultado final
-    DoLog(Format('MRTR: rondas agotadas (%d) para "%s".', [MCP_MRTR_MAX_ROUNDS, AToolName]));
+    // MRTR rounds exhausted without final result
+    DoLog(Format('MRTR: rounds exhausted (%d) for "%s".', [MCP_MRTR_MAX_ROUNDS, AToolName]));
     Result := TJSONObject.Create;
     Result.AddPair('error', Format('MCP MRTR: max rounds (%d) exceeded for tool "%s".', [MCP_MRTR_MAX_ROUNDS, AToolName]));
   finally
-    LInputResponses.Free; // solo queda asignado si el loop no lo consumio
+    LInputResponses.Free; // only remains assigned if loop did not consume it
     if Assigned(Result) then
       AiSpanEnd(LSpan)
     else
@@ -2043,17 +2043,17 @@ begin
         if Assigned(LInputResponses) then
         begin
           LParams.AddPair('inputResponses', LInputResponses);
-          LInputResponses := nil; // ahora es propiedad del request
+          LInputResponses := nil; // now it is property of request
         end;
         if LState <> '' then
-          LParams.AddPair('requestState', LState); // eco literal, sin inspeccionar
+          LParams.AddPair('requestState', LState); // literal echo, without inspecting
 
         LResultRaw := InternalSendRequest('tools/call', LParams); // InternalSendRequest frees LParams
         if not Assigned(LResultRaw) then
           Exit;
 
         try
-          // MRTR: el servidor pide informacion adicional?
+          // MRTR: does server request additional information?
           if TryGetInputRequired(LResultRaw, LReqs, LState) then
           begin
             if Assigned(LReqs) and Assigned(FOnInputRequired) then
@@ -2067,10 +2067,10 @@ begin
                 Result := ProcessAndExtractMedia(LResultRaw, AExtractedMedia); // guard: clear error
                 Exit;
               end;
-              Continue; // reintentar con las respuestas
+              Continue; // retry with responses
             end
             else if not Assigned(LReqs) then
-              Continue // sin inputRequests: la spec permite reintento inmediato
+              Continue // without inputRequests: spec allows immediate retry
             else
             begin
               Result := ProcessAndExtractMedia(LResultRaw, AExtractedMedia); // without handler: clear error
@@ -2085,8 +2085,8 @@ begin
         end;
       end;
 
-      // Rondas MRTR agotadas sin resultado final
-      DoLog(Format('MRTR: rondas agotadas (%d) para "%s".', [MCP_MRTR_MAX_ROUNDS, AToolName]));
+      // MRTR rounds exhausted without final result
+      DoLog(Format('MRTR: rounds exhausted (%d) for "%s".', [MCP_MRTR_MAX_ROUNDS, AToolName]));
       Result := TJSONObject.Create;
       Result.AddPair('error', Format('MCP MRTR: max rounds (%d) exceeded for tool "%s".', [MCP_MRTR_MAX_ROUNDS, AToolName]));
     except
@@ -2098,7 +2098,7 @@ begin
       end;
     end;
   finally
-    LInputResponses.Free; // solo queda asignado si el loop no lo consumio
+    LInputResponses.Free; // only remains assigned if loop did not consume it
     AArguments.Free; // owned by this method (previously LParams consumed it; now it is cloned per round)
   end;
 
@@ -2191,15 +2191,15 @@ begin
         LHeaders := [];
 
       var
-        LResponseStream: TMemoryStream; // Usar MemoryStream para la respuesta
+        LResponseStream: TMemoryStream; // Use MemoryStream for response
       LResponseStream := TMemoryStream.Create;
       try
         LHttpResponse := FHttpClient.Post(LURL, LRequestBodyStream, LResponseStream, LHeaders);
-        LResponseStream.Position := 0; // Reset para leer
+        LResponseStream.Position := 0; // Reset to read
 
 {$IFDEF APIDEBUG}
         LResponseStream.SaveToFile('c:\temp\mcp_init_response.txt');
-        LResponseStream.Position := 0; // Reset para leer
+        LResponseStream.Position := 0; // Reset to read
 {$ENDIF}
         var
         ResponseContent := LHttpResponse.ContentAsString(TEncoding.UTF8);
@@ -2302,7 +2302,7 @@ begin
       LResponseStream := TMemoryStream.Create;
       try
         LHttpResponse := FHttpClient.Post(LURL, LRequestBodyStream, LResponseStream, LHeaders);
-        LResponseStream.Position := 0; // Reset para leer
+        LResponseStream.Position := 0; // Reset to read
 
 {$IFDEF APIDEBUG}
         LResponseStream.SaveToFile('c:\temp\mcp_initialized_notification_response.txt');
@@ -2429,12 +2429,12 @@ begin
         try
           // Perform the HTTP POST request
           LHttpResponse := FHttpClient.Post(LURL, LRequestBodyStream, LResponseStream, LHeaders);
-          LResponseStream.Position := 0; // Resetear la posici?n para la lectura del contenido
+          LResponseStream.Position := 0; // Reset position for content reading
 
 {$IFDEF APIDEBUG}
           // Save the response to a file for debugging
           LResponseStream.SaveToFile('c:\temp\mcp_rpc_response_' + AMethod.Replace('/', '_') + '.txt');
-          LResponseStream.Position := 0; // Resetear la posici?n para la lectura del contenido
+          LResponseStream.Position := 0; // Reset position for content reading
 {$ENDIF}
           // Read the HTTP response content
           LResponseContent := (LHttpResponse.ContentAsString(TEncoding.UTF8));

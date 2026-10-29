@@ -665,7 +665,7 @@ begin
           if TargetWakeWord = '' then
             TargetWakeWord := 'andrea';
 
-          // RemoveAccents es solo una estrateg�a en el idioma espa�ol, cambiar para otros idiomas
+          // RemoveAccents is only a strategy in the Spanish language, change for other languages
           CleanTarget := LowerCase(TAIVoiceMonitor.RemoveAccents(TargetWakeWord));
 
           IsValidResult := False;
@@ -721,7 +721,7 @@ begin
     if csDesigning in ComponentState then
       Exit;
 
-    // Elimina el fondo blanco del memo y el borde
+    // Removes the white background of the memo and the border
     FMemoPrompt.StyleLookup := 'memostyle';
     FMemoPrompt.ApplyStyleLookup;
 
@@ -1190,7 +1190,7 @@ begin
         Exit;
       end;
 
-      // Obtener el tipo de contenido
+      // Get the content type
       ContentType := GetContentTypeFromValidExtensions(Ext);
       St := TMemoryStream.Create;
       BitMap := nil;
@@ -1198,7 +1198,7 @@ begin
       try
         if ContentType = ctImage then
         begin
-          // Para im�genes, cargar la imagen real
+          // For images, load the real image
           BitMap := TBitMap.Create;
           try
             BitMap.LoadFromFile(FileName);
@@ -1216,7 +1216,7 @@ begin
         end
         else
         begin
-          // Para otros tipos, cargar el archivo como stream y usar icono del ImageList
+          // For other types, load the file as a stream and use an icon from the ImageList
           try
             St.LoadFromFile(FileName);
             St.Position := 0;
@@ -1234,7 +1234,7 @@ begin
           end;
         end;
 
-        // Agregar el elemento a la lista
+        // Add the item to the list
         AddImageToSlide(FileName, BitMap, St);
 
       except
@@ -1318,7 +1318,7 @@ begin
   ContentType := ctUnknown;
 
   try
-    // Verificar si hay una imagen en el portapapeles
+    // Check if there is an image in the clipboard
     if (ClipboardService.GetClipboard.Kind = tkClass) and (ClipboardService.GetClipboard.AsObject is TBitMapSurface) then
     begin
       // It is an image
@@ -1330,7 +1330,7 @@ begin
       ContentType := ctImage;
       FileName := 'image.png';
     end
-    // Verificar si hay texto en el portapapeles
+    // Check if there is text in the clipboard
     else if ClipboardService.GetClipboard.Kind = tkUString then
     begin
       ClipboardText := ClipboardService.GetClipboard.AsString;
@@ -1409,7 +1409,7 @@ begin
     // Reset the stream position
     St.Position := 0;
 
-    // Agregar el elemento a la lista
+    // Add the item to the list
     AddImageToSlide(FileName, BitMap, St);
 
   finally
@@ -1486,7 +1486,7 @@ begin
     TThread.Queue(nil,
       procedure
       begin
-        // Actualizar la UI basado en el nuevo estado de 'Busy'
+        // Update the UI based on the new 'Busy' state
         if FBusy then
         begin
           // --- BUSY STATE ---
@@ -1662,7 +1662,7 @@ begin
     if csDesigning in ComponentState then
       Exit;
 
-    // Elimina el fondo blanco del memo y el borde
+    // Removes the white background of the memo and the border
     FMemoPrompt.StyleLookup := 'memostyle';
     FMemoPrompt.ApplyStyleLookup;
 
@@ -1769,7 +1769,7 @@ var
   St: TMemoryStream;
   ContentType: TContentType;
   ImageIndex: Integer;
-  ByteData: TBytes; // Variable para almacenar los bytes del stream
+  ByteData: TBytes; // Variable to store the bytes of the stream
 begin
   BitMap := Nil;
   try
@@ -1782,12 +1782,12 @@ begin
         // We use TPath.GetExtension to obtain/get the extension safely
         Ext := System.IOUtils.TPath.GetExtension(FileName).ToLower;
 
-        // Validar con la lista de extensiones configurada
+        // Validate with the configured extensions list
         if IsValidFileExtension(Ext) then
         begin
           if TFile.Exists(FileName) then
           begin
-            // Obtener el tipo de contenido
+            // Get the content type
             ContentType := GetContentTypeFromValidExtensions(Ext);
             St := TMemoryStream.Create;
             BitMap := nil;
@@ -1795,7 +1795,7 @@ begin
             try
               if ContentType = ctImage then
               begin
-                // Para im�genes, cargar la imagen real
+                // For images, load the real image
                 BitMap := TBitMap.Create;
                 BitMap.LoadFromFile(FileName);
                 BitMap.SaveToStream(St);
@@ -1803,7 +1803,7 @@ begin
               end
               else
               begin
-                // Para otros tipos, cargar el archivo como stream y usar icono del ImageList
+                // For other types, load the file as a stream and use an icon from the ImageList
                 St.LoadFromFile(FileName);
                 St.Position := 0;
                 ImageIndex := GetImageIndexFromContentType(ContentType);
@@ -1812,7 +1812,7 @@ begin
 
               AddImageToSlide(FileName, BitMap, St);
             except
-              // Si algo falla, liberamos los recursos
+              // If something fails, we free the resources
               if Assigned(BitMap) then
                 BitMap.Free;
               St.Free;
@@ -1834,10 +1834,10 @@ begin
           CleanPath := Uri.Path;
           Ext := System.IOUtils.TPath.GetExtension(CleanPath).ToLower;
         finally
-          // Uri se libera autom�ticamente (es un record)
+          // Uri is freed automatically (it is a record)
         end;
 
-        // Validar con la lista de extensiones configurada
+        // Validate with the configured extensions list
         if IsValidFileExtension(Ext) then
         begin
           ContentType := GetContentTypeFromValidExtensions(Ext);
@@ -1868,7 +1868,7 @@ begin
 
             AddImageToSlide(FileName, BitMap, St);
           except
-            // Si algo falla, liberamos los recursos
+            // If something fails, we free the resources
             if Assigned(BitMap) then
               BitMap.Free;
             if Assigned(St) then
@@ -1989,7 +1989,7 @@ end;
 
 procedure TChatInput.Resize;
 begin
-  // Heredamos el comportamiento By default
+  // We inherit the behavior By default
   inherited;
 
 end;
@@ -2168,7 +2168,7 @@ begin
   if (Extension = '') or (ValidExtensions = '') then
     Exit;
 
-  // Limpiar la extensi�n (quitar el punto si lo tiene)
+  // Clear the extension (remove the dot if it has one)
   CleanExt := Extension;
   if (Length(CleanExt) > 0) and (CleanExt[1] = '.') then
     CleanExt := Copy(CleanExt, 2, Length(CleanExt));
@@ -2343,7 +2343,7 @@ begin
           try
             Data.Stream.Position := 0;
             Data.Stream.SaveToStream(St);
-            St.Position := 0; // Rebobinar el stream para su lectura
+            St.Position := 0; // Rewind the stream for its reading
 
             MF := TAiMediaFile.Create;
             // NOTE: We assume that LoadFromStream makes a copy of the stream data
@@ -2388,7 +2388,7 @@ function TChatInput.GetContentTypeFromValidExtensions(const Extension: string): 
 var
   CleanExt: string;
 begin
-  // Limpiar la extensi�n (quitar el punto si lo tiene)
+  // Clear the extension (remove the dot if it has one)
   CleanExt := Extension;
   if (Length(CleanExt) > 0) and (CleanExt[1] = '.') then
     CleanExt := Copy(CleanExt, 2, Length(CleanExt));

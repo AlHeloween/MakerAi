@@ -345,7 +345,7 @@ begin
     if Assigned(FDriver) then
     begin
       FDriver.Add(aItem, FEntidad);
-      // No salimos aqu�, continuamos para poblar la memoria cach�/�ndice
+      // We do not exit here; we continue to populate the cache/index memory
     end;
 
     // B. Storage in Main List (Memory)
@@ -472,7 +472,7 @@ begin
       begin
         Emb.Orden := i;
         Inc(i);
-        Inc(Result); // <--- CONTAMOS NODO CREADO
+        Inc(Result); // <--- WE COUNT CREATED NODE
       end;
     end;
   End;
@@ -595,7 +595,7 @@ begin
         if Assigned(Emb) then
         begin
           Emb.Orden := i;
-          Inc(Result); // <--- CONTAMOS NODO CREADO
+          Inc(Result); // <--- WE COUNT CREATED NODE
         end;
       end;
       Break; // We finish
@@ -633,7 +633,7 @@ begin
       if Assigned(Emb) then
       begin
         Emb.Orden := i;
-        Inc(Result); // <--- CONTAMOS NODO CREADO
+        Inc(Result); // <--- WE COUNT CREATED NODE
       end;
       Inc(i);
     end;
@@ -838,13 +838,13 @@ end;
 
 constructor TAiRAGVector.Create(aOwner: TComponent; AOwnsObjects: Boolean);
 begin
-  inherited Create(aOwner); // 1. Llamar al padre
+  inherited Create(aOwner); // 1. Call the parent
   InternalInit(AOwnsObjects); // 2. Initialize with the passed value
 end;
 
 constructor TAiRAGVector.Create(aOwner: TComponent);
 begin
-  inherited Create(aOwner); // 1. Llamar al padre
+  inherited Create(aOwner); // 1. Call the parent
   InternalInit(True); // 2. Initialize with the default value
 end;
 
@@ -2703,7 +2703,7 @@ function TAiRAGVector.SearchText(aPrompt: String; aLimit: Integer; aPrecision: D
 var
   TmpVec: TAiRAGVector;
 begin
-  // Llamamos a Search(String...) que ya soporta Criteria
+  // We call Search(String...) which already supports Criteria
   TmpVec := Search(aPrompt, aLimit, aPrecision, aFilter);
   try
     Result := VectorToContextText(TmpVec, IncludeMetadata, IncludeScore);

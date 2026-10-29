@@ -66,7 +66,7 @@ uses
 {$IF CompilerVersion < 35}
   uJSONHelper,
 {$ENDIF}
-  // Dependencia clave de la librer?a central
+  // Key dependency of the central library
   uMakerAi.Core, uMakerAi.Chat.Messages, uMakerAi.Chat.Tools;
 
 const
@@ -429,7 +429,7 @@ begin
   JObj.TryGetValue<string>('output_format', FOutputFormat);
   JObj.TryGetValue<string>('size', FSize);
   JObj.TryGetValue<string>('quality', FQuality);
-  // gpt-image-2.5 identifica cada imagen para reutilizarla en edits
+  // gpt-image-2.5 identifies each image to reuse it in edits
   JObj.TryGetValue<string>('generation_id', FGenerationId);
   if JObj.TryGetValue<TJSONObject>('usage', FUsage) then
     FUsage := TJSONObject(FUsage.Clone);
@@ -588,7 +588,7 @@ begin
     iqXHigh:  if IsGptImage25Model then Result := 'xhigh' else Result := 'high';
     iqMax:    if IsGptImage25Model then Result := 'max'   else Result := 'high';
   else
-    Result := ''; // iqAuto / iqStandard / iqHD: la API usa su default
+    Result := ''; // iqAuto / iqStandard / iqHD: the API uses its default
   end;
 end;
 
@@ -684,7 +684,7 @@ begin
         case EffectiveOutputFormat of
           ifJpeg: JObj.AddPair('output_format', 'jpeg');
           ifWebp: JObj.AddPair('output_format', 'webp');
-          // ifPng: default, no enviar
+          // ifPng: default, do not send
         end;
 
         // Compression only for jpeg/webp and when specified
@@ -831,7 +831,7 @@ begin
   finally
     Client.Free;
     ContentStream.Free;
-    JObj.Free; // nil-safe: cubre el caso de excepci?n antes de FreeAndNil
+    JObj.Free; // nil-safe: covers the case of exception before FreeAndNil
     if Assigned(FActiveResponseStream) then
     begin
       FActiveResponseStream.Free;
@@ -925,7 +925,7 @@ begin
 
       case FBackground of
         ibTransparent:
-          // gpt-image-2 no soporta fondo transparente; gpt-image-2.5 si
+          // gpt-image-2 does not support transparent background; gpt-image-2.5 does
           if FModel <> imGptImage2 then
             Body.AddField('background', 'transparent');
         ibOpaque: Body.AddField('background', 'opaque');
@@ -1300,7 +1300,7 @@ begin
     else         Body.AddField('size', '1024x1024');
     end;
 
-    // 'response_format' retirado de la API de OpenAI (2026) — no enviar.
+    // 'response_format' removed from the OpenAI API (2026) — do not send.
 
     Client.CustomHeaders['Authorization'] := 'Bearer ' + ApiKey;
     Res := Client.Post(FUrl + 'images/variations', Body);

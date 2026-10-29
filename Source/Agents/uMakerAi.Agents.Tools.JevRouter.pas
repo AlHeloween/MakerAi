@@ -31,7 +31,7 @@ unit uMakerAi.Agents.Tools.JevRouter;
 //   in the SAME call as the route. Their probability lands in the blackboard and
 //   serves lmExpression (e.g. 'Router.jev.sources >= 0.5') or OnRoute.
 //
-// Keys written to the blackboard (prefix '<NodeName>.jev.'):
+// Keys written to the blackboard (prefix '<NodeName>.jev.') :
 //   choice      route with the highest probability (even below MinConfidence)
 //   confidence  confidence of that choice, '0.00'..'1.00' (decimal point)
 //   top         the 3 most probable routes, comma-separated

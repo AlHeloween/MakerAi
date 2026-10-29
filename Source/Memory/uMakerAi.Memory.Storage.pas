@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enríquez
+// Name: Gustavo Enríquez
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
@@ -28,17 +28,17 @@
 
 unit uMakerAi.Memory.Storage;
 
-// Capa de almacenamiento para TAiMemory.
+// Storage layer for TAiMemory.
 //
-// IAiMemoryStorage  — contrato abstracto (permite futuros drivers: Postgres, etc.)
+// IAiMemoryStorage  — abstract contract (allows future drivers: Postgres, etc.)
 // TAiMemorySQLiteStorage — implementación SQLite vía FireDAC, mismo patrón que
 //                          TAiRAGVectorSQLiteDriver.
 //
 // Schema SQLite (tabla ai_memories + ai_memories_fts):
-//   - FTS5 para búsqueda léxica rápida
-//   - Triggers para mantener FTS5 sincronizado
-//   - UNIQUE(content_hash, namespace) para deduplicación automática
-//   - json_extract() para filtrado por metadata
+//   - FTS5 for fast lexical search
+//   - Triggers to keep FTS5 synchronized
+//   - UNIQUE(content_hash, namespace) for automatic deduplication
+//   - json_extract() for filtering by metadata
 
 interface
 
@@ -51,19 +51,19 @@ uses
 
 type
   // ---------------------------------------------------------------------------
-  // Interfaz abstracta de storage — cualquier driver debe implementarla
+  // Abstract storage interface — any driver must implement it
   // ---------------------------------------------------------------------------
   IAiMemoryStorage = interface
     ['{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}']
 
     // Guarda un entry. Actualiza si content_hash+namespace ya existe.
-    // Retorna el Id asignado.
+    // Returns assigned Id.
     function  StoreEntry(AEntry: TMemoryEntry): Integer;
 
     // Búsqueda léxica FTS5
     function  SearchFTS(const AQuery, ANamespace: string; ALimit: Integer): TMemoryEntryList;
 
-    // Búsqueda por similitud coseno sobre embeddings almacenados
+    // Search by cosine similarity over stored embeddings
     function  SearchSemantic(const AEmbedding: TArray<Double>;
                               const ANamespace: string;
                               ALimit: Integer;
@@ -73,9 +73,9 @@ type
     function  Recall(AMinImportance: Integer; const ANamespace: string;
                      ALimit: Integer): TMemoryEntryList;
 
-    // Operaciones por Id: SIEMPRE acotadas al namespace. Un Id de otro
-    // namespace se comporta igual que uno inexistente (nil / sin efecto),
-    // así el Id no sirve para leer ni modificar memorias ajenas (issue #127).
+    // Operations by Id: ALWAYS scoped to namespace. An Id from another
+    // namespace behaves like a nonexistent one (nil / no effect),
+    // so Id cannot be used to read or modify foreign memories (issue #127).
     function  GetById(AId: Integer; const ANamespace: string): TMemoryEntry;
     procedure DeleteById(AId: Integer; const ANamespace: string);
     procedure UpdateAccessStats(AId: Integer; const ANamespace: string);
@@ -86,7 +86,7 @@ type
     function  Stats(const ANamespace: string): TMemoryStats;
     procedure CleanupExpired(const ANamespace: string);
 
-    // Knowledge graph básico sobre la misma DB.
+    // Basic knowledge graph on same DB.
     // Link/Unlink solo actúan si AMBOS extremos pertenecen a ANamespace.
     procedure LinkEntries(AFromId, AToId: Integer; const ARelation: string;
                           const ANamespace: string);
@@ -97,7 +97,7 @@ type
   end;
 
   // ---------------------------------------------------------------------------
-  // Implementación SQLite con FireDAC
+  // SQLite implementation with FireDAC
   // ---------------------------------------------------------------------------
   TAiMemorySQLiteStorage = class(TInterfacedObject, IAiMemoryStorage)
   private
@@ -113,7 +113,7 @@ type
     function  StrToEmbedding(const AStr: string): TArray<Double>;
     function  CosineSimilarity(const A, B: TArray<Double>): Double;
   public
-    // Crea su propia conexión SQLite en ADbPath (la conexión es propia y se libera aquí)
+    // Creates its own SQLite connection in ADbPath (connection is own and freed here)
     constructor CreateWithPath(const ADbPath: string);
     destructor Destroy; override;
 
@@ -198,7 +198,7 @@ var
 begin
   Q := NewQuery;
   try
-    // WAL mode para concurrencia
+    // WAL mode for concurrency
     Q.SQL.Text := 'PRAGMA journal_mode=WAL';
     Q.ExecSQL;
 
@@ -244,7 +244,7 @@ begin
       ')';
     Q.ExecSQL;
 
-    // Triggers para sincronizar FTS5
+    // Triggers to synchronize FTS5
     Q.SQL.Text :=
       'CREATE TRIGGER IF NOT EXISTS ' + FTableName + '_ai AFTER INSERT ON ' + FTableName + ' BEGIN' +
       '  INSERT INTO ' + FTableName + '_fts(rowid, content, tags) VALUES (new.id, new.content, new.tags);' +
@@ -264,7 +264,7 @@ begin
       'END';
     Q.ExecSQL;
 
-    // Tabla de links para memory graph
+    // Links table for memory graph
     Q.SQL.Text :=
       'CREATE TABLE IF NOT EXISTS ' + FTableName + '_links (' +
       '  from_id  INTEGER NOT NULL,' +
@@ -365,7 +365,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// StoreEntry — INSERT OR REPLACE con dedup por content_hash+namespace
+// StoreEntry — INSERT OR REPLACE with dedup by content_hash+namespace
 // ---------------------------------------------------------------------------
 
 function TAiMemorySQLiteStorage.StoreEntry(AEntry: TMemoryEntry): Integer;
@@ -419,7 +419,7 @@ begin
 
     Q.ExecSQL;
 
-    // Recupera el id asignado (INSERT o el existente por CONFLICT)
+    // Retrieves assigned id (INSERT or existing one by CONFLICT)
     Q.SQL.Text := 'SELECT id FROM ' + FTableName +
       ' WHERE content_hash=:hash AND namespace=:ns';
     Q.ParamByName('hash').AsString := AEntry.ContentHash;
@@ -447,7 +447,7 @@ var
 begin
   Result := TMemoryEntryList.Create(True);
 
-  // Sanitizar query para FTS5: quitar caracteres especiales, convertir a OR
+  // Sanitize query for FTS5: remove special characters, convert to OR
   SafeQ := StringReplace(AQuery, '(', ' ', [rfReplaceAll]);
   SafeQ := StringReplace(SafeQ,  ')', ' ', [rfReplaceAll]);
   SafeQ := StringReplace(SafeQ,  '"', ' ', [rfReplaceAll]);
@@ -492,7 +492,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// SearchSemantic — coseno calculado en Delphi (brute-force para n < 100K)
+// SearchSemantic — cosine calculated in Delphi (brute-force for n < 100K)
 // ---------------------------------------------------------------------------
 
 function TAiMemorySQLiteStorage.SearchSemantic(const AEmbedding: TArray<Double>;
@@ -533,7 +533,7 @@ begin
     Q.Free;
   end;
 
-  // Ordenar por score desc — selection sort (n < 10K, no se justifica complejidad)
+  // Sort by score desc — selection sort (n < 10K, complexity not justified)
   var J: Integer;
   var Tmp: TScoredEntry;
   for I := 0 to Count - 2 do
@@ -546,7 +546,7 @@ begin
   for I := 0 to Min(ALimit - 1, Count - 1) do
     Result.Add(Scored[I].Entry);
 
-  // Liberar los entries que no quedaron en Result
+  // Free entries not remaining in Result
   for I := Result.Count to Count - 1 do
     Scored[I].Entry.Free;
 end;
@@ -751,8 +751,8 @@ begin
   Q := NewQuery;
   try
     Q.SQL.Text :=
-      // expires_at = '' significa "sin expiración" (Insert lo escribe así cuando
-      // ExpiresAt=0); sin este filtro, '' < :now borraba TODAS las memorias sin TTL.
+      // expires_at = '' means "no expiration" (Insert writes it that way when
+      // ExpiresAt=0); without this filter, '' < :now deleted ALL memories without TTL.
       'DELETE FROM ' + FTableName +
       ' WHERE namespace = :ns AND expires_at IS NOT NULL AND expires_at <> '''' AND expires_at < :now';
     Q.ParamByName('ns').AsString  := ANamespace;
@@ -774,8 +774,8 @@ var
 begin
   Q := NewQuery;
   try
-    // INSERT ... SELECT: si alguno de los dos extremos no existe en ANamespace
-    // el SELECT no devuelve filas y no se crea el enlace.
+    // INSERT ... SELECT: if either endpoint does not exist in ANamespace
+    // SELECT returns no rows and link is not created.
     Q.SQL.Text :=
       'INSERT OR REPLACE INTO ' + FTableName + '_links (from_id, to_id, relation)' +
       ' SELECT :from, :to, :rel' +
@@ -833,8 +833,8 @@ begin
       ' SELECT m.* FROM ' + FTableName + ' m' +
       ' JOIN ' + FTableName + '_links l ON m.id = l.from_id' +
       ' WHERE l.to_id = :id2 AND m.namespace = :ns2';
-    // El Id de origen también debe ser del namespace: si no, ni siquiera se
-    // revela que existen enlaces hacia él.
+    // Source Id must also be in namespace: otherwise it is not even
+    // revealed that links exist toward it.
     Q.SQL.Text :=
       'SELECT * FROM (' + Q.SQL.Text + ')' +
       ' WHERE EXISTS (SELECT 1 FROM ' + FTableName + ' WHERE id = :id3 AND namespace = :ns3)';

@@ -81,7 +81,7 @@ type
     Function ExtractToolCallFromJson(jChoices: TJSonArray): TAiToolsFunctions; Override;
     Procedure DoCallFunction(ToolCall: TAiToolsFunction); Override;
     function GetTools(aToolFormat: TToolFormat): TStrings; Override;
-    Function PrepareSystemMsg: String; Override; // Crea el primer mensaje del chat para system, para configurar el asistente
+    Function PrepareSystemMsg: String; Override; // Creates the first chat message for system, to configure the assistant
   Public
     Constructor Create(Sender: TComponent); Override;
     Destructor Destroy; Override;
@@ -252,7 +252,7 @@ begin
   FLastContent := '';
   FLastPrompt := AskMsg.Prompt;
 
-  // 1. A�adir el mensaje del usuario al historial
+  // 1. Add the user message to the history
   if FMessages.IndexOf(AskMsg) < 0 then
   begin
     AskMsg.Id := FMessages.Count + 1;
@@ -262,7 +262,7 @@ begin
   end;
 
   // 2. Preparar par�metros for the API de DALL-E
-  LUrl := Url + 'images/generations'; // Asume que 'Url' es la URL base de OpenAI
+  LUrl := Url + 'images/generations'; // Assumes that 'Url' is the base URL of OpenAI
   LJsonObject := TJSonObject.Create;
   LBodyStream := nil;
   LResponseStream := nil;
@@ -291,11 +291,11 @@ begin
       // LJsonObject.AddPair('style', TJSONString.Create('vivid')); // vivid or natural
     end;
 
-    // A�adir identificador de usuario
+    // Add user identifier
     if not User.IsEmpty then
       LJsonObject.AddPair('user', TJSONString.Create(User));
 
-    // 4. Ejecutar la petici�n HTTP
+    // 4. Execute the HTTP request
     LBodyStream := TStringStream.Create(LJsonObject.ToString, TEncoding.UTF8);
     LResponseStream := TStringStream.Create('', TEncoding.UTF8);
 
@@ -307,14 +307,14 @@ begin
     LResponseStream.SaveToFile('c:\temp\respuesta.txt');
     LResponseStream.Position := 0;
 
-    // 5. Procesar la respuesta
+    // 5. Process the response
     if LResponse.StatusCode = 200 then
     begin
       LResponseJson := TJSonObject.ParseJSONValue(LResponseStream.DataString) as TJSonObject;
       if LResponseJson = nil then
         raise Exception.Create('Error parsing JSON response from DALL-E.');
 
-      // El objeto 'usage' puede no venir en respuestas con errores
+      // The 'usage' object may not be present in responses with errors
       Var
         uso: TJSonObject;
 
@@ -348,15 +348,15 @@ begin
 
         FLastContent := Trim(FLastContent + sLineBreak + RevisedPrompt);
 
-        // Crear el archivo de media y adjuntarlo al mensaje de respuesta
+        // Create the media file and attach it to the response message
         LNewImageFile := TAiMediaFile.Create;
         try
-          // DALL-E genera im�genes en formato PNG
+          // DALL-E generates images in PNG format
           LNewImageFile.LoadFromBase64('generated_image.png', LBase64Data);
           ResMsg.MediaFiles.Add(LNewImageFile);
           ResMsg.Prompt := FLastContent;
 
-          // Disparar el evento de fin de recepci�n de datos
+          // Fire the data reception end event
          DoStateChange(acsFinished, 'Done'); // <--- ESTADO FINALIZADO
           if Assigned(FOnReceiveDataEnd) then
             FOnReceiveDataEnd(Self, ResMsg, nil, 'model', '');
@@ -383,7 +383,7 @@ begin
     LBodyStream.Free;
     LResponseStream.Free;
     // LBinaryStream.Free;
-    LResponseJson.Free; // ParseJSONValue crea un objeto que debemos liberar
+    LResponseJson.Free; // ParseJSONValue creates an object that we must free
     FBusy := False;
   end;
 end;
@@ -408,7 +408,7 @@ begin
   FLastContent := '';
   FLastPrompt := AskMsg.Prompt;
 
-  // 1. A�adir el mensaje del usuario al historial
+  // 1. Add the user message to the history
   if FMessages.IndexOf(AskMsg) < 0 then
   begin
     AskMsg.Id := FMessages.Count + 1;
@@ -418,7 +418,7 @@ begin
   end;
 
   // 2. Preparar par�metros for the API de DALL-E
-  LUrl := Url + 'images/generations'; // Asume que 'Url' es la URL base de OpenAI
+  LUrl := Url + 'images/generations'; // Assumes that 'Url' is the base URL of OpenAI
   LJsonObject := TJSonObject.Create;
   LBodyStream := nil;
   LResponseStream := nil;
@@ -442,11 +442,11 @@ begin
       // LJsonObject.AddPair('style', TJSONString.Create('vivid')); // vivid or natural
     end;
 
-    // A�adir identificador de usuario
+    // Add user identifier
     if not User.IsEmpty then
       LJsonObject.AddPair('user', TJSONString.Create(User));
 
-    // 4. Ejecutar la petici�n HTTP
+    // 4. Execute the HTTP request
     LBodyStream := TStringStream.Create(LJsonObject.ToString, TEncoding.UTF8);
     LResponseStream := TStringStream.Create('', TEncoding.UTF8);
 
@@ -455,7 +455,7 @@ begin
 
     LResponse := FClient.Post(LUrl, LBodyStream, LResponseStream, LHeaders);
 
-    // 5. Procesar la respuesta
+    // 5. Process the response
     if LResponse.StatusCode = 200 then
     begin
       LResponseJson := TJSonObject.ParseJSONValue(LResponseStream.DataString) as TJSonObject;
@@ -468,14 +468,14 @@ begin
         LImageObject := LDataArray.Items[0] as TJSonObject;
         LBase64Data := LImageObject.GetValue<string>('b64_json');
 
-        // Crear el archivo de media y adjuntarlo al mensaje de respuesta
+        // Create the media file and attach it to the response message
         LNewImageFile := TAiMediaFile.Create;
         try
-          // DALL-E genera im�genes en formato PNG
+          // DALL-E generates images in PNG format
           LNewImageFile.LoadFromBase64('generated_image.png', LBase64Data);
           ResMsg.MediaFiles.Add(LNewImageFile);
 
-          // Disparar el evento de fin de recepci�n de datos
+          // Fire the data reception end event
           DoStateChange(acsFinished, 'Done'); // <--- ESTADO FINALIZADO
           if Assigned(FOnReceiveDataEnd) then
             FOnReceiveDataEnd(Self, ResMsg, nil, 'model', '');
@@ -502,7 +502,7 @@ begin
     LBodyStream.Free;
     LResponseStream.Free;
     // LBinaryStream.Free;
-    LResponseJson.Free; // ParseJSONValue crea un objeto que debemos liberar
+    LResponseJson.Free; // ParseJSONValue creates an object that we must free
     FBusy := False;
   end;
 end;
@@ -522,7 +522,7 @@ var
   LUrl, LModel, LVoice, LResponseFormat: string;
   LBodyStream: TStringStream;
   LResponseStream: TMemoryStream;
-  LHeaders: TNetHeaders; // <--- Variable ya declarada, ahora la usaremos
+  LHeaders: TNetHeaders; // <--- Variable already declared, now we will use it
   LResponse: IHTTPResponse;
   LJsonObject: TJSonObject;
   LErrorResponse: string;
@@ -644,7 +644,7 @@ begin
   try
     Headers := [TNetHeader.Create('Authorization', 'Bearer ' + ApiKey)];
 
-    // Crear un stream temporal para pasarlo al formulario multipart
+    // Create a temporary stream to pass it to the multipart form
     aMediaFile.Content.Position := 0;
     LTempStream.LoadFromStream(aMediaFile.Content);
     LTempStream.Position := 0;
@@ -1678,7 +1678,7 @@ begin
   // --- 1. METADATA AND TOKEN EXTRACTION ---
   LModel := jObj.GetValue<string>('model');
 
-  // El objeto 'usage' puede no venir en respuestas con errores
+  // The 'usage' object may not be present in responses with errors
   if jObj.TryGetValue<TJSonObject>('usage', uso) then
   begin
     aPrompt_tokens := uso.GetValue<integer>('prompt_tokens');
@@ -1711,7 +1711,7 @@ begin
     begin
       JItem := JVal as TJSonObject;
       if not JItem.TryGetValue<TJSonObject>('message', jMessage) then
-        Continue; // Ir a la siguiente 'choice' si esta no tiene un mensaje
+        Continue; // Go to the next 'choice' if this one has no message
 
       // --- 2.1. Extract message components ---
       Role := jMessage.GetValue<string>('role');
@@ -1754,7 +1754,7 @@ begin
 
       // Third, we check if there are function calls.
       if jMessage.TryGetValue<TJSonArray>('tool_calls', JToolCalls) then
-        sToolCalls := JToolCalls.ToJson; // Guardamos el JSON de las tool_calls
+        sToolCalls := JToolCalls.ToJson; // We save the JSON of the tool_calls
 
       if jMessage.TryGetValue<TJSonObject>('web_search', jWebSearch) then
       begin
@@ -2268,7 +2268,7 @@ begin
   try
     Headers := [TNetHeader.Create('Authorization', 'Bearer ' + ApiKey)];
 
-    // Crear un stream temporal para pasarlo al formulario multipart
+    // Create a temporary stream to pass it to the multipart form
     aMediaFile.Content.Position := 0;
     LTempStream.LoadFromStream(aMediaFile.Content);
     LTempStream.Position := 0;

@@ -46,6 +46,16 @@
 - A sentence split across physical lines is now translated as ONE block (`.temp/forms_emit.py: expr_block`): before that the model translated `'... de conoci'` and left `'miento'` in Spanish.
 - Consequence, and it is not good news: with `Source` in scope the scan reports **2871 flagged hits in 392 files** (`.temp/inv12.txt`), of which **964 are classified REAL Spanish (33.6%)**. `Source/Tools/uMakerAi.Tools.Functions.pas` still carries `Error al procesar JSON:` — the round-3 core pass did not reach it.
 
+### Round 10 — the `Source` tail, and the build as its oracle
+
+- `.temp/tree_emit.py Source` first reported 487 lines of real Spanish in 57 files — including `Error al procesar JSON:` in `Source/Tools/uMakerAi.Tools.Functions.pas`, which the round-3 core pass never reached.
+- The emit filter was consulting `residual_audit.is_real`, and measuring it showed that second opinion dropping real text (`Guardar audio` and `Error al procesar JSON` carry no token from its list). The filter is gone: recall belongs to the detector, the model is the precision stage — a row already in English comes back unchanged and applies as a no-op. The honest surface was **1071 lines in 135 files**.
+- Translated in nine batches (`opencode-go/beam-free`, free) and applied through the numbered applier: **40 files changed, +452/−452**, 9 refusals, **no SKELETON-DIFF**.
+- Oracles, all on the delivered revision: `check_changed.py` — 40/40 files code-identical to HEAD ✓; `msbuild` of `MakerAI`, `MakerAi.UI`, `MakerAi.RAG.Drivers` — **0 errors**, exit 0 ✓; regression suite — failed once (`chat.async.free-waits-request`, 302 ms), then **117/117** on the same binary ✓.
+- That failure is a HARNESS finding, not a regression: the case asserts a wall-clock threshold of 250 ms, and both outcomes were observed at unchanged code — the replication criterion's definition of intermittent.
+- After the pass the detector still flags 1015 lines in `Source`, of which **2 carry an accent** and both must (a tokenizer's `'¿'`/`'¡'` character set and the accent-stripping table). The rest is the word-list false-positive class.
+- A lost `### FILE:` header now has two defences: `.temp/check_maps.py` catches it before an apply (it applies NOTHING and still exits 0), and `.temp/reattribute.py` restores attribution from the batch when the rows themselves are correct.
+
 ## 2026-10-29 — Upstream Sync v3.3 → v3.9.0 + Full English Pass
 
 **Reason:** Owner decision: update the fork to upstream master (v3.9.0) and keep the whole repository in English.

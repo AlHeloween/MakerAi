@@ -389,7 +389,7 @@ const
   A2A_VERSION_HEADER = 'A2A-Version';
   A2A_VERSION = '1.0';
 
-  // --- Canal blackboard <-> A2A -------------------------------------------
+  // --- Channel blackboard <-> A2A -------------------------------------------
   // The server seeds these keys before running the graph, so the nodes
   // know which conversation they are in:
   A2A_BB_MESSAGE_ID = 'A2A.MessageId';
@@ -2317,7 +2317,7 @@ begin
   AContext.Connection.IOHandler.Write(ToBytes(Hdr, IndyTextEncoding_UTF8));
   AResponseInfo.HeaderHasBeenWritten := True; // so Indy does not write its own
 
-  // 1. Snapshot inicial del task
+  // 1. Initial snapshot of the task
   FTasksLock.Enter;
   try
     RefreshTask(Info);

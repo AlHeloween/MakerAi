@@ -827,7 +827,7 @@ procedure TChatBubble.AppendText(const ATextFragment: string);
 var
   LMemo: TMemo;
 begin
-  // 1. Buscamos el control TMemo dentro de la burbuja.
+  // 1. We look for the TMemo control inside the bubble.
   LMemo := FindFirstChild<TMemo>;
 
   // 2. If there is no TMemo, we cannot add text.
@@ -839,7 +839,7 @@ begin
   // For now, we assume we always want to see the end.
   // LShouldScrollToEnd := (LMemo.ViewportPosition.Y >= LMemo.ContentBounds.Height - LMemo.Height - 5);
 
-  // 3. A�adimos el nuevo fragmento de texto.
+  // 3. We add the new text fragment.
   // LMemo.Lines.Add() would add a new line. To concatenate, we use Lines.Text.
   LMemo.Lines.Text := LMemo.Lines.Text + ATextFragment;
 
@@ -863,7 +863,7 @@ var
   LMemo: TMemo;
   Bg: TFmxObject;
 begin
-  // 1. Buscamos el control TMemo dentro de la burbuja.
+  // 1. We look for the TMemo control inside the bubble.
   LMemo := FindFirstChild<TMemo>;
 
   // 2. If there is no TMemo (e.g. there was only an image), WE CREATE IT NOW.
@@ -905,7 +905,7 @@ begin
     end;
   end;
 
-  // 3. A�adimos el nuevo fragmento de texto.
+  // 3. We add the new text fragment.
   LMemo.Lines.Text := LMemo.Lines.Text + ATextFragment;
 
   // 4. We scroll to the end and notify changes

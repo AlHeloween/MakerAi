@@ -1033,7 +1033,7 @@ begin
   try
     LJsonObject.AddPair('name', aNewModelName);
     LJsonObject.AddPair('modelfile', aModelfileContent);
-    LJsonObject.AddPair('stream', TJSONBool.Create(True)); // Siempre en stream para progreso
+    LJsonObject.AddPair('stream', TJSONBool.Create(True)); // Always in stream for progress
     LBodyStream.WriteString(LJsonObject.ToJSON);
     LBodyStream.Position := 0;
 
@@ -1043,7 +1043,7 @@ begin
     if LResponse.StatusCode <> 200 then
       raise Exception.CreateFmt('Error creating model: %d - %s', [LResponse.StatusCode, LResponse.ContentAsString]);
 
-    // Procesar la respuesta en stream (linea por linea)
+    // Process the response in stream (line by line)
     LResponseStream.Position := 0;
     LJsonLines := LResponseStream.DataString.Split([#10], TStringSplitOptions.ExcludeEmpty);
 
@@ -1088,7 +1088,7 @@ begin
     LBodyStream.WriteString(LJsonObject.ToJSON);
     LBodyStream.Position := 0;
 
-    // TNetHTTPClient.Delete necesita un TStream como body
+    // TNetHTTPClient.Delete needs a TStream as body
     LResponse := FClient.Delete(LUrl, LBodyStream);
 
     if LResponse.StatusCode <> 200 then
@@ -1119,7 +1119,7 @@ begin
   LResponseStream := TStringStream.Create('', TEncoding.UTF8);
   try
     LJsonObject.AddPair('name', aModelName);
-    LJsonObject.AddPair('stream', TJSONBool.Create(True)); // Siempre en stream para progreso
+    LJsonObject.AddPair('stream', TJSONBool.Create(True)); // Always in stream for progress
     LBodyStream.WriteString(LJsonObject.ToJSON);
     LBodyStream.Position := 0;
 
@@ -1130,7 +1130,7 @@ begin
     if LResponse.StatusCode <> 200 then
       raise Exception.CreateFmt('Error downloading model: %d - %s', [LResponse.StatusCode, LResponse.ContentAsString]);
 
-    // Procesar la respuesta en stream (linea por linea)
+    // Process the response in stream (line by line)
     LResponseStream.Position := 0;
     LJsonLines := LResponseStream.DataString.Split([#10], TStringSplitOptions.ExcludeEmpty);
 
@@ -1183,7 +1183,7 @@ begin
 
     if LResponse.StatusCode = 200 then
     begin
-      // El llamador es responsable de liberar el TJSONObject devuelto
+      // The caller is responsible for freeing the returned TJSONObject
       Result := TJSonObject.ParseJSONValue(LResponse.ContentAsString) as TJSonObject;
     end
     else

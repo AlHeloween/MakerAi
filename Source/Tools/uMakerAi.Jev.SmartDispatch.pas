@@ -1,8 +1,8 @@
 ﻿// MIT License
 //
-// MakerAI - Jev: clasificador de SmartDispatch con el modelo Jev (TypeSafe AI)
+// MakerAI - Jev: SmartDispatch classifier with the Jev model (TypeSafe AI)
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
@@ -12,22 +12,22 @@
 unit uMakerAi.Jev.SmartDispatch;
 
 // -----------------------------------------------------------------------------
-// TAiJevDispatchClassifier: se asigna a ChatTools.DispatchClassifier de un chat
-// en ChatMode = cmSmartDispatch y reemplaza el pase 1 (un LLM que clasifica la
-// peticion en IMAGEGEN / VIDEOGEN / TTS / WEBSEARCH / CHAT) por una pregunta
+// TAiJevDispatchClassifier: it is assigned to ChatTools.DispatchClassifier of a chat
+// in ChatMode = cmSmartDispatch and replaces pass 1 (an LLM that classifies the
+// request into IMAGEGEN / VIDEOGEN / TTS / WEBSEARCH / CHAT) with a question
 // Choice a Jev.
 //
 //   Chat.ChatMode := cmSmartDispatch;
 //   Chat.ChatTools.ImageTool := MiHerramientaDeImagen;
 //   Chat.ChatTools.DispatchClassifier := JevDispatch;   // este componente
 //
-// Solo se ofrecen a Jev los tags cuya tool esta asignada (los decide el chat).
-// Si solo queda CHAT no se llama a Jev: la respuesta es CHAT directamente.
-// Con confianza < MinConfidence devuelve '' y el chat hace su pase 1 por LLM,
-// igual que sin clasificador; un error tambien cae ahi (el chat lo absorbe).
+// Only the tags whose tool is assigned are offered to Jev (the chat decides them).
+// If only CHAT remains, Jev is not called: the response is CHAT directly.
+// With confidence < MinConfidence it returns '' and the chat does its pass 1 via LLM,
+// just like without a classifier; an error also falls there (the chat absorbs it).
 //
-// Calibrado contra jev-1.13.0 (sep 27/2026): 15/15 sobre peticiones en
-// espanol e ingles, incluida "describe como se veria un gato" -> CHAT (0.72).
+// Calibrated against jev-1.13.0 (Sep 27/2026): 15/15 on requests in
+// Spanish and English, including "describe how a cat would look" -> CHAT (0.72).
 // -----------------------------------------------------------------------------
 
 interface
@@ -63,31 +63,31 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    // Consumo de Jev acumulado desde Create o ResetUsage (seguro entre hilos)
+    // Jev consumption accumulated since Create or ResetUsage (thread-safe)
     property Usage: TAiJevUsage read GetUsage;
     procedure ResetUsage;
     // Ultima eleccion de Jev aunque no superara MinConfidence ('' si no se consulto)
     property LastTag: string read FLastTag;
     property LastConfidence: Double read FLastConfidence;
   published
-    // Opcional: TAiJev externo (compartido o doble de pruebas); si se asigna,
+    // Optional: external TAiJev (shared or test double); if assigned,
     // ApiKey y Model de este componente se ignoran
     property Jev: TAiJev read FJev write SetJev;
     property ApiKey: string read FApiKey write FApiKey;
     property Model: string read FModel write FModel;
     // Servidor System One: '' = TypeSafe; 'http://localhost:11434/v1/' = Ollama
-    // (con Model := 'nimble', 'clef-flash'...). Ignorada si Jev esta asignado
+    // (with Model := 'nimble', 'clef-flash'...). Ignored if Jev is assigned
     property Url: string read FUrl write FUrl;
-    // Por debajo, el chat clasifica con el LLM como siempre
+    // Under the hood, the chat classifies with the LLM as always
     property MinConfidence: Double read FMinConfidence write FMinConfidence;
-    // Opcional: 'TAG=descripcion' para reemplazar la descripcion por defecto de un tag
+    // Optional: 'TAG=description' to replace the default description of a tag
     property TagDescriptions: TStrings read FTagDescriptions write SetTagDescriptions;
-    // Precios para CostUSD de Usage/OnUsage (US$ por millon de tokens; hoy la
-    // salida no se cobra)
+    // Prices for CostUSD of Usage/OnUsage (US$ per million tokens; today the
+    // output is not charged)
     property PricePerMillionInput: Double read FPricePerMillionInput write FPricePerMillionInput;
     property PricePerMillionOutput: Double read FPricePerMillionOutput write FPricePerMillionOutput;
-    // Una vez por operacion con el consumo de esa operacion. Sincrono, en el hilo
-    // que la ejecuto (en un servidor: el de la peticion, para cobrarle al cliente)
+    // Once per operation with the consumption of that operation. Synchronous, in the thread
+    // that executed it (on a server: that of the request, to charge the client)
     property OnUsage: TAiJevUsageEvent read FOnUsage write FOnUsage;
   end;
 

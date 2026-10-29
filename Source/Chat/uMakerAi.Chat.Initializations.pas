@@ -434,7 +434,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Voice_Format', 'mp3');
 
   // ------- Transcription (STT) -- cap_Audio: processes native audio ------
-  // Usar con ChatMode = cmTranscription
+  // Use with ChatMode = cmTranscription
   // gpt-transcribe: recommended for files/batch (WER 8.98% vs 15.21% whisper)
   Model := 'gpt-transcribe';
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ModelCaps',   '[cap_Audio]');
@@ -889,8 +889,8 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Groq', 'Tool_Active',   'True');
   TAiChatFactory.Instance.RegisterUserParam('Groq', 'ModelCaps',     '[]');
   TAiChatFactory.Instance.RegisterUserParam('Groq', 'SessionCaps',   '[]');
-  TAiChatFactory.Instance.RegisterUserParam('Groq', 'ThinkingLevel', 'tlDefault'); // Reset al cambiar modelo
-  TAiChatFactory.Instance.RegisterUserParam('Groq', 'Format',        '');          // Reset reasoning_format al cambiar modelo
+  TAiChatFactory.Instance.RegisterUserParam('Groq', 'ThinkingLevel', 'tlDefault'); // Reset when changing model
+  TAiChatFactory.Instance.RegisterUserParam('Groq', 'Format',        '');          // Reset reasoning_format when changing model
 
   // ------- Production models -- text/chat ------
   // RETIRED Sep 2026 (model_not_found, not in /models): llama-3.1-8b-instant
@@ -975,7 +975,7 @@ Begin
   // openai/gpt-oss-20b remains (cap_CodeInterpreter).
 
   // ------- Audio STT -- cap_Audio: processes native audio ------
-  // Usar con ChatMode = cmTranscription
+  // Use with ChatMode = cmTranscription
   // https://console.groq.com/docs/speech-text
   Model := 'whisper-large-v3';
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'ModelCaps',   '[cap_Audio]');
@@ -1052,7 +1052,7 @@ Begin
   // Max output:   64K tokens
   // Thinking:     Extended thinking + Adaptive thinking
   // Precio:       $3 / $15 MTok
-  // Cutoff datos: Mar 2025 (conocimiento fiable: Ene 2025)
+  // Data cutoff: Mar 2025 (reliable knowledge: Jan 2025)
   // ===========================================================================
   Model := 'claude-sonnet-4-20250514';
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'Max_Tokens', '16000');
@@ -1066,7 +1066,7 @@ Begin
   // Max output:   32K tokens
   // Thinking:     Extended thinking + Adaptive thinking
   // Price:        $15 / $75 MTok
-  // Cutoff datos: Mar 2025 (conocimiento fiable: Ene 2025)
+  // Data cutoff: Mar 2025 (reliable knowledge: Jan 2025)
   // ===========================================================================
   Model := 'claude-opus-4-20250514';
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'Max_Tokens', '16000');
@@ -1104,7 +1104,7 @@ Begin
   // Max output:   64K tokens
   // Thinking:     Extended thinking + Adaptive thinking
   // Precio:       $5 / $25 MTok
-  // Cutoff datos: Ago 2025 (conocimiento fiable: May 2025)
+  // Data cutoff: Aug 2025 (reliable knowledge: May 2025)
   // ===========================================================================
   Model := 'claude-opus-4-5-20251101';
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'Max_Tokens', '16000');
@@ -1132,7 +1132,7 @@ Begin
   // Max output:   128K tokens  <- only model with 128K output
   // Thinking:     Extended thinking + Adaptive thinking
   // Precio:       $5 / $25 MTok
-  // Cutoff datos: Ago 2025 (conocimiento fiable: May 2025)
+  // Data cutoff: Aug 2025 (reliable knowledge: May 2025)
   // ===========================================================================
   Model := 'claude-opus-4-6';
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'Max_Tokens', '32000');
@@ -1251,7 +1251,7 @@ Begin
   var BaseName: string;
 
   // 1. Sonnet 4.6 — Deep thinking (cost/reasoning balance)
-  //    Gap = [] -> InternalRunCompletions con ThinkingLevel=tlHigh activo
+  //    Gap = [] -> InternalRunCompletions with ThinkingLevel=tlHigh active
   BaseName := 'aa_claude-sonnet-4-6-thinking';
   TAiChatFactory.Instance.RegisterCustomModel('Claude', BaseName, 'claude-sonnet-4-6');
   TAiChatFactory.Instance.RegisterUserParam('Claude', BaseName, 'ThinkingLevel', 'tlHigh');
@@ -1260,7 +1260,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Claude', BaseName, 'SessionCaps', '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
 
   // 2. Opus 4.6 — Deep thinking (maximum reasoning capability)
-  //    Gap = [] -> InternalRunCompletions con ThinkingLevel=tlHigh activo
+  //    Gap = [] -> InternalRunCompletions with ThinkingLevel=tlHigh active
   BaseName := 'aa_claude-opus-4-6-thinking';
   TAiChatFactory.Instance.RegisterCustomModel('Claude', BaseName, 'claude-opus-4-6');
   TAiChatFactory.Instance.RegisterUserParam('Claude', BaseName, 'ThinkingLevel', 'tlHigh');
@@ -1269,7 +1269,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Claude', BaseName, 'SessionCaps', '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
 
   // 3. Opus 4.6 — Agents (tool calling + TextEditor + Shell enabled)
-  //    Gap = [] -> InternalRunCompletions con Tool_Active=True
+  //    Gap = [] -> InternalRunCompletions with Tool_Active=True
   //    cap_TextEditor and cap_Shell in ModelCaps enable those tools via ChatMediaSupports
   BaseName := 'aa_claude-opus-4-6-agent';
   TAiChatFactory.Instance.RegisterCustomModel('Claude', BaseName, 'claude-opus-4-6');
@@ -1279,7 +1279,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Claude', BaseName, 'SessionCaps', '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch, cap_TextEditor, cap_Shell]');
 
   // 4. Haiku 4.5 — Fast for classification and simple tools (low cost)
-  //    Gap = [] -> InternalRunCompletions con Tool_Active=True
+  //    Gap = [] -> InternalRunCompletions with Tool_Active=True
   BaseName := 'aa_claude-haiku-4-5-tools';
   TAiChatFactory.Instance.RegisterCustomModel('Claude', BaseName, 'claude-haiku-4-5-20251001');
   TAiChatFactory.Instance.RegisterUserParam('Claude', BaseName, 'Tool_Active', 'True');
@@ -1393,7 +1393,7 @@ Begin
   // Inherits defaults
 
   // ------- Audio STT: Voxtral ------
-  // cap_Audio: procesa audio nativo; usar con ChatMode=cmTranscription
+  // cap_Audio: processes native audio; use with ChatMode=cmTranscription
   // https://docs.mistral.ai/capabilities/audio
   Model := 'voxtral-mini-latest';
   TAiChatFactory.Instance.RegisterUserParam('Mistral', Model, 'ModelCaps',   '[cap_Audio]');
@@ -1615,7 +1615,7 @@ Begin
   // TCohereChat.RerankModel + Rerank() method; rerank-english-v3.0 remains active.
 
   // ------- Audio STT: cohere-transcribe (Mar 2026) ------
-  // cap_Audio: procesa audio nativo; usar con ChatMode=cmTranscription
+  // cap_Audio: processes native audio; use with ChatMode=cmTranscription
   // https://docs.cohere.com/docs/cohere-transcribe
   Model := 'cohere-transcribe-03-2026';
   TAiChatFactory.Instance.RegisterUserParam('Cohere', Model, 'ModelCaps',   '[cap_Audio]');

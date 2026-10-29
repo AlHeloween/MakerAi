@@ -35,7 +35,7 @@ type
     Property SkillModel      : String read FSkillModel       write FSkillModel;
     // Allowed tools, comma-separated (frontmatter: allowed-tools)
     Property SkillAllowedTools: String read FSkillAllowedTools write FSkillAllowedTools;
-    // When to use the skill (frontmatter: description). Descripcion, on the other hand,
+    // When to use the skill (frontmatter: description). Description, on the other hand,
     // tells where the item was loaded from.
     Property SkillDescription: String read FSkillDescription write FSkillDescription;
   End;

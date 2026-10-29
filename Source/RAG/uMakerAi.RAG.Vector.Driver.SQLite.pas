@@ -853,7 +853,7 @@ begin
     FLastSQL := SQL;
     Q.ParamByName('query').AsString := ATarget.Text;
     Q.ParamByName('ent').AsString   := AEntidad;
-    Q.ParamByName('lim').AsInteger  := ALimit * 2; // extra para normalizar
+    Q.ParamByName('lim').AsInteger  := ALimit * 2; // extra for normalization
     if AFilterSQL <> '' then FB.ApplyParams(Q);
 
     try
@@ -875,7 +875,7 @@ begin
         Node.Tag   := Q.FieldByName('id').AsString;
         Node.Text  := Q.FieldByName('content').AsString;
         Node.Model := Q.FieldByName('model').AsString;
-        Node.Idx   := RawScore; // temporal  normalized later
+        Node.Idx   := RawScore; // temporary  normalized later
         Node.Data  := StrToEmbedding(Q.FieldByName('embedding').AsString);
         if Length(Node.Data) > 0 then Node.SetDataLength(Length(Node.Data));
         PropStr := Q.FieldByName('properties').AsString;

@@ -466,7 +466,7 @@ var
 begin
   JArgs := TJSONObject.ParseJSONValue(ToolCall.Arguments) as TJSONObject;
   if not Assigned(JArgs) then
-    JArgs := TJSONObject.Create; // acciones sin campos: screenshot, wait
+    JArgs := TJSONObject.Create; // actions without fields: screenshot, wait
   try
     Action := LowerCase(Trim(ToolCall.Name));
     if Action = '' then

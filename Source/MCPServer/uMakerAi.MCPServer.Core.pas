@@ -428,17 +428,17 @@ type
 
 const
   // --- MCP 2026-07-28 (modo stateless / dual-era) ---
-  // Version moderna soportada ademas de la legacy (ProtocolVersion del servidor).
+  // Modern version supported in addition to legacy (server ProtocolVersion).
   MCP_PROTOCOL_VERSION_MODERN = '2026-07-28';
-  // Claves _meta estandarizadas por la spec 2026-07-28. OJO: llevan puntos en el
-  // nombre, por lo que SIEMPRE deben leerse con GetValue(nombre exacto) y nunca
-  // con las variantes por path (GetValue<T>/TryGetValue<T>), que interpretan el
-  // punto como separador de niveles.
+  // _meta keys standardized by spec 2026-07-28. NOTE: they contain dots in the
+  // name, so they must ALWAYS be read with GetValue(exact name) and never
+  // with path variants (GetValue<T>/TryGetValue<T>), which interpret the
+  // dot as a level separator.
   MCP_META_PROTOCOL_VERSION = 'io.modelcontextprotocol/protocolVersion';
   MCP_META_CLIENT_INFO = 'io.modelcontextprotocol/clientInfo';
   MCP_META_CLIENT_CAPABILITIES = 'io.modelcontextprotocol/clientCapabilities';
   MCP_META_SERVER_INFO = 'io.modelcontextprotocol/serverInfo';
-  // Codigos de error del rango reservado MCP (-32020..-32099)
+  // Error codes from reserved MCP range (-32020..-32099)
   MCP_ERROR_HEADER_MISMATCH = -32020;
   MCP_ERROR_UNSUPPORTED_PROTOCOL_VERSION = -32022;
 
@@ -1385,7 +1385,7 @@ begin
   Versions := TJSONArray.Create;
   Versions.Add(MCP_PROTOCOL_VERSION_MODERN);
   if FProtocolVersion <> MCP_PROTOCOL_VERSION_MODERN then
-    Versions.Add(FProtocolVersion); // la version legacy sigue disponible via initialize
+    Versions.Add(FProtocolVersion); // legacy version remains available via initialize
   ResultJSON.AddPair('supportedVersions', Versions);
   Capabilities := TJSONObject.Create;
   Capabilities.AddPair('tools', TJSONObject.Create);
@@ -1978,7 +1978,7 @@ begin
   LFileItem.AddPair('type', LType);
   LFileItem.AddPair('mimeType', AMimeType);
   LFileItem.AddPair('data', LBase64);
-  LFileItem.AddPair('fileName', AFileName); // Opcional, pero buena pr?ctica
+  LFileItem.AddPair('fileName', AFileName); // Optional, but good practice
 
   FContentArray.AddElement(LFileItem);
 end;

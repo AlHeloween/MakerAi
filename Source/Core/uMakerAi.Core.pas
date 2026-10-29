@@ -699,7 +699,7 @@ begin
   else if SameText(MimeType, 'application/rtf') then
     Result := 'rtf'
 
-    // Formatos de archivo comprimido
+    // Compressed file formats
   else if SameText(MimeType, 'application/zip') then
     Result := 'zip'
   else if SameText(MimeType, 'application/gzip') then
@@ -737,7 +737,7 @@ begin
   else if SameText(MimeType, 'application/sla') then
     Result := 'stl'
 
-    // Bases de datos
+    // Databases
   else if SameText(MimeType, 'application/vnd.sqlite3') then
     Result := 'sqlite'
   else if SameText(MimeType, 'application/x-sqlite3') then
@@ -781,13 +781,13 @@ begin
   else if SameText(MimeType, 'text/x-c++') then
     Result := 'cpp'
 
-    // Application formats (texto/datos)
+    // Application formats (text/data)
   else if SameText(MimeType, 'application/json') then
     Result := 'json'
   else if SameText(MimeType, 'application/xml') then
     Result := 'xml'
 
-    // Formatos de datos cient?ficos/t?cnicos
+    // Scientific/technical data formats
   else if SameText(MimeType, 'application/x-hdf') then
     Result := 'hdf'
   else if SameText(MimeType, 'application/x-netcdf') then
@@ -902,20 +902,20 @@ begin
   Self.FContext := Source.FContext;
   Self.FTitle := Source.FTitle;
 
-  // 3. Copia profunda (Deep Copy) del contenido del TMemoryStream.
-  // Este es el paso m?s cr?tico para evitar que ambos objetos compartan
-  // el mismo stream de memoria.
+  // 3. Deep copy of TMemoryStream content.
+  // This is the most critical step to avoid both objects sharing
+  // the same memory stream.
   if Assigned(Source.Content) and (Source.Content.Size > 0) then
   begin
     // Si nuestro propio stream no existe, lo creamos.
     if not Assigned(Self.FContent) then
       Self.FContent := TMemoryStream.Create;
 
-    // Preparamos los streams para la copia.
+    // Prepare streams for copy.
     Self.FContent.Clear;
-    Source.Content.Position := 0; // Aseguramos que leemos el origen desde el principio.
+    Source.Content.Position := 0; // Ensure we read origin from beginning.
 
-    // Copiamos el contenido.
+    // Copy content.
     Self.FContent.CopyFrom(Source.Content, 0);
 
     // Buena pr?ctica: Dejar ambos streams en su posici?n inicial.
@@ -925,16 +925,16 @@ begin
   end
   else
   begin
-    // Si el stream de origen est? vac?o o no existe, nos aseguramos
-    // de que nuestro propio stream tambi?n est? vac?o.
+    // If source stream is empty or does not exist, ensure
+    // our own stream is also empty.
     if Assigned(Self.FContent) then
       Self.FContent.Clear;
   end;
 
   // 4. Propiedades que NO se copian.
-  // Self.FMediaFiles: Esta es una referencia al contenedor padre.
-  // El nuevo objeto clonado ser? a?adido a una nueva lista,
-  // y esa lista le asignar? su propia referencia. No la tocamos aqu?.
+  // Self.FMediaFiles: This is a reference to parent container.
+  // Cloned object will be added to a new list,
+  // and that list will assign its own reference. We do not touch it here.
 
 end;
 
@@ -967,7 +967,7 @@ begin
   FMediaFiles := TAiMediaFiles.Create;
   FProcesado := False;
   FContentLoaded := False;
-  FDetail := ''; // por defecto utiliza vac?o para no enviar nada y hacerlo compatible con otros modelos, detallado = "high" or "low"
+  FDetail := ''; // by default uses empty to send nothing and make it compatible with other models, detailed = "high" or "low"
 end;
 
 destructor TAiMediaFile.Destroy;
@@ -1002,7 +1002,7 @@ begin
       if Res.StatusCode = 200 then
       Begin
 
-        FContent.Clear; // Limpia el contenido actual antes de adicionar el nuevo
+        FContent.Clear; // Clear current content before adding new
         FContent.Position := 0;
 
         Response.Position := 0;
@@ -1025,7 +1025,7 @@ begin
   FContent.Position := 0;
   Result := TNetEncoding.Base64.EncodeBytesToString(FContent.Memory, FContent.Size);
   Result := StringReplace(Result, sLineBreak, '', [rfReplaceAll]);
-  Result := StringReplace(Result, #13, '', [rfReplaceAll]); // CR que queda en Linux (CRLF → sLineBreak sólo elimina LF ahí)
+  Result := StringReplace(Result, #13, '', [rfReplaceAll]); // CR remaining in Linux (CRLF → sLineBreak only removes LF there)
   Result := StringReplace(Result, #10, '', [rfReplaceAll]); // LF
 end;
 
@@ -1041,7 +1041,7 @@ begin
     DownloadFileFromUrl(FUrlMedia);
     FContentLoaded := True;
   end;
-  FContent.Position := 0; // siempre al inicio para que los lectores lean correctamente
+  FContent.Position := 0; // always at start so readers read correctly
   Result := FContent;
 end;
 
@@ -1068,7 +1068,7 @@ begin
     Begin
       FContent.Clear;
       FContent.LoadFromStream(St);
-      FContent.Position := 0; // resetear para que los lectores lean desde el inicio
+      FContent.Position := 0; // reset so readers read from start
       FContentLoaded := True;
       FFullFileName := aFileName;
       Ffilename := ExtractFileName(aFileName);
@@ -1097,7 +1097,7 @@ var
   LBase64: string;
   LFilename: string;
 begin
-  // Limpiamos el estado actual antes de cargar
+  // Clear current state before loading
   Clear;
 
   AObject.TryGetValue<string>('filename', Self.Ffilename);
@@ -1112,7 +1112,7 @@ begin
   AObject.TryGetValue<string>('cacheName', Self.FCacheName);
   AObject.TryGetValue<string>('idFile', Self.FIdFile);
 
-  // Cargamos el contenido usando el m?todo existente
+  // Load content using existing method
   if AObject.TryGetValue<string>('base64', LBase64) and (LBase64 <> '') then
   begin
     AObject.TryGetValue<string>('filename', LFilename);
@@ -1142,7 +1142,7 @@ begin
   FContent.Clear;
   GetContent;
 
-  // Eliminar query parameters y fragmentos de la URL antes de extraer el nombre
+  // Remove query parameters and fragments from URL before extracting name
   LUrl := aUrl;
   LPos := Pos('?', LUrl);
   if LPos > 0 then
@@ -1256,12 +1256,12 @@ var
   IncludeAll: Boolean;
 begin
   SetLength(Result, 0);
-  IncludeAll := Tfc_Any in aFilters; // Verificar si debe incluir todos los tipos
+  IncludeAll := Tfc_Any in aFilters; // Check whether all types should be included
 
   for i := 0 to Self.Count - 1 do
   begin
     Item := Self.Items[i];
-    // Si IncludeAll es True, solo verifica aProcesado; si no, aplica ambos filtros
+    // If IncludeAll is True, only checks aProcesado; otherwise applies both filters
     if (IncludeAll or (Item.FileCategory in aFilters)) and (Item.Procesado = aProcesado) then
     begin
       Len := Length(Result);
@@ -1278,7 +1278,7 @@ var
   Item, NewItem: TAiMediaFile;
   Len: Integer;
 begin
-  SetLength(Result, 0); // Inicializamos el resultado para evitar basura
+  SetLength(Result, 0); // Initialize result to avoid garbage
   for i := 0 to Self.Count - 1 do
   begin
     Item := Self.Items[i];
