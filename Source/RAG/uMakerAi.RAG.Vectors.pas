@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Name: Gustavo Enr�quez
+// Name: Gustavo Enríquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -330,7 +330,7 @@ begin
     if Assigned(FOnDataVecAddItem) then
       FOnDataVecAddItem(Self, aItem, aItem.MetaData, Handled);
 
-    // 3. L�gica de Inserci�n
+    // 3. Insertion logic
     if Handled then
     begin
       // CRITICAL CORRECTION:

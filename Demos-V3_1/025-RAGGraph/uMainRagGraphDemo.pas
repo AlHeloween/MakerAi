@@ -458,7 +458,7 @@ begin
               Log.Add('  Entity properties:');
               for PropPair in Node.Properties do
               begin
-                Log.Add('    � ');
+                Log.Add('    • ');
                 Log.Add(PropPair.Key);
                 Log.Add(': ');
                 try

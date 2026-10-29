@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Name: Gustavo Enr�quez
+// Name: Gustavo Enríquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -3140,7 +3140,7 @@ begin
   if (AEdge = nil) or (AEdge.OwnerGraph <> Self) or (AEdge.FromNode = nil) or (AEdge.ToNode = nil) then
     raise Exception.Create('Invalid edge provided to InternalAddEdge.');
 
-  // 1. VERIFICACI�N DE IDENTIDAD (Identity Map)
+  // 1. IDENTITY VERIFICATION (Identity Map)
   if FEdgeRegistry.TryGetValue(AEdge.ID, Result) then
   begin
     Exit; // The edge already exists, we return the in-memory instance.
@@ -3180,7 +3180,7 @@ begin
   if (ANode = nil) or (ANode.OwnerGraph <> Self) then
     raise Exception.Create('Invalid node provided to InternalAddNode.');
 
-  // 1. VERIFICACI�N DE IDENTIDAD (Identity Map)
+  // 1. IDENTITY VERIFICATION (Identity Map)
   // We check whether a node with this ID is already registered in memory.
   if FNodeRegistry.TryGetValue(ANode.ID, Result) then
   begin
@@ -3236,7 +3236,7 @@ var
   Dim: Integer;
   JObj: TJSONObject;
 begin
-  // 1. Verificaci�n de Identidad (Cache en memoria)
+  // 1. Identity verification (in-memory cache)
   if FEdgeRegistry.TryGetValue(AEdgeData.ID, Result) then
     Exit;
 
@@ -3295,7 +3295,7 @@ var
   Dim: Integer;
   JObj: TJSONObject;
 begin
-  // 1. Verificaci�n de Identidad (Cache en memoria)
+  // 1. Identity verification (in-memory cache)
   if FNodeRegistry.TryGetValue(ANodeData.ID, Result) then
     Exit;
 
@@ -4304,7 +4304,7 @@ begin
       DataElement.Attributes['key'] := 'd_chunks';
       DataElement.Text := IntToStr(Node.Chunks.Count);
 
-      // Metadatos din�micos
+      // Dynamic metadata
       for Pair in Node.MetaData.InternalDictionary do
       begin
         DataElement := NodeElement.AddChild('data');
@@ -4330,7 +4330,7 @@ begin
       DataElement.Attributes['key'] := 'e_weight';
       DataElement.Text := FloatToStr(Edge.Weight);
 
-      // Metadatos din�micos
+      // Dynamic metadata
       for Pair in Edge.MetaData.InternalDictionary do
       begin
         DataElement := EdgeElement.AddChild('data');

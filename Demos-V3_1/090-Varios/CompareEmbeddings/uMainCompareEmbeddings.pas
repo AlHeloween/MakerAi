@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Name: Gustavo Enr�quez
+// Name: Gustavo Enríquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 

@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Name: Gustavo Enr�quez
+// Name: Gustavo Enríquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -261,7 +261,7 @@ begin
       FOnAddMessage(Self, AskMsg, Nil, AskMsg.Role, AskMsg.Prompt);
   end;
 
-  // 2. Preparar par�metros for the API de DALL-E
+  // 2. Prepare parameters for the DALL-E API
   LUrl := Url + 'images/generations'; // Assumes that 'Url' is the base URL of OpenAI
   LJsonObject := TJSonObject.Create;
   LBodyStream := nil;
@@ -417,7 +417,7 @@ begin
       FOnAddMessage(Self, AskMsg, Nil, AskMsg.Role, AskMsg.Prompt);
   end;
 
-  // 2. Preparar par�metros for the API de DALL-E
+  // 2. Prepare parameters for the DALL-E API
   LUrl := Url + 'images/generations'; // Assumes that 'Url' is the base URL of OpenAI
   LJsonObject := TJSonObject.Create;
   LBodyStream := nil;

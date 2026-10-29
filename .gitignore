@@ -1,4 +1,9 @@
 # -------------------------------------------
+# Python bytecode: scripts/audit is imported by the translation pipeline, and the
+# generated .pyc files were tracked for months — binary churn on every commit.
+__pycache__/
+*.pyc
+
 # Delphi & C++Builder - Build and IDE files
 # -------------------------------------------
 

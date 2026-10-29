@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Name: Gustavo Enr�quez
+// Name: Gustavo Enríquez
 // Social media:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -2072,7 +2072,7 @@ begin
 end;
 
 // =============================================================================
-// SOBRECARGA 1: L�gica N�cleo (Recibe TJSONObject)
+// OVERLOAD 1: Core logic (Receives TJSONObject)
 // =============================================================================
 { function TAiFunctions.ImportClaudeMCPConfiguration(AConfig: TJSonObject): Integer;
   var
