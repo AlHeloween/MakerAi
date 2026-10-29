@@ -1363,7 +1363,7 @@ begin
 
     if not Query.IsEmpty then
     begin
-      // Llenamos el record con los datos crudos de la BD.
+      // We fill the record with the raw data from the DB.
       AEdgeData.ID := Query.FieldByName('id').AsString;
       AEdgeData.EdgeLabel := Query.FieldByName('edge_label').AsString;
       AEdgeData.Name := Query.FieldByName('name').AsString;
@@ -1417,7 +1417,7 @@ begin
       else
         ANodeData.EmbeddingStr := '[]';
 
-      Found := True; // Indicamos que encontramos los datos.
+      Found := True; // We indicate that we found the data.
     end;
 
     // There is no longer a `Handled` in the new signature, `Found` fulfills that role.
@@ -1507,7 +1507,7 @@ var
   QueryEmbedding: TAiEmbeddingData;
   EmbeddingStr: string;
   NodeIDs: TStringList;
-  InitialNodeIDs: TStringList; // Para guardar los nodos semilla
+  InitialNodeIDs: TStringList; // To store the seed nodes
   Node: TAiRagGraphNode;
 begin
   SetLength(ResultNodes, 0);

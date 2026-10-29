@@ -91,9 +91,9 @@ end;
 
 type
   // --------------------------------------------------------------------------
-  // Segmentador de habla por nivel (VAD local) sobre chunks PCM16 mono.
-  // Alimentado desde OnData (hilo principal); dispara OnSegment con el PCM
-  // completo de cada frase detectada.
+  // Local speech segmenter by level (VAD) over PCM16 mono chunks.
+  // Fed from OnData (main thread); fires OnSegment with the PCM
+  // of each detected phrase.
   // --------------------------------------------------------------------------
   TSpeechSegmenter = class
   private
@@ -163,7 +163,7 @@ begin
 
   if not FInSpeech then
   begin
-    // Mantener pre-buffer rodante
+    // Keep rolling pre-buffer
     FPreBuffer.Position := FPreBuffer.Size;
     FPreBuffer.WriteBuffer(aChunk[0], Length(aChunk));
     MaxPre := SEG_PREBUF_MS * FBytesPerMs;
@@ -183,7 +183,7 @@ begin
 
     if Level >= SEG_START_LEVEL then
     begin
-      // Inicio de habla: el segmento arranca con el pre-buffer
+      // Speech start: the segment begins with the pre-buffer
       FInSpeech := True;
       FSilenceMs := 0;
       FBuffer.Clear;
@@ -209,7 +209,7 @@ end;
 
 type
   // --------------------------------------------------------------------------
-  // Canal [ELLOS]: loopback -> VAD -> diarizacion -> traduccion -> TTS
+  // [THEM] channel: loopback -> VAD -> diarization -> translation -> TTS
   // --------------------------------------------------------------------------
   TDiarizedRemoteSide = class
   private
@@ -261,7 +261,7 @@ begin
   FAudioApi.TTSSpeed := 1.0;
 
   FPlayer := TAiAudioPlayer.Create(nil);
-  FPlayer.DeviceId := ''; // auriculares (predeterminado)
+  FPlayer.DeviceId := ''; // headphones (default)
   FPlayer.OnError := PlayerError;
   FPlayer.OnStateChange := PlayerStateChange;
 
@@ -315,7 +315,7 @@ end;
 
 procedure TDiarizedRemoteSide.CaptureData(Sender: TObject; const aBuffer: TBytes; aSampleRate, aChannels: Integer);
 begin
-  // OnData llega en el hilo principal: alimentar el VAD local
+  // OnData arrives on the main thread: feed the local VAD
   if not FClosing then
     FSegmenter.Feed(aBuffer, FCapture.ChunkDurationMs);
 end;
@@ -442,7 +442,7 @@ var
 begin
   FChat.NewChat;
   Prompt := Format('Translate to %s the following text. Reply ONLY with the translation, ' +
-    'sin comentarios ni comillas:'#10'%s', [TARGET_LANG_REMOTE, aText]);
+    'without comments or quotes:'#10'%s', [TARGET_LANG_REMOTE, aText]);
   Result := Trim(FChat.AddMessageAndRun(Prompt, 'user', []));
 end;
 
@@ -513,7 +513,7 @@ begin
     if FClosing then
       Exit;
 
-    // 1) PCM -> WAV -> transcripcion diarizada
+    // 1) PCM -> WAV -> diarized transcription
     PcmStream := TMemoryStream.Create;
     try
       PcmStream.WriteBuffer(aPcm[0], Length(aPcm));
@@ -562,7 +562,7 @@ begin
         Exit;
       end;
 
-      // 2) Mapear hablantes: conocidos -> su nombre; nuevos -> registrar
+      // 2) Map speakers: known -> their name; new -> register
       Batch := TDictionary<string, string>.Create;
       try
         for I := 0 to High(Res.Segments) do
@@ -579,7 +579,7 @@ begin
             Batch.Add(Raw, 'Hablante ' + Raw); // sin registrar (muestra corta o cupo lleno)
         end;
 
-        // 3) Agrupar segmentos consecutivos del mismo hablante y emitir
+        // 3) Group consecutive segments of the same speaker and emit
         GroupSpeaker := '';
         GroupText := '';
         for I := 0 to High(Res.Segments) do
@@ -767,7 +767,7 @@ begin
             Exit;
           FChat.NewChat;
           Prompt := Format('Translate to %s the following text. Reply ONLY with the translation, ' +
-            'sin comentarios ni comillas:'#10'%s', [TARGET_LANG_LOCAL, Text]);
+            'without comments or quotes:'#10'%s', [TARGET_LANG_LOCAL, Text]);
           Res := Trim(FChat.AddMessageAndRun(Prompt, 'user', []));
           if Res = '' then
             Exit;

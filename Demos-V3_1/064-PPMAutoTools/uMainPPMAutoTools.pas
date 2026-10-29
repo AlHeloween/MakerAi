@@ -141,7 +141,7 @@ const
 { TfrmPPMAutoTools }
 
 // ---------------------------------------------------------------------------
-// Persistencia de herramientas instaladas
+// Persistence of installed tools
 // ---------------------------------------------------------------------------
 
 function TfrmPPMAutoTools.GetInstalledToolsFile: string;
@@ -341,7 +341,7 @@ var
 begin
   AiFunctions1.Functions.Clear;
 
-  // --- Función 1: ppm_search ---
+  // --- Function 1: ppm_search ---
   LFn := TFunctionActionItem(AiFunctions1.Functions.Add);
   LFn.FunctionName := 'ppm_search';
   LFn.Description.Text :=
@@ -355,7 +355,7 @@ begin
   LParam.ParamType        := ptString;
   LParam.Required         := True;
 
-  // --- Función 2: ppm_install ---
+  // --- Function 2: ppm_install ---
   LFn := TFunctionActionItem(AiFunctions1.Functions.Add);
   LFn.FunctionName := 'ppm_install';
   LFn.Description.Text :=
@@ -370,7 +370,7 @@ begin
   LParam.ParamType        := ptString;
   LParam.Required         := True;
 
-  // --- Función 3: call_mcp_tool ---
+  // --- Function 3: call_mcp_tool ---
   LFn := TFunctionActionItem(AiFunctions1.Functions.Add);
   LFn.FunctionName := 'call_mcp_tool';
   LFn.Description.Text :=
@@ -404,7 +404,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Handlers de funciones PPM
+// Handlers for PPM functions
 // ---------------------------------------------------------------------------
 
 procedure TfrmPPMAutoTools.OnPpmSearch(Sender: TObject;
@@ -476,7 +476,7 @@ begin
                   try
                     for var J := 0 to LOpEnum.Count - 1 do
                       LOps.Add(LOpEnum.Items[J].Value);
-                    LSb.AppendLine('  Operaciones: ' + LOps.CommaText);
+                    LSb.AppendLine('  Operations: ' + LOps.CommaText);
                   finally
                     LOps.Free;
                   end;
@@ -656,7 +656,7 @@ begin
     LArgsJson := TJSONObject.ParseJSONValue(LArgStr) as TJSONObject;
     if not Assigned(LArgsJson) then
     begin
-      ToolCall.Response := Format('Argumentos JSON inválidos para "%s": %s', [LFuncName, LArgStr]);
+      ToolCall.Response := Format('Invalid JSON arguments for "%s": %s', [LFuncName, LArgStr]);
       Handled := True;
       Exit;
     end;

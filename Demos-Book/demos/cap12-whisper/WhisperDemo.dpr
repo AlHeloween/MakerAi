@@ -173,10 +173,10 @@ begin
   Whisper := TAIWhisper.Create(nil);
   Stream  := TMemoryStream.Create;
   try
-    // *** Unica diferencia respecto al Demo 1: Url y ApiKey ***
+    // *** Only difference from Demo 1: Url and ApiKey ***
     Whisper.Url    := 'https://api.groq.com/openai/v1/';
     Whisper.ApiKey := '@GROQ_API_KEY';
-    Whisper.Model  := 'whisper-large-v3-turbo';  // 216x tiempo real
+    Whisper.Model  := 'whisper-large-v3-turbo';  // 216x real time
     Whisper.Languaje       := 'es';
     Whisper.ResponseFormat := 'text';
 
@@ -224,10 +224,10 @@ begin
   Whisper := TAIWhisper.Create(nil);
   Stream  := TMemoryStream.Create;
   try
-    // *** Unica diferencia: Url local; ApiKey puede ser cualquier string ***
+    // *** Only difference: local Url; ApiKey can be any string ***
     Whisper.Url    := WHISPER_LOCAL_URL;
-    Whisper.ApiKey := 'local';  // whisper.cpp no valida la clave
-    Whisper.Model  := 'turbo';  // nombre del modelo cargado en el servidor
+    Whisper.ApiKey := 'local';  // whisper.cpp does not validate the key
+    Whisper.Model  := 'turbo';  // name of the model loaded on the server
     Whisper.Languaje       := 'es';
     Whisper.ResponseFormat := 'text';
 
@@ -312,16 +312,16 @@ begin
     JObj := TJSONObject.ParseJSONValue(JSON) as TJSONObject;
     if not Assigned(JObj) then
     begin
-      WriteLn('  ERROR: respuesta no es JSON valido.');
+      WriteLn('  ERROR: response is not valid JSON.');
       Exit;
     end;
     try
-      // Texto completo
+      // Full text
       WriteLn('  Full text:');
       WriteLn('  ', JObj.GetValue<string>('text'));
       WriteLn('');
 
-      // Timestamps por palabra
+      // Word timestamps
       JWords := JObj.GetValue<TJSONArray>('words');
       if Assigned(JWords) and (JWords.Count > 0) then
       begin
@@ -384,7 +384,7 @@ begin
     Audio.ApiKey                 := '@OPENAI_API_KEY';
     Audio.TranscriptionModel     := tmGpt4oTranscribe;  // WER 2.46%
     Audio.TranscriptionLanguage  := 'es';
-    Audio.TranscriptionLogprobs  := True;               // pedir confianza por token
+    Audio.TranscriptionLogprobs  := True;               // request confidence per token
 
     MF.LoadFromFile(AudioPath);
     WriteLn('  Model   : gpt-4o-transcribe (WER 2.46%)');
@@ -412,9 +412,9 @@ begin
           Prob   := Exp(LogP);
 
           if Prob < 0.8 then
-            Write('[?' + Token + '?]')  // baja confianza
+            Write('[?' + Token + '?]')  // low confidence
           else
-            Write(Token);               // alta confianza
+            Write(Token);               // high confidence
         end;
         WriteLn;
         WriteLn('');
@@ -535,7 +535,7 @@ begin
   WriteLn('Demos: 6 ways to transcribe audio in Delphi.');
   WriteLn('');
 
-  // Verificar recursos disponibles
+  // Check available resources
   AudioPath   := EncontrarAudio;
   TieneOpenAI := GetEnvironmentVariable('OPENAI_API_KEY') <> '';
   TieneGroq   := GetEnvironmentVariable('GROQ_API_KEY') <> '';
@@ -564,7 +564,7 @@ begin
     Exit;
   end;
 
-  // Demos con OpenAI (1, 4, 5, 6)
+  // Demos with OpenAI (1, 4, 5, 6)
   if TieneOpenAI then
   begin
     Demo1_OpenAI(AudioPath);
@@ -578,7 +578,7 @@ begin
     WriteLn('--- Demos 1, 4, 5, 6 skipped (OPENAI_API_KEY not configured) ---');
   end;
 
-  // Demo con Groq (2)
+  // Demo with Groq (2)
   if TieneGroq then
     Demo2_Groq(AudioPath)
   else
@@ -588,7 +588,7 @@ begin
     WriteLn('    Register for free at console.groq.com to get your key.');
   end;
 
-  // Demo local (3) -- siempre se intenta, maneja el error internamente
+  // Local demo (3) -- always attempted, handles error internally
   Demo3_Local(AudioPath);
 
   WriteLn('');

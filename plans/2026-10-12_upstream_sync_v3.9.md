@@ -105,14 +105,14 @@ Plan follows repo conventions: `plans/[ISO8601]_`. Merging on `local` (fork's wo
 
 ## Demo pass (2026-10-29, after the core sync)
 
-**Status:** PARTIAL — 8398 → 2061 flagged hits (−75.5%) across `Demos`, `Demos-V3_1`, `Demos-V3_4`, `Demos-Book`, `Apps`; ~250 files translated under the skeleton gate.
+**Status:** PARTIAL — 8398 → 1432 flagged hits (−82.9%) across `Demos`, `Demos-V3_1`, `Demos-V3_4`, `Demos-Book`, `Apps`; ~260 files translated under the skeleton gate. Seven passes; the last two unlocked continuation lines of multi-line strings.
 
 | Step | Result | Evidence |
 |------|--------|----------|
 | Inventory | 284 files carried Spanish (4420 comment + 3978 string hits) | `.temp/demo_inventory.txt` |
 | Translation | 4 passes with `aicall` (opencode-go/beam-free, free) on multi-file marker maps | commits `7fe7638`, `c8f08f4` |
 | Gate | Every applied file skeleton-verified; refusing maps left files untouched | `.temp/split_apply.py` output |
-| Residual | 2061 hits / 247 files — Demos-V3_1 837, Demos-Book 377, Demos 562, Demos-V3_4 252, Apps 33 | `.temp/demo_inventory.txt` |
+| Residual | 1432 hits / 241 files — Demos-V3_1 602, Demos 410, Demos-V3_4 220, Demos-Book 168, Apps 32 | `.temp/demo_inventory.txt` |
 | Compile oracle | Unavailable for demos in this checkout — control project (untranslated `mcp-json`) fails with the same path/unit errors | `.temp/demo_build_json.log`, `.temp/demo_build_firedac.log`, `.temp/demo_build1.log` |
 
-**Next action:** rerun `.temp/demo_inv.py` → `.temp/build_batches.py`, dispatch the remaining files with the same prompt; the pipeline is `.temp/split_apply.py` + `.temp/pair_apply.py`.
+**Next action:** the tail is now dominated by three classes — (1) detector false positives on English lines (`File not found: %s` counts as a hit), (2) three files the skeleton gate refuses because the model merges a string-concatenation line (`Demos/027-DocumentManager/uMainDocumentManager.pas`, its `Demos-V3_1` copy, `Demos-V3_1/058-FMXTelegramBot/uDmTelegramBot.pas`), (3) a long tail of single hits the model keeps returning empty for. Next pass: split the refused files by line range and translate them in small windows, and drive `.temp/residual_audit.py` to separate real Spanish from detector noise before chasing the tail further.

@@ -118,7 +118,7 @@ const
     (Titulo: 'Broken Border'; Anio: 2015; Director: 'Lucia Fernandez'; GeneroId: 1;
      Sinopsis: 'A forest ranger faces alone a gang that smuggles goods through the mountains.'),
     (Titulo: 'The Vigil'; Anio: 2014; Director: 'Sofia Duarte'; GeneroId: 5;
-     Sinopsis: 'Una enfermera de turno nocturno jura que los pacientes hablan mientras duermen.'));
+     Sinopsis: 'A night-shift nurse swears that patients talk while they sleep.'));
 
 var
   Conn: TFDConnection;
@@ -433,7 +433,7 @@ begin
       // The record is still worth including: it allows asking about director or
       // genre in natural language. And for exact filtering there are the
       // metadata, which do not depend on the embedding.
-      Texto := Format('%s. %s (%s, %d, dirigida por %s)', [Q.FieldByName('titulo').AsString,
+      Texto := Format('%s. %s (%s, %d, directed by %s)', [Q.FieldByName('titulo').AsString,
         Q.FieldByName('sinopsis').AsString, Q.FieldByName('genero').AsString, Q.FieldByName('anio').AsInteger,
         Q.FieldByName('director').AsString]);
 
@@ -446,7 +446,7 @@ begin
         Meta['director'] := Q.FieldByName('director').AsString;
         Meta['genero'] := Q.FieldByName('genero').AsString;
 
-        Nodo := Rag.AddItem(Texto, Meta); // genera el embedding y persiste via driver
+        Nodo := Rag.AddItem(Texto, Meta); // generates the embedding and persists via driver
         if Assigned(Nodo) then
           Inc(Result);
         Write('.');
@@ -569,7 +569,7 @@ begin
       DimEmb := StrToIntDef(ArgValue('--dim', ''), 0);
       if DimEmb = 0 then
       begin
-        // Dimensiones conocidas de los modelos de embeddings de Ollama
+        // Known dimensions of Ollama embedding models
         if ModeloEmb.StartsWith('nomic-embed-text') then
           DimEmb := 768
         else if ModeloEmb.StartsWith('all-minilm') then

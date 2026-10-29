@@ -1,11 +1,11 @@
 ﻿// =============================================================================
 //  Demo 070 - ChatRAGTools
-//  Chat multi-proveedor (MakerAI) + RAG local con SQLite + TAiFunctions
-//  (TDateTime y GraficarSerie) + TabControl con WebBrowser(Edge), TeeChart y Memo.
+//  Multi-provider chat (MakerAI) + local RAG with SQLite + TAiFunctions
+//  (TDateTime and GraficarSerie) + TabControl with WebBrowser(Edge), TeeChart and Memo.
 //
-//  Construido "code-first": todos los componentes se crean y cablean en
-//  FormCreate para que el demo sea autocontenido y didactico.
-//  Basado en el patron de 012-ChatAllFunctions (ChatFull).
+//  Built "code-first": all components are created and wired in
+//  FormCreate so the demo is self-contained and didactic.
+//  Based on the pattern of 012-ChatAllFunctions (ChatFull).
 // =============================================================================
 unit uMain;
 
@@ -380,9 +380,9 @@ begin
       LContext := RAG.SearchText(LPrompt, 5, 0.3);
       if Trim(LContext) <> '' then
       begin
-        LFinal := 'Usa el siguiente CONTEXTO (recuperado de la base local) para responder.' + sLineBreak +
-          '--- CONTEXTO ---' + sLineBreak + LContext + sLineBreak +
-          '--- PREGUNTA ---' + sLineBreak + LPrompt;
+        LFinal := 'Use the following CONTEXT (retrieved from the local database) to answer.' + sLineBreak +
+          '--- CONTEXT ---' + sLineBreak + LContext + sLineBreak +
+          '--- QUESTION ---' + sLineBreak + LPrompt;
         AddLog('RAG: context retrieved (' + Length(LContext).ToString + ' chars).');
       end
       else
@@ -429,7 +429,7 @@ begin
   begin
     Dlg := TOpenDialog.Create(Self);
     try
-      Dlg.Filter := 'Texto (*.txt;*.md)|*.txt;*.md|Todos (*.*)|*.*';
+      Dlg.Filter := 'Text (*.txt;*.md)|*.txt;*.md|All (*.*)|*.*';
       if not Dlg.Execute then
         Exit;
       LText := TFile.ReadAllText(Dlg.FileName, TEncoding.UTF8);

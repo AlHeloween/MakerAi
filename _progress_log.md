@@ -25,6 +25,8 @@
 
 **Commits:** `7fe7638`, `c8f08f4`.
 
+**Follow-up passes (same day):** the rule "never touch a continuation line" was the bottleneck — the skeleton gate blanks string contents, so a continuation line IS translatable. Allowing it took the count from 2061 to 1432 flagged hits (**8398 → 1432, −82.9%**; commits `9454bc5` and the pass-7 commit). Residual classes: detector false positives on English, three files the gate refuses because the model merges a concatenation line, and a single-hit tail.
+
 ## 2026-10-29 — Upstream Sync v3.3 → v3.9.0 + Full English Pass
 
 **Reason:** Owner decision: update the fork to upstream master (v3.9.0) and keep the whole repository in English.

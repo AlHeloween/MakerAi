@@ -155,7 +155,7 @@ begin
   // Select in the ComboBox the device configured in the component
   if ComboBoxDevices.Items.Count > 0 then
   begin
-    ComboBoxDevices.ItemIndex := 0; // Por defecto al primero (WAVE_MAPPER)
+    ComboBoxDevices.ItemIndex := 0; // By default the first one (WAVE_MAPPER)
 
     for I := 0 to ComboBoxDevices.Items.Count - 1 do
     begin
@@ -193,7 +193,7 @@ begin
   MemoLog.Lines.Add('Activating monitor... Please keep quiet for calibration.');
 
   FCurrentSoundLevel := 0;
-  FMaxLevelSeen := 8000; // Resetear el máximo para que la barra se ajuste
+  FMaxLevelSeen := 8000; // Reset the maximum so the bar adjusts
   ProgressBarLevel.Max := FMaxLevelSeen;
   AnimationTimer.Enabled := True;
 
@@ -201,7 +201,7 @@ begin
   SpinEditSilence.Enabled := False;
   FloatSpinEditStart.Enabled := False;
   FloatSpinEditStop.Enabled := False;
-  SpinEditWakeWord.Enabled := False; // Deshabilitar el nuevo control
+  SpinEditWakeWord.Enabled := False; // Disable the new control
   ButtonStart.Enabled := False;
   ButtonStop.Enabled := True;
   ComboBoxDevices.Enabled := False;
@@ -221,7 +221,7 @@ begin
   SpinEditSilence.Enabled := True;
   FloatSpinEditStart.Enabled := True;
   FloatSpinEditStop.Enabled := True;
-  SpinEditWakeWord.Enabled := True; // Habilitar el nuevo control
+  SpinEditWakeWord.Enabled := True; // Enable the new control
   ComboBoxDevices.Enabled := True;
 
   ProgressBarLevel.Position := 0;
@@ -330,9 +330,9 @@ begin
     try
       if Assigned(aStream) then
       begin
-        aStream.Position := 0; // Asegurar que estamos al inicio
-        LocalStream.CopyFrom(aStream, 0); // Copiar todo el contenido
-        LocalStream.Position := 0; // Resetear posición para uso posterior
+        aStream.Position := 0; // Make sure we are at the beginning
+        LocalStream.CopyFrom(aStream, 0); // Copy all the content
+        LocalStream.Position := 0; // Reset position for later use
       end;
 
       // Here is the key logic: we only process the complete audio if the wake word was validated.
@@ -351,7 +351,7 @@ begin
         LocalStream.SaveToFile('c:\temp\grabacion_descartada.wav');
       end;
     finally
-      // Liberamos nuestra copia local
+      // We free our local copy
       LocalStream.Free;
     end;
     // NOTE: We do NOT free aStream here; it is the caller's responsibility (TAIVoiceMonitor)
@@ -407,7 +407,7 @@ begin
         // Send the complete audio to Whisper for transcription
         LWhisper := NewWhisper;
         Try
-          TranscriptionResult := LWhisper.Transcription(LocalStream, 'comando_completo.wav', 'transcribe al español');
+          TranscriptionResult := LWhisper.Transcription(LocalStream, 'comando_completo.wav', 'transcribe to Spanish');
         Finally
           LWhisper.Free;
         End;
@@ -439,7 +439,7 @@ begin
 
         LWhisper := NewWhisper;
         Try
-          TranscriptionResult := LWhisper.Transcription(LocalStream, 'fragment.wav', 'transcribe al español');
+          TranscriptionResult := LWhisper.Transcription(LocalStream, 'fragment.wav', 'transcribe to Spanish');
         Finally
           LWhisper.Free;
         End;
@@ -495,17 +495,17 @@ begin
   // Here you can implement your processing logic
   // Examples:
 
-  if Pos('abrir', LowerCommand) > 0 then
+  if Pos('open', LowerCommand) > 0 then
   begin
     MemoLog.Lines.Add('   → Open command detected');
     // Implement open logic
   end
-  else if Pos('cerrar', LowerCommand) > 0 then
+  else if Pos('close', LowerCommand) > 0 then
   begin
     MemoLog.Lines.Add('   → Close command detected');
     // Implement close logic
   end
-  else if Pos('buscar', LowerCommand) > 0 then
+  else if Pos('search', LowerCommand) > 0 then
   begin
     MemoLog.Lines.Add('   → Search command detected');
     // Implement search logic
@@ -559,8 +559,8 @@ begin
       // Note: We don't need to save the file, we send the stream directly
       LWhisper := NewWhisper;;
       Try
-        TranscriptionResult := LWhisper.Transcription(LocalStream, 'fragment.wav', // Nombre virtual del archivo
-          'transcribe al español');
+        TranscriptionResult := LWhisper.Transcription(LocalStream, 'fragment.wav', // Virtual file name
+          'transcribe to Spanish');
 
       Finally
         LWhisper.Free;
@@ -607,7 +607,7 @@ var
   Word: string;
   CleanWord, CleanTarget: string;
   Distance: Integer;
-  DetectedWord: string; // Para mostrar en el log cuál disparó
+  DetectedWord: string; // To show in the log which one triggered
 begin
   // 1. Security validation
   if (aWakeWordStream = nil) or (aWakeWordStream.Size < 100) then
@@ -736,7 +736,7 @@ begin
     begin
       try
         try
-          LWhisper := NewWhisper; // Tu función creadora
+          LWhisper := NewWhisper; // Your factory function
           try
             Res := LWhisper.Transcription(StreamCopy, 'wakeword.wav', '');
           finally
@@ -817,15 +817,15 @@ begin
 
   case AIVoiceMonitor.State of
     msCalibrating:
-      StateStr := 'Calibrando...';
+      StateStr := 'Calibrating...';
     msMonitoring:
-      StateStr := 'Monitorizando';
+      StateStr := 'Monitoring';
     msRequestingPermission:
-      StateStr := 'Pidiendo permiso...';
+      StateStr := 'Requesting permission...';
     msError:
       StateStr := 'Error';
   else
-    StateStr := 'Inactivo';
+    StateStr := 'Inactive';
   end;
 
   Self.Caption := Format('State: %s | Level: %d | Thresholds: %d / %d | Speaking: %s', [StateStr, TargetPos, AIVoiceMonitor.Sensitivity, AIVoiceMonitor.StopSensitivity, BoolToStr(AIVoiceMonitor.IsSpeaking, True)]);

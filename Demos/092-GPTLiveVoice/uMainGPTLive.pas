@@ -163,11 +163,11 @@ const
     'coral', 'echo', 'sage', 'shimmer', 'verse');
   // Credentials of the demo 037 server (hardcoded in its uTool.RAG.pas)
   CRAG_TOKEN = 'admin:MakerAi2026*';
-  CRAG_LIVE_INSTRUCTIONS = ' Para preguntas sobre el Cafe La Ceiba (horarios, ' +
-    'precios, wifi, mascotas, eventos, politicas) consulta la base de conocimiento.';
-  CRAG_BACKEND_INSTRUCTIONS = 'Para preguntas sobre el Cafe La Ceiba usa la ' +
-    'herramienta rag_vector con operation=search y topK=3, y responde solo con lo ' +
-    'que diga el resultado; si no aparece, dilo.';
+  CRAG_LIVE_INSTRUCTIONS = ' For questions about Cafe La Ceiba (hours, ' +
+    'prices, wifi, pets, events, policies) consult the knowledge base.';
+  CRAG_BACKEND_INSTRUCTIONS = 'For questions about Cafe La Ceiba use the ' +
+    'rag_vector tool with operation=search and topK=3, and answer only with what ' +
+    'the result says; if it does not appear, say so.';
 
 { TFormGPTLive }
 
@@ -206,7 +206,7 @@ begin
 
   FCapture := TAiAudioCapture.Create(Self);
   FCapture.Source := asMicrophone;
-  FCapture.OutputSampleRate := 24000; // lo que espera GPT-Live: sin remuestreo
+  FCapture.OutputSampleRate := 24000; // what GPT-Live expects: no resampling
   FCapture.OutputChannels := 1;
   FCapture.OnUpdate := CaptureLevel;
   FCapture.OnError := CaptureError;
@@ -247,8 +247,8 @@ var
 begin
   CbxMic.Items.Clear;
   CbxSpeaker.Items.Clear;
-  CbxMic.Items.Add('(predeterminado)');
-  CbxSpeaker.Items.Add('(predeterminado)');
+  CbxMic.Items.Add('(default)');
+  CbxSpeaker.Items.Add('(default)');
   try
     FMicDevices := TAiAudioCapture.GetAudioDevices(asMicrophone);
     FSpeakerDevices := TAiAudioPlayer.GetPlaybackDevices;

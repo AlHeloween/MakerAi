@@ -47,7 +47,7 @@ type
   private
     FInfoType: string;
     FIncludeDetails: Boolean;
-    FFormatAsJson: Boolean; // <-- Nuevo parámetro
+    FFormatAsJson: Boolean; // <-- New parameter
   public
     [AiMCPSchemaDescription('Type of information: "basic", "memory", "disk", "network" or "all"')]
     property InfoType: string read FInfoType write FInfoType;
@@ -97,16 +97,16 @@ uses
 {$IFDEF POSIX}
   Posix.Unistd, Posix.SysStatvfs
 {$ENDIF}
-  ;   // System.Classes ya viene del uses de la interface
+  ;   // System.Classes is already included from the interface uses
 
 // =============================================================================
-//  Helpers de sistema, aislados por plataforma.
+//  System helpers, isolated by platform.
 //
-//  El codigo original llamaba a la API de Windows directamente desde el cuerpo
-//  de cada funcion (GetComputerName, GlobalMemoryStatusEx, GetDiskFreeSpaceEx),
-//  asi que este demo no compilaba fuera de Windows: el servidor MCP completo se
-//  quedaba sin Linux por una herramienta de ejemplo. Aqui se concentra lo unico
-//  que cambia; las seis funciones de arriba pasan a ser portables.
+//  The original code called the Windows API directly from the body
+//  of each function (GetComputerName, GlobalMemoryStatusEx, GetDiskFreeSpaceEx),
+//  so this demo did not compile outside Windows: the complete MCP server
+//  was left without Linux because of an example tool. Here the only thing that changes
+//  is concentrated; the six functions above become portable.
 // =============================================================================
 
 type
@@ -190,8 +190,8 @@ begin
       if P <= 0 then
         Continue;
       LKey := Trim(Copy(LLines[I], 1, P - 1));
-      // Copy con MaxInt desborda al sumar indice+longitud y, con range
-      // checking activo, lanza 'Range check error'. Se acota de verdad.
+      // Copy with MaxInt overflows when adding index+length and, with range
+      // checking enabled, raises 'Range check error'. It is truly bounded.
       LVal := Trim(Copy(LLines[I], P + 1, Length(LLines[I]) - P));
       LVal := Trim(StringReplace(LVal, 'kB', '', [rfIgnoreCase]));
       if SameText(LKey, 'MemTotal') then
@@ -284,7 +284,7 @@ begin
   LInfoType := Trim(LowerCase(AParams.InfoType));
   ResultText := '';
   try
-    // Decidir si se devuelve JSON o texto
+    // Decide whether to return JSON or text
     if AParams.FormatAsJson then
     begin
       // --- Logic to return JSON ---
@@ -302,7 +302,7 @@ begin
       else if (LInfoType = 'all') or (LInfoType = '') then
         ResultJson := GetAllInfoAsJson(AParams.IncludeDetails)
       else
-        raise Exception.Create('Tipo de información no válido. Use: basic, memory, disk, network, all');
+        raise Exception.Create('Invalid information type. Use: basic, memory, disk, network, all');
 
       // Add user info to JSON
       if Assigned(ResultJson) then
@@ -310,7 +310,7 @@ begin
 
       // We use the builder to add the JSON as text. The AI will parse it.
       Result := TAiMCPResponseBuilder.New.AddText(ResultJson.ToJSON).Build;
-      ResultJson.Free; // Liberamos el JSON que creamos
+      ResultJson.Free; // We free the JSON we created
     end
     else
     begin
@@ -330,9 +330,9 @@ begin
 
       // Add user info to text
       if AuthContext.IsAuthenticated then
-        ResultText := ResultText + sLineBreak + sLineBreak + '✅ Ejecutado por el usuario: ' + AuthContext.UserID
+        ResultText := ResultText + sLineBreak + sLineBreak + '✅ Executed by user: ' + AuthContext.UserID
       else
-        ResultText := ResultText + sLineBreak + sLineBreak + '⚠️ Ejecutado por un usuario anónimo.';
+        ResultText := ResultText + sLineBreak + sLineBreak + '⚠️ Executed by an anonymous user.';
 
       Result := TAiMCPResponseBuilder.New.AddText(ResultText).Build;
     end;
@@ -428,7 +428,7 @@ begin
     var
     LDetails := TJSONObject.Create;
     LDetails.AddPair('mcpServerPath', ExtractFilePath(ParamStr(0)));
-    LDetails.AddPair('delphiVersion', '12.2'); // O obtenerlo dinámicamente si es posible
+    LDetails.AddPair('delphiVersion', '12.2'); // Or obtain it dynamically if possible
     Result.AddPair('extraDetails', LDetails);
   end;
 end;
@@ -443,7 +443,7 @@ var
   LName: string;
 begin
   // Original code of GetBasicInfo
-  Result := '🖥️ INFORMACIÓN BÁSICA DEL SISTEMA' + sLineBreak + sLineBreak;
+  Result := '🖥️ BASIC SYSTEM INFORMATION' + sLineBreak + sLineBreak;
   LName := SysHostName;
   if LName <> '' then
     Result := Result + 'Computer name: ' + LName + sLineBreak;
