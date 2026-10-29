@@ -37,7 +37,8 @@ five fields is rejected rather than half-parsed — a vector with no id cannot b
 with no prev cannot be checked, so admitting it would weaken every edge after it.
 
 Sibling on the other host: `tools/codex_svchain.py` reads Codex rollouts under the same contract.
-Tests for both: `cd tools && python -m pytest tests/ -q` (they do not run from the repo root).
+Tests for both: `python -m pytest tests/test_claude_svchain.py tests/test_codex_svchain.py -q`
+from the repo root (4 tests; each puts `tools/` on `sys.path` itself, so no `cd tools` is needed).
 
 ## Reading the output
 

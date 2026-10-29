@@ -43,12 +43,42 @@ Use this skill when a command may be:
 - Default backend uses ConPTY (Windows) or PTY (Linux) for terminal I/O.
 - `--direct-terminal` is a Windows Terminal-only graphics backend: the child inherits the actual WT console, so SIXEL capability negotiation and output are not consumed by ConPTY.
 - Raw pipe capture mode (`--raw`) for image protocol passthrough — converts Kitty/iTerm2/Sixel to `[IMG:PROTO:b64]` in logs.
-- Terminal auto-detection: conhost > wezterm > Windows Terminal > bash (Windows); wezterm > guake > yakuake > xterm > bash (Linux).
-- conhost is the Windows default because it reliably supports minimized-no-focus-steal (SW_SHOWMINNOACTIVE).
-  Windows Terminal (wt.exe) windows belong to WindowsTerminal.exe, not the launcher PID — use `--terminal wt` explicitly if needed.
+- Terminal auto-detection: wt > wezterm > conhost (fallback) (Windows); wezterm > guake > yakuake > xterm > bash (Linux).
+- **Default start is minimized** (`SW_SHOWMINNOACTIVE`, taskbar-visible, no focus steal) — including
+  wt: its window belongs to WindowsTerminal.exe and not to the launcher PID, so cmd_runner finds it
+  by window title (`_minimize_window_by_title_async`) instead of by PID. What PID-based lookup still
+  cannot do is *capture* a wt window — use `screenshot` (title-based) or `--direct-terminal`.
+- conhost stays as the always-available fallback — use `--terminal conhost` when you need it.
+- **No flash, no focus steal** (2026-10-27, owner: «запуск дефолт, фокус не нужен, запуск минимизированным сразу»):
+  window state is controlled at the **WinAPI level** — `SW_SHOWMINNOACTIVE` on the launcher, then
+  synchronous `ShowWindow(SW_SHOWMINNOACTIVE)` + `SetForegroundWindow(prev)` on the terminal HWND
+  (found by title). No CLI position hacks. `--direct-terminal` is the exception — graphics need a
+  visible surface.
 - Logs: `logs/cmd_runner/<run_id>/`
 - Programmatic input bridge: `logs/cmd_runner/<run_id>/inbox.jsonl`
 - Can be launched from any working directory (binary found via PATH or absolute path).
+
+## Native input (the tunnel contract, 2026-10-26)
+
+cmd_runner transports the terminal conversation; it does not re-encode it. Measured defects
+this replaces: paste arrived as a sheet of typed text, mouse movement printed
+`ESC[<35;53;1M` walls, focus events vanished, Cyrillic became mojibake.
+
+- **Input is read raw** (`ENABLE_VIRTUAL_TERMINAL_INPUT`, with `ECHO`/`LINE` off and
+  `SetConsoleCP(CP_UTF8)`), so bracketed paste, kitty keys and focus events reach the child
+  byte-for-byte and non-ASCII keys arrive as UTF-8. A console that refuses the mode falls
+  back to the old record path.
+- **Mouse frames go only to a child that asked for mouse** (?1000/?1002/?1003, tracked from
+  the child's own output). ConPTY asks the outer terminal for any-event tracking on its own
+  behalf, so frames keep arriving — a child that never requested mouse must not see them.
+  A frame split across two reads is carried, never leaked as text.
+- **Output is untouched**: the raw chunk goes to the terminal first; image/ANSI/CR
+  transformations feed the logs only.
+- Escape hatch while tuning: `set CMD_RUNNER_NO_VT_INPUT=1` falls back to the record path
+  without a rebuild.
+- A ConPTY child's only input channel is a VT byte pipe — there is no message channel into it.
+  The WM-native host (one `WM_*` event in, one frame out) is planned separately
+  (`plans/2026-10-26_cmd-runner-wm-native-host.md`).
 
 ## How to run it
 
@@ -138,12 +168,20 @@ cmd_runner send <run_id> --keys "ctrl+c"
 cmd_runner send <run_id> --keys "TEXT:root,ENTER"
 cmd_runner send <run_id> --stdin-file FILEPATH
 cmd_runner send <run_id> --text-file FILEPATH
+cmd_runner send <run_id> --text-file FILEPATH --paste --no-tail
 cmd_runner send <run_id> --text "whoami" --text-as-b64 --crlf
 cmd_runner send <run_id> --hex 03
 ```
 
 - `--keys` tokens: `LEFT,RIGHT,UP,DOWN,HOME,END,INSERT,DELETE,TAB,ESC,ENTER,BACKSPACE,ctrl+a..ctrl+z,TEXT:text,CHAR:char,HEX:hex`
 - `--crlf` appends CRLF after text.
+- `--paste` sends `ESC[200~`, the exact source bytes, then `ESC[201~`. Use it for a large
+  TUI text attachment after the input field is ready. With `--crlf`, the final Enter is
+  outside the paste; omit it to leave the attachment unsubmitted. A closing paste marker
+  inside the source is rejected. `--keys` cannot be combined with `--paste`.
+- Ordinary text sources normalize bare LF to CRLF. Existing CRLF gains no extra bytes.
+  Binary sources (`--stdin-file`, `--stdin-b64-file`, `--hex`, `--b64`, `--text-as-b64`)
+  preserve bytes; `--stdin-b64-file` is a binary-file alias. Paste preserves both LF and CRLF.
 - Auto-tails last 3 lines after send (default; `--send-tail 0` to disable).
 
 **Quoting tips (PowerShell):**
@@ -184,13 +222,14 @@ cmd_runner start --terminal wt="-w new -d C:\project" -- <command ...>
 
 | Priority | Windows | Linux |
 |----------|---------|-------|
-| 1 | wezterm | wezterm |
-| 2 | wt (Windows Terminal) | guake |
-| 3 | conhost | yakuake |
+| 1 | wt (Windows Terminal) | wezterm |
+| 2 | wezterm | guake |
+| 3 | conhost (fallback) | yakuake |
 | 4 | bash (git-bash) | xterm |
 | 5 | — | bash |
 
 First terminal found on PATH is used. Omit `--terminal` for auto-detection.
+- **wt CLI reference**: `docs/wt-cli-reference.md` (archived from learn.microsoft.com, 2026-10-27) — window targeting with `-w <name>`, stacking via `new-tab`, all commands and options. Do not guess; read the reference.
 
 ## Image capture (--raw)
 
@@ -209,6 +248,43 @@ cmd_runner start --raw -- <image_command ...>
 - Output is captured in logs with `[IMG:...]` markers.
 - Text-based tools (`tail`, `assert`, `snapshot`) work on clean text.
 - `--no-raw` forces ConPTY mode (no image capture in logs).
+
+### Output encoding
+
+- `stdout.log` holds the payload's bytes exactly as written; `stdout_text.log` is the readable copy.
+- The text copy never stops a run: valid UTF-8 is decoded, any other byte goes through the console OEM code
+  page (console apps such as pwsh write that, not UTF-8, to a pipe), and an unmappable byte becomes U+FFFD.
+  Read `stdout.log` when the exact bytes matter.
+- A fault while writing the logs is recorded in `stderr.log` as `[cmd_runner] output path fault ...`; the
+  capture and the payload go on.
+
+## What `state.json` notes mean
+
+- `log final` — the host wrote the final state itself; `exit_code` is the payload's real exit code.
+- `host error: <class>: <message>` (status `host_error`) — the host failed and said so; `wait` and `status`
+  return `host_error` at once, and the cause is also in `stderr.log`.
+- `host error: program not found: <program>` — the program is not on PATH, or its path does not exist.
+  Fix the name or the path.
+- `wrapper_failed: <message>` in the output, exit **127** — a `.cmd`/`.bat` shim (npm's `bun.cmd`) failed
+  before its payload started. The payload's own exit code passes through unchanged.
+- `finished by health-check: exit unknown` — the host died without writing its final state. The exit code
+  is NOT known; never read it as success. While the host lives, the run stays `running` until its final write.
+
+### Robot lifecycle (2026.10.11)
+
+- `start` explicitly requests Job breakaway for its terminal host. Runner-owned ConPTY,
+  raw and direct-terminal Jobs allow explicit breakaway; ordinary children remain managed.
+  If Windows denies breakaway, `start` fails visibly and never retries with inherited ownership.
+- Processes already launched through an older runner keep their old Job policy. Updating the
+  executable does not change their Jobs; restart those launches before using nested `start`.
+- A successful breakaway can retain system Job membership. Actual survival after parent exit
+  is the lifecycle check. Arbitrary restrictive external Job hierarchies are not qualified.
+- `status --json` and JSON `list` refresh process liveness. A raw file read is a saved snapshot.
+  `running` means a live payload or host; it does not prove an HTTP listener, TUI input readiness,
+  provider progress, or completion of a robot task.
+- For OpenCode robots, use the `opencode-bridge` HTTP route: validate the worktree host nonce,
+  authenticated request and session completion. A live PID with a failed HTTP probe is a transport
+  failure to investigate, never a successful agent run.
 
 ## Screenshot
 
@@ -229,6 +305,11 @@ cmd_runner screenshot <run_id> [--out PATH]
 | `--tail-timeout N` | 0 | Retry tail up to N seconds |
 
 ## Log layout
+
+The run store is `<exe dir>/logs/cmd_runner/` (the `tools/` parent when it also holds `cmd_runner.exe`).
+`CMD_RUNNER_LOG_ROOT=<dir>` moves it for every subcommand (start, tail, status, wait, list, stop, send, ...);
+`--log-root <dir>` does the same for one invocation. Use it when the tool's folder must stay unchanged,
+e.g. an install that is re-verified against a manifest. `start` passes the root to its host explicitly.
 
 ```
 logs/cmd_runner/<run_id>/

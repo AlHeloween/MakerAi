@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"{PYTHON}\" \"{ORG_HOME}/genesis/org.py\" *)"
+    ]
+  }
+}

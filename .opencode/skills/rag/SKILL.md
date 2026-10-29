@@ -37,7 +37,10 @@ adm --query my_project "how does the DQ signature work?"
 - `adm-rag --init` checks whether deps are present and advises if missing (detection only, never installs).
 - `adm-rag --rag-status` prints the full environment status.
 - Default embedder: `BAAI/bge-base-en-v1.5` (768D) via `sentence_transformers`.
-- **`fd`** is bundled in `tools/` and used for gitignore-aware file discovery.
+- **`fd`** is resolved from `PATH` (`shutil.which("fd")`) for gitignore-aware file discovery;
+  when it is absent the indexer falls back to `os.walk` (extension filter kept, `.gitignore` not
+  honoured). The repo checkout keeps a copy at `tools/fd.exe`, but `artefacts_map.json` does not
+  declare it, so the release bundle's `tools/` does not ship it.
 - If running from the frozen `adm-rag.exe` without torch, the binary auto-delegates to the system `adm` (pip-installed) via `ADID_RAG_DELEGATE`.
 
 ## Commands
@@ -59,7 +62,8 @@ Both `adm` and `adm-rag` accept the same commands. The `adm` binary forwards RAG
 
 ## File Discovery and Exclusion
 
-- **`fd`** (bundled in `tools/fd.exe`) walks the file tree, respecting `.gitignore` natively.
+- **`fd`** (`fd` on `PATH`; the repo copy `tools/fd.exe` is not in the shipped `tools/` set) walks
+  the file tree, respecting `.gitignore` natively.
 - Extensions from `include_globs` are passed to `fd --extension` for efficient filtering.
 - `exclude_globs` (e.g. `**/dist/**`, `**/build/**`) provide additional application-level exclusion.
 - `exclude_patterns` and `add_patterns` allow per-file overrides.

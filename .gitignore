@@ -163,3 +163,10 @@ Demos/014-ChatTest/medios/
 
 # Graphify knowledge graph (build artifact) — PR #93 @Pedro-DAS
 graphify-out/
+.opencode
+.temp
+.codegraph
+.fossil-settings
+_FOSSIL_*
+_fossil*
+/config.json

@@ -20,7 +20,7 @@ ADID is governed by layered documents. Each layer owns one concern; none restate
 
 | Layer | Document | Owns |
 |---|---|---|
-| Agent governance | `rules/reasoning-kernel.mdc` (reasoning_kernel_next 2.0.0-alpha.3) | G1-G9 control graph: grounding, decomposition, authorization, oracle, closure, claim status, semantic vectors |
+| Agent governance | `rules/reasoning-kernel.mdc` (reasoning_kernel_next, `prompt_kernel --cursor`; reaches codex as `developer_instructions`, ADID ships no AGENTS.md) | G0-G9 control graph: grounding, decomposition, authorization, oracle, closure, claim status, semantic vectors |
 | Framework protocol | **this document** | communication rules, how the framework workflow maps onto the kernel, roles, artifacts, development and search rules |
 | Development process | `rules/adid-methodology.mdc` | contents of plans, progress log, DOCINDEX, workspace lanes, task-type and security policies |
 | Tool routing | `rules/adid-framework-and-adm.mdc` + skills (`adm-exe`, `cmd-runner`, `rag`, `patch-tool`) | which tool performs which change, command details |
@@ -225,7 +225,7 @@ ADID replaces stateful, ambiguous collaboration with discrete, verifiable state 
 
 **III.3 State Vector Manifest** #svm #master_svm
 
-**Normative definition:** the `SVM` state contract of `reasoning_kernel_next` as compiled by `prompt_kernel` (opencode repository, `prompt_kernel/source.py`, §1 state contracts of every host render). This section orients and records the lineage; it does not redefine the SVM. The kernel copy currently shipped in ADID `rules/reasoning-kernel.mdc` predates the SVM contract and does not contain it.
+**Normative definition:** the `SVM` state contract of `reasoning_kernel_next` as compiled by `prompt_kernel` (opencode repository, `prompt_kernel/source.py`, §1 state contracts of every host render). This section orients and records the lineage; it does not redefine the SVM. Since 2026-10-06 the shipped `rules/reasoning-kernel.mdc` IS that render — copied byte-for-byte from the Cursor host install (`python -m prompt_kernel --cursor --install`, 61 856 B) — so the SVM contract is present in what ADID ships, together with @CAPABILITY_ABSTRACTION, under which the kernel names capabilities and never a host's tools.
 
 1. **What it is.** The complete context of ONE atomic task (at G0: the root goal), so every turn starts from a known, verifiable state. It replaces conversational memory as a **briefing that points to evidence**, never evidence itself: re-read what it cites, and state unavailable references.
 2. **Shape** (kernel): `{turn_id, parent_turn_id, goal_hierarchy, goal_vector, task_vector, evidence_vector, oracle_vector}`, where
