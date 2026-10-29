@@ -11,10 +11,10 @@
 //          tool_call name="computer" and arguments in Claude's NATIVE format
 //          (e.g. {"action":"left_click","coordinate":[x_px,y_px]}).
 //       3. The client translates and executes the REAL action + captures a screenshot:
-//            FCU.TranslateClaudeToolCall(tc);   // pixeles Claude -> formato interno
+//            FCU.TranslateClaudeToolCall(tc);   // Claude pixels -> internal format
 //            Res := FCU.ProcessToolCall(tc, Shot);
 //       4. POST with the history: assistant(tool_calls) + tool(result + image_url
-//          data:image/jpeg;base64), y repite hasta finish_reason="stop".
+//          data:image/jpeg;base64), and repeats until finish_reason="stop".
 //
 //  The screenshot is sent EXACTLY at display_width x display_height (CaptureScaled).
 //  Capture runs on the main thread (FMX.Canvas is not thread-safe).
@@ -45,7 +45,7 @@ type
     FDisplayW, FDisplayH: Integer;
     FShotDir: string;
     FShotCount: Integer;
-    FMessages: TJSONArray;     // historial de la conversacion (lo poseemos)
+    FMessages: TJSONArray;     // conversation history (we own it)
     // UI (creada en codigo)
     FPrompt: TMemo;
     FLog: TMemo;
@@ -92,7 +92,7 @@ constructor TFormCUServer.CreateNew(AOwner: TComponent; Dummy: NativeInt);
 begin
   inherited CreateNew(AOwner, Dummy);
 
-  Caption := 'Computer Use vs Servidor cimamaker';
+  Caption := 'Computer Use vs cimamaker Server';
   Position := TFormPosition.ScreenCenter;
   Width := 900;
   Height := 680;
@@ -161,7 +161,7 @@ begin
   FRun.Align := TAlignLayout.Left;
   FRun.Width := 120;
   FRun.Margins.Rect := RectF(6, 6, 6, 6);
-  FRun.Text := 'Ejecutar';
+  FRun.Text := 'Run';
   FRun.OnClick := RunClick;
 
   FStatus := TLabel.Create(Self);
@@ -438,10 +438,10 @@ begin
           if AsstText <> '' then
             Log('Model: ' + AsstText);
 
-          // 1) Echo del mensaje assistant TAL CUAL (role+content+tool_calls)
+          // 1) Echo the assistant message EXACTLY AS IS (role+content+tool_calls)
           FMessages.AddElement(JMsg.Clone as TJSONValue);
 
-          // 2) Ejecutar cada tool_call y anexar su tool result
+          // 2) Execute each tool_call and append its tool result
           for I := 0 to JToolCalls.Count - 1 do
           begin
             JTc := JToolCalls.Items[I] as TJSONObject;

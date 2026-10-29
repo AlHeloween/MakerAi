@@ -78,25 +78,25 @@ var
 begin
   Titulo('Sec. 21.3-21.5  Dot product, cosine similarity and L2 distance');
 
-  Writeln('  Vectorizing: "medico", "doctor", "avion" ...');
-  VFr := E(Conn, 'medico');
+  Writeln('  Vectorizing: "physician", "doctor", "airplane" ...');
+  VFr := E(Conn, 'physician');
   VDr := E(Conn, 'doctor');
-  VAv := E(Conn, 'avion');
+  VAv := E(Conn, 'airplane');
   Writeln;
 
-  Writeln(Format('  DotProduct(medico, doctor) = %.4f', [TAiEmbeddingsCore.DotProduct(VFr, VDr)]));
-  Writeln(Format('  DotProduct(medico, avion)  = %.4f', [TAiEmbeddingsCore.DotProduct(VFr, VAv)]));
+  Writeln(Format('  DotProduct(physician, doctor) = %.4f', [TAiEmbeddingsCore.DotProduct(VFr, VDr)]));
+  Writeln(Format('  DotProduct(physician, airplane)  = %.4f', [TAiEmbeddingsCore.DotProduct(VFr, VAv)]));
   Writeln;
 
   var SimMD := TAiEmbeddingsCore.CosineSimilarity(VFr, VDr);
   var SimMA := TAiEmbeddingsCore.CosineSimilarity(VFr, VAv);
 
-  Writeln(Format('  CosineSimilarity(medico, doctor) = %.4f  [%s]', [SimMD, NivelSim(SimMD)]));
-  Writeln(Format('  CosineSimilarity(medico, avion)  = %.4f  [%s]', [SimMA, NivelSim(SimMA)]));
+  Writeln(Format('  CosineSimilarity(physician, doctor) = %.4f  [%s]', [SimMD, NivelSim(SimMD)]));
+  Writeln(Format('  CosineSimilarity(physician, airplane)  = %.4f  [%s]', [SimMA, NivelSim(SimMA)]));
   Writeln;
 
-  Writeln(Format('  EuclideanDistance(medico, doctor) = %.4f  (smaller = closer)', [TAiEmbeddingsCore.EuclideanDistance(VFr, VDr)]));
-  Writeln(Format('  EuclideanDistance(medico, avion)  = %.4f', [TAiEmbeddingsCore.EuclideanDistance(VFr, VAv)]));
+  Writeln(Format('  EuclideanDistance(physician, doctor) = %.4f  (smaller = closer)', [TAiEmbeddingsCore.EuclideanDistance(VFr, VDr)]));
+  Writeln(Format('  EuclideanDistance(physician, airplane)  = %.4f', [TAiEmbeddingsCore.EuclideanDistance(VFr, VAv)]));
 end;
 
 // =============================================================================
@@ -111,7 +111,7 @@ var
 begin
   Titulo('Sec. 21.6  Operation 1 — Averaging (general topic of a group)');
 
-  Palabras := ['perro', 'gato', 'caballo', 'conejo', 'pajaro'];
+  Palabras := ['dog', 'cat', 'horse', 'rabbit', 'bird'];
   Writeln(Format('  Averaging %d animals: %s', [Length(Palabras), String.Join(', ', Palabras)]));
 
   SetLength(Vectores, Length(Palabras));
@@ -129,8 +129,8 @@ begin
   var VAnimal := E(Conn, 'animal domestico');
   var VCoche  := E(Conn, 'automovil');
   Writeln('  Comparison with external words:');
-  Writeln(Format('    "animal domestico": %.4f  (expected: high)', [TAiEmbeddingsCore.CosineSimilarity(Promedio, VAnimal)]));
-  Writeln(Format('    "automovil":        %.4f  (expected: low)', [TAiEmbeddingsCore.CosineSimilarity(Promedio, VCoche)]));
+  Writeln(Format('    "domestic animal": %.4f  (expected: high)', [TAiEmbeddingsCore.CosineSimilarity(Promedio, VAnimal)]));
+  Writeln(Format('    "automobile":        %.4f  (expected: low)', [TAiEmbeddingsCore.CosineSimilarity(Promedio, VCoche)]));
 end;
 
 // =============================================================================
@@ -146,10 +146,10 @@ begin
   Titulo('Sec. 21.6  Operation 2 — Addition: cat + red (semantic AND)');
 
   Writeln('  We look for documents that talk about BOTH concepts: cat AND red');
-  Candidatos := ['gato rojo', 'gato azul', 'perro rojo', 'auto rojo', 'gato negro', 'flor roja'];
+  Candidatos := ['red cat', 'blue cat', 'red dog', 'red car', 'black cat', 'red flower'];
 
-  VGato      := E(Conn, 'gato');
-  VRojo      := E(Conn, 'rojo');
+  VGato      := E(Conn, 'cat');
+  VRojo      := E(Conn, 'red');
   VCombinado := TAiEmbeddingsCore.VectorAdd(VGato, VRojo);
 
   SetLength(Vectores, Length(Candidatos));
@@ -176,13 +176,13 @@ var
 begin
   Titulo('Sec. 21.6  Operation 3 — Analogy: king - man + woman approx queen');
 
-  Writeln('  Formula:  VAnalogy = VectorAdd(VectorSubtract(rey, hombre), mujer)');
+  Writeln('  Formula:  VAnalogy = VectorAdd(VectorSubtract(king, man), woman)');
   Writeln('  Expected result: queen (or semantically equivalent terms)');
   Writeln;
 
-  VRey    := E(Conn, 'rey');
-  VHombre := E(Conn, 'hombre');
-  VMujer  := E(Conn, 'mujer');
+  VRey    := E(Conn, 'king');
+  VHombre := E(Conn, 'man');
+  VMujer  := E(Conn, 'woman');
 
   // rey - hombre + mujer
   VAnalogy := TAiEmbeddingsCore.VectorAdd(
@@ -190,7 +190,7 @@ begin
     VMujer
   );
 
-  Candidatos := ['reina', 'princesa', 'principe', 'rey', 'senora', 'jefa', 'mujer', 'dama'];
+  Candidatos := ['queen', 'princess', 'prince', 'king', 'lady', 'manager', 'woman', 'dame'];
   SetLength(Vectores, Length(Candidatos));
   for I := 0 to High(Candidatos) do
     Vectores[I] := E(Conn, Candidatos[I]);
@@ -202,7 +202,7 @@ begin
     Writeln(Format('    [%d] %.4f — %s', [I+1, Res[I].Score, Candidatos[Res[I].Index]]));
   Writeln;
   Writeln('  Note: the result varies by model. Models with larger');
-  Writeln('  semantic vocabulary place "reina" in the top 1 or 2.');
+  Writeln('  semantic vocabulary place "queen" in the top 1 or 2.');
 end;
 
 // =============================================================================
@@ -216,10 +216,10 @@ var
 begin
   Titulo('Sec. 21.6  Operation 4 — Interpolation: transition from cat to dog');
 
-  VGato  := E(Conn, 'gato');
-  VPerro := E(Conn, 'perro');
+  VGato  := E(Conn, 'cat');
+  VPerro := E(Conn, 'dog');
 
-  Writeln(Format('  %-6s  %-14s  %-14s', ['Alpha', 'Sim(gato)', 'Sim(perro)']));
+  Writeln(Format('  %-6s  %-14s  %-14s', ['Alpha', 'Sim(cat)', 'Sim(dog)']));
   Writeln('  ' + StringOfChar('-', 38));
 
   for I := 0 to 5 do
@@ -250,7 +250,7 @@ var
 begin
   Titulo('Sec. 21.6  Operation 5 — Normalization');
 
-  V := E(Conn, 'inteligencia artificial');
+  V := E(Conn, 'artificial intelligence');
   Writeln(Format('  Magnitude before normalization : %.6f', [TAiEmbeddingsCore.Magnitude(V)]));
 
   TAiEmbeddingsCore.Normalize(V);

@@ -61,11 +61,11 @@ const
 
 const
   DOCS: array[0..4] of String = (
-    'PostgreSQL es un sistema gestor de base de datos relacional avanzado.',
-    'pgvector anade soporte de vectores y busqueda por similitud a PostgreSQL.',
-    'Los indices IVFFlat y HNSW aceleran la busqueda vectorial en grandes datasets.',
-    'Vector embeddings permiten busqueda semantica sobre texto en PostgreSQL.',
-    'La extension vector de PostgreSQL es compatible con distancia coseno y euclidiana.'
+    'PostgreSQL is an advanced relational database management system.',
+    'pgvector adds vector support and similarity search to PostgreSQL.',
+    'IVFFlat and HNSW indexes accelerate vector search in large datasets.',
+    'Vector embeddings enable semantic search over text in PostgreSQL.',
+    'The PostgreSQL vector extension supports cosine and Euclidean distance.'
   );
 
 // =============================================================================
@@ -147,12 +147,12 @@ begin
 
     // Search
     Writeln('--- Semantic search ---');
-    Results := RAG.SearchText('extensiones de bases de datos vectoriales', 3, 0.4);
-    Writeln('Query: "extensiones de bases de datos vectoriales"');
+    Results := RAG.SearchText('vector database extensions', 3, 0.4);
+    Writeln('Query: "vector database extensions"');
     Writeln(Results);
 
-    Results := RAG.SearchText('rendimiento en busquedas de vectores', 3, 0.4);
-    Writeln('Query: "rendimiento en busquedas de vectores"');
+    Results := RAG.SearchText('vector search performance', 3, 0.4);
+    Writeln('Query: "vector search performance"');
     Writeln(Results);
 
   finally

@@ -67,11 +67,11 @@ type
 const
   // What Jev reads to choose: descriptions as you would give them to a receptionist
   DOMINIOS: array[0..4] of string = (
-    'contable=Registro contable: asientos, cuentas del PUC, comprobantes, conciliaciones, estados financieros, NIIF',
-    'tributario=Impuestos en Colombia: renta, IVA, retencion en la fuente, ICA, declaraciones, DIAN, facturacion electronica',
-    'legal=Derecho comercial y civil: contratos, sociedades, cobro juridico, demandas, responsabilidad',
-    'laboral=Relacion con empleados: nomina, prestaciones sociales, seguridad social, contratos laborales, despidos',
-    'general=Cualquier otra cosa: saludos, uso del sistema, preguntas que no son de un area especializada');
+    'contable=Accounting records: journal entries, PUC accounts, vouchers, reconciliations, financial statements, IFRS',
+    'tributario=Taxes in Colombia: income tax, VAT, withholding at source, ICA, returns, DIAN, electronic invoicing',
+    'legal=Commercial and civil law: contracts, companies, legal collection, lawsuits, liability',
+    'laboral=Employee relations: payroll, social benefits, social security, employment contracts, dismissals',
+    'general=Anything else: greetings, system usage, questions that are not from a specialized area');
 
   // Agent catalog: a domain can have a fast version (without RAG) and one with RAG
   AGENTES: array[0..5] of TAgente = (
@@ -87,14 +87,14 @@ const
   UMBRAL_CRUCE   = 0.7;  // another domain with high Noul -> composite query
 
   CONSULTAS_EJEMPLO: array[0..7] of string = (
-    'Buenos dias, como cambio mi contrasena del sistema?',
-    'Como registro el pago de la nomina de septiembre?',
-    'Que dice la NIC 16 sobre la vida util de los activos?',
-    'Cual es la tarifa de retencion en la fuente por honorarios para personas naturales?',
-    'Un cliente no me paga una factura de hace 8 meses, que puedo hacer?',
-    'Vendi un activo fijo con utilidad, como lo contabilizo y cuanto impuesto pago por la ganancia ocasional?',
-    'Voy a despedir a un trabajador sin justa causa, cuanto le debo pagar?',
-    'me salio un error raro');
+    'Good morning, how do I change my system password?',
+    'How do I record the September payroll payment?',
+    'What does IAS 16 say about the useful life of assets?',
+    'What is the withholding at source rate for fees for natural persons?',
+    'A client has not paid an invoice from 8 months ago, what can I do?',
+    'I sold a fixed asset at a profit, how do I record it and how much tax do I pay on the occasional gain?',
+    'I am going to dismiss a worker without just cause, how much do I owe them?',
+    'I got a strange error');
 
 var
   TotalTokens: Int64 = 0;
@@ -150,7 +150,7 @@ begin
       Dominio := 'general';
     NecesitaRag := R['necesita_fuentes'].Noul >= UMBRAL_RAG;
 
-    // Agente del dominio: con RAG si hace falta y existe; si no, el que haya
+    // Domain agent: with RAG if needed and available; otherwise, whatever exists
     Agente := '';
     for i := Low(AGENTES) to High(AGENTES) do
       if (AGENTES[i].Dominio = Dominio) and (AGENTES[i].ConRag = NecesitaRag) then
@@ -165,7 +165,7 @@ begin
           Break;
         end;
 
-    // Consultas que cruzan dominios
+    // Queries that cross domains
     Tambien := '';
     for D in DOMINIOS do
       if (Clave(D) <> 'general') and (Clave(D) <> Dominio) and
@@ -192,7 +192,7 @@ begin
   Writeln('--- B. Shortcuts for a single question ---');
   Tarea := AJev.Choose('Traduce al ingles: la reunion se aplaza para el lunes',
     'Que tipo de tarea pide el texto?', ['conversacion', 'redaccion', 'codigo', 'analisis'], Conf);
-  Writeln(Format('Choose -> %s (confianza %.2f)', [Tarea, Conf]));
+  Writeln(Format('Choose -> %s (confidence %.2f)', [Tarea, Conf]));
 
   P := AJev.Noul('Mi pago lleva 3 dias fallando y necesito resolverlo hoy',
     'El mensaje expresa urgencia?');
@@ -248,15 +248,15 @@ begin
     Router := TAiJevRouterTool.Create(Grafo);
     for D in DOMINIOS do
       Router.AddRoute(Clave(D), Descripcion(D));
-    Router.AddFlag('fuentes', 'Responder bien `consulta` exige citar una norma, articulo, tarifa o plazo concreto?');
-    // Misma pregunta que el bloque A: la redaccion mueve la confianza
-    Router.Instructions := 'Que especialista debe responder `consulta`?';
+    Router.AddFlag('fuentes', 'Answering `consulta` well requires citing a specific standard, article, rate or deadline?');
+    // Same question as block A: the wording moves the confidence
+    Router.Instructions := 'Which specialist should answer `consulta`?';
     Router.MinConfidence := UMBRAL_DOMINIO;
     Router.OnRoute := Handlers.AjustarRuta;
     Grafo.FindNode('Recepcion').Tool := Router;
 
-    // Clave de ruta -> nodo. 'contable' no aparece: OnRoute lo convierte en
-    // contable_rapido o contable_normativo.
+    // Route key -> node. 'contable' does not appear: OnRoute converts it into
+    // contable_rapido or contable_normativo.
     Targets := TDictionary<string, string>.Create;
     try
       for i := Low(AGENTES) to High(AGENTES) do
@@ -306,7 +306,7 @@ begin
   try
     if GetEnvironmentVariable('TYPESAFE_API_KEY') = '' then
     begin
-      Writeln('Falta la variable de entorno TYPESAFE_API_KEY (https://console.typesafe.ai/keys).');
+      Writeln('Missing environment variable TYPESAFE_API_KEY (https://console.typesafe.ai/keys).');
       ExitCode := 2;
       Exit;
     end;

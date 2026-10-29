@@ -112,7 +112,7 @@ begin
   Args := TJSONObject.ParseJSONValue(ToolCall.Arguments) as TJSONObject;
   if not Assigned(Args) then
   begin
-    ToolCall.Response := '{"error":"args inválidos"}';
+    ToolCall.Response := '{"error":"invalid args"}';
     Handled := True;
     Exit;
   end;
@@ -212,30 +212,30 @@ var
 begin
   // ── get_weather ─────────────────────────────────────────────────────────────
   LFn := FAiFunctions.Functions.AddFunction('get_weather', True, OnFnGetWeather);
-  LFn.Description.Text := 'Obtiene el clima actual de una ciudad: temperatura, condición y viento.';
+  LFn.Description.Text := 'Gets the current weather of a city: temperature, condition and wind.';
   LParam := LFn.Parameters.Add;
   LParam.Name := 'city'; LParam.ParamType := ptString; LParam.Required := True;
-  LParam.Description.Text := 'Nombre de la ciudad';
+  LParam.Description.Text := 'Name of the city';
 
   // ── convert_currency ────────────────────────────────────────────────────────
   LFn := FAiFunctions.Functions.AddFunction('convert_currency', True, OnFnConvertCurrency);
-  LFn.Description.Text := 'Convierte una cantidad de una divisa a otra. Soporta USD, MXN, EUR, GBP, CAD.';
+  LFn.Description.Text := 'Converts an amount from one currency to another. Supports USD, MXN, EUR, GBP, CAD.';
   LParam := LFn.Parameters.Add;
   LParam.Name := 'amount'; LParam.ParamType := ptFloat; LParam.Required := True;
-  LParam.Description.Text := 'Cantidad a convertir';
+  LParam.Description.Text := 'Amount to convert';
   LParam := LFn.Parameters.Add;
   LParam.Name := 'from_currency'; LParam.ParamType := ptString; LParam.Required := True;
-  LParam.Description.Text := 'Divisa origen (USD, MXN, EUR...)';
+  LParam.Description.Text := 'Source currency (USD, MXN, EUR...)';
   LParam := LFn.Parameters.Add;
   LParam.Name := 'to_currency'; LParam.ParamType := ptString; LParam.Required := True;
-  LParam.Description.Text := 'Divisa destino';
+  LParam.Description.Text := 'Target currency';
 
   // ── calculate ───────────────────────────────────────────────────────────────
   LFn := FAiFunctions.Functions.AddFunction('calculate', True, OnFnCalculate);
-  LFn.Description.Text := 'Evalúa una expresión matemática simple como "15 + 27" o "100 * 3.14".';
+  LFn.Description.Text := 'Evaluates a simple mathematical expression such as "15 + 27" or "100 * 3.14".';
   LParam := LFn.Parameters.Add;
   LParam.Name := 'expression'; LParam.ParamType := ptString; LParam.Required := True;
-  LParam.Description.Text := 'Expresión matemática a calcular';
+  LParam.Description.Text := 'Mathematical expression to calculate';
 end;
 
 // =============================================================================
@@ -267,12 +267,12 @@ begin
 
       Conn.SystemPrompt.Text :=
         'You are an intelligent assistant with access to tools. ' +
-        'Úsalas cuando el usuario lo necesite. Responde en español.';
+        'Use them when the user needs them. Respond in Spanish.';
 
       // ── P1: one function ────────────────────────────────────────────────────
       Writeln(StringOfChar('-', 60));
       Writeln('P1 — One function: "What is 347 × 28?"');
-      Res := Conn.AddMessageAndRun('¿Cuánto es 347 × 28?', 'user', []);
+      Res := Conn.AddMessageAndRun('How much is 347 × 28?', 'user', []);
       Writeln('R: ', Res);
       Conn.Messages.Clear;
       Writeln;

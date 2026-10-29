@@ -46,22 +46,22 @@ begin
 
   // --- PEOPLE ---
   Jobs := RAG.AddNode('p001', 'PERSONA', 'Steve Jobs');
-  Jobs.Text := 'Steve Jobs, visionario y cofundador de Apple, creó el iPhone y la Mac.';
+  Jobs.Text := 'Steve Jobs, visionary and co-founder of Apple, created the iPhone and the Mac.';
   Jobs.Properties['nacimiento'] := 1955;
   Jobs.Properties['pais']       := 'USA';
 
   Gates := RAG.AddNode('p002', 'PERSONA', 'Bill Gates');
-  Gates.Text := 'Bill Gates, cofundador de Microsoft y pionero del software personal.';
+  Gates.Text := 'Bill Gates, co-founder of Microsoft and pioneer of personal software.';
   Gates.Properties['nacimiento'] := 1955;
   Gates.Properties['pais']       := 'USA';
 
   Page := RAG.AddNode('p003', 'PERSONA', 'Larry Page');
-  Page.Text := 'Larry Page, cofundador de Google y creador del algoritmo PageRank.';
+  Page.Text := 'Larry Page, co-founder of Google and creator of the PageRank algorithm.';
   Page.Properties['nacimiento'] := 1973;
   Page.Properties['pais']       := 'USA';
 
   Altman := RAG.AddNode('p004', 'PERSONA', 'Sam Altman');
-  Altman.Text := 'Sam Altman, CEO de OpenAI, impulsor de ChatGPT y los LLMs modernos.';
+  Altman.Text := 'Sam Altman, CEO of OpenAI, driving force behind ChatGPT and modern LLMs.';
   Altman.Properties['nacimiento'] := 1985;
   Altman.Properties['pais']       := 'USA';
 
@@ -69,22 +69,22 @@ begin
 
   // --- COMPANIES ---
   Apple := RAG.AddNode('e001', 'EMPRESA', 'Apple Inc.');
-  Apple.Text := 'Apple Inc., empresa creadora del iPhone, Mac y el ecosistema iOS.';
+  Apple.Text := 'Apple Inc., company that created the iPhone, Mac and the iOS ecosystem.';
   Apple.Properties['fundacion'] := 1976;
   Apple.Properties['sector']    := 'Tecnologia';
 
   Microsoft := RAG.AddNode('e002', 'EMPRESA', 'Microsoft');
-  Microsoft.Text := 'Microsoft, empresa creadora de Windows, Office y Azure cloud.';
+  Microsoft.Text := 'Microsoft, company that created Windows, Office and Azure cloud.';
   Microsoft.Properties['fundacion'] := 1975;
   Microsoft.Properties['sector']    := 'Tecnologia';
 
   Google := RAG.AddNode('e003', 'EMPRESA', 'Google');
-  Google.Text := 'Google, empresa de búsqueda en internet, Android y computación en la nube.';
+  Google.Text := 'Google, internet search company, Android and cloud computing.';
   Google.Properties['fundacion'] := 1998;
   Google.Properties['sector']    := 'Tecnologia';
 
   OpenAI := RAG.AddNode('e004', 'EMPRESA', 'OpenAI');
-  OpenAI.Text := 'OpenAI, empresa de inteligencia artificial creadora de GPT y ChatGPT.';
+  OpenAI.Text := 'OpenAI, artificial intelligence company that created GPT and ChatGPT.';
   OpenAI.Properties['fundacion'] := 2015;
   OpenAI.Properties['sector']    := 'IA';
 
@@ -92,19 +92,19 @@ begin
 
   // --- PRODUCTS ---
   IPhone := RAG.AddNode('pr001', 'PRODUCTO', 'iPhone');
-  IPhone.Text := 'iPhone, smartphone revolucionario que transformó la industria móvil.';
+  IPhone.Text := 'iPhone, revolutionary smartphone that transformed the mobile industry.';
   IPhone.Properties['lanzamiento'] := 2007;
 
   Windows := RAG.AddNode('pr002', 'PRODUCTO', 'Windows');
-  Windows.Text := 'Windows, sistema operativo más usado en computadoras personales.';
+  Windows.Text := 'Windows, most used operating system on personal computers.';
   Windows.Properties['lanzamiento'] := 1985;
 
   Search := RAG.AddNode('pr003', 'PRODUCTO', 'Google Search');
-  Search.Text := 'Google Search, motor de búsqueda más utilizado del mundo.';
+  Search.Text := 'Google Search, most used search engine in the world.';
   Search.Properties['lanzamiento'] := 1998;
 
   GPT := RAG.AddNode('pr004', 'PRODUCTO', 'ChatGPT');
-  GPT.Text := 'ChatGPT, asistente de inteligencia artificial basado en GPT-4.';
+  GPT.Text := 'ChatGPT, artificial intelligence assistant based on GPT-4.';
   GPT.Properties['lanzamiento'] := 2022;
 
   Writeln('Creating relationships...');

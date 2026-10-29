@@ -198,7 +198,7 @@ begin
       WriteLn('MCP HTTP server listening on ' + BASE_URL);
       WriteLn('');
 
-      // ===================== FASE 1: gating OFF =====================
+      // ===================== PHASE 1: gating OFF =====================
       WriteLn('== PHASE 1: gating OFF (without OnClientConnect) ==');
       if DoPost(CallEchoBody, '', st, body, sess) then
       begin
@@ -207,7 +207,7 @@ begin
       end;
       WriteLn('');
 
-      // ===================== FASE 2: gating ON =====================
+      // ===================== PHASE 2: gating ON =====================
       WriteLn('== PHASE 2: gating ON (OnClientConnect assigned) ==');
       Server.OnClientConnect := H.HandleClientConnect;
       Server.OnUnauthorizedRequest := H.HandleUnauthorized;
@@ -251,7 +251,7 @@ begin
       end;
       WriteLn('');
 
-      // ============ FASE 3: el evento concede acceso ============
+      // ============ PHASE 3: the event grants access ============
       WriteLn('== PHASE 3: OnUnauthorizedRequest grants access (AAllow:=True) ==');
       H.AllowUnauth := True;
       H.UnauthFired := False;
@@ -263,7 +263,7 @@ begin
       H.AllowUnauth := False;
       WriteLn('');
 
-      // ============ FASE 4: OnClientConnect rechaza ============
+      // ============ PHASE 4: OnClientConnect rejects ============
       WriteLn('== PHASE 4: OnClientConnect rejects the client (AAllow:=False) ==');
       H.RejectClient := 'EvilClient';
       H.ConnectFired := False;
@@ -271,19 +271,19 @@ begin
       begin
         Check(H.ConnectFired, '4. OnClientConnect was fired');
         Check((Pos('"error"', body) > 0) and (Pos('"result"', body) = 0),
-          '4. initialize rechazado -> error JSON-RPC, sin result');
+          '4. initialize rejected -> JSON-RPC error, no result');
         Check(sess = '', '4. no Mcp-Session-Id issued to rejected client');
       end;
       H.RejectClient := '';
       WriteLn('');
 
-      // ===================== Resumen =====================
+      // ===================== Summary =====================
       WriteLn('========================================');
       WriteLn(Format('  PASS: %d    FAIL: %d', [GPass, GFail]));
       if GFail = 0 then
         WriteLn('  RESULT: OK - ISSUE #110 validated')
       else
-        WriteLn('  RESULTADO: FALLOS detectados');
+        WriteLn('  RESULT: FAILURES detected');
       WriteLn('========================================');
 
       Server.Stop;

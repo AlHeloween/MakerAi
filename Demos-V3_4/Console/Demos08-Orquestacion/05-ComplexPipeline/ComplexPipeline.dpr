@@ -72,32 +72,32 @@ begin
     Contextualizador := MakeLLM(Manager, 'Contextualizador',
       'You are a context analyst. Given a topic, write a ' +
       'brief description (2 sentences) that establishes the context for ' +
-      'un analisis de pros y contras. Responde en espanol.');
+      'an analysis of pros and cons. Answer in English.');
 
     // Branch A (fork): advantages analyst
     AnalistaPros := MakeLLM(Manager, 'AnalistaPros',
       'You are an advantages analyst. You receive context about a topic. ' +
       'List the 3 main advantages, one per line. ' +
-      'Formato: "PROS:\n+ [ventaja 1]\n+ [ventaja 2]\n+ [ventaja 3]"');
+      'Format: "PROS:\n+ [advantage 1]\n+ [advantage 2]\n+ [advantage 3]"');
 
     // Branch B (fork): disadvantages analyst
     AnalistaCons := MakeLLM(Manager, 'AnalistaCons',
       'You are a disadvantages analyst. You receive context about a topic. ' +
       'List the 3 main disadvantages, one per line. ' +
-      'Formato: "CONS:\n- [desventaja 1]\n- [desventaja 2]\n- [desventaja 3]"');
+      'Format: "CONS:\n- [disadvantage 1]\n- [disadvantage 2]\n- [disadvantage 3]"');
 
     // Join node (jmAll): Sintetizador — combines pros and cons
     Sintetizador := MakeLLM(Manager, 'Sintetizador',
       'You are a synthesizer. You receive the combined output of two analysts: ' +
       'one with PROS and the other with CONS. Synthesize into 2 paragraphs in English: ' +
-      'el primero resume las ventajas, el segundo las desventajas.');
+      'the first summarizes the advantages, the second the disadvantages.');
     Sintetizador.JoinMode := jmAll;
 
     // Final node (sequential): Redactor — generates the final article
     Redactor := MakeLLM(Manager, 'Redactor',
       'You are a writer. You receive a synthesized pros and cons analysis. ' +
       'Write a 3-paragraph opinion article in English that ' +
-      'presente el tema de forma equilibrada y concluya con una recomendacion.');
+      'presents the topic in a balanced way and concludes with a recommendation.');
 
     // Sequential link: Contextualizador -> Fork
     ForkLink := TAIAgentsLink.Create(Manager);

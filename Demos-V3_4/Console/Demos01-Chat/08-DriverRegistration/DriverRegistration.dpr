@@ -33,15 +33,15 @@ uses
   System.Generics.Collections,
   uMakerAi.Chat,
   uMakerAi.Chat.AiConnection,
-  // ── Solo importamos Ollama explícitamente (como en el ejemplo del estudiante)
-  // Aun así, GetDriversNames() retornará TODOS los providers.
-  // Ver la explicación en la sección PARTE 2 del demo.
+  // ── We only import Ollama explicitly (as in the student's example)
+  // Even so, GetDriversNames() will return ALL providers.
+  // See the explanation in PART 2 of the demo.
   uMakerAi.Chat.Ollama,
   uMakerAI.ParamsRegistry,
   uMakerAi.Tools.Functions;
 
 // =============================================================================
-//  PARTE 1: Mostrar todos los drivers registrados
+//  PART 1: Show all registered drivers
 // =============================================================================
 
 procedure MostrarDriversRegistrados;
@@ -73,7 +73,7 @@ begin
 end;
 
 // =============================================================================
-//  PARTE 2: Explicar por qué pasa esto
+//  PART 2: Explain why this happens
 // =============================================================================
 
 procedure ExplicarCausa;
@@ -99,7 +99,7 @@ begin
 end;
 
 // =============================================================================
-//  PARTE 3: Demostrar que aun con todo registrado, solo usamos Ollama
+//  PART 3: Demonstrate that even with everything registered, we only use Ollama
 // =============================================================================
 
 procedure DemostrarUsoSoloOllama;

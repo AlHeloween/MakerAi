@@ -150,7 +150,7 @@ begin
 end;
 
 // ===========================================================================
-// ESCENARIO 1: Audio nativo — gemma4 recibe el archivo directamente
+// SCENARIO 1: Native audio — gemma4 receives the file directly
 // ===========================================================================
 function RunNativeAudio(const AModel, AAudioFile, AQuestion: String;
   SpeechTool: TAiGeminiSpeechTool): String;
@@ -193,7 +193,7 @@ begin
 end;
 
 // ===========================================================================
-// ESCENARIO 2: STT Bridge — Gemini transcribe → gemma4 responde en texto
+// SCENARIO 2: STT Bridge — Gemini transcribes → gemma4 responds in text
 // ===========================================================================
 function RunSTTBridge(const AModel, AAudioFile, AQuestion: String;
   SpeechTool: TAiGeminiSpeechTool): String;
@@ -234,7 +234,7 @@ begin
 end;
 
 // ===========================================================================
-// ESCENARIO 3: TTS Directo — texto → Gemini TTS → archivo WAV
+// SCENARIO 3: Direct TTS — text → Gemini TTS → WAV file
 // ===========================================================================
 procedure RunTTSDirect(const AText, AOutFile: String);
 var
@@ -266,7 +266,7 @@ begin
 end;
 
 // ===========================================================================
-// ESCENARIO 4: Pipeline completo — audio → STT bridge → gemma4 → TTS
+// SCENARIO 4: Full pipeline — audio → STT bridge → gemma4 → TTS
 // ===========================================================================
 procedure RunFullPipeline(const AModel, AAudioFile, AQuestion: String;
   SpeechTool: TAiGeminiSpeechTool);
@@ -344,8 +344,8 @@ begin
       // Scenario 3: TTS (always available, does not require input audio)
       // -----------------------------------------------------------------------
       RunTTSDirect(
-        'Hola! Soy gemma4, un modelo de lenguaje local corriendo en Ollama. ' +
-        'Estoy siendo probado con el sistema de puentes de audio de MakerAI.',
+        'Hello! I am gemma4, a local language model running in Ollama. ' +
+        'I am being tested with the MakerAI audio bridge system.',
         ExtractFilePath(ParamStr(0)) + 'tts_demo.wav');
 
       // -----------------------------------------------------------------------
@@ -374,7 +374,7 @@ begin
         Writeln('INFO: No audio file was provided.');
         Writeln('      Scenarios 1, 2, and 4 require an audio file.');
         Writeln('      Pass the path as the first argument:');
-        Writeln('        AudioBridge.exe D:\ruta\audio.wav');
+        Writeln('        AudioBridge.exe D:\path\audio.wav');
       end;
 
     finally

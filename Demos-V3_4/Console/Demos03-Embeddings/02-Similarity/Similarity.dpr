@@ -62,7 +62,7 @@ begin
     Idx[I]    := I;
   end;
 
-  // Bubble sort descendente
+  // Bubble sort descending
   for I := 0 to High(Corpus) - 1 do
     for J := 0 to High(Corpus) - I - 1 do
       if Scores[Idx[J]] < Scores[Idx[J+1]] then

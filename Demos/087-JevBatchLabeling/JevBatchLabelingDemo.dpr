@@ -31,9 +31,9 @@ uses
   uMakerAi.Jev.Batch in '..\..\Source\Tools\uMakerAi.Jev.Batch.pas';
 
 const
-  PREGUNTA = '¿En qué cuenta del PUC colombiano se registra la contrapartida de `movimiento`? ' +
-    'La contrapartida es la cuenta que explica el concepto del movimiento, no la cuenta del banco de ' +
-    'la empresa por donde entra o sale el dinero, ni la cuenta del proveedor en una causación.';
+  PREGUNTA = 'In which account of the Colombian PUC is the counterpart of `movimiento` recorded? ' +
+    'The counterpart is the account that explains the concept of the movement, not the company bank ' +
+    'account through which money enters or leaves, nor the supplier account in an accrual.';
 
 type
   TCaso = record
@@ -44,11 +44,11 @@ type
 function Sentido(const AFlujo: string): string;
 begin
   if AFlujo = 'salida' then
-    Result := 'Salida de dinero: se pagó desde el banco de la empresa.'
+    Result := 'Money out: paid from the company bank account.'
   else if AFlujo = 'entrada' then
-    Result := 'Entrada de dinero: llegó al banco de la empresa.'
+    Result := 'Money in: received into the company bank account.'
   else
-    Result := 'Causación de una factura de proveedor (aún no se paga).';
+    Result := 'Accrual of a supplier invoice (not yet paid).';
 end;
 
 // Looks for the CSVs next to the .dpr (the .exe ends up in Win64\Release)

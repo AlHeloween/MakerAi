@@ -266,7 +266,7 @@ begin
           end;
       if not Encontrado then
         raise Exception.CreateFmt('The model "%s" is not in Ollama. Available embedding models:%s' + sLineBreak +
-          'Descargalo con: ollama pull %s', [ModeloEmb, Lista, ModeloEmb]);
+          'Download it with: ollama pull %s', [ModeloEmb, Lista, ModeloEmb]);
       Writeln('   embeddings model: ' + ModeloEmb + '  (dim ' + IntToStr(DimEmb) + ')');
     finally
       Root.Free;
@@ -301,15 +301,15 @@ begin
     '  genero_id integer references genero(id),' +
     '  sinopsis text,' +
     '  creado timestamp default now())');
-  // Los generos 1..6 son los que referencian las semillas por GeneroId; sin
-  // ellos la insercion viola la clave foranea en una base nueva.
+  // Genres 1..6 are the ones referenced by the seeds via GeneroId; without
+  // them the insertion violates the foreign key in a new database.
   Conn.ExecSQL(
     'insert into genero (id, nombre) values ' +
     '(1,''Accion''),(2,''Drama''),(3,''Comedia''),' +
     '(4,''Ciencia ficcion''),(5,''Suspenso''),(6,''Documental'') ' +
     'on conflict (id) do nothing');
-  // En un bloque DO: 'select setval(...)' devuelve un result set y FireDAC
-  // rechaza ejecutarlo con ExecSQL ("use Open method for SELECT-like commands").
+  // In a DO block: 'select setval(...)' returns a result set and FireDAC
+  // refuses to execute it with ExecSQL ("use Open method for SELECT-like commands").
   Conn.ExecSQL(
     'do $$ begin perform setval(pg_get_serial_sequence(''genero'',''id''), ' +
     'greatest((select max(id) from genero), 1)); end $$');
@@ -342,7 +342,7 @@ begin
     for I := Low(SEMILLAS) to High(SEMILLAS) do
     begin
       S := SEMILLAS[I];
-      // Idempotente: se compara por titulo para poder correr el demo varias veces
+      // Idempotent: compares by title so the demo can be run several times
       Q.SQL.Text := 'select count(*) from pelicula where titulo = :t';
       Q.ParamByName('t').AsString := S.Titulo;
       Q.Open;
@@ -368,7 +368,7 @@ begin
   end;
 
   Writeln(Format('   inserted %d new movies (duplicates are skipped by title)', [Result]));
-  // ExecSQLScalar devuelve Variant: hay que convertirlo, %d no lo acepta
+  // ExecSQLScalar returns Variant: it must be converted, %d does not accept it
   Writeln('   total in catalog: ' + VarToStr(Conn.ExecSQLScalar('select count(*) from pelicula')));
 end;
 
@@ -398,7 +398,7 @@ begin
   try
     Q.Connection := Conn;
 
-    // Que peliculas tienen ya vector en ESTA tabla y entidad
+    // Which movies already have a vector in THIS table and entity
     Q.SQL.Text := Format('select properties->>''pelicula_id'' as pid from %s where entidad = :e', [TablaVec]);
     Q.ParamByName('e').AsString := ENTIDAD;
     Q.Open;
@@ -439,7 +439,7 @@ begin
 
       Meta := TAiEmbeddingMetaData.Create;
       try
-        // Los metadatos son lo que despues permite filtrar sin recalcular vectores
+        // Metadata is what later allows filtering without recomputing vectors
         Meta['pelicula_id'] := PeliId;
         Meta['titulo'] := Q.FieldByName('titulo').AsString;
         Meta['anio'] := Q.FieldByName('anio').AsInteger;
@@ -462,7 +462,7 @@ begin
   end;
 
   Writeln('');
-  Writeln(Format('   indexadas ahora: %d', [Result]));
+  Writeln(Format('   indexed now: %d', [Result]));
   Writeln(Format('   total vectors in %s: %s', [TablaVec,
     VarToStr(Conn.ExecSQLScalar(Format('select count(*) from %s where entidad = %s', [TablaVec, QuotedStr(ENTIDAD)])))]));
 end;
@@ -480,7 +480,7 @@ begin
   if ATitulo <> '' then
     Writeln('   ' + ATitulo)
   else
-    Writeln('   consulta: "' + APrompt + '"');
+    Writeln('   query: "' + APrompt + '"');
 
   Target := Rag.CreateEmbeddingNode(APrompt);
   try
@@ -527,14 +527,14 @@ begin
   end;
 
   // -------------------------------------------------------------------------
-  // Solo-embeddings vs hibrido
+  // Embeddings only vs hybrid
   // -------------------------------------------------------------------------
   // Embeddings understand meaning but lose rare terms and
   // proper names; BM25 does exactly the opposite. The Postgres driver
   // resolves lexical matching with ts_rank_cd over the search_vector column (GIN
   // index, 'spanish' configuration) and fuses both rankings with RRF.
   Writeln('');
-  Writeln('== 8. Solo-embeddings vs hibrido (BM25 + RRF) ==');
+  Writeln('== 8. Embeddings only vs hybrid (BM25 + RRF) ==');
 
   Rag.SearchOptions.UseEmbeddings := True;
   Rag.SearchOptions.UseBM25 := False;
@@ -545,7 +545,7 @@ begin
   Rag.SearchOptions.UseRRF := True;
   Buscar('origami that defends a library', 3, nil, 'hybrid BM25+RRF  -> the same query');
 
-  // Un nombre propio es el caso donde mas se nota
+  // A proper name is the case where it shows most
   Rag.SearchOptions.UseBM25 := False;
   Rag.SearchOptions.UseRRF := False;
   Buscar('movies by Estudio Pixelia', 3, nil, 'embeddings only  -> "movies by Estudio Pixelia"');

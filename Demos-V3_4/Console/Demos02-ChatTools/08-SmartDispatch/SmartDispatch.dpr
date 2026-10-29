@@ -42,7 +42,7 @@ const
   OLLAMA_URL = 'http://localhost:11434/';
 
 // =============================================================================
-//  Mock tools — simulan herramientas sin llamadas reales a APIs
+//  Mock tools — simulate tools without real API calls
 // =============================================================================
 
 type
@@ -73,7 +73,7 @@ begin
 end;
 
 // =============================================================================
-//  Helper: ejecuta un mensaje y muestra resultado
+//  Helper: executes a message and shows the result
 // =============================================================================
 
 procedure Probar(Conn: TAiChatConnection; const Etiqueta, Mensaje: String);
@@ -93,7 +93,7 @@ begin
 end;
 
 // =============================================================================
-//  Demo principal
+//  Main demo
 // =============================================================================
 
 procedure RunDemo;
@@ -112,21 +112,21 @@ begin
   SearchTool := TMockWebSearchTool.Create(nil);
   Conn       := TAiChatConnection.Create(nil);
   try
-    // Herramientas asignadas ANTES de DriverName (patron requerido)
+    // Tools assigned BEFORE DriverName (required pattern)
     Conn.ImageTool     := ImageTool;
     Conn.WebSearchTool := SearchTool;
 
     Conn.DriverName := DRIVER;
 
-    // Params del driver
+    // Driver params
     Conn.Params.Values['URL']          := OLLAMA_URL;
     Conn.Params.Values['Model']        := MODEL;
     Conn.Params.Values['Asynchronous'] := 'False';
     Conn.Params.Values['Max_Tokens']   := '512';
 
-    // Modo SmartDispatch
+    // SmartDispatch mode
     Conn.ChatMode := cmSmartDispatch;
-    Conn.SystemPrompt.Text := 'Eres un asistente util. Responde en espanol.';
+    Conn.SystemPrompt.Text := 'You are a helpful assistant. Respond in Spanish.';
 
     Writeln('Tools available to the dispatcher:');
     Writeln('  - ImageTool     => tag [IMAGEGEN]');

@@ -29,7 +29,7 @@ uses
 // Demo 054 — TAiDatabaseCheckpointer with SQLite
 //
 // Agent flow:
-//   Inicio -> Procesar -> Aprobar (SUSPEND) -> Finalizar
+//   Start -> Process -> Approve (SUSPEND) -> Finish
 //
 // Phase 1: The agent runs and suspends at the "Approve" node.
 //         The checkpoint is saved automatically in the SQLite DB.
@@ -125,14 +125,14 @@ procedure TDemo.BuildGraph;
 begin
   FAgents.ClearGraph;
   FAgents
-    .AddNode('Inicio',    InicioExec)
-    .AddNode('Procesar',  ProcesarExec)
-    .AddNode('Aprobar',   AprobarExec)
-    .AddNode('Finalizar', FinalizarExec);
-  FAgents.AddEdge('Inicio',   'Procesar');
-  FAgents.AddEdge('Procesar', 'Aprobar');
-  FAgents.AddEdge('Aprobar',  'Finalizar');
-  FAgents.SetEntryPoint('Inicio').SetFinishPoint('Finalizar');
+    .AddNode('Start',    InicioExec)
+    .AddNode('Process',  ProcesarExec)
+    .AddNode('Approve',   AprobarExec)
+    .AddNode('Finish', FinalizarExec);
+  FAgents.AddEdge('Start',   'Process');
+  FAgents.AddEdge('Process', 'Approve');
+  FAgents.AddEdge('Approve',  'Finish');
+  FAgents.SetEntryPoint('Start').SetFinishPoint('Finish');
 end;
 
 procedure TDemo.WaitForCompletion;
@@ -250,7 +250,7 @@ begin
   Writeln('Checkpointer: TAiDatabaseCheckpointer (SQLite via FireDAC)');
   Writeln;
 
-  // Verificar si hay threads suspendidos de ejecuciones anteriores
+  // Check whether there are suspended threads from previous runs
   ActiveThreads := FCheckpointer.GetActiveThreadIDs;
   if Length(ActiveThreads) > 0 then
   begin
@@ -259,14 +259,14 @@ begin
     for I := 0 to High(ActiveThreads) do
       Println(Format('  [%d] %s', [I + 1, ActiveThreads[I]]));
     Writeln;
-    Write('Reanudar el primer thread? (S/N): ');
+    Write('Resume the first thread? (Y/N): ');
     Readln(Choice);
-    if Choice.Trim.ToUpper = 'S' then
+    if Choice.Trim.ToUpper = 'Y' then
     begin
       BuildGraph;
       Println('Resuming thread: ' + ActiveThreads[0]);
       // 'Finish' is the node that follows the suspension point ('Approve')
-      FAgents.ResumeThread(ActiveThreads[0], 'Finalizar', 'Aprobado desde BD');
+      FAgents.ResumeThread(ActiveThreads[0], 'Finish', 'Approved from DB');
       WaitForCompletion;
       FCheckpointer.DeleteCheckpoint(ActiveThreads[0]);
       Println('Checkpoint deleted from DB.');
@@ -277,7 +277,7 @@ begin
   end;
 
   // =========================================================================
-  // FASE 1: Primera ejecucion — el agente se suspende en "Aprobar"
+  // PHASE 1: First run — the agent suspends at "Approve"
   // =========================================================================
   Writeln;
   Println('=== PHASE 1: First run ===');
@@ -291,11 +291,11 @@ begin
 
   if FSuspendedThreadID = '' then
   begin
-    Println('El agente termino sin suspenderse (inesperado).');
+    Println('The agent finished without suspending (unexpected).');
     Exit;
   end;
 
-  // Mostrar estado guardado en BD
+  // Show state saved in the DB
   Writeln;
   Println('=== CHECKPOINT SAVED IN SQLITE DB ===');
   Println('Thread ID : ' + FSuspendedThreadID);
@@ -305,7 +305,7 @@ begin
   Writeln;
 
   // =========================================================================
-  // FASE 2: Resume — simula aprobacion del operador
+  // PHASE 2: Resume — simulates operator approval
   // =========================================================================
   Println('=== PHASE 2: Resume after approval ===');
   Write('Press ENTER to simulate operator approval...');
@@ -314,8 +314,8 @@ begin
   Writeln;
   Println('Resuming execution from "Finish"...');
   // 'Finish' is the first pending node after the suspension point
-  FAgents.ResumeThread(FSuspendedThreadID, 'Finalizar',
-    'Aprobado por operador humano');
+  FAgents.ResumeThread(FSuspendedThreadID, 'Finish',
+    'Approved by human operator');
   WaitForCompletion;
 
   // Cleanup
@@ -338,13 +338,13 @@ begin
       Demo.Free;
     end;
     Writeln;
-    Write('Presione ENTER para salir...');
+    Write('Press ENTER to exit...');
     Readln;
   except
     on E: Exception do
     begin
       Writeln('Error fatal: ', E.ClassName, ' - ', E.Message);
-      Write('Presione ENTER para salir...');
+      Write('Press ENTER to exit...');
       Readln;
     end;
   end;

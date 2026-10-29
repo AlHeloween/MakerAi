@@ -80,7 +80,7 @@ begin
   AMem.Store('The "vec0 not found" error is resolved by copying vec0.dll next to the exe', mt_ErrorFix, 7, 'rag,sqlite');
   AMem.Store('Usually asks about performance before the API', mt_Pattern, 5, 'style');
   AMem.Store('A duplicate charge is claimed through the billing form', mt_Fact, 6, 'support');
-  // Con TTL: caduca sola a los 7 dias. Util para contexto de una sola sesion.
+  // With TTL: expires on its own after 7 days. Useful for single-session context.
   AMem.Store('Current session: reviewing the agents module', mt_Summary, 3, 'session', nil, 7);
 
   Writeln('   stored 7 memories (one with a 7-day TTL)');
@@ -94,7 +94,7 @@ var
   I: Integer;
 begin
   Writeln('');
-  Writeln('   consulta: "' + AConsulta + '"');
+  Writeln('   query: "' + AConsulta + '"');
   Res := AMem.Search(AConsulta, 3, AModo);
   if Length(Res) = 0 then
     Writeln('     (no results)')
@@ -135,7 +135,7 @@ begin
   Ctx := AMem.Context('How do I configure the project RAG?', 200, 1);
   Writeln(Format('   memories included: %d   estimated tokens: %d   truncated: %s',
     [Ctx.MemoryCount, Ctx.TokenEstimate, BoolToStr(Ctx.Truncated, True)]));
-  Writeln('   ---------------- bloque generado ----------------');
+  Writeln('   ---------------- generated block ----------------');
   Writeln(Ctx.FormattedText);
   Writeln('   ------------------------------------------------');
 end;
@@ -148,7 +148,7 @@ begin
   Writeln('== 5. Namespace stats ==');
   Writeln('');
   S := AMem.Stats;
-  Writeln(Format('   namespace=%s  total=%d  importancia media=%.2f  decay medio=%.2f  expiradas=%d',
+  Writeln(Format('   namespace=%s  total=%d  average importance=%.2f  average decay=%.2f  expired=%d',
     [S.Namespace, S.TotalCount, S.AvgImportance, S.AvgDecay, S.ExpiredCount]));
 end;
 
@@ -178,7 +178,7 @@ begin
 
     Writeln('=== DEMO 076: TAiMemory, persistent semantic memory ===');
 
-    // Empezar siempre limpio para que el demo sea reproducible
+    // Always start clean so the demo is reproducible
     if TFile.Exists(DbPath) then
       TFile.Delete(DbPath);
 
@@ -189,7 +189,7 @@ begin
       Embedder.ApiKey := ApiKey;
       Embedder.Model := 'text-embedding-3-small';
       ModoBusqueda := ms_Hybrid;
-      Writeln('   embedder: OpenAI text-embedding-3-small -> busqueda HIBRIDA (FTS + semantica)');
+      Writeln('   embedder: OpenAI text-embedding-3-small -> HYBRID search (FTS + semantics)');
     end
     else
     begin

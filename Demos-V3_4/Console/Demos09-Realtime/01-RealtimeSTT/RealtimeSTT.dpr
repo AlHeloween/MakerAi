@@ -140,7 +140,7 @@ end;
 procedure TRealtimeDemo.OnSessionReady(Sender: TObject);
 begin
   Writeln('[✓] Session configured — starting microphone calibration...');
-  // Activar el mic DESPUES de que el servidor confirme la sesion
+  // Activate the mic AFTER the server confirms the session
   FMic.Active := True;
 end;
 
@@ -169,7 +169,7 @@ end;
 
 procedure TRealtimeDemo.OnTranscriptDelta(Sender: TObject; const Delta: string);
 begin
-  // Escribir el delta sin salto de linea para efecto de escritura en tiempo real
+  // Write the delta without a line break for real-time typing effect
   FLine := FLine + Delta;
   Write(Delta);
 end;

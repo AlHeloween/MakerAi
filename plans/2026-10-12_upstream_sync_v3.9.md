@@ -102,3 +102,17 @@ Plan follows repo conventions: `plans/[ISO8601]_`. Merging on `local` (fork's wo
 - Sub-agent facility: every `task` child was terminated ~2.5 min after dispatch ("failed: undefined"; the job then reads "killed") — long work cannot be delegated there → switched to `aicall` pipelines.
 - `logsearch` fails with `ENAMETOOLONG` on any pattern (host spawn defect).
 - `aicall` providers: nvidia free endpoint fails 3x; opencode free tier exhausted; the streamlake free model trips its circuit breaker after timeouts; openrouter `:free` returned truncated maps; the reliable channel was `deepseek-flash` ($0.15/$0.60 per M).
+
+## Demo pass (2026-10-29, after the core sync)
+
+**Status:** PARTIAL — 8398 → 2061 flagged hits (−75.5%) across `Demos`, `Demos-V3_1`, `Demos-V3_4`, `Demos-Book`, `Apps`; ~250 files translated under the skeleton gate.
+
+| Step | Result | Evidence |
+|------|--------|----------|
+| Inventory | 284 files carried Spanish (4420 comment + 3978 string hits) | `.temp/demo_inventory.txt` |
+| Translation | 4 passes with `aicall` (opencode-go/beam-free, free) on multi-file marker maps | commits `7fe7638`, `c8f08f4` |
+| Gate | Every applied file skeleton-verified; refusing maps left files untouched | `.temp/split_apply.py` output |
+| Residual | 2061 hits / 247 files — Demos-V3_1 837, Demos-Book 377, Demos 562, Demos-V3_4 252, Apps 33 | `.temp/demo_inventory.txt` |
+| Compile oracle | Unavailable for demos in this checkout — control project (untranslated `mcp-json`) fails with the same path/unit errors | `.temp/demo_build_json.log`, `.temp/demo_build_firedac.log`, `.temp/demo_build1.log` |
+
+**Next action:** rerun `.temp/demo_inv.py` → `.temp/build_batches.py`, dispatch the remaining files with the same prompt; the pipeline is `.temp/split_apply.py` + `.temp/pair_apply.py`.

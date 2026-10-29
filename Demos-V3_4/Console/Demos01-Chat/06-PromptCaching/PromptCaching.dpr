@@ -83,7 +83,7 @@ const
   DRIVER  = 'Claude';
   MODEL   = 'claude-haiku-4-5-20251001';
   API_KEY = '@CLAUDE_API_KEY';
-  PREGUNTA = '¿Cuál es el mejor modelo para analizar documentos PDF extensos?';
+  PREGUNTA = 'What is the best model for analyzing extensive PDF documents?';
 var
   Conn : TAiChatConnection;
   Resp : String;
@@ -128,14 +128,14 @@ begin
 end;
 
 // =============================================================================
-//  TEST OPENAI — Caching automático (sin configuración adicional)
+//  TEST OPENAI — Automatic caching (no additional configuration)
 // =============================================================================
 procedure TestOpenAI;
 const
   DRIVER  = 'OpenAI';
   MODEL   = 'gpt-4.1-mini';
   API_KEY = '@OPENAI_API_KEY';
-  PREGUNTA = '¿Cuál es el mejor modelo para analizar documentos PDF extensos?';
+  PREGUNTA = 'What is the best model for analyzing extensive PDF documents?';
 var
   Conn : TAiChatConnection;
   Resp : String;
@@ -173,14 +173,14 @@ begin
 end;
 
 // =============================================================================
-//  TEST DEEPSEEK — Caching automático por prefijo
+//  TEST DEEPSEEK — Automatic caching by prefix
 // =============================================================================
 procedure TestDeepSeek;
 const
   DRIVER  = 'DeepSeek';
   MODEL   = 'deepseek-chat';
   API_KEY = '@DEEPSEEK_API_KEY';
-  PREGUNTA = '¿Cuál es el mejor modelo para analizar documentos PDF extensos?';
+  PREGUNTA = 'What is the best model for analyzing extensive PDF documents?';
 var
   Conn : TAiChatConnection;
   Resp : String;

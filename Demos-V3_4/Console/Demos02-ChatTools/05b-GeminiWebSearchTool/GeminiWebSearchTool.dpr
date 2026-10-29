@@ -31,7 +31,7 @@ const
   GEMINI_KEY = '@GEMINI_API_KEY';
 
 // =============================================================================
-//  Demo 1 — Llamada directa via metodo estatico
+//  Demo 1 — Direct call via static method
 // =============================================================================
 procedure TestDirecto;
 var
@@ -46,7 +46,7 @@ begin
   try
     Msg := TAiGeminiWebSearchTool.Search(
       GEMINI_KEY,
-      'Cuales son los modelos LLM mas potentes disponibles en abril 2025?',
+      'What are the most powerful LLM models available in April 2025?',
       'gemini-2.0-flash');
     try
       Writeln('Response:');
@@ -76,7 +76,7 @@ begin
 end;
 
 // =============================================================================
-//  Demo 2 — Integrado en TAiChatConnection con Ollama + SmartDispatch
+//  Demo 2 — Integrated in TAiChatConnection with Ollama + SmartDispatch
 // =============================================================================
 procedure TestSmartDispatch;
 var
@@ -118,7 +118,7 @@ begin
     Writeln('[WEBSEARCH] Recent AI news in 2025:');
     try
       Resp := Conn.AddMessageAndRun(
-        'Busca las ultimas noticias sobre inteligencia artificial en 2025',
+        'Search for the latest news about artificial intelligence in 2025',
         'user', []);
       Writeln(Copy(Resp, 1, 500));
     except

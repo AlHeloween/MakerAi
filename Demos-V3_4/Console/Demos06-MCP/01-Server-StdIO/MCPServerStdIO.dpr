@@ -110,13 +110,13 @@ var
   NombrePersona, Lang, Saludo: String;
 begin
   NombrePersona := Trim(AParams.Name);
-  if NombrePersona = '' then NombrePersona := 'mundo';
+  if NombrePersona = '' then NombrePersona := 'world';
   Lang := Trim(LowerCase(AParams.Language));
 
   if Lang = 'en' then
     Saludo := Format('Hello, %s! Welcome to MakerAI MCP Server.', [NombrePersona])
   else
-    Saludo := Format('Hola, %s! Bienvenido al servidor MCP de MakerAI.', [NombrePersona]);
+    Saludo := Format('Hello, %s! Welcome to the MakerAI MCP server.', [NombrePersona]);
 
   Result := TAiMCPResponseBuilder.New.AddText(Saludo).Build;
 end;

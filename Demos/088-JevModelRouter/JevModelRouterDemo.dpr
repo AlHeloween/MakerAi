@@ -38,14 +38,14 @@ uses
 
 const
   PETICIONES: array[0..7] of string = (
-    'Hola, buenos dias',
-    'Traduce al ingles: la reunion se aplaza para el lunes',
-    'Escribe una funcion en Delphi que invierta un string',
-    'Explicame la diferencia entre una clase abstracta y una interfaz en Delphi',
-    'Tengo un access violation al liberar un TStringList dentro de un finally, que puede ser?',
-    'Puedo deducir en renta los intereses de un credito de vivienda si soy independiente en Colombia?',
-    'Compara PostgreSQL y SQL Server para un ERP multiempresa y recomienda uno con argumentos',
-    'Disena la arquitectura multi-tenant de un ERP contable con PostgreSQL, sincronizacion offline y auditoria');
+    'Hello, good morning',
+    'Translate to English: the meeting is postponed to Monday',
+    'Write a Delphi function that reverses a string',
+    'Explain the difference between an abstract class and an interface in Delphi',
+    'I get an access violation when freeing a TStringList inside a finally, what could it be?',
+    'Can I deduct housing loan interest from income tax if I am self-employed in Colombia?',
+    'Compare PostgreSQL and SQL Server for a multi-company ERP and recommend one with arguments',
+    'Design the multi-tenant architecture of an accounting ERP with PostgreSQL, offline synchronization and auditing');
 
   CRITERIO_CALIDAD = 'It correctly and usefully answers the user request in `input`';
 
@@ -139,8 +139,8 @@ end;
 
 procedure BloqueConversacion(ARouter: TAiJevModelRouter; AScorer: TAiJevEvalScorer);
 const
-  TURNO1 = 'Hola, me llamo Gustavo y tengo una ferreteria en Bogota que vende tornillos al por mayor.';
-  TURNO2 = 'Disena un plan de expansion a tres ciudades para mi negocio, teniendo en cuenta lo que te conte.';
+  TURNO1 = 'Hello, my name is Gustavo and I have a hardware store in Bogota that sells screws wholesale.';
+  TURNO2 = 'Design an expansion plan to three cities for my business, taking into account what I told you.';
 var
   Conn: TAiChatConnection;
   Resp: string;

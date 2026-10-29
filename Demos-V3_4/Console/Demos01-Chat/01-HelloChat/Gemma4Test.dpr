@@ -55,7 +55,7 @@ end;
 procedure TEvHandler.OnData(const Sender: TObject; aMsg: TAiChatMessage;
   aResponse: TJSONObject; aRole, aText: string);
 begin
-  Write(aText);  // imprime la respuesta token a token (modo stream)
+  Write(aText);  // prints the response token by token (stream mode)
 end;
 
 procedure TEvHandler.OnError(Sender: TObject; const AMsg: string;
@@ -99,7 +99,7 @@ begin
   try
     Conn.SystemPrompt.Text := 'You are a helpful assistant. Always respond in Spanish.';
     Write('Response: ');
-    Resp := Conn.AddMessageAndRun('Cuanto es 17 x 23? Piensa paso a paso.', 'user', []);
+    Resp := Conn.AddMessageAndRun('What is 17 x 23? Think step by step.', 'user', []);
     Writeln;
 
     if (Resp <> '') and (GThinking <> '') then

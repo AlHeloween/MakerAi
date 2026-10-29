@@ -105,35 +105,35 @@ begin
     Manager.TimeoutMs    := 180000;
     Manager.OnEnterNode  := Contexto.InjectarHistorial;
 
-    // Nodo 1: Moderador
+    // Node 1: Moderator
     Moderador := MakeLLM(Manager, 'Moderador',
       'You are the debate moderator. Given a topic, formulate a clear ' +
       'proposition (affirmative statement) and introduce the debate in 2 sentences. ' +
-      'Formato: "PROPOSICION: [enunciado]\nINTRODUCCION: [contexto breve]"');
+      'Format: "PROPOSITION: [statement]\nINTRODUCTION: [brief context]"');
 
-    // Nodo 2: Ponente (A FAVOR)
+    // Node 2: Proposer (FOR)
     Ponente := MakeLLM(Manager, 'Ponente',
       'You are an expert debater FOR the proposition. ' +
       'Argue with 2 solid reasons. Each argument in 2-3 sentences. ' +
-      'Formato: "ARGUMENTOS A FAVOR:\n1. [argumento]\n2. [argumento]"');
+      'Format: "ARGUMENTS FOR:\n1. [argument]\n2. [argument]"');
 
-    // Nodo 3: Critico (EN CONTRA)
+    // Node 3: Critic (AGAINST)
     Critico := MakeLLM(Manager, 'Critico',
       'You are an expert debater AGAINST the proposition. ' +
       'Refute each of the proposer''s arguments and add a new objection. ' +
-      'Formato: "ARGUMENTOS EN CONTRA:\n1. [refutacion 1]\n2. [refutacion 2]\n3. [nueva objecion]"');
+      'Format: "ARGUMENTS AGAINST:\n1. [refutation 1]\n2. [refutation 2]\n3. [new objection]"');
 
-    // Nodo 4: Replica
+    // Node 4: Rebuttal
     Replica := MakeLLM(Manager, 'Replica',
       'You are the original proposer. Respond to the critic''s strongest objection. ' +
-      '2-3 oraciones. Formato: "REPLICA: [tu respuesta]"');
+      '2-3 sentences. Format: "REBUTTAL: [your response]"');
 
-    // Nodo 5: Juez
+    // Node 5: Judge
     Juez := MakeLLM(Manager, 'Juez',
       'You are an impartial judge. Evaluate both sides of the debate on: ' +
       'argument solidity, evidence, and persuasiveness. ' +
       'Give scores out of 10 and declare a winner with justification. ' +
-      'Formato: "PUNTAJES:\n- Lado A favor: X/10\n- Lado En contra: X/10\nVEREDICTO: [ganador y razon]"');
+      'Format: "SCORES:\n- Pro side: X/10\n- Con side: X/10\nVERDICT: [winner and reason]"');
 
     // Chain linearly
     L1 := TAIAgentsLink.Create(Manager); L1.Name := 'L1'; L1.Graph := Manager; L1.NextA := Ponente;   Moderador.Next := L1;

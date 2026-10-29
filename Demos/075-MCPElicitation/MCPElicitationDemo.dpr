@@ -81,13 +81,13 @@ begin
     Contenido := TJSONObject.Create;
     Contenido.AddPair('confirmar', TJSONBool.Create(True));
     Respuesta.AddPair('content', Contenido);
-    Writeln('      [OnInputRequired] el usuario ACEPTA');
+    Writeln('      [OnInputRequired] the user ACCEPTS');
   end
   else
   begin
     // 'decline' = the user said no. ('cancel' would abort the flow.)
     Respuesta.AddPair('action', 'decline');
-    Writeln('      [OnInputRequired] el usuario RECHAZA');
+    Writeln('      [OnInputRequired] the user REJECTS');
   end;
 
   // 3. The response is returned under the SAME key used by the server.
@@ -151,8 +151,8 @@ begin
     Args.AddPair('monto', '1500 EUR');
     Res := Client.CallTool('autorizar_transferencia', Args, Media);
     try
-      Writeln('   resultado: ' + TextoDeRespuesta(Res));
-      Writeln(Format('   veces que se pidio input al usuario: %d', [AHandlers.Invocaciones]));
+      Writeln('   result: ' + TextoDeRespuesta(Res));
+      Writeln(Format('   times input was requested from the user: %d', [AHandlers.Invocaciones]));
     finally
       Res.Free;
     end;
@@ -187,7 +187,7 @@ begin
       Telemetry := TAiTelemetry.Create(nil);
       Telemetry.ServiceName := 'MCPElicitationDemo';
       Telemetry.Enabled := True;
-      Writeln('[otel] Exportando trazas a ' + Telemetry.Endpoint);
+      Writeln('[otel] Exporting traces to ' + Telemetry.Endpoint);
     end;
 
     Writeln('=== DEMO 075: MCP elicitation (MRTR) from the client ===');

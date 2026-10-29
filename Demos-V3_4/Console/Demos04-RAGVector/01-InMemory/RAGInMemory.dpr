@@ -52,32 +52,32 @@ const
 // =============================================================================
 const
   DOCUMENTOS: array[0..8] of String = (
-    'MakerAI es una suite Delphi para integrar LLMs en aplicaciones FMX. ' +
-    'Soporta Claude, OpenAI, Gemini, Groq, Ollama y otros proveedores.',
+    'MakerAI is a Delphi suite for integrating LLMs into FMX applications. ' +
+    'It supports Claude, OpenAI, Gemini, Groq, Ollama, and other providers.',
 
-    'TAiChatConnection es el componente central de MakerAI. ' +
-    'Permite chatear con cualquier LLM cambiando solo DriverName y Model.',
+    'TAiChatConnection is the central component of MakerAI. ' +
+    'It allows chatting with any LLM by changing only DriverName and Model.',
 
-    'Los embeddings son representaciones vectoriales de texto. ' +
-    'Textos semanticamente similares tienen vectores parecidos en el espacio vectorial.',
+    'Embeddings are vector representations of text. ' +
+    'Semantically similar texts have similar vectors in vector space.',
 
-    'RAG (Retrieval-Augmented Generation) combina busqueda vectorial con LLMs. ' +
-    'Permite responder preguntas usando informacion que no esta en el modelo.',
+    'RAG (Retrieval-Augmented Generation) combines vector search with LLMs. ' +
+    'It allows answering questions using information not present in the model.',
 
-    'TAiRAGVector almacena embeddings en memoria RAM. ' +
-    'Soporta busqueda hibrida: vectorial (semantica) + lexica (BM25).',
+    'TAiRAGVector stores embeddings in RAM. ' +
+    'It supports hybrid search: vector (semantic) + lexical (BM25).',
 
-    'Para instalar MakerAI en Delphi debes abrir el grupo de proyectos ' +
-    'MakerAI.groupproj y compilar los paquetes en orden: Core, RAG, UI, DSG.',
+    'To install MakerAI in Delphi, open the project group ' +
+    'MakerAI.groupproj and compile the packages in order: Core, RAG, UI, DSG.',
 
-    'El proveedor Ollama permite usar LLMs locales sin internet. ' +
-    'Modelos populares: llama3.2, gemma3, mistral, codellama.',
+    'The Ollama provider allows using local LLMs without internet. ' +
+    'Popular models: llama3.2, gemma3, mistral, codellama.',
 
-    'La similitud coseno mide el angulo entre dos vectores. ' +
-    'Un valor cercano a 1.0 indica alta similitud semantica.',
+    'Cosine similarity measures the angle between two vectors. ' +
+    'A value close to 1.0 indicates high semantic similarity.',
 
-    'MCP (Model Context Protocol) es un estandar de Anthropic ' +
-    'para conectar LLMs con herramientas externas de forma estandarizada.'
+    'MCP (Model Context Protocol) is an Anthropic standard ' +
+    'for connecting LLMs with external tools in a standardized way.'
   );
 
 // =============================================================================
@@ -175,9 +175,9 @@ begin
       'Answer in Spanish concisely and precisely.';
 
     // ── Questions to RAG ──────────────────────────────────────────────────
-    AskRAG(RAG, Chat, 'Que es MakerAI y para que sirve?');
-    AskRAG(RAG, Chat, 'Como puedo usar un LLM local sin internet?');
-    AskRAG(RAG, Chat, 'Que es RAG y como funciona?');
+    AskRAG(RAG, Chat, 'What is MakerAI and what is it used for?');
+    AskRAG(RAG, Chat, 'How can I use a local LLM without internet?');
+    AskRAG(RAG, Chat, 'What is RAG and how does it work?');
 
   finally
     Chat.Free;

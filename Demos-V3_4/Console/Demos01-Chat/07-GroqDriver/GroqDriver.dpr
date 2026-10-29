@@ -60,7 +60,7 @@ begin
 end;
 
 // =============================================================================
-//  Test 1 — Chat basico
+//  Test 1 — Basic chat
 // =============================================================================
 
 procedure TestBasicChat;
@@ -71,9 +71,9 @@ begin
   Section('Test 1 — Basic chat  [llama-3.1-8b-instant]');
   Conn := MakeConn('llama-3.1-8b-instant');
   try
-    Conn.SystemPrompt.Text := 'Responde siempre en una sola oracion en espanol.';
+    Conn.SystemPrompt.Text := 'Always respond in a single sentence in Spanish.';
     Res := Conn.AddMessageAndRun(
-      'Cual es el planeta mas grande del sistema solar?', 'user', []);
+      'What is the largest planet in the solar system?', 'user', []);
     Writeln('  Response : ', Res);
     if Trim(Res) <> '' then
       Writeln('  => PASS')
@@ -85,7 +85,7 @@ begin
 end;
 
 // =============================================================================
-//  Test 2 — Tool calling  (fix: tool_choice, antes "tools_choice")
+//  Test 2 — Tool calling  (fix: tool_choice, previously "tools_choice")
 // =============================================================================
 
 type
@@ -151,7 +151,7 @@ begin
 end;
 
 // =============================================================================
-//  Test 3 — Reasoning con qwen3-32b  (fix: max_completion_tokens)
+//  Test 3 — Reasoning with qwen3-32b  (fix: max_completion_tokens)
 // =============================================================================
 
 procedure TestReasoning;
@@ -180,7 +180,7 @@ begin
 end;
 
 // =============================================================================
-//  Test 4 — Vision multi-turn  (fix: GetMessages en vez de LastMsg.ToJson)
+//  Test 4 — Vision multi-turn  (fix: GetMessages instead of LastMsg.ToJson)
 // =============================================================================
 
 procedure TestVisionMultiTurn;

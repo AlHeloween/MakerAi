@@ -117,7 +117,7 @@ begin
 end;
 
 // =============================================================================
-//  DEMO 1 — Sin streaming (bloquea hasta recibir respuesta completa)
+//  DEMO 1 — Without streaming (blocks until the full response is received)
 // =============================================================================
 procedure TStreamingDemo.DemoSinStreaming;
 var
@@ -146,7 +146,7 @@ begin
 end;
 
 // =============================================================================
-//  DEMO 2 — Con streaming (imprime cada fragmento conforme llega)
+//  DEMO 2 — With streaming (prints each fragment as it arrives)
 // =============================================================================
 procedure TStreamingDemo.DemoConStreaming;
 var
@@ -179,7 +179,7 @@ begin
 end;
 
 // =============================================================================
-//  DEMO 3 — Streaming con progreso visual (puntos)
+//  DEMO 3 — Streaming with visual progress (dots)
 // =============================================================================
 procedure TStreamingDemo.DemoStreamingConProgreso;
 begin

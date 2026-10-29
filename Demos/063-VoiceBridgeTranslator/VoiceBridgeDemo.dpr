@@ -9,8 +9,8 @@
 //           English and the TTS is PLAYED on the virtual cable the meeting
 //           uses as a microphone -> the other side hears you in English.
 //
-//   loopback --> STT(en) --> traducir(es) --> TTS --> auriculares (yo escucho)
-//   microfono -> STT(es) --> traducir(en) --> TTS --> CABLE Input (reunion escucha)
+//   loopback --> STT(en) --> translate(es) --> TTS --> headphones (I listen)
+//   microphone -> STT(es) --> translate(en) --> TTS --> CABLE Input (meeting listens)
 //
 // Required setup:
 //   1. OPENAI_API_KEY in the environment (STT + translation + TTS).
@@ -18,7 +18,7 @@
 //      virtual. In the meeting select "CABLE Output" as MICROPHONE.
 //      If there is no cable, the demo warns and plays everything on the default
 //      device (test mode).
-//   3. HEADPHONES: meeting audio and TTS-es must come out through
+//   3. HEADPHONES: meeting audio and Spanish TTS must come out through
 //      headphones so the microphone does not capture them.
 //
 // Anti-feedback: while our own TTS plays on the device
@@ -47,11 +47,11 @@ const
   // ==========================================================================
   // CONFIGURACION
   // ==========================================================================
-  TARGET_LANG_REMOTE = 'espanol'; // lo que dice el otro lado -> espanol (para mi)
-  TARGET_LANG_LOCAL = 'ingles'; // lo que digo yo -> ingles (para la reunion)
+  TARGET_LANG_REMOTE = 'espanol'; // what the other side says -> Spanish (for me)
+  TARGET_LANG_LOCAL = 'ingles'; // what I say -> English (for the meeting)
 
-  STT_LANG_REMOTE = 'en'; // idioma esperado del otro lado ('' = autodetectar)
-  STT_LANG_LOCAL = 'es'; // idioma en el que hablo yo
+  STT_LANG_REMOTE = 'en'; // expected language of the other side ('' = auto-detect)
+  STT_LANG_LOCAL = 'es'; // language I speak
 
   TRANSLATOR_DRIVER = 'OpenAi';
   TRANSLATOR_MODEL = 'gpt-4o-mini';
@@ -110,7 +110,7 @@ type
     procedure Stop;
     property Capture: TAiAudioCapture read FCapture;
     // Captura que debe silenciarse mientras este lado reproduce su TTS
-    // (tipicamente el loopback, si el TTS suena por un dispositivo capturado).
+    // (typically loopback, if TTS plays through a captured device).
     property MuteCapture: TAiAudioCapture read FMuteCapture write FMuteCapture;
   end;
 
@@ -221,7 +221,7 @@ end;
 
 procedure TBridgeSide.PlayerError(Sender: TObject; const ErrorMessage: string);
 begin
-  SafeWriteLn(FTag + ' ERROR reproduccion: ' + ErrorMessage);
+  SafeWriteLn(FTag + ' ERROR playback: ' + ErrorMessage);
 end;
 
 procedure TBridgeSide.PlayerStateChange(Sender: TObject; aIsPlaying: Boolean);
@@ -257,7 +257,7 @@ begin
         try
           if FClosing then
             Exit;
-          FChat.NewChat; // cada frase es independiente
+          FChat.NewChat; // each sentence is independent
           Prompt := Format('Traduce al %s el siguiente texto. Responde UNICAMENTE con la traduccion, ' +
             'sin comentarios ni comillas:'#10'%s', [FTargetLang, aText]);
           Res := FChat.AddMessageAndRun(Prompt, 'user', []);
@@ -348,10 +348,10 @@ begin
         WriteLn('Virtual cable found: ' + MeetingDeviceName);
         WriteLn('  -> In the meeting select "CABLE Output" as MICROPHONE.');
 
-        // TRAMPA CONOCIDA: el instalador de VB-CABLE puede dejar "CABLE Input"
-        // como dispositivo de salida PREDETERMINADO de Windows. En ese caso todo
-        // el audio del sistema (reunion + TTS local) se va al cable y el usuario
-        // no escucha nada (ver Docs/Version 3/uMakerAi-AudioBridge.md, seccion 4.2).
+        // KNOWN TRAP: the VB-CABLE installer may leave "CABLE Input"
+        // as the DEFAULT output device in Windows. In that case all
+        // system audio (meeting + local TTS) goes to the cable and the user
+        // hears nothing (see Docs/Version 3/uMakerAi-AudioBridge.md, section 4.2).
         for D in TAiAudioPlayer.GetPlaybackDevices do
           if D.IsDefault and SameText(D.EndpointId, MeetingDeviceId) then
           begin
@@ -383,7 +383,7 @@ begin
       Local := TBridgeSide.Create(asMicrophone, '[ME]   ', TARGET_LANG_LOCAL, STT_LANG_LOCAL,
         TAiTTSVoice.tvOnyx, MeetingDeviceId);
       if not HasCable then
-        Local.MuteCapture := Remote.Capture; // en modo prueba tambien sonara por el default
+        Local.MuteCapture := Remote.Capture; // in test mode it will also play through the default device
 
       try
         Remote.Start;

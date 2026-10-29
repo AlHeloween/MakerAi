@@ -111,7 +111,7 @@ begin
   FTr := TAiOpenAiRealtimeTranslate.Create(nil);
   FTr.ApiKey := TRANSLATE_APIKEY;
   FTr.TargetLanguage := aTargetLang;
-  FTr.SourceTranscription := True; // mostrar tambien lo que se escucho
+  FTr.SourceTranscription := True; // also show what was heard
   FTr.InputSampleRate := 16000;    // capture delivers 16 kHz; driver resamples
   FTr.OnSessionReady := TrSessionReady;
   FTr.OnTranscriptDelta := TrSourceDelta;
@@ -130,7 +130,7 @@ begin
   FCapture.Source := aSource;
   FCapture.OutputSampleRate := 16000;
   FCapture.OutputChannels := 1;
-  FCapture.RealtimeSTT := FTr; // cada chunk PCM16 se reenvia al traductor
+  FCapture.RealtimeSTT := FTr; // each PCM16 chunk is forwarded to the translator
   FCapture.OnError := CaptureError;
 end;
 
@@ -278,7 +278,7 @@ begin
       if HasCable then
       begin
         WriteLn('Virtual cable found: ' + MeetingDeviceName);
-        WriteLn('  -> En la reunion selecciona "CABLE Output" como MICROFONO.');
+        WriteLn('  -> In the meeting select "CABLE Output" as MICROPHONE.');
         // See demo 063 / uMakerAi-AudioBridge.md: if "CABLE Input" became the
         // default Windows output you will hear nothing
         for D in TAiAudioPlayer.GetPlaybackDevices do

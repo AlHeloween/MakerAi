@@ -183,7 +183,7 @@ end;
 
 procedure THandlers.NodoLento(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
 begin
-  Sleep(600); // simula trabajo largo: es el caso de uso de las push
+  Sleep(600); // simulates long work: this is the use case for push
   Output := Input + ' [procesado]';
 end;
 
@@ -353,7 +353,7 @@ begin
       R := Rpc(Url, Format('{"jsonrpc":"2.0","id":6,"method":"DeleteTaskPushNotificationConfig",' +
         '"params":{"taskId":"%s","id":"cfg-1"}}', [TaskId]));
       try
-        Writeln('   segundo delete: ' + BoolToStr(R.GetValue('error') = nil, True) +
+        Writeln('   second delete: ' + BoolToStr(R.GetValue('error') = nil, True) +
           ' (deleting what is no longer there is not an error either)');
       finally
         R.Free;

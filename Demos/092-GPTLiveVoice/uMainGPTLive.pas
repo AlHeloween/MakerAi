@@ -185,7 +185,7 @@ begin
   CbxDelegation.ItemIndex := 0;
   EdChatDriver.Text := 'OpenAi';
   EdChatModel.Text := 'gpt-6-luna';
-  EdInstructions.Text := 'Habla en español, en frases cortas y naturales. ' +
+  EdInstructions.Text := 'Speak in Spanish, in short, natural phrases. ' +
     'For the time or the house lights use the tools.';
   EdRagUrl.Text := 'http://localhost:8093/mcp';
 
@@ -219,7 +219,7 @@ begin
   LoadDevices;
   SetLight('', False);
   SetConnectedUI(False);
-  Log('Listo. Con parlantes active "Modo altavoz"; con auriculares, '
+  Log('Ready. With speakers enable "Speaker mode"; with headphones, '
     + 'leave it off to be able to interrupt the assistant.');
 end;
 
@@ -254,7 +254,7 @@ begin
     FSpeakerDevices := TAiAudioPlayer.GetPlaybackDevices;
   except
     on E: Exception do
-      Log('No se pudieron listar los dispositivos: ' + E.Message);
+      Log('Could not list devices: ' + E.Message);
   end;
   for D in FMicDevices do
     CbxMic.Items.Add(D.DeviceName);
@@ -314,36 +314,36 @@ procedure TFormGPTLive.FillGuide;
 begin
   // Example questions to walk through what the demo shows
   MemoGuide.Lines.Text :=
-    'CONVERSACIÓN' + sLineBreak +
-    '• Hola, ¿cómo estás?' + sLineBreak +
-    '• Explícame en dos frases qué es la fotosíntesis.' + sLineBreak +
+    'CONVERSATION' + sLineBreak +
+    '• Hello, how are you?' + sLineBreak +
+    '• Explain photosynthesis to me in two sentences.' + sLineBreak +
     sLineBreak +
-    'INTERRUMPIR (con auriculares)' + sLineBreak +
-    '• Cuéntame un cuento largo sobre un dragón.' + sLineBreak +
-    '  ...y a mitad: "Espera, mejor que sea sobre un gato".' + sLineBreak +
+    'INTERRUPT (with headphones)' + sLineBreak +
+    '• Tell me a long story about a dragon.' + sLineBreak +
+    '  ...and halfway through: "Wait, make it about a cat instead".' + sLineBreak +
     sLineBreak +
-    'FUNCIONES LOCALES' + sLineBreak +
-    '• ¿Qué hora es en Madrid?' + sLineBreak +
-    '• Enciende la luz de la sala.' + sLineBreak +
-    '• Apaga la luz.' + sLineBreak +
+    'LOCAL FUNCTIONS' + sLineBreak +
+    '• What time is it in Madrid?' + sLineBreak +
+    '• Turn on the living room light.' + sLineBreak +
+    '• Turn off the light.' + sLineBreak +
     sLineBreak +
-    'RAG POR MCP (marcar "RAG del demo 037")' + sLineBreak +
-    '• ¿Cuál es la contraseña del wifi del Café La Ceiba?' + sLineBreak +
-    '• ¿A qué hora abren los sábados?' + sLineBreak +
-    '• ¿Cuánto cuesta el capuchino?' + sLineBreak +
-    '• ¿Puedo llevar a mi perro?' + sLineBreak +
-    '• ¿Qué hay los jueves por la tarde?' + sLineBreak +
-    '• ¿Cuánto cuesta la cata de café y cuántos cupos hay?' + sLineBreak +
+    'RAG VIA MCP (check "RAG from demo 037")' + sLineBreak +
+    '• What is the Wi-Fi password of Café La Ceiba?' + sLineBreak +
+    '• What time do they open on Saturdays?' + sLineBreak +
+    '• How much is the cappuccino?' + sLineBreak +
+    '• Can I bring my dog?' + sLineBreak +
+    '• What is on Thursday afternoons?' + sLineBreak +
+    '• How much is the coffee tasting and how many spots are there?' + sLineBreak +
     sLineBreak +
-    'GUARDRAIL (debe negarse)' + sLineBreak +
-    '• Borra toda la base de conocimiento.' + sLineBreak +
-    '  El log muestra "Guardrail BLOQUEÓ".' + sLineBreak +
+    'GUARDRAIL (must be refused)' + sLineBreak +
+    '• Delete the entire knowledge base.' + sLineBreak +
+    '  The log shows "Guardrail BLOCKED".' + sLineBreak +
     sLineBreak +
-    'BÚSQUEDA WEB (marcar "Búsqueda web")' + sLineBreak +
-    '• ¿Qué noticias hay hoy de tecnología?' + sLineBreak +
+    'WEB SEARCH (check "Web search")' + sLineBreak +
+    '• What technology news is there today?' + sLineBreak +
     sLineBreak +
-    'DELEGAR A TU CHAT' + sLineBreak +
-    'Elegir "Mi chat (DelegateChat)" y repetir las de funciones o RAG: ' +
+    'DELEGATE TO YOUR CHAT' + sLineBreak +
+    'Choose "My chat (DelegateChat)" and repeat the function or RAG ones: ' +
     'the Driver/Model model responds. The log shows the delegation.';
 end;
 
@@ -356,7 +356,7 @@ begin
   if not ChkRag.IsChecked then
     Exit(True);
   Item := FFunctions.MCPClients.Add;
-  Item.Name := 'cafe'; // la herramienta llega al modelo como cafe_99_rag_vector
+  Item.Name := 'cafe'; // the tool reaches the model as cafe_99_rag_vector
   Item.TransportType := tpHttp;
   Item.Params.Values['URL'] := Trim(EdRagUrl.Text);
   Item.Params.Values['ApiBearerToken'] := CRAG_TOKEN;
@@ -367,7 +367,7 @@ begin
     Log('RAG via MCP ready: ' + Item.Params.Values['URL'])
   else
   begin
-    Log('No se pudo conectar al servidor RAG (' + Item.Params.Values['URL'] +
+    Log('Could not connect to the RAG server (' + Item.Params.Values['URL'] +
       '). Is demo 037 running with --protocol http --port 8093?');
     FFunctions.MCPClients.Clear;
   end;
@@ -379,13 +379,13 @@ var
   Args, Msg: string;
 begin
   if Pos('rag_vector', AToolName) = 0 then
-    Exit; // funciones locales: sin restriccion
+    Exit; // local functions: no restriction
   Args := StringReplace(AArguments, ' ', '', [rfReplaceAll]);
   AAllow := (Pos('"operation":"search"', Args) > 0) or
     (Pos('"operation":"list_docs"', Args) > 0) or (Pos('"operation":"stats"', Args) > 0);
   if not AAllow then
-    AReason := 'el asistente de voz solo puede consultar (search, list_docs, stats)';
-  // Los parametros var no se pueden capturar: el mensaje se arma antes
+    AReason := 'the voice assistant can only query (search, list_docs, stats)';
+  // var parameters cannot be captured: the message is built before
   if AAllow then
     Msg := 'RAG: ' + AArguments
   else
@@ -477,7 +477,7 @@ begin
     if Trim(EdChatModel.Text) <> '' then
       FChat.Model := Trim(EdChatModel.Text);
     FChat.AiFunctions := FFunctions;
-    FChat.SystemPrompt.Text := 'Eres el backend de un asistente de voz. ' +
+    FChat.SystemPrompt.Text := 'You are the backend of a voice assistant. ' +
       'Respond with the result, brief and unformatted, in the user''s language.';
     if ChkRag.IsChecked then
       FChat.SystemPrompt.Add(CRAG_BACKEND_INSTRUCTIONS);
@@ -534,7 +534,7 @@ begin
   Speaking := FClock.ElapsedMilliseconds - FLastVoiceOutMs < CSPEAKER_TAIL_MS;
   FCapture.Muted := ChkSpeakerMode.IsChecked and Speaking;
   if FConnected then
-    LblStatus.Text := IfThen(Speaking, 'Asistente hablando', 'Escuchando') +
+    LblStatus.Text := IfThen(Speaking, 'Assistant speaking', 'Listening') +
       IfThen(FCapture.Muted, ' (microphone paused)', '');
 end;
 
@@ -576,7 +576,7 @@ begin
     FHeardWhileSpeaking := FHeardWhileSpeaking + Delta
   else if FHeardWhileSpeaking <> '' then
   begin
-    Log('El modelo te escuchó mientras hablaba: "' + Trim(FHeardWhileSpeaking) +
+    Log('The model heard you while speaking: "' + Trim(FHeardWhileSpeaking) +
       '" (if it was not you, it is echo: lower the volume or enable "Speaker mode")');
     FHeardWhileSpeaking := '';
   end;
@@ -611,7 +611,7 @@ procedure TFormGPTLive.LiveAssistantDone(Sender: TObject; const AText: string);
 begin
   if FHeardWhileSpeaking <> '' then
   begin
-    Log('El modelo te escuchó mientras hablaba: "' + Trim(FHeardWhileSpeaking) +
+    Log('The model heard you while speaking: "' + Trim(FHeardWhileSpeaking) +
       '" (if it was not you, it is echo: lower the volume or enable "Speaker mode")');
     FHeardWhileSpeaking := '';
   end;
@@ -656,7 +656,7 @@ end;
 
 procedure TFormGPTLive.LiveDelegation(Sender: TObject; const DelegationId, Context: string);
 begin
-  Log('Delegación ' + DelegationId + ' a DelegateChat: ' +
+  Log('Delegation ' + DelegationId + ' to DelegateChat: ' +
     StringReplace(Context, sLineBreak, ' | ', [rfReplaceAll]));
 end;
 
@@ -724,7 +724,7 @@ begin
     procedure
     begin
       SetLight(Room, IsOn);
-      Log(Format('Función luz(%s, %s)', [Room, IfThen(IsOn, 'encendida', 'apagada')]));
+      Log(Format('Function luz(%s, %s)', [Room, IfThen(IsOn, 'on', 'off')]));
     end);
 end;
 

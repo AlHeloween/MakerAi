@@ -80,7 +80,7 @@ implementation
 procedure TForm6.FormCreate(Sender: TObject);
 begin
 
-  // Prepara el directorio para guardar los archivos WAV.
+  // Prepare the directory to save WAV files.
   try
     TDirectory.CreateDirectory('c:\temp');
   except
@@ -106,7 +106,7 @@ begin
   FloatSpinEditStop.MaxValue := 50; // Representa 5.0
   FloatSpinEditStop.Value := Round(AIVoiceMonitor.StopSensitivityMultiplier * 10);
 
-  // NUEVO: Configurar control para duración de palabra de activación.
+  // NEW: Configure control for wake word duration.
   Label5.Caption := 'Wake word duration (ms):';
   SpinEditWakeWord.MinValue := 500;
   SpinEditWakeWord.MaxValue := 5000;
@@ -201,7 +201,7 @@ begin
   SpinEditSilence.Enabled := False;
   FloatSpinEditStart.Enabled := False;
   FloatSpinEditStop.Enabled := False;
-  SpinEditWakeWord.Enabled := False; // Deshabilitar el nuevo control
+  SpinEditWakeWord.Enabled := False; // Disable the new control
   ButtonStart.Enabled := False;
   ButtonStop.Enabled := True;
   ComboBoxDevices.Enabled := False;
@@ -221,7 +221,7 @@ begin
   SpinEditSilence.Enabled := True;
   FloatSpinEditStart.Enabled := True;
   FloatSpinEditStop.Enabled := True;
-  SpinEditWakeWord.Enabled := True; // Habilitar el nuevo control
+  SpinEditWakeWord.Enabled := True; // Enable the new control
   ComboBoxDevices.Enabled := True;
 
   ProgressBarLevel.Position := 0;
@@ -407,7 +407,7 @@ begin
         // Send the complete audio to Whisper for transcription
         LWhisper := NewWhisper;
         Try
-          TranscriptionResult := LWhisper.Transcription(LocalStream, 'comando_completo.wav', 'transcribe al español');
+          TranscriptionResult := LWhisper.Transcription(LocalStream, 'comando_completo.wav', 'transcribe to Spanish');
         Finally
           LWhisper.Free;
         End;
@@ -439,7 +439,7 @@ begin
 
         LWhisper := NewWhisper;
         Try
-          TranscriptionResult := LWhisper.Transcription(LocalStream, 'fragment.wav', 'transcribe al español');
+          TranscriptionResult := LWhisper.Transcription(LocalStream, 'fragment.wav', 'transcribe to Spanish');
         Finally
           LWhisper.Free;
         End;
@@ -490,7 +490,7 @@ begin
   LowerCommand := LowerCase(Trim(Command));
 
   MemoLog.Lines.Add('');
-  MemoLog.Lines.Add('🎯 Procesando comando...');
+  MemoLog.Lines.Add('🎯 Processing command...');
 
   // Here you can implement your processing logic
   // Examples:
@@ -527,7 +527,7 @@ begin
   MemoLog.Lines.Add('   → Processing with AI...');
 
   // TODO: Implement AI API call
-  // Ejemplo:
+  // Example:
   // var Response: String;
   // Response := OpenAI.Chat(Command);
   // MemoLog.Lines.Add('   AI response: ' + Response);
@@ -607,7 +607,7 @@ var
   Word: string;
   CleanWord, CleanTarget: string;
   Distance: Integer;
-  DetectedWord: string; // Para mostrar en el log cuál disparó
+  DetectedWord: string; // To show in the log which one triggered
 begin
   // 1. Security validation
   if (aWakeWordStream = nil) or (aWakeWordStream.Size < 100) then

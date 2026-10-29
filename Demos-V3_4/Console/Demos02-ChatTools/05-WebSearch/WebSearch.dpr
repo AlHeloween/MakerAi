@@ -17,10 +17,10 @@ program WebSearch;
 //   - The citations/sources returned by the LLM
 //
 // Supported providers:
-//   - Gemini    → Google Search integrado, sin configuración extra
-//   - Grok      → X/Twitter + web, sin configuración extra
-//   - Claude    → Requiere BRAVE_API_KEY (o Bing) configurado en el proveedor
-//   - OpenAI    → Requiere configuración adicional de herramientas
+//   - Gemini    → Google Search integrated, no extra configuration
+//   - Grok      → X/Twitter + web, no extra configuration
+//   - Claude    → Requires BRAVE_API_KEY (or Bing) configured in the provider
+//   - OpenAI    → Requires additional tool configuration
 // =============================================================================
 
 uses
@@ -106,12 +106,12 @@ begin
     Conn.SystemPrompt.Text :=
       'Eres un asistente que puede buscar en internet. ' +
       'Cuando uses búsqueda web, menciona las fuentes consultadas. ' +
-      'Responde en español.';
+      'Respond in Spanish.';
 
     // ── Demo 1: Comparison with/without search ─────────────────────────────
     Writeln('=== COMPARISON: with vs. without web search ===');
     CompararConSinBusqueda(Conn,
-      '¿Cuál es el LLM más potente disponible hoy?');
+      'What is the most powerful LLM available today?');
 
     // ── Demo 2: Questions that need current info ───────────────────────
     Writeln('=== QUESTIONS THAT REQUIRE CURRENT INFORMATION ===');
@@ -134,7 +134,7 @@ begin
     Conn.Messages.Clear;
     Conn.SystemPrompt.Text :=
       'Responde con fuentes. Al final incluye una sección "Fuentes:" con ' +
-      'las URLs consultadas. Responde en español.';
+      'the consulted URLs. Respond in Spanish.';
 
     Res := Conn.AddMessageAndRun(
       'What is the Model Context Protocol (MCP) from Anthropic and what is it for?',
@@ -154,6 +154,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

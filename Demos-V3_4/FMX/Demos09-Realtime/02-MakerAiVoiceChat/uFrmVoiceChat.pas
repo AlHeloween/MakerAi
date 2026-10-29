@@ -138,7 +138,7 @@ begin
   FChat.Language      := 'es';
   FChat.Voice         := 'nova';
   FChat.SttModel      := 'mk-whisper-large';
-  FChat.Instructions  := 'Responde siempre en español.';
+  FChat.Instructions  := 'Always respond in English.';
 
   FChat.OnConnected           := OnChatConnected;
   FChat.OnDisconnected        := OnChatDisconnected;
@@ -291,7 +291,7 @@ procedure TFrmVoiceChat.OnMicCalibrated(Sender: TObject;
 begin
   FCalibThreshold      := Sensitivity;
   ProgressBarLevel.Max := Sensitivity * 5;
-  LblVADInfo.Text      := Format('Ruido: %d | Umbral inicio: %d | Umbral stop: %d',
+  LblVADInfo.Text      := Format('Noise: %d | Start threshold: %d | Stop threshold: %d',
     [NoiseLevel, Sensitivity, StopSensitivity]);
   SetStatus(Format('Ready - speak into the microphone  [noise=%d  threshold=%d]',
     [NoiseLevel, Sensitivity]));
@@ -314,7 +314,7 @@ begin
   FLiveText     := '';
   MemoLive.Text := '';
   AddConvLine('User:', Transcript);
-  SetStatus('Asistente procesando...');
+  SetStatus('Assistant processing...');
   SetStateColor(CLR_BLUE);
 end;
 
@@ -322,7 +322,7 @@ procedure TFrmVoiceChat.OnChatAssistantText(Sender: TObject;
   const AText: string);
 begin
   AddConvLine('Assistant:', AText);
-  SetStatus('Asistente respondiendo...');
+  SetStatus('Assistant responding...');
 end;
 
 procedure TFrmVoiceChat.OnChatAudioChunk(Sender: TObject;
@@ -334,7 +334,7 @@ end;
 
 procedure TFrmVoiceChat.OnChatAudioDone(Sender: TObject);
 begin
-  SetStatus(Format('Listo - habla en el microfono  (audio terminado %s)',
+  SetStatus(Format('Ready - speak into the microphone  (audio finished %s)',
     [FormatDateTime('hh:nn:ss', Now)]));
   SetStateColor(CLR_GREEN);
 end;

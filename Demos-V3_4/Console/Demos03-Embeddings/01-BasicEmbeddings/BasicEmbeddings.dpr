@@ -73,7 +73,7 @@ begin
 
     // ── Demo 1: generate an embedding from text ─────────────────────────────
     Writeln('--- Demo 1: Generate an embedding ---');
-    Writeln('Text: "La inteligencia artificial transforma la industria"');
+    Writeln('Text: "Artificial intelligence transforms the industry"');
     V1 := Conn.CreateEmbedding(
       'La inteligencia artificial transforma la industria', 'user');
     PrintVectorSummary(V1, 'V1');
@@ -92,9 +92,9 @@ begin
     Sim12 := TAiEmbeddingsCore.CosineSimilarity(V1, V2);
     Sim13 := TAiEmbeddingsCore.CosineSimilarity(V1, V3);
 
-    Writeln('  Text A: "La inteligencia artificial transforma la industria"');
-    Writeln('  Text B: "La IA y el machine learning cambian la industria"  (similar)');
-    Writeln('  Text C: "Las recetas de cocina mexicana son muy sabrosas"  (different)');
+    Writeln('  Text A: "Artificial intelligence transforms the industry"');
+    Writeln('  Text B: "AI and machine learning change the industry"  (similar)');
+    Writeln('  Text C: "Mexican cooking recipes are very tasty"  (different)');
     Writeln;
     Writeln(Format('  Similarity A↔B: %.4f  (expected: high ~0.85+)', [Sim12]));
     Writeln(Format('  Similarity A↔C: %.4f  (expected: low ~0.10-0.30)', [Sim13]));

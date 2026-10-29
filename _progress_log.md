@@ -6,6 +6,25 @@
 ---
 ---
 
+## 2026-10-29 — Demo trees English pass (Demos*, Apps)
+
+**Reason:** the v3.9 upstream merge brought the demo trees in Spanish; the fork's rule is English on every maintained surface.
+
+### Done
+
+- Inventoried the demo trees with the committed detector: 284 files carried Spanish text (8398 flagged hits).
+- Translated ~250 files with `aicall` (opencode-go/beam-free, free) using multi-file marker maps, applied by `.temp/split_apply.py` under the skeleton gate.
+- Four passes: **8398 → 2061 flagged hits (-75.5%)**.
+
+### Verification
+
+- Skeleton gate PASS on every applied file - code tokens unchanged, only comments and string literals.
+- Demo compilation is not available in this checkout: translated (`mcp-firedac`) and untranslated (`mcp-json`) projects fail identically with missing-unit/path errors, so the compile failure is inherited.
+
+**Residual:** 2061 flagged hits in 247 files (Demos-V3_1 837, Demos-Book 377, Demos 562, Demos-V3_4 252, Apps 33); the detector also over-reports English text. Next pass: `.temp/demo_inv.py` -> `.temp/build_batches.py` -> dispatch with the same prompt.
+
+**Commits:** `7fe7638`, `c8f08f4`.
+
 ## 2026-10-29 — Upstream Sync v3.3 → v3.9.0 + Full English Pass
 
 **Reason:** Owner decision: update the fork to upstream master (v3.9.0) and keep the whole repository in English.

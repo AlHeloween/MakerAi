@@ -131,14 +131,14 @@ begin
     Conn.SystemPrompt.Text :=
       'Eres un asistente especializado en análisis de documentos. ' +
       'Lee el documento adjunto con atención y responde con precisión. ' +
-      'Responde en español.';
+      'Respond in Spanish.';
 
     // ── Demo 1: Executive summary ─────────────────────────────────────────
     Writeln(StringOfChar('-', 60));
     Writeln('1. Executive summary of the document');
     Response := AskAboutPDF(Conn, PdfPath,
       'Por favor proporciona un resumen ejecutivo de este documento en ' +
-      'máximo 5 puntos clave.');
+      'maximum 5 key points.');
     Writeln(Response);
     Writeln;
 
@@ -148,7 +148,7 @@ begin
 
     Response := AskAboutPDF(Conn, PdfPath,
       '¿Cuáles son los temas principales que trata este documento? ' +
-      'Lista solo los títulos o secciones que encuentres.');
+      'List only the titles or sections you find.');
     Writeln(Response);
     Writeln;
 
@@ -159,7 +159,7 @@ begin
     Response := AskAboutPDF(Conn, PdfPath,
       'Extrae en formato JSON los siguientes datos del documento: ' +
       '{"titulo": "", "autor": "", "fecha": "", "paginas_aproximadas": 0, ' +
-      '"idioma": ""}. Si no encuentras algún dato, pon null.');
+      '"idioma": ""}. If you do not find any data, set it to null.');
     Writeln(Response);
 
   finally
@@ -175,6 +175,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

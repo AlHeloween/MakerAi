@@ -35,7 +35,7 @@ const
   MODEL   = 'claude-haiku-4-5-20251001';
   API_KEY = '@CLAUDE_API_KEY';
 
-// Helper para separar secciones en la salida
+// Helper to separate sections in the output
 procedure Section(const Title: String);
 begin
   Writeln;
@@ -45,7 +45,7 @@ begin
 end;
 
 // =============================================================================
-//  DEMO 1 — Efecto de Temperature
+//  DEMO 1 — Temperature effect
 // =============================================================================
 procedure DemoTemperature(Conn: TAiChatConnection);
 const
@@ -72,7 +72,7 @@ begin
 end;
 
 // =============================================================================
-//  DEMO 2 — MaxTokens: respuesta corta vs. larga
+//  DEMO 2 — MaxTokens: short vs. long response
 // =============================================================================
 procedure DemoMaxTokens(Conn: TAiChatConnection);
 const
@@ -98,11 +98,11 @@ begin
 end;
 
 // =============================================================================
-//  DEMO 3 — SystemPrompt: cambia la personalidad del LLM
+//  DEMO 3 — SystemPrompt: changes the LLM personality
 // =============================================================================
 procedure DemoSystemPrompt(Conn: TAiChatConnection);
 const
-  PREGUNTA = '¿Cómo aprender a programar?';
+  PREGUNTA = 'How do I learn to program?';
   SISTEMAS : array[0..2] of String = (
     'You are a formal university professor. Use technical terminology.',
     'You are a 14-year-old friend. Speak like a teenager, with emojis.',
@@ -134,7 +134,7 @@ begin
 end;
 
 // =============================================================================
-//  DEMO 4 — Respuesta en formato JSON estructurado
+//  DEMO 4 — Response in structured JSON format
 // =============================================================================
 procedure DemoJSONMode(Conn: TAiChatConnection);
 var
@@ -179,8 +179,8 @@ begin
 end;
 
 // =============================================================================
-//  DEMO 5 — ThinkingLevel: razonamiento extendido
-//  (Solo soportado en Claude con modelos que soporten extended thinking)
+//  DEMO 5 — ThinkingLevel: extended reasoning
+//  (Only supported in Claude with models that support extended thinking)
 // =============================================================================
 procedure DemoThinkingLevel(Conn: TAiChatConnection);
 var
@@ -209,7 +209,7 @@ begin
 end;
 
 // =============================================================================
-//  DEMO principal
+//  Main demo
 // =============================================================================
 procedure RunDemo;
 var

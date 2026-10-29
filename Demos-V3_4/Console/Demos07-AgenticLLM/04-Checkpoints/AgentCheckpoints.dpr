@@ -6,15 +6,15 @@ program AgentCheckpoints;
 // =============================================================================
 // MakerAI — 07-AgenticLLM / 04-Checkpoints
 // =============================================================================
-// Pipeline secuencial de 3 nodos con inspeccion del blackboard en cada paso.
-// Demuestra como cada nodo escribe su output al blackboard y como leerlo
-// para seguir el progreso del pipeline.
+// Sequential pipeline of 3 nodes with blackboard inspection at each step.
+// Demonstrates how each node writes its output to the blackboard and how to read it
+// to track pipeline progress.
 //
 // Concepts it covers:
-//   - Manager.Blackboard.GetString('NombreNodo.output')
-//   - Pipeline de 3 TLLMNodes: Extractor -> Traductor -> Resumen
-//   - Lectura de checkpoints intermedios tras Manager.Run()
-//   - TAIAgentsLink encadenando nodos
+//   - Manager.Blackboard.GetString('NodeName.output')
+//   - Pipeline of 3 TLLMNodes: Extractor -> Translator -> Summary
+//   - Reading intermediate checkpoints after Manager.Run()
+//   - TAIAgentsLink chaining nodes
 //
 // Structure: [Extractor] -> [Translator] -> [Summarizer]
 // =============================================================================

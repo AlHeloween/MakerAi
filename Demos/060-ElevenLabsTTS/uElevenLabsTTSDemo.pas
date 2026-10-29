@@ -77,9 +77,9 @@ begin
 
   // Output formats
   CbFormato.Items.Add('mp3_44100_128 (default)');
-  CbFormato.Items.Add('mp3_44100_192 (alta calidad)');
+  CbFormato.Items.Add('mp3_44100_192 (high quality)');
   CbFormato.Items.Add('pcm_24000 (WAV)');
-  CbFormato.Items.Add('pcm_44100 (WAV alta calidad)');
+  CbFormato.Items.Add('pcm_44100 (WAV high quality)');
   CbFormato.ItemIndex := 0;
 
   EdVoiceId.Text := '21m00Tcm4TlvDq8ikWAM'; // Rachel (default)
@@ -176,7 +176,7 @@ begin
         else
         begin
           LblTTSStatus.Text := 'Error: no audio was generated.';
-          SetStatus('Error al generar voz.');
+          SetStatus('Error generating voice.');
         end;
         EnableButtons(True);
       end);
@@ -219,7 +219,7 @@ begin
   end;
   SaveDlg.FileName    := 'elevenlabs_audio';
   SaveDlg.DefaultExt  := ExtractFileExt(FTempAudioPath).TrimLeft(['.']);
-  SaveDlg.Filter      := 'Audio MP3|*.mp3|Audio WAV|*.wav|Todos|*.*';
+  SaveDlg.Filter      := 'Audio MP3|*.mp3|Audio WAV|*.wav|All|*.*';
   if SaveDlg.Execute then
   begin
     FLastAudioFile.Content.Position := 0;
@@ -232,7 +232,7 @@ end;
 
 procedure TFrmElevenLabs.BtnCargarClick(Sender: TObject);
 begin
-  OpenDlg.Filter := 'Audio|*.mp3;*.wav;*.ogg;*.m4a;*.flac;*.webm|Todos|*.*';
+  OpenDlg.Filter := 'Audio|*.mp3;*.wav;*.ogg;*.m4a;*.flac;*.webm|All|*.*';
   if OpenDlg.Execute then
   begin
     FreeAndNil(FLoadedAudioFile);

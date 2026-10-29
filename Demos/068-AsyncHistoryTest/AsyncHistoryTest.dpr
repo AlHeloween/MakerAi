@@ -110,7 +110,7 @@ begin
       if (Pos('azul', LFinal) > 0) and (Pos('42', LFinal) > 0) then
         WriteLn('OK: remembered color (blue) and number (42) from previous context -> async history correct.')
       else
-        WriteLn('FALLO: no recordo el contexto previo (azul/42) -> historial async incompleto (#105).');
+        WriteLn('FAIL: did not remember previous context (blue/42) -> incomplete async history (#105).');
     finally
       Conn.Free;
       H.Free;

@@ -70,8 +70,8 @@ var
 begin
   BuildGraph;
 
-  // La suspension se persiste en disco: si la app se cierra con una pregunta
-  // pendiente, al arrancar se recupera y se puede reanudar.
+  // The suspension is persisted to disk: if the app closes with a pending question,
+  // on startup it is recovered and can be resumed.
   ForceDirectories(CheckpointDir);
   FAgent.Checkpointer := TAiFileCheckpointer.Create(CheckpointDir);
   FAgent.OnSuspend := AgentSuspended;
@@ -88,7 +88,7 @@ begin
     FPendingThreadID := LThreads[0];
     FPendingNodeName := NODO_APROBACION;
     AgentSay('I have a task suspended from a previous session waiting for your approval. ' +
-      'Tu proxima respuesta la reanuda ("si" aprueba, cualquier otra cosa cancela).');
+      'Your next answer resumes it ("yes" approves, anything else cancels).');
     SetEstado('Waiting for your answer (task recovered from checkpoint)');
   end;
 end;
@@ -103,7 +103,7 @@ begin
   // Nothing blocks the UI thread or leaves a worker waiting.
   FAgent.Asynchronous := True;
 
-  // Preparar -> Aprobar (suspende) -> Ejecutar
+  // Prepare -> Approve (suspends) -> Execute
   FAgent.AddNode('Preparar', NodePreparar);
   FAgent.AddNode(NODO_APROBACION, nil);
   FAgent.AddNode('Ejecutar', NodeEjecutar);
@@ -122,7 +122,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Nodos del grafo (corren en threads del pool; no tocan la UI)
+// Graph nodes (run in pool threads; do not touch the UI)
 // ---------------------------------------------------------------------------
 
 procedure TFormAgentChatHITL.NodePreparar(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
@@ -142,7 +142,7 @@ procedure TFormAgentChatHITL.NodeEjecutar(Node, BeforeNode: TAIAgentsNode; Link:
 var
   LResp: string;
 begin
-  // Input es la respuesta que el usuario escribio en el chat al reanudar
+  // Input is the answer the user wrote in the chat when resuming
   LResp := Trim(Input).ToLower;
   if LResp.StartsWith('si') or LResp.StartsWith('ok') or LResp.StartsWith('yes') or
      LResp.StartsWith('dale') or (Pos('aprob', LResp) > 0) then
@@ -155,7 +155,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Eventos del agente (llegan en threads del pool -> TThread.Queue para la UI)
+// Agent events (arrive in pool threads -> TThread.Queue for the UI)
 // ---------------------------------------------------------------------------
 
 procedure TFormAgentChatHITL.AgentSuspended(Sender: TObject; const AThreadID, ANodeName, AReason, AContext: string);
@@ -176,7 +176,7 @@ procedure TFormAgentChatHITL.AgentFinished(Sender: TObject; const Input, Output:
 var
   LError: string;
 begin
-  // No capturar E dentro del closure: la excepcion se libera al volver
+  // Do not capture E inside the closure: the exception is freed when returning
   if Assigned(E) then
     LError := E.Message
   else
@@ -226,7 +226,7 @@ begin
 
   if FPendingThreadID <> '' then
   begin
-    // Hay un grafo suspendido: esta respuesta lo reanuda donde quedo
+    // There is a suspended graph: this answer resumes it where it left off
     LThreadID := FPendingThreadID;
     FPendingThreadID := '';
     SetEstado('Resuming the agent...');
@@ -239,12 +239,12 @@ begin
   end
   else
   begin
-    // Corrida nueva y limpia (el seed vacio fuerza ResetExecutionState)
+    // New clean run (the empty seed forces ResetExecutionState)
     SetEstado('Agent working...');
     FAgent.Run(APrompt,
       procedure(B: TAIBlackboard)
       begin
-        // sin claves precargadas; el reset previo garantiza estado limpio
+        // no preloaded keys; the previous reset guarantees clean state
       end);
   end;
 end;
@@ -255,7 +255,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Utilidades
+// Utilities
 // ---------------------------------------------------------------------------
 
 procedure TFormAgentChatHITL.AgentSay(const AText: string);
@@ -265,7 +265,7 @@ end;
 
 procedure TFormAgentChatHITL.SetEstado(const AText: string);
 begin
-  lblEstado.Text := 'Estado: ' + AText;
+  lblEstado.Text := 'Status: ' + AText;
 end;
 
 function TFormAgentChatHITL.CheckpointDir: string;

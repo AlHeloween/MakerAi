@@ -71,11 +71,11 @@ implementation
 
 const
   DEF_PROMPT =
-    'Eres un agente de automatización de escritorio.' + sLineBreak +
-    'Tarea: toma un screenshot, localiza el área de texto de la ventana en primer plano ' +
-    '(p.ej. el Bloc de notas), haz click en ella y escribe exactamente: ' +
-    '"Hola MakerAI desde Computer Use". Luego toma otro screenshot para confirmar y ' +
-    'describe brevemente lo que ves.';
+    'You are a desktop automation agent.' + sLineBreak +
+    'Task: take a screenshot, locate the text area of the foreground window ' +
+    '(e.g. Notepad), click on it and type exactly: ' +
+    '"Hello MakerAI from Computer Use". Then take another screenshot to confirm and ' +
+    'briefly describe what you see.';
 
 procedure TFormComputerUse.FormCreate(Sender: TObject);
 begin
@@ -279,7 +279,7 @@ begin
       try
         Scaled.Canvas.DrawBitmap(Full, RectF(0, 0, Full.Width, Full.Height),
           RectF(0, 0, OutW, OutH), 1, False);
-        // Cursor (escalado al tamaño de salida) para que la IA vea el puntero.
+        // Cursor (scaled to output size) so the AI sees the pointer.
         {$IFDEF MSWINDOWS}
         if GetCursorPos(Cur) then
         begin
@@ -316,7 +316,7 @@ begin
                 Strm.Position := 0;
                 Strm.SaveToFile(FShotDir + Format('shot_%.3d_%dx%d.jpg', [FShotCount, OutW, OutH]));
               except
-                // no bloquear la captura por un fallo de escritura a disco
+                // do not block capture due to a disk write failure
               end;
             end;
             Strm.Position := 0;
@@ -409,10 +409,10 @@ begin
   end
   else if cbProvider.ItemIndex = 2 then
   begin
-    // gpt-6-astra: tool nativo 'computer' via Responses API. A diferencia de
-    // Claude y Gemini, manda un LOTE de acciones por turno (un computer_call
-    // con array 'actions'); el driver las ejecuta en orden y devuelve un unico
-    // screenshot final.
+    // gpt-6-astra: native 'computer' tool via Responses API. Unlike
+    // Claude and Gemini, it sends a BATCH of actions per turn (a computer_call
+    // with an 'actions' array); the driver executes them in order and returns a single
+    // final screenshot.
     FConn.DriverName := 'OpenAi';
     FConn.Model := 'gpt-6-astra';
     FConn.Params.Values['ApiKey'] := '@OPENAI_API_KEY';

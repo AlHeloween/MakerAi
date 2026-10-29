@@ -56,7 +56,7 @@ type
   end;
 
   // ---------------------------------------------------------------------------
-  // Helpers para construir artifacts conformes con la spec 1.0.
+  // Helpers to build artifacts conforming to spec 1.0.
   // In v1.0 there are no TextPart/DataPart/FilePart as distinct types: there is a
   // single Part and the content is determined by WHICH field is present (text, data, raw,
   // url), with optional mediaType and filename.
@@ -170,14 +170,14 @@ begin
       PartDatos('{"key": "value", "count": 42}')))
 
   else if MsgId.StartsWith('tck-message-response') then
-    // Brazo 'message' del oneof: se responde sin crear tarea
+    // The 'message' arm of the oneof: respond without creating a task
     B.SetString(A2A_BB_MESSAGE, MensajeAgente('Direct message response', TaskId, CtxId))
 
   else if MsgId.StartsWith('tck-complete-task') then
     Output := 'Hello from TCK'
 
   else if MsgId.StartsWith('tck-input-required') then
-    Node.Suspend('El TCK pidió input', 'tck-input-required')
+    Node.Suspend('The TCK requested input', 'tck-input-required')
 
   else
     Output := 'echo: ' + Input;
@@ -185,7 +185,7 @@ end;
 
 procedure TSutHandlers.FabricaManager(Sender: TObject; var AManager: TAIAgentManager);
 begin
-  AManager := TAIAgentManager.Create(nil); // el servidor lo libera
+  AManager := TAIAgentManager.Create(nil); // the server frees it
   AManager.AddNode('Escenario', Escenario);
   AManager.SetEntryPoint('Escenario').SetFinishPoint('Escenario');
 end;
@@ -222,18 +222,18 @@ begin
 
       Server.AgentManager := Agente;
       Server.AgentName := 'MakerAI TCK SUT';
-      Server.AgentDescription := 'Agente de conformidad para el TCK oficial de A2A';
+      Server.AgentDescription := 'Conformance agent for the official A2A TCK';
       Server.Port := Port;
       Server.PublishExtendedCard := True;
       Server.OnAcquireManager := Handlers.FabricaManager;
-      // Alto a proposito: un task suspendido en input-required RETIENE su
-      // manager -es el unico que puede reanudarlo- y el TCK crea muchos.
+      // High on purpose: a task suspended in input-required RETAINS its
+      // manager -it is the only one that can resume it- and the TCK creates many.
       Server.MaxConcurrentTasks := 64;
       Server.Active := True;
 
       Writeln('=== DEMO 079: SUT agent conforming to the A2A TCK ===');
       Writeln('');
-      Writeln(Format('Escuchando en http://localhost:%d/', [Port]));
+      Writeln(Format('Listening on http://localhost:%d/', [Port]));
       Writeln(Format('Agent Card:    http://localhost:%d/.well-known/agent-card.json', [Port]));
       Writeln('');
       Writeln('Now, from the TCK:');

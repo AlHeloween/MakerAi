@@ -10,15 +10,15 @@ program AgentParallelFork;
 //   [InputPrep] --ForkLink--> [ProsAnalyst]  --JoinLinkA--\
 //                          \-> [ConsAnalyst] --JoinLinkB--> [Synthesizer] (jmAll)
 //
-// Dos nodos analizan el mismo tema en paralelo (ventajas y desventajas).
-// El nodo sintetizador espera AMBOS resultados (jmAll) antes de ejecutar.
+// Two nodes analyze the same topic in parallel (advantages and disadvantages).
+// The synthesizer node waits for BOTH results (jmAll) before executing.
 //
 // Concepts it covers:
-//   - ForkLink con NextA + NextB: bifurcar hacia dos nodos en paralelo
-//   - JoinMode = jmAll: esperar a que TODOS los nodos de entrada completen
-//   - Lectura del blackboard intermedio por nombre de nodo
-//   - TThreadPool internamente gestiona la concurrencia
-//   - EAggregateException: excepcion compuesta de multiples hilos
+//   - ForkLink with NextA + NextB: fork to two nodes in parallel
+//   - JoinMode = jmAll: wait for ALL input nodes to complete
+//   - Reading the intermediate blackboard by node name
+//   - TThreadPool internally manages concurrency
+//   - EAggregateException: composite exception from multiple threads
 // =============================================================================
 
 uses

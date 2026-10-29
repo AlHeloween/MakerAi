@@ -49,7 +49,7 @@ type
   public
     ToolEjecutado: Boolean;
     BloqueosVistos: Integer;
-    // Tool real registrado en TAiFunctions
+    // Real tool registered in TAiFunctions
     procedure ToolAction(Sender: TObject; FunctionAction: TFunctionActionItem; FunctionName: String;
       ToolCall: TAiToolsFunction; var Handled: Boolean);
     // Guardrails
@@ -89,7 +89,7 @@ begin
   if Args.Contains('c:\windows') then
   begin
     AAllow := False;
-    AReason := 'veto programatico: ruta de sistema';
+    AReason := 'programmatic veto: system path';
   end;
 end;
 
@@ -100,9 +100,9 @@ var
   Reason: string;
 begin
   if AGuard.CheckToolCall(ATool, AArgs, Reason) then
-    Writeln(Format('   PERMITIDO  %-18s %s', [ATool, AArgs]))
+    Writeln(Format('   ALLOWED  %-18s %s', [ATool, AArgs]))
   else
-    Writeln(Format('   BLOQUEADO  %-18s %s', [ATool, AArgs]));
+    Writeln(Format('   BLOCKED  %-18s %s', [ATool, AArgs]));
 end;
 
 // -----------------------------------------------------------------------------
@@ -239,27 +239,27 @@ begin
 
   Runner := TAiEvalRunner.Create(nil);
   try
-    Runner.AddCase('clasifica.facturacion')
+    Runner.AddCase('classify.billing')
       .Input('I received a duplicate invoice this month')
       .ExpectContains('billing');
 
-    Runner.AddCase('clasifica.soporte')
+    Runner.AddCase('classify.support')
       .Input('The application shows an error on startup')
       .ExpectEquals('category: technical support');
 
-    Runner.AddCase('clasifica.general')
+    Runner.AddCase('classify.general')
       .Input('I wanted to know the opening hours')
       .ExpectContains('general')
       .ExpectNotContains('soporte');
 
-    Runner.AddCase('clasifica.formato')
+    Runner.AddCase('classify.format')
       .Input('The payment button does not work')
       .ExpectRegex('^category: .+$')
       .ExpectMaxLength(60);
 
-    // Para usar LLM-as-judge basta asignar Runner.Judge := <un TAiChat> y
-    // agregar .ExpectJudge('el texto debe...'). Se omite aqui para no exigir
-    // una API key.
+    // To use LLM-as-judge, just assign Runner.Judge := <a TAiChat> and
+    // add .ExpectJudge('the text must...'). Omitted here to avoid requiring
+    // an API key.
 
     Report := Runner.Run(
       function(const AInput: string): string
@@ -275,7 +275,7 @@ begin
         Json := Report.ToJSON;
         try
           TFile.WriteAllText(AJsonPath, Json.ToJSON, TEncoding.UTF8);
-          Writeln('   Reporte JSON escrito en: ' + AJsonPath);
+          Writeln('   JSON report written to: ' + AJsonPath);
         finally
           Json.Free;
         end;
@@ -341,7 +341,7 @@ begin
     if TodoOk then
       Writeln('OK: all eval cases passed.')
     else
-      Writeln('ATENCION: hay casos de eval fallidos.');
+      Writeln('ATTENTION: there are failed eval cases.');
 
     if Assigned(Telemetry) then
     begin

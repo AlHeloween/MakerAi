@@ -63,7 +63,7 @@ begin
     if PrevOutput <> '' then
       History := History + '=== ' + NodeName + ' ===' + #10 + PrevOutput + #10#10;
   end;
-  // Reemplazar el input: transcript acumulado + directiva de rol
+  // Replace the input: accumulated transcript + role directive
   if History <> '' then
     Node.Input := '--- FULL DEBATE TRANSCRIPT ---' + #10 + History +
                   '--- PERFORM YOUR ASSIGNED ROLE NOW ---';

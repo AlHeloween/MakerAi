@@ -9,11 +9,11 @@ program Vision;
 // Sends images to the LLM so it can describe, analyze, or extract information.
 //
 // Concepts covered:
-//   - Adjuntar imágenes con TAiMediaFile.LoadFromFile()
-//   - Pasar mediafiles en AddMessageAndRun()
-//   - Activar capacidad de visión (ChatMediaSupports)
-//   - Diferencia entre modelos con visión nativa vs. bridge automático
-//   - Casos de uso: descripción, OCR, análisis técnico, comparación
+//   - Attach images with TAiMediaFile.LoadFromFile()
+//   - Pass media files in AddMessageAndRun()
+//   - Enable vision capability (ChatMediaSupports)
+//   - Difference between models with native vision vs. automatic bridge
+//   - Use cases: description, OCR, technical analysis, comparison
 //
 // Providers with native vision:
 //   Claude, OpenAI (GPT-4V), Gemini → use the image directly
@@ -112,7 +112,7 @@ begin
 
     Conn.SystemPrompt.Text :=
       'You are an expert assistant in image analysis. ' +
-      'Describe lo que ves de forma detallada y precisa. Responde en español.';
+      'Describe what you see in detail and accurately. Respond in Spanish.';
 
     // Determine image to use
     ImgPath := IMG_SCREENSHOT;
@@ -156,6 +156,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

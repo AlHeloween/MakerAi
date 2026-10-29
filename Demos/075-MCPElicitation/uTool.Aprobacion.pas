@@ -123,7 +123,7 @@ begin
         EstadoDecodificado := '';
       end;
     if EstadoDecodificado <> AParams.Monto then
-      Exit(TAiMCPResponseBuilder.New.AddText('Error: requestState invalido o ausente en el reintento').Build);
+      Exit(TAiMCPResponseBuilder.New.AddText('Error: invalid or missing requestState in retry').Build);
 
     if SameText(Accion, 'accept') then
       Exit(TAiMCPResponseBuilder.New.AddText('AUTHORIZED and executed transfer of ' + AParams.Monto).Build)

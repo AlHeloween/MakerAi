@@ -372,10 +372,10 @@ begin
   begin
     if IsDefault then
       LblCable.Text :=
-        'ATENCION: CABLE Input es la salida predeterminada. ' +
-        'Cambia la salida a tus auriculares en Configuracion de Sonido.'
+        'WARNING: CABLE Input is the default output. ' +
+        'Change the output to your headphones in Sound Settings.'
     else
-      LblCable.Text := 'VB-CABLE detectado. Mic de reunion = CABLE Output. OK.';
+      LblCable.Text := 'VB-CABLE detected. Meeting mic = CABLE Output. OK.';
   end
   else
     LblCable.Text :=
@@ -451,8 +451,8 @@ begin
 
   FSttMic := TAiOpenAiRealtimeSTT.Create(nil);
   FSttMic.ApiKey                := STT_APIKEY;
-  // Microfono (un solo hablante): gpt-live-transcribe (ago 2026). El canal
-  // remoto sigue diarizado con gpt-4o-transcribe-diarize (los modelos nuevos
+  // Microphone (single speaker): gpt-live-transcribe (Aug 2026). The remote
+  // channel remains diarized with gpt-4o-transcribe-diarize (the new models
   // do not support diarization).
   FSttMic.TranscriptionModel    := otmGptLiveTranscribe;
   FSttMic.TranscriptionPrompt   := 'Mi voz en una reunion de trabajo traducida';
@@ -1001,7 +1001,7 @@ begin
       try
         if FSttMic.IsConnected then FSttMic.Disconnect;
         FSttMic.Connect;
-        SetStatus('STT reconectando...');
+        SetStatus('STT reconnecting...');
       except
         on E: Exception do SetStatus('Error reconnecting STT: ' + E.Message);
       end;

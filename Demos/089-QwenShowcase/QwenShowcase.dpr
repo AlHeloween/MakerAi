@@ -39,7 +39,7 @@ uses
   uMakerAi.Chat,
   uMakerAi.Chat.Messages,
   uMakerAi.Chat.AiConnection,
-  uMakerAi.Chat.Initializations,   // registra los drivers, entre ellos 'Qwen'
+  uMakerAi.Chat.Initializations,   // registers the drivers, including 'Qwen'
   uMakerAi.Chat.Qwen,
   uMakerAi.Tools.Functions,
   uMakerAi.Embeddings.Core,
@@ -125,7 +125,7 @@ end;
 procedure TDemo.OnDelta(const Sender: TObject; aMsg: TAiChatMessage; aResponse: TJSONObject; aRole, aText: string);
 begin
   if aRole = 'assistant' then
-    Write(aText); // el texto aparece a medida que llega
+    Write(aText); // the text appears as it arrives
 end;
 
 procedure TDemo.OnFin(const Sender: TObject; aMsg: TAiChatMessage; aResponse: TJSONObject; aRole, aText: string);
@@ -143,7 +143,7 @@ end;
 procedure TDemo.OnCambio(Sender: TObject; FunctionAction: TFunctionActionItem; FunctionName: string;
   ToolCall: TAiToolsFunction; var Handled: Boolean);
 begin
-  // Una funcion local de verdad devolveria la tasa del dia
+  // A real local function would return the day's rate
   Herramienta := ToolCall.Arguments;
   ToolCall.Response := '{"moneda":"USD","tasa_cop":4012.35,"fecha":"2026-09-28"}';
   Handled := True;
@@ -160,7 +160,7 @@ end;
 
 procedure TDemo.OnFinAVoz(const Sender: TObject; aMsg: TAiChatMessage; aResponse: TJSONObject; aRole, aText: string);
 begin
-  TTS.Finish; // sintetiza lo pendiente; OnFinished llega cuando termina
+  TTS.Finish; // synthesizes pending text; OnFinished arrives when it finishes
 end;
 
 procedure TDemo.OnListo(Sender: TObject);
@@ -221,7 +221,7 @@ function Conexion(const AModel: string; AAsync: Boolean = False): TAiChatConnect
 begin
   Result := TAiChatConnection.Create(nil);
   Result.DriverName := 'Qwen';
-  Result.Model := AModel; // despues de DriverName: cambiar de driver lo vacia
+  Result.Model := AModel; // after DriverName: changing driver clears it
   Result.Params.Values['Asynchronous'] := BoolToStr(AAsync, True);
   Result.OnReceiveDataEnd := Demo.OnFin;
   Result.OnError := Demo.OnError;
@@ -585,7 +585,7 @@ begin
     Esperar(function: Boolean begin Result := Demo.Listo end, 15000);
     if not Demo.Listo then
     begin
-      Writeln('1. El TTS en tiempo real no se conecto');
+      Writeln('1. The real-time TTS did not connect');
       Exit;
     end;
     C := Conexion('qwen3.8-flash', True);
@@ -630,7 +630,7 @@ begin
     Esperar(function: Boolean begin Result := Demo.Listo or (Demo.Error <> '') end, 15000);
     if not Demo.Listo then
     begin
-      Writeln('2. La traduccion en tiempo real no se conecto: ', Demo.Error);
+      Writeln('2. Real-time translation did not connect: ', Demo.Error);
       Exit;
     end;
     // It is sent as if it were a microphone: 100 ms blocks and then silence

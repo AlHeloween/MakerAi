@@ -23,7 +23,7 @@
 //                                    without going through InternalRunCompletions.
 //   Without an assigned SpeechTool     -->  InternalRunTranscription calls the override
 //                                    native to the driver (not the external tool).
-//   OnError captura errores     -->  RunNew swallows exceptions internamente
+//   OnError captures errors     -->  RunNew swallows exceptions internally
 //                                    and reports them via the OnError event.
 //
 // Usage:
@@ -241,7 +241,7 @@ begin
   Writeln('Route:   ChatMode=cmTranscription → InternalRunTranscription → override');
   Writeln;
 
-  // --- Ruta del archivo de audio ---
+  // --- Audio file path ---
   HasAudio := False;
   if ParamCount >= 1 then
     AudioPath := Trim(ParamStr(1))
@@ -323,7 +323,7 @@ begin
     Writeln;
 
     // =========================================================================
-    // BLOQUE 4: Cohere
+    // BLOCK 4: Cohere
     // Differences: language required (driver uses 'en' by default),
     // response_format not supported (ignored in the override — must not crash).
     // =========================================================================

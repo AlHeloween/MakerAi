@@ -249,14 +249,14 @@ begin
     'The flow is simple:' + #10 +
     '' + #10 +
     '```pascal' + #10 +
-    '// 1. Iniciar mensaje de asistente' + #10 +
+    '// 1. Start assistant message' + #10 +
     'ChatView.BeginAssistantMessage;' + #10 +
     'var MsgIdx := ChatView.MessageCount - 1;' + #10 +
     '' + #10 +
-    '// 2. Enviar tokens conforme llegan de la API' + #10 +
+    '// 2. Send tokens as they arrive from the API' + #10 +
     'ChatView.AppendToken(MsgIdx, token);' + #10 +
     '' + #10 +
-    '// 3. Finalizar' + #10 +
+    '// 3. Finish' + #10 +
     'ChatView.FinishMessage(MsgIdx);' + #10 +
     '```' + #10 +
     '' + #10 +

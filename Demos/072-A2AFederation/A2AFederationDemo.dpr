@@ -209,7 +209,7 @@ begin
     if Redactor.Blackboard.GetStatus = esCompleted then
       Writeln('OK: A2A federation worked end to end.')
     else
-      Writeln('ERROR: el grafo local no completo.');
+      Writeln('ERROR: the local graph did not complete.');
 
     Server.Active := False;
   finally

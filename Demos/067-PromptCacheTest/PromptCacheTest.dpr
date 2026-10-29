@@ -56,14 +56,14 @@ function BigSystem: string;
 var
   I: Integer;
 begin
-  Result := 'Eres un asistente experto en el framework MakerAI para Delphi. ' +
-    'Responde siempre de forma muy breve. Contexto de referencia que debes considerar:' + sLineBreak;
+  Result := 'You are an expert assistant in the MakerAI framework for Delphi. ' +
+    'Always respond very briefly. Reference context you must consider:' + sLineBreak;
   for I := 1 to 70 do
     Result := Result + Format(
-      'Regla %d: MakerAI unifica multiples proveedores LLM (OpenAI, Claude, Gemini, Ollama, ' +
-      'Groq, Mistral, DeepSeek, Kimi, Grok, Cohere) bajo el componente TAiChatConnection, ' +
-      'con soporte de RAG vectorial y de grafos, protocolo MCP, agentes autonomos y ' +
-      'herramientas nativas (vision, voz, busqueda web, generacion de imagen y video).', [I]) + sLineBreak;
+      'Rule %d: MakerAI unifies multiple LLM providers (OpenAI, Claude, Gemini, Ollama, ' +
+      'Groq, Mistral, DeepSeek, Kimi, Grok, Cohere) under the TAiChatConnection component, ' +
+      'with support for vector and graph RAG, MCP protocol, autonomous agents and ' +
+      'native tools (vision, voice, web search, image and video generation).', [I]) + sLineBreak;
 end;
 
 procedure RunOne(Conn: TAiChatConnection; Cap: TCap; const ALabel, APrompt: string);
@@ -114,11 +114,11 @@ begin
       WriteLn('');
       WriteLn('=== Verdict ===');
       if Cap.CacheRead > 0 then
-        WriteLn('OK: caching efectivo. cache_read Req2=' + IntToStr(LRead2) +
+        WriteLn('OK: caching effective. cache_read Req2=' + IntToStr(LRead2) +
                 ', Req3=' + IntToStr(Cap.CacheRead) +
-                ' (el prefijo cacheado crece con cada turno via auto-cache del ultimo turno).')
+                ' (the cached prefix grows with each turn via auto-cache of the last turn).')
       else
-        WriteLn('ATENCION: cache_read=0 (caching no efectivo, revisar)');
+        WriteLn('ATTENTION: cache_read=0 (caching not effective, review)');
     finally
       Conn.Free;
       Cap.Free;

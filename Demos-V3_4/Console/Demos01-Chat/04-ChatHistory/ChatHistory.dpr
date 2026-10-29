@@ -37,7 +37,7 @@ const
   API_KEY = '@CLAUDE_API_KEY';
 
 // =============================================================================
-//  Utilidad: imprime el turno de la conversación con formato
+//  Utility: prints the conversation turn with formatting
 // =============================================================================
 procedure PrintTurn(const Role, Text: String; TurnNum: Integer);
 begin
@@ -49,7 +49,7 @@ begin
 end;
 
 // =============================================================================
-//  DEMO 1 — Conversación simple de 4 turnos
+//  DEMO 1 — Simple 4-turn conversation
 // =============================================================================
 procedure DemoConversacionSimple(Conn: TAiChatConnection);
 const
@@ -77,7 +77,7 @@ begin
 end;
 
 // =============================================================================
-//  DEMO 2 — Conversación con reset a mitad
+//  DEMO 2 — Conversation with reset halfway
 // =============================================================================
 procedure DemoConReset(Conn: TAiChatConnection);
 var
@@ -108,7 +108,7 @@ begin
 end;
 
 // =============================================================================
-//  DEMO 3 — Chat interactivo por consola (hasta escribir "salir")
+//  DEMO 3 — Interactive console chat (until typing "exit")
 // =============================================================================
 procedure DemoChatInteractivo(Conn: TAiChatConnection);
 var
@@ -116,7 +116,7 @@ var
   Response: String;
   Turn    : Integer;
 begin
-  Writeln('─── Interactive chat (type "salir" to finish) ───');
+  Writeln('─── Interactive chat (type "exit" to finish) ───');
   Conn.Messages.Clear;
   Turn := 0;
 
@@ -125,7 +125,7 @@ begin
     Readln(Input);
     Input := Trim(Input);
 
-    if (Input = '') or (SameText(Input, 'salir')) then
+    if (Input = '') or (SameText(Input, 'exit')) then
       Break;
 
     Inc(Turn);
@@ -140,7 +140,7 @@ begin
 end;
 
 // =============================================================================
-//  DEMO principal
+//  Main demo
 // =============================================================================
 procedure RunDemo;
 var
@@ -161,7 +161,7 @@ begin
 
     Conn.SystemPrompt.Text :=
       'You are a friendly assistant. You remember everything said in the conversation. ' +
-      'Responde siempre en español.';
+      'Always respond in Spanish.';
 
     DemoConversacionSimple(Conn);
     DemoConReset(Conn);

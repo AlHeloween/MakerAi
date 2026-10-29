@@ -146,7 +146,7 @@ begin
     Clasificador := MakeLLM(Manager, 'Clasificador',
       'You are a CLASSIFIER. Your job is to return a SINGLE word.' + #10 +
       'Given a question, respond ONLY with one of these exact words: math  science  history' + #10 +
-      'Sin explicaciones. Sin puntuacion. Solo una palabra.');
+      'No explanations. No punctuation. Only one word.');
     Clasificador.MaxTokens := 3;
 
     // Router: node without LLM that reads the blackboard
@@ -158,21 +158,21 @@ begin
     // Specialists
     EspMath := MakeLLM(Manager, 'EspecialistaMath',
       'You are an expert in mathematics. Answer the question clearly ' +
-      'mostrando todos los pasos si hay calculos. Responde en espanol.');
+      'showing all steps if there are calculations. Answer in English.');
 
     EspCiencia := MakeLLM(Manager, 'EspecialistaCiencia',
       'You are an expert in science. Answer with scientific precision ' +
-      'usando lenguaje claro. Responde en espanol.');
+      'using clear language. Answer in English.');
 
     EspHistoria := MakeLLM(Manager, 'EspecialistaHistoria',
       'You are an expert in history. Answer with historical context ' +
-      'y datos clave. Responde en espanol.');
+      'and key facts. Answer in English.');
 
     // Final formatter: jmAny (only one specialist arrives)
     Formatter := MakeLLM(Manager, 'Formatter',
       'You receive an expert''s response. ' +
       'Format it: add a brief title, then the structured response. ' +
-      'Mantén la concision. Responde en espanol.');
+      'Keep it concise. Answer in English.');
     Formatter.JoinMode := jmAny;
 
     // Link: Classifier -> Router
@@ -216,11 +216,11 @@ begin
     Manager.Compile;
 
     // Queries of different categories
-    RunQuery(Manager, 'Cuanto es la raiz cuadrada de 225?');
-    RunQuery(Manager, 'Como funciona la fotosintesis?');
-    RunQuery(Manager, 'Cuando termino la Segunda Guerra Mundial?');
-    RunQuery(Manager, 'Cuanto es el 18 por ciento de 350?');
-    RunQuery(Manager, 'Que causa un eclipse solar?');
+    RunQuery(Manager, 'What is the square root of 225?');
+    RunQuery(Manager, 'How does photosynthesis work?');
+    RunQuery(Manager, 'When did World War II end?');
+    RunQuery(Manager, 'What is 18 percent of 350?');
+    RunQuery(Manager, 'What causes a solar eclipse?');
 
   finally
     Manager.Free;

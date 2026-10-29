@@ -12,9 +12,9 @@
 //
 //   Test 1 — gpt-image-1      : PNG, quality=high, background=opaque
 //   Test 2 — gpt-image-1-mini : JPEG, quality=medium, output_compression=80
-//   Test 3 — gpt-image-2      : PNG, quality=high (SIN streaming)
-//   Test 4 — gpt-image-1      : Streaming con partial_images=2
-//   Test 5 — dall-e-3         : Generaci?n cl?sica
+//   Test 3 — gpt-image-2      : PNG, quality=high (without streaming)
+//   Test 4 — gpt-image-1      : Streaming with partial_images=2
+//   Test 5 — dall-e-3         : Classic generation
 //   Test 6 — gpt-image-1      : size=auto, moderation=low
 //
 // Images are saved in the system TEMP folder.
@@ -39,7 +39,7 @@ const
   API_KEY = '@OPENAI_API_KEY';
 
 // =============================================================================
-//  Helpers globales
+//  Global helpers
 // =============================================================================
 
 function OutputDir: string;
@@ -74,7 +74,7 @@ begin
 end;
 
 // =============================================================================
-//  Test 1 — gpt-image-1: PNG de alta calidad
+//  Test 1 — gpt-image-1: high-quality PNG
 // =============================================================================
 
 procedure Test1_GptImage1_PNG;
@@ -114,7 +114,7 @@ begin
 end;
 
 // =============================================================================
-//  Test 2 — gpt-image-1-mini: JPEG con compresi?n
+//  Test 2 — gpt-image-1-mini: JPEG with compression
 // =============================================================================
 
 procedure Test2_GptImage1Mini_JPEG;
@@ -152,7 +152,7 @@ begin
 end;
 
 // =============================================================================
-//  Test 3 — gpt-image-2: sin streaming (la API no lo soporta)
+//  Test 3 — gpt-image-2: without streaming (the API does not support it)
 // =============================================================================
 
 procedure Test3_GptImage2;
@@ -169,7 +169,7 @@ begin
     Dalle.Model        := imGptImage2;
     Dalle.Quality      := iqHigh;
     Dalle.OutputFormat := ifPng;
-    Dalle.Stream       := False; // gpt-image-2 no soporta streaming
+    Dalle.Stream       := False; // gpt-image-2 does not support streaming
 
     Write('  Generating... ');
     try
@@ -196,8 +196,8 @@ begin
 end;
 
 // =============================================================================
-//  Test 4 — gpt-image-1: streaming con partial_images
-//  Los eventos "of object" requieren metodos de clase; usamos TStreamingTest.
+//  Test 4 — gpt-image-1: streaming with partial_images
+//  The "of object" events require class methods; we use TStreamingTest.
 // =============================================================================
 
 type
@@ -274,7 +274,7 @@ begin
 end;
 
 // =============================================================================
-//  Test 5 — dall-e-3: modo cl?sico
+//  Test 5 — dall-e-3: classic mode
 // =============================================================================
 
 procedure Test5_DallE3;
@@ -351,7 +351,7 @@ begin
 end;
 
 // =============================================================================
-//  Punto de entrada
+//  Entry point
 // =============================================================================
 
 var

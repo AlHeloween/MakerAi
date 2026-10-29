@@ -72,7 +72,7 @@ begin
   Args := TJSONObject.ParseJSONValue(ToolCall.Arguments) as TJSONObject;
   if not Assigned(Args) then
   begin
-    ToolCall.Response := '{"error":"No se pudo parsear los argumentos"}';
+    ToolCall.Response := '{"error":"Could not parse the arguments"}';
     Handled := True;
     Exit;
   end;
@@ -123,13 +123,13 @@ begin
     LFn := FAiFunctions.Functions.AddFunction('get_weather', True, OnFnGetWeather);
     LFn.Description.Text :=
       'Obtiene el clima actual de una ciudad. Devuelve temperatura, ' +
-      'condición y humedad.';
+      'condition and humidity.';
 
     LParam := LFn.Parameters.Add;
     LParam.Name        := 'city';
     LParam.ParamType   := ptString;
     LParam.Required    := True;
-    LParam.Description.Text := 'Nombre de la ciudad (ej: "Monterrey", "Ciudad de México")';
+    LParam.Description.Text := 'Name of the city (e.g.: "Monterrey", "Mexico City")';
 
     // ── Create connection ────────────────────────────────────────────────
     Conn := TAiChatConnection.Create(nil);
@@ -144,18 +144,18 @@ begin
 
       Conn.SystemPrompt.Text :=
         'You are a weather assistant. When the user asks about the weather, ' +
-        'usa la función get_weather para obtener datos reales. Responde en español.';
+        'use the get_weather function to get real data. Respond in Spanish.';
 
       // ── Question 1: needs the function ────────────────────────────────────
       Writeln('── Question 1 (needs the function) ──');
-      Res := Conn.AddMessageAndRun('¿Cómo está el clima en Monterrey hoy?', 'user', []);
+      Res := Conn.AddMessageAndRun('How is the weather in Monterrey today?', 'user', []);
       Writeln('Response: ', Res);
       Writeln;
       Conn.Messages.Clear;
 
       // ── Question 2: does NOT need the function ─────────────────────────────────
       Writeln('── Question 2 (does not need the function) ──');
-      Res := Conn.AddMessageAndRun('¿Cuál es la capital de México?', 'user', []);
+      Res := Conn.AddMessageAndRun('What is the capital of Mexico?', 'user', []);
       Writeln('Response: ', Res);
       Writeln;
       Conn.Messages.Clear;

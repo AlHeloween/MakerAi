@@ -52,7 +52,7 @@ const
                    'briefly what you see.';
 
 type
-  // Que se espera del turno, segun quien deba ejecutar la accion.
+  // What is expected from the turn, depending on who must execute the action.
   TCaseKind = (ckDelegated, ckMissingTool, ckLocal);
 
   TSpy = class
@@ -63,8 +63,8 @@ type
     Names: string;
     Done: Boolean;
     Intercept: Boolean;
-    // Si es 1, delega desde la primera accion. Con un valor mayor deja que el
-    // bucle agentico haga N-1 rondas locales antes de cortarlo.
+    // If it is 1, it delegates from the first action. With a larger value it lets the
+    // agentic loop do N-1 local rounds before cutting it.
     DelegateFrom: Integer;
     procedure ToolHandler(Sender: TObject; AiToolCall: TAiToolsFunction);
     procedure DataEnd(const Sender: TObject; aMsg: TAiChatMessage;
@@ -149,7 +149,7 @@ begin
 
   WriteLn('');
   WriteLn('==============================================================');
-  WriteLn('CASO: ', Title);
+  WriteLn('CASE: ', Title);
   WriteLn('==============================================================');
 
   CU := nil;
@@ -207,7 +207,7 @@ begin
     except
       on E: Exception do
       begin
-        WriteLn('EXCEPCION: ', E.ClassName, ': ', E.Message);
+        WriteLn('EXCEPTION: ', E.ClassName, ': ', E.Message);
         Inc(GFailures);
         Exit;
       end;

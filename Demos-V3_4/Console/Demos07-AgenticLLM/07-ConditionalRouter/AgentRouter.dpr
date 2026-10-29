@@ -5,8 +5,8 @@ program AgentRouter;
 // =============================================================================
 // MakerAI — 07-AgenticLLM / 07-ConditionalRouter
 // =============================================================================
-// Un clasificador LLM determina la ruta y un link condicional despacha
-// al especialista correcto:
+// An LLM classifier determines the route and a conditional link dispatches
+// to the correct specialist:
 //
 //   [Classifier] -> [RouterNode] --lmConditional--> [MathSpecialist]
 //                                               \-> [ScienceSpecialist]
@@ -15,11 +15,11 @@ program AgentRouter;
 //                                                  [FinalFormatter] (jmAny)
 //
 // Concepts it covers:
-//   - TAIAgentsLink.Mode = lmConditional: enrutamiento por valor del blackboard
-//   - TAIAgentsLink.ConditionalKey: clave que se evalua en el blackboard
-//   - TAIAgentsLink.AddConditionalTarget: mapeo valor -> nodo destino
-//   - Nodo plain con OnExecute: logica de enrutamiento sin LLM
-//   - JoinMode = jmAny: el formateador acepta cualquiera de los tres especialistas
+//   - TAIAgentsLink.Mode = lmConditional: routing by blackboard value
+//   - TAIAgentsLink.ConditionalKey: key evaluated in the blackboard
+//   - TAIAgentsLink.AddConditionalTarget: value -> destination node mapping
+//   - Plain node with OnExecute: routing logic without LLM
+//   - JoinMode = jmAny: the formatter accepts any of the three specialists
 // =============================================================================
 
 uses

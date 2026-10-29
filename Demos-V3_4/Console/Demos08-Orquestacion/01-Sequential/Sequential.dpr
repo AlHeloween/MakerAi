@@ -87,7 +87,7 @@ begin
       'Write a short article (3 paragraphs) in English that integrates ' +
       'all the concepts naturally and coherently.';
 
-    // Encadenar: Analizador -> Expansor -> Redactor
+    // Chain: Analizador -> Expansor -> Redactor
     L1 := TAIAgentsLink.Create(Manager);
     L1.Name := 'L1'; L1.Graph := Manager; L1.NextA := Expansor;
     Analizador.Next := L1;

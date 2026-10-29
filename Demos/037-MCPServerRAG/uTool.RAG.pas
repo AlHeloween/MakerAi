@@ -147,11 +147,11 @@ type
 // Reads the configuration .ini; creates it with default values if it does not exist.
 function LoadServerConfig(const AFileName: string): TRagServerConfig;
 
-// Inicializa el motor RAG compartido (no conecta a la DB; la conexion es perezosa).
+// Initializes the shared RAG engine (does not connect to the DB; the connection is lazy).
 procedure InitRagEngine(const ACfg: TRagServerConfig);
 procedure DoneRagEngine;
 
-// Registra el tool y engancha la autenticacion (OnValidateRequest) en el servidor.
+// Registers the tool and hooks authentication (OnValidateRequest) into the server.
 procedure RegisterTools(AServer: TAiMCPServer);
 
 implementation
@@ -187,8 +187,8 @@ var
 
 function ReadFloatInv(Ini: TCustomIniFile; const ASection, AKey: string; ADefault: Double): Double;
 begin
-  // ReadFloat de TIniFile depende del locale (coma decimal en Windows es-*);
-  // leemos como texto y parseamos con punto decimal invariante.
+  // ReadFloat of TIniFile depends on the locale (decimal comma in Windows es-*);
+  // read as text and parse with invariant decimal point.
   Result := StrToFloatDef(Ini.ReadString(ASection, AKey, ''), ADefault, TFormatSettings.Invariant);
 end;
 
@@ -784,7 +784,7 @@ begin
     except
       on E: Exception do
       begin
-        // Construimos el error como JSON real para escapar el mensaje con seguridad
+        // Build the error as real JSON to safely escape the message
         ErrObj := TJSONObject.Create;
         try
           ErrObj.AddPair('ok', TJSONFalse.Create);

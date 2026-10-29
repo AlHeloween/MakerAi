@@ -65,12 +65,12 @@ const
 
   // --- Local VAD segmenter for the [THEM] channel (PCM16 16 kHz mono) ---
   SEG_SAMPLE_RATE = 16000;
-  SEG_START_LEVEL = 400; // nivel medio para considerar inicio de habla
-  SEG_STOP_LEVEL = 250; // por debajo se acumula silencio
-  SEG_SILENCE_MS = 900; // silencio que cierra el segmento
-  SEG_MIN_MS = 700; // segmentos mas cortos se descartan
-  SEG_MAX_MS = 25000; // corte forzado de segmentos largos
-  SEG_PREBUF_MS = 400; // pre-buffer para no perder el arranque de la frase
+  SEG_START_LEVEL = 400; // average level to consider speech start
+  SEG_STOP_LEVEL = 250; // below this, silence accumulates
+  SEG_SILENCE_MS = 900; // silence that closes the segment
+  SEG_MIN_MS = 700; // shorter segments are discarded
+  SEG_MAX_MS = 25000; // forced cut of long segments
+  SEG_PREBUF_MS = 400; // pre-buffer to avoid losing the start of the phrase
 
   // TTS voice per registered speaker (Speaker 1..4)
   SPEAKER_VOICES: array [0 .. 3] of TAiTTSVoice = (TAiTTSVoice.tvNova, TAiTTSVoice.tvShimmer,
@@ -348,13 +348,13 @@ begin
       Exit(I);
 end;
 
-// Recorta del segmento el tramo mas largo del hablante aRawSpeaker y lo
-// registra como known_speaker. Devuelve el nombre asignado ('Hablante N').
+// Cuts the longest stretch of speaker aRawSpeaker from the segment and
+// registers it as known_speaker. Returns the assigned name ('Speaker N').
 function TDiarizedRemoteSide.TryEnrollSpeaker(const aPcm: TBytes; const aRawSpeaker: string;
   const aSegments: TDiarizedSegments; out aName: string): Boolean;
 const
-  // La API exige muestras de 1.2 a 10.0 s; nos quedamos lejos de los bordes
-  // (10.0 exactos puede rechazarse por redondeo).
+  // The API requires samples from 1.2 to 10.0 s; we stay well away from the edges
+  // (10.0 exactly may be rejected due to rounding).
   MIN_SAMPLE_SEC = 2.0;
   MAX_SAMPLE_SEC = 9.0;
 var
@@ -370,7 +370,7 @@ begin
   if FAudioApi.KnownSpeakerCount >= 4 then
     Exit;
 
-  // Buscar el tramo contiguo mas largo de este hablante
+  // Find the longest contiguous stretch of this speaker
   BestStart := 0;
   BestEnd := 0;
   InRun := False;
@@ -499,7 +499,7 @@ var
         SetLength(TtsPcm, TtsStream.Size);
         TtsStream.Position := 0;
         TtsStream.ReadBuffer(TtsPcm[0], TtsStream.Size);
-        FCapture.Muted := True; // anti-realimentacion (se libera en OnStateChange)
+        FCapture.Muted := True; // anti-feedback (released in OnStateChange)
         FPlayer.PlayPCM16(TtsPcm, TTS_PCM_RATE, 1);
       end;
     finally

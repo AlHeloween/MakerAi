@@ -20,13 +20,13 @@
 //   C. TAiPrompts.ApplySkill (by hand): copies a skill's instructions
 //      into a connection's SystemPrompt.
 //
-// Uso:
+// Usage:
 //   SkillsDemo.exe                                  (OpenAI gpt-5.6-luna)
 //   SkillsDemo.exe --driver Claude --model claude-haiku-4-5-20251001
 //   SkillsDemo.exe --driver Groq --model openai/gpt-oss-120b
 //   SkillsDemo.exe --ppm        (adds skill-code-review from the PPM registry)
 //
-// La API key se toma de <DRIVER>_API_KEY (OPENAI_API_KEY, CLAUDE_API_KEY...).
+// The API key is taken from <DRIVER>_API_KEY (OPENAI_API_KEY, CLAUDE_API_KEY...).
 // =============================================================================
 
 {$APPTYPE CONSOLE}
@@ -169,7 +169,7 @@ var
   Skills: TAiSkills;
   P, R: string;
 begin
-  Titulo('A. TAiSkills: el modelo carga el skill que necesita');
+  Titulo('A. TAiSkills: the model loads the skill it needs');
   Conn := NuevaConexion(Eventos);
   Funcs := TAiFunctions.Create(nil);
   Skills := TAiSkills.Create(nil);
@@ -231,12 +231,12 @@ begin
     Manager.Asynchronous := False;
     Node := TLLMNode.Create(Manager);
     Node.Name := 'Revisor';
-    // El nodo toma posesión del skill (no liberarlo a mano)
+    // The node takes ownership of the skill (do not free it manually)
     Node.Skill := TAiSkill.FromFolder(TPath.Combine(GSkillsDir, 'revisor-delphi'));
     Node.DriverName := GDriver;
     Node.Model := GModel;
     Node.ApiKey := GApiKey;
-    Node.SystemPrompt := 'Responde en español y en menos de 120 palabras.';
+    Node.SystemPrompt := 'Reply in Spanish and in fewer than 120 words.';
     Node.UseAllTools := False;
     Manager.StartNode := Node;
     Manager.EndNode := Node;
@@ -260,7 +260,7 @@ var
   Prompts: TAiPrompts;
   Conn: TAiChatConnection;
 begin
-  Titulo('C. TAiPrompts.ApplySkill: el skill fijo en el SystemPrompt');
+  Titulo('C. TAiPrompts.ApplySkill: the skill fixed in the SystemPrompt');
   Prompts := TAiPrompts.Create(nil);
   Conn := NuevaConexion(Eventos);
   try
@@ -269,7 +269,7 @@ begin
     Writeln('Connection SystemPrompt: ', Conn.SystemPrompt.Count, ' lines from the tono-soporte skill');
     Writeln;
     Writeln(Conn.AddMessageAndRun(
-      'El cliente dice: "Me cobraron dos veces la mensualidad". Responde.', 'user', []).Trim);
+      'The customer says: "I was charged twice for the monthly fee". Reply.', 'user', []).Trim);
   finally
     Conn.Free;
     Prompts.Free;
@@ -279,7 +279,7 @@ end;
 var
   Eventos: TEventos;
 begin
-  // Consola en UTF-8 para ver bien las tildes
+  // Console in UTF-8 to display accents correctly
   SetConsoleOutputCP(CP_UTF8);
   SetTextCodePage(Output, CP_UTF8);
   Eventos := TEventos.Create;

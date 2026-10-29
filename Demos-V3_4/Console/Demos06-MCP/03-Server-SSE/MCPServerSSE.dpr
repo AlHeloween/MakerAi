@@ -105,7 +105,7 @@ var
   NombrePersona, Lang, Saludo: String;
 begin
   NombrePersona := Trim(AParams.Name);
-  if NombrePersona = '' then NombrePersona := 'mundo';
+  if NombrePersona = '' then NombrePersona := 'world';
   Lang := Trim(LowerCase(AParams.Language));
   if Lang = 'en' then
     Saludo := Format('Hello, %s! Welcome to MakerAI MCP SSE Server.', [NombrePersona])

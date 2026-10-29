@@ -6,18 +6,18 @@ program HumanApproval;
 // =============================================================================
 // MakerAI — 07-AgenticLLM / 05-HumanApproval
 // =============================================================================
-// Human-in-the-loop: el agente se pausa esperando aprobacion humana.
-// El usuario puede aprobar el borrador o rechazarlo con feedback,
-// lo que relanza el agente con instrucciones de mejora.
+// Human-in-the-loop: the agent pauses waiting for human approval.
+// The user can approve the draft or reject it with feedback,
+// which relaunches the agent with improvement instructions.
 //
 // Concepts it covers:
-//   - Manager.Asynchronous = True: ejecucion en hilo separado
-//   - Manager.OnSuspend: callback cuando el agente se suspende
-//   - Manager.OnFinish: callback cuando termina
-//   - Node.Suspend(reason, context): pausar la ejecucion
-//   - Manager.ResumeThread(threadId, nodeName, context): reanudar
-//   - Manager.Abort: cancelar ejecucion actual
-//   - Blackboard para pasar datos entre OnExecute y el loop principal
+//   - Manager.Asynchronous = True: execution in a separate thread
+//   - Manager.OnSuspend: callback when the agent suspends
+//   - Manager.OnFinish: callback when it finishes
+//   - Node.Suspend(reason, context): pause execution
+//   - Manager.ResumeThread(threadId, nodeName, context): resume
+//   - Manager.Abort: cancel current execution
+//   - Blackboard to pass data between OnExecute and the main loop
 //
 // Structure: [Drafter] -> [HumanReviewer (suspend)] -> [Finalizer]
 // =============================================================================
@@ -192,7 +192,7 @@ begin
   Iteration    := 0;
   Approved     := False;
 
-  // Lanzar el agente (retorna inmediatamente por Asynchronous=True)
+  // Launch the agent (returns immediately because Asynchronous=True)
   FManager.Run(ATask);
 
   repeat
@@ -219,8 +219,8 @@ begin
       Readln(UserInput);
       Writeln;
 
-      if (Trim(LowerCase(UserInput)) = 's') or
-         (Trim(LowerCase(UserInput)) = 'si') or
+      if (Trim(LowerCase(UserInput)) = 'y') or
+         (Trim(LowerCase(UserInput)) = 'yes') or
          (Trim(LowerCase(UserInput)) = 'y') then
       begin
         Approved := True;

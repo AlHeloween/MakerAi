@@ -10,8 +10,8 @@
 // completed transcription is translated with TAiChatConnection.
 //
 //   loopback --> TAiAudioCapture --> TAiOpenAiRealtimeSTT --+
-//                                                           +--> TAiChatConnection --> consola
-//   microfono -> TAiAudioCapture --> TAiOpenAiRealtimeSTT --+
+//                                                           +--> TAiChatConnection --> console
+//   microphone -> TAiAudioCapture --> TAiOpenAiRealtimeSTT --+
 //
 // Requirements:
 //   - OPENAI_API_KEY environment variable (for STT and, by default, translation).
@@ -54,7 +54,7 @@ const
   // For local Ollama: DRIVER='Ollama', MODEL='gpt-oss:20b', URL='http://192.168.3.121:11434/'
   TRANSLATOR_DRIVER = 'OpenAi';
   TRANSLATOR_MODEL = 'gpt-4o-mini';
-  TRANSLATOR_URL = ''; // vacio = URL por defecto del driver
+  TRANSLATOR_URL = ''; // empty = default URL of the driver
   TRANSLATOR_APIKEY = '@OPENAI_API_KEY';
 
   STT_APIKEY = '@OPENAI_API_KEY';

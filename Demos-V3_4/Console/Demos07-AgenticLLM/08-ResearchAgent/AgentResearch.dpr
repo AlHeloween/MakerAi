@@ -9,16 +9,16 @@ program AgentResearch;
 //
 //   [Planner] -> [Researcher (web_search + save_note)] -> [Analyst] -> [Writer]
 //
-// El Researcher usa un registry propio con dos herramientas:
-//   - web_search: busqueda mock con datos predefinidos por palabra clave
-//   - save_note:  persiste hallazgos en el blackboard por clave
+// The Researcher uses its own registry with two tools:
+//   - web_search: mock search with predefined data by keyword
+//   - save_note:  persists findings in the blackboard by key
 //
 // Concepts it covers:
-//   - TLLMNode.Registry: registry de herramientas propio por nodo
-//   - TAiToolRegistry.Create (instancia propia, no singleton)
-//   - IAiTool con acceso al blackboard (TNoteTool recibe referencia)
-//   - Pipeline multi-nodo donde el output de cada nodo alimenta al siguiente
-//   - Inspeccion del blackboard post-run (Planner.output, note.findingX)
+//   - TLLMNode.Registry: tool registry owned by each node
+//   - TAiToolRegistry.Create (own instance, not singleton)
+//   - IAiTool with blackboard access (TNoteTool receives a reference)
+//   - Multi-node pipeline where each node's output feeds the next
+//   - Post-run blackboard inspection (Planner.output, note.findingX)
 // =============================================================================
 
 uses

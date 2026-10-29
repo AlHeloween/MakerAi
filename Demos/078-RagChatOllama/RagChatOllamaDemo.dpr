@@ -69,7 +69,7 @@ const
   ENTIDAD = 'PELICULAS_OLLAMA';
   TOP_K = 4;
 
-  // El system prompt es la mitad del trabajo en un RAG. Estas tres reglas son
+  // The system prompt is half the work in a RAG. These three rules are
   // las que evitan el fallo mas comun: que el modelo complete con lo que "sabe"
   // cuando el contexto no alcanza.
   SYSTEM_RAG = 'Eres el asistente de un catalogo de peliculas.' + sLineBreak +
@@ -143,7 +143,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Infraestructura
+// Infrastructure
 // ---------------------------------------------------------------------------
 procedure Preparar;
 var
@@ -171,7 +171,7 @@ begin
   Conn.Params.Values['CharacterSet'] := 'UTF8';
   Conn.LoginPrompt := False;
   if Conn.Params.Values['Password'] = '' then
-    raise Exception.Create('Falta la variable de entorno PGPASSWORD');
+    raise Exception.Create('Missing environment variable PGPASSWORD');
   Conn.Connected := True;
   Writeln('   postgres: ' + Conn.Params.Values['Database'] + '@' + Conn.Params.Values['Server']);
 
@@ -250,7 +250,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Recuperacion
+// Retrieval
 // ---------------------------------------------------------------------------
 function RecuperarContexto(const APregunta: string; out ACuantos: Integer): string;
 var
@@ -279,7 +279,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Preguntar al modelo, con y sin contexto
+// Ask the model, with and without context
 // ---------------------------------------------------------------------------
 procedure Preguntar(const APregunta: string);
 var
@@ -289,11 +289,11 @@ var
 begin
   Separador('QUESTION: ' + APregunta);
 
-  // ---------- 1. Sin RAG ----------
+  // ---------- 1. Without RAG ----------
   Writeln('');
   Writeln('  [WITHOUT CONTEXT]  the model answers only with what it brings from the factory');
   Chat.Messages.Clear;
-  Chat.SystemPrompt.Text := 'Responde en espanol, en 4 lineas como maximo.';
+  Chat.SystemPrompt.Text := 'Respond in English, in at most 4 lines.';
   SW := TStopwatch.StartNew;
   try
     Respuesta := Chat.AddMessageAndRun(APregunta, 'user', []);
@@ -304,7 +304,7 @@ begin
   Writeln('  ' + Respuesta.Trim.Replace(sLineBreak, sLineBreak + '  '));
   Writeln(Format('  (%d ms)', [SW.ElapsedMilliseconds]));
 
-  // ---------- 2. Con RAG ----------
+  // ---------- 2. With RAG ----------
   Writeln('');
   Contexto := RecuperarContexto(APregunta, Cuantos);
   Writeln(Format('  [WITH CONTEXT]  %d records retrieved from PostgreSQL and injected into the system prompt', [Cuantos]));
@@ -336,8 +336,8 @@ begin
   try
     try
       ModeloChat := ArgValue('--chat', 'qwen3.5:4b');
-      // Por defecto nomic-embed-text: en las pruebas del demo 077 se comporto
-      // mejor que mxbai-embed-large sobre este corpus en espanol.
+      // By default nomic-embed-text: in the tests of demo 077 it behaved
+      // better than mxbai-embed-large on this Spanish corpus.
       ModeloEmb := ArgValue('--embed', 'nomic-embed-text');
       DimEmb := StrToIntDef(ArgValue('--dim', ''), 0);
       if DimEmb = 0 then
@@ -375,13 +375,13 @@ begin
         Preguntar(Libre)
       else
       begin
-        // Preguntas sobre un catalogo PRIVADO: el modelo no puede saberlas.
-        // Sin contexto inventara; con contexto respondera con datos reales.
+        // Questions about a PRIVATE catalog: the model cannot know them.
+        // Without context it will invent; with context it will answer with real data.
         Preguntar('Which horror movies did Carla Mendez direct?');
         Preguntar('What is Orbit Zero about and in what year was it released?');
         Preguntar('Recommend an animated movie and explain why.');
-        // Esta NO esta en el catalogo: sirve para comprobar que el modelo
-        // admite que no sabe en vez de inventar.
+        // This one is NOT in the catalog: it serves to check that the model
+        // admits it does not know instead of inventing.
         Preguntar('Who directed The Godfather?');
       end;
 

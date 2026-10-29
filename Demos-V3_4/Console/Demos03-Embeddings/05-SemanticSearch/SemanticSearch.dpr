@@ -58,20 +58,20 @@ type
 // =============================================================================
 const
   DOCS: array[0..6] of TDocumento = (
-    (Id:1; Titulo:'El sistema cardiovascular';
-     Contenido:'El corazon bombea sangre hacia todos los organos del cuerpo humano'),
-    (Id:2; Titulo:'El ciclo del agua';
-     Contenido:'El agua se evapora de los oceanos, forma nubes y cae como lluvia'),
-    (Id:3; Titulo:'Profesiones medicas';
-     Contenido:'Los medicos, enfermeras y especialistas trabajan en hospitales'),
-    (Id:4; Titulo:'Transporte urbano';
-     Contenido:'Los autos, autobuses y trenes transportan personas en la ciudad'),
-    (Id:5; Titulo:'Programacion en Delphi';
-     Contenido:'Delphi es un lenguaje de programacion orientado a objetos para Windows'),
-    (Id:6; Titulo:'Inteligencia Artificial';
-     Contenido:'Los modelos de lenguaje grande procesan texto usando redes neuronales'),
-    (Id:7; Titulo:'El ciclo de carbono';
-     Contenido:'Las plantas absorben CO2, los animales lo liberan al respirar')
+    (Id:1; Titulo:'The cardiovascular system';
+     Contenido:'The heart pumps blood to all organs of the human body'),
+    (Id:2; Titulo:'The water cycle';
+     Contenido:'Water evaporates from the oceans, forms clouds, and falls as rain'),
+    (Id:3; Titulo:'Medical professions';
+     Contenido:'Doctors, nurses, and specialists work in hospitals'),
+    (Id:4; Titulo:'Urban transport';
+     Contenido:'Cars, buses, and trains transport people in the city'),
+    (Id:5; Titulo:'Programming in Delphi';
+     Contenido:'Delphi is an object-oriented programming language for Windows'),
+    (Id:6; Titulo:'Artificial Intelligence';
+     Contenido:'Large language models process text using neural networks'),
+    (Id:7; Titulo:'The carbon cycle';
+     Contenido:'Plants absorb CO2, animals release it when breathing')
   );
 
 // =============================================================================
@@ -85,16 +85,16 @@ type
 
 const
   FAQ: array[0..4] of TFAQItem = (
-    (Pregunta:'Como cambio mi contrasena?';
-     Respuesta:'Ve a Configuracion > Seguridad > Cambiar contrasena'),
-    (Pregunta:'Como descargo mis datos?';
-     Respuesta:'En Configuracion > Privacidad > Exportar mis datos'),
-    (Pregunta:'Cual es el horario de atencion?';
-     Respuesta:'Lunes a viernes 9 AM a 6 PM, sabados 10 AM a 3 PM'),
-    (Pregunta:'Como contacto soporte?';
-     Respuesta:'Email: soporte@empresa.com | Tel: +52-55-1234-5678'),
-    (Pregunta:'Como cancelo mi suscripcion?';
-     Respuesta:'En Configuracion > Suscripcion > Cancelar plan')
+    (Pregunta:'How do I change my password?';
+     Respuesta:'Go to Settings > Security > Change password'),
+    (Pregunta:'How do I download my data?';
+     Respuesta:'In Settings > Privacy > Export my data'),
+    (Pregunta:'What are the business hours?';
+     Respuesta:'Monday to Friday 9 AM to 6 PM, Saturdays 10 AM to 3 PM'),
+    (Pregunta:'How do I contact support?';
+     Respuesta:'Email: support@company.com | Tel: +52-55-1234-5678'),
+    (Pregunta:'How do I cancel my subscription?';
+     Respuesta:'In Settings > Subscription > Cancel plan')
   );
 
 // -----------------------------------------------------------------------------
@@ -118,8 +118,8 @@ begin
   Writeln('  SYNTACTIC search looks for exact text:');
   Writeln;
 
-  var Termino := 'medico';
-  var Sinonimos: TArray<String> := ['doctor', 'galeano', 'cardiologo', 'enfermero', 'clinico'];
+  var Termino := 'doctor';
+  var Sinonimos: TArray<String> := ['physician', 'cardiologist', 'nurse', 'clinician', 'medical'];
   for var S in Sinonimos do
     Writeln(Format('    "%s" = "%s" -> %s', [Termino, S,
       IfThen(SameText(S, Termino), 'ENCONTRADO', 'no encontrado')]));
@@ -185,11 +185,11 @@ begin
   Writeln('  Note: queries use synonyms, not exact text from the documents');
   Writeln;
 
-  BuscarEn(Conn, Indice, 'doctor y hospital', 3);
-  BuscarEn(Conn, Indice, 'el corazon y la sangre', 3);
-  BuscarEn(Conn, Indice, 'lluvia y oceano', 3);
-  BuscarEn(Conn, Indice, 'software y codigo fuente', 3);
-  BuscarEn(Conn, Indice, 'CO2 y fotosintesis', 3);
+  BuscarEn(Conn, Indice, 'doctor and hospital', 3);
+  BuscarEn(Conn, Indice, 'the heart and blood', 3);
+  BuscarEn(Conn, Indice, 'rain and ocean', 3);
+  BuscarEn(Conn, Indice, 'software and source code', 3);
+  BuscarEn(Conn, Indice, 'CO2 and photosynthesis', 3);
 end;
 
 // =============================================================================
@@ -215,11 +215,11 @@ begin
   Writeln;
 
   var Preguntas: TArray<String> := [
-    'Olvide mi password, que hago?',
-    'quiero exportar mi informacion personal',
-    'a que hora abren la oficina?',
-    'necesito hablar con alguien de ayuda',
-    'ya no quiero el servicio'
+    'I forgot my password, what do I do?',
+    'I want to export my personal information',
+    'what time does the office open?',
+    'I need to talk to someone for help',
+    'I no longer want the service'
   ];
 
   for var Pregunta in Preguntas do
@@ -240,7 +240,7 @@ begin
 end;
 
 // =============================================================================
-//  PROGRAMA PRINCIPAL
+//  MAIN PROGRAM
 // =============================================================================
 procedure RunDemo;
 var
