@@ -1,13 +1,13 @@
-# Reporte a MKAIServer — cambios en MakerAi, 2026-09-16
+# Report to MKAIServer — changes in MakerAi, 2026-09-16
 
-Escrito desde el lado de MakerAi (`E:\Delphi\Delphi13\Compo\FMXCompo\AiMaker`)
-para el broker (`E:\Copilot\MKAIServer`). Es la contraparte del
+Written from the MakerAi side (`E:\Delphi\Delphi13\Compo\FMXCompo\AiMaker`)
+for the broker (`E:\Copilot\MKAIServer`). It is the counterpart to
 `REPORTE_MKAISERVER_2026-08-29.md`.
 
-Todo lo que sigue está **verificado contra los APIs reales** (sondas de
-validación + llamadas de generación), no deducido de documentación.
+Everything below has been **verified against the real APIs** (validation
+probes + generation calls), not inferred from documentation.
 
-Commits nuevos en `dev` y `master` (mismo punto, fast-forward):
+New commits on `dev` and `master` (same point, fast-forward):
 
 ```
 fca6aba fix(deepseek): el nombre canonico es deepseek-flash y el gate de thinking no lo cubria
@@ -15,159 +15,162 @@ ca175d0 feat(openai): familia gpt-image-2.5 (flare/sunburst)
 dc555a3 (tag: v3.7.0)
 ```
 
-La versión **sigue en 3.7.0 / API_LEVEL 37**: no hubo bump, solo contenido
-aditivo sobre el tag.
+The version **remains 3.7.0 / API_LEVEL 37**: there was no bump, only additive
+content on top of the tag.
 
-Orden por dinero en riesgo, no por tamaño.
+Ordered by money at risk, not by size.
 
 ---
 
-## 1. URGENTE — `git pull` + recompilar, o DeepSeek factura razonamiento no pedido
+## 1. URGENT — `git pull` + recompile, or DeepSeek bills for unrequested reasoning
 
-`ResApiServer.dpr:87` enlaza `uMakerAi.Chat.DeepSeek.pas`, así que esto llega a
-producción del broker en cuanto alguien use el nombre nuevo del modelo.
+`ResApiServer.dpr:87` links `uMakerAi.Chat.DeepSeek.pas`, so this reaches the
+broker's production as soon as someone uses the new model name.
 
-**Qué pasaba:** el bloque `thinking` se enviaba solo si el modelo empezaba por
-`deepseek-v4`:
+**What was happening:** the `thinking` block was sent only if the model started
+with `deepseek-v4`:
 
 ```pascal
 if StartsText('deepseek-v4', LModel) then   // deepseek-flash NO entra
 ```
 
-DeepSeek renombró el modelo (ver punto 2). Con el nombre canónico
-`deepseek-flash` ese gate da False, el driver **no envía `thinking`**, y el API
-aplica su default, que es **razonar**. Medido con llamada cruda sin el
-parámetro: `completion_tokens_details.reasoning_tokens: 157`.
+DeepSeek renamed the model (see point 2). With the canonical name
+`deepseek-flash`, that gate returns False, the driver **does not send
+`thinking`**, and the API applies its default, which is **to reason**. Measured
+with a raw call without the parameter:
+`completion_tokens_details.reasoning_tokens: 157`.
 
-Consecuencia: un request con `ModelCaps=[]` (modo rápido/económico, que es lo
-que el broker quiere para el tier barato) paga tokens de razonamiento.
+Consequence: a request with `ModelCaps=[]` (fast/economical mode, which is what
+the broker wants for the cheap tier) pays for reasoning tokens.
 
-**Ya está arreglado** en `fca6aba`: la decisión vive en
-`ModelSupportsThinking()` y cubre `deepseek-v4*`, `deepseek-flash*` y los alias
-en gracia (`deepseek-chat`, `deepseek-reasoner`, que también enrutan a flash).
+**Already fixed** in `fca6aba`: the decision lives in
+`ModelSupportsThinking()` and covers `deepseek-v4*`, `deepseek-flash*`, and the
+grace-period aliases (`deepseek-chat`, `deepseek-reasoner`, which also route
+to flash).
 
-**Acción del broker:** `git pull` en el checkout compartido y **recompilar el
-servidor**. Sin recompilar, el arreglo no existe para MKAIServer.
+**Broker action:** `git pull` in the shared checkout and **recompile the
+server**. Without recompiling, the fix does not exist for MKAIServer.
 
-Probado runtime 4/4 tras el fix:
+Runtime-tested 4/4 after the fix:
 
-| Caso | reasoning_content | thinking tokens |
+| Case | reasoning_content | thinking tokens |
 |---|---|---|
-| `deepseek-flash` sin `cap_Reasoning` | 0 chars | **0** |
-| `deepseek-flash` con `cap_Reasoning` (tlLow) | 974 chars | 216 |
-| `deepseek-v4-flash` (alias legacy) sin cap | 0 chars | 0 |
-| `deepseek-v4-pro` con `cap_Reasoning` | 1.437 chars | 336 |
+| `deepseek-flash` without `cap_Reasoning` | 0 chars | **0** |
+| `deepseek-flash` with `cap_Reasoning` (tlLow) | 974 chars | 216 |
+| `deepseek-v4-flash` (legacy alias) without cap | 0 chars | 0 |
+| `deepseek-v4-pro` with `cap_Reasoning` | 1,437 chars | 336 |
 
 ---
 
-## 2. DeepSeek renombró el modelo barato: `deepseek-flash`
+## 2. DeepSeek renamed the cheap model: `deepseek-flash`
 
-`GET /models` hoy devuelve **solo dos** modelos:
+`GET /models` today returns **only two** models:
 
 ```json
 ["deepseek-flash", "deepseek-v4-pro"]
 ```
 
-Docs oficiales, textual:
+Official docs, verbatim:
 
 > *"Use `deepseek-flash` as the model name. The legacy names
 > `deepseek-v4-flash` and `deepseek-v4-flash-vision-exp` are still accepted,
 > but the corresponding models have been retired."*
 
-Verificado: `deepseek-v4-flash`, `deepseek-chat` y `deepseek-reasoner` siguen
-respondiendo, y en los tres casos el campo `model` de la respuesta devuelve
+Verified: `deepseek-v4-flash`, `deepseek-chat`, and `deepseek-reasoner` still
+respond, and in all three cases the `model` field of the response returns
 `deepseek-flash`.
 
-**Lado MakerAi (ya hecho):** el default del driver y del registry es
-`deepseek-flash`; `deepseek-v4-flash` queda registrado como alias legacy para
-no romper DFMs existentes.
+**MakerAi side (already done):** the driver and registry default is
+`deepseek-flash`; `deepseek-v4-flash` is registered as a legacy alias so
+existing DFMs do not break.
 
-**Acción del broker:**
-- Su mapa `mk-deepseek-v4-flash` → upstream debe apuntar a `deepseek-flash`.
-- Exponer `mk-deepseek-flash` como nombre público nuevo y **conservar
-  `mk-deepseek-v4-flash` como alias**, para no romper clientes desplegados.
-- No usar `deepseek-chat` / `deepseek-reasoner` para rutas nuevas: están
-  retirados desde el 24 jul 2026 y solo siguen por periodo de gracia.
+**Broker action:**
+- Its `mk-deepseek-v4-flash` → upstream map must point to `deepseek-flash`.
+- Expose `mk-deepseek-flash` as the new public name and **keep
+  `mk-deepseek-v4-flash` as an alias**, so deployed clients do not break.
+- Do not use `deepseek-chat` / `deepseek-reasoner` for new routes: they have
+  been retired since 24 Jul 2026 and only continue during a grace period.
 
 ---
 
-## 3. Precios DeepSeek: subieron ~2x y ahora hay tarifa pico/valle
+## 3. DeepSeek prices: up ~2x and there is now peak/off-peak pricing
 
-Esto es lo que más impacta la contabilidad del broker. Si la tabla de precios
-está estática con los valores de agosto, **se está cobrando de menos**.
+This is what impacts broker accounting the most. If the price table is static
+with August values, **the broker is undercharging**.
 
-Por 1M de tokens, **hora pico**:
+Per 1M tokens, **peak hours**:
 
-| Modelo | Input (miss) | Input (cache hit) | Output |
+| Model | Input (miss) | Input (cache hit) | Output |
 |---|---|---|---|
 | `deepseek-flash` | $0.30 | $0.003 | $1.20 |
 | `deepseek-v4-pro` | $1.32 | $0.022 | $3.96 |
 
-- **Fuera de pico se paga exactamente la mitad.**
-- Horas pico: **01:00–04:00 y 06:00–10:00 UTC, lunes a viernes.**
-- Lo que teníamos anotado antes (`$0.14/$0.28` flash, `$0.435/$0.87` pro, y
-  "pico 2x próximamente 9-12 y 14-18 UTC+8") está **obsoleto**: las horas son
-  otras y la tarifa ya está vigente.
+- **Off-peak you pay exactly half.**
+- Peak hours: **01:00–04:00 and 06:00–10:00 UTC, Monday to Friday.**
+- What we had noted before (`$0.14/$0.28` flash, `$0.435/$0.87` pro, and
+  "peak 2x coming soon 9-12 and 14-18 UTC+8") is **obsolete**: the hours are
+  different and the rate is already in effect.
 
-**Acción del broker:** decidir si el margen absorbe el valle o si se repercute
-al cliente, y en cualquier caso mover las ventanas a UTC. Ojo con el uso de
-hora local: la ventana es UTC y L-V, así que el fin de semana es todo valle.
+**Broker action:** decide whether margin absorbs off-peak or whether it is
+passed on to the client, and in any case move the windows to UTC. Watch out
+for local-time use: the window is UTC and Mon–Fri, so the weekend is all
+off-peak.
 
-**Lo que el correo de DeepSeek sí dice y no obliga a nada:** `deepseek-v4-pro`
-**continúa** después del 14 sep 2026, con la misma facturación. Era un retiro
-anunciado que se canceló; no hay que migrar nada.
+**What the DeepSeek email does say, and it does not require any action:**
+`deepseek-v4-pro` **continues** after 14 Sep 2026, with the same billing. It
+was an announced retirement that was canceled; there is nothing to migrate.
 
 ---
 
-## 4. OpenAI: familia `gpt-image-2.5` (flare / sunburst)
+## 4. OpenAI: `gpt-image-2.5` family (flare / sunburst)
 
-Dos modelos nuevos, endpoints `/v1/images/generations` y `/v1/images/edits`
-(no están en `/responses`). IDs canónicos y snapshots, los cuatro verificados:
+Two new models, endpoints `/v1/images/generations` and `/v1/images/edits`
+(they are not in `/responses`). Canonical IDs and snapshots, all four verified:
 
 ```
 gpt-image-2.5-flare      gpt-image-2.5-flare-2026-09-08
 gpt-image-2.5-sunburst   gpt-image-2.5-sunburst-2026-09-08
 ```
 
-`flare` = rápido para generación cotidiana. `sunburst` = premium, control fino
-en edición.
+`flare` = fast for everyday generation. `sunburst` = premium, fine control in
+editing.
 
-### Reglas de parámetros que el proxy debe respetar (todas verificadas)
+### Parameter rules the proxy must respect (all verified)
 
-| Parámetro | Regla |
+| Parameter | Rule |
 |---|---|
-| `quality` | 2.5 acepta `low/medium/high/xhigh/max/auto`. **`xhigh` y `max` solo en 2.5**; mandarlos a gpt-image-1/2 es riesgo de 400. Curiosidad: el mensaje de error del schema sigue listando solo `low/medium/high/auto`, pero `xhigh`/`max` pasan y la respuesta los devuelve en el eco |
-| `background` | `transparent` funciona con **alpha real** (novedad frente a gpt-image-2, que no lo soportaba). Exige `output_format` `png` o `webp` — con `jpeg` hay que corregirlo, no reenviarlo |
-| `input_fidelity` | **RECHAZADO**: *"The model 'gpt-image-2.5-sunburst' does not support the 'input_fidelity' parameter"*. Hay que hacer strip si el cliente lo manda |
-| `response_format` | **Unknown parameter** en toda la familia gpt-image. Strip |
-| `n` | El schema acepta hasta 10, pero en gpt-image-2 el límite real era 8. MakerAi clampa a 8 por precaución; recomendación: hacer lo mismo en el broker |
-| `size` | Ancho y alto divisibles por 16, aspecto 1:3..3:1, máximo `3840x2160`, y hay un **mínimo de pixel budget**: `512x512` responde *"below the current minimum pixel budget"*. `1024x1024` en adelante funciona |
-| `stream` + `partial_images` | Aceptados (gpt-image-2 no tenía streaming) |
+| `quality` | 2.5 accepts `low/medium/high/xhigh/max/auto`. **`xhigh` and `max` only in 2.5**; sending them to gpt-image-1/2 risks a 400. Curious detail: the schema error message still lists only `low/medium/high/auto`, but `xhigh`/`max` pass and the response echoes them back |
+| `background` | `transparent` works with **real alpha** (new compared with gpt-image-2, which did not support it). It requires `output_format` `png` or `webp` — with `jpeg` you have to correct it, not resend it |
+| `input_fidelity` | **REJECTED**: *"The model 'gpt-image-2.5-sunburst' does not support the 'input_fidelity' parameter"*. Must be stripped if the client sends it |
+| `response_format` | **Unknown parameter** across the entire gpt-image family. Strip |
+| `n` | The schema accepts up to 10, but the real limit in gpt-image-2 was 8. MakerAi clamps to 8 as a precaution; recommendation: do the same in the broker |
+| `size` | Width and height divisible by 16, aspect 1:3..3:1, maximum `3840x2160`, and there is a **minimum pixel budget**: `512x512` responds *"below the current minimum pixel budget"*. `1024x1024` and above works |
+| `stream` + `partial_images` | Accepted (gpt-image-2 did not have streaming) |
 
-### Contabilidad de imagen — el punto importante
+### Image accounting — the important point
 
-El precio por token es **idéntico** al de gpt-image-2: $5/M texto in,
-$1.25/M texto cacheado, $8/M imagen in, $2/M imagen cacheada, **$30/M imagen
-out**.
+The price per token is **identical** to gpt-image-2: $5/M text input,
+$1.25/M cached text, $8/M image input, $2/M cached image, **$30/M image
+output**.
 
-Por eso **el coste por imagen NO es plano por modelo, depende del tier de
-calidad**. Medido, mismo tamaño 1024x1024:
+Therefore **the cost per image is NOT flat per model, it depends on the
+quality tier**. Measured, same size 1024x1024:
 
-| Petición | output_tokens | Coste |
+| Request | output_tokens | Cost |
 |---|---|---|
-| `flare` + `quality=xhigh` | 3.122 | ~$0.094 |
-| `sunburst` + `quality=max` | 7.024 | ~$0.211 |
+| `flare` + `quality=xhigh` | 3,122 | ~$0.094 |
+| `sunburst` + `quality=max` | 7,024 | ~$0.211 |
 
-**Acción del broker:** facturar desde `usage.output_tokens` de la respuesta, no
-con una tarifa fija por imagen. Una tarifa plana por modelo se equivoca en más
-del 100% entre `xhigh` y `max`.
+**Broker action:** bill from `usage.output_tokens` in the response, not with a
+flat per-image rate. A flat per-model rate is off by more than 100% between
+`xhigh` and `max`.
 
-### Cambio de forma en la respuesta (riesgo de facturar a cero)
+### Response shape change (risk of billing zero)
 
-En `/v1/images/generations` los campos `background`, `output_format`, `size`,
-`quality` y **`usage`** vienen en la **RAÍZ** del JSON, no dentro de `data[]`.
-Cada item de `data[]` trae solo `b64_json` y un nuevo **`generation_id`**; ya
-no hay `revised_prompt`.
+In `/v1/images/generations`, the fields `background`, `output_format`, `size`,
+`quality`, and **`usage`** come at the **ROOT** of the JSON, not inside
+`data[]`. Each `data[]` item contains only `b64_json` and a new
+**`generation_id`**; there is no longer a `revised_prompt`.
 
 ```json
 {
@@ -182,39 +185,40 @@ no hay `revised_prompt`.
 }
 ```
 
-Si el parser del broker busca `usage` dentro de `data[]`, **factura cero** —
-es el mismo patrón de fuga del punto 1 del reporte de agosto. En MakerAi esto
-se arregló en `ca175d0` con `TAiDalleImage.ParseRootMeta`, que completa los
-campos vacíos desde la raíz (afectaba a toda la familia gpt-image, no solo a
+If the broker's parser looks for `usage` inside `data[]`, it **bills zero** —
+it is the same leak pattern as point 1 in the August report. In MakerAi this
+was fixed in `ca175d0` with `TAiDalleImage.ParseRootMeta`, which fills the
+empty fields from the root (it affected the entire gpt-image family, not just
 2.5).
 
-Al reenviar la respuesta, conviene propagar `generation_id`: es lo que permite
-la edición multi-turno referenciando la imagen anterior.
+When forwarding the response, it is advisable to propagate `generation_id`: it
+is what enables multi-turn editing by referencing the previous image.
 
 ---
 
-## 5. `mk-gpt-image-2.5-flare` y `mk-gpt-image-2.5-sunburst` ya están registrados
+## 5. `mk-gpt-image-2.5-flare` and `mk-gpt-image-2.5-sunburst` are already registered
 
-**Actualizado 16 sep 2026 (commit ff52a43).** Los alias ya están en el bloque
-del driver `MakerAi` de `Source/Chat/uMakerAi.Chat.Initializations.pas`
-(~línea 1897), junto a `mk-gpt-image-1/-1.5/-1-mini/-2`, con `ModelCaps=[]` /
+**Updated 16 Sep 2026 (commit ff52a43).** The aliases are already in the
+`MakerAi` driver block of `Source/Chat/uMakerAi.Chat.Initializations.pas`
+(~line 1897), alongside `mk-gpt-image-1/-1.5/-1-mini/-2`, with `ModelCaps=[]` /
 `SessionCaps=[cap_GenImage]` / `Tool_Active=False`.
 
-**Estos son los nombres públicos que el broker debe exponer, tal cual:**
+**These are the public names the broker must expose, exactly as-is:**
 
 ```
 mk-gpt-image-2.5-flare     ->  gpt-image-2.5-flare
 mk-gpt-image-2.5-sunburst  ->  gpt-image-2.5-sunburst
 ```
 
-Si el broker prefiere otros nombres, hay que avisar para cambiar el registry:
-sin la entrada correspondiente el cliente MakerAi calcula gap vacío, manda la
-petición por `/responses` y falla con *"model was not found"*.
+If the broker prefers other names, it must notify so the registry can be
+changed: without the corresponding entry, the MakerAi client computes an empty
+gap, sends the request via `/responses`, and fails with *"model was not
+found"*.
 
-**Arreglado también (mismo commit):** las rutas `mk-deepseek-*` no tenían
-ninguna entrada en el registry, así que heredaban el default global del driver
-`MakerAi`, que incluye `ModelCaps=[cap_Image]` — declaraban una visión que
-DeepSeek no tiene en su API pública. Ahora están registradas:
+**Also fixed (same commit):** the `mk-deepseek-*` routes had no entry in the
+registry, so they inherited the `MakerAi` driver's global default, which
+includes `ModelCaps=[cap_Image]` — they declared a vision capability DeepSeek
+does not have in its public API. They are now registered:
 
 ```
 mk-deepseek-flash      ModelCaps=[]              (modo rapido, sin thinking)
@@ -222,23 +226,23 @@ mk-deepseek-v4-flash   ModelCaps=[]              (alias del anterior)
 mk-deepseek-v4-pro     ModelCaps=[cap_Reasoning] + ThinkingLevel=tlMedium
 ```
 
-Son los nombres que se deducen del reporte de agosto (`mk-deepseek-v4-flash` en
-producción) más el renombre de sep 2026. **Si el broker expone otros nombres,
-avisar** para ajustarlos.
+These are the names inferred from the August report (`mk-deepseek-v4-flash` in
+production) plus the Sep 2026 rename. **If the broker exposes other names,
+notify us** so they can be adjusted.
 
 ---
 
-## 6. Resumen de acciones para MKAIServer
+## 6. Summary of actions for MKAIServer
 
-1. `git pull` + **recompilar** (arregla la fuga de thinking en DeepSeek).
-2. Mapear `mk-deepseek-v4-flash` → `deepseek-flash` y exponer
-   `mk-deepseek-flash` conservando el alias viejo.
-3. Actualizar la tabla de precios de DeepSeek (2x) e implementar pico/valle en
-   UTC, L-V.
-4. Si se ofrecen los modelos de imagen 2.5: aplicar las reglas de parámetros
-   (strip `input_fidelity`/`response_format`, `xhigh`/`max` solo en 2.5,
-   transparente exige png/webp, mínimo 1024x1024, n≤8).
-5. Leer `usage` desde la **raíz** de la respuesta de imágenes y facturar por
-   `output_tokens`, no por imagen.
-6. Exponer los modelos de imagen con los nombres ya registrados en MakerAi:
-   `mk-gpt-image-2.5-flare` y `mk-gpt-image-2.5-sunburst`.
+1. `git pull` + **recompile** (fixes the DeepSeek thinking leak).
+2. Map `mk-deepseek-v4-flash` → `deepseek-flash` and expose
+   `mk-deepseek-flash` while keeping the old alias.
+3. Update the DeepSeek price table (2x) and implement peak/off-peak in UTC,
+   Mon–Fri.
+4. If the 2.5 image models are offered: apply the parameter rules (strip
+   `input_fidelity`/`response_format`, `xhigh`/`max` only in 2.5, transparent
+   requires png/webp, minimum 1024x1024, n≤8).
+5. Read `usage` from the **root** of the image response and bill by
+   `output_tokens`, not per image.
+6. Expose the image models with the names already registered in MakerAi:
+   `mk-gpt-image-2.5-flare` and `mk-gpt-image-2.5-sunburst`.

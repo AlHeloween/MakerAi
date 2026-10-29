@@ -140,7 +140,7 @@ Result := TAiMCPResponseBuilder.New
 | Method | Purpose |
 |--------|---------|
 | `initialize` | Server capability handshake (legacy, spec <= 2025-11-25) |
-| `server/discover` | Version/capability discovery sin handshake (spec 2026-07-28) |
+| `server/discover` | Version/capability discovery without handshake (spec 2026-07-28) |
 | `tools/list` | List available tools |
 | `tools/call` | Execute tool with arguments |
 | `resources/list` | List available resources |
@@ -148,45 +148,48 @@ Result := TAiMCPResponseBuilder.New
 
 ### Dual-era: spec 2026-07-28 (stateless) + legacy
 
-El servidor es **dual-era** y decide por request:
+The server is **dual-era** and decides per request:
 
-- Un request con `_meta['io.modelcontextprotocol/protocolVersion']` se sirve
-  **stateless** (spec 2026-07-28): sin sesion, y el vetting `OnClientConnect`
-  (issue #110) se aplica **por request** con la identidad que viaja en `_meta`.
-- Un `initialize` selecciona la semantica legacy con `Mcp-Session-Id` (gate de
-  sesion intacto).
-- Todos los results llevan `resultType: "complete"` + `serverInfo` en `_meta`;
-  las listas (`tools/list`, `resources/*`, `prompts/list`) llevan
-  `ttlMs`/`cacheScope` (interfaz `CacheableResult`). Campos extra que los
-  clientes legacy ignoran.
-- Errores del rango reservado MCP: `-32022` UnsupportedProtocolVersion (con
-  `data.supported`/`data.requested`) y `-32020` HeaderMismatch — el transporte
-  HTTP valida `Mcp-Method`/`Mcp-Name` contra el body **solo si vienen** (los
-  clientes legacy no los mandan y se aceptan igual).
-- Constantes publicas en `uMakerAi.MCPServer.Core.pas`:
+- A request with `_meta['io.modelcontextprotocol/protocolVersion']` is served
+  **stateless** (spec 2026-07-28): without a session, and the `OnClientConnect`
+  vetting (issue #110) is applied **per request** with the identity carried
+  in `_meta`.
+- An `initialize` selects the legacy semantics with `Mcp-Session-Id` (session
+  gate intact).
+- All results carry `resultType: "complete"` + `serverInfo` in `_meta`;
+  lists (`tools/list`, `resources/*`, `prompts/list`) carry
+  `ttlMs`/`cacheScope` (interface `CacheableResult`). Extra fields that
+  legacy clients ignore.
+- Reserved MCP-range errors: `-32022` UnsupportedProtocolVersion (with
+  `data.supported`/`data.requested`) and `-32020` HeaderMismatch — the
+  HTTP transport validates `Mcp-Method`/`Mcp-Name` against the body **only
+  if they are present** (legacy clients do not send them and are accepted
+  the same way).
+- Public constants in `uMakerAi.MCPServer.Core.pas`:
   `MCP_PROTOCOL_VERSION_MODERN`, `MCP_META_*`, `MCP_ERROR_*`.
 
-**OJO (Delphi):** las claves `_meta` llevan puntos
-(`io.modelcontextprotocol/...`); leerlas con `GetValue(nombre)` exacto, nunca
-con `GetValue<T>`/`TryGetValue<T>` (interpretan el punto como path).
+**WATCH OUT (Delphi):** `_meta` keys contain dots
+(`io.modelcontextprotocol/...`); read them with exact
+`GetValue(name)`, never with `GetValue<T>`/`TryGetValue<T>` (they interpret
+the dot as a path).
 
-**Regla stdio:** stdout es exclusivo del protocolo; cualquier banner/log del
-servidor debe ir a stderr (ver fix del demo 031).
+**stdio rule:** stdout is protocol-exclusive; any server banner/log
+must go to stderr (see the fix in demo 031).
 
 ### MRTR (Multi Round-Trip Requests, spec 2026-07-28)
 
-Un tool puede pedir informacion adicional al usuario (elicitation) devolviendo
-un `InputRequiredResult` en vez de ejecutar:
+A tool can request additional information from the user (elicitation) by
+returning an `InputRequiredResult` instead of executing:
 
-- El tool devuelve `{resultType:'input_required', inputRequests:{id: ElicitRequest...},
-  requestState:'<opaco>'}` — `DecorateModernResult` respeta el `resultType` existente.
-- En el reintento, el server entrega `params.inputResponses` y `params.requestState`
-  al tool via `AuthContext.InputResponses` (TJSONObject del request — el tool NO lo
-  libera) y `AuthContext.RequestState`.
-- `requestState` viaja por el cliente: es entrada NO confiable. Proteger con
-  HMAC/AEAD si afecta autorizacion; un valor corrupto debe producir rechazo
-  limpio, nunca excepcion interna.
-- Ejemplo completo: `Demos/031-MCPServer/uTool.ConfirmDemo.pas` (tool `confirm_demo`).
+- The tool returns `{resultType:'input_required', inputRequests:{id: ElicitRequest...},
+  requestState:'<opaque>'}` — `DecorateModernResult` respects the existing `resultType`.
+- On retry, the server delivers `params.inputResponses` and `params.requestState`
+  to the tool via `AuthContext.InputResponses` (the request's TJSONObject — the tool does NOT
+  free it) and `AuthContext.RequestState`.
+- `requestState` travels through the client: it is UNTRUSTED input. Protect with
+  HMAC/AEAD if it affects authorization; a corrupted value must produce a clean
+  rejection, never an internal exception.
+- Full example: `Demos/031-MCPServer/uTool.ConfirmDemo.pas` (tool `confirm_demo`).
 
 ## Demo Projects
 

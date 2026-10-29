@@ -1,6 +1,6 @@
 # Skills in MakerAI
 
-*Versión en español: [uMakerAi-Skills.md](uMakerAi-Skills.md)*
+*Spanish version: [uMakerAi-Skills.md](uMakerAi-Skills.md)*
 
 A **skill** is a reusable set of instructions for a model: how to review code, how to write an invoice, which tone to use with a customer. You write it once and use it in many chats, agents or projects.
 
@@ -199,7 +199,7 @@ A skill is text the model will **obey**. A third-party skill (from the registry,
 | The model never calls `use_skill` | The `description` doesn't say clearly when to use it; or `Tool_Active` is `False` on the connection; or `AiFunctions` is not assigned |
 | `use_skill` is not among the functions | No enabled skills (the function is switched off when there are none), or you're looking at design time (it's registered at run time) |
 | `read_skill_file` is not there | No skill comes from a folder (skills from `AddSkill` or PPM have no supporting files), or `AllowFileAccess = False` |
-| `EAiSkillError: ... es de tipo "prompt", no un skill` | The PPM package is a prompt: use `TAiPrompts.LoadFromPPM` or look for the equivalent skill |
-| `EAiSkillError: La URL devolvió una página HTML...` | The configured registry is not PPM's (`https://registry.cimamaker.com`) |
+| `EAiSkillError: ... is of type "prompt", not a skill` | The PPM package is a prompt: use `TAiPrompts.LoadFromPPM` or look for the equivalent skill |
+| `EAiSkillError: The URL returned an HTML page...` | The configured registry is not PPM's (`https://registry.cimamaker.com`) |
 
 > Error messages from the framework are in Spanish.

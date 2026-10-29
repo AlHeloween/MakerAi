@@ -52,40 +52,40 @@ Bilingual documentation index for MakerAI version 3.3.
 
 | Document | Format | Description |
 |----------|--------|-------------|
-| Manual-Installation | docx | Guía de instalación |
-| TAiAgents-FluentGraphBuilder | docx | Guía del constructor de grafos fluente de agentes |
-| TAiChatClaude-Guide | docx | Guía de uso del driver Claude |
-| TAiChatGemini-Guide | docx | Guía de uso del driver Gemini |
-| uMakerAi-CapabilitySystem | md | Sistema de capacidades de modelos |
-| uMakerAi-ChatConnection | docx / pdf | Guía del conector universal LLM |
-| uMakerAi-PPMRegistry | md | Documentación del registro PPM |
-| uMakerAi-RAG | docx | Documentación del sistema RAG |
-| uMakerAI-RAGGraph | docx | Documentación de Graph RAG |
-| uMakerAi.Chat | docx | Componente principal de chat |
-| uMakerAi.Prompts | docx | Sistema de gestión de prompts |
-| uMakerAi.ToolFuncions | docx | Sistema de llamada a funciones |
-| uMakerAi.Utils.VoiceMonitor | docx | Utilidad de monitor de voz |
+| Manual-Installation | docx | Installation guide |
+| TAiAgents-FluentGraphBuilder | docx | Agent fluent graph builder guide |
+| TAiChatClaude-Guide | docx | Claude driver usage guide |
+| TAiChatGemini-Guide | docx | Gemini driver usage guide |
+| uMakerAi-CapabilitySystem | md | Model capability system |
+| uMakerAi-ChatConnection | docx / pdf | Universal LLM connector guide |
+| uMakerAi-PPMRegistry | md | PPM registry documentation |
+| uMakerAi-RAG | docx | RAG system documentation |
+| uMakerAI-RAGGraph | docx | Graph RAG documentation |
+| uMakerAi.Chat | docx | Core chat component |
+| uMakerAi.Prompts | docx | Prompt management system |
+| uMakerAi.ToolFuncions | docx | Function calling system |
+| uMakerAi.Utils.VoiceMonitor | docx | Voice monitor utility |
 
 ### ES/Agents/
 
 | Document | Format | Description |
 |----------|--------|-------------|
-| Annexes-ConditionsLanguage | docx | Anexo del lenguaje de condiciones |
-| uMakerAi-Agents | docx / pdf | Sistema de agentes |
-| uMakerAi-AutoAgents-D02-SingleTool | docx | Patrón auto-agents herramienta única |
+| Annexes-ConditionsLanguage | docx | Conditions language annex |
+| uMakerAi-Agents | docx / pdf | Agent system |
+| uMakerAi-AutoAgents-D02-SingleTool | docx | Auto-agents single tool pattern |
 
 ### ES/MCPServer/
 
 | Document | Format | Description |
 |----------|--------|-------------|
-| uMakerAi-MCP.Server | docx / pdf | Documentación del servidor MCP |
+| uMakerAi-MCP.Server | docx / pdf | MCP Server documentation |
 
 ### ES/RAG/
 
 | Document | Format | Description |
 |----------|--------|-------------|
-| uMakerAi-Agents | docx | Sistema de agentes (desde RAG) |
-| uMakerAi-RAG | docx / pdf | Sistema RAG |
+| uMakerAi-Agents | docx | Agent system (from RAG) |
+| uMakerAi-RAG | docx / pdf | RAG system |
 
 ---
 

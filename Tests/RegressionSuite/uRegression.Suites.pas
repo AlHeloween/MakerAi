@@ -584,7 +584,7 @@ begin
   // crudo (falla sin el fix). Lo pedido y no hecho queda en Warning.
   FRunner.AddCase('audio.transcribe.degraded-format')
     .Input('audio:degraded-format')
-    .ExpectEquals('text=hola mundo|sent=json|warn=gpt-transcribe no admite response_format=text; se pidio json');
+    .ExpectEquals('text=hola mundo|sent=json|warn=gpt-transcribe does not support response_format=text; json was requested');
   FRunner.AddCase('audio.transcribe.ignored-options')
     .Input('audio:ignored-options')
     .ExpectEquals('sent=json|ts=|include=|warnings=2|timestamps=True|logprobs=True');
@@ -602,10 +602,10 @@ begin
       'tool=gpt_4o_mini_tts/tmGptTranscribe|rtti-tool=ok|envia=gpt-transcribe');
   FRunner.AddCase('audio.transcribe.deprecated-model')
     .Input('audio:deprecated-model')
-    .ExpectEquals('sent=srt|ts=word|srt=True|warnings=1|deprecado=True');
+    .ExpectEquals('sent=srt|ts=word|srt=True|warnings=1|deprecated=True');
   FRunner.AddCase('audio.translate.deprecated')
     .Input('audio:translate')
-    .ExpectEquals('url=translations|model=whisper-1|text=hello|deprecado=True');
+    .ExpectEquals('url=translations|model=whisper-1|text=hello|deprecated=True');
 
   // --- Claude (request, sin red) ---
   // Generacion sep 2026 (opus-5-5, sonnet-5-5, fable-5-1): forzar una tool
@@ -3933,8 +3933,8 @@ begin
     Registry := TFakePPMRegistry.Create(PORT_PPM);
     Prompts := TAiPrompts.Create(nil);
     try
-      Result := ErrorKind('nada', RegUrl, 'no encontrado', 'notfound') + '|' +
-        ErrorKind('un-prompt', RegUrl, 'tipo "prompt"', 'type') + '|' +
+      Result := ErrorKind('nada', RegUrl, 'not found', 'notfound') + '|' +
+        ErrorKind('un-prompt', RegUrl, 'is of type', 'type') + '|' +
         ErrorKind('skill-demo', RegUrl + '/html', 'HTML', 'html');
       Prompts.PPMRegistryUrl := RegUrl;
       if Assigned(Prompts.LoadSkillFromPPM('nada')) then
@@ -4537,7 +4537,7 @@ begin
         Result := Result + '|invalida=aceptada';
       except
         on E: EAiJevError do
-          Result := Result + '|invalida=' + IfThen(Pos('no es PNG', E.Message) > 0, 'rechazada', E.Message);
+          Result := Result + '|invalida=' + IfThen(Pos('is not PNG', E.Message) > 0, 'rechazada', E.Message);
       end;
       // Precio: el de TypeSafe no se cobra en Ollama; un precio propio si
       Result := Result + '|costo-local=' + FloatToStr(JL.Usage.CostUSD, TFormatSettings.Invariant);
@@ -5450,7 +5450,7 @@ begin
         '|ts=' + A.FieldValues('timestamp_granularities[]') +
         '|srt=' + BoolToStr(R.Text = A.Response, True) +
         '|warnings=' + IntToStr(WarningCount(R.Warning)) +
-        '|deprecado=' + BoolToStr(Pos('deprecado', R.Warning) > 0, True);
+        '|deprecated=' + BoolToStr(Pos('deprecated', R.Warning) > 0, True);
     end
 
     else if AScenario = 'audio:translate' then
@@ -5461,7 +5461,7 @@ begin
       Result := 'url=' + IfThen(A.LastUrl.EndsWith('audio/translations'), 'translations', A.LastUrl) +
         '|model=' + A.FieldValues('model') +
         '|text=' + R.Text +
-        '|deprecado=' + BoolToStr(Pos('deprecado', R.Warning) > 0, True);
+        '|deprecated=' + BoolToStr(Pos('deprecated', R.Warning) > 0, True);
     end
 
     else

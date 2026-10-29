@@ -1,14 +1,12 @@
-# Reporte a MakerAi — hallazgos desde MKAIServer, 2026-08-29
+# Report to MakerAi — findings from MKAIServer, 2026-08-29
 
-Escrito desde el lado del broker (`E:\Copilot\MKAIServer`) tras un día de
-diagnóstico en producción. Todo lo que sigue está **medido**, no deducido; cada
-punto lleva su evidencia y cómo reproducirlo.
+Written from the broker side (`E:\Copilot\MKAIServer`) after a day of production diagnostics. Everything that follows is **measured**, not inferred; each point includes its evidence and how to reproduce it.
 
-Orden por urgencia, no por tamaño.
+Ordered by urgency, not by size.
 
 ---
 
-## 0. URGENTE — hay un arreglo sin commitear y está en peligro
+## 0. URGENT — there is an uncommitted fix and it is at risk
 
 ```
 $ git status --short
@@ -17,27 +15,19 @@ $ git log --oneline dev..origin/dev
 (vacío)
 ```
 
-El arreglo del usage a cero en el driver `MakerAi` **existe solo como cambio
-local en el checkout compartido**. No está commiteado ni pusheado.
+The fix for zero usage in the `MakerAi` driver **exists only as a local change in the shared checkout**. It is neither committed nor pushed.
 
-Esto no es teórico: hoy mismo, revirtiendo un intento fallido mío, ejecuté
-`git checkout -- Source/Core/uMakerAi.Chat.pas` en este repo. Nombré el fichero
-uno a uno y por eso ese cambio se salvó. Un `git checkout .` o un
-`git reset --hard` lo habría borrado sin aviso.
+This is not theoretical: today itself, while reverting a failed attempt of mine, I ran `git checkout -- Source/Core/uMakerAi.Chat.pas` in this repo. I named the file one by one, which is why that change was saved. A `git checkout .` or `git reset --hard` would have wiped it without warning.
 
-**Acción: commitear y pushear ya.** Es lo único de este reporte que corre riesgo
-de perderse.
+**Action: commit and push now.** It is the only thing in this report at risk of being lost.
 
 ---
 
-## 1. `uMakerAi.Chat.DeepSeek.pas` tiene el MISMO bug del usage a cero
+## 1. `uMakerAi.Chat.DeepSeek.pas` has the SAME zero-usage bug
 
-Es el hermano exacto del que se acaba de arreglar en el driver MakerAi, y este
-sí llega a producción de MKAIServer: `ResApiServer.dpr:87` enlaza el driver
-DeepSeek.
+It is the exact sibling of the one just fixed in the MakerAi driver, and this one does reach MKAIServer production: `ResApiServer.dpr:87` links the DeepSeek driver.
 
-**Dónde** — `uMakerAi.Chat.DeepSeek.pas:336-338`, en el cierre sintético del
-stream:
+**Where** — `uMakerAi.Chat.DeepSeek.pas:336-338`, in the synthetic close of the stream:
 
 ```pascal
 FakeUsage.AddPair('prompt_tokens',     TJSONNumber.Create(0));
@@ -45,8 +35,7 @@ FakeUsage.AddPair('completion_tokens', TJSONNumber.Create(0));
 FakeUsage.AddPair('total_tokens',      TJSONNumber.Create(0));
 ```
 
-**Consecuencia medida hoy en producción**, llamada real por el broker con
-`stream:true` a `mk-deepseek-v4-flash`:
+**Consequence measured today in production**, a real call by the broker with `stream:true` to `mk-deepseek-v4-flash`:
 
 ```
 46 chunks de salida real
@@ -54,29 +43,21 @@ usage en el SSE:  prompt_tokens 0 · completion_tokens 0 · total_tokens 0
 facturado:        input 0 · output 0 · cobro $0.000000
 ```
 
-**Es una fuga de dinero**: todo el tráfico DeepSeek en streaming se factura a
-cero. Sin streaming el mismo modelo contabiliza bien (medido: 18 in / 37 out),
-así que el agujero es exclusivo de esa ruta.
+**It is a money leak**: all DeepSeek streaming traffic is billed at zero. Without streaming, the same model accounts correctly (measured: 18 in / 37 out), so the hole is exclusive to that path.
 
-**Cómo arreglarlo** — la clase base YA lo hace bien; solo hay que dejar de
-duplicar el cierre. En `uMakerAi.Chat.pas`:
+**How to fix it** — the base class ALREADY does it correctly; you just have to stop duplicating the close. In `uMakerAi.Chat.pas`:
 
-- `:2705-2706` captura el usage de los chunks SSE en `FStreamPromptTokens` /
-  `FStreamCompletionTokens`.
-- `:2464-2466` los usa en el cierre sintético.
-- `:2468-2469` los reinicia, para que un turno sin usage no herede el anterior.
+- `:2705-2706` captures the usage from the SSE chunks into `FStreamPromptTokens` / `FStreamCompletionTokens`.
+- `:2464-2466` uses them in the synthetic close.
+- `:2468-2469` resets them, so that a turn without usage does not inherit the previous one.
 
-Es exactamente el patrón de tres piezas que se aplicó al driver MakerAi. Aquí
-basta con replicarlo o, mejor, con que el driver reutilice el cierre de la base
-en vez de fabricar el suyo.
+It is exactly the three-piece pattern that was applied to the MakerAi driver. Here it is enough to replicate it or, better, to have the driver reuse the base class's close instead of fabricating its own.
 
-**Criterio de aceptación:** una llamada con `stream:true` a un modelo DeepSeek
-devuelve en el último chunk un `usage` con los tokens reales, y coincide con lo
-que reporta la misma llamada sin streaming.
+**Acceptance criterion:** a call with `stream:true` to a DeepSeek model returns in the last chunk a `usage` with the real tokens, and it matches what the same call without streaming reports.
 
 ---
 
-## 2. Inventario: qué drivers duplican el cierre sintético
+## 2. Inventory: which drivers duplicate the synthetic close
 
 ```
 uMakerAi.Chat.DeepSeek.pas           <- activo, con el bug (punto 1)
@@ -84,99 +65,66 @@ uMakerAi.Chat.MakerAi.pas            <- arreglado, pendiente de commit (punto 0)
 uMakerAi.Chat.OpenAi_Deprecated.pas  <- deprecado, probablemente da igual
 ```
 
-Los demás drivers usan el cierre de la clase base y por eso no sufren esto. La
-raíz del problema no es un despiste puntual: es que **el cierre sintético se
-copió en vez de reutilizarse**, así que cada mejora en la base (usage,
-`finish_reason`, `reasoning_content`) hay que acordarse de replicarla en tres
-sitios. Si se puede unificar, se cierra la familia entera de bugs de golpe.
+The other drivers use the base class's close and therefore do not suffer from this. The root of the problem is not a one-off oversight: it is that **the synthetic close was copied instead of reused**, so every improvement in the base (`usage`, `finish_reason`, `reasoning_content`) has to be remembered and replicated in three places. If it can be unified, the entire family of bugs is closed in one go.
 
 ---
 
-## 3. `finish_reason` fijo en `'stop'` en el cierre sintético
+## 3. `finish_reason` hardcoded to `'stop'` in the synthetic close
 
-Mismo patrón, otro campo. En los tres sitios del inventario, y también en la
-clase base:
+Same pattern, another field. In the three sites from the inventory, and also in the base class:
 
 ```
 uMakerAi.Chat.pas:~2484        FakeChoice.AddPair('finish_reason', 'stop');
 uMakerAi.Chat.DeepSeek.pas:351 FakeChoice.AddPair('finish_reason', 'stop');
 ```
 
-Consecuencia: una respuesta **cortada por `max_tokens`** se le presenta al
-consumidor como un final limpio. No hay forma de distinguir "terminó de hablar"
-de "se quedó a medias", que es justo lo que un cliente necesita para decidir si
-reintenta con más presupuesto o avisa al usuario.
+Consequence: a response **cut off by `max_tokens`** is presented to the consumer as a clean finish. There is no way to distinguish "it finished speaking" from "it stopped halfway", which is exactly what a client needs to decide whether to retry with more budget or warn the user.
 
-**Aviso honesto de lo que NO funcionó**, para que no se repita el camino: lo
-intenté por aquí y fallé. Añadí la captura del `finish_reason` real de los
-deltas SSE, lo expuse como propiedad, lo leí en `ParseChat` y lo usé en el
-cierre. Compilaba, desplegaba y **no cambiaba nada**: el consumidor seguía
-viendo `stop`. Reverti todo.
+**An honest warning about what did NOT work**, so the same path is not repeated: I tried it this way and failed. I added capture of the real `finish_reason` from the SSE deltas, exposed it as a property, read it in `ParseChat`, and used it in the close. It compiled, deployed, and **changed nothing**: the consumer still saw `stop`. I reverted everything.
 
-Lo que sí funcionó fue arreglarlo **fuera de la librería**, en el consumidor:
-MKAIServer lee `choices[0].finish_reason` del JSON crudo del proveedor en su
-propio bridge de streaming. Verificado con `completion_tokens` como testigo:
+What did work was fixing it **outside the library, in the consumer**: MKAIServer reads `choices[0].finish_reason` from the provider's raw JSON in its own streaming bridge. Verified with `completion_tokens` as a witness:
 
 ```
 max_tokens=40 -> finish=length  completion_tokens=40
 max_tokens=60 -> finish=length  completion_tokens=60
 ```
 
-O sea: el dato llega bien por el cable, pero **algo entre el cierre sintético y
-quien consume la librería lo sigue pisando**. No encontré qué. Si se ataca desde
-dentro de AiMaker, ese es el hilo, y conviene verificar con un consumidor real
-antes de darlo por bueno — a mí me engañó tres veces.
+In other words: the data arrives correctly over the wire, but **something between the synthetic close and the library consumer keeps overwriting it**. I did not find what. If attacking it from inside AiMaker, that is the thread, and it is worth verifying with a real consumer before considering it fixed — it fooled me three times.
 
 ---
 
-## 4. `Thinking_tokens` solo lo rellenan dos drivers
+## 4. `Thinking_tokens` is only populated by two drivers
 
 ```
 uMakerAi.Chat.Gemini.pas   (6 asignaciones)
 uMakerAi.Chat.OpenAi.pas   (2 asignaciones)
 ```
 
-Claude, DeepSeek, GLM, Kimi y los demás nunca lo tocan. Lo arreglé para el
-dialecto OpenAI en la clase base (commit `1f87db9`, ver punto 5), pero **Claude
-sigue sin reportarlo**: parsea su propio SSE y no pasa por ahí.
+Claude, DeepSeek, GLM, Kimi, and the others never touch it. I fixed it for the OpenAI dialect in the base class (commit `1f87db9`, see point 5), but **Claude still does not report it**: it parses its own SSE and does not go through there.
 
-Ojo con un detalle contable al tocarlo: en el dialecto OpenAI los tokens de
-razonamiento **ya vienen dentro de `completion_tokens`**, así que sumarlos
-aparte los duplica. En Gemini es al revés: `thoughtsTokenCount` va FUERA de
-`candidatesTokenCount`. Esa asimetría nos costó un bug de totales inflados en el
-broker; está documentada en `MKAIServer/database/migrations/migration_025`.
+Watch out for an accounting detail when touching it: in the OpenAI dialect, reasoning tokens **already come inside `completion_tokens`**, so adding them separately duplicates them. In Gemini it is the opposite: `thoughtsTokenCount` is OUTSIDE `candidatesTokenCount`. That asymmetry cost us an inflated-totals bug in the broker; it is documented in `MKAIServer/database/migrations/migration_025`.
 
 ---
 
-## 5. Lo que YA cambié en este repo hoy — no rehacer
+## 5. What I ALREADY changed in this repo today — do not redo
 
-Cuatro commits en `dev`, todos desplegados y verificados en producción:
+Four commits on `dev`, all deployed and verified in production:
 
-| Commit | Qué |
+| Commit | What |
 |---|---|
-| `1f87db9` | `ParseChat` captura `reasoning_tokens` del usage (dialecto OpenAI). Antes `Thinking_tokens` era siempre 0 para GLM, DeepSeek, Kimi y gpt-oss |
-| `89e9bc9` | `DoCallFunction` ya no secuestra las tools cuyo nombre contiene `_99_`. Bifurcaba solo por `Pos(MCP_TOOL_SEP, Name)`, así que una tool legítima llamada `alfa_99_beta` se buscaba como servidor MCP, no se encontraba y quedaba muda |
-| `3ff9631` | Driver Claude: no declarar `code_execution` cuando `web_search_20260209` está presente, porque Anthropic lo auto-inyecta y rechaza la petición entera por nombres duplicados |
-| `9914654` | `ParseChat` deja de usar el razonamiento como respuesta cuando hay `tool_calls` o `finish_reason='length'` |
+| `1f87db9` | `ParseChat` captures `reasoning_tokens` from the usage (OpenAI dialect). Previously `Thinking_tokens` was always 0 for GLM, DeepSeek, Kimi, and gpt-oss |
+| `89e9bc9` | `DoCallFunction` no longer hijacks tools whose name contains `_99_`. It branched only on `Pos(MCP_TOOL_SEP, Name)`, so a legitimate tool named `alfa_99_beta` was looked up as an MCP server, was not found, and went silent |
+| `3ff9631` | Claude driver: do not declare `code_execution` when `web_search_20260209` is present, because Anthropic auto-injects it and rejects the entire request due to duplicate names |
+| `9914654` | `ParseChat` stops using reasoning as the response when there are `tool_calls` or `finish_reason='length'` |
 
-El último merece una nota, porque es de la misma familia que lo demás: el
-fallback "si `content` viene vacío, usa `reasoning`" tiene sentido para modelos
-que responden solo en reasoning, pero mandaba el monólogo interno del modelo
-—en inglés— como si fuera la contestación al usuario. Reproducido de forma
-estable con Kimi (`content` de 184 chars idéntico al `reasoning`), y **no era un
-problema de GLM** aunque así se reportara.
+The last one deserves a note, because it is from the same family as the rest: the fallback "if `content` is empty, use `reasoning`" makes sense for models that respond only in reasoning, but it sent the model's internal monologue — in English — as if it were the answer to the user. Reproduced stably with Kimi (`content` of 184 chars identical to `reasoning`), and **it was not a GLM problem** even though it was reported as one.
 
 ---
 
-## 6. Nota de método
+## 6. Method note
 
-Tres de los bugs de hoy solo aparecieron **verificando después de desplegar**, no
-antes. Y dos veces di por bueno un arreglo que compilaba y no hacía nada. Con
-esta librería, la única prueba que vale es medir el efecto desde un consumidor
-real; el compilador no dice nada útil sobre estos fallos.
+Three of today's bugs only appeared when verifying after deployment, not before. And twice I accepted a fix that compiled and did nothing. With this library, the only valid test is to measure the effect from a real consumer; the compiler says nothing useful about these failures.
 
 ---
 
-*Generado desde la sesión de MKAIServer del 2026-08-29. Las evidencias de
-producción son del SaaS (`api.cimamaker.com`); calera1 quedó a propósito con el
-binario anterior porque estaba en uso.*
+*Generated from the MKAIServer session of 2026-08-29. The production evidence is from the SaaS (`api.cimamaker.com`); calera1 was intentionally left with the previous binary because it was in use.*

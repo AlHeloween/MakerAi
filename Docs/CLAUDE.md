@@ -15,7 +15,7 @@ Docs/
 │   ├── MCPServer/       ← Model Context Protocol server implementation
 │   ├── RAG/             ← Retrieval-Augmented Generation (vector + graph)
 │   └── PDF/             ← Distribution-ready consolidated PDFs
-└── Reportes/            ← Informes de campo desde consumidores del framework
+└── Reportes/            ← Field reports from framework consumers
 ```
 
 ## Language
@@ -44,19 +44,20 @@ Specialized guidance exists in subdirectories:
 | `uMakerAi-AudioBridge.md` | `Source/Utils/uMakerAi.Utils.AudioCapture.pas`, `Source/Utils/uMakerAi.Utils.AudioPlayback.pas` |
 | `uMakerAi-Skills.md` / `uMakerAi-Skills.EN.md` | `Source/Tools/uMakerAi.Tools.Skills.pas`, `Source/Core/uMakerAi.Skills.Format.pas`, `Source/Agents/uMakerAi.Agents.Skill.pas` |
 
-## Reportes de campo
+## Field Reports
 
-`Reportes/` recoge informes escritos desde aplicaciones que consumen el
-framework en produccion. No son documentacion de uso: son hallazgos medidos,
-con su evidencia y como reproducirlos. Utiles porque cazan fallos que el
-compilador no ve y que los demos no ejercitan. Tambien van aqui los informes en
-sentido contrario: lo que MakerAi le debe avisar a esas aplicaciones.
+`Reportes/` collects reports written from applications that consume the
+framework in production. They are not usage documentation: they are measured
+findings, with their evidence and how to reproduce them. Useful because they
+catch failures that the compiler does not see and that the demos do not
+exercise. Reports in the opposite direction also go here: what MakerAi must
+notify those applications about.
 
-| Informe | Origen -> destino | Estado |
-|---------|-------------------|--------|
-| `REPORTE_MKAISERVER_2026-08-29.md` | MKAIServer -> MakerAi | Atendido en 36b4379 y aa77522, salvo la verificacion runtime del usage de DeepSeek |
-| `REPORTE_PARA_MKAISERVER_2026-09-16.md` | MakerAi -> MKAIServer | Entregado: acciones tras ca175d0 (gpt-image-2.5) y fca6aba (deepseek-flash); pendiente del lado del broker |
-| `REPORTE_PARA_MKAISERVER_2026-09-20.md` | MakerAi -> MKAIServer | Entregado: como delegar Computer Use a un cliente remoto ahora que OpenAI y Gemini respetan la intercepcion (38eeacf), mas el ejecutor Linux (2e3e3be). Responde al analisis que llego del broker: sus dos puntos eran correctos. Pendiente del lado del broker |
+| Report | Origin -> destination | Status |
+|---------|-----------------------|--------|
+| `REPORTE_MKAISERVER_2026-08-29.md` | MKAIServer -> MakerAi | Addressed in 36b4379 and aa77522, except for the runtime verification of DeepSeek usage |
+| `REPORTE_PARA_MKAISERVER_2026-09-16.md` | MakerAi -> MKAIServer | Delivered: actions after ca175d0 (gpt-image-2.5) and fca6aba (deepseek-flash); pending on the broker side |
+| `REPORTE_PARA_MKAISERVER_2026-09-20.md` | MakerAi -> MKAIServer | Delivered: how to delegate Computer Use to a remote client now that OpenAI and Gemini respect the interception (38eeacf), plus the Linux executor (2e3e3be). Responds to the analysis that arrived from the broker: both of its points were correct. Pending on the broker side |
 
 ## File Formats
 

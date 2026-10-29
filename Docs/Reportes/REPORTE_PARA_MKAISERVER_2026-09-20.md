@@ -1,20 +1,20 @@
-# Reporte a MKAIServer — Computer Use ya se puede delegar, 2026-09-20
+# Report to MKAIServer — Computer Use can now be delegated, 2026-09-20
 
-Escrito desde el lado de MakerAi (`E:\Delphi\Delphi13\Compo\FMXCompo\AiMaker`)
-para el broker (`E:\Copilot\MKAIServer`). Continúa el
+Written from the MakerAi side (`E:\Delphi\Delphi13\Compo\FMXCompo\AiMaker`)
+for the broker (`E:\Copilot\MKAIServer`). Continues
 `REPORTE_PARA_MKAISERVER_2026-09-16.md`.
 
-Esto sale de un análisis que llegó desde vuestro lado y que era **correcto en
-los dos puntos que señalaba**:
+This comes from an analysis that arrived from your side and was **correct on
+both points it raised**:
 
-> 1. No hay ejecutor Linux.
-> 2. El pass-through del broker es Claude-only en la práctica: astra y Gemini
->    ejecutan igual en local aunque el interceptor ponga `Response`.
+> 1. There is no Linux executor.
+> 2. The broker pass-through is Claude-only in practice: astra and Gemini
+>    still execute locally even if the interceptor sets `Response`.
 
-Los dos están resueltos. Todo lo que sigue está **verificado en runtime contra
-los APIs reales**, no deducido de la documentación.
+Both are resolved. Everything below is **verified at runtime against the real
+APIs**, not inferred from documentation.
 
-Commits en `dev` y `master` (ambas en el mismo punto, `0f1fbf1`):
+Commits in `dev` and `master` (both at the same point, `0f1fbf1`):
 
 ```
 83a1656  fix(gemini)         el driver no ejecutaba NINGUNA funcion de usuario
@@ -25,102 +25,103 @@ b99e269  fix(websocket)      OpenSSL no validaba el certificado del servidor
 0a88e43  fix(shell)          TAiShell: Windows no ingles, stderr y timeout
 ```
 
-La versión **sigue en 3.7.0 / API_LEVEL 37**: no hubo bump, es contenido
-aditivo sobre el tag.
+The version **remains 3.7.0 / API_LEVEL 37**: there was no bump; it is additive
+content on top of the tag.
 
-Orden por lo que os bloquea, no por tamaño.
-
----
-
-## 0. Primero: `git pull` **y recompilar el paquete**, no solo la app
-
-`ResApiServer.dpr` enlaza los drivers por ruta absoluta a nuestro `Source\Chat`
-(líneas 89–101), así que esos llegan solos al recompilar. **Pero la clase base
-`TAiChat` no**: esa se resuelve por el paquete instalado, y también cambió (el
-contrato de intercepción vive en `TAiChat.DoCallFunction`).
-
-```
-1. git pull            en E:\Delphi\Delphi13\Compo\FMXCompo\AiMaker
-2. recompilar e instalar Source\Packages\MakerAI.dpk
-3. rebuild de ResApiServer
-```
-
-Si solo hacéis el paso 3, os quedáis con la base vieja y nada de esto funciona.
-
-> **Trampa que encontramos de paso:** `api-server\chat\` tiene copias de
-> `UMakerAi.Chat.pas`, `uMakerAi.Core.pas` y `uMakerAi.Chat.Messages.pas` con
-> fecha **3 de julio** (la nuestra es de septiembre y pesa 75 KB más). Hoy **no
-> se compilan** — esa carpeta no está en el search path del `.dproj` ni la
-> enlaza el `.dpr` — pero si alguien añade ese directorio al path, el servidor
-> pasará a compilar una base de hace tres meses sin avisar. Conviene borrarlas.
+Ordered by what blocks you, not by size.
 
 ---
 
-## 1. La delegación ya funciona en los tres drivers
+## 0. First: `git pull` **and rebuild the package**, not just the app
 
-El contrato era y sigue siendo el mismo: **si el handler de `OnCallToolFunction`
-deja `ToolCall.Response` lleno, el driver no ejecuta la acción en local**. Lo
-cumplían la clase base y Claude. Ahora también OpenAI y Gemini.
+`ResApiServer.dpr` links the drivers by absolute path to our `Source\Chat`
+(lines 89–101), so those arrive by themselves when recompiling. **But the base
+class `TAiChat` does not**: that is resolved through the installed package, and
+it also changed (the interception contract lives in `TAiChat.DoCallFunction`).
 
-Qué pasaba antes:
+```
+1. git pull            in E:\Delphi\Delphi13\Compo\FMXCompo\AiMaker
+2. rebuild and install Source\Packages\MakerAI.dpk
+3. rebuild ResApiServer
+```
 
-| Driver | Antes | Ahora |
-|--------|-------|-------|
-| Claude | Respetaba `Response` | igual |
-| OpenAI (`gpt-6-astra`) | Disparaba el evento pero **descartaba `Response`** y ejecutaba igual | respeta `Response` |
-| Gemini | **Ni siquiera disparaba el evento** | dispara y respeta `Response` |
+If you only do step 3, you stay on the old base and none of this works.
 
-### Cableado en el broker
+> **Trap we found along the way:** `api-server\chat\` has copies of
+> `UMakerAi.Chat.pas`, `uMakerAi.Core.pas` and `uMakerAi.Chat.Messages.pas`
+> dated **July 3** (ours is from September and is 75 KB larger). Today they are
+> **not compiled** — that folder is not in the `.dproj` search path and the
+> `.dpr` does not link it — but if someone adds that directory to the path, the
+> server will start compiling a base from three months ago without warning.
+> They should be deleted.
+
+---
+
+## 1. Delegation now works in all three drivers
+
+The contract was and still is the same: **if the `OnCallToolFunction` handler
+leaves `ToolCall.Response` filled, the driver does not execute the action
+locally**. The base class and Claude complied. Now OpenAI and Gemini do too.
+
+What happened before:
+
+| Driver | Before | Now |
+|--------|--------|-----|
+| Claude | Respected `Response` | same |
+| OpenAI (`gpt-6-astra`) | Fired the event but **discarded `Response`** and executed anyway | respects `Response` |
+| Gemini | **Did not even fire the event** | fires and respects `Response` |
+
+### Wiring in the broker
 
 ```pascal
-// 1. Hay que asignar un TAiComputerUseTool AUNQUE NO EJECUTE NADA.
-//    En OpenAI el único punto de intercepción vive DENTRO del recorrido del
-//    array 'actions', y ese bloque está condicionado a que el tool exista.
-//    Sin él no se llama a OnCallToolFunction y no hay nada que delegar.
+// 1. A TAiComputerUseTool must be assigned EVEN IF IT DOES NOTHING.
+//    In OpenAI the only interception point lives INSIDE the traversal of the
+//    'actions' array, and that block is conditioned on the tool existing.
+//    Without it OnCallToolFunction is not called and there is nothing to delegate.
 FCU := TAiComputerUseTool.Create(nil);
 FConn.ChatTools.ComputerUseTool := FCU;
 
-// 2. NO asignéis OnExecuteAction ni OnRequestScreenshot: el broker no tiene
-//    pantalla. Dejarlos sin asignar es lo correcto.
-
-// 3. El interceptor reclama la llamada para el cliente remoto.
+// 2. DO NOT assign OnExecuteAction or OnRequestScreenshot: the broker has no
+//    screen. Leaving them unassigned is correct.
+// 3. The interceptor claims the call for the remote client.
 FConn.OnCallToolFunction := ReclamarParaElCliente;
 
 procedure TMiBroker.ReclamarParaElCliente(Sender: TObject;
   AiToolCall: TAiToolsFunction);
 begin
-  // Con poner cualquier cosa no vacía basta: el driver ya no ejecuta.
+  // Putting any non-empty value is enough: the driver no longer executes.
   AiToolCall.Response := '{"output":"delegated"}';
-  // ...y aquí encoláis/emitís la tool_call hacia vuestro cliente.
+  // ...and here you enqueue/emit the tool_call toward your client.
 end;
 ```
 
-### Qué hace el driver cuando delegáis
+### What the driver does when you delegate
 
-- **No emite** `computer_call_output` y **no recurre**.
-- El `computer_call` **crudo queda en el historial** como mensaje `assistant`
-  con su `ToolCallId`. **Eso es lo que tenéis que reenviar al cliente.**
-- El turno se corta ahí, que es lo que queréis: la respuesta la traerá el
-  cliente en la siguiente vuelta.
+- It **does not emit** `computer_call_output` and **does not fall back**.
+- The raw `computer_call` **remains in the history** as an `assistant` message
+  with its `ToolCallId`. **That is what you must forward to the client.**
+- The turn is cut there, which is what you want: the response will be brought
+  by the client on the next round.
 
-### La delegación de OpenAI es ATÓMICA sobre el lote
+### OpenAI delegation is ATOMIC over the batch
 
-`gpt-6-astra` no manda una acción: manda un `computer_call` con un **array
-`actions`** (p.ej. `keypress[WIN,r]` + `type 'notepad'` + `keypress[ENTER]`) y
-el API admite **un único** `computer_call_output` por llamada.
+`gpt-6-astra` does not send one action: it sends a `computer_call` with an
+**`actions` array** (e.g. `keypress[WIN,r]` + `type 'notepad'` + `keypress[ENTER]`)
+and the API allows **a single** `computer_call_output` per call.
 
-Por eso, **en cuanto la primera acción vuelve con `Response` lleno se da por
-delegado el lote entero** y no se recorre el resto. Repartir las acciones entre
-un ejecutor local y uno remoto dejaría el screenshot final sin dueño.
+That is why, **as soon as the first action returns with `Response` filled, the
+entire batch is considered delegated** and the rest is not traversed. Splitting
+the actions between a local executor and a remote one would leave the final
+screenshot without an owner.
 
-Consecuencia para vosotros: reenviad el **item completo**, no acción por acción.
+Consequence for you: forward the **complete item**, not action by action.
 
-### Si os falta el tool, ahora os enteráis
+### If you are missing the tool, now you find out
 
-Antes, sin `ComputerUseTool` asignado, el camino síncrono emitía igual un
-`computer_call_output` **sin `image_url`** — y el API lo rechaza con 400 porque
-exige exactamente uno de `image_url` o `file_id`. El de streaming se lo tragaba
-en silencio. Ahora los dos cortan el turno y lo reportan por `LastError`:
+Before, without `ComputerUseTool` assigned, the synchronous path still emitted
+a `computer_call_output` **without `image_url`** — and the API rejects that with
+400 because it requires exactly one of `image_url` or `file_id`. The streaming
+path swallowed it silently. Now both cut the turn and report it via `LastError`:
 
 ```
 computer_call call_xxx: cap_ComputerUse esta activo pero ChatTools.ComputerUseTool
@@ -129,146 +130,147 @@ no esta asignado. El turno se corta sin responder al modelo.
 
 ---
 
-## 2. El lado del cliente (el que sí tiene pantalla)
+## 2. The client side (the one that does have a screen)
 
-No tiene que interpretar el JSON crudo de cada proveedor. Los traductores son
-**públicos justo para esto**:
+It does not have to interpret each provider's raw JSON. The translators are
+**public precisely for this**:
 
 ```pascal
-// El cliente recibe la tool_call cruda que le reenvió el broker
+// The client receives the raw tool_call forwarded by the broker
 LCU := TAiToolsFunction.Create;
 LCU.Id        := <call_id>;
-LCU.Name      := <tipo de accion>;   // 'click', 'type', 'left_click'...
-LCU.Arguments := <json de la accion>;
+LCU.Name      := <action type>;   // 'click', 'type', 'left_click'...
+LCU.Arguments := <action json>;
 
-// Traduce al formato canónico de TAiComputerUseTool
-MiTool.TranslateOpenAIToolCall(LCU);   // o TranslateClaudeToolCall(LCU)
+// Translates to the canonical format of TAiComputerUseTool
+MiTool.TranslateOpenAIToolCall(LCU);   // or TranslateClaudeToolCall(LCU)
 
-// Y ejecuta en local, con sus propios OnExecuteAction / OnRequestScreenshot
+// And executes locally, with its own OnExecuteAction / OnRequestScreenshot
 LRespuesta := MiTool.ProcessToolCall(LCU, LScreenshot);
 ```
 
-Para OpenAI, recordad: el `computer_call` trae un array `actions` y el cliente
-debe recorrerlo en orden, quedándose **solo con el screenshot de la última**.
+For OpenAI, remember: the `computer_call` carries an `actions` array and the
+client must traverse it in order, keeping **only the screenshot from the last
+one**.
 
-### Trampa de Claude que os afecta si reenviáis JSON crudo
+### Claude trap that affects you if you forward raw JSON
 
-Encontramos que **Claude manda las coordenadas unas veces como array y otras
-como cadena con el array dentro, dentro del mismo turno**:
+We found that **Claude sends coordinates sometimes as an array and sometimes as
+a string with the array inside, within the same turn**:
 
 ```
-✅ left_click args={ "coordinate": [299, 282] }     <- las primeras llamadas
-❌ left_click args={ "coordinate": "[299, 400]" }   <- a partir de cierto punto
+✅ left_click args={ "coordinate": [299, 282] }     <- the first calls
+❌ left_click args={ "coordinate": "[299, 400]" }   <- from a certain point on
 ```
 
-Nuestro `TryGetValue<TJSONArray>` no casaba con la segunda forma: la coordenada
-se perdía, la acción caía en **(0, 0)** —un clic en la esquina— y el modelo se
-desorientaba y reintentaba hasta agotar el turno. Afectaba a `coordinate`,
-`start_coordinate`, `region` (zoom) y a numéricos (`"duration": "1"`), es decir
-a clic, doble/triple clic, arrastre y zoom.
+Our `TryGetValue<TJSONArray>` did not match the second form: the coordinate was
+lost, the action fell to **(0, 0)** —a click in the corner— and the model became
+disoriented and retried until the turn was exhausted. It affected `coordinate`,
+`start_coordinate`, `region` (zoom) and numeric fields (`"duration": "1"`), that
+is, click, double/triple click, drag and zoom.
 
-Arreglado en `4d1f81a`: los traductores aceptan las dos formas. **Si vuestro
-cliente parsea el JSON por su cuenta en vez de usar el traductor, tiene que
-tolerar ambas.**
+Fixed in `4d1f81a`: the translators accept both forms. **If your client parses
+the JSON itself instead of using the translator, it must tolerate both.**
 
 ---
 
-## 3. Alternativa: que ejecute el propio broker, en Linux
+## 3. Alternative: let the broker itself execute, on Linux
 
-Si en algún escenario preferís no depender de un cliente con pantalla, ahora hay
-ejecutor Linux.
+If in some scenario you prefer not to depend on a client with a screen, there is
+now a Linux executor.
 
-`TAiLinuxExecutor` (`Source\Tools\uMakerAi.Tools.ComputerUse.Linux.pas`) cubre
-las 19 acciones sobre X11 con **xdotool** y captura con **scrot**. Misma interfaz
-pública que los de Windows y macOS, así que es intercambiable.
+`TAiLinuxExecutor` (`Source\Tools\uMakerAi.Tools.ComputerUse.Linux.pas`) covers
+the 19 actions over X11 with **xdotool** and captures with **scrot**. Same public
+interface as the Windows and macOS ones, so it is interchangeable.
 
-El framework no necesitó cambios: `TAiComputerUseTool` solo usa la RTL y delega
-todo en sus dos eventos, así que cruzó a Linux64 tal cual.
+The framework did not need changes: `TAiComputerUseTool` only uses the RTL and
+delegates everything to its two events, so it crossed over to Linux64 as-is.
 
-Montaje en un VPS headless (probado de cero en Ubuntu 24.04 y 26.04):
+Setup on a headless VPS (tested from scratch on Ubuntu 24.04 and 26.04):
 
 ```bash
 apt-get install -y xvfb xdotool scrot x11-apps
 Xvfb :99 -screen 0 1280x800x24 &
 export DISPLAY=:99
-# y, si hace falta navegador:
+# and, if a browser is needed:
 wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 apt-get install -y ./google-chrome-stable_current_amd64.deb
 google-chrome --no-sandbox --disable-gpu --window-size=1280,800 <url> &
 ```
 
-Probado en runtime con `gpt-6-astra` y `claude-opus-4-8`: rellenó un formulario
-web completo (clic en campo, escribir, clic en botón) y leyó de vuelta el
-resultado exacto de la página. Demo: `083-ComputerUseLinux`.
+Tested at runtime with `gpt-6-astra` and `claude-opus-4-8`: it filled out a
+complete web form (click on field, type, click on button) and read back the
+exact result from the page. Demo: `083-ComputerUseLinux`.
 
-**Dos cosas que aprendimos y os ahorran tiempo:**
+**Two things we learned that will save you time:**
 
-- **No declaréis dimensiones y no reescaléis si no hace falta.** Si la pantalla X
-  es de 1280 de ancho y declaráis `ScreenWidth = AreaWidth = 1280`, los clics
-  caen donde el modelo cree. El demo 066 de Windows sí reescala (monitor de 3440
-  a 1280 declarados) y por eso allí la conversión importa.
-- **`catNavigate` usa `xdg-open`** y en un Xvfb pelado no hay manejador
-  registrado. Es más fiable lanzar el navegador ya apuntando a la URL y dejar
-  que el modelo solo conduzca: la navegación inicial la pone la infraestructura.
+- **Do not declare dimensions and do not rescale if it is not necessary.** If
+  the X screen is 1280 wide and you declare `ScreenWidth = AreaWidth = 1280`,
+  clicks land where the model thinks they do. Windows demo 066 does rescale
+  (3440 monitor to declared 1280), and that is why the conversion matters there.
+- **`catNavigate` uses `xdg-open`** and on a bare Xvfb there is no handler
+  registered. It is more reliable to launch the browser already pointing at the
+  URL and let the model only drive it: the initial navigation is provided by
+  the infrastructure.
 
-Para automatizar **solo navegador**, sigue siendo mejor idea **CDP** (Chrome
-DevTools Protocol): se salta Xvfb, xdotool y scrot enteros y deja la golden image
-mucho más ligera. No está implementado; sería otro ejecutor, y como son dos
-handlers no tocaría nada más del framework.
+For automating **browser only**, **CDP** (Chrome DevTools Protocol) is still the
+better idea: it skips Xvfb, xdotool and scrot entirely and leaves the golden
+image much lighter. It is not implemented; it would be another executor, and
+since they are two handlers it would not touch anything else in the framework.
 
 ---
 
-## 4. Dos cambios que pueden romperos algo al recompilar
+## 4. Two changes that may break something when you recompile
 
-### ⚠️ TLS: el transporte POSIX ahora valida el certificado
+### ⚠️ TLS: the POSIX transport now validates the certificate
 
-`TOpenSSLTransport` corría con `SSL_VERIFY_NONE`: aceptaba **cualquier**
-certificado, de cualquiera. Es el transporte que usa el módulo Realtime en Linux
-y macOS. Ahora valida cadena contra el almacén de CAs del sistema **y hostname**.
+`TOpenSSLTransport` was running with `SSL_VERIFY_NONE`: it accepted **any**
+certificate, from anyone. It is the transport used by the Realtime module on
+Linux and macOS. It now validates the chain against the system CA store **and
+hostname**.
 
-**Si apuntáis Realtime a un endpoint con certificado propio** (un LM Studio
-interno, un proxy vuestro), dejará de conectar hasta que pongáis:
+**If you point Realtime at an endpoint with its own certificate** (an internal
+LM Studio, a proxy of yours), it will stop connecting until you set:
 
 ```pascal
 LTransport.InsecureSkipVerify := True;
 ```
 
-En Linux hace falta el paquete `ca-certificates` instalado.
+On Linux, the `ca-certificates` package must be installed.
 
-### ⚠️ Gemini: las funciones de usuario ahora se ejecutan
+### ⚠️ Gemini: user functions now execute
 
-`TAiGeminiChat.DoCallFunction` tenía el `inherited` comentado y respondía
-`'Command <nombre> not found'` a **toda** tool call que no fuera Computer Use —
-y es el único punto de despacho del driver. Ni `AiFunctions` ni
-`OnCallToolFunction` llegaban a dispararse.
+`TAiGeminiChat.DoCallFunction` had `inherited` commented out and responded
+`'Command <name> not found'` to **every** tool call that was not Computer Use —
+and it is the driver's only dispatch point. Neither `AiFunctions` nor
+`OnCallToolFunction` were ever fired.
 
-Si algo de vuestro lado dependía de ese "not found" (poco probable, pero
-conviene mirarlo), ahora se comporta distinto: las funciones se ejecutan.
-
----
-
-## 5. Lo que NO está verificado
-
-- **Computer Use en Gemini**: el gate y la intercepción están implementados
-  igual que en Claude, pero **sin prueba de runtime**. La `GEMINI_API_KEY` de
-  aquí no es válida. Si lo usáis, avisadnos de cómo se comporta.
-- **El end-to-end del demo 066** con ratón y teclado reales no se re-corrió tras
-  estos cambios; el camino local sí está cubierto por el 082 con ejecutor
-  simulado.
+If something on your side depended on that "not found" (unlikely, but worth
+checking), it now behaves differently: functions execute.
 
 ---
 
-## 6. Resumen de lo que os toca
+## 5. What is NOT verified
 
-1. `git pull` en MakerAi, **recompilar e instalar `MakerAI.dpk`**, rebuild de
+- **Computer Use in Gemini**: the gate and interception are implemented the
+  same as in Claude, but **without a runtime test**. The `GEMINI_API_KEY` here
+  is not valid. If you use it, let us know how it behaves.
+- **The end-to-end of demo 066** with a real mouse and keyboard was not re-run
+  after these changes; the local path is covered by 082 with a simulated
+  executor.
+
+---
+
+## 6. Summary of what you need to do
+
+1. `git pull` in MakerAi, **rebuild and install `MakerAI.dpk`**, rebuild
    ResApiServer.
-2. Asignar un `TAiComputerUseTool` al `ChatTools` aunque no ejecute nada.
-3. **No** asignar `OnExecuteAction` ni `OnRequestScreenshot`.
-4. En `OnCallToolFunction`, rellenar `Response` y encolar la tool_call.
-5. Reenviar al cliente el `computer_call` **completo** (el mensaje `assistant`
-   crudo del historial), no acción por acción.
-6. En el cliente, usar `TranslateOpenAIToolCall` / `TranslateClaudeToolCall`
-   antes de `ProcessToolCall`, o tolerar que Claude mande las coordenadas como
-   cadena.
-7. Revisar si os afecta el cambio de TLS.
-8. Borrar `api-server\chat\*.pas`, que son copias de julio.
+2. Assign a `TAiComputerUseTool` to `ChatTools` even if it does nothing.
+3. **Do not** assign `OnExecuteAction` or `OnRequestScreenshot`.
+4. In `OnCallToolFunction`, fill `Response` and enqueue the tool_call.
+5. Forward to the client the **complete** `computer_call` (the raw `assistant`
+   message from the history), not action by action.
+6. In the client, use `TranslateOpenAIToolCall` / `TranslateClaudeToolCall`
+   before `ProcessToolCall`, or tolerate Claude sending coordinates as a string.
+7. Check whether the TLS change affects you.
+8. Delete `api-server\chat\*.pas`, which are July copies.

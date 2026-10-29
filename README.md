@@ -464,7 +464,7 @@ New `ChatMode` value for automatic two-pass routing:
 ### Models Updated (May 2026)
 
 | Provider | New / Updated Models |
-|----------|----------------------|
+|----------|---------------------|
 | OpenAI | **gpt-5.4**, **gpt-5.4-mini**, **gpt-5.5**, gpt-image-1 |
 | Claude | **claude-opus-4-7** (Adaptive Thinking), claude-sonnet-4-6, claude-haiku-4-5 |
 | Gemini | **gemini-3.1-pro**, **gemini-3-flash**, gemini-3.1-flash-lite, gemini-3.1-flash-image |

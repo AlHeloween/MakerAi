@@ -11,15 +11,15 @@ The Agents module implements a graph-based autonomous agent orchestration framew
 | Unit | Purpose |
 |------|---------|
 | `uMakerAi.Agents.pas` | Core framework: `TAIAgentManager`, `TAIAgentsNode`, `TAIAgentsLink`, `TAIBlackboard` |
-| `uMakerAi.Agents.Attributes.pas` | RTTI attributes `TToolAttribute`, `TToolParameterAttribute` and `TSecretAttribute` (`[TSecret]`: la propiedad nunca se serializa a disco y los valores entrantes desde JSON se ignoran — credenciales solo en runtime) |
+| `uMakerAi.Agents.Attributes.pas` | RTTI attributes `TToolAttribute`, `TToolParameterAttribute` and `TSecretAttribute` (`[TSecret]`: the property is never serialized to disk and incoming values from JSON are ignored — credentials only at runtime) |
 | `uMakerAi.Agents.EngineRegistry.pas` | Singleton registries for tool discovery (`TEngineRegistry`, `TAgentHandlerRegistry`) |
 | `uMakerAi.Agents.GraphBuilder.pas` | `TGraphBuilder` parses JSON graph specs into runtime structures. `StrictValidation` (default True) raises `EAiGraphError` on structural defects (edge to missing node, undeclared port, >4 fanout outputs); set False for the legacy warn-and-drop behavior (fix M-02) |
 | `uMakerAi.Agents.DmGenerator.pas` | `TDataModuleGenerator` generates Delphi DataModule code from JSON graphs |
-| `uMakerAi.Agents.Node.LLM.pas` | `TLLMNode`: nodo con LLM y loop ReAct sobre el `TAiToolRegistry`. `ResolveConfig` combina nodo + skill (driver del nodo → del skill → `'Claude'`; el `Model` del skill solo si es del driver efectivo; `SystemPrompt` del skill + el del nodo; `ApiKey` del nodo o del skill) y `ConfigureChat` lo aplica en orden Driver → Model → Params (v3.8: `SetDriverName` reinicia el modelo, así que el orden viejo perdía modelo y clave del skill). `DriverName` es `''` por defecto desde v3.8 |
-| `uMakerAi.Agents.Skill.pas` | `TAiSkill`: config reutilizable de un `TLLMNode`. Dos formatos: SKILL.md (`FromPPM`, `FromFolder`, `FromSkillFile`; parser común de `Source/Core/uMakerAi.Skills.Format.pas`) y JSON propio (`FromJSON`, `FromFile`). `ApiKey` solo desde JSON: un SKILL.md es contenido de terceros. Guía: `Docs/Version 3/uMakerAi-Agents-Skill.md` |
-| `uMakerAi.Agents.Tools.JevRouter.pas` | `TAiJevRouterTool`: tool de nodo que elige la siguiente ruta con Jev (TypeSafe AI) y la escribe en `Blackboard['next_route']` para un link `lmConditional`. Registrada en `TEngineRegistry` como `JevRouter` |
-| `uMakerAi.A2A.Server.pas` | `TAiA2AServer` (spec A2A 1.0): expone `TAIAgentManager`(s) como agente A2A — Agent Card en `/.well-known/agent-card.json`, JSON-RPC `SendMessage`/`GetTask`/`CancelTask` (+ aliases 0.x). Pool de managers, ciclo de vida real del task, resume de `input-required`, auth bearer y `traceparent`; sin streaming (rechaza con UnsupportedOperationError) |
-| `uMakerAi.A2A.Client.pas` | `TAiA2AClient`: consume agentes A2A remotos — `FetchAgentCard`, `SendText`/`SendTextEx`, `GetTask`/`CancelTask`; estado normalizado en `LastTaskState` y pregunta del agente en `LastStatusMessage`. Incluye `TAiA2ARemoteAgentTool` (federacion): asignado como `Tool` de un nodo, delega el input del nodo en un agente A2A remoto; registrado en `TEngineRegistry` |
+| `uMakerAi.Agents.Node.LLM.pas` | `TLLMNode`: node with an LLM and a ReAct loop over `TAiToolRegistry`. `ResolveConfig` combines node + skill (driver from the node → from the skill → `'Claude'`; the skill's `Model` only if it belongs to the effective driver; the skill's `SystemPrompt` + the node's; `ApiKey` from the node or the skill) and `ConfigureChat` applies it in order Driver → Model → Params (v3.8: `SetDriverName` resets the model, so the old order lost the skill's model and key). `DriverName` is `''` by default since v3.8 |
+| `uMakerAi.Agents.Skill.pas` | `TAiSkill`: reusable config for a `TLLMNode`. Two formats: SKILL.md (`FromPPM`, `FromFolder`, `FromSkillFile`; common parser from `Source/Core/uMakerAi.Skills.Format.pas`) and its own JSON (`FromJSON`, `FromFile`). `ApiKey` only from JSON: a SKILL.md is third-party content. Guide: `Docs/Version 3/uMakerAi-Agents-Skill.md` |
+| `uMakerAi.Agents.Tools.JevRouter.pas` | `TAiJevRouterTool`: node tool that chooses the next route with Jev (TypeSafe AI) and writes it to `Blackboard['next_route']` for an `lmConditional` link. Registered in `TEngineRegistry` as `JevRouter` |
+| `uMakerAi.A2A.Server.pas` | `TAiA2AServer` (A2A 1.0 spec): exposes `TAIAgentManager`(s) as an A2A agent — Agent Card at `/.well-known/agent-card.json`, JSON-RPC `SendMessage`/`GetTask`/`CancelTask` (+ 0.x aliases). Manager pool, real task lifecycle, `input-required` resume, bearer auth and `traceparent`; no streaming (rejects with UnsupportedOperationError) |
+| `uMakerAi.A2A.Client.pas` | `TAiA2AClient`: consumes remote A2A agents — `FetchAgentCard`, `SendText`/`SendTextEx`, `GetTask`/`CancelTask`; normalized state in `LastTaskState` and agent question in `LastStatusMessage`. Includes `TAiA2ARemoteAgentTool` (federation): assigned as a node's `Tool`, delegates the node input to a remote A2A agent; registered in `TEngineRegistry` |
 
 ## Core Classes
 
@@ -60,31 +60,31 @@ initialization
   TEngineRegistry.Instance.RegisterTool(TMyTool, 'uMyToolUnit');
 ```
 
-## Enrutar con Jev (`TAiJevRouterTool`)
+## Routing with Jev (`TAiJevRouterTool`)
 
-Un nodo **sin `OnExecute`** con `TAiJevRouterTool` como `Tool` le pregunta a Jev cuál de las `Routes` corresponde a su input y escribe la clave en `Blackboard[RouteKey]` (default `next_route`, que es el `ConditionalKey` por defecto del link). El link `lmConditional` existente hace el resto: **el motor no cambia**.
+A node **without `OnExecute`** with `TAiJevRouterTool` as `Tool` asks Jev which of the `Routes` corresponds to its input and writes the key to `Blackboard[RouteKey]` (default `next_route`, which is the link's default `ConditionalKey`). The existing `lmConditional` link does the rest: **the engine does not change**.
 
 ```pascal
 Router := TAiJevRouterTool.Create(Manager);
-Router.AddRoute('contable',   'Asientos, PUC, NIIF, estados financieros');
-Router.AddRoute('tributario', 'Renta, IVA, retención, DIAN');
+Router.AddRoute('contable',   'Journal entries, PUC, IFRS, financial statements');
+Router.AddRoute('tributario', 'Income tax, VAT, withholding, DIAN');
 Router.AddRoute('general',    '');
-Router.AddFlag('fuentes', '¿Responder `consulta` exige citar una norma concreta?');
+Router.AddFlag('fuentes', 'Does answering `consulta` require citing a specific rule?');
 Manager.FindNode('Recepcion').Tool := Router;
-Manager.AddConditionalEdge('Recepcion', 'Enrutador', Targets);   // clave de ruta -> nodo
+Manager.AddConditionalEdge('Recepcion', 'Enrutador', Targets);   // route key -> node
 Manager.FindNode('Recepcion').Next.NextNo := Manager.FindNode('humano');
 ```
 
-- **Ruta final:** `Choice` si su confianza ≥ `MinConfidence` (0.5); si no, `FallbackRoute`. Con `FallbackRoute` vacío el link cae a `NextNo` (en GraphBuilder, el puerto `out_failure`).
-- **Un Jev caído no tumba el grafo:** el error (red, 401, configuración) queda en `<Nodo>.jev.error`, se usa `FallbackRoute` y el grafo termina `esCompleted`.
-- **Blackboard** (prefijo `<Nodo>.jev.`): `choice`, `confidence`, `top` (3 más probables), un valor por flag y `error`. Los números van con **punto decimal** (`'0.85'`), aptos para `lmExpression` (`Recepcion.jev.fuentes >= 0.5`).
-- **Flags:** Nouls que viajan en la misma llamada que la ruta. `OnRoute(Sender, Node, Result, var Route)` permite combinarlos, p.ej. `contable` + `fuentes` alto → `contable_normativo`.
-- **GraphBuilder:** las claves de ruta son los `idStr` de los puertos de salida del nodo router — nombrar los puertos igual que las `Routes`. `ApiKey` es `[TSecret]` (default `@TYPESAFE_API_KEY`), nunca viaja en el JSON.
-- **La redacción de `Instructions` mueve la confianza.** "¿Qué ruta o especialista debe atender…?" dio 0.44 donde "¿Qué especialista debe responder…?" dio 0.68 (misma consulta, `jev-1.13.0`); la segunda es el default. Calibrar `MinConfidence` después de fijar la redacción.
-- El output del nodo es su input sin cambios: el agente elegido recibe la consulta original.
-- Un `TAiJev` externo se asigna en `Router.Jev` (compartido, o el `TFakeJev` de la suite); si no, la tool crea el suyo con `ApiKey`/`Model`.
+- **Final route:** `Choice` if its confidence ≥ `MinConfidence` (0.5); otherwise `FallbackRoute`. With an empty `FallbackRoute` the link falls to `NextNo` (in GraphBuilder, the `out_failure` port).
+- **A down Jev does not bring down the graph:** the error (network, 401, configuration) stays in `<Node>.jev.error`, `FallbackRoute` is used, and the graph ends `esCompleted`.
+- **Blackboard** (prefix `<Node>.jev.`): `choice`, `confidence`, `top` (3 most likely), one value per flag and `error`. Numbers use **decimal point** (`'0.85'`), suitable for `lmExpression` (`Recepcion.jev.fuentes >= 0.5`).
+- **Flags:** Nodes that travel in the same call as the route. `OnRoute(Sender, Node, Result, var Route)` allows combining them, e.g. `contable` + high `fuentes` → `contable_normativo`.
+- **GraphBuilder:** route keys are the `idStr` of the router node's output ports — name the ports the same as the `Routes`. `ApiKey` is `[TSecret]` (default `@TYPESAFE_API_KEY`), never travels in the JSON.
+- **The wording of `Instructions` moves confidence.** "Which route or specialist should handle…?" gave 0.44 where "Which specialist should respond…?" gave 0.68 (same query, `jev-1.13.0`); the second is the default. Calibrate `MinConfidence` after fixing the wording.
+- The node output is its input unchanged: the chosen agent receives the original query.
+- An external `TAiJev` is assigned in `Router.Jev` (shared, or the suite's `TFakeJev`); if not, the tool creates its own with `ApiKey`/`Model`.
 
-**`lmExpression` y el punto decimal (fix sep 27/2026):** `EvalCondition` parseaba los números solo con la configuración regional, así que en un Windows con coma decimal `'10.25' > 9.5` se comparaba como texto y daba `False`. Ahora prueba primero la configuración regional y luego punto decimal (caso `agents.expression.decimal-point`).
+**`lmExpression` and the decimal point (fix Sep 27/2026):** `EvalCondition` parsed numbers only with regional settings, so on a Windows with decimal comma `'10.25' > 9.5` was compared as text and gave `False`. Now it tries regional settings first and then decimal point (case `agents.expression.decimal-point`).
 
 ## JSON Graph Format
 
@@ -147,10 +147,10 @@ Access via `Blackboard.SetStatus()`/`GetStatus()`.
 ## Durable Execution (Checkpoint / Suspend-Resume)
 
 **Key types** (in `uMakerAi.Agents.Checkpoint`):
-- `IAiCheckpointer` â€” persistence contract; assign to `TAIAgentManager.Checkpointer`
-- `TAiNullCheckpointer` â€” no-op (default behavior, no disk writes)
-- `TAiFileCheckpointer` â€” JSON on disk (`<dir>/<GUID>.checkpoint.json`)
-- `TAiCheckpointSnapshot` â€” serialized state (blackboard + node/link states + pending steps)
+- `IAiCheckpointer` — persistence contract; assign to `TAIAgentManager.Checkpointer`
+- `TAiNullCheckpointer` — no-op (default behavior, no disk writes)
+- `TAiFileCheckpointer` — JSON on disk (`<dir>/<GUID>.checkpoint.json`)
+- `TAiCheckpointSnapshot` — serialized state (blackboard + node/link states + pending steps)
 
 **Suspend a node from `OnExecute`:**
 ```pascal
@@ -158,7 +158,7 @@ procedure MyNodeExecute(Node, Before: TAIAgentsNode; Link: TAIAgentsLink;
   Input: string; var Output: string);
 begin
   Output := Input; // pass-through
-  Node.Suspend('Requiere aprobaciÃ³n', 'Contexto adicional');
+  Node.Suspend('Requires approval', 'Additional context');
 end;
 ```
 
@@ -169,124 +169,124 @@ Or use the built-in `TAiWaitApprovalTool` (from `uMakerAi.Agents.Tools.Approval`
 // Detect suspended threads on app startup
 var Threads := AgentManager.GetActiveThreads;
 // Resume when user approves
-AgentManager.ResumeThread(ThreadID, 'NombreDelNodo', 'Aprobado');
+AgentManager.ResumeThread(ThreadID, 'NombreDelNodo', 'Approved');
 ```
 
 **Event for human-in-the-loop UI:**
 ```pascal
 AgentManager.OnSuspend := procedure(Sender: TObject; const ThreadID, NodeName,
   Reason, Context: string) begin
-  ShowMessage('AprobaciÃ³n requerida: ' + Reason);
+  ShowMessage('Approval required: ' + Reason);
 end;
 ```
 
-## A2A: flujos de orquestación
+## A2A: orchestration flows
 
-**Concurrencia.** Un `TAIAgentManager` no ejecuta dos grafos a la vez, así que un servidor A2A con un solo manager serializa los tasks (el segundo recibe `AgentBusy`, `-32000`). Para fan-out real asignar `TAiA2AServer.OnAcquireManager`: la fábrica devuelve un grafo nuevo y el servidor mantiene un pool de hasta `MaxConcurrentTasks`. La reserva del slot es atómica (no depende de `Busy`), de modo que dos peticiones simultáneas no se quedan con el mismo manager.
+**Concurrency.** A `TAIAgentManager` does not execute two graphs at once, so an A2A server with a single manager serializes tasks (the second receives `AgentBusy`, `-32000`). For real fan-out assign `TAiA2AServer.OnAcquireManager`: the factory returns a new graph and the server keeps a pool of up to `MaxConcurrentTasks`. Slot reservation is atomic (it does not depend on `Busy`), so two simultaneous requests do not end up with the same manager.
 
 ```pascal
 procedure TForm1.AcquireManager(Sender: TObject; var AManager: TAIAgentManager);
 begin
-  AManager := TAIAgentManager.Create(nil);   // el servidor lo libera
+  AManager := TAIAgentManager.Create(nil);   // the server frees it
   AManager.AddNode('Uno', NodeExec).AddNode('Dos', NodeExec);
   AManager.AddEdge('Uno', 'Dos');
   AManager.SetEntryPoint('Uno').SetFinishPoint('Dos');
 end;
 ```
 
-**Ciclo de vida del task.** `SendMessage` con `configuration.blocking = false` (o al vencer `WaitTimeoutMs`) responde con el task en `working`; el cliente sigue con `GetTask`, que refresca el estado desde el grafo vivo. El slot se libera solo al llegar a un estado terminal. Un vencimiento de espera **no** marca `failed`.
+**Task lifecycle.** `SendMessage` with `configuration.blocking = false` (or when `WaitTimeoutMs` expires) responds with the task in `working`; the client continues with `GetTask`, which refreshes state from the live graph. The slot is released only when a terminal state is reached. A wait timeout **does not** mark `failed`.
 
-> El servidor fuerza `Asynchronous := True` en los managers que conduce: en modo síncrono `Run` haría `Wait(INFINITE)` (ignorando el timeout) y lanzaría excepción en vez de dejar el estado en el blackboard.
+> The server forces `Asynchronous := True` on the managers it drives: in synchronous mode `Run` would do `Wait(INFINITE)` (ignoring the timeout) and throw an exception instead of leaving the state on the blackboard.
 
-**Human-in-the-loop a través de A2A.** Una suspensión (`Node.Suspend`) se publica como `input-required` con la pregunta en `status.message`, y el task conserva su manager. Un `SendMessage` posterior con el mismo `taskId` reanuda el grafo (`ResumeThread`) usando el texto recibido como respuesta humana.
+**Human-in-the-loop over A2A.** A suspension (`Node.Suspend`) is published as `input-required` with the question in `status.message`, and the task keeps its manager. A later `SendMessage` with the same `taskId` resumes the graph (`ResumeThread`) using the received text as the human response.
 
-En el lado federado, `TAiA2ARemoteAgentTool` suspende el **nodo local** cuando el agente remoto pide input (`SuspendOnInputRequired`, default `True`) en vez de fallar; al reanudar el nodo local, la respuesta viaja al mismo task remoto. El task remoto pendiente se recuerda en el blackboard bajo `A2A.<NodoName>.PendingTask`.
+On the federated side, `TAiA2ARemoteAgentTool` suspends the **local node** when the remote agent asks for input (`SuspendOnInputRequired`, default `True`) instead of failing; when the local node resumes, the response travels to the same remote task. The pending remote task is remembered on the blackboard under `A2A.<NodeName>.PendingTask`.
 
-**Literales de estado.** `StateNaming` elige la forma emitida: `anProto` (`TASK_STATE_COMPLETED`, default) o `anLower` (`completed`). La lectura tolera ambas siempre — usar `TAiA2AClient.LastTaskState` (enum) y no comparar strings.
+**State literals.** `StateNaming` chooses the emitted form: `anProto` (`TASK_STATE_COMPLETED`, default) or `anLower` (`completed`). Reading always tolerates both — use `TAiA2AClient.LastTaskState` (enum) and do not compare strings.
 
-> v1.0 pasó de kebab-case a SCREAMING_SNAKE_CASE por conformidad con ProtoJSON, así que **`anProto` es el formato correcto de la spec** y `anLower` el de compatibilidad con la era 0.x. Es al revés de lo que sugiere la intuición.
+> v1.0 moved from kebab-case to SCREAMING_SNAKE_CASE for ProtoJSON conformance, so **`anProto` is the correct spec format** and `anLower` the compatibility one with the 0.x era. It is the opposite of what intuition suggests.
 
-## Fuentes normativas del protocolo
+## Normative sources of the protocol
 
-**No razonar de memoria ni desde la web: el proto manda.**
+**Do not reason from memory or from the web: the proto rules.**
 
-| Fuente | Estatus |
+| Source | Status |
 |---|---|
-| [`specification/a2a.proto`](https://github.com/a2aproject/A2A/blob/main/specification/a2a.proto) | **Única definición normativa** de todos los objetos y mensajes |
-| `spec/a2a.json` | JSON Schema generado en build, **no versionado y no normativo** |
-| [a2a-protocol.org/latest/specification](https://a2a-protocol.org/latest/specification/) | Prosa derivada del proto; útil para entender, no para dirimir |
-| [`a2aproject/a2a-tck`](https://github.com/a2aproject/a2a-tck) | **TCK oficial de conformidad**; valida JSON-RPC con niveles RFC 2119 (MUST / SHOULD / MAY) |
+| [`specification/a2a.proto`](https://github.com/a2aproject/A2A/blob/main/specification/a2a.proto) | **Single normative definition** of all objects and messages |
+| `spec/a2a.json` | JSON Schema generated at build, **not versioned and not normative** |
+| [a2a-protocol.org/latest/specification](https://a2a-protocol.org/latest/specification/) | Prose derived from the proto; useful for understanding, not for settling disputes |
+| [`a2aproject/a2a-tck`](https://github.com/a2aproject/a2a-tck) | **Official conformance TCK**; validates JSON-RPC with RFC 2119 levels (MUST / SHOULD / MAY) |
 
-Atajo práctico para consultar la forma canónica de cualquier mensaje sin leer el proto: instalar `a2a-sdk` (es proto-first) e inspeccionar el descriptor.
+Practical shortcut to consult the canonical form of any message without reading the proto: install `a2a-sdk` (it is proto-first) and inspect the descriptor.
 
 ```python
 import a2a.types as T
 print([f.name for f in T.SendMessageResponse.DESCRIPTOR.fields])   # ['task', 'message']
 ```
 
-## Formato de cable: v1.0 vs 0.x
+## Wire format: v1.0 vs 0.x
 
-Verificado contra el SDK oficial `a2a-sdk` 1.1.2 (agosto 2026). El SDK 1.x es **proto-first**: los tipos son protobuf y el cable es **protojson**.
+Verified against the official `a2a-sdk` 1.1.2 (August 2026). SDK 1.x is **proto-first**: types are protobuf and the wire is **protojson**.
 
-`WireEra` (default `weV1`) controla dos diferencias que rompen la interop:
+`WireEra` (default `weV1`) controls two differences that break interop:
 
-**1. `SendMessage` devuelve el Task envuelto.** `SendMessageResponse` es un *oneof* `{task | message}`:
+**1. `SendMessage` returns the Task wrapped.** `SendMessageResponse` is a *oneof* `{task | message}`:
 
 ```jsonc
 {"result": {"task": {...}}}    // v1.0
 {"result": {...campos...}}     // 0.x
 ```
 
-**`GetTask` y `CancelTask` NO llevan wrapper** en ninguna era: en el proto son `returns (Task)` y no tienen mensaje de respuesta propio.
+**`GetTask` and `CancelTask` do NOT have a wrapper** in any era: in the proto they are `returns (Task)` and do not have their own response message.
 
-El cliente normaliza ambas formas con `UnwrapSendMessageResult`, que además sintetiza un Task cuando el agente responde con `{"message": ...}` (respuesta inmediata sin crear tarea).
+The client normalizes both forms with `UnwrapSendMessageResult`, which also synthesizes a Task when the agent responds with `{"message": ...}` (immediate response without creating a task).
 
-**2. La Agent Card cambió de forma.** En v1.0 la raíz **no tiene** `url`, `protocolVersion` ni `preferredTransport`: van dentro de `supportedInterfaces[] = [url, protocolBinding, tenant, protocolVersion]`. Sin eso, un cliente v1.0 no sabe a qué URL hablar. Además `security` se llama `securityRequirements` (con un campo `schemes`) y `capabilities.stateTransitionHistory` ya no existe.
+**2. The Agent Card changed shape.** In v1.0 the root **does not have** `url`, `protocolVersion` or `preferredTransport`: they go inside `supportedInterfaces[] = [url, protocolBinding, tenant, protocolVersion]`. Without that, a v1.0 client does not know what URL to talk to. Also `security` is called `securityRequirements` (with a `schemes` field) and `capabilities.stateTransitionHistory` no longer exists.
 
-El cliente lee la URL de `supportedInterfaces` con fallback al `url` plano de 0.x.
+The client reads the URL from `supportedInterfaces` with fallback to the flat `url` of 0.x.
 
-### Autorización
+### Authorization
 
-`ApiKey` exige `Authorization: Bearer <clave>` (o `X-API-Key`). Sin ella → 401 con `WWW-Authenticate`. `OnAuthorize` permite decidir a mano y siempre se llama.
+`ApiKey` requires `Authorization: Bearer <key>` (or `X-API-Key`). Without it → 401 with `WWW-Authenticate`. `OnAuthorize` allows deciding by hand and is always called.
 
-Dos cosas que costaron encontrar y conviene no volver a romper:
+Two things that were hard to find and should not be broken again:
 
-> **`TIdHTTPServer` solo entiende autenticación `Basic`.** Ante un `Authorization: Bearer …` responde **401 él solo** y `HttpCommand` no llega a ejecutarse nunca. Por eso el servidor engancha `OnParseAuthentication` con `VHandled := True`. Sin ese handler la auth por bearer **no funciona en absoluto** — solo pasaba el `X-API-Key`, y el 401 parecía nuestro. Los servidores MCP ya lo hacían; el A2A no. Misma trampa del demo 037 y del 080.
+> **`TIdHTTPServer` only understands `Basic` authentication.** Faced with an `Authorization: Bearer …` it responds **401 on its own** and `HttpCommand` never gets to execute. That is why the server hooks `OnParseAuthentication` with `VHandled := True`. Without that handler bearer auth **does not work at all** — only `X-API-Key` passed, and the 401 looked like ours. MCP servers already did this; A2A did not. Same trap as demo 037 and 080.
 
-> **La Agent Card base queda fuera de la comprobación de `ApiKey`.** Es un documento de descubrimiento, y es justo donde el cliente lee *qué* esquema de seguridad usar: protegerla es un círculo vicioso. Para datos solo a clientes autenticados está la extended card. `OnAuthorize` sí se sigue llamando sobre ella, por si alguien quiere cerrarla a propósito.
+> **The base Agent Card is left out of the `ApiKey` check.** It is a discovery document, and it is exactly where the client reads *which* security scheme to use: protecting it is a vicious circle. For data only to authenticated clients there is the extended card. `OnAuthorize` is still called on it, in case someone wants to close it on purpose.
 
-El secreto se compara **exacto**; solo el nombre del esquema va sin distinguir mayúsculas. Con `SameText` sobre la cabecera entera, `clavesecreta` valía por `ClaveSecreta`.
+The secret is compared **exactly**; only the scheme name is case-insensitive. With `SameText` on the entire header, `secretkey` was valid for `SecretKey`.
 
-### Skills de la Agent Card
+### Agent Card skills
 
-Una skill es lo que un cliente lee para **decidir si este agente le sirve**. No es un punto de entrada: la spec no lleva selector de skill en `SendMessage`, así que las skills describen, no enrutan.
+A skill is what a client reads to **decide whether this agent serves them**. It is not an entry point: the spec has no skill selector in `SendMessage`, so skills describe, they do not route.
 
-Por eso **no se derivan de los nodos del grafo**. Un grafo normal tiene nodos `Nodo1`/`Nodo2` sin descripción, y publicarlos sería ruido que además insinúa una granularidad de invocación que no existe. Se declaran:
+That is why **they are not derived from the graph nodes**. A normal graph has `Nodo1`/`Nodo2` nodes without a description, and publishing them would be noise that also hints at an invocation granularity that does not exist. They are declared:
 
 ```pascal
 Server.Skills.AddSkill('traducir', 'Traductor', 'Traduce texto', 'idiomas, texto');
 ```
 
-`Tags` va separado por comas y se emite como array JSON. Si la colección queda vacía se publica una única skill `run-graph` — la card **nunca** sale sin skills.
+`Tags` is comma-separated and emitted as a JSON array. If the collection is empty, a single `run-graph` skill is published — the card **never** goes out without skills.
 
-`PublishNodesAsSkills := True` añade además un skill por nodo, pero **solo para los nodos cuyo `Tool` trae `Description`**; los demás se omiten a propósito. Para control total sigue estando `OnCustomizeCard`.
+`PublishNodesAsSkills := True` also adds one skill per node, but **only for nodes whose `Tool` has a `Description`**; the rest are deliberately omitted. For total control, `OnCustomizeCard` is still available.
 
-> **Los tests de interop deben hablar HTTP crudo.** Los casos `a2a.wire.v1`, `a2a.wire.v03` y `a2a.listtasks` de la suite no usan `TAiA2AClient` a propósito: durante meses los 9 casos A2A pasaron con el formato equivocado porque cliente y servidor compartían el error. Un test que valida contra tu propia implementación no prueba conformidad.
+> **Interop tests must speak raw HTTP.** The `a2a.wire.v1`, `a2a.wire.v03` and `a2a.listtasks` cases in the suite do not use `TAiA2AClient` on purpose: for months the 9 A2A cases passed with the wrong format because client and server shared the error. A test that validates against your own implementation does not prove conformance.
 >
-> Para conformidad real está `Tests/Interop/run_interop.ps1`, que prueba ambas direcciones contra el SDK oficial `a2a-sdk`.
+> For real conformance there is `Tests/Interop/run_interop.ps1`, which tests both directions against the official `a2a-sdk`.
 
-## Métodos JSON-RPC soportados
+## Supported JSON-RPC methods
 
-| Método | Estado |
+| Method | Status |
 |---|---|
-| `SendMessage` | ✅ (+ alias 0.x `message/send`) |
+| `SendMessage` | ✅ (+ 0.x alias `message/send`) |
 | `GetTask` | ✅ (+ `tasks/get`) |
 | `CancelTask` | ✅ (+ `tasks/cancel`) |
-| `ListTasks` | ✅ filtros `contextId` y `status`, paginado por `pageSize`; devuelve `{tasks, totalSize, pageSize}` |
-| `GetExtendedAgentCard` | ✅ si `PublishExtendedCard := True`; si no, `UnsupportedOperationError`. Para diferenciarla de la pública hay que enriquecerla en `OnCustomizeCard` |
+| `ListTasks` | ✅ `contextId` and `status` filters, paginated by `pageSize`; returns `{tasks, totalSize, pageSize}` |
+| `GetExtendedAgentCard` | ✅ if `PublishExtendedCard := True`; otherwise `UnsupportedOperationError`. To differentiate it from the public one, enrich it in `OnCustomizeCard` |
 | `SendStreamingMessage` | ✅ SSE (+ alias `message/stream`) |
-| `SubscribeToTask` | ✅ SSE (+ `tasks/resubscribe`); error si el task ya es terminal |
-| `CreateTaskPushNotificationConfig` etc. | ✅ CRUD completo + entrega al webhook |
+| `SubscribeToTask` | ✅ SSE (+ `tasks/resubscribe`); error if the task is already terminal |
+| `CreateTaskPushNotificationConfig` etc. | ✅ full CRUD + webhook delivery |
 
 ## Threading Model
 
@@ -303,10 +303,9 @@ Framework: `System.Threading`, `System.Bindings.*`, `System.Rtti`, `System.JSON`
 
 ## Streaming SSE
 
-`EnableStreaming` (default `True`) habilita `SendStreamingMessage` y
-`SubscribeToTask`, y lo anuncia en `capabilities.streaming`.
+`EnableStreaming` (default `True`) enables `SendStreamingMessage` and `SubscribeToTask`, and announces it in `capabilities.streaming`.
 
-**El framing depende del binding.** Cada evento va en una línea `data:`, pero:
+**Framing depends on the binding.** Each event goes on a `data:` line, but:
 
 ```jsonc
 // binding JSON-RPC (el nuestro) — CON envoltorio, spec §9.4.2
@@ -316,90 +315,52 @@ data: {"jsonrpc":"2.0","id":1,"result":{ StreamResponse }}
 data: {"statusUpdate": { ... }}
 ```
 
-`StreamResponse` es un oneof: `task | message | statusUpdate | artifactUpdate`.
+`StreamResponse` is a oneof: `task | message | statusUpdate | artifactUpdate`.
 
-**Orden de emisión:** snapshot inicial `task` → `artifactUpdate` (uno por
-artifact, el último con `lastChunk: true`) → `statusUpdate` terminal. Los
-artifacts van **antes** del status final; es el orden del ejemplo de la spec y
-lo que valida el test de ordenación del TCK.
+**Emission order:** initial `task` snapshot → `artifactUpdate` (one per artifact, the last with `lastChunk: true`) → terminal `statusUpdate`. Artifacts go **before** the final status; it is the order of the spec example and what the TCK ordering test validates.
 
-**`SendStreamingMessage` con `taskId` reanuda**, igual que `SendMessage`: mismas
-validaciones (task inexistente → `-32001`, par `taskId`/`contextId` cruzado →
-`-32602`, task terminal → `-32004`). Sin esto un human-in-the-loop por streaming
-abría un task nuevo en cada turno y perdía el grafo suspendido.
+**`SendStreamingMessage` with `taskId` resumes**, just like `SendMessage`: same validations (nonexistent task → `-32001`, crossed `taskId`/`contextId` pair → `-32602`, terminal task → `-32004`). Without this, a human-in-the-loop over streaming opened a new task on every turn and lost the suspended graph.
 
-> **El estado puede ser final antes del primer snapshot** — un grafo rápido, o un
-> resume que completa enseguida. El seguimiento se hace comparando contra el
-> estado del snapshot, así que en ese caso no queda ningún cambio que detectar y
-> el stream se quedaba abierto hasta agotar `WaitTimeoutMs`. Ahora se cierra en
-> el momento.
+> **The state can be final before the first snapshot** — a fast graph, or a resume that completes right away. Tracking is done by comparing against the snapshot state, so in that case there is no change left to detect and the stream stayed open until `WaitTimeoutMs` was exhausted. Now it closes immediately.
 >
-> Con un matiz que cuesta ver: **`input-required` cierra solo si NO es una
-> suscripción**. En `SendStreamingMessage` significa "te toca a ti"; quien hace
-> `SubscribeToTask` es un observador y tiene que seguir viendo las transiciones
-> posteriores. Cerrarle el stream rompe `SUBSCRIBE-TERMINAL` del TCK.
+> With a nuance that is hard to see: **`input-required` closes only if it is NOT a subscription**. In `SendStreamingMessage` it means "your turn"; whoever does `SubscribeToTask` is an observer and must keep seeing later transitions. Closing the stream on them breaks the TCK's `SUBSCRIBE-TERMINAL`.
 
-Un stream también se cierra en `input-required`: la pelota pasa al cliente.
+A stream also closes on `input-required`: the ball passes to the client.
 
-> **Los snapshots de un mismo task deben ser idénticos.** Dos clientes
-> suscritos reciben los mismos eventos, así que nada volátil puede colarse en
-> ellos. Dos fallos reales por esto: el `messageId` del status se generaba con
-> un GUID nuevo en cada llamada, y `RefreshTask` sellaba `UpdatedAt := Now` en
-> cada consulta en vez de solo al cambiar de estado. Lo segundo además impedía
-> que venciera el TTL de purga, que se mide contra ese campo.
+> **Snapshots of the same task must be identical.** Two subscribed clients receive the same events, so nothing volatile can slip into them. Two real failures because of this: the status `messageId` was generated with a new GUID on every call, and `RefreshTask` stamped `UpdatedAt := Now` on every query instead of only when the state changed. The latter also prevented the purge TTL, which is measured against that field, from expiring.
 
-## Llamar a un agente A2A desde un chat
+## Calling an A2A agent from a chat
 
-`TAiA2AAgentTool` expone un agente remoto como **herramienta de chat**: al
-asignarle un `TAiFunctions`, el LLM puede invocarlo igual que a cualquier otra
-función.
+`TAiA2AAgentTool` exposes a remote agent as a **chat tool**: when assigned a `TAiFunctions`, the LLM can invoke it like any other function.
 
 ```pascal
 AgentTool := TAiA2AAgentTool.Create(Self);
 AgentTool.AgentUrl := 'http://host:8280';
 AgentTool.ToolName := 'preguntar_experto';
-AgentTool.Description := 'Consulta a un agente especializado en normativa';
+AgentTool.Description := 'Ask an agent specialized in regulations';
 AgentTool.Functions := AiFunctions1;   // al asignarlo se registra la función
 ```
 
-Es el hermano de `TAiA2ARemoteAgentTool`: aquel federa un **nodo de grafo**,
-este una **conversación**.
+It is the sibling of `TAiA2ARemoteAgentTool`: that one federates a **graph node**, this one a **conversation**.
 
-`DiscoverFromCard` rellena la descripción desde la Agent Card del agente, de
-modo que el LLM vea la que el propio agente publica de sí mismo.
+`DiscoverFromCard` fills the description from the agent's Agent Card, so the LLM sees the one the agent publishes about itself.
 
-Los fallos se le cuentan al modelo como texto en vez de romper el turno: si el
-agente remoto cae o pide más datos, el LLM puede reintentar, preguntar al
-usuario o seguir sin esa información. Una excepción abortaría la conversación
-entera por un problema de un colaborador.
+Failures are told to the model as text instead of breaking the turn: if the remote agent goes down or asks for more data, the LLM can retry, ask the user, or continue without that information. An exception would abort the entire conversation because of a problem with a collaborator.
 
 ## Push notifications
 
-`EnablePushNotifications` (default `True`) habilita el CRUD de configs y la
-entrega, y lo anuncia en la card.
+`EnablePushNotifications` (default `True`) enables CRUD of configs and delivery, and announces it in the card.
 
-- La config llega por `CreateTaskPushNotificationConfig` **o** dentro de
-  `SendMessage`, en `configuration.taskPushNotificationConfig`.
-- Los parámetros se aceptan en camelCase **y** snake_case: el binding usa
-  camelCase pero varios clientes mandan los nombres del proto.
-- El payload del webhook es un **`StreamResponse`** (brazo `task`), no el Task
-  desnudo. Se envía con `Authorization` si la config trae `authentication`.
-- `Delete` es idempotente y re-registrar el mismo `id` reemplaza, para que el
-  webhook no reciba la misma notificación dos veces.
+- The config arrives via `CreateTaskPushNotificationConfig` **or** inside `SendMessage`, in `configuration.taskPushNotificationConfig`.
+- Parameters are accepted in camelCase **and** snake_case: the binding uses camelCase but several clients send the proto names.
+- The webhook payload is a **`StreamResponse`** (`task` arm), not the bare Task. It is sent with `Authorization` if the config includes `authentication`.
+- `Delete` is idempotent and re-registering the same `id` replaces, so the webhook does not receive the same notification twice.
 
-**La entrega es activa**: no hace falta que nadie consulte el task. El servidor
-engancha `TAIAgentManager.OnFinish` (encadenando el handler previo) y desde ahi
-refresca el task, lo que dispara la entrega. Funciona con `blocking:false`.
+**Delivery is active**: nobody needs to poll the task. The server hooks `TAIAgentManager.OnFinish` (chaining the previous handler) and from there refreshes the task, which triggers delivery. It works with `blocking:false`.
 
-> **Cuidado con el orden del motor de grafos.** `TAIAgentManager` dispara
-> `OnFinish` y **solo despues** pone `FBusy` a 0. Un refresco lanzado desde ese
-> evento ve el manager como ocupado, se va por la rama "sigue trabajando" y se
-> pierde la transicion final — el webhook no se entera jamas. Por eso
-> `RefreshTask` tiene el parametro `AIgnoreBusy`, que solo debe usarse desde
-> `OnGraphFinished`, donde ya se sabe que el grafo termino.
+> **Watch the graph engine order.** `TAIAgentManager` fires `OnFinish` and **only afterwards** sets `FBusy` to 0. A refresh launched from that event sees the manager as busy, takes the "still working" branch and loses the final transition — the webhook never finds out. That is why `RefreshTask` has the `AIgnoreBusy` parameter, which should only be used from `OnGraphFinished`, where it is already known that the graph finished.
 
-El TCK pasa `PUSH-DELIVER-*` con un flujo bloqueante, asi que **no cubre este
-escenario**; lo cubre el demo 080.
+The TCK passes `PUSH-DELIVER-*` with a blocking flow, so it **does not cover this scenario**; demo 080 does.
 
 ## Navigation
 

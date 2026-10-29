@@ -29,45 +29,47 @@ TMCPClientCustom (Abstract Base)
 
 ### MCP Protocol Flow (dual-era)
 
-El cliente sondea la era del servidor con `server/discover` (StdIO y HTTP):
+The client probes the server's era with `server/discover` (StdIO and HTTP):
 
-**Servidor moderno (spec 2026-07-28, stateless):**
-1. `server/discover` responde → `NegotiatedProtocol = '2026-07-28'`
-2. Sin handshake ni `notifications/initialized`; cada request lleva `_meta`
+**Modern server (spec 2026-07-28, stateless):**
+1. `server/discover` responds → `NegotiatedProtocol = '2026-07-28'`
+2. No handshake or `notifications/initialized`; each request carries `_meta`
    (`io.modelcontextprotocol/protocolVersion`, `clientInfo`, `clientCapabilities`)
-   via `AttachModernMeta`. En HTTP se agregan los headers `MCP-Protocol-Version`,
-   `Mcp-Method` y `Mcp-Name`.
-3. `tools/list` / `tools/call` directos.
+   via `AttachModernMeta`. In HTTP, the headers `MCP-Protocol-Version`,
+   `Mcp-Method` and `Mcp-Name` are added.
+3. `tools/list` / `tools/call` directly.
 
-**Servidor legacy (fallback automatico):**
-1. `server/discover` devuelve error (-32601) o timeout → `NegotiatedProtocol = 'legacy'`
+**Legacy server (automatic fallback):**
+1. `server/discover` returns an error (-32601) or times out → `NegotiatedProtocol = 'legacy'`
 2. Send `initialize` request (StdIO: `2024-11-05`, HTTP: `2025-06-18`)
 3. Send `notifications/initialized` notification
-4. `tools/list` / `tools/call` como siempre
+4. `tools/list` / `tools/call` as usual
 
-Notas:
-- `TMCPClientSSE` queda **legacy a proposito** (el transporte HTTP+SSE esta
-  deprecado en la spec 2026-07-28).
-- Un error del rango MCP reservado (-32020..-32099) identifica servidor
-  moderno (`IsModernErrorCode`) — la sonda no debe caer a legacy ante el.
-- `ReadProcessOutput` (StdIO) rescata JSON-RPC embebido en lineas con ruido
-  (`banner{"jsonrpc"...}`) de servidores que ensucian stdout.
-- Claves `_meta` llevan puntos: leerlas con `GetValue(nombre)` exacto, nunca
-  variantes por path (`GetValue<T>`).
+Notes:
+- `TMCPClientSSE` remains **legacy on purpose** (the HTTP+SSE transport is
+  deprecated in spec 2026-07-28).
+- An error in the reserved MCP range (-32020..-32099) identifies a modern
+  server (`IsModernErrorCode`) — the probe must not fall back to legacy on it.
+- `ReadProcessOutput` (StdIO) rescues JSON-RPC embedded in noisy lines
+  (`banner{"jsonrpc"...}`) from servers that pollute stdout.
+- `_meta` keys contain dots: read them with the exact `GetValue(name)`, never
+  path-based variants (`GetValue<T>`).
 
 ### MRTR (Multi Round-Trip Requests, spec 2026-07-28)
 
-Si el servidor responde `resultType:'input_required'` en un `tools/call`:
+If the server responds `resultType:'input_required'` to a `tools/call`:
 
-- Con `OnInputRequired` asignado (StdIO y HTTP), el cliente invoca el handler
-  con el mapa `inputRequests`, recoge `inputResponses` y **reintenta** el
-  request original con `inputResponses` + eco literal de `requestState`
-  (máx `MCP_MRTR_MAX_ROUNDS` = 3 rondas; id JSON-RPC nuevo por ronda).
-- Asignar `OnInputRequired` declara la capability `elicitation` en
-  `_meta.clientCapabilities` (la spec prohíbe al server pedir tipos no declarados).
-- Sin handler (o si el handler pone `AHandled=False`), el guard de
-  `ProcessAndExtractMedia` devuelve un error claro en vez de un resultado parcial.
-- El handler es `of object` (sin lambdas); no debe liberar los objetos recibidos.
+- With `OnInputRequired` assigned (StdIO and HTTP), the client invokes the handler
+  with the `inputRequests` map, collects `inputResponses`, and **retries** the
+  original request with `inputResponses` + a literal echo of `requestState`
+  (max `MCP_MRTR_MAX_ROUNDS` = 3 rounds; new JSON-RPC id per round).
+- Assigning `OnInputRequired` declares the `elicitation` capability in
+  `_meta.clientCapabilities` (the spec forbids the server from requesting
+  undeclared types).
+- Without a handler (or if the handler sets `AHandled=False`), the
+  `ProcessAndExtractMedia` guard returns a clear error instead of a partial
+  result.
+- The handler is `of object` (no lambdas); it must not free the received objects.
 
 ## Key Patterns
 

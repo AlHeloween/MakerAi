@@ -4,49 +4,49 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-**Banco de pruebas de interoperabilidad A2A** contra el SDK oficial [`a2a-sdk`](https://pypi.org/project/a2a-sdk/) de `a2aproject`.
+**A2A interoperability test bench** against the official [`a2a-sdk`](https://pypi.org/project/a2a-sdk/) SDK from `a2aproject`.
 
-La suite de regresión (`Tests/RegressionSuite`) valida el comportamiento del framework. Esto valida algo distinto: que **el formato de cable sea el de la spec**, no el que nosotros creemos que es.
+The regression suite (`Tests/RegressionSuite`) validates the framework's behavior. This validates something different: that **the wire format is the spec's**, not the one we believe it is.
 
-> Esa distinción no es teórica. Durante meses los 9 casos A2A de la suite pasaron con el formato de respuesta **equivocado**, porque cliente y servidor de MakerAI compartían el mismo error. Un test que valida contra tu propia implementación demuestra que eres coherente contigo mismo, no que seas conforme.
+> That distinction is not theoretical. For months the 9 A2A cases in the suite passed with the **wrong** response format, because MakerAI's client and server shared the same mistake. A test that validates against your own implementation proves that you are consistent with yourself, not that you are conformant.
 
-## Cómo se ejecuta
+## How it runs
 
 ```powershell
 cd Tests\Interop
-.\run_interop.ps1                # crea el venv si falta, instala a2a-sdk y corre todo
-.\run_interop.ps1 -SkipInstall   # si el venv ya está listo
+.\run_interop.ps1                # creates the venv if missing, installs a2a-sdk and runs everything
+.\run_interop.ps1 -SkipInstall   # if the venv is already set up
 ```
 
-Exit code 0 = ambas direcciones conformes. Requiere Python 3.10+ y el demo 072 compilado en `Win64\Release`.
+Exit code 0 = both directions conformant. Requires Python 3.10+ and demo 072 built in `Win64\Release`.
 
-## Qué prueba
+## What it tests
 
-| Dirección | Qué valida |
+| Direction | What it validates |
 |---|---|
-| **1.** Nuestro cliente → servidor de referencia | Que sabemos **leer** lo que emite un agente v1.0 |
-| **2.** Cliente conforme → nuestro servidor | Que lo que **emitimos** parsea como v1.0 |
+| **1.** Our client → reference server | That we know how to **read** what a v1.0 agent emits |
+| **2.** Conformant client → our server | That what **we emit** parses as v1.0 |
 
-La clave está en cómo se valida: `ref_server.py` construye las respuestas con los tipos **protobuf del SDK** y las serializa con `json_format.MessageToJson`, así que el JSON es el canónico. Y `ref_client.py` valida lo nuestro con `json_format.ParseDict` **sin** `ignore_unknown_fields`: cualquier campo de más o mal nombrado hace fallar el parseo.
+The key is in how it is validated: `ref_server.py` builds the responses with the SDK's **protobuf types** and serializes them with `json_format.MessageToJson`, so the JSON is canonical. And `ref_client.py` validates ours with `json_format.ParseDict` **without** `ignore_unknown_fields`: any extra or misnamed field makes parsing fail.
 
-## Archivos
+## Files
 
-| Archivo | Qué es |
+| File | What it is |
 |---|---|
-| `ref_server.py <puerto>` | Servidor A2A conforme; serializa con los tipos del SDK |
-| `ref_client.py <url>` | Cliente que valida card y respuestas contra los tipos protobuf |
-| `run_interop.ps1` | Orquesta ambas direcciones y devuelve exit code |
-| `.venv/` | Entorno virtual (no versionado) |
+| `ref_server.py <port>` | Conformant A2A server; serializes with the SDK's types |
+| `ref_client.py <url>` | Client that validates card and responses against the protobuf types |
+| `run_interop.ps1` | Orchestrates both directions and returns the exit code |
+| `.venv/` | Virtual environment (not versioned) |
 
-## El SDK 1.x es proto-first
+## SDK 1.x is proto-first
 
-Los tipos de `a2a.types` son **protobuf**, no Pydantic, y el formato de cable es **protojson**. Consecuencias prácticas:
+The types in `a2a.types` are **protobuf**, not Pydantic, and the wire format is **protojson**. Practical consequences:
 
-- `TaskState` es un `EnumTypeWrapper`: se recorre con `.keys()`, no iterando.
-- Los enums viajan como `TASK_STATE_COMPLETED` / `ROLE_AGENT` (SCREAMING_SNAKE_CASE), no en kebab-case como en la era 0.x.
-- Los campos `snake_case` del proto salen en `camelCase` en el JSON.
+- `TaskState` is an `EnumTypeWrapper`: it is traversed with `.keys()`, not by iterating.
+- Enums travel as `TASK_STATE_COMPLETED` / `ROLE_AGENT` (SCREAMING_SNAKE_CASE), not in kebab-case as in the 0.x era.
+- The proto's `snake_case` fields come out in `camelCase` in the JSON.
 
-Para inspeccionar la forma canónica de cualquier mensaje:
+To inspect the canonical shape of any message:
 
 ```python
 import a2a.types as T
@@ -54,14 +54,14 @@ from google.protobuf import json_format
 print([f.name for f in T.SendMessageResponse.DESCRIPTOR.fields])   # ['task', 'message']
 ```
 
-## Hallazgos que produjo este banco (agosto 2026)
+## Findings this bench produced (August 2026)
 
-Ver `Source/Agents/CLAUDE.md` para el detalle. En resumen, dos fallos reales que ningún test interno podía ver:
+See `Source/Agents/CLAUDE.md` for details. In short, two real bugs that no internal test could see:
 
-1. `SendMessage` devolvía el Task **sin envolver**; v1.0 exige `{"result": {"task": {...}}}`. `GetTask`/`CancelTask` sí van directos.
-2. La Agent Card publicaba `url`/`protocolVersion`/`preferredTransport` en la raíz, que en v1.0 **no existen**: van en `supportedInterfaces[]`.
+1. `SendMessage` returned the Task **unwrapped**; v1.0 requires `{"result": {"task": {...}}}`. `GetTask`/`CancelTask` do go direct.
+2. The Agent Card published `url`/`protocolVersion`/`preferredTransport` at the root, which **do not exist** in v1.0: they go in `supportedInterfaces[]`.
 
-Corregidos con la propiedad `TAiA2AServer.WireEra` y `TAiA2AClient.UnwrapSendMessageResult`.
+Fixed with the `TAiA2AServer.WireEra` and `TAiA2AClient.UnwrapSendMessageResult` properties.
 
 ## Navigation
 
