@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enríquez
+// Name: Gustavo EnrÃ­quez
 // Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -47,9 +47,9 @@ uses
 
 type
 
-  TVeoGenerationMode = (gmAuto, // El procedimiento decide automáticamente (comportamiento por defecto)
-    gmFrames, // Forzar el modo de interpolación (primer/último fotograma)
-    gmReferences // Forzar el modo de imágenes de referencia
+  TVeoGenerationMode = (gmAuto, // The procedure decides automatically (default behavior)
+    gmFrames, // Force interpolation mode (first/last frame)
+    gmReferences // Force reference images mode
     );
 
   TForm11 = class(TForm)
@@ -121,7 +121,7 @@ implementation
 
 function TForm11.GetSelectedVeoMode: TVeoGenerationMode;
 begin
-  // El ItemIndex del TRadioGroup se corresponde directamente con el orden de nuestro enum
+  // The TRadioGroup ItemIndex corresponds directly to the order of our enum
 
   Result := gmAuto;
 
@@ -141,16 +141,16 @@ begin
 
   if (LMediaFile <> nil) then
   begin
-    // Simplemente llamamos al método. ¡Toda la lógica compleja está encapsulada!
+    // We simply call the method. All the complex logic is encapsulated!
     if CopyToClipBoard(LMediaFile) then
     begin
-      // Opcional: Notificar al usuario que la copia fue exitosa
-      // ShowMessage('Contenido copiado al portapapeles.');
+      // Optional: Notify the user that the copy was successful
+      // ShowMessage('Content copied to clipboard.');
     end
     else
     begin
-      // Opcional: Notificar si el tipo de archivo no es copiable
-      showMessage('Este tipo de archivo no se puede copiar al portapapeles.');
+      // Optional: Notify if the file type is not copyable
+      showMessage('This file type cannot be copied to the clipboard.');
     end;
   end;
 
@@ -163,27 +163,27 @@ var
   LFileStream: TFileStream;
   AppService: IFMXApplicationService;
 begin
-  // 1. Obtener el archivo activo desde el TChatList
+  // 1. Get the active file from TChatList
   LMediaFile := ChatList1.ActiveMediaFile;
 
   if LMediaFile = nil then
   begin
-    showMessage('Error: No se ha seleccionado ningún archivo.');
+    showMessage('Error: No file has been selected.');
     Exit;
   end;
 
-  // 2. Verificar que el archivo tenga contenido para guardar
+  // 2. Verify that the file has content to save
   if (LMediaFile.Content = nil) or (LMediaFile.Content.size = 0) then
   begin
-    showMessage('El archivo seleccionado está vacío.');
+    showMessage('The selected file is empty.');
     Exit;
   end;
 
-  // 3. Construir la ruta del archivo temporal
+  // 3. Build the temporary file path
   try
     LTempPath := System.IOUtils.TPath.Combine(System.IOUtils.TPath.GetTempPath, LMediaFile.FileName);
 
-    // 4. Guardar el contenido del stream en el archivo temporal
+    // 4. Save the stream content to the temporary file
     LMediaFile.Content.Position := 0; // Siempre rebobinar antes de leer
     LFileStream := TFileStream.Create(LTempPath, fmCreate);
     try
@@ -191,26 +191,26 @@ begin
     finally
       LFileStream.Free;
     end;
-    LMediaFile.Content.Position := 0; // Dejarlo listo para futuras lecturas
+    LMediaFile.Content.Position := 0; // Leave it ready for future reads
 
-    // 5. Usar el servicio de la plataforma para abrir el archivo
+    // 5. Use the platform service to open the file
     if TPlatformServices.Current.SupportsPlatformService(IFMXApplicationService, IInterface(AppService)) then
     begin
       if not TUtilsSystem.ShellOpenFile(LTempPath) then
       begin
-        showMessage('No se pudo abrir el archivo. Verifique si tiene una aplicación instalada para este tipo de archivo (' + System.IOUtils.TPath.GetExtension(LMediaFile.FileName) + ').');
+        showMessage('The file could not be opened. Check whether you have an application installed for this file type (' + System.IOUtils.TPath.GetExtension(LMediaFile.FileName) + ').');
       end;
     end
     else
     begin
-      showMessage('El servicio para abrir archivos no está disponible en esta plataforma.');
+      showMessage('The service for opening files is not available on this platform.');
     end;
 
   except
     on E: Exception do
     begin
-      // Capturar cualquier error durante la creación del archivo
-      showMessage('Ocurrió un error al intentar abrir el archivo: ' + E.Message);
+      // Capture any error while creating the file
+      showMessage('An error occurred while trying to open the file: ' + E.Message);
     end;
   end;
 
@@ -236,39 +236,39 @@ var
   attachmentCount: Integer;
   areAllImages: Boolean;
 begin
-  // 1. Obtener la lista de anexos y su cantidad.
+  // 1. Get the list of attachments and their count.
   attachments := ChatInput1.GetAttachments;
   attachmentCount := Length(attachments);
 
-  // 2. Determinar si todos los archivos en la lista son imágenes.
-  // Llamamos a nuestra función refactorizada que no necesita parámetros.
+  // 2. Determine whether all files in the list are images.
+  // Llamamos a nuestra funciÃ³n refactorizada que no necesita parÃ¡metros.
   areAllImages := AllFilesAreImages;
 
-  // 3. Aplicar la lógica de UI basada en la cantidad de archivos y si son imágenes.
+  // 3. Apply the UI logic based on the number of files and whether they are images.
 
-  // Caso A: Hay exactamente 2 archivos y TODOS son imágenes.
+  // Caso A: Hay exactamente 2 archivos y TODOS son imÃ¡genes.
   if (attachmentCount = 2) and areAllImages then
   begin
-    // Con 2 imágenes, todas las opciones son potencialmente válidas.
+    // With 2 images, all options are potentially valid.
     rbAuto.Enabled := True;
     rbInter.Enabled := True;
     rbReference.Enabled := True;
   end
-  // Caso B: Hay exactamente 3 archivos y TODOS son imágenes.
+  // Caso B: Hay exactamente 3 archivos y TODOS son imÃ¡genes.
   else if (attachmentCount = 3) and areAllImages then
   begin
-    // Con 3 imágenes, la interpolación no es posible.
-    // Habilitamos las opciones correspondientes y seleccionamos 'Auto' por defecto.
+    // With 3 images, interpolation is not possible.
+    // We enable the corresponding options and select 'Auto' by default.
     rbAuto.Enabled := True;
     rbAuto.IsChecked := True; // Seleccionamos 'Auto'
     rbInter.Enabled := False; // Deshabilitamos 'Interpolar'
     rbReference.Enabled := True;
   end
-  // Caso C: Cualquier otra situación (0, 1, 4+ archivos, o si hay archivos que no son imágenes).
+  // Caso C: Cualquier otra situaciÃ³n (0, 1, 4+ archivos, o si hay archivos que no son imÃ¡genes).
   else
   begin
-    // En cualquier otro caso, deshabilitamos todas las opciones especiales.
-    // 'Auto' queda seleccionado por defecto pero deshabilitado.
+    // In any other case, we disable all special options.
+    // 'Auto' remains selected by default but disabled.
     rbAuto.Enabled := False;
     rbAuto.IsChecked := True;
     rbInter.Enabled := False;
@@ -319,7 +319,7 @@ begin
     begin
       LBaseFileName := LSaveDialog.FileName;
 
-      // Guardar el archivo de video (.mp4)
+      // Save the video file (.mp4)
       try
         ResultVideo.SaveToFile(LBaseFileName);
         memoLog.Lines.Add('Video file saved to: ' + LBaseFileName);
@@ -331,24 +331,24 @@ begin
         end;
       end;
 
-      // Crear el nombre del archivo de metadatos
+      // Create the metadata file name
       LMetaDataFileName := TPath.ChangeExtension(LBaseFileName, '.veometa');
 
-      // --- INICIO DE LA NUEVA LÓGICA ---
-      // 1. Obtener el objeto JSON completo (incluyendo el Base64)
+      // --- START OF THE NEW LOGIC ---
+      // 1. Get the complete JSON object (including Base64)
       LJson := ResultVideo.ToJsonObject;
       try
-        // 2. Eliminar el par clave/valor "base64" del objeto JSON
+        // 2. Remove the "base64" key/value pair from the JSON object
         LJson.RemovePair('base64');
         memoLog.Lines.Add('Metadata prepared (Base64 content excluded).');
 
-        // 3. Guardar el JSON modificado (ya sin el Base64) en el archivo
+        // 3. Save the modified JSON (without Base64) to the file
         TFile.WriteAllText(LMetaDataFileName, LJson.ToJSON);
         memoLog.Lines.Add('Metadata saved to: ' + LMetaDataFileName);
       finally
-        LJson.Free; // Liberar el objeto JSON
+        LJson.Free; // Free the JSON object
       end;
-      // --- FIN DE LA NUEVA LÓGICA ---
+      // --- END OF THE NEW LOGIC ---
     end
     else
     begin
@@ -366,42 +366,42 @@ var
   fileExtension: string;
   contentType: TContentType;
 begin
-  // 1. Obtener la lista de todos los anexos del componente.
+  // 1. Get the list of all component attachments.
   attachments := ChatInput1.GetAttachments;
 
-  // 2. Si la lista está vacía, no se cumple la condición "todos son imágenes".
+  // 2. If the list is empty, the "all are images" condition is not met.
   if Length(attachments) = 0 then
   begin
     Result := False;
     Exit;
   end;
 
-  // 3. Asumimos que todos los archivos son imágenes hasta que se demuestre lo contrario.
+  // 3. We assume all files are images until proven otherwise.
   Result := True;
 
-  // 4. Iterar sobre cada uno de los anexos.
+  // 4. Iterate over each attachment.
   for imageData in attachments do
   begin
-    // 5. Extraer la extensión del nombre del archivo de forma segura.
+    // 5. Extract the file name extension safely.
     fileExtension := TPath.GetExtension(imageData.FileName);
 
-    // 6. LLAMADA CLAVE: Usar la función pública del componente para determinar el tipo de contenido
-    // basado en la lógica interna del componente y su propiedad ValidExtensions.
+    // 6. KEY CALL: use the component public method to determine the content type
+    // based on the component internal logic and its ValidExtensions property.
     contentType := ChatInput1.GetContentTypeFromValidExtensions(fileExtension);
 
-    // 7. Validar si el tipo de contenido retornado es de imagen.
+    // 7. Validate whether the returned content type is an image.
     if contentType <> ctImage then
     begin
-      // Si encontramos UN SOLO archivo que no es clasificado como imagen,
-      // la condición general falla. Establecemos el resultado a False
-      // y salimos del bucle y de la función inmediatamente.
+      // If we find a SINGLE file that is not classified as an image,
+      // the general condition fails. We set the result to False
+      // and exit the loop and the function immediately.
       Result := False;
       Exit;
     end;
   end;
 
-  // 8. Si el bucle se completa sin encontrar ningún archivo que no sea imagen,
-  // la asunción inicial (Result := True) es correcta y se retorna.
+  // 8. If the loop completes without finding any file that is not an image,
+  // the initial assumption (Result := True) is correct and is returned.
 end;
 
 function AllMediaFilesAreImages(aMediaFiles: TAiMediaFiles): Boolean;
@@ -410,11 +410,11 @@ var
 begin
   Result := True;
   if aMediaFiles.Count = 0 then
-    Exit(False); // No hay archivos, por lo que no "todos son imágenes"
+    Exit(False); // There are no files, so not "all are images"
   for MF in aMediaFiles do
   begin
     if MF.FileCategory <> TAiFileCategory.Tfc_Image then
-      Exit(False); // Encontramos uno que no es imagen, fallamos
+      Exit(False); // We found one that is not an image, we fail
   end;
 end;
 
@@ -426,47 +426,47 @@ var
   LJsonObj: TJSONObject;
   LErrorMsg: string;
 begin
-  // --- LÓGICA DE DECISIÓN MUTUAMENTE EXCLUYENTE ---
+  // --- LÃ“GICA DE DECISIÃ“N MUTUAMENTE EXCLUYENTE ---
 
-  // CASO 1: Hay un solo archivo y es un VIDEO. La única opción es extenderlo.
+  // CASE 1: There is a single file and it is a VIDEO. The only option is to extend it.
   if (aMediaFiles.Count = 1) and (aMediaFiles[0].FileCategory = TAiFileCategory.Tfc_Video) then
   begin
     memoLog.Lines.Add('Detected 1 video. Checking for metadata to extend...');
 
-    // 1. Determinar la ruta del archivo de metadatos esperado (ej. 'mi_video.veometa')
+    // 1. Determine the expected metadata file path (e.g. 'mi_video.veometa')
     LMetaDataFileName := TPath.ChangeExtension(aMediaFiles[0].FullFileName, '.veometa');
 
-    // 2. Verificar si el archivo de metadatos existe.
+    // 2. Check whether the metadata file exists.
     if not TFile.Exists(LMetaDataFileName) then
     begin
       LErrorMsg := 'Error: Metadata file (' + TPath.GetFileName(LMetaDataFileName) + ') not found.' + sLineBreak + sLineBreak + 'This video cannot be extended because its original VEO identifier is missing. ' +
         'Only videos previously generated and saved by this application can be extended.';
       memoLog.Lines.Add(LErrorMsg);
       showMessage(LErrorMsg);
-      Exit; // Salir de la función, no se puede continuar.
+      Exit; // Exit the function, cannot continue.
     end;
 
     // 3. Si existe, proceder a cargarlo y usarlo.
     LVideoFileToExtend := TAiMediaFile.Create;
     try
       try
-        // 3.1. Leer el contenido del archivo de texto.
+        // 3.1. Read the text file content.
         var
         LJsonText := TFile.ReadAllText(LMetaDataFileName);
 
-        // 3.2. Parsear el texto a un objeto JSON.
+        // 3.2. Parse the text into a JSON object.
         LJsonValue := TJSONObject.ParseJSONValue(LJsonText);
 
-        // 3.3. Asegurarse de que el parseo resultó en un objeto y no en otro tipo de valor JSON.
+        // 3.3. Ensure the parsing resulted in an object and not another JSON value type.
         if not Assigned(LJsonValue) or not(LJsonValue is TJSONObject) then
           raise Exception.Create('Metadata file is not a valid JSON object.');
 
         LJsonObj := LJsonValue as TJSONObject;
 
-        // 3.4. Usar el método existente para cargar toda la data del JSON en nuestro objeto.
+        // 3.4. Use the existing method to load all JSON data into our object.
         LVideoFileToExtend.LoadFromJsonObject(LJsonObj);
 
-        // 3.5. Una validación final para asegurarnos de que el dato más importante (UrlMedia) está presente.
+        // 3.5. A final validation to ensure the most important data (UrlMedia) is present.
         if LVideoFileToExtend.UrlMedia.IsEmpty then
           raise Exception.Create('Metadata file does not contain the required "urlMedia" identifier.');
 
@@ -476,33 +476,33 @@ begin
           LErrorMsg := 'Error processing metadata file: ' + E.Message;
           memoLog.Lines.Add(LErrorMsg);
           showMessage(LErrorMsg);
-          Exit; // Salir si hay un error con los metadatos.
+          Exit; // Exit if there is an error with the metadata.
         end;
       end;
 
-      // 4. Si todo ha ido bien, LVideoFileToExtend ahora es un objeto válido.
+      // 4. If everything went well, LVideoFileToExtend is now a valid object.
       memoLog.Lines.Add('Metadata loaded. Initiating video extension...');
       AiVeo.ExtendVideo(APrompt, LVideoFileToExtend);
 
     finally
-      LVideoFileToExtend.Free; // El objeto solo vive durante esta llamada.
+      LVideoFileToExtend.Free; // The object only lives during this call.
     end;
   end
 
-  // CASO 2: Hay uno o más archivos y TODOS son IMÁGENES.
+  // CASO 2: Hay uno o mÃ¡s archivos y TODOS son IMÃGENES.
   else if (aMediaFiles.Count > 0) and AllMediaFilesAreImages(aMediaFiles) then
   begin
-    // Ahora decidimos qué hacer con estas imágenes
+    // Now we decide what to do with these images
     case aMediaFiles.Count of
-      1: // Con una sola imagen, la única opción es Imagen-a-Video
+      1: // With a single image, the only option is Image-to-Video
         begin
           memoLog.Lines.Add('Detected 1 image. Starting mode: Image to Video...');
           AiVeo.GenerateFromImage(APrompt, aMediaFiles[0]);
         end;
 
-      2: // Con dos imágenes, puede ser Interpolación o Referencias.
+      2: // With two images, it can be Interpolation or References.
         begin
-          // Usamos el parámetro aMode para decidir. Por defecto (gmAuto), asumimos Interpolación.
+          // We use the aMode parameter to decide. By default (gmAuto), we assume Interpolation.
           if (aMode = gmAuto) or (aMode = gmFrames) then
           begin
             memoLog.Lines.Add('Detected 2 images. Starting mode: Interpolation (Frames)...');
@@ -515,9 +515,9 @@ begin
           end;
         end;
 
-      3: // Con tres imágenes, puede ser Interpolación (si se fuerza) o Referencias.
+      3: // With three images, it can be Interpolation (if forced) or References.
         begin
-          // Por defecto (gmAuto), asumimos Referencias, que es el caso de uso más común para 3 imágenes.
+          // By default (gmAuto), we assume References, which is the most common use case for 3 images.
           if (aMode = gmAuto) or (aMode = gmReferences) then
           begin
             memoLog.Lines.Add('Detected 3 images. Starting mode: Reference Images...');
@@ -525,12 +525,12 @@ begin
           end
           else // aMode = gmFrames
           begin
-            // El usuario está forzando un modo que no es compatible con 3 imágenes
+            // The user is forcing a mode that is not compatible with 3 images
             raise Exception.Create('Interpolation (Frames) mode only supports exactly 2 images. 3 were provided.');
           end;
         end
     else
-      // Si hay más de 3 imágenes, la única opción es Referencias, pero la API tiene un límite.
+      // If there are more than 3 images, the only option is References, but the API has a limit.
       if aMediaFiles.Count > 3 then
       begin
         raise Exception.Create('VEO only supports a maximum of 3 reference images. ' + aMediaFiles.Count.ToString + ' were provided.');
@@ -538,14 +538,14 @@ begin
     end;
   end
 
-  // CASO 3: NO hay archivos multimedia. La única opción es Texto-a-Video.
+  // CASE 3: There are NO multimedia files. The only option is Text-to-Video.
   else if (aMediaFiles.Count = 0) then
   begin
     memoLog.Lines.Add('No files detected. Starting mode: Text to Video...');
     AiVeo.GenerateFromText(APrompt);
   end
 
-  // CASO 4: Combinación no válida (ej. imágenes y videos, o archivos de texto).
+  // CASO 4: CombinaciÃ³n no vÃ¡lida (ej. imÃ¡genes y videos, o archivos de texto).
   else
   begin
     LErrorMsg := 'Unsupported file combination for video generation. Please provide only images or a single video.';
@@ -592,8 +592,8 @@ begin
 
   if (aMediaFiles.Count = 1) and (aMediaFiles[0].FileCategory = TAiFileCategory.Tfc_Video) then
   begin
-    // El TAiMediaFile todavía tiene el FullFileName, que es lo que necesitamos.
-    // Simplemente vaciamos el TMemoryStream para liberar RAM.
+    // The TAiMediaFile still has the FullFileName, which is what we need.
+    // We simply empty the TMemoryStream to free RAM.
     aMediaFiles[0].Content.Clear;
     memoLog.Lines.Add('[Optimization] Video content cleared from memory for extension task.');
   end;
@@ -627,11 +627,11 @@ begin
   if not TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService, IInterface(ClipboardSvc)) then
     Exit; // No hay servicio de portapapeles disponible
 
-  // Antes de cualquier operación, asegurarnos de que el stream esté al principio.
+  // Before any operation, ensure the stream is at the beginning.
   if Assigned(AMediaFile.Content) then
     AMediaFile.Content.Position := 0;
 
-  // La lógica de copiado depende de la categoría del archivo
+  // The copy logic depends on the file category
   case AMediaFile.FileCategory of
     Tfc_Image:
       begin
@@ -640,7 +640,7 @@ begin
         LBitmap := FMX.Graphics.TBitmap.Create;
         try
           LBitmap.LoadFromStream(AMediaFile.Content);
-          ClipboardSvc.SetClipboard(LBitmap); // FMX sabe cómo poner un TBitmap en el portapapeles
+          ClipboardSvc.SetClipboard(LBitmap); // FMX knows how to put a TBitmap on the clipboard
           Result := True;
         finally
           LBitmap.Free;
@@ -652,12 +652,12 @@ begin
         if (AMediaFile.Content = nil) or (AMediaFile.Content.size = 0) then
           Exit;
 
-        // Leemos el contenido del stream como texto UTF-8 (el más común)
+        // We read the stream content as UTF-8 text (the most common)
         var
         LReader := TStreamReader.Create(AMediaFile.Content, TEncoding.UTF8);
         try
           LText := LReader.ReadToEnd;
-          // Usamos TValue.From<string> para pasarlo al portapapeles como texto plano
+          // We use TValue.From<string> to pass it to the clipboard as plain text
           ClipboardSvc.SetClipboard(TValue.From<string>(LText));
           Result := True;
         finally
@@ -665,17 +665,17 @@ begin
         end;
       end;
 
-    // Para otros tipos de archivo (PDF, DOC, Audio, etc.), el portapapeles estándar
-    // no tiene un formato "nativo" para ellos. La mejor opción es copiar
-    // la RUTA del archivo si existe, o no hacer nada.
-    // En este caso, como el contenido está en un TMemoryStream, no hay una ruta
-    // que podamos copiar que otra aplicación pueda entender.
-    // Por lo tanto, para estos tipos, no hacemos nada y el método devuelve False.
+    // For other file types (PDF, DOC, Audio, etc.), the standard clipboard
+    // has no "native" format for them. The best option is to copy
+    // the file PATH if it exists, or do nothing.
+    // In this case, since the content is in a TMemoryStream, there is no path
+    // que podamos copiar que otra aplicaciÃ³n pueda entender.
+    // Therefore, for these types, we do nothing and the method returns False.
   else
     Result := False;
   end;
 
-  // Volvemos a rebobinar el stream por si se necesita reutilizar después.
+  // We rewind the stream in case it needs to be reused later.
   if Assigned(AMediaFile.Content) then
     AMediaFile.Content.Position := 0;
 

@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enríquez
+// Name: Gustavo EnrÃ­quez
 // Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -114,7 +114,7 @@ end;
 procedure TForm70.AIAgentsManagerFinish(Sender: TObject; const Input, Output: string; Status: string; E: Exception);
 begin
     //Memo1.Lines.Text := Input;
-    //Siempre se dispara incluso en caso de error, el status decide si es correcto
+    //It always fires even in case of error; the status decides whether it is correct
 end;
 
 procedure TForm70.AIChain1End(Sender: TObject; Value: string);
@@ -148,23 +148,23 @@ procedure TForm70.AiNodeExecute(Node, BeforeNode: TAIAgentsNode; Link: TAIAgents
 Var
   Prompt: String;
 begin
-  Node.Print(Node.Name + '--> Generando código');
+  Node.Print(Node.Name + '--> Generating code');
   Prompt := AiPrompts1.GetTemplate('AiPrompt', ['Prompt=' + Input]);
   // OJO Output := OpenChat.AddMessageAndRun(Prompt, 'user',[]);
 
-  Output := 'Este es el codigo que retorn la IA';
+  Output := 'This is the code returned by the AI';
 end;
 
 procedure TForm70.Button2Click(Sender: TObject);
 begin
-  Label4.Text := 'Este es el texto del label';
+  Label4.Text := 'This is the label text';
 
   AIAgentsManager.Run(MemoPrompt.Lines.Text);
 end;
 
 procedure TForm70.clickdellabel(Sender: TObject);
 begin
-  Label4.Text := 'este es el evento del label';
+  Label4.Text := 'this is the label event';
 end;
 
 procedure TForm70.EndNodeExecute(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
@@ -183,7 +183,7 @@ begin
       Output := Codigo;
       If Not FileExists(FileName) then
       Begin
-        Node.Print(Node.Name + '--> No se generó el archivo con el código ' + FileName);
+        Node.Print(Node.Name + '--> The file with the code was not generated ' + FileName);
       End
       Else
       Begin
@@ -191,7 +191,7 @@ begin
 
         If Not FileExists(FileName) then
         Begin
-          Node.Print(Node.Name + '--> No se generó el Ejecutable ' + FileName);
+          Node.Print(Node.Name + '--> The executable was not generated ' + FileName);
         End
         Else
         Begin
@@ -209,7 +209,7 @@ begin
     End
     Else
     Begin
-      Output := 'No se encuentra el archivo ' + FileName;
+      Output := 'File not found ' + FileName;
     End;
 
     Node.Print(Node.Name + '--> ' + Output);
@@ -223,7 +223,7 @@ end;
 procedure TForm70.EvalNodeExecute(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
 begin
   Node.Print(Node.Name + '--> Evaluando....');
-  // Realmente aquí no se hace nada
+  // Really nothing is done here
 
 end;
 
@@ -247,7 +247,7 @@ begin
 
       Try
         Res := TUtilsSystem.RunCommandLine('DCC64 ' + FileName);
-        Node.Print('Mensaje compilación :' + sLineBreak + Res);
+        Node.Print('Compilation message :' + sLineBreak + Res);
       Except
         ON E: Exception do
         Begin
@@ -267,7 +267,7 @@ begin
     End
     Else
     Begin
-      Output := 'No se encuentra la variable filename o codigo en el json';
+      Output := 'The variable filename or code is not found in the json';
     End;
 
   Finally
@@ -296,7 +296,7 @@ begin
 
       Prompt := AiPrompts1.GetTemplate('Eval', ['resultado=' + resultado_compilacion]);
 
-      // OJO ChatEval.Messages.Clear; // Limpia la memoria, consume menos tokens
+      // NOTE ChatEval.Messages.Clear; // Clears memory, consumes fewer tokens
       // OJO Res := ChatEval.AddMessageAndRun(Prompt, 'user', []);
 
       If Pos('<ERROR', Res) > 0 then
@@ -306,7 +306,7 @@ begin
       End
       Else
       Begin
-        Link.Print(Node.Name + '--> Compiló correctamente, pasa al nodo final ');
+        Link.Print(Node.Name + '--> Compiled correctly, moves to the final node ');
         IsOk := True;
       End;
     End
@@ -319,7 +319,7 @@ end;
 
 procedure TForm70.NodoFinalExecute(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
 begin
-  Node.Print(Node.Name + '--> Finalizando proceso');
+  Node.Print(Node.Name + '--> Finalizing process');
 
   Node.Print(Node.Name + '--> Input '+Input);
   Node.Print(Node.Name + '--> Output '+Output);
@@ -327,13 +327,13 @@ end;
 
 procedure TForm70.NodoInicioExecute(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
 begin
-  Node.Print(Node.Name + '--> Inicicando proceso');
+  Node.Print(Node.Name + '--> Starting process');
   Output := Input;
 end;
 
 procedure TForm70.StartNodeExecute(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
 begin
-  Node.Print(Node.Name + '--> Inicicando proceso');
+  Node.Print(Node.Name + '--> Starting process');
 end;
 
 procedure TForm70.TareaAExecute(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
@@ -342,7 +342,7 @@ begin
   //Sleep(1500);
 
   //Output := AiOpenChat1.AddMessageAndRun(Input,'user',[]);
-  Output := 'Valor encontrado en WEB';
+  Output := 'Value found on WEB';
 
   Node.Print(Node.Name + '--> TareaA - Buscando en Internet '+ Output);
 
@@ -352,7 +352,7 @@ procedure TForm70.TareaBExecute(Node, BeforeNode: TAIAgentsNode; Link: TAIAgents
 begin
   Node.Print(Node.Name + '--> TareaB');
   Sleep(500);
-    Output := Input+'  aquí realizó la tarea b';
+    Output := Input+'  task b was performed here';
 
 end;
 

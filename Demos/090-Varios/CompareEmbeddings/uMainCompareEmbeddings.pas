@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enríquez
+// Name: Gustavo EnrÃ­quez
 // Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -83,7 +83,7 @@ begin
    Coseno := AiOllamaEmbeddings1.CosineSimilarity(Res1, Res2);
    Euclidian := AiOllamaEmbeddings1.EuclideanDistance(Res1, Res2);
 
-   ShowMessage('Coseno = '+Coseno.ToString + sLineBreak+'Euclidian = '+Euclidian.ToString);
+   ShowMessage('Cosine = '+Coseno.ToString + sLineBreak+'Euclidian = '+Euclidian.ToString);
 
 end;
 

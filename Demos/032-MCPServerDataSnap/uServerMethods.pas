@@ -56,11 +56,11 @@ var
 begin
 
   // 1. Configurar Usuario (Contexto de Seguridad)
-  // DataSnap nos da la info de sesión actual
+  // DataSnap gives us the current session info
   if TDSSessionManager.GetThreadSession <> nil then
     MCPDirect.User := TDSSessionManager.GetThreadSession.UserName;
 
-  // 1. Crear configuración personalizada para este usuario
+  // 1. Create custom configuration for this user
   UserConfig := TFileAccessConfig.Create;
 
   // Limpiar defaults si quieres ser estricto
@@ -75,14 +75,14 @@ begin
   UserConfig.AddAllowedExtension('.txt');
   UserConfig.AddAllowedExtension('.pdf');
 
-  // 2. Registrar herramientas pasándoles ESTA configuración
-  // Nota: Las herramientas usarán esta config pero NO la liberarán (FOwnsConfig=False)
-  // Debemos asegurarnos de que la configuración viva tanto como las herramientas.
-  // Como las herramientas y el DataModule mueren juntos al final de la sesión,
-  // podemos dejar que UserConfig se libere en el DataModuleDestroy o usar una interfaz para conteo de referencias.
+  // 2. Register tools passing them THIS configuration
+  // Note: The tools will use this config but will NOT release it (FOwnsConfig=False)
+  // We must make sure the configuration lives as long as the tools.
+  // Since the tools and the DataModule die together at the end of the session,
+  // we can let UserConfig be released in DataModuleDestroy or use an interface for reference counting.
 
-  // TRUCO: Para simplificar la gestión de memoria sin interfaces, podemos hacer que
-  // la PRIMERA herramienta sea dueña de la config, o registrarlas manualmente.
+  // TRICK: To simplify memory management without interfaces, we can make
+  // the FIRST tool the owner of the config, or register them manually.
 
   MCPDirect.RegisterTool('list_files',
     function: IAiMCPTool
@@ -98,7 +98,7 @@ function TSSE.CallTool(ToolName: string; Args: TJSONObject): TJSONObject;
 var
   ArgsClone: TJSONObject;
 begin
-  // Recordando el tema de ownership: clonamos para que McpDirect sea dueño de su copia
+  // Remembering the ownership topic: we clone so that McpDirect owns its copy
   if Assigned(Args) then
     ArgsClone := Args.Clone as TJSONObject
   else

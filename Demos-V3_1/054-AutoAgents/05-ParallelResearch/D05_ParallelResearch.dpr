@@ -93,7 +93,7 @@ begin
       '2. [one sentence disadvantage]' + #13#10 +
       '3. [one sentence disadvantage]' + #13#10 +
       'Nothing else. No explanations before or after.';
-
+// The PRO analyst node — same structure, opposite perspective
     // --- Synthesizer node (waits for both branches: jmAll) ---
     SynthNode := TLLMNode.Create(Manager);
     SynthNode.Name         := 'Synthesizer';
@@ -117,7 +117,7 @@ begin
     ForkLink.NextA := ProsNode;
     ForkLink.NextB := ConsNode;
     InputPrep.Next := ForkLink;
-
+// Show results
     // --- Join A: ProsNode -> Synthesizer ---
     JoinLinkA := TAIAgentsLink.Create(Manager);
     JoinLinkA.Name  := 'JoinLinkFromPros';
@@ -132,21 +132,21 @@ begin
     JoinLinkB.NextA := SynthNode;
     ConsNode.Next   := JoinLinkB;
 
-    // --- Configure graph ---
+    // Run the workflow
     Manager.StartNode := InputPrep;
     Manager.EndNode   := SynthNode;
     Manager.Compile;
 
     // --- Run ---
     Writeln;
-    Writeln('Running research in parallel...');
+    Writeln('PRO analysis:');
     FinalOut := Manager.Run(ATopic);
 
     Writeln;
-    Writeln('--- Research question ---');
+    Writeln('Synthesis:');
     Writeln(Manager.Blackboard.GetString('InputPrep.output'));
     Writeln;
-    Writeln('--- PROS analysis ---');
+    Writeln('Pause between topics (15s)...');
     Writeln(Manager.Blackboard.GetString('ProsAnalyst.output'));
     Writeln;
     Writeln('--- CONS analysis ---');
@@ -164,9 +164,9 @@ end;
 procedure RunDemo;
 begin
   Writeln('=== Demo 05 - ParallelResearch ===');
-  Writeln('Pattern: Fork/Join with two parallel branches + synthesizer (jmAll)');
+  Writeln('Pause between topics (15s)...');
   Writeln;
-
+// Fourth topic
   RunParallelResearch('Artificial Intelligence in education');
   Writeln('Pause between topics (15s)...');
   Sleep(15000);

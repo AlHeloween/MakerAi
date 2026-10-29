@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2013 Gustavo Enríquez - CimaMaker
+// Copyright (c) 2013 Gustavo EnrÃ­quez - CimaMaker
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enríquez
+// Name: Gustavo EnrÃ­quez
 // Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -61,7 +61,7 @@ begin
     Writeln('--- LISTADO DE DRIVERS Y MODELOS DISPONIBLES ---');
     Writeln;
 
-    // Obtener los drivers registrados
+    // Get the registered drivers
     Drivers.Assign(AiConn.GetDriversNames);
     Drivers.Sort;
 
@@ -74,13 +74,13 @@ begin
         Modelos.Assign(AiConn.GetModels);
 
         if Modelos.Count = 0 then
-          Writeln('   (Sin modelos detectados)')
+          Writeln('   (No models detected)')
         else
           for j := 0 to Modelos.Count - 1 do
             Writeln('   - ', Modelos[j]);
       except
         on E: Exception do
-          Writeln('   [Error al obtener modelos: ', E.Message, ']');
+          Writeln('   [Error getting models: ', E.Message, ']');
       end;
 
       Writeln;
@@ -102,7 +102,7 @@ begin
   end;
 
   Writeln;
-  Writeln('Presione ENTER para salir...');
+  Writeln('Press ENTER to exit...');
   Readln;
 end.
 

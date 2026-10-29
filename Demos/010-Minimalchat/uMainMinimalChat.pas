@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2013 Gustavo Enríquez - CimaMaker
+// Copyright (c) 2013 Gustavo EnrÃ­quez - CimaMaker
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enríquez
+// Name: Gustavo EnrÃ­quez
 // Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -76,12 +76,12 @@ begin
     AiModel.Model := 'gpt-oss:20b';
     AiModel.OnError := AiChat1Error;
 
-    //--------- Ejemplo de parámetros adicionales ---------
+    //--------- Example of additional parameters ---------
     // AiModel.ApiKey := 'miapikey';
     // AiModel.Url := 'http://localhost:11434/';
     AiModel.Asynchronous := False;
 
-    Prompt := 'saluda a la audiencia de nuestro podcast de MakerAi Delphi Suite';
+    Prompt := 'greet the audience of our MakerAi Delphi Suite podcast';
     Role := 'user';
 
     Res := AiModel.AddMessageAndRun(Prompt, Role, []);
@@ -105,12 +105,12 @@ begin
     AiModel.Model := 'gpt-oss:20b';
     AiModel.OnError := AiChat1Error;
 
-    //--------- Ejemplo de parámetros adicionales ---------
+    //--------- Example of additional parameters ---------
     //AiModel.Params.Values['ApiKey'] := 'miapikey';
     //AiModel.Params.Values['Url'] := 'http://localhost:11434/';
     AiModel.Params.Values['Asynchronous'] := 'False';
 
-    Prompt := 'saluda a la audiencia de nuestro podcast de MakerAi Delphi Suite';
+    Prompt := 'greet the audience of our MakerAi Delphi Suite podcast';
     Role := 'user';
 
     Res := AiModel.AddMessageAndRun(Prompt, Role, []);

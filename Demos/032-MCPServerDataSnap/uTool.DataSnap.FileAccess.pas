@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enríquez
+// Name: Gustavo EnrÃ­quez
 // Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -47,7 +47,7 @@ uses
 
 type
   // =============================================================================
-  // CLASE BASE CON LÓGICA DE SEGURIDAD (Permisos por Instancia)
+  // BASE CLASS WITH SECURITY LOGIC (Permissions per Instance)
   // =============================================================================
   TFileAccessConfig = class
   private
@@ -67,11 +67,11 @@ type
     function NormalizePath(const APath: string): string;
   end;
 
-  // Clase base genérica para herramientas de archivo que comparten configuración
+  // Generic base class for file tools that share configuration
   TAiFileToolBase<T: class, constructor> = class(TAiMCPToolBase<T>)
   protected
     FConfig: TFileAccessConfig;
-    FOwnsConfig: Boolean; // Si es true, libera la config al destruirse
+    FOwnsConfig: Boolean; // If true, releases the config when destroyed
   public
     constructor Create(AConfig: TFileAccessConfig = nil); reintroduce;
     destructor Destroy; override;
@@ -80,7 +80,7 @@ type
   end;
 
   // =============================================================================
-  // HERRAMIENTA PARA LISTAR ARCHIVOS
+  // TOOL TO LIST FILES
   // =============================================================================
   TListFilesParams = class
   private
@@ -89,16 +89,16 @@ type
     FIncludeSubdirs: Boolean;
     FShowDetails: Boolean;
   public
-    [AiMCPSchemaDescription('Ruta de la carpeta a listar')]
+    [AiMCPSchemaDescription('Folder path to list')]
     property Path: string read FPath write FPath;
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Patrón de búsqueda (ej: "*.pas", "*.txt") - default: "*.*"')]
+    [AiMCPSchemaDescription('Search pattern (e.g.: "*.pas", "*.txt") - default: false)')]
     property Pattern: string read FPattern write FPattern;
     [AiMCPOptional]
     [AiMCPSchemaDescription('Incluir subdirectorios (default: false)')]
     property IncludeSubdirs: Boolean read FIncludeSubdirs write FIncludeSubdirs;
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Mostrar detalles (tamaño, fecha) - default: false)')]
+    [AiMCPSchemaDescription('Show details (size, date) - default: false)')]
     property ShowDetails: Boolean read FShowDetails write FShowDetails;
   end;
 
@@ -110,13 +110,13 @@ type
   end;
 
   // =============================================================================
-  // HERRAMIENTA PARA LEER ARCHIVOS
+  // TOOL TO READ FILES
   // =============================================================================
   TReadFileParams = class
   private
     FFilePath: string;
   public
-    [AiMCPSchemaDescription('Ruta completa del archivo a leer')]
+    [AiMCPSchemaDescription('Full path of the file to read')]
     property FilePath: string read FFilePath write FFilePath;
   end;
 
@@ -130,7 +130,7 @@ type
   end;
 
   // =============================================================================
-  // HERRAMIENTA PARA ESCRIBIR ARCHIVOS
+  // TOOL TO WRITE FILES
   // =============================================================================
   TWriteFileParams = class
   private
@@ -139,15 +139,15 @@ type
     FAppend: Boolean;
     FCreateDirs: Boolean;
   public
-    [AiMCPSchemaDescription('Ruta completa del archivo a escribir')]
+    [AiMCPSchemaDescription('Full path of the file to write')]
     property FilePath: string read FFilePath write FFilePath;
-    [AiMCPSchemaDescription('Contenido a escribir en el archivo')]
+    [AiMCPSchemaDescription('Content to write to the file')]
     property Content: string read FContent write FContent;
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Agregar al final del archivo (default: false = sobrescribir)')]
+    [AiMCPSchemaDescription('Append to the end of the file (default: false = overwrite)')]
     property Append: Boolean read FAppend write FAppend;
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Crear directorios si no existen (default: true)')]
+    [AiMCPSchemaDescription('Create directories if they do not exist (default: true)')]
     property CreateDirs: Boolean read FCreateDirs write FCreateDirs;
   end;
 
@@ -158,7 +158,7 @@ type
     constructor Create(AConfig: TFileAccessConfig = nil);
   end;
 
-// Helper para registrar con configuración compartida o por defecto
+// Helper to register with shared or default configuration
 procedure RegisterTools(ALogicServer: TAiMCPServer; AConfig: TFileAccessConfig = nil);
 
 implementation
@@ -167,27 +167,27 @@ uses
   System.StrUtils;
 
 // =============================================================================
-// Helper de Registro
+// Registration Helper
 // =============================================================================
 procedure RegisterTools(ALogicServer: TAiMCPServer; AConfig: TFileAccessConfig = nil);
 var
-  // Si no se pasa config, creamos una compartida para este grupo de herramientas
+  // If no config is passed, we create a shared one for this group of tools
   SharedConfig: TFileAccessConfig;
 begin
   if not Assigned(ALogicServer) then
-    raise Exception.Create('LogicServer no puede ser nulo.');
+    raise Exception.Create('LogicServer cannot be null.');
 
-  // Nota: Si AConfig es nil, cada herramienta creará su propia config por defecto internamente.
-  // Pero para consistencia, es mejor que compartan la misma si se van a registrar juntas.
+  // Note: If AConfig is nil, each tool will create its own config by default internally.
+  // But for consistency, it is better for them to share the same one if they are going to be registered together.
 
-  // Opción 1: Si el usuario pasa una config, la usamos. EL USUARIO ES RESPONSABLE DE LIBERARLA (o el último tool).
-  // Para simplificar en DataSnap, haremos que cada tool tenga su referencia.
+  // Option 1: If the user passes a config, we use it. THE USER IS RESPONSIBLE FOR RELEASING IT (or the last tool).
+  // To simplify in DataSnap, we will make each tool have its reference.
 
   ALogicServer.RegisterTool('list_files',
     function: IAiMCPTool
     begin
-      // Si AConfig es nil, el tool crea una nueva y se hace dueño.
-      // Si AConfig NO es nil, el tool la usa pero NO se hace dueño (referencia compartida).
+      // If AConfig is nil, the tool creates a new one and becomes its owner.
+      // If AConfig is NOT nil, the tool uses it but does NOT become its owner (shared reference).
       Result := TListFilesTool.Create(AConfig);
     end);
 
@@ -205,7 +205,7 @@ begin
 end;
 
 // =============================================================================
-// TFileAccessConfig (Lógica de Seguridad)
+// TFileAccessConfig (LÃ³gica de Seguridad)
 // =============================================================================
 
 constructor TFileAccessConfig.Create;
@@ -232,11 +232,11 @@ end;
 procedure TFileAccessConfig.SetDefaultConfiguration;
 begin
   ClearPermissions;
-  // Permisos por defecto seguros
+  // Secure default permissions
   AddAllowedPath(TPath.GetTempPath);
   AddAllowedPath(TPath.GetDocumentsPath);
 
-  // Extensiones seguras por defecto
+  // Secure default extensions
   AddAllowedExtension('.txt'); AddAllowedExtension('.json'); AddAllowedExtension('.xml');
   AddAllowedExtension('.csv'); AddAllowedExtension('.log'); AddAllowedExtension('.md');
   AddAllowedExtension('.png'); AddAllowedExtension('.jpg'); AddAllowedExtension('.jpeg');
@@ -291,7 +291,7 @@ begin
 end;
 
 // =============================================================================
-// TAiFileToolBase (Clase Base para Herramientas)
+// TAiFileToolBase (Base Class for Tools)
 // =============================================================================
 
 constructor TAiFileToolBase<T>.Create(AConfig: TFileAccessConfig);
@@ -300,12 +300,12 @@ begin
   if Assigned(AConfig) then
   begin
     FConfig := AConfig;
-    FOwnsConfig := False; // Usamos configuración compartida externa
+    FOwnsConfig := False; // We use externally shared configuration
   end
   else
   begin
     FConfig := TFileAccessConfig.Create;
-    FOwnsConfig := True; // Creamos nuestra propia configuración
+    FOwnsConfig := True; // We create our own configuration
   end;
 end;
 
@@ -324,7 +324,7 @@ constructor TListFilesTool.Create(AConfig: TFileAccessConfig);
 begin
   inherited Create(AConfig);
   FName := 'list_files';
-  FDescription := 'Lista archivos en carpetas permitidas con filtros de seguridad';
+  FDescription := 'Lists files in allowed folders with security filters';
 end;
 
 function TListFilesTool.ExecuteWithParams(const AParams: TListFilesParams; const AuthContext: TAiAuthContext): TJSONObject;
@@ -339,10 +339,10 @@ var
 begin
   try
     if not TDirectory.Exists(AParams.Path) then
-      raise Exception.Create('La carpeta no existe: ' + AParams.Path);
+      raise Exception.Create('The folder does not exist: ' + AParams.Path);
 
     if not FConfig.IsPathAllowed(AParams.Path) then
-      raise Exception.Create('Acceso denegado a la carpeta: ' + AParams.Path);
+      raise Exception.Create('Access denied to the folder: ' + AParams.Path);
 
     SearchPattern := AParams.Pattern;
     if SearchPattern.IsEmpty then SearchPattern := '*.*';
@@ -396,23 +396,23 @@ constructor TReadFileTool.Create(AConfig: TFileAccessConfig);
 begin
   inherited Create(AConfig);
   FName := 'read_file';
-  FDescription := 'Lee y devuelve el contenido de un archivo con restricciones de seguridad.';
+  FDescription := 'Reads and returns the content of a file with security restrictions.';
 end;
 
 function TReadFileTool.ExecuteWithParams(const AParams: TReadFileParams; const AuthContext: TAiAuthContext): TJSONObject;
 begin
   try
     if not TFile.Exists(AParams.FilePath) then
-      raise Exception.Create('El archivo no existe.');
+      raise Exception.Create('The file does not exist.');
 
     if not FConfig.IsPathAllowed(ExtractFileDir(AParams.FilePath)) then
-      raise Exception.Create('Acceso denegado a la ruta.');
+      raise Exception.Create('Access denied to the path.');
 
     if not FConfig.IsExtensionAllowed(AParams.FilePath) then
-      raise Exception.Create('Extensión no permitida.');
+      raise Exception.Create('Extension not allowed.');
 
     if TFile.GetSize(AParams.FilePath) > MAX_FILE_SIZE then
-      raise Exception.Create('Archivo demasiado grande (>10MB).');
+      raise Exception.Create('File too large (>10MB).');
 
     Result := TAiMCPResponseBuilder.New
       .AddFile(AParams.FilePath)
@@ -431,7 +431,7 @@ constructor TWriteFileTool.Create(AConfig: TFileAccessConfig);
 begin
   inherited Create(AConfig);
   FName := 'write_file';
-  FDescription := 'Escribe contenido en un archivo con restricciones de seguridad.';
+  FDescription := 'Writes content to a file with security restrictions.';
 end;
 
 function TWriteFileTool.ExecuteWithParams(const AParams: TWriteFileParams; const AuthContext: TAiAuthContext): TJSONObject;
@@ -442,10 +442,10 @@ begin
     FileDir := ExtractFileDir(AParams.FilePath);
 
     if not FConfig.IsPathAllowed(FileDir) then
-      raise Exception.Create('Acceso denegado a la ruta de escritura.');
+      raise Exception.Create('Access denied to the write path.');
 
     if not FConfig.IsExtensionAllowed(AParams.FilePath) then
-      raise Exception.Create('Extensión no permitida para escritura.');
+      raise Exception.Create('Extension not allowed for writing.');
 
     if AParams.CreateDirs and not TDirectory.Exists(FileDir) then
       TDirectory.CreateDirectory(FileDir);
@@ -456,7 +456,7 @@ begin
       TFile.WriteAllText(AParams.FilePath, AParams.Content, TEncoding.UTF8);
 
     Result := TAiMCPResponseBuilder.New
-      .AddText('Archivo guardado correctamente.')
+      .AddText('File saved successfully.')
       .Build;
   except
     on E: Exception do

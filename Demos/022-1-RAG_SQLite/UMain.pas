@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2013 Gustavo Enríquez - CimaMaker
+// Copyright (c) 2013 Gustavo EnrÃ­quez - CimaMaker
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,9 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Esta librería es una contribución de los usuarios de la comunidad MakerAi
+// This library is a contribution of the users of the MakerAi community
 //
-// Nombre: Gustavo Enríquez
+// Name: Gustavo EnrÃ­quez
 // Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -122,7 +122,7 @@ var
 begin
  if (memData.Text = '') then
   begin
-   memoInfo.Lines.Add('Rellene los datos del documento');
+   memoInfo.Lines.Add('Fill in the document data');
    Exit;
   end;
 
@@ -177,7 +177,7 @@ begin
           'SELECT doc_id, content, distance ' +
           'FROM vec_docs ' +
           'WHERE emb_cos MATCH :q AND k = :k ' +
-          'ORDER BY distance ASC'; // 0 = más similar (cosine distance)
+          'ORDER BY distance ASC'; // 0 = more similar (cosine distance)
         FDQy.ParamByName('q').AsString := EmbJson;
         FDQy.ParamByName('k').AsInteger := seK.Value;
         FDQy.Open;
@@ -209,16 +209,16 @@ begin
       butAddEmbedding.Enabled:= true;
       Query.Connection := FDConnection;
       Query.SQL.Text := 'SELECT load_extension(''vec0.dll'');';
-      Query.Open; // Usamos Open porque es un SELECT
-      Query.Close; // Lo cerramos porque no necesitamos el resultado
-      memoInfo.Lines.Add('Extensión vec.dll cargada correctamente.');
+      Query.Open; // We use Open because it is a SELECT
+      Query.Close; // We close it because we do not need the result
+      memoInfo.Lines.Add('Extension vec.dll loaded successfully.');
     except
       on E: Exception do
       begin
         butCreate.Enabled:= false;
         butAddEmbedding.Enabled:= false;
-        memoInfo.Lines.Add('Error al cargar la extensión vec0.dll: ' + E.Message);
-        ShowMessage('Asegúrate de que vec.dll y sqlite3.dll están junto al ejecutable y tienen la arquitectura correcta (32/64 bits).');
+        memoInfo.Lines.Add('Error loading extension vec0.dll: ' + E.Message);
+        ShowMessage('Ensure that vec.dll and sqlite3.dll are next to the executable and have the correct architecture (32/64 bits).');
       end;
     end;
   finally

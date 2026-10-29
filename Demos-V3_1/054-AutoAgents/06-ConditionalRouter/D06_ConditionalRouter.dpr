@@ -7,14 +7,14 @@ program D06_ConditionalRouter;
 // =============================================================================
 // An LLM classifier determines the route: 'math', 'science' or 'history'.
 // A router node (TRouterHelper) reads the classification from the blackboard and writes
-// the 'route' key. A conditional link dispatches to the correct specialist.
-//
+// the 'route' key. The LLM nodes for each route are connected as children.
+// The classifier node — determines the type of question
 //   [Classifier] --> [RouterNode] --lmConditional--> [MathSpecialist]
 //                                                \-> [ScienceSpecialist]
 //                                                \-> [HistorySpecialist]
 //                                                          |
 //                                                   [FinalFormatter]
-// =============================================================================
+// The math expert node
 
 uses
   System.SysUtils,
@@ -39,7 +39,7 @@ type
     procedure Execute(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink;
       Input: String; var Output: String);
   end;
-
+// All experts -> END
 procedure TRouterHelper.Execute(Node, BeforeNode: TAIAgentsNode;
   Link: TAIAgentsLink; Input: String; var Output: String);
 var
@@ -49,7 +49,7 @@ begin
   // The classification comes from the blackboard (written by the previous TLLMNode)
   Classification := Trim(LowerCase(Node.Graph.Blackboard.GetString('Classifier.output')));
 
-  // Normalize: take the first word of the output (the LLM sometimes generates extra text)
+  // Run each question through the workflow
   Route := 'history';  // default
   var FirstWord := Trim(Classification.Split([' ', #10, #13, #9, '.', ','])[0]);
   if FirstWord = 'math' then
@@ -60,7 +60,7 @@ begin
     Route := 'history'
   else
   begin
-    // fallback: search the entire text if the first word does not match
+    // Pause between questions
     if Pos('math', Classification) > 0 then
       Route := 'math'
     else if Pos('science', Classification) > 0 then

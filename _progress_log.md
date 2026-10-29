@@ -77,6 +77,13 @@
 - The JCL dialogs are the owner's install, left untouched: 34 JCL/JV design packages in the x64 list, and `JclBase370.bpl` is absent from both `Bpl\` and `Bpl\Win64\`.
 - One instrument was built and then discarded: probing whether a BPL is loaded by opening it exclusively reported «free» for `bds.exe` and `kernel32.dll` too, so it measured nothing; the registry-order argument replaced it.
 
+### Round 13 — the cp1252 files, and the Spanish that was hiding inside them
+
+- Fourteen demo sources were not UTF-8 at all (`cp1252`), so `numbered.py` — which reads UTF-8 and writes UTF-8 — could never touch them without destroying every accented byte. They are now UTF-8 **with BOM** (Delphi reads a BOM-less file as ANSI), and **14/14 kept their code identical**.
+- The conversion made their Spanish visible for the first time: `Demos` went from 364 to **1072** flagged lines, and the accent count across the demo trees from 27 to **339**.
+- One pass of the same pipeline (13 batches) plus four hand lines took accents from **339 → 27**; the 27 left are data, not prose: the graph key `año` (also used inside the VQL queries that must match it), `categoria`, `Contains('méxico')` and the proper name `Café La Ceiba`.
+- Integrity at the end: **17/17 changed files text-only**, 0 cp1252 files left, 0 U+FFFD left.
+
 ## 2026-10-29 — Upstream Sync v3.3 → v3.9.0 + Full English Pass
 
 **Reason:** Owner decision: update the fork to upstream master (v3.9.0) and keep the whole repository in English.
