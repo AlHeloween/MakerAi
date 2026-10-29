@@ -122,4 +122,17 @@ Plan follows repo conventions: `plans/[ISO8601]_`. Merging on `local` (fork's wo
 | Instrument: accent escapes | The accent set knew only the nine LOWERCASE codes, so `EXTRACCI'#211'N` and `V'#205'A` were reported clean — uppercase Spanish was never measured. Widened to sixteen codes with a digit lookahead, and `numbered.py` now imports the one definition instead of keeping its own | `.temp/detector_controls.py` — 13/13 |
 | Instrument: per-line refusal | One row that dropped a `)` used to cost the file every other row. Refusal is per line (control escapes, quote count, code-neutrality), a dropped trailing `)`/`;`/`,` is restored from the original line, and the whole file still passes the skeleton gate as the final oracle | `.temp/apply_forms3.log` |
 
-**Next action:** nothing left to translate, and two things are open. (1) The demo compile oracle is still unavailable in this checkout — the control project fails identically untranslated — so the demo trees are proved by the skeleton gate alone; if a demo tree ever builds here, that build is the missing leg. (2) `HEAD` is **10 commits ahead of `origin/local`**; pushing is the owner's word (round 3 pushed on it, rounds 8–11 have not).
+## Install into the Delphi IDE (2026-10-29)
+
+The IDE registers four packages from `D:\zPascal\zCommon\Bpl\Win64\`, and that is also the package projects' own output directory — so a rebuild replaces exactly what the IDE loads, and there is no separate "install" copy to go stale.
+
+| Check | Result | Evidence |
+|-------|--------|----------|
+| Build | four packages (runtime ×3 + design-time), 0 errors | msbuild runs in `logs/cmd_runner/` |
+| Installed artefact IS the translated build | `MakerAI.bpl` contains `Error processing JSON` (UTF-16) and **no** `Error al procesar JSON` | byte check on the installed BPL |
+| Load | the three runtime BPLs load from the registered path | `.temp/smoke/SmokePackages.exe` — 0 failures |
+| Design-time freshness | `MakerAiDsg.bpl` newer than `MakerAI.bpl` | same smoke |
+| Encoding damage | 0 U+FFFD left in the sources; 15/15 repaired files text-only | `.temp/count_repl.py`, `.temp/check_tree.py` |
+
+The palette itself is the IDE's leg and the headless smoke does not cover it: Delphi components register through `RegisterComponents` inside the unit's `Register` procedure, which only the IDE invokes — `GetClass` answers nil outside the IDE for a perfectly installed component. The IDE was not running at install time, so its next start loads all four BPLs fresh.
+**Next action:** the translation is delivered and installed; what remains open. (1) The palette leg: start Delphi and confirm the MakerAI components appear and drop onto a form — the one check a headless process cannot make. (2) The demo compile oracle is still unavailable in this checkout (the control project fails identically untranslated), so those trees rest on the skeleton gate alone. (3) Seven demo files are still cp1252 (`Demos\090-Varios\ListAllModels.dpr` and six `.pas` under `Demos\`), so they were never translatable through the UTF-8 pipeline — converting them is its own bounded task.

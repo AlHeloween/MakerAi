@@ -64,6 +64,15 @@
 - Round 2 of the pass converted only 12 lines of 1165 offered — the model returned the rest unchanged because they were already English. That is the signal that the real Spanish is exhausted and the remaining list is the detector's false-positive class.
 - `Tree/forms` pipeline pieces are now reusable: `tree_emit.py` (recall from the detector, block expansion), `forms_split.py` (split by written volume, merge repeated blocks by path), `check_maps.py` (a lost header applies nothing and still exits 0), `reattribute.py` (restores attribution from the batch), `check_tree.py` (working tree vs HEAD, text-only).
 
+### Round 12 — install the rebuilt packages into the IDE, and the smoke that proves it
+
+- The IDE's `Known Packages x64` registers four BPLs from `D:\zPascal\zCommon\Bpl\Win64\` — the same directory the package projects write to. Three were rebuilt by rounds 10–11; `MakerAiDsg.bpl` was five hours older and was rebuilt here, so all four are one build.
+- **The smoke answers the question that matters**: does the artefact the IDE loads carry the work? `MakerAI.bpl` contains the new `Error processing JSON` (UTF-16) and no longer contains `Error al procesar JSON`; `SmokePackages.exe` loads all three runtime BPLs from the registered path and reports **0 failures**.
+- The first smoke was wrong and was fixed, not believed: it asked `GetClass` for the component names and reported nine failures. Delphi components register through `RegisterComponents` inside the unit's `Register` procedure, which only the IDE invokes — `GetClass` answers nil outside the IDE for a perfectly installed package. The instrument was replaced with `LoadPackage` + `GetModuleFileName`, which measures what a package actually does on start-up.
+- 29 U+FFFD characters turned up in 15 source files. `.temp/enc_damage.py` proved they were **already there** before this work (no file gained one, none flipped encoding), so they came from an earlier conversion, not from the applier. They sat in Spanish comments, so each line was translated and repaired in one edit: **0 left**, 15/15 files text-only.
+- `.pyc` files under `scripts/audit/__pycache__` had been tracked since an earlier session; they are untracked now and `__pycache__/` is ignored.
+- Seven demo files remain cp1252 and were skipped rather than silently re-encoded — named as residual.
+
 ## 2026-10-29 — Upstream Sync v3.3 → v3.9.0 + Full English Pass
 
 **Reason:** Owner decision: update the fork to upstream master (v3.9.0) and keep the whole repository in English.
