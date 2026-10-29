@@ -9,7 +9,7 @@ program EmbMultiProvider;
 // Generates the same embedding with different providers and compares:
 // vector dimensions, response time, and similarity between providers.
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - TAiEmbeddingConnection as a universal interface for embeddings
 //   - Changing provider at runtime (same as TAiChatConnection)
 //   - Dimension differences between models (512, 768, 1536, 3072...)
@@ -92,8 +92,8 @@ begin
 
       Sim := TAiEmbeddingsCore.CosineSimilarity(V1, V2);
 
-      Writeln(Format('Dimensiones: %d', [Length(V1)]));
-      Writeln(Format('Tiempo (A) : %d ms', [ElapsedA]));
+      Writeln(Format('Dimensions: %d', [Length(V1)]));
+      Writeln(Format('Time (A) : %d ms', [ElapsedA]));
       Writeln(Format('Similarity  : %.4f  (A↔B, same semantics)', [Sim]));
       Writeln(Format('Tokens     : %d', [Conn.total_tokens]));
     except
@@ -114,7 +114,7 @@ var
   I: Integer;
 begin
   Writeln('=== EmbMultiProvider ===');
-  Writeln('Mismos dos textos, distintos proveedores de embeddings.');
+  Writeln('Same two texts, different embedding providers.');
   Writeln;
   Writeln('Text A: "', TEXT_A, '"');
   Writeln('Text B: "', TEXT_B, '"');
@@ -127,7 +127,7 @@ begin
     TestProvider(PROVIDERS[I]);
 
   Writeln(StringOfChar('=', 60));
-  Writeln('Resumen:');
+  Writeln('Summary:');
   Writeln('  - Each model has its own dimensions and scale.');
   Writeln('  - For production: choose ONE model and use it consistently.');
   Writeln('  - OpenAI: high quality, paid. Ollama: local, free.');

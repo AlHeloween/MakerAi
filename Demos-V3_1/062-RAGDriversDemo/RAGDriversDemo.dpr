@@ -67,8 +67,8 @@ const
   TABLE_NAME = 'documentos';
 
   // Example entities (collections)
-  ENT_TECH   = 'tecnologia';
-  ENT_ARTE   = 'arte';
+  ENT_TECH   = 'technology';
+  ENT_ARTE   = 'art';
 
 // =============================================================================
 //  Example documents with synthetic embeddings
@@ -96,40 +96,40 @@ const
   DOCS: array[0..6] of TDocSample = (
     // --- Technology / AI ---
     (ID: 'doc-01'; Entidad: ENT_TECH;
-     Text: 'inteligencia artificial redes neuronales machine learning deep learning';
-     Categ: 'IA';
+     Text: 'artificial intelligence neural networks machine learning deep learning';
+     Categ: 'AI';
      Emb: (0.90, 0.85, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05)),
 
     (ID: 'doc-02'; Entidad: ENT_TECH;
-     Text: 'python programacion lenguajes software desarrollo algoritmos';
-     Categ: 'Programacion';
+     Text: 'python programming languages software development algorithms';
+     Categ: 'Programming';
      Emb: (0.80, 0.75, 0.10, 0.05, 0.05, 0.10, 0.05, 0.05)),
 
     (ID: 'doc-03'; Entidad: ENT_TECH;
-     Text: 'base de datos SQL NoSQL almacenamiento vectores embeddings';
-     Categ: 'Datos';
+     Text: 'database SQL NoSQL storage vectors embeddings';
+     Categ: 'Data';
      Emb: (0.70, 0.65, 0.10, 0.10, 0.05, 0.10, 0.10, 0.05)),
 
     // --- Art ---
     (ID: 'doc-04'; Entidad: ENT_ARTE;
-     Text: 'musica guitarra piano jazz rock melodia armonia ritmo';
-     Categ: 'Musica';
+     Text: 'music guitar piano jazz rock melody harmony rhythm';
+     Categ: 'Music';
      Emb: (0.05, 0.05, 0.90, 0.85, 0.05, 0.05, 0.05, 0.05)),
 
     (ID: 'doc-05'; Entidad: ENT_ARTE;
-     Text: 'fotografia camara exposicion iluminacion composicion encuadre';
-     Categ: 'Foto';
+     Text: 'photography camera exposure lighting composition framing';
+     Categ: 'Photo';
      Emb: (0.05, 0.05, 0.10, 0.05, 0.10, 0.05, 0.90, 0.85)),
 
     (ID: 'doc-06'; Entidad: ENT_ARTE;
-     Text: 'pintura oleo acuarela lienzo color textura artista';
-     Categ: 'Pintura';
+     Text: 'painting oil watercolor canvas color texture artist';
+     Categ: 'Painting';
      Emb: (0.05, 0.05, 0.05, 0.05, 0.10, 0.10, 0.85, 0.80)),
 
     // --- Gastronomy (in ENT_TECH to test filtering by entity) ---
     (ID: 'doc-07'; Entidad: ENT_TECH;
-     Text: 'cocina recetas gastronomia ingredientes sabores culinaria';
-     Categ: 'Gastronomia';
+     Text: 'cooking recipes gastronomy ingredients flavors culinary';
+     Categ: 'Gastronomy';
      Emb: (0.05, 0.05, 0.05, 0.10, 0.90, 0.85, 0.05, 0.10))
   );
 
@@ -152,8 +152,8 @@ begin
   Result.Text  := ADoc.Text;
   Result.Model := 'sintetico-v1';
   Result.Data  := MakeEmbeddingData(ADoc.Emb);
-  Result.MetaData['categoria'] := ADoc.Categ;
-  Result.MetaData['entidad']   := ADoc.Entidad;
+  Result.MetaData['category'] := ADoc.Categ;
+  Result.MetaData['entity']   := ADoc.Entidad;
 end;
 
 procedure PrintResults(const ATitle: string; AResults: TAiRAGVector);
@@ -217,7 +217,7 @@ begin
   QueryNode := TAiEmbeddingNode.Create(DIM);
   try
     QueryNode.Tag  := 'query-ia';
-    QueryNode.Text := 'aprendizaje automatico redes neuronales';
+    QueryNode.Text := 'machine learning neural networks';
     // Vector similar to doc-01 and doc-02 (AI area)
     QueryNode.Data := MakeEmbeddingData([0.85, 0.80, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]);
 
@@ -245,7 +245,7 @@ begin
   QueryNode := TAiEmbeddingNode.Create(DIM);
   try
     QueryNode.Tag  := 'query-bm25';
-    QueryNode.Text := 'python lenguajes programacion';
+    QueryNode.Text := 'python languages programming';
     // No relevant embedding for BM25
     QueryNode.Data := MakeEmbeddingData([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
 
@@ -267,13 +267,13 @@ begin
     QueryNode.Free;
   end;
 
-  // ---- Busqueda hibrida ----
+  // ---- Hybrid search ----
   Writeln;
   Writeln('  [', ATag, '] --- Hybrid RRF search (music) ---');
   QueryNode := TAiEmbeddingNode.Create(DIM);
   try
     QueryNode.Tag  := 'query-hibrida';
-    QueryNode.Text := 'musica guitarra melodia';
+    QueryNode.Text := 'music guitar melody';
     QueryNode.Data := MakeEmbeddingData([0.05, 0.05, 0.88, 0.82, 0.05, 0.05, 0.05, 0.05]);
 
     Options := TAiSearchOptions.Create;
@@ -295,16 +295,16 @@ begin
     QueryNode.Free;
   end;
 
-  // ---- Filtrado por metadato ----
+  // ---- Metadata filtering ----
   Writeln;
-  Writeln('  [', ATag, '] --- Search with metadata filter (categoria=IA) ---');
+  Writeln('  [', ATag, '] --- Search with metadata filter (category=AI) ---');
   QueryNode := TAiEmbeddingNode.Create(DIM);
   Filter    := TAiFilterCriteria.Create;
   try
     QueryNode.Tag  := 'query-filtro';
-    QueryNode.Text := 'aprendizaje';
+    QueryNode.Text := 'learning';
     QueryNode.Data := MakeEmbeddingData([0.85, 0.80, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]);
-    Filter.Add('categoria', foEqual, 'IA');
+    Filter.Add('category', foEqual, 'AI');
 
     Options := TAiSearchOptions.Create;
     try
@@ -312,7 +312,7 @@ begin
       Options.UseBM25       := False;
       Results := ADriver.Search(QueryNode, ENT_TECH, 5, 0.0, Filter, Options);
       try
-        PrintResults('Vector + filter categoria=IA', Results);
+        PrintResults('Vector + filter category=AI', Results);
       finally
         Results.Free;
       end;
@@ -346,7 +346,7 @@ begin
   Options   := TAiSearchOptions.Create;
   try
     QueryNode.Tag  := 'query-post-delete';
-    QueryNode.Text := 'python lenguajes programacion';
+    QueryNode.Text := 'python languages programming';
     QueryNode.Data := MakeEmbeddingData([0.80, 0.75, 0.10, 0.05, 0.05, 0.10, 0.05, 0.05]);
     Options.UseEmbeddings := True;
     Options.UseBM25       := True;

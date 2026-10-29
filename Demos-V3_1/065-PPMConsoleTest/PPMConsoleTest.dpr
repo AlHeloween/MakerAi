@@ -97,7 +97,7 @@ begin
       end;
     except
       on E: Exception do
-        ERR('Excepcion en SearchPPMMCP: ' + E.ClassName + ' — ' + E.Message);
+        ERR('Exception in SearchPPMMCP: ' + E.ClassName + ' — ' + E.Message);
     end;
   finally
     LFunctions.Free;

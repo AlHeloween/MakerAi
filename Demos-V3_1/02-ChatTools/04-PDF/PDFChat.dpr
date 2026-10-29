@@ -125,15 +125,15 @@ begin
     Conn.Params.Values['ResponseTimeOut']   := '120000';
 
     Conn.SystemPrompt.Text :=
-      'Eres un asistente especializado en análisis de documentos. ' +
-      'Lee el documento adjunto con atención y responde con precisión. ' +
+      'You are an assistant specialized in document analysis. ' +
+      'Read the attached document carefully and respond accurately. ' +
       'Respond in Spanish.';
 
     // ── Demo 1: Executive summary ─────────────────────────────────────────
     Writeln(StringOfChar('-', 60));
     Writeln('1. Executive summary of the document');
     Response := AskAboutPDF(Conn, PdfPath,
-      'Por favor proporciona un resumen ejecutivo de este documento en ' +
+      'Please provide an executive summary of this document in ' +
       'at most 5 key points.');
     Writeln(Response);
     Writeln;
@@ -143,7 +143,7 @@ begin
     Writeln('2. Specific questions about the content');
 
     Response := AskAboutPDF(Conn, PdfPath,
-      '¿Cuáles son los temas principales que trata este documento? ' +
+      'What are the main topics covered in this document? ' +
       'List only the titles or sections you find.');
     Writeln(Response);
     Writeln;
@@ -153,7 +153,7 @@ begin
     Writeln('3. Structured data extraction');
 
     Response := AskAboutPDF(Conn, PdfPath,
-      'Extrae en formato JSON los siguientes datos del documento: ' +
+      'Extract in JSON format the following data from the document: ' +
       '{"titulo": "", "autor": "", "fecha": "", "paginas_aproximadas": 0, ' +
       '"idioma": ""}. If you do not find a data item, put null.');
     Writeln(Response);

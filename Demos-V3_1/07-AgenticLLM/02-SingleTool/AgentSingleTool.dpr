@@ -67,7 +67,7 @@ begin
 
   Op := TJSONObject.Create;
   Op.AddPair('type', 'string');
-  Op.AddPair('description', 'Operacion a realizar');
+  Op.AddPair('description', 'Operation to perform');
   Enum := TJSONArray.Create;
   Enum.Add('add'); Enum.Add('subtract'); Enum.Add('multiply'); Enum.Add('divide');
   Op.AddPair('enum', Enum);
@@ -75,12 +75,12 @@ begin
 
   Num := TJSONObject.Create;
   Num.AddPair('type', 'number');
-  Num.AddPair('description', 'Primer operando');
+  Num.AddPair('description', 'First operand');
   Props.AddPair('a', Num);
 
   Num := TJSONObject.Create;
   Num.AddPair('type', 'number');
-  Num.AddPair('description', 'Segundo operando');
+  Num.AddPair('description', 'Second operand');
   Props.AddPair('b', Num);
 
   FSchema.AddPair('properties', Props);
@@ -97,7 +97,7 @@ begin
 end;
 
 function TCalculatorTool.GetName       : String; begin Result := 'calculator'; end;
-function TCalculatorTool.GetDescription: String; begin Result := 'Realiza operaciones aritmeticas: suma, resta, multiplicacion y division'; end;
+function TCalculatorTool.GetDescription: String; begin Result := 'Performs arithmetic operations: addition, subtraction, multiplication, and division'; end;
 function TCalculatorTool.GetCategory   : String; begin Result := 'Math'; end;
 function TCalculatorTool.GetSchema     : TJSONObject; begin Result := FSchema; end;
 function TCalculatorTool.IsAvailable   : Boolean; begin Result := True; end;
@@ -126,7 +126,7 @@ begin
     if B = 0 then
     begin
       Result := TJSONObject.Create;
-      Result.AddPair('error', 'Division por cero');
+      Result.AddPair('error', 'Division by zero');
       Exit;
     end;
     Res := A / B;
@@ -187,11 +187,11 @@ begin
     LLMAgent.DriverName   := DRIVER;
     LLMAgent.Model        := MODEL;
     LLMAgent.ApiKey       := API_KEY;
-    LLMAgent.UseAllTools  := True; // expone todas las herramientas del registry
+    LLMAgent.UseAllTools  := True; // exposes all tools from the registry
     LLMAgent.SystemPrompt :=
-      'Eres un asistente de matematicas. ' +
-      'SIEMPRE usa la herramienta calculator para cualquier operacion aritmetica. ' +
-      'Nunca calcules mentalmente. Responde en espanol.';
+      'You are a math assistant. ' +
+      'ALWAYS use the calculator tool for any arithmetic operation. ' +
+      'Never calculate mentally. Respond in Spanish.';
 
     Finish       := TAIAgentsNode.Create(Manager);
     Finish.Name  := 'End';

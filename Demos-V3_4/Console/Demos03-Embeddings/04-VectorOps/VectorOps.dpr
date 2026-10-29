@@ -126,8 +126,8 @@ begin
     Writeln(Format('    %s: %.4f', [Palabras[I], TAiEmbeddingsCore.CosineSimilarity(Promedio, Vectores[I])]));
 
   Writeln;
-  var VAnimal := E(Conn, 'animal domestico');
-  var VCoche  := E(Conn, 'automovil');
+  var VAnimal := E(Conn, 'domestic animal');
+  var VCoche  := E(Conn, 'automobile');
   Writeln('  Comparison with external words:');
   Writeln(Format('    "domestic animal": %.4f  (expected: high)', [TAiEmbeddingsCore.CosineSimilarity(Promedio, VAnimal)]));
   Writeln(Format('    "automobile":        %.4f  (expected: low)', [TAiEmbeddingsCore.CosineSimilarity(Promedio, VCoche)]));
@@ -227,7 +227,7 @@ begin
     Alpha := I / 5.0;
     Beta  := 1.0 - Alpha;
 
-    // alpha * gato + (1-alpha) * perro
+    // alpha * cat + (1-alpha) * dog
     SetLength(VMezcla, Length(VGato));
     for J := 0 to High(VGato) do
       VMezcla[J] := Alpha * VGato[J] + Beta * VPerro[J];

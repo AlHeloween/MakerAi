@@ -360,15 +360,15 @@ begin
   Tester := TKimiTester.Create;
   try
     Tester.TestSync(
-      'En una sola oracion: cual es la capital de Francia?',
+      'In a single sentence: what is the capital of France?',
       'Test 1 - Basic sync');
 
     Tester.TestAsync(
-      'En una sola oracion: cual es la capital de Japon?',
+      'In a single sentence: what is the capital of Japan?',
       'Test 2 - Basic async');
 
     Tester.TestAsync(
-      'Explica en 3 parrafos breves que es la inteligencia artificial.',
+      'Explain in 3 short paragraphs what artificial intelligence is.',
       'Test 3 - Async long response');
 
     Tester.TestMultiTurnAsync;

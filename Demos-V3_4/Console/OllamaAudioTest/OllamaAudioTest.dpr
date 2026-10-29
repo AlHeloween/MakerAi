@@ -16,7 +16,7 @@ program OllamaAudioTest;
 //
 // SCENARIO B — TTS (audio generation for the response):
 //   Takes the response text from scenario A and uses TAiGeminiSpeechTool
-//   to generate an output WAV file (respuesta_audio.wav).
+//   to generate an output WAV file (response_audio.wav).
 //
 // Usage:
 //   OllamaAudioTest.exe [audio_path] [question]
@@ -201,12 +201,12 @@ begin
   AudioResult := TAiGeminiSpeechTool.GenerateSpeech(
     GetEnvironmentVariable('GEMINI_API_KEY'),
     AText,
-    'Puck',   // voz (Puck, Kore, Charon, Fenrir, Aoede, etc.)
+    'Puck',   // voice (Puck, Kore, Charon, Fenrir, Aoede, etc.)
     nil, nil, nil);
 
   if Assigned(AudioResult) then
   begin
-    OutputFile := ExtractFilePath(ParamStr(0)) + 'respuesta_audio.wav';
+    OutputFile := ExtractFilePath(ParamStr(0)) + 'response_audio.wav';
     try
       AudioResult.Content.SaveToFile(OutputFile);
       Writeln('  Audio saved: ', OutputFile,

@@ -60,9 +60,9 @@ uses
   FireDAC.Stan.Error,
   FireDAC.Phys,
   FireDAC.Comp.Client,
-  // Sin esto FireDAC aborta con "Object factory for class ... TFDGUIxWaitCursor"
-  // en cuanto abre la conexion. Es una app de consola, asi que la variante
-  // que toca es ConsoleUI (existe en Windows y en Linux por igual).
+  // Without this FireDAC aborts with "Object factory for class ... TFDGUIxWaitCursor"
+  // as soon as it opens the connection. It is a console app, so the variant
+  // to use is ConsoleUI (exists on Windows and Linux alike).
   FireDAC.ConsoleUI.Wait,
   uMakerAi.Embeddings.Core,
   uMakerAi.Embeddings.Ollama,
@@ -167,14 +167,14 @@ begin
   Result := GetEnvironmentVariable('PGLIBPQ');
   if (Result <> '') and FileExists(Result) then
     Exit;
-  // Autodeteccion: la mas nueva primero
+  // Autodetection: newest first
   for V := 18 downto 12 do
   begin
     Base := Format('C:\Program Files\PostgreSQL\%d\bin\libpq.dll', [V]);
     if FileExists(Base) then
       Exit(Base);
   end;
-  Result := ''; // que FireDAC lo busque en el PATH
+  Result := ''; // so FireDAC searches for it in PATH
 end;
 
 // ---------------------------------------------------------------------------
@@ -208,7 +208,7 @@ begin
   Conn.LoginPrompt := False;
 
   if Conn.Params.Values['Password'] = '' then
-    raise Exception.Create('Falta la variable de entorno PGPASSWORD');
+    raise Exception.Create('Missing environment variable PGPASSWORD');
 
   Conn.Connected := True;
   Ver := Conn.ExecSQLScalar('select version()');

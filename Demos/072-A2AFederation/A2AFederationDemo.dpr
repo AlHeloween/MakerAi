@@ -88,7 +88,7 @@ end;
 function BuildEditorAgent(AHandlers: TEditorHandlers): TAIAgentManager;
 begin
   Result := TAIAgentManager.Create(nil);
-  Result.Name := 'AgenteEditor';
+  Result.Name := 'EditorAgent';
   Result.AddNode('Limpiar', AHandlers.LimpiarExec).AddNode('Firmar', AHandlers.FirmarExec);
   Result.AddEdge('Limpiar', 'Firmar');
   Result.SetEntryPoint('Limpiar').SetFinishPoint('Firmar');
@@ -105,8 +105,8 @@ begin
   Server := TAiA2AServer.Create(nil);
   try
     Server.AgentManager := Editor;
-    Server.AgentName := 'Agente Editor';
-    Server.AgentDescription := 'Limpia y firma textos (demo A2A de MakerAI)';
+    Server.AgentName := 'Editor Agent';
+    Server.AgentDescription := 'Cleans and signs text (MakerAI A2A demo)';
     Server.Port := APort;
     Server.Active := True;
     Writeln(Format('A2A agent listening on http://localhost:%d', [APort]));
@@ -174,8 +174,8 @@ begin
   try
     // 1) Expose the Editor Agent via A2A
     Server.AgentManager := Editor;
-    Server.AgentName := 'Agente Editor';
-    Server.AgentDescription := 'Limpia y firma textos (demo A2A de MakerAI)';
+    Server.AgentName := 'Editor Agent';
+    Server.AgentDescription := 'Cleans and signs text (MakerAI A2A demo)';
     Server.Port := APort;
     Server.Active := True;
     Writeln(Format('[server] Editor Agent published at http://localhost:%d', [APort]));
@@ -188,7 +188,7 @@ begin
     // 3) Federation: the Writer Agent delegates its 'Edit' node to the remote
     Writeln;
     Writeln('[federation] Local graph: Prepare -> Edit(A2A remote) -> Publish');
-    Redactor.Name := 'AgenteRedactor';
+    Redactor.Name := 'WriterAgent';
     Redactor.AddNode('Preparar', RedactorHandlers.PrepararExec);
     Redactor.AddNode('Editar', nil);
     Redactor.AddNode('Publicar', RedactorHandlers.PublicarExec);

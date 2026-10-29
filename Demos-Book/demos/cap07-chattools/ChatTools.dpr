@@ -142,7 +142,7 @@ begin
     Conn.VisionTool := VisionTool;
 
     Conn.SystemPrompt.Text :=
-      'Eres un asistente de análisis visual. Recibirás descripciones en texto ' +
+      'You are a visual analysis assistant. You will receive text descriptions ' +
       'de imágenes y responderás preguntas sobre ellas. Responde en español, conciso.';
 
     // Load the image into a TAiMediaFile
@@ -309,7 +309,7 @@ begin
     WriteLn('[OK] Ollama detected at ', OLLAMA_URL)
   else
   begin
-    WriteLn('[!!] Ollama no detectado en ', OLLAMA_URL);
+    WriteLn('[!!] Ollama not detected at ', OLLAMA_URL);
     WriteLn('     Demos 1 and 2 require Ollama with gemma3:4b.');
     WriteLn('     To install: https://ollama.com');
     WriteLn('     For the model: ollama pull gemma3:4b');

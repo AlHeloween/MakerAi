@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 // Name: Gustavo Enr�quez
-// Redes Sociales:
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -71,7 +71,7 @@ type
   TAiFileToolBase<T: class, constructor> = class(TAiMCPToolBase<T>)
   protected
     FConfig: TFileAccessConfig;
-    FOwnsConfig: Boolean; // Si es true, libera la config al destruirse
+    FOwnsConfig: Boolean; // If true, frees the config on destruction
   public
     constructor Create(AConfig: TFileAccessConfig = nil); reintroduce;
     destructor Destroy; override;
@@ -300,12 +300,12 @@ begin
   if Assigned(AConfig) then
   begin
     FConfig := AConfig;
-    FOwnsConfig := False; // Usamos configuraci�n compartida externa
+    FOwnsConfig := False; // We use shared external configuration
   end
   else
   begin
     FConfig := TFileAccessConfig.Create;
-    FOwnsConfig := True; // Creamos nuestra propia configuraci�n
+    FOwnsConfig := True; // We create our own configuration
   end;
 end;
 
@@ -324,7 +324,7 @@ constructor TListFilesTool.Create(AConfig: TFileAccessConfig);
 begin
   inherited Create(AConfig);
   FName := 'list_files';
-  FDescription := 'Lista archivos en carpetas permitidas con filtros de seguridad';
+  FDescription := 'Lists files in allowed folders with security filters';
 end;
 
 function TListFilesTool.ExecuteWithParams(const AParams: TListFilesParams; const AuthContext: TAiAuthContext): TJSONObject;
@@ -396,7 +396,7 @@ constructor TReadFileTool.Create(AConfig: TFileAccessConfig);
 begin
   inherited Create(AConfig);
   FName := 'read_file';
-  FDescription := 'Lee y devuelve el contenido de un archivo con restricciones de seguridad.';
+  FDescription := 'Reads and returns the content of a file with security restrictions.';
 end;
 
 function TReadFileTool.ExecuteWithParams(const AParams: TReadFileParams; const AuthContext: TAiAuthContext): TJSONObject;
@@ -436,7 +436,7 @@ constructor TWriteFileTool.Create(AConfig: TFileAccessConfig);
 begin
   inherited Create(AConfig);
   FName := 'write_file';
-  FDescription := 'Escribe contenido en un archivo con restricciones de seguridad.';
+  FDescription := 'Writes content to a file with security restrictions.';
 end;
 
 function TWriteFileTool.ExecuteWithParams(const AParams: TWriteFileParams; const AuthContext: TAiAuthContext): TJSONObject;

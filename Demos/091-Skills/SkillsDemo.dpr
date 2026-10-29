@@ -115,7 +115,7 @@ begin
   GApiKey := '@' + UpperCase(GDriver) + '_API_KEY';
 end;
 
-// La carpeta skills\ está junto al .dpr; el .exe queda en Win64\Release
+// The skills\ folder sits next to the .dpr; the .exe ends up in Win64\Release
 function BuscarCarpetaSkills: string;
 var
   Dir: string;
@@ -159,10 +159,10 @@ end;
 procedure BloqueA(Eventos: TEventos);
 const
   PREGUNTAS: array[0..3] of string = (
-    'Hazme la factura para Ferreteria El Tornillo por 3 horas de capacitacion en Delphi a 150.000 pesos la hora.',
-    'Revisa este codigo:'#10 + CODIGO_CON_ERRORES,
-    'Un cliente escribe: "Llevo tres dias sin poder entrar al sistema y nadie me responde". Contestale.',
-    'Cuanto es 17 por 23? Responde solo el numero.');
+    'Make me the invoice for Ferreteria El Tornillo for 3 hours of Delphi training at 150,000 pesos per hour.',
+    'Review this code:'#10 + CODIGO_CON_ERRORES,
+    'A customer writes: "I have been unable to log in for three days and nobody answers me". Reply to them.',
+    'How much is 17 times 23? Answer with the number only.');
 var
   Conn: TAiChatConnection;
   Funcs: TAiFunctions;
@@ -225,7 +225,7 @@ var
   Node: TLLMNode;
   Cfg: TLLMNodeConfig;
 begin
-  Titulo('B. TLLMNode + TAiSkill: el skill como base del nodo');
+  Titulo('B. TLLMNode + TAiSkill: the skill as the node''s base');
   Manager := TAIAgentManager.Create(nil);
   try
     Manager.Asynchronous := False;

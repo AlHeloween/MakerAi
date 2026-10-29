@@ -218,7 +218,7 @@ begin
   Inc(FPartialCount);
   Writeln(Format('    [Partial #%d] %d bytes', [AIndex, AImage.Image.Size]));
   SaveImage(Format('test4_partial_%d.webp', [AIndex]), AImage.Image);
-  AImage.Free; // responsabilidad del handler
+  AImage.Free; // handler responsibility
 end;
 
 procedure TStreamingTest.OnCompleted(Sender: TObject;

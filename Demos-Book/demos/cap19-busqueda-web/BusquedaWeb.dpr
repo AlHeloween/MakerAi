@@ -3,26 +3,26 @@
 {$APPTYPE CONSOLE}
 
 // =============================================================================
-// MakerAI — Capítulo 19: Búsqueda Web y Herramientas Externas
-// Demo: Tres modalidades de búsqueda web
+// MakerAI — Chapter 19: Web Search and External Tools
+// Demo: Three web search modalities
 // =============================================================================
 //
-//   A) Nativa  — Gemini con Google Search integrado
-//               ModelCaps=[cap_WebSearch] → el modelo busca por sí mismo
-//               Requiere: GEMINI_API_KEY
+//   A) Native  — Gemini with integrated Google Search
+//               ModelCaps=[cap_WebSearch] → the model searches by itself
+//               Requires: GEMINI_API_KEY
 //
 //   B) Bridge  — Tavily + Gemini via gap analysis
 //               ModelCaps=[] + SessionCaps=[cap_WebSearch] + WebSearchTool=Tavily
-//               MakerAI detecta el gap → Tavily busca → Gemini sintetiza
-//               Requiere: GEMINI_API_KEY + TAVILY_API_KEY
+//               MakerAI detects the gap → Tavily searches → Gemini synthesizes
+//               Requires: GEMINI_API_KEY + TAVILY_API_KEY
 //
-//   C) Directa — Tavily sin LLM (llamada directa a la herramienta)
-//               Sin TAiChatConnection — resultado inmediato, sin tokens LLM
-//               Requiere: TAVILY_API_KEY
+//   C) Direct  — Tavily without LLM (direct call to the tool)
+//               Without TAiChatConnection — immediate result, no LLM tokens
+//               Requires: TAVILY_API_KEY
 //
-// Prerequisito: paquete MakerAI ChatTools instalado.
-//   Opción A: instalar uMakerAi.ChatTools.bpl como paquete en el IDE.
-//   Opción B: agregar AiMaker.ChatTools\Source\Web al Library Path del IDE.
+// Prerequisite: MakerAI ChatTools package installed.
+//   Option A: install uMakerAi.ChatTools.bpl as a package in the IDE.
+//   Option B: add AiMaker.ChatTools\Source\Web to the IDE Library Path.
 // =============================================================================
 
 uses
@@ -37,7 +37,7 @@ uses
 const
   MODEL_GEMINI   = 'gemini-2.0-flash';
   QUERY_DELPHI   = 'Delphi programming language 2026 Embarcadero news features';
-  QUERY_PRECIOS  = 'precio Bitcoin BTC hoy USD valor actual';
+  QUERY_PRECIOS  = 'Bitcoin BTC price today USD current value';
 
 // =============================================================================
 
@@ -54,9 +54,9 @@ end;
 // =============================================================================
 //  A) Búsqueda NATIVA — Gemini con Google Search integrado
 // =============================================================================
-// ModelCaps=[cap_WebSearch] significa que el modelo tiene búsqueda nativa.
-// SessionCaps=[cap_WebSearch] le indica a MakerAI que la necesitamos en esta
-// sesión. Como no hay gap (el modelo ya puede), delega al modelo directamente.
+// ModelCaps=[cap_WebSearch] means the model has native search.
+// SessionCaps=[cap_WebSearch] tells MakerAI that we need it in this
+// session. Since there is no gap (the model already can), it delegates to the model directly.
 // =============================================================================
 
 procedure DemoNativa;
@@ -64,8 +64,8 @@ var
   Conn: TAiChatConnection;
   Resp: string;
 begin
-  WriteLn('A) Búsqueda NATIVA — Gemini con Google Search integrado');
-  WriteLn('   ModelCaps=[cap_WebSearch] → el modelo busca por sí mismo');
+  WriteLn('A) NATIVE search — Gemini with integrated Google Search');
+  WriteLn('   ModelCaps=[cap_WebSearch] → the model searches by itself');
   Separador;
   WriteLn;
 
@@ -80,10 +80,10 @@ begin
     Conn.Params.Values['ModelCaps']   := '[cap_WebSearch]';
     Conn.Params.Values['SessionCaps'] := '[cap_WebSearch]';
     Conn.SystemPrompt.Text :=
-      'Eres un asistente informado. Usa búsqueda web para dar información ' +
-      'actualizada y precisa. Responde en español y menciona las fuentes.';
+      'You are an informed assistant. Use web search to provide ' +
+      'up-to-date and accurate information. Respond in Spanish and mention the sources.';
 
-    WriteLn('Pregunta: ', QUERY_DELPHI);
+    WriteLn('Question: ', QUERY_DELPHI);
     WriteLn;
 
     Resp := Conn.AddMessageAndRun(QUERY_DELPHI, 'user', []);
@@ -96,10 +96,10 @@ end;
 // =============================================================================
 //  B) Búsqueda via BRIDGE — Tavily + Gemini (gap analysis)
 // =============================================================================
-// ModelCaps=[] → el modelo no tiene búsqueda nativa en esta configuración.
-// SessionCaps=[cap_WebSearch] → la necesitamos.
+// ModelCaps=[] → the model has no native search in this configuration.
+// SessionCaps=[cap_WebSearch] → we need it.
 // Gap = SessionCaps − ModelCaps = [cap_WebSearch].
-// MakerAI detecta el gap → llama Tavily → inyecta los resultados al LLM.
+// MakerAI detects the gap → calls Tavily → injects the results into the LLM.
 // =============================================================================
 
 procedure DemoBridge;
@@ -108,8 +108,8 @@ var
   Tavily: TAiTavilyWebSearchTool;
   Resp  : string;
 begin
-  WriteLn('B) Búsqueda via BRIDGE — Tavily + Gemini (gap analysis)');
-  WriteLn('   ModelCaps=[] + SessionCaps=[cap_WebSearch] → MakerAI usa Tavily');
+  WriteLn('B) Search via BRIDGE — Tavily + Gemini (gap analysis)');
+  WriteLn('   ModelCaps=[] + SessionCaps=[cap_WebSearch] → MakerAI uses Tavily');
   Separador;
   WriteLn;
 
@@ -131,11 +131,11 @@ begin
     Conn.WebSearchTool := Tavily;  // MakerAI usará Tavily para cubrir el gap
 
     Conn.SystemPrompt.Text :=
-      'Eres un asistente financiero. Analiza la información recibida de búsqueda ' +
-      'y responde con datos concretos y actualizados. Responde en español.';
+      'You are a financial assistant. Analyze the information received from search ' +
+      'and respond with concrete and up-to-date data. Respond in Spanish.';
 
-    WriteLn('Pregunta: ', QUERY_PRECIOS);
-    WriteLn('[Tavily busca → resultados inyectados → Gemini analiza y responde]');
+    WriteLn('Question: ', QUERY_PRECIOS);
+    WriteLn('[Tavily searches → results injected → Gemini analyzes and responds]');
     WriteLn;
 
     Resp := Conn.AddMessageAndRun(QUERY_PRECIOS, 'user', []);
@@ -150,10 +150,10 @@ end;
 // =============================================================================
 //  C) Búsqueda DIRECTA — Tavily sin LLM
 // =============================================================================
-// Llamada directa a la herramienta sin pasar por TAiChatConnection.
-// ExecuteSearch es protected en la clase pero se expone vía IAiWebSearchTool.
-// El resultado llega en ResMsg.Prompt: "## Respuesta" + "## Fuentes [1][2]..."
-// Ideal para pipelines sin LLM, precarga de datos, o batch processing.
+// Direct call to the tool without going through TAiChatConnection.
+// ExecuteSearch is protected in the class but is exposed via IAiWebSearchTool.
+// The result arrives in ResMsg.Prompt: "## Response" + "## Sources [1][2]..."
+// Ideal for pipelines without LLM, data prefetching, or batch processing.
 // =============================================================================
 
 procedure DemoDirecta;
@@ -163,7 +163,7 @@ var
   AskMsg : TAiChatMessage;
   Resultado: string;
 begin
-  WriteLn('C) Búsqueda DIRECTA — Tavily sin LLM');
+  WriteLn('C) DIRECT search — Tavily without LLM');
   WriteLn('   (TAiTavilyWebSearchTool as IAiWebSearchTool).ExecuteSearch(...)');
   Separador;
   WriteLn;
@@ -177,8 +177,8 @@ begin
     Tavily.IncludeAnswer := True;
     Tavily.SearchDepth   := tsdBasic;
 
-    WriteLn('Buscando: "', QUERY_DELPHI, '"');
-    WriteLn('(Sin LLM — resultado inmediato)');
+    WriteLn('Searching: "', QUERY_DELPHI, '"');
+    WriteLn('(Without LLM — immediate result)');
     WriteLn;
 
     // ExecuteSearch es protected en la clase → se invoca via interfaz
@@ -188,7 +188,7 @@ begin
 
     WriteLn('─── ResMsg.Prompt ────────────────────────────────────────────');
     if Length(Resultado) > 1200 then
-      WriteLn(Copy(Resultado, 1, 1200), #13#10'[...truncado para la demo]')
+      WriteLn(Copy(Resultado, 1, 1200), #13#10'[...truncated for the demo]')
     else
       WriteLn(Resultado);
   finally
@@ -203,7 +203,7 @@ begin
   try
     WriteLn;
     WriteLn('════════════════════════════════════════════════════════════════');
-    WriteLn('  Cap. 19 — Búsqueda Web y Herramientas Externas');
+    WriteLn('  Ch. 19 — Web Search and External Tools');
     WriteLn('  Driver  : Gemini (gemini-2.0-flash)');
     WriteLn('  ChatTool: TAiTavilyWebSearchTool (MakerAI ChatTools)');
     WriteLn('════════════════════════════════════════════════════════════════');
@@ -216,7 +216,7 @@ begin
       WriteLn;
     end
     else
-      WriteLn('SKIP A: GEMINI_API_KEY no configurada.' + sLineBreak);
+      WriteLn('SKIP A: GEMINI_API_KEY not configured.' + sLineBreak);
 
     // B: Bridge — requiere GEMINI_API_KEY + TAVILY_API_KEY
     if KeyPresente('GEMINI_API_KEY') and KeyPresente('TAVILY_API_KEY') then
@@ -225,7 +225,7 @@ begin
       WriteLn;
     end
     else
-      WriteLn('SKIP B: GEMINI_API_KEY y/o TAVILY_API_KEY no configuradas.' + sLineBreak);
+      WriteLn('SKIP B: GEMINI_API_KEY and/or TAVILY_API_KEY not configured.' + sLineBreak);
 
     // C: Directa — requiere solo TAVILY_API_KEY
     if KeyPresente('TAVILY_API_KEY') then
@@ -234,7 +234,7 @@ begin
       WriteLn;
     end
     else
-      WriteLn('SKIP C: TAVILY_API_KEY no configurada.' + sLineBreak);
+      WriteLn('SKIP C: TAVILY_API_KEY not configured.' + sLineBreak);
 
   except
     on E: Exception do
@@ -245,6 +245,6 @@ begin
   end;
 
   WriteLn;
-  WriteLn('Presiona Enter para salir...');
+  WriteLn('Press Enter to exit...');
   ReadLn;
 end.

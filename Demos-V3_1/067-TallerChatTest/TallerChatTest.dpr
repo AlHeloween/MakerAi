@@ -81,8 +81,8 @@ begin
 
   try
     TFile.WriteAllText(NombreArchivo, Contenido, TEncoding.UTF8);
-    ToolCall.Response := 'Exito: el archivo "' + NombreArchivo +
-      '" ha sido guardado (' + IntToStr(Length(Contenido)) + ' caracteres).';
+    ToolCall.Response := 'Success: file "' + NombreArchivo +
+      '" has been saved (' + IntToStr(Length(Contenido)) + ' characters).';
     ArchivoGuardado   := True;
     ArchivoCreadoPath := NombreArchivo;
     PrintINFO('[Tool invoked] SaveFile("' + NombreArchivo + '")');
@@ -216,13 +216,13 @@ begin
         BoolToStr(Conn.AiChat.Asynchronous, True));
       PrintINFO('Prompt: "Respond in a single word: what color is the sky?"');
       Resp := Conn.AddMessageAndRun(
-        'Responde en una sola palabra: de que color es el cielo?',
+        'Respond in a single word: what color is the sky?',
         'user', []);
       if Helper.LastError <> '' then
         PrintFAIL('Error: ' + Helper.LastError)
       else if Resp.Trim <> '' then
       begin
-        PrintOK('Respuesta: ' + Resp.Trim.Substring(0, Min(120, Resp.Trim.Length)));
+        PrintOK('Response: ' + Resp.Trim.Substring(0, Min(120, Resp.Trim.Length)));
         Result := True;
       end
       else
@@ -262,8 +262,8 @@ begin
 
       PrintINFO('Prompt: "Generate a Hello World in Delphi and save it to: ' + ArchPath + '"');
       Resp := Conn.AddMessageAndRun(
-        'Genera un codigo Hello World minimo en Delphi (solo el codigo) ' +
-        'y guardalo en el archivo: ' + ArchPath,
+        'Generate a minimal Hello World code in Delphi (code only) ' +
+        'and save it to the file: ' + ArchPath,
         'user', []);
 
       if Helper.LastError <> '' then
@@ -272,8 +272,8 @@ begin
       begin
         PrintOK('File created: ' + ArchPath);
         var Contenido := TFile.ReadAllText(ArchPath, TEncoding.UTF8);
-        PrintINFO('Primeros 100 chars: ' + Contenido.Substring(0, Min(100, Contenido.Length)));
-        PrintOK('Respuesta IA: ' + Resp.Trim.Substring(0, Min(120, Resp.Trim.Length)));
+        PrintINFO('First 100 chars: ' + Contenido.Substring(0, Min(100, Contenido.Length)));
+        PrintOK('AI response: ' + Resp.Trim.Substring(0, Min(120, Resp.Trim.Length)));
         Result := True;
         TFile.Delete(ArchPath);
       end
@@ -349,7 +349,7 @@ begin
         PrintINFO('Prompt: "What do you see in this image? Describe the main color."');
 
         Resp := Conn.AddMessageAndRun(
-          'Que ves en esta imagen? Describe brevemente el color principal.',
+          'What do you see in this image? Briefly describe the main color.',
           'user',
           MediaFiles.ToMediaFileArray);
 
@@ -357,7 +357,7 @@ begin
           PrintFAIL('Error: ' + Helper.LastError)
         else if Resp.Trim <> '' then
         begin
-          PrintOK('Respuesta: ' + Resp.Trim.Substring(0, Min(200, Resp.Trim.Length)));
+          PrintOK('Response: ' + Resp.Trim.Substring(0, Min(200, Resp.Trim.Length)));
           Result := True;
         end
         else
@@ -417,7 +417,7 @@ begin
         MediaFiles.Add(Attachment);
 
         Descripcion := ConnVision.AddMessageAndRun(
-          'Describe esta imagen en una oracion corta.',
+          'Describe this image in a short sentence.',
           'user',
           MediaFiles.ToMediaFileArray);
       finally
@@ -443,7 +443,7 @@ begin
       ConnTools.AiFunctions := Funcs;
 
       Resp := ConnTools.AddMessageAndRun(
-        'Guarda este texto en el archivo "' + ArchPath + '": ' + Descripcion.Trim,
+        'Save this text to the file "' + ArchPath + '": ' + Descripcion.Trim,
         'user', []);
 
       if Helper.LastError <> '' then
@@ -495,7 +495,7 @@ var
   Resp:        string;
   ImgPath:     string;
   ArchPath:    string;
-  ErrorCapturado: string;  // guardado antes de liberar Helper
+  ErrorCapturado: string;  // saved before freeing Helper
 begin
   ImgPath  := TPath.Combine(TPath.GetTempPath, 'taller_qwen_test.png');
   ArchPath := TPath.Combine(TPath.GetTempPath, 'qwen_descripcion.txt');
@@ -532,7 +532,7 @@ begin
 
       try
         Resp := Conn.AddMessageAndRun(
-          'Describe esta imagen y guarda la descripcion en: ' + ArchPath,
+          'Describe this image and save the description to: ' + ArchPath,
           'user',
           MediaFiles.ToMediaFileArray);
       except

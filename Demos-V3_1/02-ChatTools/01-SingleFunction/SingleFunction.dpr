@@ -7,9 +7,9 @@ program SingleFunction;
 // MakerAI — 02-ChatTools / 01-SingleFunction
 // =============================================================================
 // Demonstrates how to expose ONE Delphi function to the LLM so it can invoke it
-// cuando lo necesite (Tool Use / Function Calling).
+// when it needs it (Tool Use / Function Calling).
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - Create TAiFunctions and register a function with AddFunction()
 //   - Assign TAiFunctions to TAiChatConnection.AiFunctions
 //   - Implement the handler as a class method (TFunctionEvent)
@@ -47,7 +47,7 @@ type
   private
     FAiFunctions: TAiFunctions;
 
-    // ── Handler de la función get_weather ────────────────────────────────────
+    // ── Handler for the get_weather function ────────────────────────────────────
     procedure OnFnGetWeather(Sender: TObject; FunctionAction: TFunctionActionItem;
       FunctionName: String; ToolCall: TAiToolsFunction; var Handled: Boolean);
   public
@@ -72,12 +72,12 @@ begin
   Args := TJSONObject.ParseJSONValue(ToolCall.Arguments) as TJSONObject;
   if not Assigned(Args) then
   begin
-    ToolCall.Response := '{"error":"No se pudo parsear los argumentos"}';
+    ToolCall.Response := '{"error":"Could not parse the arguments"}';
     Handled := True;
     Exit;
   end;
   try
-    City := Args.GetValue<String>('city', 'desconocida');
+    City := Args.GetValue<String>('city', 'unknown');
   finally
     Args.Free;
   end;
@@ -85,16 +85,16 @@ begin
   // Simulated data according to the city
   if City.ToLower.Contains('monterrey') or City.ToLower.Contains('guadalajara') then
   begin
-    TempC := 28; Cond := 'Soleado'; Hum := 45;
+    TempC := 28; Cond := 'Sunny'; Hum := 45;
   end
   else if City.ToLower.Contains('méxico') or City.ToLower.Contains('cdmx') or
           City.ToLower.Contains('mexico') then
   begin
-    TempC := 18; Cond := 'Nublado con lluvia ligera'; Hum := 75;
+    TempC := 18; Cond := 'Cloudy with light rain'; Hum := 75;
   end
   else
   begin
-    TempC := 22; Cond := 'Parcialmente nublado'; Hum := 60;
+    TempC := 22; Cond := 'Partly cloudy'; Hum := 60;
   end;
 
   ToolCall.Response := Format(
@@ -117,13 +117,13 @@ begin
   Writeln('Driver: ', DRIVER, ' / Model: ', MODEL);
   Writeln;
 
-  // ── Crear y configurar TAiFunctions ────────────────────────────────────────
+  // ── Create and configure TAiFunctions ────────────────────────────────────────
   FAiFunctions := TAiFunctions.Create(nil);
   try
     LFn := FAiFunctions.Functions.AddFunction('get_weather', True, OnFnGetWeather);
     LFn.Description.Text :=
-      'Obtiene el clima actual de una ciudad. Devuelve temperatura, ' +
-      'condición y humedad.';
+      'Gets the current weather of a city. Returns temperature, ' +
+      'condition and humidity.';
 
     LParam := LFn.Parameters.Add;
     LParam.Name        := 'city';
@@ -131,7 +131,7 @@ begin
     LParam.Required    := True;
     LParam.Description.Text := 'Name of the city (e.g.: "Monterrey", "Mexico City")';
 
-    // ── Crear conexión ────────────────────────────────────────────────────────
+    // ── Create connection ────────────────────────────────────────────────────────
     Conn := TAiChatConnection.Create(nil);
     try
       Conn.DriverName := DRIVER;
@@ -143,27 +143,27 @@ begin
       Conn.AiFunctions := FAiFunctions;
 
       Conn.SystemPrompt.Text :=
-        'Eres un asistente de clima. Cuando el usuario pregunte por el clima, ' +
-        'usa la función get_weather para obtener datos reales. Responde en español.';
+        'You are a weather assistant. When the user asks about the weather, ' +
+        'use the get_weather function to get real data. Respond in Spanish.';
 
-      // ── Pregunta 1: necesita la función ────────────────────────────────────
+      // ── Question 1: needs the function ────────────────────────────────────
       Writeln('── Question 1 (needs the function) ──');
-      Res := Conn.AddMessageAndRun('¿Cómo está el clima en Monterrey hoy?', 'user', []);
+      Res := Conn.AddMessageAndRun('How is the weather in Monterrey today?', 'user', []);
       Writeln('Response: ', Res);
       Writeln;
       Conn.Messages.Clear;
 
-      // ── Pregunta 2: NO necesita la función ─────────────────────────────────
+      // ── Question 2: does not need the function ─────────────────────────────────
       Writeln('── Question 2 (does not need the function) ──');
-      Res := Conn.AddMessageAndRun('¿Cuál es la capital de México?', 'user', []);
+      Res := Conn.AddMessageAndRun('What is the capital of Mexico?', 'user', []);
       Writeln('Response: ', Res);
       Writeln;
       Conn.Messages.Clear;
 
-      // ── Pregunta 3: función con otra ciudad ────────────────────────────────
+      // ── Question 3: function with another city ────────────────────────────────
       Writeln('── Question 3 (invokes function with another city) ──');
       Res := Conn.AddMessageAndRun(
-        '¿Necesito llevar paraguas si salgo en CDMX?', 'user', []);
+        'Do I need to bring an umbrella if I go out in CDMX?', 'user', []);
       Writeln('Response: ', Res);
 
     finally

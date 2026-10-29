@@ -65,7 +65,7 @@ var
 begin
   Fmt := Trim(LowerCase(AParams.Format));
   if Fmt = 'readable' then
-    Resultado := FormatDateTime('"Hoy es" dddd, d "de" mmmm "de" yyyy, "a las" hh:nn:ss', Now)
+    Resultado := FormatDateTime('"Today is" dddd, d "of" mmmm "of" yyyy, "at" hh:nn:ss', Now)
   else
     Resultado := FormatDateTime('yyyy-mm-dd"T"hh:nn:ss', Now);
 

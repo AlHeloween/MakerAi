@@ -74,7 +74,7 @@ begin
   ElicitParams := TJSONObject.Create;
   Elicit.AddPair('params', ElicitParams);
   ElicitParams.AddPair('mode', 'form');
-  ElicitParams.AddPair('message', 'Autoriza la transferencia de ' + AMonto + '?');
+  ElicitParams.AddPair('message', 'Authorize the transfer of ' + AMonto + '?');
 
   // The schema tells the client what shape the expected response has
   Schema := TJSONObject.Create;

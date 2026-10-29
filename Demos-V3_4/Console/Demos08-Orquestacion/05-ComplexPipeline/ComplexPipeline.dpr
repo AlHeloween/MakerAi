@@ -176,7 +176,7 @@ begin
   Writeln('Contextualizador -> [Pros + Cons] -> Sintetizador -> Redactor');
   Writeln;
 
-  RunComplexPipeline('Automatizacion industrial con robotica e IA');
+  RunComplexPipeline('Industrial automation with robotics and AI');
 end;
 
 begin

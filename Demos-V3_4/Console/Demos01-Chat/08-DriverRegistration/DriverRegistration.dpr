@@ -120,7 +120,7 @@ begin
     Conn.Params.Values['ApiKey']       := '';
     Conn.Params.Values['Asynchronous'] := 'False';
     Conn.Params.Values['Max_Tokens']   := '256';
-    Conn.SystemPrompt.Text             := 'Responde siempre muy brevemente, en una frase.';
+    Conn.SystemPrompt.Text             := 'Always respond very briefly, in one sentence.';
 
     Writeln('  Active driver: ', Conn.DriverName);
     Writeln('  Active model: ', Conn.Model);

@@ -8,7 +8,7 @@ program AdvancedParams;
 // =============================================================================
 // Exploration of all advanced parameters of TAiChatConnection.
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - Temperature     : controls randomness (0=deterministic, 1=creative)
 //   - MaxTokens       : limit of tokens in the response
 //   - SystemPrompt    : system instructions (personality, constraints)
@@ -102,7 +102,7 @@ end;
 // =============================================================================
 procedure DemoSystemPrompt(Conn: TAiChatConnection);
 const
-  PREGUNTA = '¿Cómo aprender a programar?';
+  PREGUNTA = 'How to learn programming?';
   SISTEMAS : array[0..2] of String = (
     'You are a formal university professor. Use technical terminology.',
     'You are a 14-year-old friend. Speak like a teenager, with emojis.',
@@ -145,7 +145,7 @@ begin
 
   Conn.Messages.Clear;
   Conn.SystemPrompt.Text :=
-    'Responde SIEMPRE en JSON válido, sin texto adicional. ' +
+    'Always respond in valid JSON, with no additional text. ' +
     'The JSON must have exactly these fields: ' +
     '"nombre", "capital", "poblacion_millones", "idioma_oficial".';
 
@@ -179,8 +179,8 @@ begin
 end;
 
 // =============================================================================
-//  DEMO 5 — ThinkingLevel: razonamiento extendido
-//  (Solo soportado en Claude con modelos que soporten extended thinking)
+//  DEMO 5 — ThinkingLevel: extended reasoning
+//  (Only supported in Claude with models that support extended thinking)
 // =============================================================================
 procedure DemoThinkingLevel(Conn: TAiChatConnection);
 var
@@ -196,7 +196,7 @@ begin
   Conn.Params.Values['Max_Tokens']    := '2048';
 
   Res := Conn.AddMessageAndRun(
-    'Resuelve paso a paso: Si tengo 3 cajas con 4 pelotas cada una, ' +
+    'Solve step by step: If I have 3 boxes with 4 balls each, ' +
     'and I give away half of all the balls, how many do I have left?',
     'user', []);
 

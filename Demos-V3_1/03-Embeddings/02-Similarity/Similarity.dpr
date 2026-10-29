@@ -10,7 +10,7 @@ program Similarity;
 // Builds a mini similarity matrix and finds the most similar
 // to a query using linear search.
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - Cosine similarity, Euclidean distance, dot product
 //   - NxN matrix of similarities between a text corpus
 //   - Search for the top-K most similar to a query
@@ -31,7 +31,7 @@ const
   MODEL   = 'text-embedding-3-small';
   API_KEY = '@OPENAI_API_KEY';
 
-// Corpus de ejemplo — frases sobre tecnología y otros temas
+// Example corpus — phrases about technology and other topics
 const
   CORPUS: array[0..7] of String = (
     'Machine learning models learn patterns from data',
@@ -62,7 +62,7 @@ begin
     Idx[I]    := I;
   end;
 
-  // Bubble sort descendente
+  // Bubble sort descending
   for I := 0 to High(Corpus) - 1 do
     for J := 0 to High(Corpus) - I - 1 do
       if Scores[Idx[J]] < Scores[Idx[J+1]] then
@@ -97,7 +97,7 @@ begin
     Conn.Model      := MODEL;
     Conn.ApiKey     := API_KEY;
 
-    // ── Paso 1: generar embeddings del corpus ─────────────────────────────
+    // ── Step 1: generate corpus embeddings ─────────────────────────────
     Writeln('Generating corpus embeddings (', Length(CORPUS), ' texts)...');
     for I := 0 to High(CORPUS) do
     begin
@@ -107,7 +107,7 @@ begin
     end;
     Writeln;
 
-    // ── Paso 2: búsqueda por similitud ────────────────────────────────────
+    // ── Step 2: similarity search ────────────────────────────────────
     Writeln('--- Similarity search ---');
 
     // Query 1: AI/ML topic → should find ML phrases
@@ -118,7 +118,7 @@ begin
     QueryEmb := Conn.CreateEmbedding('Plants and nature', 'user');
     PrintTopK('Plants and nature', CORPUS, Embeddings, QueryEmb, 3);
 
-    // ── Paso 3: matriz de similitud parcial ──────────────────────────────
+    // ── Step 3: partial similarity matrix ──────────────────────────────
     Writeln('--- Similarity matrix (first 4 texts) ---');
     Write(Format('%-6s', ['']));
     for I := 0 to 3 do

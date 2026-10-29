@@ -105,15 +105,15 @@ begin
     // Conn.ChatMode := cmConversation;
 
     Conn.SystemPrompt.Text :=
-      'Eres un asistente tecnico especializado en Delphi. ' +
-      'Responde de forma concisa, en una o dos frases.';
+      'You are a technical assistant specialized in Delphi. ' +
+      'Respond concisely, in one or two sentences.';
 
     WriteLn('  Prompt: What is the main advantage of Delphi over other IDEs?');
     WriteLn('');
 
     Write('  Waiting for response... ');
     Resp := Conn.AddMessageAndRun(
-      'Cual es la principal ventaja de Delphi frente a otras IDEs?', 'user', []);
+      'What is the main advantage of Delphi over other IDEs?', 'user', []);
     WriteLn('OK');
     WriteLn('');
     WriteLn('  Response:');
@@ -168,7 +168,7 @@ begin
     WriteLn('');
 
     Write('  Searching... ');
-    Resp := Conn.AddMessageAndRun('Delphi 13 Florence novedades 2026', 'user', []);
+    Resp := Conn.AddMessageAndRun('Delphi 13 Florence new features 2026', 'user', []);
     WriteLn('OK');
     WriteLn('');
 
@@ -460,12 +460,12 @@ begin
   AudioPath   := EncontrarAudio;
 
   WriteLn('  Environment status:');
-  if TieneOpenAI then WriteLn('  [OK] OPENAI_API_KEY detectado')
-  else            WriteLn('  [--] OPENAI_API_KEY no configurado -- todos los demos omitidos');
+  if TieneOpenAI then WriteLn('  [OK] OPENAI_API_KEY detected')
+  else            WriteLn('  [--] OPENAI_API_KEY not configured -- all demos skipped');
   if AudioPath <> '' then
     WriteLn('  [OK] Audio: ', ExtractFileName(AudioPath))
   else
-    WriteLn('  [--] Audio no encontrado en ', AUDIO_PATH, ' -- demo 4 omitido');
+    WriteLn('  [--] Audio not found at ', AUDIO_PATH, ' -- demo 4 skipped');
 
   if TieneOpenAI then
   begin

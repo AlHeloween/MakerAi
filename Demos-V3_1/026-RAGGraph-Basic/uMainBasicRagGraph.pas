@@ -232,7 +232,7 @@ begin
 
     // 6. Display the results in the TMemo
     MemoContexto.Lines.Clear;
-    MemoContexto.Lines.Add(Format('--- Se encontraron %d tripletas en el grafo ---', [TripletList.Count]));
+    MemoContexto.Lines.Add(Format('--- %d triplets found in the graph ---', [TripletList.Count]));
     MemoContexto.Lines.Add('');
     MemoContexto.Lines.AddStrings(TripletList);
 

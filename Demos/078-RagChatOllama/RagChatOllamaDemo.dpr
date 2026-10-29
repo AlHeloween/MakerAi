@@ -184,10 +184,10 @@ begin
       Resp := Http.Get(OllamaUrl.TrimRight(['/']) + '/api/tags');
     except
       on E: Exception do
-        raise Exception.Create('Ollama no responde en ' + OllamaUrl + '. Arrancalo con "ollama serve".');
+        raise Exception.Create('Ollama does not respond at ' + OllamaUrl + '. Start it with "ollama serve".');
     end;
     if Resp.StatusCode <> 200 then
-      raise Exception.CreateFmt('Ollama devolvio HTTP %d', [Resp.StatusCode]);
+      raise Exception.CreateFmt('Ollama returned HTTP %d', [Resp.StatusCode]);
     if not Resp.ContentAsString(TEncoding.UTF8).Contains(ModeloChat) then
       raise Exception.CreateFmt('El modelo de chat "%s" no esta en Ollama. Descargalo con: ollama pull %s',
         [ModeloChat, ModeloChat]);
@@ -200,7 +200,7 @@ begin
   if Conn.ExecSQLScalar('select count(*) from information_schema.tables where table_name = ' + QuotedStr(TablaVec)) = 0
   then
     raise Exception.Create('The table ' + TablaVec + ' does not exist. Run demo 077-RagPostgresConsole first' +
-      ' con --model ' + ModeloEmb + ' --dim ' + IntToStr(DimEmb));
+      ' with --model ' + ModeloEmb + ' --dim ' + IntToStr(DimEmb));
 
   Total := Conn.ExecSQLScalar(Format('select count(*) from %s where entidad = %s', [TablaVec, QuotedStr(ENTIDAD)]));
   if Total = 0 then

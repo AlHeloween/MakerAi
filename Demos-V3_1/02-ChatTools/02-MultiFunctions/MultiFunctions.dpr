@@ -62,7 +62,7 @@ type
   end;
 
 // =============================================================================
-//  Implementaciones de las funciones
+//  Implementations of the functions
 // =============================================================================
 
 procedure TMultiFunctionsDemo.OnFnGetWeather(Sender: TObject;
@@ -77,12 +77,12 @@ begin
   Args := TJSONObject.ParseJSONValue(ToolCall.Arguments) as TJSONObject;
   if Assigned(Args) then
   try
-    City := Args.GetValue<String>('city', 'desconocida');
+    City := Args.GetValue<String>('city', 'unknown');
   finally
     Args.Free;
   end
   else
-    City := 'desconocida';
+    City := 'unknown';
 
   ToolCall.Response := Format(
     '{"city":"%s","temp_c":24,"condition":"Parcialmente nublado","wind_kmh":15}',
@@ -112,7 +112,7 @@ begin
   Args := TJSONObject.ParseJSONValue(ToolCall.Arguments) as TJSONObject;
   if not Assigned(Args) then
   begin
-    ToolCall.Response := '{"error":"args inválidos"}';
+    ToolCall.Response := '{"error":"invalid args"}';
     Handled := True;
     Exit;
   end;
@@ -203,7 +203,7 @@ begin
 end;
 
 // =============================================================================
-//  Registra las 3 funciones en FAiFunctions
+//  Registers the 3 functions in FAiFunctions
 // =============================================================================
 procedure TMultiFunctionsDemo.RegisterFunctions;
 var
@@ -266,10 +266,10 @@ begin
       Conn.AiFunctions := FAiFunctions;
 
       Conn.SystemPrompt.Text :=
-        'Eres un asistente inteligente con acceso a herramientas. ' +
+        'You are an intelligent assistant with access to tools. ' +
         'Use them when the user needs them. Respond in Spanish.';
 
-      // ── P1: una función ────────────────────────────────────────────────────
+      // ── P1: one function ────────────────────────────────────────────────────
       Writeln(StringOfChar('-', 60));
       Writeln('P1 — One function: "How much is 347 × 28?"');
       Res := Conn.AddMessageAndRun('How much is 347 × 28?', 'user', []);
@@ -277,7 +277,7 @@ begin
       Conn.Messages.Clear;
       Writeln;
 
-      // ── P2: dos funciones ──────────────────────────────────────────────────
+      // ── P2: two functions ──────────────────────────────────────────────────
       Writeln(StringOfChar('-', 60));
       Writeln('P2 — Two functions: weather + currency conversion');
       Res := Conn.AddMessageAndRun(
@@ -287,7 +287,7 @@ begin
       Conn.Messages.Clear;
       Writeln;
 
-      // ── P3: encadenadas ────────────────────────────────────────────────────
+      // ── P3: chained ────────────────────────────────────────────────────
       Writeln(StringOfChar('-', 60));
       Writeln('P3 — Chained: temperature conversion + currency conversion');
       Res := Conn.AddMessageAndRun(
@@ -306,7 +306,7 @@ begin
 end;
 
 // =============================================================================
-//  Punto de entrada
+//  Entry point
 // =============================================================================
 begin
   try

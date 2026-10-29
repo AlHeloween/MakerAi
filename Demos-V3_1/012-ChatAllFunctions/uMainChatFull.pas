@@ -361,8 +361,8 @@ type
     Procedure AssignModel(Const DriverName, ModelName: String);
     Procedure InitModelCapabilitiesCombo(Edit: TEdit);
     Procedure AssignAiConnParams;
-    function PackString(const Texto: string): TMemoryStream; // para comprimir los archivos de salida
-    function UnpackString(StreamComprimido: TStream): string; // para descomprimir los archivos de salida
+    function PackString(const Texto: string): TMemoryStream; // to compress output files
+    function UnpackString(StreamComprimido: TStream): string; // to decompress output files
     Function PackStream(StreamOrigen: TStream): TMemoryStream;
     Function UnpackStream(StreamComprimido: TStream): TMemoryStream;
     procedure SaveCombinedChatToStream(AContainerStream: TStream; AChatUIStream, AHistoryStream: TStream);
@@ -473,7 +473,7 @@ begin
     LHistoryStream := nil;
     LFileStream := TFileStream.Create(OpenDialog1.FileName, fmOpenRead);
     try
-      // 1. Usar nuestro procedimiento de ayuda para desempaquetar
+      // 1. Use our helper procedure to unpack
       LoadCombinedChatFromStream(LFileStream, LUIStream, LHistoryStream);
 
       // 2. Load each part into its corresponding component
@@ -556,7 +556,7 @@ begin
         AddLog(Format('Success: Imported %d MCP servers from %s',
                [LImportedCount, ExtractFileName(OpenDialog1.FileName)]));
 
-        ShowMessage(Format('Configuraci�n cargada correctamente.'#13#10 +
+        ShowMessage(Format('Configuration loaded successfully.'#13#10 +
                            'Imported servers: %d', [LImportedCount]));
       end
       else
@@ -1458,7 +1458,7 @@ var
 begin
   Result := False;
   if not TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService, IInterface(ClipboardSvc)) then
-    Exit; // No hay servicio de portapapeles disponible
+    Exit; // No clipboard service available
 
   // Before any operation, make sure the stream is at the beginning.
   if Assigned(AMediaFile.Content) then
@@ -1640,7 +1640,7 @@ begin
   AContainerStream.Position := 0;
 
   // 1. Validate header and version
-  if (AContainerStream.Read(LHeader, SizeOf(LHeader)) <> SizeOf(LHeader)) or (not CompareMem(@LHeader, @MKCHAT_MAGIC_HEADER, SizeOf(LHeader))) then // *** L�NEA CORREGIDA ***
+  if (AContainerStream.Read(LHeader, SizeOf(LHeader)) <> SizeOf(LHeader)) or (not CompareMem(@LHeader, @MKCHAT_MAGIC_HEADER, SizeOf(LHeader))) then // *** CORRECTED LINE ***
     raise Exception.Create('Invalid .mkchat file format.');
 
   if (AContainerStream.Read(LVersion, SizeOf(LVersion)) <> SizeOf(LVersion)) or (LVersion <> MKCHAT_FORMAT_VERSION) then
@@ -1685,58 +1685,58 @@ begin
   if not Assigned(AFunctions) then
     Exit;
 
-  // 1. Limpiamos la configuraci�n anterior para evitar conflictos
+  // 1. We clear the previous configuration to avoid conflicts
   AFunctions.MCPClients.Clear;
-  AddLog('Iniciando carga de servidores MCP desde JSON...');
+  AddLog('Starting MCP server loading from JSON...');
 
   LJson := nil;
   try
     Try
-      // 2. Parsear el JSON
+      // 2. Parse the JSON
       LJson := TJSONObject.ParseJSONValue(AJsonString) as TJSONObject;
       if not Assigned(LJson) then
       begin
-        AddLog('Error: El JSON proporcionado no es un objeto v�lido.');
+        AddLog('Error: The provided JSON is not a valid object.');
         Exit;
       end;
 
-      // 3. Acceder al nodo ra�z "mcpServers"
+      // 3. Access the root node "mcpServers"
       if not LJson.TryGetValue<TJSONObject>('mcpServers', LMcpServers) then
       begin
-        AddLog('Error: No se encontr� la clave "mcpServers" en el JSON.');
+        AddLog('Error: The "mcpServers" key was not found in the JSON.');
         Exit;
       end;
 
-      // 4. Iterar sobre los servidores definidos
+      // 4. Iterate over the defined servers
       for LPair in LMcpServers do
       begin
         LServerName := LPair.JsonString.Value;
         LServerConfig := LPair.JsonValue as TJSONObject;
 
-        // 5. Detectar si es un servidor StdIo (basado en la presencia de "command")
+        // 5. Detect whether it is a StdIo server (based on the presence of "command")
         if LServerConfig.TryGetValue<string>('command', LCommand) then
         begin
-          AddLog(Format('Procesando servidor StdIo: "%s"', [LServerName]));
+          AddLog(Format('Processing StdIo server: "%s"', [LServerName]));
 
-          // Crear el item en la colecci�n
+          // Create the item in the collection
           LClientItem := AFunctions.MCPClients.Add;
           LClientItem.Name := LServerName;
 
-          // Establecer el tipo de transporte PRIMERO
+          // Set the transport type FIRST
           LClientItem.TransportType := tpStdIo;
 
-          // 6. Configurar PARAMS (Esto es lo que lee el motor interno)
-          // Usamos .Values['Key'] para asegurar que sobreescribimos o creamos el par correctamente
+          // 6. Configure PARAMS (This is what the internal engine reads)
+          // We use .Values['Key'] to ensure we overwrite or create the pair correctly
           LClientItem.Params.Values['Command'] := LCommand;
 
-          // Procesar argumentos si existen
+          // Process arguments if they exist
           if LServerConfig.TryGetValue<TJSONArray>('args', LArgsArray) then
           begin
             LArgsBuilder := TStringBuilder.Create;
             try
               for I := 0 to LArgsArray.Count - 1 do
               begin
-                // Concatenamos argumentos con espacio
+                // We concatenate arguments with a space
                 LArgsBuilder.Append(LArgsArray.Items[I].Value).Append(' ');
               end;
               LClientItem.Params.Values['Arguments'] := LArgsBuilder.ToString.Trim;
@@ -1745,12 +1745,12 @@ begin
             end;
           end;
 
-          // Importante: Asegurar que RootDir no sea nulo (usar el home por defecto como hace el IDE)
+          // Important: Ensure RootDir is not null (use the default home as the IDE does)
           if LClientItem.Params.Values['RootDir'] = '' then
             LClientItem.Params.Values['RootDir'] := System.IOUtils.TPath.GetHomePath;
 
-          // 7. Procesar Variables de Entorno (env)
-          // Estas son cr�ticas para que servidores como SQLite o Postgres encuentren sus rutas/claves
+          // 7. Process Environment Variables (env)
+          // These are critical so servers like SQLite or Postgres can find their paths/keys
           if LServerConfig.TryGetValue<TJSONObject>('env', LEnvObject) then
           begin
             for LEnvPair in LEnvObject do
@@ -1759,23 +1759,23 @@ begin
             end;
           end;
 
-          // 8. SINCRONIZACI�N FINAL
-          // Habilitamos el cliente
+          // 8. FINAL SYNCHRONIZATION
+          // We enable the client
           LClientItem.Enabled := True;
 
-          // Llamamos a UpdateClientProperties para que el TMCPClientItem
-          // cree e inicialice el TMCPClientStdIo interno con los Params y EnvVars que acabamos de llenar.
+          // We call UpdateClientProperties so the TMCPClientItem
+          // creates and initializes the internal TMCPClientStdIo with the Params and EnvVars we just filled.
           LClientItem.UpdateClientProperties;
 
-          AddLog(Format('  - Servidor "%s" cargado y listo.', [LServerName]));
+          AddLog(Format('  - Server "%s" loaded and ready.', [LServerName]));
         end;
       end;
 
-      AddLog('Carga de configuraci�n MCP StdIo completada.');
+      AddLog('MCP StdIo configuration loading completed.');
 
     except
       on E: Exception do
-        AddLog('Error cr�tico durante la carga JSON: ' + E.Message);
+        AddLog('Critical error during JSON loading: ' + E.Message);
     End;
 
   finally
@@ -1801,7 +1801,7 @@ begin
 
   // The rest of the stream contains the compressed data. We decompress it.
   Result := TMemoryStream.Create;
-  // AContainerStream ya est� posicionado justo despu�s de la cabecera.
+  // AContainerStream is already positioned right after the header.
   ZStream := TZDecompressionStream.Create(AContainerStream);
   try
     Result.CopyFrom(ZStream, 0);
@@ -1819,7 +1819,7 @@ begin
 
   if (LMediaFile <> nil) then
   begin
-    // Simplemente llamamos al m�todo. �Toda la l�gica compleja est� encapsulada!
+    // We simply call the method. All the complex logic is encapsulated!
     if CopyToClipBoard(LMediaFile) then
     begin
       // Optional: Notify the user that the copy was successful
@@ -1861,14 +1861,14 @@ begin
     LTempPath := System.IOUtils.TPath.Combine(System.IOUtils.TPath.GetTempPath, LMediaFile.FileName);
 
     // 4. Save the stream content to the temporary file
-    LMediaFile.Content.Position := 0; // Siempre rebobinar antes de leer
+    LMediaFile.Content.Position := 0; // Always rewind before reading
     LFileStream := TFileStream.Create(LTempPath, fmCreate);
     try
       LFileStream.CopyFrom(LMediaFile.Content, LMediaFile.Content.size);
     finally
       LFileStream.Free;
     end;
-    LMediaFile.Content.Position := 0; // Dejarlo listo para futuras lecturas
+    LMediaFile.Content.Position := 0; // Leave it ready for future reads
 
     // 5. Use the platform service to open the file
     if TPlatformServices.Current.SupportsPlatformService(IFMXApplicationService, IInterface(AppService)) then
@@ -1887,7 +1887,7 @@ begin
     on E: Exception do
     begin
       // Capture any error during file creation
-      ShowMessage('Ocurri� un error al intentar abrir el archivo: ' + E.Message);
+      ShowMessage('An error occurred while trying to open the file: ' + E.Message);
     end;
   end;
 end;
@@ -1991,10 +1991,10 @@ begin
       if Item.Title <> '' then
         Sb.AppendLine(Item.Title)
       else
-        Sb.AppendLine('Sin t�tulo');
+        Sb.AppendLine('Untitled');
 
       if Item.Url <> '' then
-        Sb.Append('    Enlace: ').AppendLine(Item.Url);
+        Sb.Append('    Link: ').AppendLine(Item.Url);
 
       // Optional: Show indices if you are debugging where they fit in the text
       // Sb.AppendFormat('    (Index: %d - %d)', [Item.start_index, Item.end_index]);
@@ -2169,26 +2169,26 @@ end;
 
 {
   -------------------------------------------------------------------------------
-  TAiTextEditorTool - Componente de Edici�n de Texto para IA
+  TAiTextEditorTool - Text Editing Component for AI
   -------------------------------------------------------------------------------
 
-  ADVERTENCIA SOBRE EL MODO DE OPERACI�N:
+  WARNING ABOUT THE OPERATION MODE:
 
-  Este componente est� dise�ado con un sistema de eventos para virtualizar la
-  entrada y salida (I/O).
+  This component is designed with an event system to virtualize
+  input and output (I/O).
 
-  1. MODO POR DEFECTO (Acceso a Disco):
-  Si NO se asignan los eventos (OnLoadFile, OnSaveFile, etc.) o si el par�metro
-  "Handled" se deja en False, el componente ejecutar� las operaciones directamente
-  sobre el SISTEMA DE ARCHIVOS F�SICO del sistema operativo.
+  1. DEFAULT MODE (Disk Access):
+  If the events (OnLoadFile, OnSaveFile, etc.) are NOT assigned or if the parameter
+  "Handled" is left as False, the component will execute the operations directly
+  on the PHYSICAL FILE SYSTEM of the operating system.
 
-  2. MODO INTERCEPTADO (Memoria/UI/DB):
-  Para evitar el acceso al disco (ej. para editar un TMemo o un registro de BD),
-  el programador debe asignar los eventos correspondientes, realizar la l�gica
-  personalizada y establecer expl�citamente:
+  2. INTERCEPTED MODE (Memory/UI/DB):
+  To avoid disk access (e.g., to edit a TMemo or a DB record),
+  the programmer must assign the corresponding events, perform the logic
+  customized and explicitly set:
   Handled := True;
 
-  Esto detiene la ejecuci�n de la l�gica predeterminada de archivos.
+  This stops the execution of the default file logic.
   -------------------------------------------------------------------------------
 }
 
@@ -2215,8 +2215,8 @@ begin
     var
       SelPos: Integer;
     begin
-      // 1. Actualizaci�n At�mica en FMX
-      // FMX suele ser m�s eficiente asignando directamente a .Text
+      // 1. Atomic update in FMX
+      // FMX is usually more efficient assigning directly to .Text
       MemoEditTool.Model.Lines.BeginUpdate; // Congela el repintado
       try
         MemoEditTool.Text := LContent;
@@ -2224,10 +2224,10 @@ begin
         MemoEditTool.Model.Lines.EndUpdate;
       end;
 
-      // 2. L�gica visual: Buscar y resaltar
+      // 2. Visual logic: Find and highlight
       if FLastNewText <> '' then
       begin
-        // Buscamos la posici�n (Base 1)
+        // We search for the position (Base 1)
         SelPos := Pos(FLastNewText, LContent);
 
         if SelPos > 0 then
@@ -2239,12 +2239,12 @@ begin
           MemoEditTool.SelLength := Length(FLastNewText);
 
           // FMX SCROLL HACK:
-          // FMX no tiene un "ScrollToCaret" nativo p�blico simple en todas las versiones.
-          // Sin embargo, al dar foco y poner la selecci�n, la mayor�a de plataformas (Android/iOS/Win)
-          // intentan mostrar el cursor.
+          // FMX does not have a simple public native "ScrollToCaret" in all versions.
+          // However, by giving focus and setting the selection, most platforms (Android/iOS/Win)
+          // try to show the cursor.
 
-          // Si notas que no hace scroll en tu versi�n de Delphi, este c�digo
-          // fuerza al Memo a reconocer la posici�n del cursor:
+          // If you notice it does not scroll in your Delphi version, this code
+          // forces the Memo to recognize the cursor position:
           MemoEditTool.Repaint;
         end;
       end;

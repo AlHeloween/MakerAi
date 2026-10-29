@@ -232,7 +232,7 @@ begin
     Writeln(StringOfChar('-', 60));
     Writeln('Semantic search with expansion (depth=1):');
     Writeln('"text generation with transformers"');
-    Writeln(RAG.SearchText('generacion de texto con transformers', 1, False, 3, 0.2));
+    Writeln(RAG.SearchText('text generation with transformers', 1, False, 3, 0.2));
 
   finally
     RAG.Free;

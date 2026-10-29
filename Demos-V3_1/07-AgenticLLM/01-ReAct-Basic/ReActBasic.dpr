@@ -84,8 +84,8 @@ begin
     LLMAgent.ApiKey       := API_KEY;
     LLMAgent.UseAllTools  := False;
     LLMAgent.SystemPrompt :=
-      'Eres un asistente conciso que responde en espanol. ' +
-      'Responde siempre en una o dos frases directas y al grano.';
+      'You are a concise assistant that responds in Spanish. ' +
+      'Always respond in one or two direct and to-the-point sentences.';
 
     // Output node (pass-through)
     Finish       := TAIAgentsNode.Create(Manager);

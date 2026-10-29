@@ -3,7 +3,7 @@ program LLMNodeDemo;
 {$APPTYPE CONSOLE}
 
 // =============================================================================
-// MakerAI - Demo 061: TLLMNode con TAiToolRegistry
+// MakerAI - Demo 061: TLLMNode with TAiToolRegistry
 // =============================================================================
 // Demonstrates Phase 2 of the agent redesign: a TLLMNode that uses the
 // integrated ReAct loop to solve questions that require tools.
@@ -25,7 +25,7 @@ uses
   uMakerAi.Agents.IAiTool,
   uMakerAi.Agents.ToolRegistry,
   uMakerAi.Agents.Node.LLM,
-  uMakerAi.Chat.Initializations, // parametros de modelos
+  uMakerAi.Chat.Initializations, // model parameters
   // ── Import the drivers to be used ────────────────────────────
   // Each unit registers its driver in initialization via TAiChatFactory.
   // Without this import the driver is not linked and TAiChatConnection fails.
@@ -369,7 +369,7 @@ begin
     LLMNode.DriverName   := DRIVER;
     LLMNode.Model        := MODEL;
     LLMNode.ApiKey       := API_KEY;
-    LLMNode.UseAllTools  := True;           // usa todo el Registry global
+    LLMNode.UseAllTools  := True;           // uses the entire global Registry
     LLMNode.SystemPrompt :=
       'You are a helpful assistant with access to tools. ' +
       'When needed, use the tools to give accurate, precise answers. ' +

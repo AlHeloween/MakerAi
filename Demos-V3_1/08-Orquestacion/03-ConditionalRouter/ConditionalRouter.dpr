@@ -146,7 +146,7 @@ begin
     Clasificador := MakeLLM(Manager, 'Clasificador',
       'You are a CLASSIFIER. Your job is to return ONE single word.' + #10 +
       'Given a question, respond ONLY with one of these exact words: math  science  history' + #10 +
-      'Sin explicaciones. Sin puntuacion. Solo una palabra.');
+      'No explanations. No punctuation. Only one word.');
     Clasificador.MaxTokens := 3;
 
     // Router: node without LLM that reads the blackboard

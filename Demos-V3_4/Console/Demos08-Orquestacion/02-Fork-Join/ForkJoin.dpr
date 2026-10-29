@@ -179,10 +179,10 @@ begin
   Writeln('Pattern: [Preparador] --fork--> [Pros + Cons] --join--> [Sintetizador]');
   Writeln;
 
-  RunForkJoin('Inteligencia Artificial en la educacion');
+  RunForkJoin('Artificial Intelligence in education');
   Writeln('Pause between topics (10s)...');
   Sleep(10000);
-  RunForkJoin('Trabajo remoto para desarrolladores de software');
+  RunForkJoin('Remote work for software developers');
 end;
 
 begin

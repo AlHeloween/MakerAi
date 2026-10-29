@@ -379,7 +379,7 @@ begin
   end
   else
     LblCable.Text :=
-      'VB-CABLE no encontrado. Modo prueba: TTS sonara por dispositivo predeterminado.';
+      'VB-CABLE not found. Test mode: TTS will play through default device.';
 end;
 
 function TFormVoiceBridge.DeviceId(aCbo: TComboBox; const aIds: TArray<string>): string;
@@ -704,7 +704,7 @@ begin
       LWav.ReadBuffer(LWavBytes[0], LWav.Size);
       LWav.Position := 0;
 
-      aName := Format('Hablante %d', [FAudioApi.KnownSpeakerCount + 1]);
+      aName := Format('Speaker %d', [FAudioApi.KnownSpeakerCount + 1]);
       FAudioApi.AddKnownSpeaker(aName, LWav, 'audio/wav');
 
       LIdx := FAudioApi.KnownSpeakerCount - 1;
@@ -764,8 +764,8 @@ begin
 
   FChatEllos.NewChat;
   LTranslated := Trim(FChatEllos.AddMessageAndRun(
-    Format('Traduce al %s el siguiente texto. Responde UNICAMENTE con la traduccion, ' +
-      'sin comentarios ni comillas:'#10'%s', [EdtLangDst.Text, aGroupTxt]),
+    Format('Translate to %s the following text. Reply ONLY with the translation, ' +
+      'without comments or quotes:'#10'%s', [EdtLangDst.Text, aGroupTxt]),
     'user', []));
   if LTranslated = '' then Exit;
 
@@ -880,7 +880,7 @@ begin
           else if TryEnrollSpeaker(aPcm, LRaw, LRes.Segments, LDisplay) then
             LBatch.Add(LRaw, LDisplay)
           else
-            LBatch.Add(LRaw, 'Hablante ' + LRaw);
+            LBatch.Add(LRaw, 'Speaker ' + LRaw);
         end;
 
         LGroupSpk := ''; LGroupTxt := '';

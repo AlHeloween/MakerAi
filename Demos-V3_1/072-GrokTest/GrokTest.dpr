@@ -377,35 +377,35 @@ begin
   try
     // --- grok-3 (text + tools, no reasoning) ---
     Tester.TestSync(
-      'En una sola oracion: cual es la capital de Francia?',
-      MODEL_TEXT, 'Test 1 - Sync basico');
+      'In a single sentence: what is the capital of France?',
+      MODEL_TEXT, 'Test 1 - Basic sync');
 
     Tester.TestAsync(
-      'En una sola oracion: cual es la capital de Japon?',
-      MODEL_TEXT, 'Test 2 - Async basico');
+      'In a single sentence: what is the capital of Japan?',
+      MODEL_TEXT, 'Test 2 - Basic async');
 
     Tester.TestAsync(
-      'Explica en 3 parrafos breves que es la inteligencia artificial.',
-      MODEL_TEXT, 'Test 3 - Async respuesta larga');
+      'Explain in 3 short paragraphs what artificial intelligence is.',
+      MODEL_TEXT, 'Test 3 - Async long response');
 
     // --- grok-3-mini (reasoning: reasoning_effort=low, no vision) ---
     // Verifies that frequency/presence/stop are NOT sent (error 400 if sent)
     Tester.TestSync(
-      'Cuanto es 347 multiplicado por 28? Muestra el razonamiento paso a paso.',
+      'How much is 347 multiplied by 28? Show the reasoning step by step.',
       MODEL_REASON, 'Test 4 - Sync reasoning');
 
     Tester.TestAsync(
-      'Cuanto es 347 multiplicado por 28? Muestra el razonamiento paso a paso.',
+      'How much is 347 multiplied by 28? Show the reasoning step by step.',
       MODEL_REASON, 'Test 5 - Async reasoning');
 
     // --- grok-4-0709 (vision + reasoning always active) ---
     // Verifies that reasoning_effort is NOT sent (error if sent)
     Tester.TestSync(
-      'En una sola oracion: cual es la capital de Australia?',
-      MODEL_VISION, 'Test 6 - Sync grok-4 (sin reasoning_effort)');
+      'In a single sentence: what is the capital of Australia?',
+      MODEL_VISION, 'Test 6 - Sync grok-4 (without reasoning_effort)');
 
     Tester.TestAsync(
-      'Explica en 2 oraciones breves que es el machine learning.',
+      'Explain in 2 short sentences what machine learning is.',
       MODEL_VISION, 'Test 7 - Async grok-4');
 
     // --- Multi-turn with grok-3 ---

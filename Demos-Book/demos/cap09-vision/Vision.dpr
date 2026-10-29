@@ -97,12 +97,12 @@ end;
 // =============================================================================
 //  Demo 1 — Descripción general
 //
-//  El patrón base de visión con MakerAI:
-//    1. Crear TAiMediaFile y cargar la imagen
-//    2. Pasarlo como tercer parámetro de AddMessageAndRun
-//    3. El modelo lo recibe y genera una descripción
+//  The base vision pattern with MakerAI:
+//    1. Create a TAiMediaFile and load the image
+//    2. Pass it as the third parameter of AddMessageAndRun
+//    3. The model receives it and generates a description
 //
-//  gemma3:4b tiene ModelCaps=[cap_Image] → visión nativa, sin bridge.
+//  gemma3:4b has ModelCaps=[cap_Image] → native vision, without bridge.
 // =============================================================================
 procedure Demo1_Descripcion(Conn: TAiChatConnection);
 var
@@ -124,7 +124,7 @@ begin
   Conn.NewChat;
   Write('  Describing image... ');
   R := Conn.AddMessageAndRun(
-    'Describe esta imagen en detalle: ¿qué ves? objetos, colores, ambiente.',
+    'Describe this image in detail: what do you see? objects, colors, atmosphere.',
     'user', Files);
   WriteLn('OK');
   WriteLn('');
@@ -139,8 +139,8 @@ end;
 // =============================================================================
 //  Demo 2 — OCR: extracción de texto visible
 //
-//  Los modelos de visión pueden leer texto en imágenes como si fuera OCR.
-//  Para documentos escaneados, capturas de pantalla con texto, señales, etc.
+//  Vision models can read text in images as if it were OCR.
+//  For scanned documents, screenshots with text, signs, etc.
 // =============================================================================
 procedure Demo2_OCR(Conn: TAiChatConnection);
 var
@@ -159,9 +159,9 @@ begin
   Conn.NewChat;
   Write('  Extracting visible text... ');
   R := Conn.AddMessageAndRun(
-    '¿Hay texto visible en esta imagen? ' +
-    'Si sí, transcríbelo exactamente. ' +
-    'Si no hay texto, responde: "Sin texto visible."',
+    'Is there visible text in this image? ' +
+    'If yes, transcribe it exactly. ' +
+    'If there is no text, respond: "No visible text."',
     'user', Files);
   WriteLn('OK');
   WriteLn('');
@@ -176,8 +176,8 @@ end;
 // =============================================================================
 //  Demo 3 — Extracción estructurada (JSON)
 //
-//  Pedir al modelo que devuelva los datos en formato JSON estructurado.
-//  Útil para integración directa con aplicaciones: parsear con TJSONObject.
+//  Ask the model to return the data in structured JSON format.
+//  Useful for direct integration with applications: parse with TJSONObject.
 // =============================================================================
 procedure Demo3_JSON(Conn: TAiChatConnection);
 var
@@ -195,13 +195,13 @@ begin
 
   Conn.NewChat;
   Conn.SystemPrompt.Text :=
-    'Eres un sistema de análisis visual. ' +
+    'You are a visual analysis system. ' +
     'Responde ÚNICAMENTE con JSON válido. Sin texto adicional fuera del JSON.';
 
-  Write('  Extrayendo datos estructurados... ');
+  Write('  Extracting structured data... ');
   R := Conn.AddMessageAndRun(
-    'Analiza esta imagen y devuelve un JSON con este formato exacto: ' +
-    '{"escena": "descripcion breve", ' +
+    'Analyze this image and return a JSON with this exact format: ' +
+    '{"escena": "brief description", ' +
     '"colores_principales": ["color1", "color2", "color3"], ' +
     '"objetos": ["obj1", "obj2"], ' +
     '"hay_texto": false, ' +
@@ -225,9 +225,9 @@ end;
 // =============================================================================
 //  Demo 4 — Conversación multi-turno con imagen
 //
-//  Una vez enviada la imagen en el primer turno, el modelo "recuerda" su
-//  contenido en los turnos siguientes. No hace falta reenviar la imagen.
-//  Esto permite una conversación natural sobre la misma imagen.
+//  Once the image is sent in the first turn, the model "remembers" its
+//  content in the following turns. There is no need to resend the image.
+//  This allows a natural conversation about the same image.
 // =============================================================================
 procedure Demo4_MultiTurno(Conn: TAiChatConnection);
 var
@@ -248,7 +248,7 @@ begin
   // Turno 1: enviar la imagen con la primera pregunta
   Write('  [Turn 1] Sending image... ');
   R := Conn.AddMessageAndRun(
-    'Mira esta imagen. ¿Cuál es el elemento más prominente que ves?',
+    'Look at this image. What is the most prominent element you see?',
     'user', Files);
   WriteLn('OK');
   WriteLn('  Response: ', R);
@@ -258,8 +258,8 @@ begin
   WriteLn('');
   Write('  [Turn 2] Follow-up question (without resending image)... ');
   R := Conn.AddMessageAndRun(
-    '¿Qué colores predominan en esa área?',
-    'user', []);  // ← sin imagen en el array
+    'What colors predominate in that area?',
+    'user', []);  // ← without image in the array
   WriteLn('OK');
   WriteLn('  Response: ', R);
   WriteLn('  [History: ', Conn.Messages.Count, ' messages]');
@@ -268,7 +268,7 @@ begin
   WriteLn('');
   Write('  [Turn 3] Another context question... ');
   R := Conn.AddMessageAndRun(
-    '¿Qué estado de ánimo o sensación transmite esta imagen?',
+    'What mood or feeling does this image convey?',
     'user', []);
   WriteLn('OK');
   WriteLn('  Response: ', R);
@@ -283,9 +283,9 @@ end;
 // =============================================================================
 //  Demo 5 — Dos imágenes en un mismo mensaje (comparación)
 //
-//  MakerAI permite enviar múltiples TAiMediaFile en una sola llamada.
-//  El modelo recibe ambas imágenes y puede compararlas, contrastarlas
-//  o analizarlas de forma conjunta.
+//  MakerAI allows sending multiple TAiMediaFile in a single call.
+//  The model receives both images and can compare them, contrast them
+//  or analyze them jointly.
 // =============================================================================
 procedure Demo5_DosImagenes(Conn: TAiChatConnection);
 var
@@ -338,9 +338,9 @@ begin
   Conn.NewChat;
   Write('  Comparing two images... ');
   R := Conn.AddMessageAndRun(
-    'Analiza estas dos imágenes. ' +
-    '¿Qué tienen en común? ¿Cuáles son las diferencias principales? ' +
-    'Responde en 3-4 oraciones.',
+    'Analyze these two images. ' +
+    'What do they have in common? What are the main differences? ' +
+    'Respond in 3-4 sentences.',
     'user', Files);
   WriteLn('OK');
   WriteLn('');

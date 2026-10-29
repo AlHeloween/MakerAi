@@ -190,12 +190,12 @@ var
   Tarea: string;
 begin
   Writeln('--- B. Shortcuts for a single question ---');
-  Tarea := AJev.Choose('Traduce al ingles: la reunion se aplaza para el lunes',
-    'Que tipo de tarea pide el texto?', ['conversacion', 'redaccion', 'codigo', 'analisis'], Conf);
+  Tarea := AJev.Choose('Translate to English: the meeting is postponed to Monday',
+    'What type of task does the text ask for?', ['conversation', 'writing', 'code', 'analysis'], Conf);
   Writeln(Format('Choose -> %s (confidence %.2f)', [Tarea, Conf]));
 
-  P := AJev.Noul('Mi pago lleva 3 dias fallando y necesito resolverlo hoy',
-    'El mensaje expresa urgencia?');
+  P := AJev.Noul('My payment has been failing for 3 days and I need to resolve it today',
+    'Does the message express urgency?');
   Writeln(Format('Noul   -> urgency %.2f', [P]));
   Writeln;
 end;

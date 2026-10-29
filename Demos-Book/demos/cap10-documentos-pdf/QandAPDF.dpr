@@ -340,13 +340,13 @@ begin
     'ELECTRONIC INVOICE No. FE-2025-0142' + sLineBreak +
     'Issue date: March 10, 2025' + sLineBreak +
     sLineBreak +
-    'SUPPLIER: Distribuidora Norte S.A. de C.V.' + sLineBreak +
+    'SUPPLIER: Northern Distributor S.A. de C.V.' + sLineBreak +
     'RFC: DNO820315AB8' + sLineBreak +
-    'Address: Calle Reforma 450, Col. Centro, CDMX 06040' + sLineBreak +
+    'Address: Reforma St. 450, Downtown, Mexico City 06040' + sLineBreak +
     sLineBreak +
     'CLIENT: Tech Solutions Monterrey S.A.' + sLineBreak +
     'RFC: TSM970612CD4' + sLineBreak +
-    'Address: Av. Constitución 1200, Monterrey, N.L. 64000' + sLineBreak +
+    'Address: Constitution Ave. 1200, Monterrey, N.L. 64000' + sLineBreak +
     sLineBreak +
     'ITEMS:' + sLineBreak +
     '  1. Laptop Dell XPS 15 (quantity: 3)        $ 45,000.00' + sLineBreak +
@@ -363,7 +363,7 @@ begin
     sLineBreak +
     'Notes: Includes 12-month warranty on equipment.' + sLineBreak +
     'Agreed installation date: March 15, 2025 at 9:00' + sLineBreak +
-    'Supplier contact: ventas@distribnorte.com.mx  Phone: 55-1234-5678';
+    'Supplier contact: sales@distribnorte.com.mx  Phone: 55-1234-5678';
 
   WriteLn('  Document: Invoice FE-2025-0142 (internal sample)');
   WriteLn('  Content: ', Length(Texto), ' characters');

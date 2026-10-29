@@ -72,7 +72,7 @@ end;
 // =============================================================================
 //  Demo 1 — Las 4 formas de cargar un TAiMediaFile
 //
-//  Todas las formas producen el mismo resultado: un TAiMediaFile con
+//  All forms produce the same result: a TAiMediaFile with
 //  FileName, FileCategory, MimeType y Bytes correctamente rellenos.
 //  El tipo se detecta automáticamente por la extensión del nombre de archivo.
 // =============================================================================
@@ -98,7 +98,7 @@ begin
     end;
   end
   else
-    WriteLn('  Imagen no encontrada: ', IMG_PATH);
+    WriteLn('  Image not found: ', IMG_PATH);
 
   // ── Form 2: LoadFromBase64 ───────────────────────────────────────────────
   WriteLn('');
@@ -248,7 +248,7 @@ begin
 
   if not TFile.Exists(IMG_PATH) then
   begin
-    WriteLn('  Imagen no encontrada: ', IMG_PATH);
+    WriteLn('  Image not found: ', IMG_PATH);
     Exit;
   end;
 
@@ -336,16 +336,16 @@ const
   begin
     case MF.FileCategory of
       Tfc_Image:
-        Result := 'Describe esta imagen con detalle: objetos, colores, contexto.';
+        Result := 'Describe this image in detail: objects, colors, context.';
       Tfc_Audio:
-        Result := 'Transcribe y resume el contenido de este audio.';
+        Result := 'Transcribe and summarize the content of this audio.';
       Tfc_Video:
-        Result := 'Describe qué ocurre en este video, escena por escena.';
+        Result := 'Describe what happens in this video, scene by scene.';
       Tfc_Pdf,
       Tfc_Document:
-        Result := 'Resume los puntos clave de este documento en 5 puntos.';
+        Result := 'Summarize the key points of this document in 5 points.';
       Tfc_CalcSheet:
-        Result := 'Analiza los datos de esta hoja de cálculo y da estadísticas.';
+        Result := 'Analyze the data in this spreadsheet and provide statistics.';
       Tfc_Text,
       Tfc_Web,
       Tfc_ExtractTextFile:

@@ -62,7 +62,7 @@ var
 begin
   Fmt := Trim(LowerCase(AParams.Format));
   if Fmt = 'readable' then
-    Resultado := FormatDateTime('"Hoy es" dddd, d "de" mmmm "de" yyyy, "a las" hh:nn:ss', Now)
+    Resultado := FormatDateTime('"Today is" dddd, d "of" mmmm "of" yyyy, "at" hh:nn:ss', Now)
   else
     Resultado := FormatDateTime('yyyy-mm-dd"T"hh:nn:ss', Now);
   Result := TAiMCPResponseBuilder.New.AddText(Resultado).Build;
@@ -109,7 +109,7 @@ begin
   if Lang = 'en' then
     Saludo := Format('Hello, %s! Welcome to MakerAI MCP HTTP Server.', [NombrePersona])
   else
-    Saludo := Format('Hola, %s! Bienvenido al servidor MCP HTTP de MakerAI.', [NombrePersona]);
+    Saludo := Format('Hello, %s! Welcome to the MakerAI MCP HTTP server.', [NombrePersona]);
   Result := TAiMCPResponseBuilder.New.AddText(Saludo).Build;
 end;
 

@@ -35,7 +35,7 @@ uses
   uMakerAi.Realtime,
   uMakerAi.Realtime.OpenAI,
   uMakerAi.Chat.AiConnection,
-  uMakerAi.Chat.OpenAi; // importa y auto-registra el driver 'OpenAi' (v3.4)
+  uMakerAi.Chat.OpenAi; // imports and auto-registers the 'OpenAi' driver (v3.4)
 
 const
   // ==========================================================================
@@ -216,8 +216,8 @@ begin
           if FClosing then
             Exit;
           FChat.NewChat; // stateless translation: each utterance is independent
-          Prompt := Format('Traduce al %s el siguiente texto. Responde UNICAMENTE con la traduccion, ' +
-            'sin comentarios ni comillas:'#10'%s', [FTargetLang, aText]);
+          Prompt := Format('Translate to %s the following text. Reply ONLY with the translation, ' +
+            'without comments or quotes:'#10'%s', [FTargetLang, aText]);
           Res := FChat.AddMessageAndRun(Prompt, 'user', []);
         finally
           FChatLock.Leave;

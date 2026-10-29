@@ -654,7 +654,7 @@ begin
       // RAG.SaveToFile(SaveDialog1.FileName, True);
 
       var
-      SaveWithEmbeddings := MessageDlg('�Desea incluir los datos de embeddings en el archivo?' + sLineBreak + '(El archivo ser� mucho m�s grande)', TMsgDlgType.mtConfirmation, [TMsgDlgBtn.mbYes, TMsgDlgBtn.mbNo], 0) = mrYes;
+      SaveWithEmbeddings := MessageDlg('Do you want to include the embedding data in the file?' + sLineBreak + '(The file will be much larger)', TMsgDlgType.mtConfirmation, [TMsgDlgBtn.mbYes, TMsgDlgBtn.mbNo], 0) = mrYes;
       RAG.SaveToFile(SaveDialog1.FileName, SaveWithEmbeddings);
 
       // For now, let's use Option A for simplicity.
@@ -797,7 +797,7 @@ begin
     SB.Append('[');
     for i := 0 to High(AData) do
     begin
-      SB.Append(FloatToStr(AData[i])); // Usa FormatFloat si necesitas control de formato/regi�n
+      SB.Append(FloatToStr(AData[i])); // Use FormatFloat if you need format/region control
       if i < High(AData) then
         SB.Append(',');
     end;
@@ -820,7 +820,7 @@ begin
   if AGraph.Nodes.Dim > 0 then
     Dim := AGraph.Nodes.Dim
   else
-    Dim := 1536; // Reemplaza con tu dimensi�n por defecto
+    Dim := 1536; // Replace with your default dimension
 
   Result := TAiRagGraphNode.Create(AGraph, Dim);
   Result.ID := AQuery.FieldByName('id').AsString;
@@ -846,12 +846,12 @@ procedure TMainRagGraphDemo.lbSuggestionsItemClick(const Sender: TCustomListBox;
 begin
   if Item <> nil then
   begin
-    // 1. Poner el texto seleccionado en el TEdit
+    // 1. Put the selected text in the TEdit
     edtStartNodeName.Text := Item.Text;
-    // 2. Mover el cursor al final del texto
+    // 2. Move the cursor to the end of the text
     edtStartNodeName.SetFocus;
     edtStartNodeName.GoToTextEnd;
-    // 3. Ocultar el popup
+    // 3. Hide the popup
     popSuggestions.IsOpen := False;
   end;
 end;
@@ -865,7 +865,7 @@ var
   StepObject: TJSONObject;
   i: Integer;
 begin
-  // Inicializar el resultado con valores por defecto
+  // Initialize the result with default values
   FillChar(Result, SizeOf(TQueryPlan), 0);
   Result.AnchorPrompt := '';
   Result.AnchorVariable := '';
@@ -881,12 +881,12 @@ begin
 
   RootObject := JsonValue as TJSONObject;
   try
-    // Extraer los campos ra�z
+    // Extract the root fields
     Result.AnchorPrompt := RootObject.GetValue<string>('anchorPrompt', '');
     Result.AnchorVariable := RootObject.GetValue<string>('anchorVariable', '');
     Result.ResultVariable := RootObject.GetValue<string>('resultVariable', '');
 
-    // Procesar el array de 'steps'
+    // Process the 'steps' array
     if RootObject.TryGetValue<TJSONArray>('steps', StepsArray) then
     begin
       SetLength(Result.Steps, StepsArray.Count);
@@ -972,7 +972,7 @@ begin
   Query := NewQuery;
   NameList := TStringList.Create;
   try
-    // La consulta es perfecta. Usa LIKE y es case-insensitive gracias a UPPER.
+    // The query is perfect. It uses LIKE and is case-insensitive thanks to UPPER.
     Query.SQL.Text := 'SELECT name FROM graph_nodes ' + 'WHERE entidad = :entidad AND node_label = :node_label AND UPPER(name) LIKE :search_text ' + 'ORDER BY name LIMIT :limit';
 
     Query.ParamByName('entidad').AsString := FCurrentEntidad;
@@ -1062,7 +1062,7 @@ begin
 
     while not Query.Eof do
     begin
-      NodeList.Add(HydrateNodeFromQuery(Query, Graph)); // Pasamos 'Graph' en lugar de 'RAG'
+      NodeList.Add(HydrateNodeFromQuery(Query, Graph)); // We pass 'Graph' instead of 'RAG'
       Query.Next;
     end;
 
@@ -1217,7 +1217,7 @@ begin
   // We assume that the database connection is already active.
   // If not, you can add a check here.
 
-  Query := NewQuery; // Usando tu funci�n helper
+  Query := NewQuery; // Using your helper function
   LabelList := TStringList.Create;
   try
     // 1. Define the SQL query
@@ -1615,12 +1615,12 @@ end;
 
 procedure TAiRagGraphNodeHacker.InternalAddIncomingEdge(AEdge: TAiRagGraphEdge);
 begin
-  Self.AddIncomingEdge(AEdge); // Llama al m�todo 'protected' original
+  Self.AddIncomingEdge(AEdge); // Calls the original 'protected' method
 end;
 
 procedure TAiRagGraphNodeHacker.InternalAddOutgoingEdge(AEdge: TAiRagGraphEdge);
 begin
-  Self.AddOutgoingEdge(AEdge); // Llama al m�todo 'protected' original
+  Self.AddOutgoingEdge(AEdge); // Calls the original 'protected' method
 end;
 
 procedure TMainRagGraphDemo.MatchBuilder_DisplayMatchResults(const AResults: TArray<TDictionary<string, TObject>>; AShowProperties: Boolean);

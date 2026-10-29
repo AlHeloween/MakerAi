@@ -39,7 +39,7 @@ const
   URL    = 'http://localhost:11434/api/';
 
 // =============================================================================
-//  Tipos locales
+//  Local types
 // =============================================================================
 type
   TDocumento = record
@@ -122,7 +122,7 @@ begin
   var Sinonimos: TArray<String> := ['physician', 'cardiologist', 'nurse', 'clinician', 'medical'];
   for var S in Sinonimos do
     Writeln(Format('    "%s" = "%s" -> %s', [Termino, S,
-      IfThen(SameText(S, Termino), 'ENCONTRADO', 'no encontrado')]));
+      IfThen(SameText(S, Termino), 'FOUND', 'not found')]));
 
   Writeln;
   Writeln('  SEMANTIC search would find all of the above');

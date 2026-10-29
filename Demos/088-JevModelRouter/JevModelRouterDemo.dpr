@@ -6,7 +6,7 @@
 // TAiJevModelRouter describes each request with Jev (task, difficulty,
 // sensitivity) and chooses in code the cheapest tier that suffices:
 //
-//   nivel 0  Groq     openai/gpt-oss-20b     trivial
+//   level 0  Groq     openai/gpt-oss-20b     trivial
 //   level 1  DeepSeek deepseek-v4-flash      standard
 //   level 2  Claude   claude-sonnet-5        demanding / sensitive
 //   level 3  Claude   claude-opus-5          expert
@@ -79,14 +79,14 @@ var
   T: TAiJevModelTier;
 begin
   // Groq retired the llama-3.x (model_not_found, Sep 2026): gpt-oss-20b is its fast model
-  ARouter.Tiers.AddTier('rapido',   'Groq',     'openai/gpt-oss-20b', 0, 0.3);
-  ARouter.Tiers.AddTier('estandar', 'DeepSeek', 'deepseek-v4-flash',  1, 0.4);
+  ARouter.Tiers.AddTier('fast',   'Groq',     'openai/gpt-oss-20b', 0, 0.3);
+  ARouter.Tiers.AddTier('standard', 'DeepSeek', 'deepseek-v4-flash',  1, 0.4);
   // Claude: low reasoning and no web search. With the defaults, Opus exceeded
   // the HTTP timeout (~300 s) on the architecture question; this way it answered in 91 s.
-  T := ARouter.Tiers.AddTier('exigente', 'Claude', 'claude-sonnet-5', 2, 15);
+  T := ARouter.Tiers.AddTier('demanding', 'Claude', 'claude-sonnet-5', 2, 15);
   T.Params.Add('ThinkingLevel=tlLow');
   T.Params.Add('SessionCaps=[cap_Image, cap_Pdf]');
-  T := ARouter.Tiers.AddTier('experto', 'Claude', 'claude-opus-5', 3, 25);
+  T := ARouter.Tiers.AddTier('expert', 'Claude', 'claude-opus-5', 3, 25);
   T.Params.Add('ThinkingLevel=tlLow');
   T.Params.Add('SessionCaps=[cap_Image, cap_Pdf]');
   T.Params.Add('Max_Tokens=3000');

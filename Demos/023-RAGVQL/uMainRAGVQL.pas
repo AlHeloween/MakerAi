@@ -422,7 +422,7 @@ var
 
       if Criterion.IsGroup then
       begin
-        SB.Append(Indent + '  [GRUPO ' + IfThen(Criterion.SubCriteria.LogicalOp = loAnd, 'AND', 'OR') + ']').AppendLine;
+        SB.Append(Indent + '  [GROUP ' + IfThen(Criterion.SubCriteria.LogicalOp = loAnd, 'AND', 'OR') + ']').AppendLine;
         RenderCriteria(Criterion.SubCriteria, Indent + '    ');
       end
       else
@@ -570,7 +570,7 @@ begin
     else if LUseBM25 then
       SB.Append('BM25 Only (Lexical)')
     else
-      SB.Append('NINGUNO (configuracion invalida)');
+      SB.Append('NONE (invalid configuration)');
     SB.AppendLine;
 
     if LUseEmbeddings and LUseBM25 then

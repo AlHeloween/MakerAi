@@ -258,7 +258,7 @@ begin
     LSb.AppendLine('MCP TOOLS ALREADY INSTALLED (do not use ppm_install for these):');
     for I := 0 to AiFunctions1.MCPClients.Count - 1 do
       LSb.AppendLine('- ' + AiFunctions1.MCPClients[I].Name +
-        ' (usa call_mcp_tool directamente, sin ppm_install)');
+        ' (use call_mcp_tool directly, without ppm_install)');
     LSb.AppendLine('For these tools: skip ppm_search and ppm_install, go straight to step 3.');
     AiConn.SystemPrompt.Text := LSb.ToString;
   finally
@@ -568,7 +568,7 @@ begin
 
       var LFuncList := '';
       if LFuncNames.Count > 0 then
-        LFuncList := sLineBreak + 'Funciones disponibles: ' + LFuncNames.CommaText
+        LFuncList := sLineBreak + 'Available functions: ' + LFuncNames.CommaText
       else
         LFuncList := '';
 
@@ -745,7 +745,7 @@ begin
       begin
         AddLog('EXCEPTION in CallTool [' + E.ClassName + ']: ' + E.Message);
         ToolCall.Response := Format('Error executing "%s": %s — %s', [LFuncName, E.ClassName, E.Message]);
-        LArgsJson := nil; // ya liberado o no — evitar doble-free
+        LArgsJson := nil; // already freed or not — avoid double-free
       end;
     end;
   finally

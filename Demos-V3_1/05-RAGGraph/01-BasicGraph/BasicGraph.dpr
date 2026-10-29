@@ -173,10 +173,10 @@ begin
     Writeln;
 
     // Semantic searches
-    BuscarEnGrafo(RAG, 'fundadores de empresas tecnologicas');
-    BuscarEnGrafo(RAG, 'inteligencia artificial y LLMs');
-    BuscarEnGrafo(RAG, 'sistemas operativos y software');
-    BuscarEnGrafo(RAG, 'busqueda en internet y publicidad');
+    BuscarEnGrafo(RAG, 'founders of technology companies');
+    BuscarEnGrafo(RAG, 'artificial intelligence and LLMs');
+    BuscarEnGrafo(RAG, 'operating systems and software');
+    BuscarEnGrafo(RAG, 'internet search and advertising');
 
     // Statistics
     Writeln(StringOfChar('=', 60));
@@ -209,6 +209,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

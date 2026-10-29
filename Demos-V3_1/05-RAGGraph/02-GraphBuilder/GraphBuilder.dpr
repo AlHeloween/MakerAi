@@ -217,7 +217,7 @@ begin
     // Shortest path
     MostrarCaminoMinimo(RAG,
       'PyTorch', 'FRAMEWORK',
-      'Procesamiento de Lenguaje Natural', 'DISCIPLINA');
+      'Natural Language Processing', 'DISCIPLINE');
     Writeln;
 
     // Most connected nodes

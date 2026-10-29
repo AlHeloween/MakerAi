@@ -157,7 +157,7 @@ begin
         if not FUserCancelled then
         begin
           MetaData := TAiEmbeddingMetaData.Create;
-          MetaData.Properties['tipo']     := 'cuento';
+          MetaData.Properties['tipo']     := 'story';
           MetaData.Properties['fecha']    := EncodeDate(1990, 10, 1);
           MetaData.Properties['autor']    := 'Gustavo';
           MetaData.Properties['path']     := '10.102.36.2';

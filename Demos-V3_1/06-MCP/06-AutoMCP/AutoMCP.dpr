@@ -77,7 +77,7 @@ begin
   FFunctions.OnLog          := OnLog;
   FFunctions.OnStatusUpdate := OnStatus;
 
-  // Activar AutoMCP con el registro PPM
+  // Activate AutoMCP with the PPM registry
   FFunctions.AutoMCPConfig.Active      := True;
   FFunctions.AutoMCPConfig.RegistryUrl := REGISTRY;
 
@@ -223,22 +223,22 @@ begin
   // Update the system prompt with the available tools
   FAiConn.SystemPrompt.Text := FFunctions.GetAutoMCPSystemPrompt;
 
-  Pregunta := 'Cuanto es 1234 por 5678?';
-  Writeln('Pregunta: ', Pregunta);
+  Pregunta := 'How much is 1234 times 5678?';
+  Writeln('Question: ', Pregunta);
   try
     Resp := FAiConn.AddMessageAndRun(Pregunta, 'user', []);
-    Writeln('Respuesta: ', Resp);
+    Writeln('Answer: ', Resp);
   except
     on E: Exception do
       Writeln('ERROR: ', E.Message);
   end;
   Writeln;
 
-  Pregunta := 'Cuanto es la raiz cuadrada de 144?';
-  Writeln('Pregunta: ', Pregunta);
+  Pregunta := 'What is the square root of 144?';
+  Writeln('Question: ', Pregunta);
   try
     Resp := FAiConn.AddMessageAndRun(Pregunta, 'user', []);
-    Writeln('Respuesta: ', Resp);
+    Writeln('Answer: ', Resp);
   except
     on E: Exception do
       Writeln('ERROR: ', E.Message);

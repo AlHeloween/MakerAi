@@ -1,5 +1,5 @@
 // MIT License
-// MakerAI — Demo 066: AutoMCP Console Test (v2 — API actualizada)
+// MakerAI — Demo 066: AutoMCP Console Test (v2 — updated API)
 //
 // End-to-end test of AutoMCP system:
 //   1. Installs mcp-postgres via PPM
@@ -309,7 +309,7 @@ begin
       '. Ejecuta un SELECT 1 para confirmar que está activa.',
       'user', []);
   except
-    on E: Exception do LResp := '(excepción: ' + E.Message + ')';
+    on E: Exception do LResp := '(exception: ' + E.Message + ')';
   end;
 
   if LResp <> '' then
@@ -510,7 +510,7 @@ begin
       'Muéstrame la respuesta JSON cruda que devuelve el servidor.',
       'user', []);
   except
-    on E: Exception do LResp := '(excepción: ' + E.Message + ')';
+    on E: Exception do LResp := '(exception: ' + E.Message + ')';
   end;
 
   if LResp <> '' then
@@ -539,12 +539,12 @@ begin
   FAiConn.SystemPrompt.Text := FFunctions.GetAutoMCPSystemPrompt;
 
   repeat
-    Write('Tú> ');
+    Write('You> ');
     Readln(LInput);
     LInput := Trim(LInput);
     if LInput = '' then Continue;
     if SameText(LInput, '/exit') then Break;
-    if SameText(LInput, '/new')  then begin FAiConn.NewChat; OK('Nueva conversación.'); Continue; end;
+    if SameText(LInput, '/new')  then begin FAiConn.NewChat; OK('New conversation.'); Continue; end;
     if SameText(LInput, '/tools') then
     begin
       var LToolsJson := FFunctions.GetTools(tfOpenAI);
@@ -574,7 +574,7 @@ begin
     try
       LResp := FAiConn.AddMessageAndRun(LInput, 'user', []);
     except
-      on E: Exception do LResp := '(excepción: ' + E.Message + ')';
+      on E: Exception do LResp := '(exception: ' + E.Message + ')';
     end;
     if LResp <> '' then
     begin

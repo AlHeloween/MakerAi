@@ -17,7 +17,7 @@ type
     procedure DoLog(const ADir, AText: string);
   end;
 
-  Function NewChat(parametros : String {aquí van los parametros que necesitemos}) : TDmAgent;
+  Function NewChat(parametros : String {here go the parameters we need}) : TDmAgent;
 
 var
   DmAgent: TDmAgent;
@@ -35,7 +35,7 @@ begin
   AToolsList := '';
 end;
 
-Function NewChat(parametros : String {aquí van los parametros que necesitemos}) : TDmAgent;
+Function NewChat(parametros : String {here go the parameters we need}) : TDmAgent;
 Begin
 
 End;

@@ -71,7 +71,7 @@ constructor TEchoTool.Create;
 begin
   inherited;
   FName := 'echo';
-  FDescription := 'Devuelve el texto recibido (con marcador fijo de ejecucion)';
+  FDescription := 'Returns the received text (with a fixed execution marker)';
 end;
 
 function TEchoTool.ExecuteWithParams(const AParams: TEchoParams; const AuthContext: TAiAuthContext): TJSONObject;

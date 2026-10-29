@@ -401,7 +401,7 @@ begin
     LMedia[0] := FArchivoAdjunto;
   end;
 
-  AgregarAlChat('Usuario', LPrompt);
+  AgregarAlChat('User', LPrompt);
   MemoPrompt.Text := '';
 
   AiOllamaChat1.AddMessageAndRun(LPrompt, 'user', LMedia);
@@ -428,7 +428,7 @@ begin
   FreeAndNil(FArchivoAdjunto);
   FArchivoAdjunto := TAiMediaFile.Create;
   FArchivoAdjunto.LoadFromFile(OpenDialog1.FileName);
-  AgregarAlChat('Sistema', 'Attachment: ' + System.IOUtils.TPath.GetFileName(OpenDialog1.FileName));
+  AgregarAlChat('System', 'Attachment: ' + System.IOUtils.TPath.GetFileName(OpenDialog1.FileName));
   LblEstado.Text := 'File ready: ' + System.IOUtils.TPath.GetFileName(OpenDialog1.FileName);
 end;
 
@@ -517,18 +517,18 @@ begin
     begin
       // Pure HTML → render in WebBrowser
       MostrarEnWebBrowser(LTexto, True);
-      AgregarAlChat('IA', '[HTML generado - ver pestana Web]');
+      AgregarAlChat('AI', '[Generated HTML - see Web tab]');
     end
     else if EsMarkdown(LTexto) then
     begin
       // Markdown → convert to HTML and render in WebBrowser
       MostrarEnWebBrowser(MarkdownParaHtml(LTexto), True);
-      AgregarAlChat('IA', '[Markdown generado - ver pestana Web]');
+      AgregarAlChat('AI', '[Generated Markdown - see Web tab]');
     end
     else
     begin
       // Plain text → normal history
-      AgregarAlChat('IA', LTexto);
+      AgregarAlChat('AI', LTexto);
     end;
   end;
 
@@ -555,14 +555,14 @@ begin
             LStream.Free;
           end;
           TabControl1.ActiveTab := TImageItem;
-          AgregarAlChat('Sistema', '[Generated image - see Image tab]');
+          AgregarAlChat('System', '[Generated image - see Image tab]');
         end;
 
       Tfc_Audio:
         begin
           MF.Content.Position := 0;
           FAudio.PushWavData(MF.Content);
-          AgregarAlChat('Sistema', '[TTS audio playing...]');
+          AgregarAlChat('System', '[TTS audio playing...]');
         end;
 
       Tfc_Video:
@@ -579,7 +579,7 @@ begin
           MF.Content.SaveToFile(LTmpFile);
           WebBrowser1.Navigate(LTmpFile);
           TabControl1.ActiveTab := TabWebItem;
-          AgregarAlChat('Sistema', '[Video saved: ' + System.IOUtils.TPath.GetFileName(LTmpFile) + ']');
+          AgregarAlChat('System', '[Video saved: ' + System.IOUtils.TPath.GetFileName(LTmpFile) + ']');
         end;
 
       Tfc_Web:
@@ -597,7 +597,7 @@ begin
             WebBrowser1.Navigate('file:///' + LTmpFile.Replace('\', '/'));
           end;
           TabControl1.ActiveTab := TabWebItem;
-          AgregarAlChat('Sistema', '[Web content - see Web tab]');
+          AgregarAlChat('System', '[Web content - see Web tab]');
         end;
 
     end;
@@ -623,7 +623,7 @@ end;
 procedure TForm26.AiOllamaChat1CallToolFunction(Sender: TObject; AiToolCall: TAiToolsFunction);
 begin
   // Fallback: function not found in FAiFunctions
-  AgregarAlChat('Herramienta', 'Function not implemented: ' + AiToolCall.Name);
+  AgregarAlChat('Tool', 'Function not implemented: ' + AiToolCall.Name);
   AiToolCall.Response := '{"error":"Function not implemented: ' + AiToolCall.Name + '"}';
 end;
 

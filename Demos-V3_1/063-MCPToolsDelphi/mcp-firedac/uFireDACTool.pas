@@ -71,7 +71,7 @@ procedure DbDisconnect;
 function  DbConnection: TFDConnection;
 
 // =============================================================================
-// Parámetros de herramientas
+// Tool parameters
 // =============================================================================
 
 type

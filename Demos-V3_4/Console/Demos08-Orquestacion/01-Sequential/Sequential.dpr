@@ -127,8 +127,8 @@ begin
   Writeln('Pattern: [Analizador] -> [Expansor] -> [Redactor]');
   Writeln;
 
-  RunPipeline('Inteligencia Artificial Generativa');
-  RunPipeline('Computacion en la nube');
+  RunPipeline('Generative Artificial Intelligence');
+  RunPipeline('Cloud Computing');
 end;
 
 begin

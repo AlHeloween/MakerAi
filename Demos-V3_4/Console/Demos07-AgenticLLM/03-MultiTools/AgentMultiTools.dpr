@@ -16,7 +16,7 @@ program AgentMultiTools;
 //   - Tool result → LLM integrates the results → final response
 //
 // Tools: calculator, date/time, temperature, URL encode
-// Estructura: [Start] --> [MultiAgent] --> [End]
+// Structure: [Start] --> [MultiAgent] --> [End]
 // =============================================================================
 
 uses
@@ -289,7 +289,7 @@ begin
     Manager.EndNode   := Finish;
     Manager.Compile;
 
-    // Cada pregunta requiere una herramienta diferente
+    // Each question requires a different tool
     RunQuery(Manager, 'What is 347 times 28?');
     RunQuery(Manager, 'What date and time is it now?');
     RunQuery(Manager, 'What is 37 degrees Celsius in Fahrenheit?');

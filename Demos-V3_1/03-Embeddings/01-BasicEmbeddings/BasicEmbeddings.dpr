@@ -49,7 +49,7 @@ begin
   SetLength(Parts, Min(8, Length(V)));
   for I := 0 to High(Parts) do
     Parts[I] := Format('%.4f', [V[I]]);
-  Writeln(Format('  Primeros 8 valores: [%s...]', [String.Join(', ', Parts)]));
+  Writeln(Format('  First 8 values: [%s...]', [String.Join(', ', Parts)]));
 end;
 
 // =============================================================================
@@ -71,17 +71,17 @@ begin
     Conn.Model      := MODEL;
     Conn.ApiKey     := API_KEY;
 
-    // ── Demo 1: generar embedding de un texto ─────────────────────────────
+    // ── Demo 1: generate an embedding from text ─────────────────────────────
     Writeln('--- Demo 1: Generar un embedding ---');
     Writeln('Text: "Artificial intelligence transforms the industry"');
     V1 := Conn.CreateEmbedding(
       'La inteligencia artificial transforma la industria', 'user');
     PrintVectorSummary(V1, 'V1');
-    Writeln(Format('  Tokens usados: prompt=%d, total=%d',
+    Writeln(Format('  Tokens used: prompt=%d, total=%d',
       [Conn.prompt_tokens, Conn.total_tokens]));
     Writeln;
 
-    // ── Demo 2: textos similares vs. distintos ────────────────────────────
+    // ── Demo 2: similar vs. different texts ────────────────────────────
     Writeln('--- Demo 2: Similitud coseno ---');
 
     V2 := Conn.CreateEmbedding(
@@ -105,12 +105,12 @@ begin
     else
       Writeln('  Nota: resultado inesperado — verifica el modelo/driver.');
 
-    // ── Demo 3: magnitud del vector ───────────────────────────────────────
+    // ── Demo 3: vector magnitude ───────────────────────────────────────
     Writeln;
     Writeln('--- Demo 3: Propiedades del vector ---');
-    Writeln(Format('  Dimensiones      : %d', [Length(V1)]));
-    Writeln(Format('  Magnitud (norma) : %.6f', [TAiEmbeddingsCore.Magnitude(V1)]));
-    Writeln(Format('  Distancia Eucl.  : %.6f', [TAiEmbeddingsCore.EuclideanDistance(V1, V2)]));
+    Writeln(Format('  Dimensions      : %d', [Length(V1)]));
+    Writeln(Format('  Magnitude (norm) : %.6f', [TAiEmbeddingsCore.Magnitude(V1)]));
+    Writeln(Format('  Euclidean dist.  : %.6f', [TAiEmbeddingsCore.EuclideanDistance(V1, V2)]));
     Writeln;
     Writeln('Note: An embedding with magnitude ~1.0 is normalized (L2 norm).');
 

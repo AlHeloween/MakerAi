@@ -64,8 +64,8 @@ begin
       Historial := Historial + '=== ' + NombreNodo + ' ===' + #10 + PrevOut + #10#10;
   end;
   if Historial <> '' then
-    Node.Input := '--- TRANSCRIPCION DEL DEBATE ---' + #10 + Historial +
-                  '--- REALIZA TU ROL ASIGNADO AHORA ---';
+    Node.Input := '--- DEBATE TRANSCRIPT ---' + #10 + Historial +
+                  '--- PERFORM YOUR ASSIGNED ROLE NOW ---';
 end;
 
 // =============================================================================
@@ -178,7 +178,7 @@ begin
   Writeln('5 agents: Moderator -> Proposer -> Critic -> Rebuttal -> Judge');
   Writeln;
 
-  RunDebate('La inteligencia artificial eliminara mas empleos de los que creara');
+  RunDebate('Artificial intelligence will eliminate more jobs than it creates');
 end;
 
 begin

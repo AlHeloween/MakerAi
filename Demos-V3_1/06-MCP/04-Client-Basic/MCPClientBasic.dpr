@@ -32,7 +32,7 @@ uses
   uMakerAi.Core;
 
 const
-  // Ruta al servidor compilado (01-Server-StdIO), relativa al ejecutable
+  // Path to the compiled server (01-Server-StdIO), relative to the executable
   SERVER_EXE_REL = '..\01-Server-StdIO\Win64\Release\MCPServerStdIO.exe';
 
 // =============================================================================

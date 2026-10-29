@@ -308,7 +308,7 @@ procedure Usage;
 begin
   WriteLn('Demo 082 - Computer Use: who executes the action');
   WriteLn('');
-  WriteLn('  ComputerUsePassthruDemo.exe [opciones]');
+  WriteLn('  ComputerUsePassthruDemo.exe [options]');
   WriteLn('');
   WriteLn('  --case=all|delegated|missing|local   (default: all)');
   WriteLn('  --mode=both|sync|stream              (default: both)');
@@ -398,7 +398,7 @@ begin
 
     WriteLn('');
     WriteLn('==============================================================');
-    WriteLn(Format('RESULTADO: %d PASS, %d FAIL, %d SKIP',
+    WriteLn(Format('RESULT: %d PASS, %d FAIL, %d SKIP',
       [GPasses, GFailures, GSkips]));
     WriteLn('==============================================================');
 

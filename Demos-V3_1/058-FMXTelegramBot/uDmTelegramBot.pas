@@ -22,7 +22,7 @@
 // Phase 4: voice input+output via MCPService or direct TAiOpenAiAudio
 //         CheckVoiceCapabilities queries PPM registry at startup
 //
-// Comandos: /start /help /clear /status /voice /voiceon /voiceoff
+// Commands: /start /help /clear /status /voice /voiceon /voiceoff
 // Admin:    /allow /deny /users /whitelist /openmode
 //
 // PPM registry: https://registry.cimamaker.com  (mcp-transcribe, mcp-tts)
@@ -698,8 +698,8 @@ begin
           if (GetTickCount - LastActivity) > MAX_IDLE_MS then
           begin
             TerminateProcess(PI.hProcess, 1);
-            SB.Append(#10 + '[Timeout: proceso sin output durante ' +
-              IntToStr(MAX_IDLE_MS div 1000) + 's — posiblemente requiere input interactivo. ' +
+            SB.Append(#10 + '[Timeout: process with no output for ' +
+              IntToStr(MAX_IDLE_MS div 1000) + 's — possibly requires interactive input. ' +
               'Tip: use environment variables (e.g. set PGPASSWORD=xxx) instead of prompts.]');
             TimedOut := True;
             Break;
@@ -983,7 +983,7 @@ begin
   try SaveConfig;
   finally FConfigLock.Leave; end;
 
-  // Reinicializar memoria si cambi'#243' el provider de embeddings
+  // Reinitialize memory if the embeddings provider changed
   NewMem := TBotMemory.Create(FDataDir,
     FProviders.Embeddings.Primary.ApiKey,
     FProviders.Embeddings.Primary.Driver,
@@ -1313,8 +1313,8 @@ end;
 // Phase 4: MCP / PPM
 // =============================================================================
 
-// Llama a una herramienta en MCPService via JSON-RPC HTTP.
-// Devuelve el texto del primer content item, o '' si falla.
+// Calls a tool in MCPService via JSON-RPC HTTP.
+// Returns the text of the first content item, or '' if it fails.
 function TDmTelegramBot.CallMCPTool(const AToolName: string; const AArgs: TJSONObject): string;
 var
   Http     : THTTPClient;
@@ -1552,8 +1552,8 @@ begin
   Audio.Free;
 end;
 
-// Sintetiza texto a MP3. Intenta MCPService primero, luego TAiOpenAiAudio.
-// Devuelve ruta al MP3 temporal o '' si falla.
+// Synthesizes text to MP3. Tries MCPService first, then TAiOpenAiAudio.
+// Returns path to temporary MP3 or '' if it fails.
 function TDmTelegramBot.SynthesizeVoice(const AText: string): string;
 var
   OutPath : string;
@@ -1907,7 +1907,7 @@ begin
   FTotalToolCalls := 0;
   FBotStartTime   := Now;
 
-  // Guardar token
+  // Save token
   if FToken <> '' then
   begin
     FLastToken := AToken;
@@ -1930,7 +1930,7 @@ end;
 
 procedure TDmTelegramBot.Stop;
 begin
-  if FPolling then begin FPolling := False; DoLog('SYS', 'Bot detenido.'); end;
+  if FPolling then begin FPolling := False; DoLog('SYS', 'Bot stopped.'); end;
 end;
 
 // =============================================================================
@@ -2082,7 +2082,7 @@ begin
 end;
 
 function TDmTelegramBot.ToolNativeTelegram(const Args: TJSONObject): string;
-// Bridge nativo para el tool 'telegram' (mcp-telegram schema-only).
+// Native bridge for the 'telegram' tool (mcp-telegram schema-only).
 // Uses the Telegram Bot API directly with FToken or bot_token from Args.
 var
   Op, ChatId, Text, BotToken, ParseMode, URL: string;

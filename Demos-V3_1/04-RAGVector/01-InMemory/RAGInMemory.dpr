@@ -52,31 +52,31 @@ const
 // =============================================================================
 const
   DOCUMENTOS: array[0..8] of String = (
-    'MakerAI es una suite Delphi para integrar LLMs en aplicaciones FMX. ' +
+    'MakerAI is a Delphi suite for integrating LLMs into FMX applications. ' +
     'Supports Claude, OpenAI, Gemini, Groq, Ollama and other providers.',
 
-    'TAiChatConnection es el componente central de MakerAI. ' +
+    'TAiChatConnection is the central component of MakerAI. ' +
     'Allows chatting with any LLM by changing only DriverName and Model.',
 
-    'Los embeddings son representaciones vectoriales de texto. ' +
+    'Embeddings are vector representations of text. ' +
     'Semantically similar texts have similar vectors in vector space.',
 
-    'RAG (Retrieval-Augmented Generation) combina busqueda vectorial con LLMs. ' +
+    'RAG (Retrieval-Augmented Generation) combines vector search with LLMs. ' +
     'Allows answering questions using information not in the model.',
 
-    'TAiRAGVector almacena embeddings en memoria RAM. ' +
+    'TAiRAGVector stores embeddings in RAM. ' +
     'Supports hybrid search: vector (semantic) + lexical (BM25).',
 
-    'Para instalar MakerAI en Delphi debes abrir el grupo de proyectos ' +
+    'To install MakerAI in Delphi you must open the project group ' +
     'MakerAI.groupproj and compile the packages in order: Core, RAG, UI, DSG.',
 
-    'El proveedor Ollama permite usar LLMs locales sin internet. ' +
+    'The Ollama provider allows using local LLMs without internet. ' +
     'Popular models: llama3.2, gemma3, mistral, codellama.',
 
-    'La similitud coseno mide el angulo entre dos vectores. ' +
+    'Cosine similarity measures the angle between two vectors. ' +
     'A value close to 1.0 indicates high semantic similarity.',
 
-    'MCP (Model Context Protocol) es un estandar de Anthropic ' +
+    'MCP (Model Context Protocol) is an Anthropic standard ' +
     'to connect LLMs with external tools in a standardized way.'
   );
 

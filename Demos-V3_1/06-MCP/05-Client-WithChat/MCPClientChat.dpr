@@ -63,7 +63,7 @@ begin
   Functions := TAiFunctions.Create(nil);
   AiConn    := TAiChatConnection.Create(nil);
   try
-    // Registrar el servidor MCP StdIO manualmente en TAiFunctions
+    // Register the MCP StdIO server manually in TAiFunctions
     if TFile.Exists(ServerPath) then
     begin
       ClientItem := Functions.MCPClients.Add;
@@ -71,7 +71,7 @@ begin
       ClientItem.TransportType           := tpStdIo;
       ClientItem.Params.Values['Command'] := ServerPath;
 
-      // Inicializar el proceso del servidor
+      // Initialize the server process
       if not ClientItem.MCPClient.Initialized then
         ClientItem.MCPClient.Initialize;
 
@@ -87,7 +87,7 @@ begin
     end;
     Writeln;
 
-    // Configurar TAiChatConnection con las funciones MCP
+    // Configure TAiChatConnection with the MCP functions
     AiConn.AiFunctions              := Functions;
     AiConn.DriverName               := DRIVER;
     AiConn.Model                    := MODEL;
@@ -102,7 +102,7 @@ begin
       'get_datetime (to know the date and time) and greet (to greet). ' +
       'Use the tools when appropriate. Respond in Spanish.';
 
-    // Ejecutar consultas que usan las herramientas MCP
+    // Run queries that use the MCP tools
     Writeln(StringOfChar('-', 60));
     Pregunta := 'What date and time is it now?';
     Writeln('Question: ', Pregunta);

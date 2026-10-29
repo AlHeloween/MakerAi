@@ -60,35 +60,35 @@ begin
   NodoTech    := Grafo.AddNode('prov:techparts',   'proveedor',    'TechParts Ltd');
 
   // ── Manufacturer ────────────────────────────────────────────────────────────
-  NodoFabrica := Grafo.AddNode('fab:fabrica_norte', 'fabricante',  'Fábrica Norte');
+  NodoFabrica := Grafo.AddNode('fab:fabrica_norte', 'fabricante',  'North Factory');
 
   // ── Products ─────────────────────────────────────────────────────────────
   NodoWidgetPro := Grafo.AddNode('prod:widget_pro', 'producto',    'Widget Pro');
-  NodoCompA     := Grafo.AddNode('prod:comp_a',     'producto',    'Componente A');
+  NodoCompA     := Grafo.AddNode('prod:comp_a',     'producto',    'Component A');
 
   // ── Distributors ────────────────────────────────────────────────────────
-  NodoDN := Grafo.AddNode('dist:dist_norte', 'distribuidor', 'Distribuidor Norte');
-  NodoDS := Grafo.AddNode('dist:dist_sur',   'distribuidor', 'Distribuidor Sur');
+  NodoDN := Grafo.AddNode('dist:dist_norte', 'distribuidor', 'North Distributor');
+  NodoDS := Grafo.AddNode('dist:dist_sur',   'distribuidor', 'South Distributor');
 
   // ── Customers ──────────────────────────────────────────────────────────────
-  NodoEmpABC := Grafo.AddNode('cli:empresa_abc', 'cliente', 'Empresa ABC');
-  NodoEmpXYZ := Grafo.AddNode('cli:empresa_xyz', 'cliente', 'Empresa XYZ');
+  NodoEmpABC := Grafo.AddNode('cli:empresa_abc', 'cliente', 'Company ABC');
+  NodoEmpXYZ := Grafo.AddNode('cli:empresa_xyz', 'cliente', 'Company XYZ');
 
   // ── Supply edges ─────────────────────────────────────────────────────────
-  Grafo.AddEdge(NodoMateria, NodoFabrica, 'sum:1', 'PROVEE', 'MateriaSAS provee Fábrica Norte');
-  Grafo.AddEdge(NodoTech,    NodoFabrica, 'sum:2', 'PROVEE', 'TechParts provee Fábrica Norte');
+  Grafo.AddEdge(NodoMateria, NodoFabrica, 'sum:1', 'PROVEE', 'MateriaSAS supplies North Factory');
+  Grafo.AddEdge(NodoTech,    NodoFabrica, 'sum:2', 'PROVEE', 'TechParts supplies North Factory');
 
   // ── Manufacturing edges ────────────────────────────────────────────────
-  Grafo.AddEdge(NodoFabrica, NodoWidgetPro, 'fab:1', 'FABRICA', 'Fábrica Norte fabrica Widget Pro');
-  Grafo.AddEdge(NodoFabrica, NodoCompA,     'fab:2', 'FABRICA', 'Fábrica Norte fabrica Componente A');
+  Grafo.AddEdge(NodoFabrica, NodoWidgetPro, 'fab:1', 'FABRICA', 'North Factory manufactures Widget Pro');
+  Grafo.AddEdge(NodoFabrica, NodoCompA,     'fab:2', 'FABRICA', 'North Factory manufactures Component A');
 
   // ── Distribution edges ───────────────────────────────────────────────
-  Grafo.AddEdge(NodoDN, NodoWidgetPro, 'dis:1', 'DISTRIBUYE', 'Dist Norte distribuye Widget Pro');
-  Grafo.AddEdge(NodoDS, NodoWidgetPro, 'dis:2', 'DISTRIBUYE', 'Dist Sur distribuye Widget Pro');
+  Grafo.AddEdge(NodoDN, NodoWidgetPro, 'dis:1', 'DISTRIBUYE', 'North Distributor distributes Widget Pro');
+  Grafo.AddEdge(NodoDS, NodoWidgetPro, 'dis:2', 'DISTRIBUYE', 'South Distributor distributes Widget Pro');
 
   // ── Purchase edges ─────────────────────────────────────────────────────
-  Grafo.AddEdge(NodoEmpABC, NodoDN, 'com:1', 'COMPRA_DE', 'Empresa ABC compra de Dist Norte');
-  Grafo.AddEdge(NodoEmpXYZ, NodoDS, 'com:2', 'COMPRA_DE', 'Empresa XYZ compra de Dist Sur');
+  Grafo.AddEdge(NodoEmpABC, NodoDN, 'com:1', 'COMPRA_DE', 'Company ABC buys from North Distributor');
+  Grafo.AddEdge(NodoEmpXYZ, NodoDS, 'com:2', 'COMPRA_DE', 'Company XYZ buys from South Distributor');
 
   Result := Grafo;
 end;
@@ -125,7 +125,7 @@ begin
     WriteLn(Resultado);
 
     WriteLn;
-    WriteLn('▶ Which products Fábrica Norte manufactures:');
+    WriteLn('▶ Which products North Factory manufactures:');
     Resultado := Grafo.ExecuteMakerGQL(
       'MATCH (f:fabricante)-[FABRICA]->(p:producto) RETURN p');
     WriteLn(Resultado);
@@ -137,7 +137,7 @@ begin
     WriteLn(Resultado);
 
     WriteLn;
-    WriteLn('▶ Direct neighbors of Empresa ABC (GetNeighbors method):');
+    WriteLn('▶ Direct neighbors of Company ABC (GetNeighbors method):');
     Nodo    := Grafo.FindNodeByID('cli:empresa_abc');
     Vecinos := Grafo.GetNeighbors(Nodo, gdBoth);
     for N in Vecinos do
@@ -161,11 +161,11 @@ end;
 
 procedure DemoLLM;
 const
-  PREGUNTA = 'Which suppliers supply Fábrica Norte and what products does it manufacture?';
+  PREGUNTA = 'Which suppliers supply North Factory and what products does it manufacture?';
   ESQUEMA  =
     'Labels (nodes): proveedor, fabricante, producto, distribuidor, cliente' + sLineBreak +
     'Edges (edges): PROVEE, FABRICA, DISTRIBUYE, COMPRA_DE' + sLineBreak +
-    'Node property: name (string), e.g.: name = ''Fábrica Norte''' + sLineBreak +
+    'Node property: name (string), e.g.: name = ''North Factory''' + sLineBreak +
     'Syntax: MATCH (a:label)-[r:EDGE]->(b:label) WHERE a.name = ''value'' RETURN a, r, b';
 var
   Grafo   : TAiRagGraph;
@@ -196,7 +196,7 @@ begin
       'Graph schema:' + sLineBreak + ESQUEMA + sLineBreak +
       'STRICT RULES:' + sLineBreak +
       '- Generate a SINGLE MATCH query on one line.' + sLineBreak +
-      '- Use WHERE to filter by name: WHERE b.name = ''Fábrica Norte''' + sLineBreak +
+      '- Use WHERE to filter by name: WHERE b.name = ''North Factory''' + sLineBreak +
       '- Return only the GQL query, without explanations.';
 
     GQLQuery := Conn.AddMessageAndRun(PREGUNTA, 'user', []).Trim;

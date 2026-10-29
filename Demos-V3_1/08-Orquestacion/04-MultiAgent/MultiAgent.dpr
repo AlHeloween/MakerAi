@@ -64,8 +64,8 @@ begin
       Historial := Historial + '=== ' + NombreNodo + ' ===' + #10 + PrevOut + #10#10;
   end;
   if Historial <> '' then
-    Node.Input := '--- TRANSCRIPCION DEL DEBATE ---' + #10 + Historial +
-                  '--- REALIZA TU ROL ASIGNADO AHORA ---';
+    Node.Input := '--- TRANSCRIPT OF THE DEBATE ---' + #10 + Historial +
+                  '--- PERFORM YOUR ASSIGNED ROLE NOW ---';
 end;
 
 // =============================================================================
@@ -109,31 +109,31 @@ begin
     Moderador := MakeLLM(Manager, 'Moderador',
       'You are the debate moderator. Given a topic, formulate a clear ' +
       'proposition (statement) and introduce the debate in 2 sentences. ' +
-      'Formato: "PROPOSICION: [enunciado]\nINTRODUCCION: [contexto breve]"');
+      'Format: "PROPOSITION: [statement]\nINTRODUCTION: [brief context]"');
 
     // Node 2: Speaker (IN FAVOR)
     Ponente := MakeLLM(Manager, 'Ponente',
       'You are an expert debater IN FAVOR of the proposition. ' +
       'Argue with 2 solid reasons. Each argument in 2-3 sentences. ' +
-      'Formato: "ARGUMENTOS A FAVOR:\n1. [argumento]\n2. [argumento]"');
+      'Format: "ARGUMENTS IN FAVOR:\n1. [argument]\n2. [argument]"');
 
     // Node 3: Critic (AGAINST)
     Critico := MakeLLM(Manager, 'Critico',
       'You are an expert debater AGAINST the proposition. ' +
       'Refute each of the speaker''s arguments and add a new objection. ' +
-      'Formato: "ARGUMENTOS EN CONTRA:\n1. [refutacion 1]\n2. [refutacion 2]\n3. [nueva objecion]"');
+      'Format: "ARGUMENTS AGAINST:\n1. [refutation 1]\n2. [refutation 2]\n3. [new objection]"');
 
     // Node 4: Rebuttal
     Replica := MakeLLM(Manager, 'Replica',
       'You are the original speaker. Respond to the critic''s strongest objection. ' +
-      '2-3 oraciones. Formato: "REPLICA: [tu respuesta]"');
+      '2-3 sentences. Format: "REBUTTAL: [your response]"');
 
     // Node 5: Judge
     Juez := MakeLLM(Manager, 'Juez',
       'You are an impartial judge. Evaluate both sides of the debate on: ' +
       'argument solidity, evidence, and persuasion. ' +
       'Give scores out of 10 and declare a winner with justification. ' +
-      'Formato: "PUNTAJES:\n- Lado A favor: X/10\n- Lado En contra: X/10\nVEREDICTO: [ganador y razon]"');
+      'Format: "SCORES:\n- Pro side: X/10\n- Con side: X/10\nVERDICT: [winner and reason]"');
 
     // Chain linearly
     L1 := TAIAgentsLink.Create(Manager); L1.Name := 'L1'; L1.Graph := Manager; L1.NextA := Ponente;   Moderador.Next := L1;

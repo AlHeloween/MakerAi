@@ -112,7 +112,7 @@ begin
 end;
 
 // =============================================================================
-//  Registro de funciones
+//  Function registration
 // =============================================================================
 
 procedure TConsultasDemo.RegistrarFunciones;
@@ -123,8 +123,8 @@ begin
   // ── ConsultarStock ─────────────────────────────────────────────────────────
   LFn := FAiFuncs.Functions.AddFunction('ConsultarStock', True, OnFnStock);
   LFn.Description.Text :=
-    'Consulta el stock disponible de un producto dado su código. ' +
-    'Devuelve cantidad en stock, estado (disponible/critico/agotado) y ubicación.';
+    'Queries the available stock of a product given its code. ' +
+    'Returns quantity in stock, status (available/critical/out of stock) and location.';
   LParam := LFn.Parameters.Add;
   LParam.Name             := 'codigo_producto';
   LParam.ParamType        := ptString;
@@ -134,8 +134,8 @@ begin
   // ── ConsultarPrecio ────────────────────────────────────────────────────────
   LFn := FAiFuncs.Functions.AddFunction('ConsultarPrecio', True, OnFnPrecio);
   LFn.Description.Text :=
-    'Obtiene el precio de venta de un producto en USD. ' +
-    'Incluye descuento activo si lo hay.';
+    'Gets the sale price of a product in USD. ' +
+    'Includes active discount if any.';
   LParam := LFn.Parameters.Add;
   LParam.Name             := 'codigo_producto';
   LParam.ParamType        := ptString;
@@ -145,8 +145,8 @@ begin
   // ── ObtenerFechaActual ─────────────────────────────────────────────────────
   LFn := FAiFuncs.Functions.AddFunction('ObtenerFechaActual', True, OnFnFecha);
   LFn.Description.Text :=
-    'Obtiene la fecha y hora actuales del sistema. ' +
-    'Usar cuando el usuario pregunte por la fecha, hora o día de la semana.';
+    'Gets the current system date and time. ' +
+    'Use when the user asks for the date, time, or day of the week.';
   // No parameters
 end;
 
@@ -173,9 +173,9 @@ begin
     Conn.AiFunctions := FAiFuncs;
 
     Conn.SystemPrompt.Text :=
-      'Eres un asistente empresarial. Tienes acceso a herramientas para ' +
-      'consultar stock, precios y fecha/hora. Úsalas cuando el usuario ' +
-      'necesite esa información. Responde siempre en español.';
+      'You are a business assistant. You have access to tools to ' +
+      'query stock, prices, and date/time. Use them when the user ' +
+      'needs that information. Always respond in Spanish.';
 
     WriteLn('');
     WriteLn('=== Cap. 15 — Function Calling with Ollama ===');

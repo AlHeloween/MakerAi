@@ -213,11 +213,11 @@ begin
     if LHistorial <> FBuffer then
     begin
       Writeln;
-      Writeln('*** DISCREPANCIA buffer vs historial ***');
-      Writeln(Format('  Buffer    : %d chars  |  Historial : %d chars', [Length(FBuffer), Length(LHistorial)]));
+      Writeln('*** DISCREPANCY buffer vs history ***');
+      Writeln(Format('  Buffer    : %d chars  |  History : %d chars', [Length(FBuffer), Length(LHistorial)]));
     end
     else
-      Writeln('  [OK] Buffer y historial coinciden.');
+      Writeln('  [OK] Buffer and history match.');
   end;
 end;
 
@@ -351,34 +351,34 @@ begin
   try
     // --- Production: llama-3.1-8b-instant (ultra-fast) ---
     Tester.TestSync(
-      'En una sola oracion: cual es la capital de Francia?',
-      MODEL_FAST, 'Test 1 - Sync basico (llama-3.1-8b)');
+      'In a single sentence: what is the capital of France?',
+      MODEL_FAST, 'Test 1 - Basic sync (llama-3.1-8b)');
 
     Tester.TestAsync(
-      'En una sola oracion: cual es la capital de Japon?',
-      MODEL_FAST, 'Test 2 - Async basico (llama-3.1-8b)');
+      'In a single sentence: what is the capital of Japan?',
+      MODEL_FAST, 'Test 2 - Basic async (llama-3.1-8b)');
 
     // --- Production: llama-3.3-70b-versatile ---
     Tester.TestAsync(
-      'Explica en 2 parrafos breves que es el machine learning.',
-      MODEL_QUALITY, 'Test 3 - Async calidad (llama-3.3-70b)');
+      'Explain in 2 short paragraphs what machine learning is.',
+      MODEL_QUALITY, 'Test 3 - Async quality (llama-3.3-70b)');
 
     // --- Reasoning: qwen/qwen-3-32b (reasoning_effort=medium) ---
     Tester.TestSync(
-      'Cuanto es 347 multiplicado por 28? Muestra el razonamiento.',
+      'How much is 347 multiplied by 28? Show the reasoning.',
       MODEL_REASON, 'Test 4 - Sync reasoning (qwen-3-32b)');
 
     Tester.TestAsync(
-      'Cuanto es 347 multiplicado por 28? Muestra el razonamiento.',
+      'How much is 347 multiplied by 28? Show the reasoning.',
       MODEL_REASON, 'Test 5 - Async reasoning (qwen-3-32b)');
 
     // --- Production: openai/gpt-oss-120b (native reasoning) ---
     Tester.TestSync(
-      'Cuanto es 347 multiplicado por 28? Muestra el razonamiento.',
+      'How much is 347 multiplied by 28? Show the reasoning.',
       MODEL_REASON2, 'Test 6 - Sync gpt-oss-120b (reasoning)');
 
     Tester.TestAsync(
-      'Explica en 2 parrafos breves que es la inteligencia artificial.',
+      'Explain in 2 short paragraphs what artificial intelligence is.',
       MODEL_REASON2, 'Test 7 - Async gpt-oss-120b');
 
     // --- Multi-turn with llama-3.3-70b ---

@@ -107,7 +107,7 @@ var
 begin
   Result := '';
   if not Assigned(ARes) then
-    Exit('(sin respuesta)');
+    Exit('(no response)');
   // The server builder returns {"content":[{"type":"text","text":"..."}]}
   if ARes.TryGetValue<TJSONArray>('content', Arr) then
     for V in Arr do

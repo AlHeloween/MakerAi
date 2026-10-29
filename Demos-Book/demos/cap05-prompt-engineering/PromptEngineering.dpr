@@ -91,8 +91,8 @@ begin
   // INSTRUCTION + FORMAT + EXAMPLE go in the user message
   R := Conn.AddMessageAndRun(
     'INSTRUCTION: Classify into exactly ONE category: ' +
-    '[SOPORTE_TECNICO, FACTURACION, VENTAS, QUEJA, OTRO]' + #13#10 +
-    'FORMAT: {"categoria":"...","urgencia":"ALTA|MEDIA|BAJA","resumen":"max 10 words"}' + #13#10 +
+    '[TECHNICAL_SUPPORT, BILLING, SALES, COMPLAINT, OTHER]' + #13#10 +
+    'FORMAT: {"categoria":"...","urgencia":"HIGH|MEDIUM|LOW","resumen":"max 10 words"}' + #13#10 +
     'EMAIL:' + #13#10 + EMAIL_EJEMPLO,
     'user', []);
   WriteLn(R);
@@ -125,14 +125,14 @@ begin
   // The examples are embedded in the behavior; there is no need to re-inject them
   Conn.SystemPrompt.Text :=
     'You are a support ticket classifier. Respond ONLY with JSON.' + #13#10 +
-    'Formato: {"categoria":"SOPORTE_TECNICO|FACTURACION|VENTAS|ACCESO|HARDWARE","urgencia":"ALTA|MEDIA|BAJA"}' + #13#10 +
+    'Format: {"categoria":"TECHNICAL_SUPPORT|BILLING|SALES|ACCESS|HARDWARE","urgencia":"HIGH|MEDIUM|LOW"}' + #13#10 +
     '' + #13#10 +
     'EXAMPLES:' + #13#10 +
     'Ticket:  "My printer does not print"' + #13#10 +
-    'Salida:  {"categoria":"HARDWARE","urgencia":"MEDIA"}' + #13#10 +
+    'Output:  {"categoria":"HARDWARE","urgencia":"MEDIUM"}' + #13#10 +
     '' + #13#10 +
     'Ticket:  "I cannot access my account"' + #13#10 +
-    'Salida:  {"categoria":"ACCESO","urgencia":"ALTA"}' + #13#10 +
+    'Output:  {"categoria":"ACCESS","urgencia":"HIGH"}' + #13#10 +
     '' + #13#10 +
     'Ticket:  "When does my subscription expire?"' + #13#10 +
     'Output:  {"categoria":"BILLING","urgencia":"LOW"}';

@@ -182,7 +182,7 @@ begin
     AnalyzerConn.Params.Values['ApiKey']       := ReadApiKey('Groq');
     AnalyzerConn.Params.Values['Asynchronous'] := 'False';
     Memory.Analyzer         := AnalyzerConn;
-    Memory.AnalysisInterval := 3; // cada 3 intercambios, para probar rápido
+    Memory.AnalysisInterval := 3; // every 3 exchanges, for quick testing
 
     NextImportance := 5;
     DebugMode      := False;

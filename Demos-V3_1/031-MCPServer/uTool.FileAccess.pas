@@ -178,7 +178,7 @@ constructor TListFilesTool.Create;
 begin
   inherited;
   FName := 'list_files';
-  FDescription := 'Lista archivos en carpetas permitidas con filtros de seguridad';
+  FDescription := 'Lists files in allowed folders with security filters';
 end;
 
 class procedure TListFilesTool.SetDefaultConfiguration;
@@ -321,7 +321,7 @@ begin
     end;
 
     ResultObject.AddPair('count', TJSONNumber.Create(Int64(FilesArray.Count)));
-    ResultObject.AddPair('message', Format('%d archivos encontrados en "%s".', [FilesArray.Count, AParams.Path]));
+    ResultObject.AddPair('message', Format('%d files found in "%s".', [FilesArray.Count, AParams.Path]));
 
     // We return the JSON of the file list inside the "content" response format
     Result := TAiMCPResponseBuilder.New.AddText(ResultObject.ToJSON).Build;
@@ -339,7 +339,7 @@ constructor TReadFileTool.Create;
 begin
   inherited;
   FName := 'read_file';
-  FDescription := 'Lee y devuelve el contenido de un archivo (texto o binario) con restricciones de seguridad.';
+  FDescription := 'Reads and returns the content of a file (text or binary) with security restrictions.';
 end;
 
 // CHANGE: The function now returns the file using the builder.
@@ -383,7 +383,7 @@ constructor TWriteFileTool.Create;
 begin
   inherited;
   FName := 'write_file';
-  FDescription := 'Escribe o agrega contenido a archivos de texto con restricciones de seguridad.';
+  FDescription := 'Writes or appends content to text files with security restrictions.';
 end;
 
 // CHANGE: The function now returns a simple confirmation JSON.

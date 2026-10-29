@@ -443,7 +443,7 @@ begin
 
   try
     N := RAG.AddItemsFromPlainText(LText, nil, 512, 20);
-    AddLog(Format('RAG: indexados %d fragmentos en SQLite.', [N]));
+    AddLog(Format('RAG: indexed %d fragments in SQLite.', [N]));
     MemoPrompt.Lines.Clear;
   except
     on E: Exception do
@@ -603,7 +603,7 @@ begin
     Exit(d);
   if (S <> '') and TryStrToDate(S, d) then
     Exit(d);
-  // fallback: dias consecutivos desde hoy
+  // fallback: consecutive days from today
   Result := Trunc(Now) + aIndex;
 end;
 

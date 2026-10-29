@@ -192,7 +192,7 @@ begin
   Iteration    := 0;
   Approved     := False;
 
-  // Lanzar el agente (retorna inmediatamente por Asynchronous=True)
+  // Launch the agent (returns immediately because Asynchronous=True)
   FManager.Run(ATask);
 
   repeat
@@ -231,7 +231,7 @@ begin
       begin
         // Rejected: relaunch with feedback
         if Trim(UserInput) = '' then
-          UserInput := 'Por favor mejora la calidad del texto.';
+          UserInput := 'Please improve the text quality.';
 
         Writeln('Regenerating with your feedback...');
         FManager.Abort;
@@ -242,8 +242,8 @@ begin
         GFinalOutput := '';
 
         NewPrompt := ATask + sLineBreak + sLineBreak +
-          'BORRADOR PREVIO (necesita mejora):' + sLineBreak + GSuspendContext + sLineBreak + sLineBreak +
-          'INSTRUCCIONES DE MEJORA: ' + UserInput;
+          'PREVIOUS DRAFT (needs improvement):' + sLineBreak + GSuspendContext + sLineBreak + sLineBreak +
+          'IMPROVEMENT INSTRUCTIONS: ' + UserInput;
 
         FManager.Run(NewPrompt);
       end;
@@ -290,6 +290,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

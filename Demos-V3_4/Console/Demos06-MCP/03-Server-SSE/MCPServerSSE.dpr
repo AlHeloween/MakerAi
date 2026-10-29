@@ -110,7 +110,7 @@ begin
   if Lang = 'en' then
     Saludo := Format('Hello, %s! Welcome to MakerAI MCP SSE Server.', [NombrePersona])
   else
-    Saludo := Format('Hola, %s! Bienvenido al servidor MCP SSE de MakerAI.', [NombrePersona]);
+    Saludo := Format('Hello, %s! Welcome to the MakerAI MCP SSE server.', [NombrePersona]);
   Result := TAiMCPResponseBuilder.New.AddText(Saludo).Build;
 end;
 

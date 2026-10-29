@@ -209,11 +209,11 @@ begin
       Sembrar(Mem);
 
       Writeln('');
-      Writeln('== 2. Search: recuperar por relevancia ==');
+      Writeln('== 2. Search: retrieve by relevance ==');
       Buscar(Mem, ModoBusqueda, 'sqlite');
       Buscar(Mem, ModoBusqueda, 'short answers');
-      // Esta es la que separa FTS de semantica: no comparte palabras con la
-      // memoria que deberia encontrar ("cobro duplicado ... facturacion").
+      // This is the one that separates FTS from semantics: it shares no words with the
+      // memory it should find ("duplicate charge ... billing").
       Buscar(Mem, ModoBusqueda, 'duplicate charge');
 
       Recordar(Mem);
@@ -223,20 +223,20 @@ begin
       Mem.Free;
     end;
 
-    // --- 6. Persistencia: reabrir y comprobar que sigue todo ---
+    // --- 6. Persistence: reopen and check everything is still there ---
     Writeln('');
-    Writeln('== 6. Persistencia: se cerro la base y se vuelve a abrir ==');
+    Writeln('== 6. Persistence: the database was closed and reopened ==');
     Writeln('');
     Mem := TAiMemory.Create(nil);
     try
       Mem.Namespace := 'demo076';
       Mem.DbPath := DbPath;
       Total := Mem.Stats.TotalCount;
-      Writeln(Format('   memorias recuperadas del disco: %d', [Total]));
+      Writeln(Format('   memories recovered from disk: %d', [Total]));
       if Total > 0 then
-        Writeln('   OK: la memoria sobrevive al cierre de la aplicacion')
+        Writeln('   OK: memory survives application shutdown')
       else
-        Writeln('   ATENCION: no se recupero nada del disco');
+        Writeln('   ATTENTION: nothing was recovered from disk');
     finally
       Mem.Free;
     end;

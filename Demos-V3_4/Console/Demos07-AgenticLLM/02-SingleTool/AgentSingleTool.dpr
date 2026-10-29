@@ -18,7 +18,7 @@ program AgentSingleTool;
 //   - ReAct cycle: LLM decides → calls tool → LLM interprets result
 //
 // Tool: calculator (add, subtract, multiply, divide)
-// Estructura: [Start] --> [CalculatorAgent] --> [End]
+// Structure: [Start] --> [CalculatorAgent] --> [End]
 // =============================================================================
 
 uses

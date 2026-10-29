@@ -104,8 +104,8 @@ begin
     Conn.Params.Values['Max_Tokens']   := '1024';
 
     Conn.SystemPrompt.Text :=
-      'Eres un asistente que puede buscar en internet. ' +
-      'Cuando uses búsqueda web, menciona las fuentes consultadas. ' +
+      'You are an assistant that can search the internet. ' +
+      'When you use web search, mention the sources consulted. ' +
       'Respond in Spanish.';
 
     // ── Demo 1: Comparison with/without search ─────────────────────────────
@@ -133,7 +133,7 @@ begin
     Writeln('Demo 3: Response with cited sources');
     Conn.Messages.Clear;
     Conn.SystemPrompt.Text :=
-      'Responde con fuentes. Al final incluye una sección "Fuentes:" con ' +
+      'Respond with sources. At the end include a section "Sources:" with ' +
       'the consulted URLs. Respond in Spanish.';
 
     Res := Conn.AddMessageAndRun(

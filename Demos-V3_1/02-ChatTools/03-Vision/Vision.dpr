@@ -106,7 +106,7 @@ begin
     Conn.Params.Values['Max_Tokens']        := '1024';
 
     Conn.SystemPrompt.Text :=
-      'Eres un asistente experto en análisis de imágenes. ' +
+      'You are an expert assistant in image analysis. ' +
       'Describe what you see in detail and accurately. Respond in Spanish.';
 
     // Determine image to use

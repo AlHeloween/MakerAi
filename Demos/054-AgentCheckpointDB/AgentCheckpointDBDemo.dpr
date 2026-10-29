@@ -193,7 +193,7 @@ begin
   end);
 end;
 
-{ Executors de nodos }
+{ Node executors }
 
 procedure TDemo.InicioExec(Node, BeforeNode: TAIAgentsNode;
   Link: TAIAgentsLink; Input: string; var Output: string);
@@ -201,7 +201,7 @@ begin
   TThread.Synchronize(nil, procedure begin
     Println('[Start] Process received: "' + Input + '"');
   end);
-  Output := 'Proceso iniciado: ' + Input;
+  Output := 'Process started: ' + Input;
 end;
 
 procedure TDemo.ProcesarExec(Node, BeforeNode: TAIAgentsNode;
@@ -211,7 +211,7 @@ begin
     Println('[Process] Processing data...');
   end);
   Sleep(400);
-  Output := 'Datos procesados. ' + Input;
+  Output := 'Data processed. ' + Input;
 end;
 
 procedure TDemo.AprobarExec(Node, BeforeNode: TAIAgentsNode;
@@ -222,7 +222,7 @@ begin
   end);
   Output := Input;
   // Suspends execution; the framework saves the checkpoint automatically
-  Node.Suspend('Aprobacion requerida por operador', 'Datos listos: ' + Input);
+  Node.Suspend('Approval required by operator', 'Data ready: ' + Input);
 end;
 
 procedure TDemo.FinalizarExec(Node, BeforeNode: TAIAgentsNode;
@@ -231,7 +231,7 @@ begin
   TThread.Synchronize(nil, procedure begin
     Println('[Finish] Process completed. Input: "' + Input + '"');
   end);
-  Output := 'COMPLETADO: ' + Input;
+  Output := 'COMPLETED: ' + Input;
 end;
 
 { Logica principal }
@@ -343,7 +343,7 @@ begin
   except
     on E: Exception do
     begin
-      Writeln('Error fatal: ', E.ClassName, ' - ', E.Message);
+      Writeln('Fatal error: ', E.ClassName, ' - ', E.Message);
       Write('Press ENTER to exit...');
       Readln;
     end;

@@ -4,20 +4,20 @@
 {$R *.res}
 
 // =============================================================================
-// MakerAI -- Capitulo 18: Herramientas del Sistema
+// MakerAI -- Chapter 18: System Tools
 // =============================================================================
-// TAiShell: el LLM ejecuta comandos en una sesion persistente de shell.
-// TAiTextEditorTool: el LLM lee y edita archivos de forma controlada.
+// TAiShell: the LLM executes commands in a persistent shell session.
+// TAiTextEditorTool: the LLM reads and edits files in a controlled way.
 //
-// Variables de entorno requeridas:
+// Required environment variables:
 //   CLAUDE_API_KEY   -- Demos 1, 3, 4
-//   (Ollama local)   -- Demo 2 (qwen3.5:2b debe estar corriendo en Ollama)
+//   (Local Ollama)   -- Demo 2 (qwen3.5:2b must be running in Ollama)
 //
-// Carpeta de trabajo: C:\temp\demoshell  (se crea automaticamente)
+// Working folder: C:\temp\demoshell  (created automatically)
 //
-// Diferencia clave con ChatTools:
-//   ChatTools    -> el framework los invoca de forma transparente al LLM
-//   Estas tools  -> el LLM las DESCUBRE en su lista y decide cuando llamarlas
+// Key difference from ChatTools:
+//   ChatTools    -> the framework invokes them transparently to the LLM
+//   These tools  -> the LLM DISCOVERS them in its list and decides when to call them
 // =============================================================================
 
 uses
@@ -37,7 +37,7 @@ const
   CLAUDE_DRV = 'Claude';
   CLAUDE_MDL = 'claude-sonnet-4-6';
   OLLAMA_DRV = 'Ollama';
-  OLLAMA_MDL = 'qwen3.5:2b';  // 2.3B -- ligero y confiable en tool calling
+  OLLAMA_MDL = 'qwen3.5:2b';  // 2.3B -- lightweight and reliable in tool calling
 
 // -----------------------------------------------------------------------------
 
@@ -52,15 +52,15 @@ end;
 // =============================================================================
 //  TSistemaDemo
 //
-//  Clase contenedora de los 4 demos. Cada demo crea y libera sus propios
-//  objetos; la clase solo existe para proveer handlers of object a los tools.
+//  Container class for the 4 demos. Each demo creates and frees its own
+//  objects; the class only exists to provide object handlers to the tools.
 // =============================================================================
 type
   TSistemaDemo = class
   private
-    FTextEditor: TAiTextEditorTool;  // accedido desde OnTextEditorAction
+    FTextEditor: TAiTextEditorTool;  // accessed from OnTextEditorAction
 
-    // Handlers de tool calls (deben ser metodos de clase -- TFunctionEvent of object)
+    // Tool call handlers (must be class methods -- TFunctionEvent of object)
     procedure OnTextEditorAction(Sender: TObject; FA: TFunctionActionItem;
       FN: String; TC: TAiToolsFunction; var Handled: Boolean);
     procedure OnShellLog(Sender: TObject;
@@ -115,9 +115,9 @@ end;
 
 procedure TSistemaDemo.PrepararCarpeta;
 const
-  // LF puro (#10): TAiTextEditorTool y los LLM trabajan con \n.
-  // CRLF (#13#10) hace que str_replace falle porque el LLM reconstruye
-  // old_str con \n y el archivo tiene \r\n — no coinciden.
+  // Pure LF (#10): TAiTextEditorTool and the LLMs work with \n.
+  // CRLF (#13#10) makes str_replace fail because the LLM reconstructs
+  // old_str with \n and the file has \r\n — they do not match.
   FIB_PAS =
     'function Fibonacci(N: Integer): Integer;'#10 +
     'begin'#10 +
@@ -125,30 +125,30 @@ const
     '    Result := N'#10 +
     '  else'#10 +
     '    Result := Fibonacci(N - 1) + Fibonacci(N - 2);'#10 +
-    '  // TODO: validar valores negativos'#10 +
+    '  // TODO: validate negative values'#10 +
     'end;'#10;
 
   CONFIG_TXT =
     'host=localhost'#10 +
     'port=5432'#10 +
-    'database=produccion'#10 +
+    'database=production'#10 +
     'user=admin'#10 +
     'timeout=30'#10;
 
   NOTAS_TXT =
-    'Reunion equipo - 17 mayo 2026'#10 +
-    'Temas pendientes:'#10 +
-    '- Revisar modulo facturacion'#10 +
-    '- Actualizar dependencias'#10 +
-    '- Documentar API REST'#10;
+    'Team meeting - May 17, 2026'#10 +
+    'Pending topics:'#10 +
+    '- Review billing module'#10 +
+    '- Update dependencies'#10 +
+    '- Document REST API'#10;
 begin
   TDirectory.CreateDirectory(WORK_DIR);
   TFile.WriteAllText(WORK_DIR + '\fibonacci.pas', FIB_PAS,   TEncoding.UTF8);
   TFile.WriteAllText(WORK_DIR + '\config.txt',    CONFIG_TXT, TEncoding.UTF8);
   TFile.WriteAllText(WORK_DIR + '\notas.txt',     NOTAS_TXT,  TEncoding.UTF8);
 
-  WriteLn('  Carpeta de trabajo: ', WORK_DIR);
-  WriteLn('  Archivos creados  : fibonacci.pas, config.txt, notas.txt');
+  WriteLn('  Working folder: ', WORK_DIR);
+  WriteLn('  Files created    : fibonacci.pas, config.txt, notas.txt');
 end;
 
 // =============================================================================
@@ -162,28 +162,28 @@ var
 begin
   LFn := LFuncs.Functions.AddFunction('text_editor', True, OnTextEditorAction);
   LFn.Description.Text :=
-    'Lee y edita archivos de texto. ' +
-    'view: muestra el contenido. ' +
-    'create: crea un archivo nuevo con file_text. ' +
-    'str_replace: reemplaza old_str por new_str (old_str debe ser unico en el archivo). ' +
-    'insert: inserta new_str despues de la linea insert_line. ' +
-    'apply_diff: aplica un diff unificado.';
+    'Reads and edits text files. ' +
+    'view: shows the content. ' +
+    'create: creates a new file with file_text. ' +
+    'str_replace: replaces old_str with new_str (old_str must be unique in the file). ' +
+    'insert: inserts new_str after the insert_line line. ' +
+    'apply_diff: applies a unified diff.';
 
   LParam := LFn.Parameters.Add;
   LParam.Name := 'command';
-  LParam.Description.Text := 'Accion: view | create | str_replace | insert | apply_diff';
+  LParam.Description.Text := 'Action: view | create | str_replace | insert | apply_diff';
   LParam.ParamType := ptString;
   LParam.Required  := True;
 
   LParam := LFn.Parameters.Add;
   LParam.Name := 'path';
-  LParam.Description.Text := 'Ruta completa del archivo';
+  LParam.Description.Text := 'Full path of the file';
   LParam.ParamType := ptString;
   LParam.Required  := True;
 
   LParam := LFn.Parameters.Add;
   LParam.Name := 'file_text';
-  LParam.Description.Text := 'Contenido completo del archivo (solo para create)';
+  LParam.Description.Text := 'Full content of the file (only for create)';
   LParam.ParamType := ptString;
   LParam.Required  := False;
 
@@ -203,7 +203,7 @@ begin
 
   LParam := LFn.Parameters.Add;
   LParam.Name := 'insert_line';
-  LParam.Description.Text := 'Numero de linea despues de la cual insertar (para insert)';
+  LParam.Description.Text := 'Line number after which to insert (for insert)';
   LParam.ParamType := ptInteger;
   LParam.Required  := False;
 end;
@@ -211,9 +211,9 @@ end;
 // =============================================================================
 //  Demo 1 -- TAiShell + Claude
 //
-//  El LLM usa bash para explorar el directorio. SecurityMode=ssmAllowList
-//  restringe los comandos a un conjunto seguro definido en SecurityList.
-//  La sesion de shell es persistente: cd seguido de dir funciona como esperado.
+//  The LLM uses bash to explore the directory. SecurityMode=ssmAllowList
+//  restricts commands to a safe set defined in SecurityList.
+//  The shell session is persistent: cd followed by dir works as expected.
 // =============================================================================
 procedure TSistemaDemo.Demo1_Shell_Claude;
 var
@@ -222,7 +222,7 @@ var
   Conn  : TAiChatConnection;
   Resp  : string;
 begin
-  Separador('Demo 1 -- TAiShell + Claude: explorar y leer archivos');
+  Separador('Demo 1 -- TAiShell + Claude: explore and read files');
 
   LFuncs := TAiFunctions.Create(nil);
   LShell := TAiShell.Create(nil);
@@ -242,22 +242,22 @@ begin
     Conn.AiFunctions := LFuncs;
 
     Conn.SystemPrompt.Text :=
-      'Eres un asistente de sistema. Ejecutas comandos Windows con bash. ' +
-      'Trabaja SOLO en ' + WORK_DIR + '. ' +
-      'Comandos permitidos: dir, type, tree, echo, cd. ' +
-      'Responde siempre en espanol.';
+      'You are a system assistant. You execute Windows commands with bash. ' +
+      'Work ONLY in ' + WORK_DIR + '. ' +
+      'Allowed commands: dir, type, tree, echo, cd. ' +
+      'Always respond in Spanish.';
 
-    WriteLn('  Tarea: listar archivos y mostrar el contenido de fibonacci.pas');
+    WriteLn('  Task: list files and show the content of fibonacci.pas');
     WriteLn('');
 
     Resp := Conn.AddMessageAndRun(
-      'Usa dir para listar los archivos de ' + WORK_DIR +
-      ' y despues usa type para mostrar el contenido de fibonacci.pas. ' +
-      'Resume en dos o tres lineas lo que encontraste.',
+      'Use dir to list the files in ' + WORK_DIR +
+      ' and then use type to show the content of fibonacci.pas. ' +
+      'Summarize in two or three lines what you found.',
       'user', []);
 
     WriteLn('');
-    WriteLn('  Claude respondio:');
+    WriteLn('  Claude responded:');
     WriteLn('  ', StringReplace(Trim(Resp), #10, #13#10 + '  ', [rfReplaceAll]));
   finally
     Conn.Free;
@@ -266,21 +266,21 @@ begin
   end;
 
   WriteLn('');
-  WriteLn('-> SecurityMode=ssmAllowList: solo comandos de la lista estan permitidos.');
-  WriteLn('   La sesion es persistente: cd y dir en llamadas separadas funcionan.');
-  WriteLn('   RegisterInFunctions registra bash con un solo metodo call.');
+  WriteLn('-> SecurityMode=ssmAllowList: only commands in the list are allowed.');
+  WriteLn('   The session is persistent: cd and dir in separate calls work.');
+  WriteLn('   RegisterInFunctions registers bash with a single call method.');
 end;
 
 // =============================================================================
 //  Demo 2 -- TAiShell + Ollama/qwen3.5:2b  (100% local)
 //
-//  El mismo TAiShell funciona con Ollama sin cambios. La unica diferencia
-//  es DriverName y Model. qwen3.5:2b es un modelo local de 2.3B parametros
-//  con soporte confiable de tool calling via Ollama.
+//  The same TAiShell works with Ollama without changes. The only difference
+//  is DriverName and Model. qwen3.5:2b is a local model with 2.3B parameters
+//  with reliable tool calling support via Ollama.
 //
-//  Nota: qwen3.5 no esta en Initializations -> Tool_Active debe activarse
-//  explicitamente en el codigo. Modelos mas grandes (qwen3.5:7b, etc.)
-//  son mas confiables pero requieren mas VRAM.
+//  Note: qwen3.5 is not in Initializations -> Tool_Active must be activated
+//  explicitly in the code. Larger models (qwen3.5:7b, etc.)
+//  are more reliable but require more VRAM.
 // =============================================================================
 procedure TSistemaDemo.Demo2_Shell_Ollama;
 var
@@ -289,7 +289,7 @@ var
   Conn  : TAiChatConnection;
   Resp  : string;
 begin
-  Separador('Demo 2 -- TAiShell + Ollama/qwen3.5:2b (sin internet, sin API key)');
+  Separador('Demo 2 -- TAiShell + Ollama/qwen3.5:2b (no internet, no API key)');
 
   LFuncs := TAiFunctions.Create(nil);
   LShell := TAiShell.Create(nil);
@@ -313,18 +313,18 @@ begin
       'Trabaja solo en ' + WORK_DIR + '. ' +
       'Comandos disponibles: dir, type. Responde en espanol.';
 
-    WriteLn('  Driver : ', OLLAMA_DRV, '   Modelo : ', OLLAMA_MDL);
-    WriteLn('  Tarea  : listar los archivos en ', WORK_DIR);
-    WriteLn('  (El codigo de TAiShell es identico al Demo 1)');
+    WriteLn('  Driver : ', OLLAMA_DRV, '   Model : ', OLLAMA_MDL);
+    WriteLn('  Task   : list the files in ', WORK_DIR);
+    WriteLn('  (The TAiShell code is identical to Demo 1)');
     WriteLn('');
 
     Resp := Conn.AddMessageAndRun(
-      'Usa dir para listar los archivos en ' + WORK_DIR +
-      ' e indica cuantos archivos encontraste.',
+      'Use dir to list the files in ' + WORK_DIR +
+      ' and indicate how many files you found.',
       'user', []);
 
     WriteLn('');
-    WriteLn('  qwen3.5:2b respondio:');
+    WriteLn('  qwen3.5:2b responded:');
     WriteLn('  ', StringReplace(Trim(Resp), #10, #13#10 + '  ', [rfReplaceAll]));
   finally
     Conn.Free;
@@ -333,20 +333,20 @@ begin
   end;
 
   WriteLn('');
-  WriteLn('-> Mismo TAiShell, distinto driver: solo cambia DriverName y Model.');
-  WriteLn('   qwen3.5:2b no esta en Initializations -> Tool_Active se activa en el codigo.');
-  WriteLn('   100% local: sin internet, sin API key, sin costo por llamada.');
+  WriteLn('-> Same TAiShell, different driver: only DriverName and Model change.');
+  WriteLn('   qwen3.5:2b is not in Initializations -> Tool_Active is activated in the code.');
+  WriteLn('   100% local: no internet, no API key, no cost per call.');
 end;
 
 // =============================================================================
 //  Demo 3 -- TAiTextEditorTool + Claude
 //
-//  TAiTextEditorTool no tiene RegisterInFunctions propio: se registra
-//  manualmente en TAiFunctions a traves de RegistrarTextEditor.
-//  El handler OnTextEditorAction delega en FTextEditor.Execute(TC.Arguments).
+//  TAiTextEditorTool has no RegisterInFunctions of its own: it is registered
+//  manually in TAiFunctions through RegistrarTextEditor.
+//  The OnTextEditorAction handler delegates to FTextEditor.Execute(TC.Arguments).
 //
-//  Claude usa str_replace para editar con precision quirurgica: old_str
-//  debe coincidir de forma EXACTA y UNICA en el archivo.
+//  Claude uses str_replace to edit with surgical precision: old_str
+//  must match EXACTLY and UNIQUELY in the file.
 // =============================================================================
 procedure TSistemaDemo.Demo3_TextEditor_Claude;
 var
@@ -355,7 +355,7 @@ var
   Resp    : string;
   Contenido: string;
 begin
-  Separador('Demo 3 -- TAiTextEditorTool + Claude: leer y editar codigo');
+  Separador('Demo 3 -- TAiTextEditorTool + Claude: read and edit code');
 
   LFuncs      := TAiFunctions.Create(nil);
   FTextEditor := TAiTextEditorTool.Create(nil);
@@ -375,24 +375,24 @@ begin
       'Eres un asistente de desarrollo Delphi experto. ' +
       'Usas text_editor para leer y editar archivos. ' +
       'Trabaja solo en ' + WORK_DIR + '. ' +
-      'Responde siempre en espanol.';
+      'Always respond in Spanish.';
 
-    WriteLn('  Tarea: leer fibonacci.pas y agregar validacion para N < 0');
+    WriteLn('  Task: read fibonacci.pas and add validation for N < 0');
     WriteLn('');
 
     Resp := Conn.AddMessageAndRun(
-      'Lee el archivo ' + WORK_DIR + '\fibonacci.pas con view. ' +
-      'Luego usa str_replace para agregar al inicio del cuerpo de la funcion ' +
-      'un guard que retorne -1 cuando N < 0. ' +
-      'Indica exactamente que cambio realizaste.',
+      'Read the file ' + WORK_DIR + '\fibonacci.pas with view. ' +
+      'Then use str_replace to add at the beginning of the function body ' +
+      'a guard that returns -1 when N < 0. ' +
+      'Indicate exactly what change you made.',
       'user', []);
 
     WriteLn('');
-    WriteLn('  Claude respondio:');
+    WriteLn('  Claude responded:');
     WriteLn('  ', StringReplace(Trim(Resp), #10, #13#10 + '  ', [rfReplaceAll]));
 
     WriteLn('');
-    WriteLn('  fibonacci.pas despues de la edicion:');
+    WriteLn('  fibonacci.pas after the edit:');
     WriteLn('  ' + StringOfChar('-', 50));
     Contenido := TFile.ReadAllText(WORK_DIR + '\fibonacci.pas', TEncoding.UTF8);
     WriteLn('  ', StringReplace(Trim(Contenido), #10, #13#10 + '  ', [rfReplaceAll]));
@@ -405,17 +405,17 @@ begin
   end;
 
   WriteLn('');
-  WriteLn('-> TAiTextEditorTool no tiene RegisterInFunctions: se registra manualmente.');
-  WriteLn('   str_replace exige que old_str sea UNICO en el archivo.');
-  WriteLn('   Si Claude no puede garantizarlo, usa insert o apply_diff.');
+  WriteLn('-> TAiTextEditorTool has no RegisterInFunctions: it is registered manually.');
+  WriteLn('   str_replace requires old_str to be UNIQUE in the file.');
+  WriteLn('   If Claude cannot guarantee it, use insert or apply_diff.');
 end;
 
 // =============================================================================
 //  Demo 4 -- TAiShell + TAiTextEditorTool combinados
 //
-//  Dos herramientas en un solo TAiFunctions. El LLM elige cual usar en cada
-//  paso: bash para navegar y verificar; text_editor para leer y modificar.
-//  Este patron es la base de los agentes de codigo del capitulo 26.
+//  Two tools in a single TAiFunctions. The LLM chooses which to use in each
+//  step: bash to navigate and verify; text_editor to read and modify.
+//  This pattern is the basis of the code agents in chapter 26.
 // =============================================================================
 procedure TSistemaDemo.Demo4_Combinado;
 var
@@ -424,7 +424,7 @@ var
   Conn  : TAiChatConnection;
   Resp  : string;
 begin
-  Separador('Demo 4 -- Shell + TextEditor: agente de codigo combinado');
+  Separador('Demo 4 -- Shell + TextEditor: combined code agent');
 
   LFuncs      := TAiFunctions.Create(nil);
   LShell      := TAiShell.Create(nil);
@@ -452,30 +452,30 @@ begin
       'text_editor (lee y edita archivos). ' +
       'Trabaja solo en ' + WORK_DIR + '. Responde siempre en espanol.';
 
-    WriteLn('  Tarea multi-paso:');
-    WriteLn('    1. Listar archivos (bash)');
-    WriteLn('    2. Leer config.txt (text_editor)');
-    WriteLn('    3. Cambiar timeout=30 por timeout=60 (str_replace)');
-    WriteLn('    4. Crear resumen.txt con lo encontrado (create)');
+    WriteLn('  Multi-step task:');
+    WriteLn('    1. List files (bash)');
+    WriteLn('    2. Read config.txt (text_editor)');
+    WriteLn('    3. Change timeout=30 to timeout=60 (str_replace)');
+    WriteLn('    4. Create resumen.txt with what was found (create)');
     WriteLn('');
 
     Resp := Conn.AddMessageAndRun(
-      'Realiza estas tareas en orden:'#13#10 +
-      '1. Usa bash (dir) para listar los archivos de ' + WORK_DIR + '.'#13#10 +
-      '2. Usa text_editor (view) para leer config.txt.'#13#10 +
-      '3. Cambia timeout=30 por timeout=60 con str_replace.'#13#10 +
-      '4. Crea el archivo ' + WORK_DIR + '\resumen.txt con un breve resumen ' +
-      'de los archivos que encontraste y el cambio que realizaste.',
+      'Perform these tasks in order:'#13#10 +
+      '1. Use bash (dir) to list the files in ' + WORK_DIR + '.'#13#10 +
+      '2. Use text_editor (view) to read config.txt.'#13#10 +
+      '3. Change timeout=30 to timeout=60 with str_replace.'#13#10 +
+      '4. Create the file ' + WORK_DIR + '\resumen.txt with a brief summary ' +
+      'of the files you found and the change you made.',
       'user', []);
 
     WriteLn('');
-    WriteLn('  Claude respondio:');
+    WriteLn('  Claude responded:');
     WriteLn('  ', StringReplace(Trim(Resp), #10, #13#10 + '  ', [rfReplaceAll]));
 
     if TFile.Exists(WORK_DIR + '\resumen.txt') then
     begin
       WriteLn('');
-      WriteLn('  resumen.txt generado:');
+      WriteLn('  resumen.txt generated:');
       WriteLn('  ', StringReplace(
         Trim(TFile.ReadAllText(WORK_DIR + '\resumen.txt', TEncoding.UTF8)),
         #10, #13#10 + '  ', [rfReplaceAll]));
@@ -489,8 +489,8 @@ begin
   end;
 
   WriteLn('');
-  WriteLn('-> Dos herramientas en un TAiFunctions: el LLM elige cual usar en cada paso.');
-  WriteLn('   Este patron (shell + editor) es la base de los agentes del cap. 26.');
+  WriteLn('-> Two tools in a TAiFunctions: the LLM chooses which to use in each step.');
+  WriteLn('   This pattern (shell + editor) is the basis of the agents in ch. 26.');
 end;
 
 // =============================================================================
@@ -500,15 +500,15 @@ procedure TSistemaDemo.Run;
 var
   TieneClaude: Boolean;
 begin
-  WriteLn('=== MakerAI -- Capitulo 18: Herramientas del Sistema ===');
+  WriteLn('=== MakerAI -- Chapter 18: System Tools ===');
   WriteLn('');
 
   TieneClaude := GetEnvironmentVariable('CLAUDE_API_KEY') <> '';
 
-  WriteLn('  Estado del entorno:');
-  if TieneClaude then WriteLn('  [OK] CLAUDE_API_KEY detectado')
-  else            WriteLn('  [--] CLAUDE_API_KEY no configurado -- demos 1, 3, 4 omitidos');
-  WriteLn('  [??] Ollama: se detectara al ejecutar Demo 2 (qwen3.5:2b)');
+  WriteLn('  Environment status:');
+  if TieneClaude then WriteLn('  [OK] CLAUDE_API_KEY detected')
+  else            WriteLn('  [--] CLAUDE_API_KEY not configured -- demos 1, 3, 4 skipped');
+  WriteLn('  [??] Ollama: will be detected when running Demo 2 (qwen3.5:2b)');
   WriteLn('');
 
   PrepararCarpeta;
@@ -518,7 +518,7 @@ begin
     try Demo1_Shell_Claude;
     except on E: Exception do WriteLn('  [Demo 1 ERROR] ', E.ClassName, ': ', E.Message); end;
   end
-  else WriteLn(#13#10'--- Demo 1 omitido (CLAUDE_API_KEY no configurado) ---');
+  else WriteLn(#13#10'--- Demo 1 skipped (CLAUDE_API_KEY not configured) ---');
 
   try Demo2_Shell_Ollama;
   except on E: Exception do WriteLn('  [Demo 2 ERROR] ', E.ClassName, ': ', E.Message); end;
@@ -528,19 +528,19 @@ begin
     try Demo3_TextEditor_Claude;
     except on E: Exception do WriteLn('  [Demo 3 ERROR] ', E.ClassName, ': ', E.Message); end;
   end
-  else WriteLn(#13#10'--- Demo 3 omitido (CLAUDE_API_KEY no configurado) ---');
+  else WriteLn(#13#10'--- Demo 3 skipped (CLAUDE_API_KEY not configured) ---');
 
   if TieneClaude then
   begin
     try Demo4_Combinado;
     except on E: Exception do WriteLn('  [Demo 4 ERROR] ', E.ClassName, ': ', E.Message); end;
   end
-  else WriteLn(#13#10'--- Demo 4 omitido (CLAUDE_API_KEY no configurado) ---');
+  else WriteLn(#13#10'--- Demo 4 skipped (CLAUDE_API_KEY not configured) ---');
 
   WriteLn('');
   WriteLn(StringOfChar('=', 62));
-  WriteLn('  Demos completados.');
-  WriteLn('  Ver cap18-herramientas-sistema.md para la documentacion completa.');
+  WriteLn('  Demos completed.');
+  WriteLn('  See cap18-herramientas-sistema.md for the complete documentation.');
   WriteLn(StringOfChar('=', 62));
 end;
 
@@ -555,9 +555,9 @@ begin
     end;
   except
     on E: Exception do
-      WriteLn('ERROR FATAL: ', E.ClassName, ' -- ', E.Message);
+      WriteLn('FATAL ERROR: ', E.ClassName, ' -- ', E.Message);
   end;
   WriteLn('');
-  WriteLn('Presiona Enter para salir...');
+  WriteLn('Press Enter to exit...');
   ReadLn;
 end.

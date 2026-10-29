@@ -122,7 +122,7 @@ begin
   try
     LFn := FAiFunctions.Functions.AddFunction('get_weather', True, OnFnGetWeather);
     LFn.Description.Text :=
-      'Obtiene el clima actual de una ciudad. Devuelve temperatura, ' +
+      'Gets the current weather of a city. Returns temperature, ' +
       'condition and humidity.';
 
     LParam := LFn.Parameters.Add;
@@ -163,7 +163,7 @@ begin
       // ── Question 3: function with another city ────────────────────────────────
       Writeln('── Question 3 (invokes function with another city) ──');
       Res := Conn.AddMessageAndRun(
-        '¿Necesito llevar paraguas si salgo en CDMX?', 'user', []);
+        'Do I need to bring an umbrella if I go out in CDMX?', 'user', []);
       Writeln('Response: ', Res);
 
     finally

@@ -40,7 +40,7 @@ uses
   uMakerAi.MCPServer.Core,
   System.SysUtils,
   System.Classes,
-  System.JSON; // <-- Añadir System.JSON
+  System.JSON; // <-- Add System.JSON
 
 type
   TSysInfoParams = class
@@ -155,8 +155,8 @@ begin
   end;
 end;
 {$ELSE}
-// /proc/meminfo, en kB. Se usa MemAvailable y no MemFree: MemFree ignora la
-// cache reclamable y en Linux siempre parece alarmantemente baja.
+// /proc/meminfo, in kB. MemAvailable is used instead of MemFree: MemFree ignores the
+// reclaimable cache and on Linux always looks alarmingly low.
 var
   LLines: TStringList;
   I, P: Integer;
@@ -170,10 +170,10 @@ begin
   LTotalKb := 0; LAvailKb := 0;
   LLines := TStringList.Create;
   try
-    // OJO: TStringList.LoadFromFile NO sirve con /proc. Esos ficheros son
-    // virtuales y reportan Size = 0, y LoadFromStream se va con ERangeError
-    // ("Range check error") en vez de devolver una lista vacia. Hay que leerlos
-    // con Read() sobre un stream, que si entrega el contenido.
+    // NOTE: TStringList.LoadFromFile does NOT work with /proc. Those files are
+    // virtual and report Size = 0, and LoadFromStream throws ERangeError
+    // ("Range check error") instead of returning an empty list. They must be read
+    // with Read() on a stream, which does deliver the content.
     var LFS := TFileStream.Create('/proc/meminfo', fmOpenRead or fmShareDenyNone);
     try
       var LBuf: TBytes;
@@ -234,8 +234,8 @@ begin
   end;
 end;
 {$ELSE}
-// En POSIX no hay letras de unidad: se informa del sistema de ficheros raiz,
-// que es lo que interesa en un servidor.
+// On POSIX there are no drive letters: the root file system is reported,
+// which is what matters on a server.
 var
   LSt: _statvfs;
 begin
@@ -269,7 +269,7 @@ begin
   inherited Create;
   FName := 'system_info';
   FDescription :=
-    'Obtiene información del sistema (CPU, memoria, disco, etc.) donde se está ejecutando el servidor. Puede devolver la información como texto formateado o como un objeto JSON estructurado.';
+    'Gets system information (CPU, memory, disk, etc.) where the server is running. It can return the information as formatted text or as a structured JSON object.';
   // By default, FormatAsJson will be True
   TSysInfoParams.Create.FFormatAsJson := True;
 end;
@@ -326,7 +326,7 @@ begin
       else if (LInfoType = 'all') or (LInfoType = '') then
         ResultText := GetAllInfoAsText(AParams.IncludeDetails)
       else
-        ResultText := '❌ Tipo de información no válido. Use: basic, memory, disk, network, all';
+        ResultText := '❌ Invalid information type. Use: basic, memory, disk, network, all';
 
       // Add user info to text
       if AuthContext.IsAuthenticated then
@@ -360,8 +360,8 @@ begin
   LOsVer.AddPair('major', TOSVersion.Major);
   LOsVer.AddPair('minor', TOSVersion.Minor);
   LOsVer.AddPair('build', TOSVersion.Build);
-  // Antes se llamaba 'windowsVersion'. Corriendo en Linux ese nombre era una
-  // mentira, asi que pasa a 'osVersion' y se acompana del nombre real del SO.
+  // Previously called 'windowsVersion'. Running on Linux that name was a
+  // lie, so it becomes 'osVersion' and is accompanied by the real OS name.
   Result.AddPair('osVersion', LOsVer);
   Result.AddPair('osName', TOSVersion.ToString);
 
@@ -447,9 +447,9 @@ begin
   LName := SysHostName;
   if LName <> '' then
     Result := Result + 'Computer name: ' + LName + sLineBreak;
-  // TOSVersion.Name en Linux devuelve la cadena entera de uname (kernel, fecha
-  // de compilacion...), que en una linea de resumen queda ilegible: se usa una
-  // etiqueta corta y el detalle va aparte.
+  // TOSVersion.Name on Linux returns the entire uname string (kernel, date
+  // of compilation...), which in a summary line is unreadable: a
+  // short label is used and the details go separately.
 {$IFDEF MSWINDOWS}
   Result := Result + Format('Windows: %d.%d (Build %d)',
     [TOSVersion.Major, TOSVersion.Minor, TOSVersion.Build]) + sLineBreak;
@@ -511,7 +511,7 @@ begin
     sLineBreak + GetNetworkInfoAsText;
   if IncludeDetails then
     Result := Result + sLineBreak + sLineBreak + '📊 ADDITIONAL DETAILS' + sLineBreak + 'MCP server running from: ' +
-      ExtractFilePath(ParamStr(0)) + sLineBreak + 'Compilado con: Delphi 12.2';
+      ExtractFilePath(ParamStr(0)) + sLineBreak + 'Compiled with: Delphi 12.2';
 end;
 
 end.

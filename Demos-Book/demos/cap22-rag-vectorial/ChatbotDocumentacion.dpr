@@ -53,22 +53,22 @@ procedure CrearDocumentosEjemplo;
 begin
   ForceDirectories(DOCS_FOLDER);
   TFile.WriteAllText(DOCS_FOLDER + 'politicas.txt',
-    'POLITICA DE DEVOLUCIONES' + sLineBreak +
-    'Los clientes pueden devolver productos dentro de los 30 dias desde la compra.' + sLineBreak +
-    'Se requiere el ticket de compra original.' + sLineBreak +
-    'Los productos electronicos tienen 15 dias de garantia.' + sLineBreak +
+    'RETURNS POLICY' + sLineBreak +
+    'Customers can return products within 30 days of purchase.' + sLineBreak +
+    'The original purchase receipt is required.' + sLineBreak +
+    'Electronic products have a 15-day warranty.' + sLineBreak +
     sLineBreak +
-    'POLITICA DE ENVIO' + sLineBreak +
-    'Envio gratuito en compras mayores a $50.' + sLineBreak +
-    'Tiempo estimado de entrega: 3 a 5 dias habiles.' + sLineBreak +
+    'SHIPPING POLICY' + sLineBreak +
+    'Free shipping on purchases over $50.' + sLineBreak +
+    'Estimated delivery time: 3 to 5 business days.' + sLineBreak +
     'Returns have shipping cost charged to the customer.'
   );
   TFile.WriteAllText(DOCS_FOLDER + 'productos.txt',
-    'CATALOGO DE PRODUCTOS 2025' + sLineBreak +
-    'Laptop Pro X: $1200 — procesador i9, 32GB RAM, SSD 1TB.' + sLineBreak +
-    'Laptop Basica: $450 — procesador i5, 16GB RAM, SSD 512GB.' + sLineBreak +
-    'Monitor 4K 27": $350 — panel IPS, 144Hz, HDR.' + sLineBreak +
-    'Teclado Mecanico: $80 — switches Cherry MX Blue.' + sLineBreak +
+    'PRODUCT CATALOG 2025' + sLineBreak +
+    'Laptop Pro X: $1200 — i9 processor, 32GB RAM, 1TB SSD.' + sLineBreak +
+    'Basic Laptop: $450 — i5 processor, 16GB RAM, 512GB SSD.' + sLineBreak +
+    '27" 4K Monitor: $350 — IPS panel, 144Hz, HDR.' + sLineBreak +
+    'Mechanical Keyboard: $80 — Cherry MX Blue switches.' + sLineBreak +
     sLineBreak +
     'All products include a 1-year warranty.'
   );
@@ -116,13 +116,13 @@ begin
     WriteLn('  "What is the deadline to return a product?"');
     WriteLn('  "How much does the Laptop Pro X cost?"');
     WriteLn('  "Is shipping free?"');
-    WriteLn('Type "salir" to quit.');
+    WriteLn('Type "exit" to quit.');
     WriteLn;
 
     repeat
       Write('You > ');
       ReadLn(Pregunta);
-      if SameText(Trim(Pregunta), 'salir') then Break;
+      if SameText(Trim(Pregunta), 'exit') then Break;
       if Trim(Pregunta) = '' then Continue;
 
       // 1. Retrieve relevant fragments from the index
@@ -130,7 +130,7 @@ begin
 
       if Contexto = '' then
       begin
-        WriteLn('IA  > No relevant information found in the knowledge base.');
+        WriteLn('AI  > No relevant information found in the knowledge base.');
         WriteLn;
         Continue;
       end;
@@ -146,7 +146,7 @@ begin
 
       // 3. Get response from the LLM
       var Respuesta := AiConn.AddMessageAndRun(Pregunta, 'user', []);
-      WriteLn('IA  > ', Respuesta);
+      WriteLn('AI  > ', Respuesta);
       WriteLn;
 
     until False;

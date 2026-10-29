@@ -120,7 +120,7 @@ begin
     Ai.Free;
   end;
 
-  Writeln('RESPUESTA:');
+  Writeln('RESPONSE:');
   Writeln(Res);
 
   Result := Res;

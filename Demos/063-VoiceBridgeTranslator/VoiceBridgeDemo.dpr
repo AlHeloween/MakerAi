@@ -41,14 +41,14 @@ uses
   uMakerAi.Realtime.OpenAI,
   uMakerAi.OpenAI.Audio,
   uMakerAi.Chat.AiConnection,
-  uMakerAi.Chat.OpenAi; // importa y auto-registra el driver 'OpenAi' (v3.4)
+  uMakerAi.Chat.OpenAi; // imports and auto-registers the 'OpenAi' driver (v3.4)
 
 const
   // ==========================================================================
   // CONFIGURACION
   // ==========================================================================
-  TARGET_LANG_REMOTE = 'espanol'; // what the other side says -> Spanish (for me)
-  TARGET_LANG_LOCAL = 'ingles'; // what I say -> English (for the meeting)
+  TARGET_LANG_REMOTE = 'Spanish'; // what the other side says -> Spanish (for me)
+  TARGET_LANG_LOCAL = 'English'; // what I say -> English (for the meeting)
 
   STT_LANG_REMOTE = 'en'; // expected language of the other side ('' = auto-detect)
   STT_LANG_LOCAL = 'es'; // language I speak
@@ -93,7 +93,7 @@ type
     FChat: TAiChatConnection;
     FTTS: TAiOpenAiAudio;
     FPlayer: TAiAudioPlayer;
-    FMuteCapture: TAiAudioCapture; // captura a silenciar mientras suena MI TTS
+    FMuteCapture: TAiAudioCapture; // capture to mute while MY TTS plays
     FChatLock: TCriticalSection;
     procedure SttSessionReady(Sender: TObject);
     procedure SttTranscriptCompleted(Sender: TObject; const Transcript: string; const ItemId: string);
@@ -109,7 +109,7 @@ type
     procedure Start;
     procedure Stop;
     property Capture: TAiAudioCapture read FCapture;
-    // Captura que debe silenciarse mientras este lado reproduce su TTS
+    // Capture that must be muted while this side plays its TTS
     // (typically loopback, if TTS plays through a captured device).
     property MuteCapture: TAiAudioCapture read FMuteCapture write FMuteCapture;
   end;
@@ -258,8 +258,8 @@ begin
           if FClosing then
             Exit;
           FChat.NewChat; // each sentence is independent
-          Prompt := Format('Traduce al %s el siguiente texto. Responde UNICAMENTE con la traduccion, ' +
-            'sin comentarios ni comillas:'#10'%s', [FTargetLang, aText]);
+          Prompt := Format('Translate to %s the following text. Reply ONLY with the translation, ' +
+            'without comments or quotes:'#10'%s', [FTargetLang, aText]);
           Res := FChat.AddMessageAndRun(Prompt, 'user', []);
         finally
           FChatLock.Leave;

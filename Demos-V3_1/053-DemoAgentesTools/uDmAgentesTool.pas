@@ -96,9 +96,9 @@ begin
   Try
     Text := St.DataString;
     MetaData.Properties['tipo'] := 'Story';
-    MetaData.Properties['Autor'] := 'Claude';
-    MetaData.Properties['A�o'] := 2026;
-    MetaData.Properties['Fecha'] := EncodeDate(2026,01,10);
+    MetaData.Properties['Author'] := 'Claude';
+    MetaData.Properties['Year'] := 2026;
+    MetaData.Properties['Date'] := EncodeDate(2026,01,10);
 
     AiRAGVector1.AddItemsFromPlainText(Text, MetaData, 200, 15);
   Finally

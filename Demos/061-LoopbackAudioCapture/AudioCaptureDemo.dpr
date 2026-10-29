@@ -81,7 +81,7 @@ begin
     try
       Handler.Pcm := TMemoryStream.Create;
       try
-        Capture.Source := asLoopback; // audio de reproduccion del sistema
+        Capture.Source := asLoopback; // system playback audio
         Capture.OutputSampleRate := 16000; // optimo para Whisper / Realtime STT
         Capture.OutputChannels := 1; // mono
         Capture.OnFormat := Handler.HandleFormat;

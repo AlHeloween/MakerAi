@@ -106,7 +106,7 @@ begin
 
   // Genres
   SciFi    := RAG.AddNode('g001', 'GENRE', 'Science Fiction');
-  Drama    := RAG.AddNode('g002', 'GENERO', 'Drama');
+  Drama    := RAG.AddNode('g002', 'GENRE', 'Drama');
   Terror   := RAG.AddNode('g003', 'GENRE', 'Horror');
   Aventura := RAG.AddNode('g004', 'GENRE', 'Adventure');
 
@@ -219,7 +219,7 @@ begin
     // ── Complete relationships ──────────────────────────────────────────────
     EjecutarGQL(RAG,
       'Science fiction movies with their director',
-      'MATCH (d:DIRECTOR)-[r:DIRIGIO]->(p:PELICULA)-[g:ES_DE_GENERO]->(gen:GENERO) ' +
+      'MATCH (d:DIRECTOR)-[r:DIRECTED]->(p:MOVIE)-[g:IS_GENRE]->(gen:GENRE) ' +
       'WHERE gen.nombre = "Science Fiction" RETURN d, p');
 
   finally

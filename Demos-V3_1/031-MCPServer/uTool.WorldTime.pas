@@ -41,7 +41,7 @@ constructor TGetCityTimeTool.Create;
 begin
   inherited;
   FName := 'get_city_time';
-  FDescription := 'Obtiene la fecha y hora actual de una ciudad especÃ­fica en un paÃ­s determinado';
+  FDescription := 'Gets the current date and time of a specific city in a given country';
 end;
 
 function TGetCityTimeTool.ExecuteWithParams(const AParams: TGetCityTimeParams; 
@@ -55,10 +55,10 @@ begin
   try
     // Validate required parameters
     if AParams.Country.IsEmpty then
-      raise Exception.Create('El parÃ¡metro "Country" es obligatorio');
+      raise Exception.Create('The "Country" parameter is required');
       
     if AParams.City.IsEmpty then
-      raise Exception.Create('El parÃ¡metro "City" es obligatorio');
+      raise Exception.Create('The "City" parameter is required');
 
     // =========================================================================
     // IMPLEMENT YOUR LOGIC HERE TO GET THE CITY TIME
@@ -113,7 +113,7 @@ end;
 procedure RegisterWorldTimeTool(ALogicServer: TAiMCPServer);
 begin
   if not Assigned(ALogicServer) then
-    raise Exception.Create('LogicServer no puede ser nulo para registrar herramientas.');
+    raise Exception.Create('LogicServer cannot be null to register tools.');
     
   ALogicServer.RegisterTool('get_city_time', 
     function: IAiMCPTool 

@@ -38,7 +38,7 @@ var
   GDone: Boolean = False;
 
 // =============================================================================
-//  Objeto demo — agrupa el estado y los handlers de eventos
+//  Demo object — groups state and event handlers
 // =============================================================================
 
 type

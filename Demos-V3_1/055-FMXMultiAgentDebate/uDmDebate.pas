@@ -50,7 +50,7 @@ type
   private
     FOnLog         : TDebateLogEvent;
     FOnFinished    : TDebateFinishedEvent;
-    FDebateHistory : string;  // historial acumulado del debate
+    FDebateHistory : string;  // accumulated debate history
     function NodeRoleLabel(const ANodeName: string): string;
   public
     procedure RunDebate(const ATopic: string);

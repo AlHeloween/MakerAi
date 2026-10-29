@@ -405,7 +405,7 @@ begin
       TFile.WriteAllText(AParams.FilePath, AParams.Content, TEncoding.UTF8);
 
     Result := TAiMCPResponseBuilder.New
-      .AddText(Format('✅ Archivo guardado correctamente en: %s', [AParams.FilePath]))
+      .AddText(Format('✅ File saved successfully at: %s', [AParams.FilePath]))
       .Build;
   except
     on E: Exception do

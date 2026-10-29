@@ -288,8 +288,8 @@ begin
     // Prepare document: encode in Base64 and configure properties
     B64 := TNetEncoding.Base64.Encode(DOC_TEXT);
     MF.LoadFromBase64('guia-makerai.txt', B64);
-    MF.EnableCitations := True;  // Claude anotará las citas en la respuesta
-    MF.CacheControl    := True;  // también guarda el documento en cache
+    MF.EnableCitations := True;  // Claude will annotate the citations in the response
+    MF.CacheControl    := True;  // also stores the document in cache
 
     Mon.Reset;
     Resp := Conn.AddMessageAndRun(
@@ -422,7 +422,7 @@ var
 begin
   try
     WriteLn('================================================================');
-    WriteLn('  MakerAI — Cap 29: Caracteristicas Avanzadas por Provider');
+    WriteLn('  MakerAI — Ch. 29: Advanced Features by Provider');
     WriteLn('================================================================');
     WriteLn;
     WriteLn('  A — Claude Prompt Caching  (CLAUDE_API_KEY)');

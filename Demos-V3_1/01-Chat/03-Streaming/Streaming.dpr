@@ -74,7 +74,7 @@ type
   end;
 
 // =============================================================================
-//  Handlers para Demo 2
+//  Handlers for Demo 2
 // =============================================================================
 
 procedure TStreamingDemo.OnChunk(const Sender: TObject; aMsg: TAiChatMessage;
@@ -93,7 +93,7 @@ begin
 end;
 
 // =============================================================================
-//  Handlers para Demo 3
+//  Handlers for Demo 3
 // =============================================================================
 
 procedure TStreamingDemo.OnProgressChunk(const Sender: TObject; aMsg: TAiChatMessage;
@@ -116,7 +116,7 @@ begin
 end;
 
 // =============================================================================
-//  DEMO 1 — Sin streaming (bloquea hasta recibir respuesta completa)
+//  DEMO 1 — Without streaming (blocks until the full response is received)
 // =============================================================================
 procedure TStreamingDemo.DemoSinStreaming;
 var
@@ -134,7 +134,7 @@ begin
 
   SW := TStopwatch.StartNew;
   Response := FConn.AddMessageAndRun(
-    'Escribe un párrafo de 5 oraciones describiendo el ciclo del agua.',
+    'Write a paragraph of 5 sentences describing the water cycle.',
     'user', []);
   SW.Stop;
 
@@ -145,7 +145,7 @@ begin
 end;
 
 // =============================================================================
-//  DEMO 2 — Con streaming (imprime cada fragmento conforme llega)
+//  DEMO 2 — With streaming (prints each fragment as it arrives)
 // =============================================================================
 procedure TStreamingDemo.DemoConStreaming;
 var
@@ -165,7 +165,7 @@ begin
 
   SW := TStopwatch.StartNew;
   FConn.AddMessageAndRun(
-    'Escribe un párrafo de 5 oraciones describiendo el ciclo del agua.',
+    'Write a paragraph of 5 sentences describing the water cycle.',
     'user', []);
   SW.Stop;
 
@@ -178,7 +178,7 @@ begin
 end;
 
 // =============================================================================
-//  DEMO 3 — Streaming con progreso visual (puntos)
+//  DEMO 3 — Streaming with visual progress (dots)
 // =============================================================================
 procedure TStreamingDemo.DemoStreamingConProgreso;
 begin
@@ -194,13 +194,13 @@ begin
   FConn.OnReceiveDataEnd := OnProgressDone;
 
   FConn.AddMessageAndRun(
-    '¿Cuáles son los 5 planetas más grandes del sistema solar? Lista solo sus nombres.',
+    'What are the 5 largest planets in the solar system? List only their names.',
     'user', []);
   Writeln;
 end;
 
 // =============================================================================
-//  Run — punto de entrada del demo
+//  Run — demo entry point
 // =============================================================================
 procedure TStreamingDemo.Run;
 begin
@@ -229,7 +229,7 @@ begin
 end;
 
 // =============================================================================
-//  Punto de entrada
+//  Entry point
 // =============================================================================
 begin
   try

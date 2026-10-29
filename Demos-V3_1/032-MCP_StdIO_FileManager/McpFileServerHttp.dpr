@@ -10,7 +10,7 @@ uses
   uTool.WorldTime in 'uTool.WorldTime.pas';
 
 var
-  MCPServer: TAiMCPHttpServer; // Cambiamos Stdio por Http
+  MCPServer: TAiMCPHttpServer; // We change Stdio to Http
 
 begin
   try

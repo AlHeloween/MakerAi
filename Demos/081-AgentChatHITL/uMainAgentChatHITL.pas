@@ -168,7 +168,7 @@ begin
       ChatInput1.Busy := False;
       AgentSay(AReason + sLineBreak + sLineBreak + AContext + sLineBreak + sLineBreak +
         'Answer **yes** to approve; any other answer cancels.');
-      SetEstado('El agente espera tu respuesta');
+      SetEstado('The agent is waiting for your answer');
     end);
 end;
 

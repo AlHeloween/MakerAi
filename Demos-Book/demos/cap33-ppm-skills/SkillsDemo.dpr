@@ -150,7 +150,7 @@ begin
     AiConn.Params.Values['ApiKey']       := '@GROQ_API_KEY';
     AiConn.Model                         := Modelo;
     AiConn.Params.Values['Asynchronous'] := 'False';
-    AiConn.SystemPrompt.Text             := Skill.Strings.Text; // cuerpo sin frontmatter
+    AiConn.SystemPrompt.Text             := Skill.Strings.Text; // body without frontmatter
 
     WriteLn('  Code to review:');
     WriteLn('  ', StringReplace(CODIGO_SQL_INJECTION, sLineBreak, sLineBreak + '  ', []));

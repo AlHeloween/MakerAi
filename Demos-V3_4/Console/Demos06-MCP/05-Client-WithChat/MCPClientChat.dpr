@@ -98,9 +98,9 @@ begin
     AiConn.RegisterUserParam(DRIVER, 'ResponseTimeOut', '60000');
 
     AiConn.SystemPrompt.Text :=
-      'Eres un asistente util. Tienes acceso a herramientas MCP: ' +
-      'get_datetime (para saber la fecha y hora) y greet (para saludar). ' +
-      'Usa las herramientas cuando sea apropiado. Responde en espanol.';
+      'You are a helpful assistant. You have access to MCP tools: ' +
+      'get_datetime (to know the date and time) and greet (to greet). ' +
+      'Use the tools when appropriate. Answer in Spanish.';
 
     // Run queries that use the MCP tools
     Writeln(StringOfChar('-', 60));

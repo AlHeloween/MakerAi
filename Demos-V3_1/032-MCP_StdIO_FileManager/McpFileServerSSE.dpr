@@ -48,7 +48,7 @@ begin
       WriteLn('{');
       WriteLn('  "mcpServers": {');
       WriteLn('    "delphi-sse-files": {');
-      WriteLn('      "command": "ruta\\al\\ejecutable\\McpFileServerSSE.exe",');
+      WriteLn('      "command": "path\\to\\executable\\McpFileServerSSE.exe",');
       WriteLn('      "args": []');
       WriteLn('    }');
       WriteLn('  }');

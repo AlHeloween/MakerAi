@@ -143,8 +143,8 @@ var
 begin
 
   // 1. Default values
-  Protocol := 'sse'; // Por defecto SSE en este demo
-  Port := 8080; // SSE suele usar 8080 u 8000
+  Protocol := 'sse'; // Default SSE in this demo
+  Port := 8080; // SSE usually uses 8080 or 8000
   CorsOrigins := '*';
   ShowHelpFlag := False;
   LoadSettings := False;
@@ -207,8 +207,8 @@ begin
   end;
 
   // In stdio mode, stdout is EXCLUSIVE to the MCP protocol (JSON-RPC per line).
-  // Cualquier texto informativo (banner, estados) debe ir a stderr; de lo
-  // contrario se intercala con las respuestas y rompe el parser del cliente.
+  // Any informational text (banner, status) must go to stderr; otherwise
+  // it interleaves with the responses and breaks the client parser.
   if not SameText(Protocol, 'stdio') then
     ShowHelp;
 
@@ -305,7 +305,7 @@ begin
       MCPServer.Stop;
       MCPServer.Free;
     end;
-    Telemetry.Free; // su destructor hace flush de los spans pendientes
+    Telemetry.Free; // its destructor flushes the pending spans
   end;
 
 end.

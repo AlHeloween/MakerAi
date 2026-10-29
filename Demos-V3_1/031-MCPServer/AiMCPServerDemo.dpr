@@ -116,7 +116,7 @@ begin
     Exit;
   WriteLn('Registering tools...');
 
-  // Reutilizamos tus herramientas existentes sin modificar una sola línea de código
+  // We reuse your existing tools without modifying a single line of code
   uTool.FileAccess.RegisterTools(ALogicServer);
   uTool.SysInfo.RegisterTools(ALogicServer);
   uTool.WorldTime.RegisterWorldTimeTool(ALogicServer);
@@ -139,7 +139,7 @@ begin
   ShowHelp;
 
   // 1. Default values
-  Protocol := 'sse'; // Por defecto SSE en este demo
+  Protocol := 'sse'; // Default SSE in this demo
   Port := 8080; // SSE suele usar 8080 u 8000
   CorsOrigins := '*';
   ShowHelpFlag := False;
@@ -232,7 +232,7 @@ begin
         if Assigned(MCPServer) then
         begin
           MCPServer.Port := Port;
-          MCPServer.CorsEnabled := True; // SSE suele necesitar CORS
+          MCPServer.CorsEnabled := True; // SSE usually needs CORS
           MCPServer.CorsAllowedOrigins := CorsOrigins;
         end;
       end;

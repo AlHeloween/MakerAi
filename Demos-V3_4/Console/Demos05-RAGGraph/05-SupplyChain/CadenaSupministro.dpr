@@ -122,12 +122,12 @@ begin
   AutoFabrik := RAG.AddNode('cli-001', 'CLIENT', 'AutoFabrik GmbH');
   AutoFabrik.Text := 'German automobile manufacturer with automated assembly lines.';
   AutoFabrik.Properties['sector'] := 'Automotive';
-  AutoFabrik.Properties['pais']   := 'Alemania';
+  AutoFabrik.Properties['pais']   := 'Germany';
 
   TechAssembly := RAG.AddNode('cli-002', 'CLIENT', 'TechAssembly Inc');
   TechAssembly.Text := 'American consumer electronics assembly company.';
   TechAssembly.Properties['sector']:= 'Electronics';
-  TechAssembly.Properties['pais']  := 'Estados Unidos';
+  TechAssembly.Properties['pais']  := 'United States';
 
   // Edges Provider -> Component
   RAG.AddEdge(SteelCorp,    Chasis,  'r001', 'SUPPLIES', 'supplies', 0.95);
@@ -214,7 +214,7 @@ begin
     Writeln;
   end;
 
-  // Patron RAG Grafo: resultado de GQL → contexto para el LLM
+  // Graph RAG pattern: GQL result → context for the LLM
   Titulo('Sec. 23.5 — Graph RAG pattern: context for the LLM');
   Writeln('  Question: Who supplies the components of Robot Industrial A1?');
   Writeln;

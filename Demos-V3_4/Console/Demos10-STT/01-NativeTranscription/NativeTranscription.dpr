@@ -87,9 +87,9 @@ type
   TTestResult = record
     Driver : String;
     Model  : String;
-    Tag    : String; // escenario corto (ej: 'lang=es', 'vacio')
+    Tag    : String; // short scenario (e.g.: 'lang=es', 'empty')
     OK     : Boolean;
-    Output : String; // primeros 120 chars de la transcripci?n o el error
+    Output : String; // first 120 chars of the transcription or the error
   end;
 
 var
@@ -285,7 +285,7 @@ begin
     Writeln(SEP);
     Writeln('INFO: No audio file — blocks 1-4 skipped.');
     Writeln('      Pass the path as an argument:');
-    Writeln('        NativeTranscription.exe D:\ruta\audio.wav');
+    Writeln('        NativeTranscription.exe D:\path\audio.wav');
     Writeln(SEP);
   end
   else

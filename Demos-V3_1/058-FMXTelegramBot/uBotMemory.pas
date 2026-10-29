@@ -125,7 +125,7 @@ begin
     FRagEnabled := True;
   except on E: Exception do
   begin
-    // RAG no disponible: el KV store sigue funcionando
+    // RAG not available: the KV store keeps working
     FRagEnabled := False;
     FreeAndNil(FRagVector);
     FreeAndNil(FDriver);

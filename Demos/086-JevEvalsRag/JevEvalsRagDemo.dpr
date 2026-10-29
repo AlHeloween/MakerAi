@@ -102,7 +102,7 @@ begin
   Writeln;
   Writeln('Query: ', CONSULTA);
   Writeln;
-  V := TAiRAGVector.Create(nil, True);   // el vector libera sus nodos
+  V := TAiRAGVector.Create(nil, True);   // the vector frees its nodes
   RR := TAiJevRAGReranker.Create(nil);
   try
     // Candidates as the first stage would leave them (similarity search)
@@ -113,7 +113,7 @@ begin
       V.Items.Add(Node);
     end;
 
-    V.RerankWith(CONSULTA, RR);   // una llamada por pasaje, en paralelo
+    V.RerankWith(CONSULTA, RR);   // one call per passage, in parallel
 
     for i := 0 to V.Count - 1 do
       if V.Items[i].Idx < 0 then

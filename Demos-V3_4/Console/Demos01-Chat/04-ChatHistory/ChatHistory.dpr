@@ -101,7 +101,7 @@ begin
 
   // Segunda conversación — no recuerda nada de la anterior
   Response := Conn.AddMessageAndRun(
-    '¿Cuál era el código secreto que te mencioné?', 'user', []);
+    'What was the secret code I mentioned to you?', 'user', []);
   Writeln('After reset — the LLM no longer remembers:');
   Writeln('  ', Response);
   Writeln;

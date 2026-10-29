@@ -78,7 +78,7 @@ begin
 end;
 
 // =============================================================================
-//  Busca el archivo de audio en AUDIO_PATH y en el directorio del ejecutable.
+//  Searches for the audio file in AUDIO_PATH and in the executable directory.
 // =============================================================================
 function EncontrarAudio: string;
 var
@@ -116,9 +116,9 @@ end;
 // =============================================================================
 //  Demo 1 — STT directo con TAIWhisper
 //
-//  TAIWhisper es la interfaz legacy para Whisper. Sencilla y directa:
-//  carga el audio en un TMemoryStream y llama Transcription().
-//  No requiere TAiChatConnection — es un componente independiente.
+//  TAIWhisper is the legacy interface for Whisper. Simple and direct:
+//  loads the audio into a TMemoryStream and calls Transcription().
+//  Does not require TAiChatConnection — it is an independent component.
 //
 //  API:
 //    Whisper.Transcription(Stream, FileName, Prompt): String
@@ -138,7 +138,7 @@ begin
   try
     Whisper.ApiKey  := '@OPENAI_API_KEY';
     Whisper.Model   := 'whisper-1';
-    Whisper.Languaje := 'es';    // nota: propiedad con typo intencional en la fuente
+    Whisper.Languaje := 'es';    // note: property with intentional typo in the source
 
     Stream.LoadFromFile(AudioPath);
     WriteLn('  File     : ', ExtractFileName(AudioPath));
@@ -165,8 +165,8 @@ end;
 // =============================================================================
 //  Demo 2 — TTS directo con TAiOpenAiAudio
 //
-//  TAiOpenAiAudio es la API moderna de OpenAI Audio. Usa enums tipados
-//  en lugar de strings para evitar errores de escritura en modelo/voz.
+//  TAiOpenAiAudio is the modern OpenAI Audio API. Uses typed enums
+//  instead of strings to avoid typing errors in model/voice.
 //
 //  API:
 //    Audio.Speech(Text): TMemoryStream   // returns the audio in memory
@@ -194,8 +194,8 @@ begin
   Audio := TAiOpenAiAudio.Create(nil);
   try
     Audio.ApiKey            := '@OPENAI_API_KEY';
-    Audio.TTSModel          := tts_1;          // estándar, baja latencia
-    Audio.TTSVoice          := tvNova;          // voz femenina, clara y expresiva
+    Audio.TTSModel          := tts_1;          // standard, low latency
+    Audio.TTSVoice          := tvNova;          // female voice, clear and expressive
     Audio.TTSResponseFormat := trfMp3;
     Audio.TTSSpeed          := 1.0;
 
@@ -249,7 +249,7 @@ begin
 
   WriteLn('  Phase 1 of 3: Transcribe input audio...');
 
-  // ── Fase 1: STT ─────────────────────────────────────────────────────────
+  // ── Phase 1: STT ─────────────────────────────────────────────────────────
   Whisper := TAIWhisper.Create(nil);
   Stream  := TMemoryStream.Create;
   try
@@ -269,7 +269,7 @@ begin
   WriteLn('');
   WriteLn('  Phase 2 of 3: Send to LLM (gpt-4o-mini)...');
 
-  // ── Fase 2: LLM ─────────────────────────────────────────────────────────
+  // ── Phase 2: LLM ─────────────────────────────────────────────────────────
   Conn := TAiChatConnection.Create(nil);
   try
     Conn.DriverName := OPENAI_DRIVER;
@@ -294,7 +294,7 @@ begin
   WriteLn('');
   WriteLn('  Phase 3 of 3: Synthesize response to voice...');
 
-  // ── Fase 3: TTS ─────────────────────────────────────────────────────────
+  // ── Phase 3: TTS ─────────────────────────────────────────────────────────
   Audio := TAiOpenAiAudio.Create(nil);
   try
     Audio.ApiKey   := '@OPENAI_API_KEY';
@@ -328,13 +328,13 @@ end;
 // =============================================================================
 //  Demo 4 — cmTranscription via TAiChatConnection
 //
-//  TAiChatConnection.ChatMode := cmTranscription delega la transcripción
-//  al SpeechTool asignado, integrando STT en el historial de mensajes.
+//  TAiChatConnection.ChatMode := cmTranscription delegates transcription
+//  to the assigned SpeechTool, integrating STT into message history.
 //
-//  Ventaja vs. Demo 1: el resultado queda en Messages — útil cuando quieres
-//  encadenar la transcripción con un turno de chat posterior.
+//  Advantage vs. Demo 1: the result stays in Messages — useful when you want
+//  to chain transcription with a later chat turn.
 //
-//  Patrón:
+//  Pattern:
 //    Conn.SpeechTool  := Whisper;       // audio tool
 //    Conn.ChatMode    := cmTranscription;
 //    MF.LoadFromFile('audio.mp3');       // FileCategory → Tfc_Audio
@@ -362,11 +362,11 @@ begin
     Conn.Model                   := OPENAI_MODEL;
     Conn.Params.Values['ApiKey'] := '@OPENAI_API_KEY';
     Conn.Params.Values['Asynchronous'] := 'False';
-    Conn.SpeechTool  := Whisper;          // ← asignar herramienta STT
-    Conn.ChatMode    := cmTranscription;  // ← forzar modo STT
+    Conn.SpeechTool  := Whisper;          // ← assign STT tool
+    Conn.ChatMode    := cmTranscription;  // ← force STT mode
 
-    // Cargar el audio en un TAiMediaFile
-    // LoadFromFile detecta la extensión → FileCategory = Tfc_Audio (ord=2)
+    // Load the audio into a TAiMediaFile
+    // LoadFromFile detects the extension → FileCategory = Tfc_Audio (ord=2)
     MF.LoadFromFile(AudioPath);
     WriteLn('  File    : ', ExtractFileName(AudioPath));
     WriteLn('  Category: Tfc_Audio (ord=', Ord(MF.FileCategory), ')');
@@ -375,12 +375,12 @@ begin
     Conn.NewChat;
     Write('  Transcribing via ChatMode... ');
 
-    // El array [MF] lleva el audio; el texto del prompt queda vacío.
-    // IMPORTANTE: AddMessageAndRun transfiere propiedad de MF a la conexión
-    // (FMediaFiles es TObjectList — libera MF en Conn.Free → NewChat).
-    // Poner MF := nil evita el double-free en el bloque finally.
+    // The [MF] array carries the audio; the prompt text stays empty.
+    // IMPORTANT: AddMessageAndRun transfers ownership of MF to the connection
+    // (FMediaFiles is a TObjectList — frees MF in Conn.Free → NewChat).
+    // Set MF := nil to avoid double-free in the finally block.
     Texto := Conn.AddMessageAndRun('', 'user', [MF]);
-    MF := nil;   // ownership transferida — Conn.Free libera MF vía NewChat
+    MF := nil;   // ownership transferred — Conn.Free frees MF via NewChat
     WriteLn('OK');
     WriteLn('');
     WriteLn('  Transcription:');
@@ -389,8 +389,8 @@ begin
     WriteLn('  Historial de mensajes: ', Conn.Messages.Count,
             ' (user + assistant)');
   finally
-    MF.Free;     // nil-safe: solo libera si AddMessageAndRun no llegó a ejecutarse
-    Conn.Free;   // → NewChat → libera mensajes (y MF si MF <> nil)
+    MF.Free;     // nil-safe: only frees if AddMessageAndRun did not run
+    Conn.Free;   // → NewChat → frees messages (and MF if MF <> nil)
     Whisper.Free;
   end;
 
@@ -413,7 +413,7 @@ begin
   WriteLn('Requirement: OPENAI_API_KEY in environment variables.');
   WriteLn('STT demos: an MP3/WAV audio file at ', AUDIO_PATH);
 
-  // Verificar disponibilidad
+  // Check availability
   TieneApiKey := OpenAiApiKeyDisponible;
   AudioPath   := EncontrarAudio;
   TieneAudio  := AudioPath <> '';
@@ -442,7 +442,7 @@ begin
     Exit;
   end;
 
-  // ── Demos STT (requieren archivo de audio) ───────────────────────────────
+  // ── STT demos (require audio file) ───────────────────────────────────────
   if TieneAudio then
     Demo1_STT_Whisper(AudioPath)
   else
@@ -451,10 +451,10 @@ begin
     WriteLn('--- Demo 1 skipped (audio not found) ---');
   end;
 
-  // ── Demo TTS (siempre disponible si hay API key) ─────────────────────────
+  // ── TTS demo (always available if API key present) ───────────────────────
   Demo2_TTS_OpenAiAudio;
 
-  // ── Pipeline completo (requiere audio) ───────────────────────────────────
+  // ── Complete pipeline (requires audio) ───────────────────────────────────
   if TieneAudio then
     Demo3_PipelineCompleto(AudioPath)
   else
@@ -464,7 +464,7 @@ begin
     WriteLn('  Tip: use the MP3 generated by Demo 2 as STT input.');
   end;
 
-  // ── cmTranscription (requiere audio) ─────────────────────────────────────
+  // ── cmTranscription (requires audio) ─────────────────────────────────────
   if TieneAudio then
     Demo4_cmTranscription(AudioPath)
   else

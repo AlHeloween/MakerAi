@@ -281,7 +281,7 @@ begin
       Writeln(StringOfChar('-', 60));
       Writeln('P2 — Two functions: weather + currency conversion');
       Res := Conn.AddMessageAndRun(
-        '¿Cómo está el clima en Guadalajara y cuánto son 500 USD en MXN?',
+        'How is the weather in Guadalajara and how much are 500 USD in MXN?',
         'user', []);
       Writeln('R: ', Res);
       Conn.Messages.Clear;
@@ -291,9 +291,9 @@ begin
       Writeln(StringOfChar('-', 60));
       Writeln('P3 — Chained: temperature conversion + currency conversion');
       Res := Conn.AddMessageAndRun(
-        'Si en Ciudad de México hay 18°C, ¿cuánto es eso en Fahrenheit? ' +
-        '(usa calculate: F = 18 * 9/5 + 32, es decir 18 * 1.8 + 32). ' +
-        'Además, ¿cuántos euros son 1800 MXN?',
+        'If in Mexico City it is 18°C, how much is that in Fahrenheit? ' +
+        '(use calculate: F = 18 * 9/5 + 32, that is 18 * 1.8 + 32). ' +
+        'Also, how many euros are 1800 MXN?',
         'user', []);
       Writeln('R: ', Res);
 

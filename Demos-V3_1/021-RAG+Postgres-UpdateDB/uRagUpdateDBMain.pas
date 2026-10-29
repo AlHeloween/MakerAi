@@ -238,7 +238,7 @@ begin
   Try
 
     Md.Data.Values['fechadoc'] := FormatDateTime('YYYY-MM-DD hh:nn:ss', Now);
-    Md.Data.Values['categoria'] := 'Ejercicio';
+    Md.Data.Values['categoria'] := 'Exercise';
     Md.Data.Values['pathdoc'] := '';
     Md.Data.Values['filename'] := '';
     Md.Data.Values['resumen'] := '';

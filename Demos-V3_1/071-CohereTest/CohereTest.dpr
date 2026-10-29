@@ -369,24 +369,24 @@ begin
   try
     // --- command-a-03-2025 (text + tools, no reasoning) ---
     Tester.TestSync(
-      'En una sola oracion: cual es la capital de Francia?',
-      MODEL_TEXT, 'Test 1 - Sync basico');
+      'In a single sentence: what is the capital of France?',
+      MODEL_TEXT, 'Test 1 - Basic sync');
 
     Tester.TestAsync(
-      'En una sola oracion: cual es la capital de Japon?',
-      MODEL_TEXT, 'Test 2 - Async basico');
+      'In a single sentence: what is the capital of Japan?',
+      MODEL_TEXT, 'Test 2 - Basic async');
 
     Tester.TestAsync(
-      'Explica en 3 parrafos breves que es la inteligencia artificial.',
-      MODEL_TEXT, 'Test 3 - Async respuesta larga');
+      'Explain in 3 short paragraphs what artificial intelligence is.',
+      MODEL_TEXT, 'Test 3 - Async long response');
 
     // --- command-a-reasoning-08-2025 (reasoning) ---
     Tester.TestSync(
-      'Cuanto es 347 multiplicado por 28? Muestra el razonamiento.',
+      'How much is 347 multiplied by 28? Show the reasoning.',
       MODEL_REASON, 'Test 4 - Sync reasoning');
 
     Tester.TestAsync(
-      'Cuanto es 347 multiplicado por 28? Muestra el razonamiento.',
+      'How much is 347 multiplied by 28? Show the reasoning.',
       MODEL_REASON, 'Test 5 - Async reasoning');
 
     // --- Multi-turn with command-a ---

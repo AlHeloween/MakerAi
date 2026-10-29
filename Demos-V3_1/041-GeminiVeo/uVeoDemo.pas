@@ -625,7 +625,7 @@ var
 begin
   Result := False;
   if not TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService, IInterface(ClipboardSvc)) then
-    Exit; // No hay servicio de portapapeles disponible
+    Exit; // No clipboard service available
 
   // Before any operation, make sure the stream is at the beginning.
   if Assigned(AMediaFile.Content) then

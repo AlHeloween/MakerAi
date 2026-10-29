@@ -49,8 +49,8 @@ const
   // ==========================================================================
   // CONFIGURACION
   // ==========================================================================
-  TARGET_LANG_REMOTE = 'espanol';
-  TARGET_LANG_LOCAL = 'ingles';
+  TARGET_LANG_REMOTE = 'Spanish';
+  TARGET_LANG_LOCAL = 'English';
   STT_LANG_LOCAL = 'es';
 
   TRANSLATOR_DRIVER = 'OpenAi';
@@ -404,12 +404,12 @@ begin
   end;
 
   if (BestEnd - BestStart) < MIN_SAMPLE_SEC then
-    Exit; // muestra demasiado corta: se intentara en un proximo segmento
+    Exit; // sample too short: will be retried in a future segment
 
   if (BestEnd - BestStart) > MAX_SAMPLE_SEC then
     BestEnd := BestStart + MAX_SAMPLE_SEC;
 
-  // Recortar el PCM (16 kHz mono PCM16 -> 32000 bytes/s, alineado a muestra)
+  // Trim the PCM (16 kHz mono PCM16 -> 32000 bytes/s, aligned to sample)
   StartByte := (Round(BestStart * SEG_SAMPLE_RATE) * 2);
   LenBytes := (Round((BestEnd - BestStart) * SEG_SAMPLE_RATE) * 2);
   if StartByte + LenBytes > Length(aPcm) then
@@ -423,7 +423,7 @@ begin
     if not ConvertPCMStreamToWAVStream(Pcm, Wav, SEG_SAMPLE_RATE, 1, 16) then
       Exit;
     try
-      aName := Format('Hablante %d', [FAudioApi.KnownSpeakerCount + 1]);
+      aName := Format('Speaker %d', [FAudioApi.KnownSpeakerCount + 1]);
       FAudioApi.AddKnownSpeaker(aName, Wav, 'audio/wav');
       FSpeakerNames := FSpeakerNames + [aName];
       Result := True;
@@ -441,7 +441,7 @@ var
   Prompt: string;
 begin
   FChat.NewChat;
-  Prompt := Format('Traduce al %s el siguiente texto. Responde UNICAMENTE con la traduccion, ' +
+  Prompt := Format('Translate to %s the following text. Reply ONLY with the translation, ' +
     'sin comentarios ni comillas:'#10'%s', [TARGET_LANG_REMOTE, aText]);
   Result := Trim(FChat.AddMessageAndRun(Prompt, 'user', []));
 end;
@@ -766,7 +766,7 @@ begin
           if FClosing then
             Exit;
           FChat.NewChat;
-          Prompt := Format('Traduce al %s el siguiente texto. Responde UNICAMENTE con la traduccion, ' +
+          Prompt := Format('Translate to %s the following text. Reply ONLY with the translation, ' +
             'sin comentarios ni comillas:'#10'%s', [TARGET_LANG_LOCAL, Text]);
           Res := Trim(FChat.AddMessageAndRun(Prompt, 'user', []));
           if Res = '' then

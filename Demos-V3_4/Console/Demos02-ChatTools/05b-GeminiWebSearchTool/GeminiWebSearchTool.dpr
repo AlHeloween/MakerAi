@@ -105,7 +105,7 @@ begin
     Conn.Params.Values['Max_Tokens']   := '512';
 
     Conn.ChatMode          := cmSmartDispatch;
-    Conn.SystemPrompt.Text := 'Eres un asistente util. Responde en espanol.';
+    Conn.SystemPrompt.Text := 'You are a helpful assistant. Respond in Spanish.';
 
     // CHAT — should not search
     Writeln(StringOfChar('-', 65));

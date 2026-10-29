@@ -272,7 +272,7 @@ begin
 end;
 
 
-// --- Eventos de Controles de UI ---
+// --- UI control events ---
 
 procedure TForm6.SpinEditSilenceChange(Sender: TObject);
 begin
@@ -560,7 +560,7 @@ begin
       LWhisper := NewWhisper;;
       Try
         TranscriptionResult := LWhisper.Transcription(LocalStream, 'fragment.wav', // Virtual file name
-          'transcribe al español');
+          'transcribe to Spanish');
 
       Finally
         LWhisper.Free;

@@ -198,7 +198,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// Utilidades
+// Utilities
 // -----------------------------------------------------------------------------
 
 procedure Titulo(const S: string);
@@ -285,7 +285,7 @@ begin
   C := Conexion('qwen3.8-flash');
   try
     Writeln('1. Synchronous (qwen3.8-flash):');
-    Writeln('   ', Corto(C.AddMessageAndRun('Que es la partida doble? Responde en una frase.', 'user', [])));
+    Writeln('   ', Corto(C.AddMessageAndRun('What is double-entry bookkeeping? Answer in one sentence.', 'user', [])));
   finally
     C.Free;
   end;
@@ -295,7 +295,7 @@ begin
   try
     C.OnReceiveData := Demo.OnDelta;
     Write('2. Streaming: ');
-    C.AddMessageAndRun('Nombra tres cuentas del activo corriente, separadas por comas.', 'user', []);
+    C.AddMessageAndRun('Name three current asset accounts, separated by commas.', 'user', []);
     Esperar(function: Boolean begin Result := Demo.Fin.WaitFor(0) = wrSignaled end);
     Writeln;
   finally
@@ -308,7 +308,7 @@ begin
     C.Params.Values['ModelCaps'] := '[cap_Image, cap_Reasoning]';
     C.Params.Values['ThinkingLevel'] := 'tlLow'; // thinking_budget = 1024 tokens
     Writeln('3. Reasoning (tlLow):');
-    Writeln('   ', Corto(C.AddMessageAndRun('Si vendo con 19% de IVA a 119.000, cual es la base gravable? Solo el numero.', 'user', [])));
+    Writeln('   ', Corto(C.AddMessageAndRun('If I sell with 19% VAT at 119,000, what is the taxable base? Only the number.', 'user', [])));
     Writeln(Format('   reasoning: %d characters', [Length(Ultimo(C).ReasoningContent)]));
   finally
     C.Free;
@@ -320,18 +320,18 @@ begin
   try
     Fn := F.Functions.Add;
     Fn.FunctionName := 'tasa_de_cambio';
-    Fn.Description.Text := 'Tasa de cambio del dia de una moneda a pesos colombianos';
+    Fn.Description.Text := 'Daily exchange rate of a currency to Colombian pesos';
     with Fn.Parameters.Add do
     begin
       Name := 'moneda';
       ParamType := ptString;
       Required := True;
-      Description.Text := 'Codigo ISO de la moneda, p.ej. USD';
+      Description.Text := 'ISO code of the currency, e.g. USD';
     end;
     Fn.OnAction := Demo.OnCambio;
     C.AiFunctions := F;
     Writeln('4. Tools:');
-    Writeln('   ', Corto(C.AddMessageAndRun('Cuantos pesos colombianos son 100 dolares hoy?', 'user', [])));
+    Writeln('   ', Corto(C.AddMessageAndRun('How many Colombian pesos are 100 dollars today?', 'user', [])));
     Writeln('   the function was called with: ', Demo.Herramienta);
   finally
     C.Free;
@@ -356,7 +356,7 @@ begin
   // 1. Generate: an image model has cap_GenImage in SessionCaps
   C := Conexion('qwen-image-2.0');
   try
-    C.AddMessageAndRun('Un faro rojo y blanco sobre rocas al atardecer, acuarela', 'user', []);
+    C.AddMessageAndRun('A red and white lighthouse on rocks at sunset, watercolor', 'user', []);
     if Ultimo(C).MediaFiles.Count > 0 then
     begin
       Ultimo(C).MediaFiles[0].SaveToFile(Faro);
@@ -374,7 +374,7 @@ begin
   M := TAiMediaFile.Create;
   try
     M.LoadFromfile(Faro);
-    C.AddMessageAndRun('Convierte el faro en verde y blanco, sin cambiar nada mas', 'user', [M]);
+    C.AddMessageAndRun('Convert the lighthouse to green and white, without changing anything else', 'user', [M]);
     if Ultimo(C).MediaFiles.Count > 0 then
     begin
       Ultimo(C).MediaFiles[0].SaveToFile(FaroVerde);
@@ -392,7 +392,7 @@ begin
   M := TAiMediaFile.Create;
   try
     M.LoadFromfile(FaroVerde);
-    Writeln('3. Description: ', Corto(C.AddMessageAndRun('De que colores es el faro? Una frase.', 'user', [M])));
+    Writeln('3. Description: ', Corto(C.AddMessageAndRun('What colors is the lighthouse? One sentence.', 'user', [M])));
   finally
     C.Free;
   end;
@@ -427,11 +427,11 @@ var
   M: TAiMediaFile;
   Wav: string;
 begin
-  Titulo('VOZ');
+  Titulo('VOICE');
   Wav := TPath.Combine(Salida, 'voz.wav');
 
   // 1. Text to speech
-  if GenerarVoz('Hola, esta es una prueba de voz de MakerAI desde Delphi.', Wav) then
+  if GenerarVoz('Hello, this is a voice test of MakerAI from Delphi.', Wav) then
     Writeln('1. Voice generated: ', Wav)
   else
     Exit;
@@ -453,7 +453,7 @@ begin
   M := TAiMediaFile.Create;
   try
     M.LoadFromfile(Wav);
-    Writeln('3. Omni: ', Corto(C.AddMessageAndRun('Que dice el audio y en que idioma esta?', 'user', [M])));
+    Writeln('3. Omni: ', Corto(C.AddMessageAndRun('What does the audio say and in what language is it?', 'user', [M])));
   finally
     C.Free;
   end;
@@ -465,11 +465,11 @@ end;
 
 procedure SeccionTraduccion;
 const
-  TEXTO = 'La caja menor se registra en la cuenta 110510 del PUC y el IVA descontable en la 2408.';
+  TEXTO = 'The petty cash is recorded in account 110510 of the PUC and the deductible VAT in 2408.';
 var
   C: TAiChatConnection;
 begin
-  Titulo('TRADUCCION');
+  Titulo('TRANSLATION');
   C := Conexion('qwen-mt-plus');
   try
     // Target language and domain via Params; the glossary is a list in the driver
@@ -509,12 +509,12 @@ end;
 
 procedure SeccionRag;
 const
-  CONSULTA = 'Donde se registra la caja menor?';
+  CONSULTA = 'Where is petty cash recorded?';
   PASAJES: array[0..3] of string = (
-    'La caja menor se registra en la cuenta 110510 del PUC.',
-    'El IVA descontable va en la cuenta 2408.',
-    'Los bancos nacionales usan la subcuenta 111005.',
-    'Receta de arepas con queso.');
+    'Petty cash is recorded in account 110510 of the PUC.',
+    'Deductible VAT goes in account 2408.',
+    'National banks use subaccount 111005.',
+    'Recipe for arepas with cheese.');
 var
   E: TAiEmbeddingConnection;
   R: TAiQwenRAGReranker;
@@ -529,7 +529,7 @@ begin
   // 1. Embeddings: cosine similarity of each passage with the query
   E := TAiEmbeddingConnection.Create(nil);
   try
-    E.DriverName := 'Qwen'; // text-embedding-v4, 1024 dimensiones
+    E.DriverName := 'Qwen'; // text-embedding-v4, 1024 dimensions
     Q := Copy(E.CreateEmbedding(CONSULTA, 'user'));
     Writeln(Format('1. Embeddings (%s, %d dimensions):', [E.AiEmbeddings.Model, Length(Q)]));
     for I := 0 to High(PASAJES) do
@@ -594,7 +594,7 @@ begin
       C.OnReceiveDataEnd := Demo.OnFinAVoz;
       Demo.T0 := TThread.GetTickCount;
       Write('1. LLM -> voice: ');
-      C.AddMessageAndRun('Explica en dos frases cortas que es una cuenta contable.', 'user', []);
+      C.AddMessageAndRun('Explain in two short sentences what an accounting account is.', 'user', []);
       Esperar(function: Boolean begin Result := Demo.Terminado end);
       Writeln;
       GuardarWav(TPath.Combine(Salida, 'llm_voz.wav'), Demo.Audio, 24000);
@@ -610,16 +610,16 @@ begin
   // 2. Simultaneous translation through TAiRealtimeConnection: the same code works
   //    with other drivers; Qwen-specific settings go in DriverParams
   VozWav := TPath.Combine(Salida, 'voz.wav');
-  if not TFile.Exists(VozWav) and not GenerarVoz('Hola, esta es una prueba de voz de MakerAI desde Delphi.', VozWav) then
+  if not TFile.Exists(VozWav) and not GenerarVoz('Hello, this is a voice test of MakerAI from Delphi.', VozWav) then
     Exit;
   Wav := TFile.ReadAllBytes(VozWav);
-  Pcm := Copy(Wav, 44, MaxInt); // WAV PCM16 24 kHz: se salta la cabecera
+  Pcm := Copy(Wav, 44, MaxInt); // WAV PCM16 24 kHz: skip the header
   RT := TAiRealtimeConnection.Create(nil);
   try
     RT.DriverName := 'QwenTranslate';
     RT.DriverParams.Values['TargetLanguage'] := 'en';
     RT.DriverParams.Values['Voice'] := 'Tina';
-    RT.InputSampleRate := 24000; // el conector remuestrea a los 16 kHz del modelo
+    RT.InputSampleRate := 24000; // the connector resamples to the model's 16 kHz
     RT.OnSessionReady := Demo.OnListo;
     RT.OnTranscriptCompleted := Demo.OnOriginal;
     RT.OnAssistantText := Demo.OnTraduccion;
@@ -677,7 +677,7 @@ begin
   try
     C.VideoParams.Params.Values['duration'] := '2'; // 720p by default in the driver
     Writeln('Generating 2 s of video (takes ~1 minute)...');
-    C.AddMessageAndRun('Olas rompiendo contra un faro al atardecer', 'user', []);
+    C.AddMessageAndRun('Waves breaking against a lighthouse at sunset', 'user', []);
     if Ultimo(C).MediaFiles.Count > 0 then
     begin
       Ultimo(C).MediaFiles[0].SaveToFile(Archivo);
@@ -696,10 +696,10 @@ var
   Id, Muestra, Archivo: string;
   C: TAiChatConnection;
 begin
-  Titulo('VOCES PROPIAS');
+  Titulo('OWN VOICES');
   // Clone only voices with their owner's permission. Here the sample is the TTS synthetic voice.
   Muestra := TPath.Combine(Salida, 'voz.wav');
-  if not TFile.Exists(Muestra) and not GenerarVoz('Hola, esta es una prueba de voz de MakerAI desde Delphi.', Muestra) then
+  if not TFile.Exists(Muestra) and not GenerarVoz('Hello, this is a voice test of MakerAI from Delphi.', Muestra) then
     Exit;
   V := TAiQwenVoices.Create(nil);
   try
@@ -709,7 +709,7 @@ begin
       C := Conexion('qwen3-tts-flash'); // the driver switches to the model required by the voice
       try
         C.TtsParams.Voice := Id;
-        C.AddMessageAndRun('Esta es la voz clonada, hablando desde el demo de MakerAI.', 'user', []);
+        C.AddMessageAndRun('This is the cloned voice, speaking from the MakerAI demo.', 'user', []);
         if Ultimo(C).MediaFiles.Count > 0 then
         begin
           Archivo := TPath.Combine(Salida, 'voz_clonada.wav');

@@ -38,7 +38,7 @@ const
 //  Demo 1 corpus: 6 sentences, broad thematic range
 // ---------------------------------------------------------------------------
 const
-  D1_QUERY = 'Como se programa una aplicacion en Delphi';
+  D1_QUERY = 'How to program an application in Delphi';
 
   D1_CORPUS: array[0..5] of string = (
     'Delphi is an object-oriented programming language',

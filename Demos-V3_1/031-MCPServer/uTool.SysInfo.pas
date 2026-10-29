@@ -98,7 +98,7 @@ uses
 procedure RegisterTools(ALogicServer: TAiMCPServer);
 begin
   if not Assigned(ALogicServer) then
-    raise Exception.Create('LogicServer no puede ser nulo para registrar herramientas.');
+    raise Exception.Create('LogicServer cannot be null to register tools.');
 
   ALogicServer.RegisterTool('system_info',
     function: IAiMCPTool
@@ -175,7 +175,7 @@ begin
       if AuthContext.IsAuthenticated then
         ResultText := ResultText + sLineBreak + sLineBreak + '✅ Executed by user: ' + AuthContext.UserID
       else
-        ResultText := ResultText + sLineBreak + sLineBreak + '⚠️ Ejecutado por un usuario anónimo.';
+        ResultText := ResultText + sLineBreak + sLineBreak + '⚠️ Executed by an anonymous user.';
 
       Result := TAiMCPResponseBuilder.New.AddText(ResultText).Build;
     end;
@@ -358,7 +358,7 @@ begin
   Result := GetBasicInfoAsText + sLineBreak + sLineBreak + GetMemoryInfoAsText + sLineBreak + sLineBreak + GetDiskInfoAsText + sLineBreak +
     sLineBreak + GetNetworkInfoAsText;
   if IncludeDetails then
-    Result := Result + sLineBreak + sLineBreak + '📊 DETALLES ADICIONALES' + sLineBreak + 'Servidor MCP ejecutándose desde: ' +
+    Result := Result + sLineBreak + sLineBreak + '📊 ADDITIONAL DETAILS' + sLineBreak + 'MCP server running from: ' +
       ExtractFilePath(ParamStr(0)) + sLineBreak + 'Compiled with: Delphi 12.2';
 end;
 

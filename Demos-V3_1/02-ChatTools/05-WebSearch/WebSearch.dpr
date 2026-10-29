@@ -7,7 +7,7 @@ program WebSearch;
 // MakerAI — 02-ChatTools / 05-WebSearch
 // =============================================================================
 // The LLM searches the internet to answer questions with recent information,
-// superando la limitación del "knowledge cutoff".
+// overcoming the "knowledge cutoff" limitation.
 //
 // Concepts it covers:
 //   - cap_WebSearch in ModelCaps activates search automatically
@@ -27,12 +27,12 @@ uses
   uMakerAi.Chat.Gemini;
 
 const
-  // Claude — sin búsqueda web (solo conocimiento interno)
+  // Claude — without web search (internal knowledge only)
   DRIVER_SIN  = 'Claude';
   MODEL_SIN   = 'claude-haiku-4-5-20251001';
   API_KEY_SIN = '@CLAUDE_API_KEY';
 
-  // Gemini — con búsqueda web nativa (cap_WebSearch en ModelCaps)
+  // Gemini — with native web search (cap_WebSearch in ModelCaps)
   DRIVER_CON  = 'Gemini';
   MODEL_CON   = 'gemini-3-flash-preview';
   API_KEY_CON = '@GEMINI_API_KEY';
@@ -40,14 +40,14 @@ const
 // Questions that require current information
 const
   PREGUNTAS: array[0..3] of String = (
-    '¿Cuáles son las últimas noticias de inteligencia artificial de esta semana?',
-    '¿Cuál es el precio actual del dólar respecto al peso mexicano?',
-    '¿Cuál es el último modelo de LLM lanzado por Anthropic?',
+    'What are the latest artificial intelligence news this week?',
+    'What is the current price of the dollar against the Mexican peso?',
+    'What is the latest LLM model released by Anthropic?',
     'What important technological events occurred this month?'
   );
 
 // =============================================================================
-//  Compara respuesta CON y SIN búsqueda web para la misma pregunta
+//  Compares response WITH and WITHOUT web search for the same question
 // =============================================================================
 procedure CompararConSinBusqueda(ConnSin, ConnCon: TAiChatConnection;
                                   const Question: String);
@@ -58,14 +58,14 @@ begin
   Writeln('Question: ', Question);
   Writeln;
 
-  // ── SIN búsqueda web (Claude) ─────────────────────────────────────────
+  // ── WITHOUT web search (Claude) ─────────────────────────────────────────
   ConnSin.Messages.Clear;
   Res := ConnSin.AddMessageAndRun(Question, 'user', []);
   Writeln('WITHOUT web search (Claude — internal knowledge only):');
   Writeln('  ', Copy(Res, 1, 200), '...');
   Writeln;
 
-  // ── CON búsqueda web (Gemini) ─────────────────────────────────────────
+  // ── WITH web search (Gemini) ─────────────────────────────────────────
   ConnCon.Messages.Clear;
   Res := ConnCon.AddMessageAndRun(Question, 'user', []);
   Writeln('WITH web search (Gemini — integrated Google Search):');
@@ -74,7 +74,7 @@ begin
 end;
 
 // =============================================================================
-//  DEMO principal
+//  MAIN DEMO
 // =============================================================================
 procedure RunDemo;
 var
@@ -110,17 +110,17 @@ begin
     ConnCon.Params.Values['Asynchronous'] := 'False';
     ConnCon.Params.Values['Max_Tokens']   := '1024';
     ConnCon.SystemPrompt.Text :=
-      'Eres un asistente con acceso a búsqueda web. ' +
-      'Cuando uses búsqueda web, menciona las fuentes consultadas. ' +
+      'You are an assistant with web search access. ' +
+      'When you use web search, mention the consulted sources. ' +
       'Responde en español.';
 
-    // ── Demo 1: Comparación con/sin búsqueda ─────────────────────────────
+    // ── Demo 1: Comparison with/without search ─────────────────────────────
     Writeln('=== COMPARISON: with vs. without web search ===');
     CompararConSinBusqueda(ConnSin, ConnCon,
       '¿Cuál es el LLM más potente disponible hoy?');
 
-    // ── Demo 2: Preguntas que necesitan info actual ───────────────────────
-    Writeln('=== PREGUNTAS QUE REQUIEREN INFORMACIÓN ACTUAL (Gemini) ===');
+    // ── Demo 2: Questions that need current info ───────────────────────
+    Writeln('=== QUESTIONS THAT REQUIRE CURRENT INFORMATION (Gemini) ===');
     for I := Low(PREGUNTAS) to High(PREGUNTAS) do
     begin
       ConnCon.Messages.Clear;
@@ -132,12 +132,12 @@ begin
       Writeln;
     end;
 
-    // ── Demo 3: Citar fuentes ─────────────────────────────────────────────
+    // ── Demo 3: Cite sources ─────────────────────────────────────────────
     Writeln(StringOfChar('-', 60));
     Writeln('Demo 3: Response with cited sources (Gemini)');
     ConnCon.Messages.Clear;
     ConnCon.SystemPrompt.Text :=
-      'Responde con fuentes. Al final incluye una sección "Fuentes:" con ' +
+      'Respond with sources. At the end include a section "Sources:" with ' +
       'las URLs consultadas. Responde en español.';
 
     Res := ConnCon.AddMessageAndRun(

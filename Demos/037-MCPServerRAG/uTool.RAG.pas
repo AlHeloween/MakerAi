@@ -541,7 +541,7 @@ begin
     Meta['doc'] := ADocName;
     Result := GRag.AddItemsFromPlainText(AText, Meta, AChunkSize, AOverlapPct);
   finally
-    Meta.Free; // AddItem copia los metadatos con Assign; el caller conserva la propiedad
+    Meta.Free; // AddItem copies metadata with Assign; the caller retains ownership
   end;
 end;
 

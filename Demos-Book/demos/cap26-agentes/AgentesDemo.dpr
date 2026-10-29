@@ -161,7 +161,7 @@ var
 begin
   Manager := TAIAgentManager.Create(nil);
   try
-    Manager.Asynchronous := False;   // Manager.Run() bloquea hasta completar
+    Manager.Asynchronous := False;   // Manager.Run() blocks until complete
     Manager
       .AddNode('Analizar',  OnAnalizar)
       .AddNode('Resumir',   OnResumir)

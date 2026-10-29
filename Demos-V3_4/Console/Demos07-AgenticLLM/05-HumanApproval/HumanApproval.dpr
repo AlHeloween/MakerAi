@@ -276,7 +276,7 @@ begin
 
   App := TApprovalApp.Create;
   try
-    App.Run('Los beneficios de aprender a programar desde nino');
+    App.Run('The benefits of learning to program from childhood');
   finally
     App.Free;
   end;

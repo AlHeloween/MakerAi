@@ -52,8 +52,8 @@ const
     'You are a desktop automation agent. ' +
     'Task: take a screenshot, locate the text area of the editor on ' +
     'screen, click on it and type exactly: ' +
-    '"Hola MakerAI desde Linux". Then take another screenshot to confirm and ' +
-    'describe brevemente lo que ves.';
+    '"Hello MakerAI from Linux". Then take another screenshot to confirm and ' +
+    'describe briefly what you see.';
 
 type
   THandlers = class

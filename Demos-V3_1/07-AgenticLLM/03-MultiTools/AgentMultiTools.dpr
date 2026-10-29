@@ -67,7 +67,7 @@ begin
 end;
 destructor TCalculatorTool.Destroy; begin FSchema.Free; inherited; end;
 function TCalculatorTool.GetName: String; begin Result := 'calculator'; end;
-function TCalculatorTool.GetDescription: String; begin Result := 'Operaciones aritmeticas: add, subtract, multiply, divide'; end;
+function TCalculatorTool.GetDescription: String; begin Result := 'Arithmetic operations: add, subtract, multiply, divide'; end;
 function TCalculatorTool.GetCategory: String; begin Result := 'Math'; end;
 function TCalculatorTool.GetSchema: TJSONObject; begin Result := FSchema; end;
 function TCalculatorTool.IsAvailable: Boolean; begin Result := True; end;
@@ -85,7 +85,7 @@ begin
   else if Op = 'subtract' then Res := A - B
   else if Op = 'multiply' then Res := A * B
   else if Op = 'divide' then begin
-    if B = 0 then begin Result := TJSONObject.Create; Result.AddPair('error', 'Division por cero'); Exit; end;
+    if B = 0 then begin Result := TJSONObject.Create; Result.AddPair('error', 'Division by zero'); Exit; end;
     Res := A / B;
   end;
   Writeln(Format('  [calculator] => %g', [Res]));
@@ -110,7 +110,7 @@ constructor TDateTimeTool.Create;
 begin inherited; FSchema := TJSONObject.Create; FSchema.AddPair('type', 'object'); FSchema.AddPair('properties', TJSONObject.Create); end;
 destructor TDateTimeTool.Destroy; begin FSchema.Free; inherited; end;
 function TDateTimeTool.GetName: String; begin Result := 'get_datetime'; end;
-function TDateTimeTool.GetDescription: String; begin Result := 'Retorna la fecha y hora actual en formato ISO-8601'; end;
+function TDateTimeTool.GetDescription: String; begin Result := 'Returns the current date and time in ISO-8601 format'; end;
 function TDateTimeTool.GetCategory: String; begin Result := 'Utility'; end;
 function TDateTimeTool.GetSchema: TJSONObject; begin Result := FSchema; end;
 function TDateTimeTool.IsAvailable: Boolean; begin Result := True; end;
@@ -155,7 +155,7 @@ begin
 end;
 destructor TTemperatureTool.Destroy; begin FSchema.Free; inherited; end;
 function TTemperatureTool.GetName: String; begin Result := 'convert_temperature'; end;
-function TTemperatureTool.GetDescription: String; begin Result := 'Convierte temperatura entre Celsius (C) y Fahrenheit (F)'; end;
+function TTemperatureTool.GetDescription: String; begin Result := 'Converts temperature between Celsius (C) and Fahrenheit (F)'; end;
 function TTemperatureTool.GetCategory: String; begin Result := 'Utility'; end;
 function TTemperatureTool.GetSchema: TJSONObject; begin Result := FSchema; end;
 function TTemperatureTool.IsAvailable: Boolean; begin Result := True; end;
@@ -202,7 +202,7 @@ begin
 end;
 destructor TUrlEncodeTool.Destroy; begin FSchema.Free; inherited; end;
 function TUrlEncodeTool.GetName: String; begin Result := 'url_encode'; end;
-function TUrlEncodeTool.GetDescription: String; begin Result := 'Codifica un texto como URL-safe (percent-encoding)'; end;
+function TUrlEncodeTool.GetDescription: String; begin Result := 'Encodes text as URL-safe (percent-encoding)'; end;
 function TUrlEncodeTool.GetCategory: String; begin Result := 'Text'; end;
 function TUrlEncodeTool.GetSchema: TJSONObject; begin Result := FSchema; end;
 function TUrlEncodeTool.IsAvailable: Boolean; begin Result := True; end;
@@ -273,10 +273,10 @@ begin
     LLMAgent.ApiKey       := API_KEY;
     LLMAgent.UseAllTools  := True;
     LLMAgent.SystemPrompt :=
-      'Eres un asistente util con herramientas. Usaias cuando sea apropiado. ' +
-      'Para matematicas usa calculator. Para fechas usa get_datetime. ' +
-      'Para temperaturas usa convert_temperature. Para URLs usa url_encode. ' +
-      'Responde en espanol.';
+      'You are a helpful assistant with tools. Use them when appropriate. ' +
+      'For math use calculator. For dates use get_datetime. ' +
+      'For temperatures use convert_temperature. For URLs use url_encode. ' +
+      'Respond in Spanish.';
 
     Finish       := TAIAgentsNode.Create(Manager);
     Finish.Name  := 'End';

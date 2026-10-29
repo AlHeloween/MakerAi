@@ -88,7 +88,7 @@ end;
 
 procedure TMockVideoTool.ExecuteVideoGeneration(ResMsg, AskMsg: TAiChatMessage);
 begin
-  // ExecuteVideoGeneration no recibe APrompt -- el prompt esta en AskMsg.Prompt
+  // ExecuteVideoGeneration does not receive APrompt -- the prompt is in AskMsg.Prompt
   WriteLn('    >> [VIDEOGEN] original request: "', AskMsg.Prompt, '"');
   ResMsg.Prompt := '[generated video] ' + AskMsg.Prompt;
   ResMsg.Role   := 'assistant';

@@ -133,7 +133,7 @@ begin
 
   FPrompt.Lines.Text := DEF_PROMPT;
   if FApiKey = '' then
-    SetStatus('FALTA la variable de entorno MAKERAI_API_KEY.')
+    SetStatus('MISSING environment variable MAKERAI_API_KEY.')
   else
     SetStatus('Ready. Open the target app and press Run.');
   Log(Format('Model: %s   display: %dx%d', [FModel, FDisplayW, FDisplayH]));
@@ -408,7 +408,7 @@ begin
 
     for Step := 1 to MAX_STEPS do
     begin
-      SetStatus(Format('Paso %d/%d: consultando al servidor...', [Step, MAX_STEPS]));
+      SetStatus(Format('Step %d/%d: querying the server...', [Step, MAX_STEPS]));
       RespStr := PostChat(BuildRequestBody);
 
       JResp := TJSONObject.ParseJSONValue(RespStr) as TJSONObject;
@@ -505,7 +505,7 @@ begin
         begin
           // finish_reason = 'stop' (or other): end of loop
           EndRun('=== FIN (' + FinishReason + ') ===' + sLineBreak +
-                 'Modelo: ' + AsstText);
+                 'Model: ' + AsstText);
           Exit;
         end;
       finally

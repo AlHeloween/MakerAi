@@ -121,10 +121,10 @@ begin
     CompararModos(RAG, 'SHA256 hash');
 
     // Query 2: semantic → vector wins
-    CompararModos(RAG, 'proteccion de comunicaciones en internet');
+    CompararModos(RAG, 'protection of communications on the internet');
 
     // Query 3: mix → hybrid wins
-    CompararModos(RAG, 'seguridad en bases de datos SQL');
+    CompararModos(RAG, 'security in SQL databases');
 
   finally
     RAG.Free;

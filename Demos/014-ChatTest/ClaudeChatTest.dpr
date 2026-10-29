@@ -134,7 +134,7 @@ var
   Res: string;
 begin
   PrintHeader('CLAUDE — Agents PDF (sync)');
-  if not FileExists(CPdfAgentes) then begin WriteLn('Archivo no encontrado: ' + CPdfAgentes); Exit; end;
+  if not FileExists(CPdfAgentes) then begin WriteLn('File not found: ' + CPdfAgentes); Exit; end;
 
   Ai := TAiChatConnection.Create(nil);
   try
@@ -154,7 +154,7 @@ var
   Res: string;
 begin
   PrintHeader('CLAUDE — RAG PDF (sync)');
-  if not FileExists(CPdfRag) then begin WriteLn('Archivo no encontrado: ' + CPdfRag); Exit; end;
+  if not FileExists(CPdfRag) then begin WriteLn('File not found: ' + CPdfRag); Exit; end;
 
   Ai := TAiChatConnection.Create(nil);
   try
@@ -174,7 +174,7 @@ var
   Res: string;
 begin
   PrintHeader('CLAUDE — PDF multi-turn (sync)');
-  if not FileExists(CPdfAgentes) then begin WriteLn('Archivo no encontrado: ' + CPdfAgentes); Exit; end;
+  if not FileExists(CPdfAgentes) then begin WriteLn('File not found: ' + CPdfAgentes); Exit; end;
 
   Ai := TAiChatConnection.Create(nil);
   try
@@ -227,7 +227,7 @@ var
   H:    TAsyncHelper;
 begin
   PrintHeader('MAKERAI mk-scout — Agents PDF (sync)');
-  if not FileExists(CPdfAgentes) then begin WriteLn('Archivo no encontrado: ' + CPdfAgentes); Exit; end;
+  if not FileExists(CPdfAgentes) then begin WriteLn('File not found: ' + CPdfAgentes); Exit; end;
 
   H := TAsyncHelper.Create;
   Chat := TAiMakerAiChat.Create(nil);
@@ -255,7 +255,7 @@ var
   H:    TAsyncHelper;
 begin
   PrintHeader('MAKERAI mk-scout — RAG PDF (async)');
-  if not FileExists(CPdfRag) then begin WriteLn('Archivo no encontrado: ' + CPdfRag); Exit; end;
+  if not FileExists(CPdfRag) then begin WriteLn('File not found: ' + CPdfRag); Exit; end;
 
   H := TAsyncHelper.Create;
   Chat := TAiMakerAiChat.Create(nil);
@@ -286,7 +286,7 @@ var
   H:    TAsyncHelper;
 begin
   PrintHeader('MAKERAI mk-gpt-oss-20b — PDF multi-turn (async)');
-  if not FileExists(CPdfAgentes) then begin WriteLn('Archivo no encontrado: ' + CPdfAgentes); Exit; end;
+  if not FileExists(CPdfAgentes) then begin WriteLn('File not found: ' + CPdfAgentes); Exit; end;
 
   H := TAsyncHelper.Create;
   Chat := TAiMakerAiChat.Create(nil);
@@ -447,7 +447,7 @@ begin
         end;
       except
         on E: Exception do
-          FSavedFiles.Add('ERROR guardando ' + FName + ': ' + E.Message);
+          FSavedFiles.Add('ERROR saving ' + FName + ': ' + E.Message);
       end;
     end;
   FDone.SetEvent;
@@ -477,7 +477,7 @@ var
   I: Integer;
   Preview: string;
 begin
-  // Mostrar texto del modelo (si hay)
+  // Show model text (if any)
   if FResult <> '' then
   begin
     Preview := StringReplace(Copy(FResult, 1, 3000), #10, ' ', [rfReplaceAll]);
@@ -487,7 +487,7 @@ begin
   end
   else
     WriteLn('  Text: (empty)');
-  // Mostrar estado de archivos
+  // Show file status
   if FError <> '' then
     WriteLn('  ERROR: ' + FError)
   else if FSavedFiles.Count = 0 then
@@ -498,7 +498,7 @@ begin
 end;
 
 // gpt-oss-20b: scatter plot 200x200 JPG via matplotlib.
-// Uses FILE_B64_BEGIN:nombre.jpg / FILE_B64_END so ProcessExecutedTools detects it.
+// Uses FILE_B64_BEGIN:name.jpg / FILE_B64_END so ProcessExecutedTools detects it.
 const
   CPromptScatterPlot =
     'Use the code_interpreter tool to run the following Python code exactly as written. '
@@ -663,7 +663,7 @@ const
   CPromptPng =
     'Use code execution to generate a 400x400 PNG image with a scatter plot of ' +
     '25 random points with rainbow colors on a white background using matplotlib. ' +
-    'Devuelve SOLO la imagen generada, sin texto adicional.';
+    'Return ONLY the generated image, with no additional text.';
 
 procedure Test_MakerAi_CodeExec_Png(const AModel, AOutFile: string);
 var
@@ -709,7 +709,7 @@ begin
       Test_Groq_CodeInterpreter_Sync;
       Test_Groq_CodeInterpreter_Async;
       WriteLn;
-      WriteLn('=== FIN ===');
+      WriteLn('=== END ===');
       Exit;
     end;
 
@@ -719,7 +719,7 @@ begin
     Test_MakerAi_CodeExec_Png('mk-claude-sonnet',  'scatter_claude');
 
     WriteLn;
-    WriteLn('=== FIN ===');
+    WriteLn('=== END ===');
 
   except
     on E: Exception do

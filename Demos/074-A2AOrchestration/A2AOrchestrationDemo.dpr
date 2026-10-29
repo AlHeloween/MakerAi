@@ -98,9 +98,9 @@ begin
   // The server takes care of freeing it. It must have the same shape as
   // the graph the agent publishes.
   AManager := TAIAgentManager.Create(nil);
-  AManager.AddNode('Validar', NodoLento).AddNode('Procesar', NodoExec);
-  AManager.AddEdge('Validar', 'Procesar');
-  AManager.SetEntryPoint('Validar').SetFinishPoint('Procesar');
+  AManager.AddNode('Validate', NodoLento).AddNode('Process', NodoExec);
+  AManager.AddEdge('Validate', 'Process');
+  AManager.SetEntryPoint('Validate').SetFinishPoint('Process');
 end;
 
 // -----------------------------------------------------------------------------
@@ -222,9 +222,9 @@ begin
   Agente := TAIAgentManager.Create(nil);
   Client := TAiA2AClient.Create(nil);
   try
-    Agente.AddNode('Preparar', AHandlers.NodoExec).AddNode('Aprobar', AHandlers.NodoAprobacion);
-    Agente.AddEdge('Preparar', 'Aprobar');
-    Agente.SetEntryPoint('Preparar').SetFinishPoint('Aprobar');
+    Agente.AddNode('Prepare', AHandlers.NodoExec).AddNode('Approve', AHandlers.NodoAprobacion);
+    Agente.AddEdge('Prepare', 'Approve');
+    Agente.SetEntryPoint('Prepare').SetFinishPoint('Approve');
 
     Server.Port := PORT;
     Server.AgentName := 'Agente Tesoreria';
@@ -248,7 +248,7 @@ begin
     // --- Segundo turno: MISMO taskId = reanudacion, no un task nuevo ---
     Writeln('');
     Writeln('   (the human answers "approved by Ana")');
-    Task := Client.SendTextEx('aprobado por Ana', TaskId, CtxId, Salida);
+    Task := Client.SendTextEx('approved by Ana', TaskId, CtxId, Salida);
     try
       Writeln('   turn 2 -> state: ' + NombreEstado(Client.LastTaskState));
       Writeln('             result: ' + Salida);
@@ -282,9 +282,9 @@ begin
   Remoto := TAIAgentManager.Create(nil);
   try
     // Remote agent: asks for human approval
-    Remoto.AddNode('Recibir', AHandlers.NodoExec).AddNode('Aprobar', AHandlers.NodoAprobacion);
-    Remoto.AddEdge('Recibir', 'Aprobar');
-    Remoto.SetEntryPoint('Recibir').SetFinishPoint('Aprobar');
+    Remoto.AddNode('Receive', AHandlers.NodoExec).AddNode('Approve', AHandlers.NodoAprobacion);
+    Remoto.AddEdge('Receive', 'Approve');
+    Remoto.SetEntryPoint('Receive').SetFinishPoint('Approve');
 
     Server.Port := PORT;
     Server.AgentName := 'Agente Tesoreria Remoto';
@@ -294,18 +294,18 @@ begin
     // Local graph: one of its nodes delegates to the remote agent
     Local := TAIAgentManager.Create(nil);
     try
-      Local.AddNode('Origen', AHandlers.NodoExec);
-      Local.AddNode('Delegado', nil);
+      Local.AddNode('Origin', AHandlers.NodoExec);
+      Local.AddNode('Delegated', nil);
       Tool := TAiA2ARemoteAgentTool.Create(Local);
       Tool.AgentUrl := 'http://localhost:' + IntToStr(PORT);
       // Default True: on input-required it suspends the local node instead of
       // throwing an exception. With False the local graph would die here.
       Tool.SuspendOnInputRequired := True;
-      Local.FindNode('Delegado').Tool := Tool;
-      Local.AddEdge('Origen', 'Delegado');
-      Local.SetEntryPoint('Origen').SetFinishPoint('Delegado');
+      Local.FindNode('Delegated').Tool := Tool;
+      Local.AddEdge('Origin', 'Delegated');
+      Local.SetEntryPoint('Origin').SetFinishPoint('Delegated');
 
-      Local.Run('pago 900 EUR');
+      Local.Run('payment 900 EUR');
       EsperarGrafo(Local);
       Writeln('   after the initial run, the LOCAL graph ended in: ' +
         NombreStatus(Local.Blackboard.GetStatus));
@@ -313,7 +313,7 @@ begin
 
       Writeln('');
       Writeln('   (the local node is resumed with the human response)');
-      Local.ResumeThread(Local.CurrentThreadID, 'Delegado', 'aprobado por Luis');
+      Local.ResumeThread(Local.CurrentThreadID, 'Delegated', 'approved by Luis');
       EsperarGrafo(Local);
 
       Writeln('   final state of the LOCAL graph: ' + NombreStatus(Local.Blackboard.GetStatus));
@@ -350,9 +350,9 @@ begin
   Agente := TAIAgentManager.Create(nil);
   Client := TAiA2AClient.Create(nil);
   try
-    Agente.AddNode('Validar', AHandlers.NodoLento).AddNode('Procesar', AHandlers.NodoExec);
-    Agente.AddEdge('Validar', 'Procesar');
-    Agente.SetEntryPoint('Validar').SetFinishPoint('Procesar');
+    Agente.AddNode('Validate', AHandlers.NodoLento).AddNode('Process', AHandlers.NodoExec);
+    Agente.AddEdge('Validate', 'Process');
+    Agente.SetEntryPoint('Validate').SetFinishPoint('Process');
 
     Server.Port := PORT;
     Server.AgentName := 'Agente Lento';

@@ -181,7 +181,7 @@ begin
     CbxVoice.Items.Add(V);
   CbxVoice.ItemIndex := 0;
   CbxDelegation.Items.Add('Responses (OpenAI)');
-  CbxDelegation.Items.Add('Mi chat (DelegateChat)');
+  CbxDelegation.Items.Add('My chat (DelegateChat)');
   CbxDelegation.ItemIndex := 0;
   EdChatDriver.Text := 'OpenAi';
   EdChatModel.Text := 'gpt-6-luna';
@@ -262,7 +262,7 @@ begin
     CbxSpeaker.Items.Add(D.DeviceName);
   CbxMic.ItemIndex := 0;
   CbxSpeaker.ItemIndex := 0;
-  // Preseleccionar los predeterminados por nombre (para que se vean)
+  // Preselect the defaults by name (so they are visible)
   for I := 0 to High(FMicDevices) do
     if FMicDevices[I].IsDefault then
       CbxMic.ItemIndex := I + 1;
@@ -565,7 +565,7 @@ procedure TFormGPTLive.LiveSessionReady(Sender: TObject);
 begin
   Log('Session started: ' + FLive.SessionId + ' — speak whenever you want');
   FCapture.Active := True;
-  LblStatus.Text := 'Escuchando';
+  LblStatus.Text := 'Listening';
 end;
 
 procedure TFormGPTLive.LiveUserDelta(Sender: TObject; const Delta: string);

@@ -26,7 +26,7 @@
 //   Demo 4 -- Word timestamps with verbose_json
 //     ResponseFormat = 'verbose_json' + timestamp_granularities = 'word'.
 //     Only available with whisper-1 and classic Whisper providers.
-//     Parsea el JSON de respuesta y muestra [tiempo] palabra por palabra.
+//     Parses the response JSON and shows [time] word by word.
 //
 //   Demo 5 -- TAiOpenAiAudio + gpt-4o-transcribe + logprobs
 //     Modern component. TranscriptionLogprobs = True requests confidence
@@ -34,7 +34,7 @@
 //
 //   Demo 6 -- Diarization with gpt-4o-transcribe-diarize
 //     Identifies who spoke which fragment. No Python, no GPU, in the cloud.
-//     Parsea Result.RawJson -> 'segments' -> speaker + text + start.
+//     Parses Result.RawJson -> 'segments' -> speaker + text + start.
 //
 // Requirements:
 //   Demos 1, 4, 5, 6:  OPENAI_API_KEY in environment variables
@@ -115,8 +115,8 @@ end;
 //  Demo 1 -- TAIWhisper + OpenAI (caso base)
 //
 //  Transcription(Stream, NombreArchivo, HintPrompt): String
-//  El HintPrompt mejora la precision en terminologia tecnica o nombres propios.
-//  Ejemplo: 'Esta es una llamada medica' mejora 'glomerulonefritis'.
+//  The HintPrompt improves accuracy in technical terminology or proper names.
+//  Example: 'This is a medical call' improves 'glomerulonefritis'.
 // =============================================================================
 procedure Demo1_OpenAI(const AudioPath: string);
 var
@@ -158,9 +158,9 @@ end;
 // =============================================================================
 //  Demo 2 -- El mismo codigo con Groq (hasta 216x tiempo real)
 //
-//  El codigo es identico al Demo 1. Solo cambian Url y ApiKey.
-//  Groq usa LPU (Language Processing Unit) para correr Whisper a maxima
-//  velocidad: 60 minutos de audio se transcriben en ~13 segundos.
+//  The code is identical to Demo 1. Only Url and ApiKey change.
+//  Groq uses LPU (Language Processing Unit) to run Whisper at maximum
+//  speed: 60 minutes of audio are transcribed in ~13 seconds.
 // =============================================================================
 procedure Demo2_Groq(const AudioPath: string);
 var
@@ -203,13 +203,13 @@ end;
 // =============================================================================
 //  Demo 3 -- El mismo codigo con whisper.cpp local (sin internet)
 //
-//  whisper.cpp expone la misma API HTTP que OpenAI. Sin datos que salgan
-//  de tu maquina. Ideal para entornos con restricciones de privacidad.
+//  whisper.cpp exposes the same HTTP API as OpenAI. No data leaves
+//  your machine. Ideal for environments with privacy restrictions.
 //
-//  Para iniciar el servidor local (Windows):
+//  To start the local server (Windows):
 //    whisper-server.exe -m models\ggml-turbo.bin -l es --port 8080
 //
-//  El demo detecta si el servidor no esta disponible y muestra instrucciones.
+//  The demo detects if the server is not available and shows instructions.
 // =============================================================================
 procedure Demo3_Local(const AudioPath: string);
 var
@@ -268,8 +268,8 @@ end;
 // =============================================================================
 //  Demo 4 -- Timestamps por palabra con verbose_json
 //
-//  ResponseFormat = 'verbose_json' devuelve el texto completo mas un array
-//  'words' con el tiempo de inicio de cada palabra. Util para:
+//  ResponseFormat = 'verbose_json' returns the full text plus an array
+//  'words' with the start time of each word. Useful for:
 //    - Karaoke / subtitle synchronization
 //    - Highlighting words while audio plays
 //    - Detecting long pauses in speech
@@ -355,9 +355,9 @@ end;
 // =============================================================================
 //  Demo 5 -- TAiOpenAiAudio + gpt-4o-transcribe + logprobs
 //
-//  gpt-4o-transcribe tiene WER de 2.46% (casi 4x mejor que whisper-1).
-//  Con TranscriptionLogprobs=True, la API devuelve la probabilidad de cada
-//  token. Esto permite marcar palabras de baja confianza para revision humana.
+//  gpt-4o-transcribe has a WER of 2.46% (almost 4x better than whisper-1).
+//  With TranscriptionLogprobs=True, the API returns the probability of each
+//  token. This allows marking low-confidence words for human review.
 //
 //  Prob = Exp(logprob):
 //    Prob = 1.0  -> total certainty
@@ -439,10 +439,10 @@ end;
 // =============================================================================
 //  Demo 6 -- Diarizacion: quien hablo que
 //
-//  gpt-4o-transcribe-diarize identifica los distintos hablantes y asocia
-//  cada fragmento a un speaker. Sin Python, sin GPU, en la nube de OpenAI.
+//  gpt-4o-transcribe-diarize identifies the different speakers and associates
+//  each fragment with a speaker. No Python, no GPU, in the OpenAI cloud.
 //
-//  Ideal para:
+//  Ideal for:
 //    - Meeting minutes ("SPEAKER_0 proposed..., SPEAKER_1 replied...")
 //    - Interviews and podcasts
 //    - Call centers (customer vs. agent)
