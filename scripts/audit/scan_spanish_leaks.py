@@ -23,6 +23,59 @@ STRING_RE = re.compile(r"'((?:[^']|'')*)'")
 PROTOCOLISH = re.compile(r"^[a-z0-9_\-\./:@#%+~]*$")
 
 
+ESCAPE_RE = re.compile(r'#(\$[0-9A-Fa-f]+|[0-9]+)')
+NO_ACCENT = str.maketrans('áéíóúñüÁÉÍÓÚÑÜ', 'aeiounuAEIOUNU')
+# An accent escape can only ever render an accented letter. English needs none, so its
+# presence in a .pas/.dfm/.fmx file is by itself proof of non-English text — a signal with
+# no false positives on a word list that happens to lack a given Spanish word.
+ACCENT_ESCAPE = re.compile(r'#(?:225|233|237|243|250|241|252|191|161)')
+ACCENT_CHARS = set('áéíóúñüÁÉÍÓÚÑÜ¿¡')
+
+
+def visible_text(line):
+    """The text a user would SEE on this line: quoted fragments joined, `#NNN` rendered.
+
+    A Spanish message is often split by an escape (`'Escriba un texto de b' + #250 +
+    'squeda.'`). Judged fragment by fragment neither piece looks Spanish, so the line
+    escaped detection while the user saw Spanish. The expression is one text.
+    """
+    out = []
+    i, n = 0, len(line)
+    while i < n:
+        c = line[i]
+        if c == "'":
+            i += 1
+            while i < n:
+                if line[i] == "'":
+                    if i + 1 < n and line[i + 1] == "'":
+                        out.append("'")
+                        i += 2
+                        continue
+                    i += 1
+                    break
+                out.append(line[i])
+                i += 1
+            continue
+        m = ESCAPE_RE.match(line, i)
+        if m:
+            tok = m.group(1)
+            try:
+                code = int(tok[1:], 16) if tok.startswith('$') else int(tok)
+            except ValueError:
+                code = 0
+            if 32 <= code <= 0x2FFF:
+                out.append(chr(code))
+            i = m.end()
+            continue
+        i += 1
+    return ''.join(out)
+
+
+def has_spanish_text(text):
+    """has_spanish for visible text: accents stripped so an accented word matches its
+    unaccented entry in the word list."""
+    return has_spanish(text) or has_spanish(text.translate(NO_ACCENT))
+
 def has_spanish(text):
     lower = text.lower()
     for w in SPANISH_WORDS:
@@ -66,14 +119,15 @@ def analyze(path):
         j = code_only.find("//")
         if j >= 0:
             tail = raw[j:]
-            if has_spanish(tail):
+            if has_spanish(tail) or any(ch in ACCENT_CHARS for ch in tail):
                 comment_hits.append((i, tail[:110]))
-        for m in STRING_RE.finditer(raw):
-            t = m.group(1)
-            if len(t) < 7 or PROTOCOLISH.match(t):
-                continue
-            if has_spanish(t):
-                string_hits.append((i, t[:110]))
+        # The fragments of ONE string expression are judged together — see visible_text.
+        # An accent ESCAPE is a hit on its own: English text never needs one.
+        visible = visible_text(raw)
+        accent = ACCENT_ESCAPE.search(raw) is not None or any(ch in ACCENT_CHARS for ch in visible)
+        if accent or (len(visible) >= 7 and not PROTOCOLISH.match(visible)):
+            if accent or has_spanish_text(visible):
+                string_hits.append((i, (visible[:110] or raw.strip()[:110])))
     return comment_hits, string_hits
 
 

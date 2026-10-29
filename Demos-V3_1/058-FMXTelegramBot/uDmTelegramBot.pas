@@ -63,7 +63,7 @@ type
   // Configuration of a provider in a category
   TProviderConfig = record
     Driver : string;  // 'Claude', 'OpenAI', 'Gemini', 'Ollama', 'ElevenLabs', etc.
-    Model  : string;  // modelo especifico del proveedor
+    Model  : string;  // specific model of the provider
     ApiKey : string;  // '@ENV_VAR' o key directa
     Extra  : string;  // voz, base_url, idioma, etc. (depende de categoria)
     constructor Create(const ADriver, AModel, AApiKey, AExtra: string);
@@ -123,16 +123,16 @@ type
     FBotStartTime  : TDateTime;
 
     // ── Phase 4: Voice ───────────────────────────────────────────────────────
-    FVoiceEnabled : Boolean;  // responde con voz cuando el input es voz
-    FMCPToolsURL  : string;   // URL MCPService (vacio = TAiOpenAiAudio directo)
+    FVoiceEnabled : Boolean;  // responds with voice when the input is voice
+    FMCPToolsURL  : string;   // URL MCPService (empty = TAiOpenAiAudio direct)
 
     // ── Configurable providers by category ───────────────────────────
     FProviders  : TBotProviders;
 
     // ── PPM auto-install ──────────────────────────────────────────────────
     FInstalledClients : TObjectList<TObject>;  // lifetime de clientes MCP instalados
-    FInstalledPkgs    : TStringList;           // paquetes con proceso MCP activo en sesión
-    FPPMStateFile     : string;                // JSON con paquetes a restaurar al reiniciar
+    FInstalledPkgs    : TStringList;           // packages with active MCP process in session
+    FPPMStateFile     : string;                // JSON with packages to restore on restart
 
     // ── Base dir ──────────────────────────────────────────────────────────
     FDataDir: string;
@@ -274,21 +274,21 @@ const
   MAX_HISTORY_MSG = 40;
 
   SYS_PROMPT =
-    'Eres un potente asistente de IA accesible v'#237'a Telegram. ' +
+    'You are a powerful AI assistant reachable via Telegram. ' +
     'Herramientas disponibles:' + #10 +
     'SISTEMA : shell_exec, file_read, file_write, file_list' + #10 +
     'MEMORIA : memory_save, memory_get, memory_delete, memory_list, memory_search' + #10 +
-    'AGENTES : agent_run (tipo: "analyze" o "code_review")' + #10 +
-    'VOZ     : tg_voice (s'#237'ntesis de voz — env'#237'a un audio al chat de Telegram)' + #10 +
-    'PPM     : ppm_install (instala cualquier capacidad externa desde el registro PPM)' + #10#10 +
-    'Regla clave: si necesitas una herramienta que no est'#225' en la lista (clima, base de datos, ' +
-    'GitHub, correo, traducci'#243'n, etc.), llama primero a ppm_install{"capability":"keyword"}. ' +
-    'Tras la instalaci'#243'n, las nuevas herramientas quedan disponibles de inmediato.' + #10 +
-    'Otras reglas: s'#233' conciso, usa texto plano (sin markdown), ' +
-    'usa las herramientas de forma proactiva cuando el usuario pida hacer algo en el sistema ' +
-    'o quiera recordar informaci'#243'n. ' +
-    'Pide confirmaci'#243'n antes de operaciones destructivas. ' +
-    'Responde siempre en espa'#241'ol.';
+    'AGENTS : agent_run (type: "analyze" or "code_review")' + #10 +
+    'VOICE     : tg_voice (voice synthesis — sends an audio to the Telegram chat)' + #10 +
+    'PPM     : ppm_install (installs any external capability from the PPM registry)' + #10#10 +
+    'Key rule: if you need a tool that is not in the list (weather, database, ' +
+    'GitHub, email, translation, etc.), first call ppm_install{"capability":"keyword"}. ' +
+    'After installation, the new tools become available immediately.' + #10 +
+    'Other rules: be concise, use plain text (without markdown), ' +
+    'use the tools proactively when the user asks to do something in the system ' +
+    'or wants to remember information. ' +
+    'Ask for confirmation before destructive operations. ' +
+    'Always answer in Spanish.';
 
   PPM_REGISTRY = 'https://registry.cimamaker.com';
 
@@ -564,7 +564,7 @@ begin
     else if FunctionName = 'telegram'      then ToolCall.Response := ToolNativeTelegram(Args)
     else
     begin
-      // Fallback dinámico: buscar en TAiToolRegistry (tools auto-instalados vía PPM)
+      // Dynamic fallback: search in TAiToolRegistry (tools auto-installed via PPM)
       var DynTool: IAiTool;
       if TAiToolRegistry.Instance.TryFind(FunctionName, DynTool) then
       begin
@@ -616,8 +616,8 @@ end;
 
 function TDmTelegramBot.RunShell(const ACmd: string; var AOutput: string): Integer;
 const
-  MAX_IDLE_MS  = 12000; // abortar si no hay output nuevo en 12s (ej. psql esperando password)
-  SHELL_TIMEOUT_MS = 30000; // timeout total del proceso
+  MAX_IDLE_MS  = 12000; // abort if there is no new output in 12s (e.g. psql waiting for password)
+  SHELL_TIMEOUT_MS = 30000; // total process timeout
 var SA: TSecurityAttributes; SI: TStartupInfo; PI: TProcessInformation;
     hR, hW, hNulIn: THandle; Buf: array[0..4095] of Byte; nRead, BytesAvail: DWORD;
     ExitCode: DWORD; SB: TStringBuilder; CmdLine: string;
@@ -629,7 +629,7 @@ begin
 
   // Pipe to capture stdout+stderr
   if not CreatePipe(hR, hW, @SA, 0) then begin AOutput := 'CreatePipe failed'; Exit; end;
-  SetHandleInformation(hR, HANDLE_FLAG_INHERIT, 0); // el extremo lector no se hereda
+  SetHandleInformation(hR, HANDLE_FLAG_INHERIT, 0); // the reader end is not inherited
 
   // stdin -> NUL device (not INVALID_HANDLE_VALUE, which confuses cmd.exe)
   hNulIn := CreateFile('nul', GENERIC_READ, FILE_SHARE_READ or FILE_SHARE_WRITE,
@@ -638,7 +638,7 @@ begin
 
   FillChar(SI, SizeOf(SI), 0);
   SI.cb := SizeOf(SI);
-  SI.dwFlags   := STARTF_USESTDHANDLES; // sin STARTF_USESHOWWINDOW (ya usamos CREATE_NO_WINDOW)
+  SI.dwFlags   := STARTF_USESTDHANDLES; // without STARTF_USESHOWWINDOW (we already use CREATE_NO_WINDOW)
   SI.hStdInput  := hNulIn;
   SI.hStdOutput := hW;
   SI.hStdError  := hW;
@@ -656,7 +656,7 @@ begin
   // Close the writer ends in the parent process (critical so ReadFile completes)
   CloseHandle(hW);
   if hNulIn <> 0 then CloseHandle(hNulIn);
-  CloseHandle(PI.hThread); // no necesitamos el handle del thread
+  CloseHandle(PI.hThread); // we do not need the thread handle
 
   // Read output with non-blocking loop (PeekNamedPipe + inactivity timeout).
   // Blocking ReadFile would hang if the process waits for interactive input
@@ -867,7 +867,7 @@ begin
     Chat.Params.Values['Max_tokens']   := '1024';
     Chat.SystemPrompt.Text := ASysPrompt;
     Result := Chat.AddMessageAndRun(AInput, 'user', []);
-    if Result = '' then Result := '(sin respuesta)';
+    if Result = '' then Result := '(no response)';
   finally Chat.Free; end;
 end;
 
@@ -1352,7 +1352,7 @@ begin
             JRoot := TJSONObject.ParseJSONValue(Resp.ContentAsString(TEncoding.UTF8));
             if Assigned(JRoot) then
             try
-              // result.content[0].text contiene un JSON string con el resultado real
+              // result.content[0].text contains a JSON string with the actual result
               if JRoot.TryGetValue<TJSONObject>('result', JResult) then
                 if JResult.TryGetValue<TJSONArray>('content', JContent) then
                   if JContent.Count > 0 then
@@ -1361,10 +1361,10 @@ begin
                     if (JItem is TJSONObject) and
                        TJSONObject(JItem).TryGetValue<string>('text', ItemText) then
                     begin
-                      // El text es en si mismo un JSON string con el resultado
+                      // The text is itself a JSON string with the result
                       JInner := TJSONObject.ParseJSONValue(ItemText);
                       if Assigned(JInner) then
-                      begin Result := ItemText; JInner.Free; end  // devolver el JSON raw
+                      begin Result := ItemText; JInner.Free; end  // return the raw JSON
                       else Result := ItemText;
                     end;
                   end;
@@ -1791,7 +1791,7 @@ begin
 
   FCurrentChatId := ChatId;
 
-  // Detectar mensaje de voz
+  // Detect voice message
   IsVoice     := False;
   VoiceFileId := '';
   Text        := '';
@@ -1837,7 +1837,7 @@ begin
 
   if Response = '' then Response := '(No response from the model)';
 
-  // Responder: voz si el input fue voz y voice mode activo, sino texto
+  // Respond: voice if the input was voice and voice mode is active, otherwise text
   if IsVoice and FVoiceEnabled then
   begin
     Mp3Path := SynthesizeVoice(Response);
@@ -1916,7 +1916,7 @@ begin
 
   FThread := TThread.CreateAnonymousThread(procedure
   begin
-    CheckVoiceCapabilities;  // consulta PPM registry al arrancar
+    CheckVoiceCapabilities;  // query PPM registry on startup
     PollLoop;
   end);
   FThread.FreeOnTerminate := False;
@@ -2049,8 +2049,8 @@ begin
   if Assigned(Client) then
   begin
     FInstalledClients.Add(Client);
-    FInstalledPkgs.Add(Pkg.Name);   // marcar como instalado con proceso activo
-    SavePPMState;                   // persistir para restaurar al reiniciar
+    FInstalledPkgs.Add(Pkg.Name);   // mark as installed with active process
+    SavePPMState;                   // persist to restore on restart
   end
   else
   begin
@@ -2100,7 +2100,7 @@ begin
   BotToken := ''; Args.TryGetValue<string>('bot_token',   BotToken);
   ParseMode:= ''; Args.TryGetValue<string>('parse_mode',  ParseMode);
 
-  if BotToken = '' then BotToken := FToken;   // usar token propio del bot
+  if BotToken = '' then BotToken := FToken;   // use the bot's own token
   if BotToken = '' then
   begin Result := '{"ok":false,"error":"bot_token required"}'; Exit; end;
 
@@ -2203,7 +2203,7 @@ function TDmTelegramBot.ToolPPMClear(const Args: TJSONObject): string;
 var Count: Integer;
 begin
   Count := FInstalledPkgs.Count;
-  // Liberar clientes MCP activos (detiene los procesos)
+  // Release active MCP clients (stops the processes)
   FInstalledClients.Clear;
   FInstalledPkgs.Clear;
   // Note: tools remain registered in TAiFunctions but their clients

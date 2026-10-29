@@ -8,14 +8,36 @@ Compiler directives ({$...}, (*$...*)) are treated as CODE and compared.
 """
 import sys
 
+def escape_end(text, i):
+    """End index of a `#NNN` / `#$HH` Pascal character escape starting at i, or None."""
+    n = len(text)
+    if i >= n or text[i] != "#":
+        return None
+    j = i + 1
+    if j < n and text[j] == "$":
+        start = j + 1
+        j = start
+        while j < n and text[j] in "0123456789abcdefABCDEF":
+            j += 1
+        return j if j > start else None
+    start = j
+    while j < n and text[j].isdigit():
+        j += 1
+    return j if j > start else None
 
-def strip_comments_strings(text):
-    out = []
-    i, n = 0, len(text)
-    while i < n:
-        c = text[i]
-        if c == "'":  # Pascal string literal with '' escapes
-            out.append(" '<S>' ")
+
+def string_expr_end(text, i):
+    """End index of one string expression: quoted parts and char escapes joined by `+`.
+
+    A `#NNN` between quoted parts is string DATA, not code, so `'jer' + #225 + 'rquico'`
+    and a literal carrying the same accented letter normalize to the same unit. The
+    expression never crosses a line break, so the trailing `+` of a multi-line
+    concatenation stays CODE and a merge of two lines still shows up as a line-count
+    difference.
+    """
+    n = len(text)
+    while True:
+        if i < n and text[i] == "'":
             i += 1
             while i < n:
                 if text[i] == "'":
@@ -25,6 +47,39 @@ def strip_comments_strings(text):
                     i += 1
                     break
                 i += 1
+        else:
+            end = escape_end(text, i)
+            if end is None:
+                return i
+            i = end
+        k = i
+        while k < n and text[k] in " \t":
+            k += 1
+        if k < n and text[k] == "+":
+            m = k + 1
+            while m < n and text[m] in " \t":
+                m += 1
+            if m < n and (text[m] == "'" or escape_end(text, m) is not None):
+                i = m
+                continue
+            return i
+        # Adjacent parts need no `+`: Pascal glues `'s'#237'ntesis'` into one value.
+        if k < n and (text[k] == "'" or escape_end(text, k) is not None):
+            i = k
+            continue
+        return i
+def strip_comments_strings(text):
+    out = []
+    i, n = 0, len(text)
+    while i < n:
+        c = text[i]
+        if c == "'":  # string expression: literals and #NNN escapes joined by +
+            out.append(" '<S>' ")
+            i = string_expr_end(text, i)
+            continue
+        if c == "#" and escape_end(text, i) is not None:  # expression starting at an escape
+            out.append(" '<S>' ")
+            i = string_expr_end(text, i)
             continue
         if c == "/" and i + 1 < n and text[i + 1] == "/":
             j = text.find("\n", i)

@@ -27,6 +27,15 @@
 
 **Follow-up passes (same day):** the rule "never touch a continuation line" was the bottleneck — the skeleton gate blanks string contents, so a continuation line IS translatable. Allowing it took the count from 2061 to 1432 flagged hits (**8398 → 1432, −82.9%**; commits `9454bc5` and the pass-7 commit). Residual classes: detector false positives on English, three files the gate refuses because the model merges a concatenation line, and a single-hit tail.
 
+### Round 8 — the three gate-refused files, and two instrument corrections
+
+- Added a line-numbered applier (`.temp/numbered.py emit|apply`): one entry per line NUMBER, so two lines cannot be merged, the original indentation is preserved, and a line whose CONTROL escapes (`#10`) changed is refused individually instead of costing the whole file.
+- Closed the three files the marker pipeline could not translate — `Demos/027-DocumentManager/uMainDocumentManager.pas`, its `Demos-V3_1` copy, `Demos-V3_1/058-FMXTelegramBot/uDmTelegramBot.pas`: 0 accent escapes, 0 real Spanish, `skeleton == HEAD` ✓.
+- Corrected `scripts/audit/check_edit_skeleton.py`: a `#NNN` character escape between quoted parts is string DATA, so `'jer' + #225 + 'rquico'` and a plain literal are one unit. Qualified by 15 discriminating controls (15/15, `.temp/gate_controls.py`) — identifier, keyword, number, line merge, line split, code-after-string, non-string operand, compiler directive and statement removal are all still refused.
+- Corrected `scripts/audit/scan_spanish_leaks.py`: it judged each fragment of a split string separately and reported `Escriba un texto de búsqueda.` as clean, while the user saw Spanish. It now joins the whole visible expression, renders the escapes, and treats an accent escape or a real accented character as a hit on its own. Qualified by 9 controls (9/9, `.temp/detector_controls.py`).
+- Consequence found by the corrected scanner: it walks `.pas` only — **16 `.fmx` and 8 `.dfm`** files still carry accented interface text. Tracked as the next unit.
+- A defect of my own applier, found and fixed: replacing a line dropped its `\r`, leaving mixed line endings (git showed symmetric 33/33 instead of the 33 lines lost it looked like).
+
 ## 2026-10-29 — Upstream Sync v3.3 → v3.9.0 + Full English Pass
 
 **Reason:** Owner decision: update the fork to upstream master (v3.9.0) and keep the whole repository in English.

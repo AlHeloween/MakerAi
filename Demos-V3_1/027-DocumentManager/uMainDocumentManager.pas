@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // Redes Sociales:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -97,7 +97,7 @@ begin
   FOllamaEmbeddings.Dimensions := 1024;
   FOllamaEmbeddings.Url := 'http://localhost:11434/';
 
-  // Grafo RAG en memoria
+  // RAG graph in memory
   FRagGraph := TAiRagGraph.Create(Self);
   FRagGraph.Embeddings := FOllamaEmbeddings;
 
@@ -106,7 +106,7 @@ begin
   FDocManager.Graph := FRagGraph;
   FDocManager.ChunkSize := 1000;
 
-  // Chat LLM local para generacion de JSON y extraccion de relaciones
+  // Local LLM chat for JSON generation and relationship extraction
   FOllamaChat := TAiOllamaChat.Create(Self);
   FOllamaChat.Model := 'gpt-oss:20b';
   FOllamaChat.Asynchronous := False;
@@ -124,7 +124,7 @@ end;
 procedure TFormDocManager.ChatError(Sender: TObject; const ErrorMsg: string;
   Exception: Exception; const AResponse: IHTTPResponse);
 begin
-  ShowMessage('Error del LLM: ' + ErrorMsg);
+  ShowMessage('LLM error: ' + ErrorMsg);
 end;
 
 procedure TFormDocManager.BtnAbrirClick(Sender: TObject);
@@ -143,36 +143,36 @@ var
 begin
   if MemoDocumento.Lines.Text.Trim.IsEmpty then
   begin
-    ShowMessage('Primero abra un documento de texto.');
+    ShowMessage('First open a text document.');
     Exit;
   end;
 
   Prompt :=
-    'Analiza el siguiente documento de texto y genera un JSON jer' + #225 + 'rquico con esta estructura exacta:' + sLineBreak +
+    'Analyze the following text document and generate a hierarchical JSON with this exact structure:' + sLineBreak +
     '{' + sLineBreak +
-    '  "name": "<nombre descriptivo del documento>",' + sLineBreak +
+    '  "name": "<descriptive name of the document>",' + sLineBreak +
     '  "label": "Document",' + sLineBreak +
-    '  "text": "<resumen breve del documento completo>",' + sLineBreak +
+    '  "text": "<brief summary of the complete document>",' + sLineBreak +
     '  "properties": {' + sLineBreak +
-    '    "tipo": "<tipo de documento detectado>",' + sLineBreak +
-    '    "idioma": "<idioma del documento>"' + sLineBreak +
+    '    "tipo": "<detected document type>",' + sLineBreak +
+    '    "idioma": "<document language>"' + sLineBreak +
     '  },' + sLineBreak +
     '  "parts": [' + sLineBreak +
     '    {' + sLineBreak +
-    '      "name": "<nombre de la secci' + #243 + 'n>",' + sLineBreak +
+    '      "name": "<section name>",' + sLineBreak +
     '      "label": "Seccion",' + sLineBreak +
-    '      "text": "<texto de esta secci' + #243 + 'n>",' + sLineBreak +
+    '      "text": "<text of this section>",' + sLineBreak +
     '      "parts": []' + sLineBreak +
     '    }' + sLineBreak +
     '  ]' + sLineBreak +
     '}' + sLineBreak +
     sLineBreak +
     'Reglas:' + sLineBreak +
-    '- Identifica las secciones naturales del texto (t' + #237 + 'tulos, temas, p' + #225 + 'rrafos tem' + #225 + 'ticos)' + sLineBreak +
-    '- Cada "part" debe tener "name", "label" y "text" obligatoriamente' + sLineBreak +
-    '- Si una secci' + #243 + 'n tiene subsecciones, usa "parts" recursivamente' + sLineBreak +
-    '- El campo "text" de cada part debe contener el texto original, no un resumen' + sLineBreak +
-    '- Responde SOLO con el JSON, sin explicaciones adicionales ni markdown' + sLineBreak +
+    '- Identify the natural sections of the text (titles, topics, thematic paragraphs)' + sLineBreak +
+    '- Each "part" must have "name", "label" and "text" required' + sLineBreak +
+    '- If a section has subsections, use "parts" recursively' + sLineBreak +
+    '- The "text" field of each part must contain the original text, not a summary' + sLineBreak +
+    '- Respond ONLY with the JSON, without additional explanations or markdown' + sLineBreak +
     sLineBreak +
     'DOCUMENTO:' + sLineBreak +
     MemoDocumento.Lines.Text;
@@ -195,7 +195,7 @@ var
 begin
   if MemoJson.Lines.Text.Trim.IsEmpty then
   begin
-    ShowMessage('Primero genere el JSON con IA.');
+    ShowMessage('First generate the JSON with AI.');
     Exit;
   end;
 
@@ -210,17 +210,17 @@ begin
       MemoResultados.Lines.Add('Documento agregado: ' + DocNode.Name);
       MemoResultados.Lines.Add('Chunks creados: ' + IntToStr(Length(Parts)));
       MemoResultados.Lines.Add('');
-      MemoResultados.Lines.Add('--- Partes del documento ---');
+      MemoResultados.Lines.Add('--- Document parts ---');
 
       for I := 0 to High(Parts) do
       begin
-        MemoResultados.Lines.Add(Format('[%d] %s (%s) - Profundidad: %d - Path: %s',
+        MemoResultados.Lines.Add(Format('[%d] %s (%s) - Depth: %d - Path: %s',
           [Parts[I].Order, Parts[I].Name, Parts[I].PartLabel,
            Parts[I].Depth, Parts[I].Path]));
       end;
     except
       on E: Exception do
-        ShowMessage('Error al agregar documento: ' + E.Message);
+        ShowMessage('Error adding document: ' + E.Message);
     end;
   finally
     Cursor := crDefault;
@@ -233,7 +233,7 @@ var
 begin
   if EditBuscar.Text.Trim.IsEmpty then
   begin
-    ShowMessage('Escriba un texto de b' + #250 + 'squeda.');
+    ShowMessage('Enter a search text.');
     Exit;
   end;
 
@@ -249,7 +249,7 @@ begin
         MemoResultados.Lines.Text := Res;
     except
       on E: Exception do
-        ShowMessage('Error en b' + #250 + 'squeda: ' + E.Message);
+        ShowMessage('Search error: ' + E.Message);
     end;
   finally
     Cursor := crDefault;
@@ -267,7 +267,7 @@ begin
   Docs := FDocManager.GetAllDocuments;
   if Length(Docs) = 0 then
   begin
-    ShowMessage('No hay documentos en el grafo. Agregue uno primero.');
+    ShowMessage('There are no documents in the graph. Add one first.');
     Exit;
   end;
 
@@ -284,7 +284,7 @@ begin
       end;
 
       MemoResultados.Lines.Clear;
-      MemoResultados.Lines.Add(Format('Fase 1 completada - Entidades extra' + #237 + 'das: %d', [TotalEnts]));
+      MemoResultados.Lines.Add(Format('Phase 1 complete - Entities extracted: %d', [TotalEnts]));
       MemoResultados.Lines.Add('');
 
       // Listar entidades encontradas
@@ -315,7 +315,7 @@ begin
   Docs := FDocManager.GetAllDocuments;
   if Length(Docs) = 0 then
   begin
-    ShowMessage('No hay documentos en el grafo. Agregue uno primero.');
+    ShowMessage('There are no documents in the graph. Add one first.');
     Exit;
   end;
 
@@ -332,14 +332,14 @@ begin
       end;
 
       MemoResultados.Lines.Clear;
-      MemoResultados.Lines.Add(Format('Fase 2 completada - Relaciones extra' + #237 + 'das: %d', [TotalRels]));
+      MemoResultados.Lines.Add(Format('Phase 2 complete - Relationships extracted: %d', [TotalRels]));
       MemoResultados.Lines.Add('');
 
-      // Mostrar contexto completo del primer documento
+      // Show complete context of the first document
       if Length(Docs) > 0 then
       begin
         Context := FDocManager.GetDocumentContext(Docs[0]);
-        MemoResultados.Lines.Add('--- Contexto del documento ---');
+        MemoResultados.Lines.Add('--- Document context ---');
         MemoResultados.Lines.Add(Context.GetContextText);
       end;
     except
@@ -358,23 +358,23 @@ var
   Edge: TAiRagGraphEdge;
   I: Integer;
 begin
-  // Solicitar datos al usuario
+  // Request data from user
   FromName := '';
-  if not InputQuery('Agregar Edge', 'Nombre del nodo origen (From):', FromName) then
+  if not InputQuery('Add Edge', 'Source node name (From):', FromName) then
     Exit;
   if FromName.Trim.IsEmpty then Exit;
 
   ToName := '';
-  if not InputQuery('Agregar Edge', 'Nombre del nodo destino (To):', ToName) then
+  if not InputQuery('Add Edge', 'Destination node name (To):', ToName) then
     Exit;
   if ToName.Trim.IsEmpty then Exit;
 
   EdgeLabel := '';
-  if not InputQuery('Agregar Edge', 'Tipo de relaci' + #243 + 'n (label del edge):', EdgeLabel) then
+  if not InputQuery('Add Edge', 'Relationship type (edge label):', EdgeLabel) then
     Exit;
   if EdgeLabel.Trim.IsEmpty then Exit;
 
-  // Buscar nodos por nombre (case-insensitive en el grafo)
+  // Search nodes by name (case-insensitive in the graph)
   FromNode := nil;
   ToNode := nil;
   for I := 0 to FRagGraph.Nodes.Items.Count - 1 do
@@ -390,23 +390,23 @@ begin
 
   if FromNode = nil then
   begin
-    ShowMessage('No se encontr' + #243 + ' el nodo origen: ' + FromName);
+    ShowMessage('Origin node not found: ' + FromName);
     Exit;
   end;
 
   if ToNode = nil then
   begin
-    ShowMessage('No se encontr' + #243 + ' el nodo destino: ' + ToName);
+    ShowMessage('Destination node not found: ' + ToName);
     Exit;
   end;
 
   try
     Edge := FDocManager.AddEdge(FromNode, ToNode, EdgeLabel);
-    MemoResultados.Lines.Add(Format('Edge creado: %s -[%s]-> %s',
+    MemoResultados.Lines.Add(Format('Edge created: %s -[%s]-> %s',
       [FromNode.Name, Edge.EdgeLabel, ToNode.Name]));
   except
     on E: Exception do
-      ShowMessage('Error al crear edge: ' + E.Message);
+      ShowMessage('Error creating edge: ' + E.Message);
   end;
 end;
 
