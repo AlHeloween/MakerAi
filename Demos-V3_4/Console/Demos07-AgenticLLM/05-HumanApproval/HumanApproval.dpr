@@ -231,7 +231,7 @@ begin
       begin
         // Rejected: relaunch with feedback
         if Trim(UserInput) = '' then
-          UserInput := 'Por favor mejora la calidad del texto.';
+          UserInput := 'Please improve the text quality.';
 
         Writeln('Regenerating with your feedback...');
         FManager.Abort;

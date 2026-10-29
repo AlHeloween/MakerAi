@@ -47,7 +47,7 @@ uses
 
 const
   // ==========================================================================
-  // CONFIGURACION
+  // CONFIGURATION
   // ==========================================================================
   TARGET_LANG_REMOTE = 'Spanish';
   TARGET_LANG_LOCAL = 'English';
@@ -98,7 +98,7 @@ type
   TSpeechSegmenter = class
   private
     FBuffer: TMemoryStream; // segmento en curso
-    FPreBuffer: TMemoryStream; // ultimos SEG_PREBUF_MS de silencio
+    FPreBuffer: TMemoryStream; // last SEG_PREBUF_MS of silence
     FInSpeech: Boolean;
     FSilenceMs: Integer;
     FBytesPerMs: Integer;
@@ -154,7 +154,7 @@ begin
   if Length(aChunk) = 0 then
     Exit;
 
-  // Nivel medio del chunk
+  // Average level of the chunk
   NumSamples := Length(aChunk) div 2;
   Sum := 0;
   for I := 0 to NumSamples - 1 do
@@ -221,7 +221,7 @@ type
     FPlayer: TAiAudioPlayer;
     FSegmenter: TSpeechSegmenter;
     FLock: TCriticalSection; // serializa diarizar/traducir/TTS
-    FSpeakerNames: TArray<string>; // 'Hablante 1'.. en orden de registro
+    FSpeakerNames: TArray<string>; // 'Speaker 1'.. in registration order
     procedure CaptureData(Sender: TObject; const aBuffer: TBytes; aSampleRate, aChannels: Integer);
     procedure CaptureError(Sender: TObject; const ErrorMessage: string);
     procedure PlayerError(Sender: TObject; const ErrorMessage: string);
@@ -450,7 +450,7 @@ procedure TDiarizedRemoteSide.ProcessSegment(const aPcm: TBytes);
 var
   Data: TBytes;
 begin
-  Data := aPcm; // copia de referencia para la captura del closure
+  Data := aPcm; // reference copy for closure capture
   TTask.Run(
     procedure
     begin
@@ -468,7 +468,7 @@ var
   PcmStream, WavStream, TtsStream: TMemoryStream;
   Media: TAiMediaFile;
   Res: TTranscriptionResult;
-  Batch: TDictionary<string, string>; // speaker crudo -> nombre a mostrar
+  Batch: TDictionary<string, string>; // raw speaker -> display name
   I, Idx: Integer;
   Raw, Display, GroupSpeaker, GroupText, Translated: string;
   TtsPcm: TBytes;
@@ -572,11 +572,11 @@ begin
             Continue;
           Idx := SpeakerIndex(Raw);
           if Idx >= 0 then
-            Batch.Add(Raw, FSpeakerNames[Idx]) // ya registrado: nombre estable
+            Batch.Add(Raw, FSpeakerNames[Idx]) // already registered: stable name
           else if TryEnrollSpeaker(aPcm, Raw, Res.Segments, Display) then
             Batch.Add(Raw, Display)
           else
-            Batch.Add(Raw, 'Hablante ' + Raw); // sin registrar (muestra corta o cupo lleno)
+            Batch.Add(Raw, 'Speaker ' + Raw); // not registered (short sample or capacity full)
         end;
 
         // 3) Group consecutive segments of the same speaker and emit
@@ -610,8 +610,8 @@ end;
 
 type
   // --------------------------------------------------------------------------
-  // Canal [YO]: microfono -> Realtime STT -> traduccion -> TTS al cable
-  // (identico al demo 063)
+  // Channel [ME]: microphone -> Realtime STT -> translation -> TTS to cable
+  // (identical to demo 063)
   // --------------------------------------------------------------------------
   TLocalSide = class
   private

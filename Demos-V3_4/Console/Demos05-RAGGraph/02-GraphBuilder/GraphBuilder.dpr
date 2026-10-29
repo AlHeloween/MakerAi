@@ -60,7 +60,7 @@ begin
   NLP := RAG.AddNode('d004', 'DISCIPLINA', 'Procesamiento de Lenguaje Natural');
   NLP.Text := 'NLP: branch of AI for understanding and generating text in human language.';
 
-  CV := RAG.AddNode('d005', 'DISCIPLINA', 'Vision por Computadora');
+  CV := RAG.AddNode('d005', 'DISCIPLINE', 'Computer Vision');
   CV.Text := 'Computer Vision: AI for interpreting and analyzing images and video.';
 
   // --- Techniques ---

@@ -127,7 +127,7 @@ begin
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'ModelCaps',    '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'SessionCaps',  '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'SystemPrompt',
-    'Eres un asistente tecnico. Responde siempre en espanol y de forma concisa.');
+    'You are a technical assistant. Always respond in Spanish and concisely.');
 
   // Test 2: model with tools (pure text)
   Model := 'qwen3.5:0.8b';
@@ -135,7 +135,7 @@ begin
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'ModelCaps',    '[]');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'SessionCaps',  '[]');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'SystemPrompt',
-    'Eres un asistente tecnico. Usa las herramientas disponibles cuando sea necesario.');
+    'You are a technical assistant. Use the available tools when necessary.');
 
   // Tests 3 and 4 step-1: pure vision model (gemma3:4b)
   // Note: qwen3-vl fails to process images in Ollama 0.20.2 (runner bug)
@@ -144,7 +144,7 @@ begin
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'ModelCaps',    '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'SessionCaps',  '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'SystemPrompt',
-    'Eres un asistente con vision. Describe imagenes de forma concisa.');
+    'You are an assistant with vision. Describe images concisely.');
 end;
 
 // =============================================================================
@@ -181,19 +181,19 @@ begin
   FuncItem := Funcs.Functions.AddFunction('GuardarArchivo', True,
     Helper.OnGuardarArchivo);
   FuncItem.Description.Text :=
-    'Guarda texto en un archivo en el disco local del usuario.';
+    'Save text to a file on the local disk of the user.';
 
   Param := FuncItem.Parameters.Add;
   Param.DisplayName      := 'NombreArchivo';
   Param.ParamType        := ptString;
   Param.Required         := True;
-  Param.Description.Text := 'Nombre o ruta del archivo a crear';
+  Param.Description.Text := 'Name or path of the file to create';
 
   Param := FuncItem.Parameters.Add;
-  Param.DisplayName      := 'Contenido';
+  Param.DisplayName      := 'Content';
   Param.ParamType        := ptString;
   Param.Required         := True;
-  Param.Description.Text := 'Texto completo a escribir en el archivo';
+  Param.Description.Text := 'Full text to write to the file';
 end;
 
 // =============================================================================
@@ -545,7 +545,7 @@ begin
       MediaFiles.Free;
     end;
   finally
-    ErrorCapturado := Helper.LastError;  // guardar antes de liberar
+    ErrorCapturado := Helper.LastError;  // save before freeing
     Conn.Free;
     Funcs.Free;
     Helper.Free;

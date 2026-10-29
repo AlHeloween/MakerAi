@@ -42,7 +42,7 @@ begin
       WriteLn('==================================================');
       WriteLn('Press Enter to exit...');
 
-      ReadLn; // Esperar a que el usuario presione Enter para cerrar
+      ReadLn; // Wait for the user to press Enter to close
 
     except
       on E: Exception do

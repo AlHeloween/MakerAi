@@ -155,7 +155,7 @@ var
   ImageTool : TMockImageTool;
   SearchTool: TMockWebSearchTool;
 begin
-  Separador('Demo 1 -- Routing basico con herramientas simuladas');
+  Separador('Demo 1 -- Basic routing with simulated tools');
   WriteLn('  Driver: Ollama / ', MODEL);
   WriteLn('  Tools : ImageTool [IMAGEGEN] + WebSearchTool [WEBSEARCH]');
   WriteLn('  The mock tools show the prompt rewritten by the dispatcher');
@@ -180,16 +180,16 @@ begin
     // [CHAT] -- pregunta directa de conversacion
     Probar(Conn, 'Expected CHAT    ', 'What is the capital of France?');
 
-    // [IMAGEGEN] -- solicitud clara de generacion de imagen
+    // [IMAGEGEN] -- clear image generation request
     Probar(Conn, 'Expected IMAGEGEN', 'Generate an image of a cat with a cowboy hat');
 
-    // [WEBSEARCH] -- solicitud de informacion reciente o busqueda web
+    // [WEBSEARCH] -- recent information request or web search
     Probar(Conn, 'Expected WEBSEARCH', 'Search for recent news about artificial intelligence');
 
     // [CHAT] -- calculo matematico (no necesita herramientas)
     Probar(Conn, 'Expected CHAT    ', 'What is 15 multiplied by 7?');
 
-    // Ambiguo: el modelo decide entre [IMAGEGEN] y [CHAT]
+    // Ambiguous: the model decides between [IMAGEGEN] and [CHAT]
     Probar(Conn, 'AMBIGUOUS        ', 'Show me what a rainbow looks like');
 
     WriteLn('');
@@ -323,7 +323,7 @@ begin
     Conn.Params.Values['Asynchronous'] := 'False';
     Conn.Params.Values['Max_Tokens']   := '128';
     Conn.ChatMode          := cmSmartDispatch;
-    Conn.SystemPrompt.Text := 'Eres un asistente visual. Genera imagenes cuando se soliciten.';
+    Conn.SystemPrompt.Text := 'You are a visual assistant. Generate images when requested.';
 
     WriteLn('  Request: "Generate an image of a robot reading a Delphi book"');
     WriteLn('');

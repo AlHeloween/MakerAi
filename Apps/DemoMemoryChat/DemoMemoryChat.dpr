@@ -7,22 +7,22 @@ program DemoMemoryChat;
 // =============================================================================
 // REPL interactivo que demuestra TAiMemory + TAiChatConnection integrados.
 //
-// Cada prompt del usuario:
-//   1. Construye un bloque de contexto desde la BD de memoria
-//   2. Lo inyecta automáticamente en el prompt via PersistentMemory
-//   3. Llama al LLM y muestra la respuesta en streaming
-//   4. Si AutoStoreMemories=True, guarda el prompt original en memoria
+// Each user prompt:
+//   1. Builds a context block from the memory DB
+//   2. Injects it automatically into the prompt via PersistentMemory
+//   3. Calls the LLM and shows the response in streaming
+//   4. If AutoStoreMemories=True, stores the original prompt in memory
 //
 // Comandos especiales:
 //   /quit              — salir
-//   /new               — nueva sesión de chat (conserva la memoria)
-//   /stats             — estadísticas de la BD de memoria
+//   /new               — new chat session (keeps memory)
+//   /stats             — memory DB statistics
 //   /memories [query]  — últimas memorias o búsqueda
-//   /store <texto>     — guardar memoria manualmente
-//   /importance N      — importancia para el próximo /store (1-10, default 5)
-//   /debug             — mostrar el contexto que se inyectaría en el siguiente prompt
+//   /store <text>     — store memory manually
+//   /importance N      — importance for the next /store (1-10, default 5)
+//   /debug             — show the context that would be injected into the next prompt
 //
-// Configurar proveedor y API key con variables de entorno o al inicio del REPL.
+// Configure provider and API key with environment variables or at REPL startup.
 // =============================================================================
 
 uses

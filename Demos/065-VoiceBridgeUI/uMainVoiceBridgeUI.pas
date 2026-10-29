@@ -314,7 +314,7 @@ begin
   SetLength(FLoopbackIds, 0);
   for D in TAiAudioCapture.GetAudioDevices(asLoopback) do
   begin
-    CboLoopback.Items.Add(D.DeviceName + IfThen(D.IsDefault, ' (predeterminado)', ''));
+    CboLoopback.Items.Add(D.DeviceName + IfThen(D.IsDefault, ' (default)', ''));
     FLoopbackIds := FLoopbackIds + [D.EndpointId];
     if D.IsDefault then CboLoopback.ItemIndex := CboLoopback.Items.Count - 1;
   end;
@@ -323,7 +323,7 @@ begin
   SetLength(FMicIds, 0);
   for D in TAiAudioCapture.GetAudioDevices(asMicrophone) do
   begin
-    CboMic.Items.Add(D.DeviceName + IfThen(D.IsDefault, ' (predeterminado)', ''));
+    CboMic.Items.Add(D.DeviceName + IfThen(D.IsDefault, ' (default)', ''));
     FMicIds := FMicIds + [D.EndpointId];
     if D.IsDefault then CboMic.ItemIndex := CboMic.Items.Count - 1;
   end;
@@ -332,7 +332,7 @@ begin
   SetLength(FTTSLocalIds, 0);
   for D in TAiAudioPlayer.GetPlaybackDevices do
   begin
-    CboTTSLocal.Items.Add(D.DeviceName + IfThen(D.IsDefault, ' (predeterminado)', ''));
+    CboTTSLocal.Items.Add(D.DeviceName + IfThen(D.IsDefault, ' (default)', ''));
     FTTSLocalIds := FTTSLocalIds + [D.EndpointId];
     if D.IsDefault then CboTTSLocal.ItemIndex := CboTTSLocal.Items.Count - 1;
   end;
@@ -341,7 +341,7 @@ begin
   SetLength(FTTSReunIds, 0);
   for D in TAiAudioPlayer.GetPlaybackDevices do
   begin
-    CboTTSReun.Items.Add(D.DeviceName + IfThen(D.IsDefault, ' (predeterminado)', ''));
+    CboTTSReun.Items.Add(D.DeviceName + IfThen(D.IsDefault, ' (default)', ''));
     FTTSReunIds := FTTSReunIds + [D.EndpointId];
     if Pos(MEETING_HINT, LowerCase(D.DeviceName)) > 0 then
       CboTTSReun.ItemIndex := CboTTSReun.Items.Count - 1

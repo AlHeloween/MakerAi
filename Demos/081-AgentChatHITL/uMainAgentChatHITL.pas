@@ -42,8 +42,8 @@ type
     procedure ChatInput1Cancel(Sender: TObject);
   private
     FAgent: TAIAgentManager;
-    FPendingThreadID: string; // <> '' cuando el grafo espera la respuesta del usuario
-    FPendingNodeName: string; // nodo que se debe reanudar (aqui siempre 'Aprobar')
+    FPendingThreadID: string; // <> '' when the graph waits for the user response
+    FPendingNodeName: string; // node to be resumed (here always 'Approve')
     procedure BuildGraph;
     procedure NodePreparar(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
     procedure NodeEjecutar(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
@@ -81,7 +81,7 @@ begin
     'I will prepare a plan and ask for approval right here, in the chat, before executing it.');
   SetEstado('Ready');
 
-  // Human-in-the-loop durable: hilos suspendidos de una sesion anterior
+  // Human-in-the-loop durable: threads suspended from a previous session
   LThreads := FAgent.GetActiveThreads;
   if Length(LThreads) > 0 then
   begin
@@ -187,7 +187,7 @@ begin
     begin
       case Status of
         esSuspended:
-          ; // la UI ya se actualizo en AgentSuspended
+          ; // the UI was already updated in AgentSuspended
         esCompleted:
           begin
             ChatInput1.Busy := False;

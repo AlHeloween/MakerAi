@@ -148,7 +148,7 @@ begin
     Writeln;
     var Veredicto := Manager.Run(ATema);
 
-    // Mostrar el debate completo
+    // Show the complete debate
     Writeln;
     Writeln('--- Moderator ---');
     Writeln(Manager.Blackboard.GetString('Moderador.output'));

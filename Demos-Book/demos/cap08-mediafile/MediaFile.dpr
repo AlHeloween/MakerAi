@@ -35,7 +35,7 @@ uses
   uMakerAi.Core,
   uMakerAi.Chat,
   uMakerAi.Chat.AiConnection,
-  uMakerAi.Chat.Groq;   // Para el Demo 4
+  uMakerAi.Chat.Groq;   // For Demo 4
 
 const
   DRIVER  = 'Groq';
@@ -70,11 +70,11 @@ begin
 end;
 
 // =============================================================================
-//  Demo 1 — Las 4 formas de cargar un TAiMediaFile
+//  Demo 1 — The 4 ways to load a TAiMediaFile
 //
 //  All forms produce the same result: a TAiMediaFile with
 //  FileName, FileCategory, MimeType y Bytes correctamente rellenos.
-//  El tipo se detecta automáticamente por la extensión del nombre de archivo.
+//  The type is detected automatically by the file name extension.
 // =============================================================================
 procedure Demo1_FormasDeCarga;
 var
@@ -82,7 +82,7 @@ var
   Stream : TMemoryStream;
   Base64 : string;
 begin
-  Separador('Demo 1 — Las 4 formas de cargar un TAiMediaFile');
+  Separador('Demo 1 — The 4 ways to load a TAiMediaFile');
 
   // ── Form 1: LoadFromFile ─────────────────────────────────────────────────
   WriteLn('  Form 1: LoadFromFile (the most common)');
@@ -92,7 +92,7 @@ begin
     try
       MF.LoadFromFile(IMG_PATH);
       MostrarMF('LoadFromFile', MF);
-      Base64 := MF.Base64;   // guardar para Forma 3
+      Base64 := MF.Base64;   // save for Form 3
     finally
       MF.Free;
     end;
@@ -144,7 +144,7 @@ begin
   WriteLn('    MF.LoadFromUrl(''https://example.com/contract.pdf'');');
   WriteLn('    // FileName = "contract.pdf", FileCategory = Tfc_Pdf');
   WriteLn('    // Content not downloaded yet — lazy download on first access');
-  WriteLn('    Respuesta := AiConn.AddMessageAndRun(''Resume...'', ''user'', [MF]);');
+  WriteLn('    Respuesta := AiConn.AddMessageAndRun(''Summarize...'', ''user'', [MF]);');
   WriteLn('    // MakerAI accesses Content when building the request → download occurs here');
 
   WriteLn('');
@@ -244,7 +244,7 @@ var
   JStr     : string;
   JCargado : TJSONObject;
 begin
-  Separador('Demo 3 — Serialización (ToJsonObject / LoadFromJsonObject)');
+  Separador('Demo 3 — Serialization (ToJsonObject / LoadFromJsonObject)');
 
   if not TFile.Exists(IMG_PATH) then
   begin
@@ -252,14 +252,14 @@ begin
     Exit;
   end;
 
-  // Simular un archivo que ya fue subido a un provider (IdFile asignado)
+  // Simulate a file already uploaded to a provider (IdFile assigned)
   MF := TAiMediaFile.Create;
   try
     MF.LoadFromFile(IMG_PATH);
 
-    // Simular que el provider asignó un IdFile (lo haría automáticamente en uso real)
+    // Simulate that the provider assigned an IdFile (it would do so automatically in real use)
     MF.IdFile := 'file-abc12345xyz';   // OpenAI
-    MF.Detail := 'high';               // Calidad análisis OpenAI
+    MF.Detail := 'high';               // OpenAI analysis quality
 
     // Exportar estado completo a JSON
     JObj := MF.ToJsonObject;
@@ -269,7 +269,7 @@ begin
       WriteLn('  State saved in: ', JSON_ESTADO);
       WriteLn('  Fields in JSON: FileName, MimeType, Base64, IdFile, Detail...');
 
-      // Mostrar fragmento del JSON (primeros 300 chars)
+      // Show JSON fragment (first 300 chars)
       var Fragmento := Copy(JStr, 1, 300);
       WriteLn('');
       WriteLn('  JSON fragment:');
@@ -283,7 +283,7 @@ begin
 
   WriteLn('');
 
-  // Restaurar desde JSON en una "nueva sesión"
+  // Restore from JSON in a "new session"
   WriteLn('  Restoring from JSON (simulates new session)...');
   MF2 := TAiMediaFile.Create;
   try
@@ -324,7 +324,7 @@ end;
 procedure Demo4_PromptAdaptativo;
 const
   TXT_CONTENIDO =
-    'Configuracion de la aplicacion MiApp v2.5.3' + #13#10 +
+    'Configuration of the application MiApp v2.5.3' + #13#10 +
     'modo_oscuro=true' + #13#10 +
     'idioma=es' + #13#10 +
     'max_usuarios=100' + #13#10 +
@@ -362,9 +362,9 @@ var
   Prompt: string;
   R     : string;
 begin
-  Separador('Demo 4 — Prompt adaptativo por tipo + envio a Groq');
+  Separador('Demo 4 — Adaptive prompt by type + sending to Groq');
 
-  // Crear archivo .txt temporal con contenido conocido
+  // Create temporary .txt file with known content
   TFile.WriteAllText(DEMO4_TXT, TXT_CONTENIDO, TEncoding.UTF8);
 
   MF := TAiMediaFile.Create;
@@ -391,7 +391,7 @@ begin
       Conn.Params.Values['Max_Tokens']   := '300';
 
       Conn.SystemPrompt.Text :=
-        'Eres un asistente que analiza archivos. Responde en español, conciso.';
+        'You are an assistant that analyzes files. Respond in Spanish, concisely.';
 
       // For text-only models (Groq, DeepSeek, etc.) file content
     // goes inline in the prompt — not as a binary attachment.

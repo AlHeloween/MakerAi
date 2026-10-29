@@ -52,7 +52,7 @@ type
     // [Database]
     DbDriver: string;   // mssql | postgres
     DbServer: string;
-    DbPort: Integer;    // 0 = el del driver (postgres: 5432)
+    DbPort: Integer;    // 0 = that of the driver (postgres: 5432)
     VendorLib: string;  // postgres: ruta de libpq.dll ('' = autodeteccion)
     DbDatabase: string;
     DbUserName: string;
@@ -182,12 +182,12 @@ var
   GSchemaReady: Boolean;
 
 // ---------------------------------------------------------------------------
-// Configuracion (.ini)
+// Configuration (.ini)
 // ---------------------------------------------------------------------------
 
 function ReadFloatInv(Ini: TCustomIniFile; const ASection, AKey: string; ADefault: Double): Double;
 begin
-  // ReadFloat of TIniFile depends on the locale (decimal comma in Windows es-*);
+  // ReadFloat of TIniFile depends on the locale (decimal comma in Windows es-*)
   // read as text and parse with invariant decimal point.
   Result := StrToFloatDef(Ini.ReadString(ASection, AKey, ''), ADefault, TFormatSettings.Invariant);
 end;
@@ -217,7 +217,7 @@ begin
     if FileExists(Result) then
       Exit;
   end;
-  Result := ''; // FireDAC la busca en el PATH
+  Result := ''; // FireDAC looks for it in the PATH
 end;
 
 function LoadServerConfig(const AFileName: string): TRagServerConfig;
@@ -312,7 +312,7 @@ begin
   else if AAuthHeader.StartsWith('Bearer ', True) then
     Cred := AAuthHeader.Substring(7).Trim
   else
-    Cred := AAuthHeader.Trim; // valor crudo de X-API-Key
+    Cred := AAuthHeader.Trim; // raw value of X-API-Key
 
   if Cred = RAG_LOGIN + ':' + RAG_PASSWORD then
   begin
@@ -353,7 +353,7 @@ begin
       GPGLink.VendorLib := ACfg.VendorLib
     else
       GPGLink.VendorLib := FindLibPq;
-    GConn.Params.DriverID := 'PG'; // primero: asignarlo reinicia los demas parametros
+    GConn.Params.DriverID := 'PG'; // first: assigning it resets the other parameters
     GConn.Params.Values['Server'] := ACfg.DbServer;
     GConn.Params.Database := ACfg.DbDatabase;
     if ACfg.DbPort > 0 then
@@ -491,7 +491,7 @@ begin
     end;
   end;
   if MemRemoved then
-    GRag.BuildIndex; // los indices en memoria (HNSW/BM25) guardan referencias a los nodos
+    GRag.BuildIndex; // the in-memory indices (HNSW/BM25) keep references to the nodes
 end;
 
 // ---------------------------------------------------------------------------
@@ -516,7 +516,7 @@ begin
   inherited;
   FName := 'rag_vector';
   FDescription :=
-    'Sistema RAG (Retrieval-Augmented Generation) sobre base de datos ' +
+    'RAG system (Retrieval-Augmented Generation) over database ' +
     '(SQL Server 2025 or PostgreSQL + pgvector): OpenAI embeddings + hybrid BM25. ' +
     'Operations: ' +
     'index_text (indexes a text; params: textContent, docName, chunkSize, overlapPct), ' +

@@ -43,7 +43,7 @@ const
   PDF_FALLBACK_URL = 'https://www.w3.org/WAI/WCAG21/wcag21.pdf';
 
 // =============================================================================
-//  Envía un PDF con una pregunta
+//  Sends a PDF with a question
 // =============================================================================
 function AskAboutPDF(Conn: TAiChatConnection;
                      const PdfPath, Question: String): String;

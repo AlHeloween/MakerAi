@@ -110,19 +110,19 @@ begin
   Writeln('Creating relationships...');
 
   // --- Relationships person → company ---
-  RAG.AddEdge(Jobs,   Apple,     'r001', 'COFUNDO', 'cofundó', 0.9);
-  RAG.AddEdge(Gates,  Microsoft, 'r002', 'COFUNDO', 'cofundó', 0.9);
-  RAG.AddEdge(Page,   Google,    'r003', 'COFUNDO', 'cofundó', 0.9);
+  RAG.AddEdge(Jobs,   Apple,     'r001', 'COFOUNDED', 'co-founded', 0.9);
+  RAG.AddEdge(Gates,  Microsoft, 'r002', 'COFOUNDED', 'co-founded', 0.9);
+  RAG.AddEdge(Page,   Google,    'r003', 'COFOUNDED', 'co-founded', 0.9);
   RAG.AddEdge(Altman, OpenAI,    'r004', 'DIRIGE',  'dirige',  0.8);
 
   // --- Relationships company → product ---
-  RAG.AddEdge(Apple,     IPhone,  'r005', 'CREO', 'creó', 0.9);
-  RAG.AddEdge(Microsoft, Windows, 'r006', 'CREO', 'creó', 0.9);
-  RAG.AddEdge(Google,    Search,  'r007', 'CREO', 'creó', 0.9);
-  RAG.AddEdge(OpenAI,    GPT,     'r008', 'CREO', 'creó', 0.9);
+  RAG.AddEdge(Apple,     IPhone,  'r005', 'CREATED', 'created', 0.9);
+  RAG.AddEdge(Microsoft, Windows, 'r006', 'CREATED', 'created', 0.9);
+  RAG.AddEdge(Google,    Search,  'r007', 'CREATED', 'created', 0.9);
+  RAG.AddEdge(OpenAI,    GPT,     'r008', 'CREATED', 'created', 0.9);
 
   // --- Relationships between companies ---
-  RAG.AddEdge(Microsoft, OpenAI, 'r009', 'INVIRTIO_EN', 'invirtió en', 0.7);
+  RAG.AddEdge(Microsoft, OpenAI, 'r009', 'INVESTED_IN', 'invested in', 0.7);
 
   Writeln(Format('Graph created: %d nodes, %d edges.',
     [RAG.NodeCount, RAG.EdgeCount]));

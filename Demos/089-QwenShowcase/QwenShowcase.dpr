@@ -460,7 +460,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// traduccion con qwen-mt
+// translation with qwen-mt
 // -----------------------------------------------------------------------------
 
 procedure SeccionTraduccion;
@@ -555,7 +555,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// realtime: LLM -> voz, y traduccion simultanea por el conector universal
+// realtime: LLM -> voice, and simultaneous translation by the universal connector
 // -----------------------------------------------------------------------------
 
 procedure SeccionRealtime;
@@ -656,7 +656,7 @@ begin
     Writeln('   heard: ', Demo.Original);
     Writeln('   translated: ', Demo.Traduccion);
     GuardarWav(TPath.Combine(Salida, 'traduccion_en.wav'), Demo.Audio, 24000);
-    Writeln(Format('   translated voice: %.1f s in salida\traduccion_en.wav', [Demo.Audio.Size / 48000]));
+    Writeln(Format('translated voice: %.1f s in salida\traduccion_en.wav', [Demo.Audio.Size / 48000]));
   finally
     RT.Free;
   end;

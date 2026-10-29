@@ -49,7 +49,7 @@ type
   private
     FManager   : TAIAgentManager;
     FDrafter   : TLLMNode;
-    FReviewer  : TAIAgentsNode;  // nodo plain que llama Suspend
+    FReviewer  : TAIAgentsNode;  // plain node that calls Suspend
     FFinalizer : TLLMNode;
     FLink1     : TAIAgentsLink;
     FLink2     : TAIAgentsLink;
@@ -96,10 +96,10 @@ procedure TDemoApp.ReviewerExec(Node, BeforeNode: TAIAgentsNode; Link: TAIAgents
 var
   ReviewResult: String;
 begin
-  // Node.Suspend() solo marca un flag y retorna; NO bloquea.
-  // DoTraverseLinks detecta FSuspended=True y no enruta al siguiente nodo.
-  // ResumeThread volvera a llamar DoExecute (con aBeforeNode=nil).
-  // Usamos review_result en el blackboard para distinguir primera llamada vs. reanudacion.
+  // Node.Suspend() only sets a flag and returns; it does NOT block.
+  // DoTraverseLinks detects FSuspended=True and does not route to the next node.
+  // ResumeThread will call DoExecute again (with aBeforeNode=nil).
+  // We use review_result in the blackboard to distinguish the first call vs. resumption.
   ReviewResult := Node.Graph.Blackboard.GetString('review_result');
   if ReviewResult = '' then
   begin
@@ -121,8 +121,8 @@ begin
   inherited Create;
 
   FManager := TAIAgentManager.Create(nil);
-  FManager.Asynchronous := True;   // NECESARIO para suspend/resume
-  FManager.TimeoutMs    := 300000; // 5 minutos (incluye tiempo de revision humana)
+  FManager.Asynchronous := True;   // REQUIRED for suspend/resume
+  FManager.TimeoutMs    := 300000; // 5 minutes (includes human review time)
   FManager.OnSuspend    := OnSuspend;
   FManager.OnFinish     := OnFinish;
 

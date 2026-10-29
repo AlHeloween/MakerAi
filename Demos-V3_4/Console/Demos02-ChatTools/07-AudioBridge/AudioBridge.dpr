@@ -309,8 +309,8 @@ begin
     try
       SpeechTool.ApiKey              := GEMINI_KEY;
       SpeechTool.TranscriptionModel  := 'gemini-2.0-flash';
-      SpeechTool.TranscriptionPrompt := 'Transcribe este audio con precisión. ' +
-                                        'Si es español, transcribe en español.';
+      SpeechTool.TranscriptionPrompt := 'Transcribe this audio accurately. ' +
+                                        'If it is Spanish, transcribe in Spanish.';
       SpeechTool.Model               := 'gemini-2.5-flash-preview-tts';
       SpeechTool.Voice               := TTS_VOICE;
 

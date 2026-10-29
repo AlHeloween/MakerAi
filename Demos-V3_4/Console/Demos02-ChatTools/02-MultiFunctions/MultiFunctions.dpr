@@ -16,7 +16,7 @@ program MultiFunctions;
 //   - A query may require N function calls before responding
 //
 // Functions in this demo:
-//   get_weather(city)                  → clima actual
+//   get_weather(city)                  → current weather
 //   convert_currency(amount, from, to) → conversión de divisa
 //   calculate(expression)              → calculadora básica
 // =============================================================================
@@ -62,7 +62,7 @@ type
   end;
 
 // =============================================================================
-//  Implementaciones de las funciones
+//  Implementations of the functions
 // =============================================================================
 
 procedure TMultiFunctionsDemo.OnFnGetWeather(Sender: TObject;
@@ -85,7 +85,7 @@ begin
     City := 'desconocida';
 
   ToolCall.Response := Format(
-    '{"city":"%s","temp_c":24,"condition":"Parcialmente nublado","wind_kmh":15}',
+    '{"city":"%s","temp_c":24,"condition":"Partly cloudy","wind_kmh":15}',
     [City]);
   Handled := True;
 end;
@@ -94,7 +94,7 @@ procedure TMultiFunctionsDemo.OnFnConvertCurrency(Sender: TObject;
   FunctionAction: TFunctionActionItem; FunctionName: String;
   ToolCall: TAiToolsFunction; var Handled: Boolean);
 const
-  // Tasas aproximadas respecto al USD
+  // Approximate rates relative to USD
   NAMES : array[0..4] of String  = ('USD','MXN','EUR','GBP','CAD');
   RATES : array[0..4] of Double  = (1.0, 17.5, 0.92, 0.79, 1.36);
 var
@@ -203,7 +203,7 @@ begin
 end;
 
 // =============================================================================
-//  Registra las 3 funciones en FAiFunctions
+//  Registers the 3 functions in FAiFunctions
 // =============================================================================
 procedure TMultiFunctionsDemo.RegisterFunctions;
 var
@@ -306,7 +306,7 @@ begin
 end;
 
 // =============================================================================
-//  Punto de entrada
+//  Entry point
 // =============================================================================
 begin
   try

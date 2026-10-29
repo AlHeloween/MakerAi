@@ -20,7 +20,7 @@
 // Block B shows the Choose and Noul shortcuts for a single question.
 //
 // Block C does the same INSIDE an agent graph: a node with
-// TAiJevRouterTool writes the route to the blackboard and an lmConditional link
+// Requires the TYPESAFE_API_KEY environment variable (https://console.typesafe.ai/keys).
 // follows it. OnRoute combines the route with the 'sources' flag to choose between
 // the fast accounting agent and the normative one; low confidence falls to NextNo.
 //
@@ -114,16 +114,16 @@ procedure ArmarPreguntas(AQ: TAiJevQuestions);
 var
   D: string;
 begin
-  AQ.AddChoice('dominio', 'Que especialista debe responder `consulta`?', DOMINIOS);
+  AQ.AddChoice('dominio', 'Which specialist should answer `consulta`?', DOMINIOS);
   for D in DOMINIOS do
     if Clave(D) <> 'general' then
-      AQ.AddNoul('toca_' + Clave(D), 'Responder `consulta` requiere conocimiento de este tema: ' +
+      AQ.AddNoul('toca_' + Clave(D), 'Answering `consulta` requires knowledge of this topic: ' +
         Descripcion(D) + '?');
   AQ.AddNoul('necesita_fuentes',
-    'Responder bien `consulta` exige citar o verificar una norma, articulo, resolucion, tarifa, ' +
-    'plazo o documento especifico, en lugar de explicar un concepto general?',
+    'Answering `consulta` well requires citing or verifying a standard, article, resolution, rate, ' +
+    'deadline or specific document, instead of explaining a general concept?',
     'Depende de un texto normativo o documento concreto y vigente',
-    'Se responde con conocimiento general o un procedimiento conocido');
+    'It is answered with general knowledge or a known procedure');
 end;
 
 // Rules in code: easy to audit and change
@@ -161,7 +161,7 @@ begin
         begin
           Agente := AGENTES[i].Nombre;
           if NecesitaRag and not AGENTES[i].ConRag then
-            Agente := Agente + ' (pide fuentes y no tiene RAG)';
+            Agente := Agente + ' (asks for sources and has no RAG)';
           Break;
         end;
 
@@ -314,7 +314,7 @@ begin
     Jev := TAiJev.Create(nil);
     Preguntas := TAiJevQuestions.Create(nil);
     try
-      // Model queda en 'jev-1.13.0': los umbrales de arriba se calibran contra esa version
+      // Model remains 'jev-1.13.0': the thresholds above are calibrated against that version
       ArmarPreguntas(Preguntas);
 
       Writeln('--- A. Route queries to specialized agents ---');

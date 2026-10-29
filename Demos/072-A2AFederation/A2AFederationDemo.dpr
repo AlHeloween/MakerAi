@@ -288,7 +288,7 @@ begin
       else
         RunFullDemo(Port, InputText);
     finally
-      Telemetry.Free; // flush de spans pendientes en el destructor
+      Telemetry.Free; // flush pending spans in the destructor
     end;
   except
     on E: Exception do

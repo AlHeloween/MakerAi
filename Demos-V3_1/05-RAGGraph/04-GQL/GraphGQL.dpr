@@ -142,14 +142,14 @@ begin
 end;
 
 // =============================================================================
-//  Ejecuta una consulta GQL y muestra el resultado
+//  Executes a GQL query and shows the result
 // =============================================================================
 procedure EjecutarGQL(RAG: TAiRagGraph; const Descripcion, Query: String);
 var
   Resultado: String;
 begin
   Writeln(StringOfChar('-', 60));
-  Writeln('Consulta: ', Descripcion);
+  Writeln('Query: ', Descripcion);
   Writeln('GQL: ', Query);
   Writeln;
   try

@@ -41,7 +41,7 @@ const
   API_KEY = '@CLAUDE_API_KEY';
 
 // =============================================================================
-//  TStreamingDemo — encapsula la conexión y los handlers de streaming
+//  TStreamingDemo — encapsulates the connection and the streaming handlers
 // =============================================================================
 type
   TStreamingDemo = class
@@ -75,7 +75,7 @@ type
   end;
 
 // =============================================================================
-//  Handlers para Demo 2
+//  Handlers for Demo 2
 // =============================================================================
 
 procedure TStreamingDemo.OnChunk(const Sender: TObject; aMsg: TAiChatMessage;
@@ -94,7 +94,7 @@ begin
 end;
 
 // =============================================================================
-//  Handlers para Demo 3
+//  Handlers for Demo 3
 // =============================================================================
 
 procedure TStreamingDemo.OnProgressChunk(const Sender: TObject; aMsg: TAiChatMessage;
@@ -201,7 +201,7 @@ begin
 end;
 
 // =============================================================================
-//  Run — punto de entrada del demo
+//  Run — demo entry point
 // =============================================================================
 procedure TStreamingDemo.Run;
 begin
@@ -232,7 +232,7 @@ begin
 end;
 
 // =============================================================================
-//  Punto de entrada
+//  Entry point
 // =============================================================================
 begin
   try

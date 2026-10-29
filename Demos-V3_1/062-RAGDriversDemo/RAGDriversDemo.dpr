@@ -35,7 +35,7 @@ uses
   System.Math,
   System.Generics.Collections,
   Data.DB,
-  FireDAC.Phys.SQLite,        // Registra el driver SQLite en FireDAC
+  FireDAC.Phys.SQLite,        // Registers the SQLite driver in FireDAC
   FireDAC.Stan.Intf,
   FireDAC.Phys.Intf,
   FireDAC.Stan.Def,
@@ -160,7 +160,7 @@ procedure PrintResults(const ATitle: string; AResults: TAiRAGVector);
 var I: Integer;
 begin
   Writeln;
-  Writeln('  >> ', ATitle, ' (', AResults.Items.Count, ' result(s)):');
+  Writeln('  >> ', ATitle, ' (', AResults.Items.Count, ' result(s)):' );
   if AResults.Items.Count = 0 then
   begin
     Writeln('     (no results)');
@@ -385,7 +385,7 @@ begin
     Driver.FilePath := FILE_PATH;
     Driver.Dim      := DIM;
     Driver.Language := alSpanish;
-    Driver.AutoOpen := True;   // se abre solo al primer Add/Search
+    Driver.AutoOpen := True;   // opens only on the first Add/Search
 
     // --- Load ---
     CargarDocumentos(Driver);

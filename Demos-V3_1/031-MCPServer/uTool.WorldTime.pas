@@ -76,7 +76,7 @@ begin
     
     // TEMPORARY EXAMPLE (replace with real implementation):                 ewrqwr
     CurrentDateTime := Now;
-    TimeZoneOffset := 0; // Calcular el offset real segÃºn la ciudad
+    TimeZoneOffset := 0; // Calculate the real offset according to the city
     CityDateTime := CurrentDateTime; // Ajustar segÃºn zona horaria
 
     // =========================================================================

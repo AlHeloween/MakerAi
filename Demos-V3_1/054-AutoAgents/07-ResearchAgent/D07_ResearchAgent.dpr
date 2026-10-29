@@ -231,7 +231,7 @@ begin
       'You are a researcher. Execute the 3 search queries from the plan using web_search tool. ' +
       'After each search, save key findings using save_note tool with keys "finding1", "finding2", "finding3". ' +
       'Then output a summary of all findings.',
-      True);  // UseAllTools=True pero usara el registry propio
+      True);  // UseAllTools=True but will use its own registry
     ResearchNode.Registry := ResearchRegistry;  // registry especializado
 
     // Node 3: Analyst — analyzes the findings

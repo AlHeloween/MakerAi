@@ -86,7 +86,7 @@ begin
   if Node.Graph.Blackboard.GetString(KEY + Node.Name) = '' then
   begin
     Node.Graph.Blackboard.SetString(KEY + Node.Name, '1');
-    Output := Input; // pass-through mientras se espera al humano
+    Output := Input; // pass-through while waiting for the human
     Node.Suspend('Authorize payment of ' + Input + '?', 'A supervisor signature is required');
   end
   else
@@ -233,7 +233,7 @@ begin
 
     Client.Url := 'http://localhost:' + IntToStr(PORT);
 
-    // --- Primer turno: el grafo se suspende ---
+    // --- First turn: the graph suspends ---
     Task := Client.SendText('1500 EUR', Salida);
     try
       TaskId := Client.LastTaskId;
@@ -245,7 +245,7 @@ begin
       Task.Free;
     end;
 
-    // --- Segundo turno: MISMO taskId = reanudacion, no un task nuevo ---
+    // --- Second turn: SAME taskId = resumption, not a new task ---
     Writeln('');
     Writeln('   (the human answers "approved by Ana")');
     Task := Client.SendTextEx('approved by Ana', TaskId, CtxId, Salida);
@@ -266,7 +266,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// 3. HITL FEDERADO: el que pide aprobacion es el agente remoto
+// 3. FEDERATED HITL: the one requesting approval is the remote agent
 // -----------------------------------------------------------------------------
 procedure EscenarioHitlFederado(AHandlers: TDemoHandlers);
 var

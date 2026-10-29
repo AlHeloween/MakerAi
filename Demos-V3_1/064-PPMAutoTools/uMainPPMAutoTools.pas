@@ -701,7 +701,7 @@ begin
       // NOTE: CallTool takes ownership of LArgsJson and frees it internally.
       // Do NOT call LArgsJson.Free after this call.
       LResult := LClientItem.MCPClient.CallTool(LFuncName, LArgsJson, LMedia);
-      LArgsJson := nil; // Ya fue liberado por CallTool
+      LArgsJson := nil; // Already freed by CallTool
       AddLog('call_mcp_tool: CallTool completed. Result=' + BoolToStr(Assigned(LResult), True));
       try
         if Assigned(LResult) then

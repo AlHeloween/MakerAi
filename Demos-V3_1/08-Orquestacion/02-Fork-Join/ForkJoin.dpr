@@ -196,6 +196,6 @@ begin
     end;
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

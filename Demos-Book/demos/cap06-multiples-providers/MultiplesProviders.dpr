@@ -31,7 +31,7 @@ uses
   System.Diagnostics,
   uMakerAi.Chat,
   uMakerAi.Chat.AiConnection,
-  // ── Cada import activa el auto-registro del driver ────────────────────────
+  // ── Each import activates the driver auto-registration ────────────────────────
   uMakerAi.Chat.Claude,    // DriverName = 'Claude'
   uMakerAi.Chat.OpenAi,   // DriverName = 'OpenAI'
   uMakerAi.Chat.Gemini,   // DriverName = 'Gemini'
@@ -84,7 +84,7 @@ begin
   Result.Params.Values['Asynchronous'] := 'False';
   Result.Params.Values['Max_Tokens']   := '256';
 
-  Result.SystemPrompt.Text := 'Responde siempre en español de forma concisa.';
+  Result.SystemPrompt.Text := 'Always respond in Spanish concisely.';
 end;
 
 // =============================================================================

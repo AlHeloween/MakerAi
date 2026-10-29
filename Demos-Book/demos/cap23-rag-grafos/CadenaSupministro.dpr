@@ -22,7 +22,7 @@ uses
   uMakerAi.RAG.Graph.Core,
   uMakerAi.RAG.Graph.GQL,
   uMakerAi.Chat.AiConnection,
-  uMakerAi.Chat.OpenAi;  // auto-registra driver 'OpenAI' en el factory
+  uMakerAi.Chat.OpenAi;  // auto-registers driver 'OpenAI' in the factory
 
 const
   GRAFO_FILE    = 'cadena_suministro.makerAi';

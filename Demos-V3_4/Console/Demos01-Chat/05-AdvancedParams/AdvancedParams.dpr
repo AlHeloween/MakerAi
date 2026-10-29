@@ -67,7 +67,7 @@ begin
     Writeln;
   end;
 
-  // Restaurar valor normal
+  // Restore normal value
   Conn.Params.Values['Temperature'] := '0.7';
 end;
 

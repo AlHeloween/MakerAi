@@ -138,23 +138,23 @@ begin
 
     // Should go to [CHAT] — conversation question
     Probar(Conn, 'CHAT esperado',
-      'Cual es la capital de Francia?');
+      'What is the capital of France?');
 
     // Should go to [IMAGEGEN] — image request
     Probar(Conn, 'IMAGEGEN esperado',
-      'Genera una imagen de un gato con sombrero de cowboy');
+      'Generate an image of a cat with a cowboy hat');
 
     // Should go to [WEBSEARCH] — search request
     Probar(Conn, 'WEBSEARCH esperado',
-      'Busca las ultimas noticias sobre inteligencia artificial en 2025');
+      'Search for the latest news about artificial intelligence in 2025');
 
     // Should go to [CHAT] — math calculation
     Probar(Conn, 'CHAT esperado',
-      'Cuanto es 15 multiplicado por 7?');
+      'How much is 15 multiplied by 7?');
 
     // Ambiguous: image or chat?
     Probar(Conn, 'AMBIGUO (imagen o chat?)',
-      'Muestrame como se ve un arcoiris');
+      'Show me what a rainbow looks like');
 
     Writeln(StringOfChar('=', 65));
     Writeln('Demo finished. Total messages in history: ',

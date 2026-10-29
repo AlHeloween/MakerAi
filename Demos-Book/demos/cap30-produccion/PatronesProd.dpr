@@ -190,7 +190,7 @@ begin
     AiConn.Params.Values['Asynchronous'] := 'False';
     AiConn.Params.Values['Max_Tokens']   := '256';
     AiConn.SystemPrompt.Text :=
-      'Eres un asistente conciso. Responde en 2 frases máximo. Responde en español.';
+      'You are a concise assistant. Respond in at most 2 sentences. Respond in Spanish.';
 
     Config.MaxIntentos   := 3;
     Config.EsperaBaseMs  := 1000;
@@ -214,7 +214,7 @@ begin
       WriteLn('Response: ', Resp);
     end;
 
-    // Segunda llamada — mismo prompt → caché hit, sin API call
+    // Second call — same prompt → cache hit, no API call
     WriteLn;
     WriteLn('Second call (same prompt):');
     if Cache.TryGetValue(Key, Resp) then

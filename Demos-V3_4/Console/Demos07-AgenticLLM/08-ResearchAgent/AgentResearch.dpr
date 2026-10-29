@@ -236,7 +236,7 @@ begin
   Writeln(StringOfChar('=', 60));
 
   Manager          := TAIAgentManager.Create(nil);
-  ResearchRegistry := TAiToolRegistry.Create;  // instancia propia (no singleton)
+  ResearchRegistry := TAiToolRegistry.Create;  // own instance (not singleton)
   try
     Manager.Asynchronous := False;
     Manager.TimeoutMs    := 180000;

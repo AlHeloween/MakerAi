@@ -94,12 +94,12 @@ begin
   Response := Conn.AddMessageAndRun('What was the exact code?', 'user', []);
   Writeln('  ', Response);
 
-  // Reset del historial
+  // Reset history
   Conn.Messages.Clear;
   Writeln;
   Writeln(Format('History cleared. Messages: %d', [Conn.Messages.Count]));
 
-  // Segunda conversación — no recuerda nada de la anterior
+  // Second conversation — remembers nothing from the previous one
   Response := Conn.AddMessageAndRun(
     'What was the secret code I mentioned to you?', 'user', []);
   Writeln('After reset — the LLM no longer remembers:');

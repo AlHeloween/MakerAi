@@ -80,7 +80,7 @@ begin
 end;
 
 // =============================================================================
-//  Demo 1 -- cmConversation (modo inteligente por defecto)
+//  Demo 1 -- cmConversation (intelligent mode by default)
 //
 //  The default ChatMode. The framework applies gap analysis automatically
 //  based on ModelCaps vs SessionCaps. With no special capabilities configured,
@@ -101,7 +101,7 @@ begin
     Conn.Params.Values['ApiKey']      := '@OPENAI_API_KEY';
     Conn.Model                        := 'gpt-4.1-mini';
     Conn.Params.Values['Asynchronous']:= 'False';
-    // ChatMode por defecto es cmConversation -- no es necesario especificarlo
+    // Default ChatMode is cmConversation -- no need to specify it
     // Conn.ChatMode := cmConversation;
 
     Conn.SystemPrompt.Text :=
@@ -129,7 +129,7 @@ begin
 end;
 
 // =============================================================================
-//  Demo 2 -- cmWebSearch (busqueda web forzada con citas)
+//  Demo 2 -- cmWebSearch (forced web search with citations)
 //
 //  Forced mode: direct InternalRunWebSearch, without gap analysis.
 //  TAiOpenAiWebSearchTool uses gpt-4o-mini-search-preview, which has web search
@@ -288,7 +288,7 @@ begin
 end;
 
 // =============================================================================
-//  Demo 4 -- cmTranscription (transcripcion de audio con Whisper)
+//  Demo 4 -- cmTranscription (audio transcription with Whisper)
 //
 //  Forced mode: InternalRunTranscription on the first audio file
 //  among the attachments. The transcribed text arrives directly as the return value of
@@ -336,7 +336,7 @@ begin
     WriteLn('  ', Resp);
   finally
     Conn.Free;
-    // AudioMF NO se libera aqui: la conexion es la duena
+    // AudioMF is NOT freed here: the connection owns it
     SpeechTool.Free;
   end;
 
@@ -347,7 +347,7 @@ begin
 end;
 
 // =============================================================================
-//  Demo 5 -- Cambio de modo en tiempo de ejecucion
+//  Demo 5 -- Mode change at runtime
 //
 //  Demonstrates that ChatMode is just a property: changing it between calls
 //  changes the behavior without recreating the connection.
@@ -374,7 +374,7 @@ begin
   try
     // --- Ronda 1: modo conversacion (texto OpenAI) ---
     // WebSearchTool NO asignado: cmConversation no lo usa;
-    // asignarlo antes del cambio de driver contamina el driver OpenAI.
+    // assigning it before the driver change contaminates the OpenAI driver.
     Conn.DriverName                   := 'OpenAI';
     Conn.Params.Values['ApiKey']      := '@OPENAI_API_KEY';
     Conn.Model                        := 'gpt-4.1-mini';
@@ -395,7 +395,7 @@ begin
     Conn.DriverName                   := 'OpenAI';
     Conn.Params.Values['ApiKey']      := '@OPENAI_API_KEY';
     Conn.Params.Values['Asynchronous']:= 'False';
-    Conn.WebSearchTool                := SearchTool;  // asignar AQUI, solo para esta ronda
+    Conn.WebSearchTool                := SearchTool;  // assign HERE, only for this round
     Conn.ChatMode                     := cmWebSearch;
 
     WriteLn('  [2] ChatMode = cmWebSearch  (same Conn object, different mode)');
@@ -417,7 +417,7 @@ begin
 
     // --- Ronda 3: de vuelta a conversacion (OpenAI) ---
     Conn.Messages.Clear;
-    Conn.WebSearchTool                := nil;  // limpiar ANTES del cambio de driver
+    Conn.WebSearchTool                := nil;  // clear BEFORE the driver change
     Conn.DriverName                   := 'OpenAI';
     Conn.Params.Values['ApiKey']      := '@OPENAI_API_KEY';
     Conn.Params.Values['Asynchronous']:= 'False';

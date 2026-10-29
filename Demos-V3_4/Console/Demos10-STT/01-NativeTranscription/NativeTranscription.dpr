@@ -143,7 +143,7 @@ begin
     Conn.Params.Values['Model']        := AModel;
     Conn.Params.Values['Asynchronous'] := 'False';
     Conn.ChatMode                      := cmTranscription;
-    // Sin SpeechTool: el driver cae en InternalRunNativeTranscription
+    // Without SpeechTool: the driver falls back to InternalRunNativeTranscription
 
     // --- Transcription parameters ---
     if ALanguage <> '' then
@@ -169,7 +169,7 @@ begin
     else if Resp = '' then
     begin
       Writeln('EMPTY');
-      AddResult(ADriver, AModel, Tag, False, '[respuesta vacia]');
+      AddResult(ADriver, AModel, Tag, False, '[empty response]');
     end
     else
     begin
@@ -196,7 +196,7 @@ var
   MF   : TAiMediaFile;
   Resp : String;
 begin
-  Write('  ', ADriver, '/', AModel, ' [archivo vacio] ... ');
+  Write('  ', ADriver, '/', AModel, ' [empty file] ... ');
 
   EC   := TErrorCapture.Create;
   Conn := TAiChatConnection.Create(nil);

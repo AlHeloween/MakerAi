@@ -59,7 +59,7 @@ type
     [AiMCPOptional]
     // <-- New parameter to control output format
     [AiMCPSchemaDescription
-      ('Devolver la información como un objeto JSON estructurado (default: true). Si es false, devuelve texto formateado.')]
+      ('Return the information as a structured JSON object (default: true). If false, it returns formatted text.')]
     property FormatAsJson: Boolean read FFormatAsJson write FFormatAsJson;
   end;
 
@@ -255,7 +255,7 @@ end;
 procedure RegisterTools(ALogicServer: TAiMCPServer);
 begin
   if not Assigned(ALogicServer) then
-    raise Exception.Create('LogicServer no puede ser nulo para registrar herramientas.');
+    raise Exception.Create('LogicServer cannot be null to register tools.');
 
   ALogicServer.RegisterTool('system_info',
     function: IAiMCPTool

@@ -825,8 +825,8 @@ begin
   finally
     FIgnoreParams := False;
   end;
-  // Connection.ModelConfig.OnChange ya propaga cada asignacion de arriba al
-  // AiChat real (ver TAiChatConnection.ModelConfigChanged); no hace falta
+  // Connection.ModelConfig.OnChange already propagates each assignment above to
+  // the real AiChat (see TAiChatConnection.ModelConfigChanged); not needed
   // sincronizar a mano.
 end;
 

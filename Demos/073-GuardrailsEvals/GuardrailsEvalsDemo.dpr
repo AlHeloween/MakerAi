@@ -185,7 +185,7 @@ begin
     Item.OnAction := AHandlers.ToolAction;
 
     Guard.BlockedTools.Add('borrar_todo');
-    Funcs.Guardrails := Guard; // opt-in: sin esto no hay politica
+    Funcs.Guardrails := Guard; // opt-in: without this there is no policy
 
     AHandlers.ToolEjecutado := False;
     ToolCall.Name := 'borrar_todo';

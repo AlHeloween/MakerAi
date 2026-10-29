@@ -45,7 +45,7 @@ const
   IMG_CUSTOM     = '';  // Leave empty if you don't have another image
 
 // =============================================================================
-//  Envía una imagen con una pregunta y muestra la respuesta
+//  Sends an image with a question and shows the response
 // =============================================================================
 procedure AskAboutImage(Conn: TAiChatConnection;
                         const ImagePath, Question, SectionTitle: String);

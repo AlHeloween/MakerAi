@@ -87,7 +87,7 @@ begin
         MCPServer.CorsEnabled := True;
         MCPServer.CorsAllowedOrigins := '*';
 
-        uTool.RAG.RegisterTools(MCPServer); // registra el tool y engancha la autenticacion
+        uTool.RAG.RegisterTools(MCPServer); // registers the tool and hooks authentication
 
         MCPServer.Start;
         WriteLn(ErrOutput, Format('[mcp-rag-vector] ready. protocol=%s port=%d config=%s',

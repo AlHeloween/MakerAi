@@ -55,7 +55,7 @@ const
   QUESTION = 'In exactly 2 sentences: What is artificial intelligence?';
 
 // =============================================================================
-//  Función que envía la misma pregunta a un proveedor y mide el tiempo
+//  Function that sends the same question to a provider and measures the time
 // =============================================================================
 procedure AskProvider(const Cfg: TProviderConfig; const Question: String);
 var

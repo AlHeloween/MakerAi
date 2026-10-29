@@ -45,7 +45,7 @@ const
   );
 
 // =============================================================================
-//  Imprime los resultados de similitud ordenados
+//  Prints the similarity results sorted
 // =============================================================================
 procedure PrintTopK(const Query: String; const Corpus: array of String;
   const Embeddings: array of TAiEmbeddingData; const QEmb: TAiEmbeddingData; K: Integer);
@@ -70,7 +70,7 @@ begin
         TempI := Idx[J]; Idx[J] := Idx[J+1]; Idx[J+1] := TempI;
       end;
 
-  Writeln(Format('  Consulta: "%s"', [Query]));
+  Writeln(Format('  Query: "%s"', [Query]));
   Writeln(Format('  Top %d most similar:', [K]));
   for I := 0 to Min(K - 1, High(Corpus)) do
     Writeln(Format('    [%d] %.4f — %s', [I+1, Scores[Idx[I]], Corpus[Idx[I]]]));

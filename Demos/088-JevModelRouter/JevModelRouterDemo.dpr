@@ -31,7 +31,7 @@ uses
   System.StrUtils,
   System.Net.HttpClient,
   uMakerAi.Chat.AiConnection,
-  uMakerAi.Chat.Initializations,   // registra los drivers (Groq, DeepSeek, Claude...)
+  uMakerAi.Chat.Initializations,   // registers the drivers (Groq, DeepSeek, Claude...)
   uMakerAi.Jev in '..\..\Source\Tools\uMakerAi.Jev.pas',
   uMakerAi.Jev.Evals in '..\..\Source\Tools\uMakerAi.Jev.Evals.pas',
   uMakerAi.Jev.ModelRouter in '..\..\Source\Tools\uMakerAi.Jev.ModelRouter.pas';

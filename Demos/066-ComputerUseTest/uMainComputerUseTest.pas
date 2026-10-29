@@ -27,7 +27,7 @@ uses
   uMakerAi.Core, uMakerAi.Chat.Messages, uMakerAi.Chat.AiConnection,
   uMakerAi.Tools.ComputerUse, uMakerAi.Tools.ComputerUse.WindowsFMX,
   uMakerAi.Utils.ScreenCapture, uMakerAi.ParamsRegistry,
-  uMakerAi.Chat.Initializations; // registra todos los drivers (Claude, Gemini, ...)
+  uMakerAi.Chat.Initializations; // registers all drivers (Claude, Gemini, ...)
 
 type
   TFormComputerUse = class(TForm)
@@ -45,19 +45,19 @@ type
   private
     FConn: TAiChatConnection;
     FCU: TAiComputerUseTool;
-    FShotDir: string;   // carpeta donde se guardan los screenshots para depurar
+    FShotDir: string;   // folder where screenshots are saved for debugging
     FShotCount: Integer;
-    FLogFile: string;   // copia del log en disco (para correr sin mirar la GUI)
-    FAutoRun: Boolean;  // -autorun: dispara Ejecutar al mostrarse la ventana
+    FLogFile: string;   // log copy on disk (to run without looking at the GUI)
+    FAutoRun: Boolean;  // -autorun: triggers Execute when the window is shown
     procedure Log(const S: string);
     procedure SetStatus(const S: string);
-    // Captura el área física y la devuelve como JPG escalado a OutW x OutH.
+    // Captures the physical area and returns it as a JPG scaled to OutW x OutH.
     function CaptureScaled(const Area: TRect; OutW, OutH: Integer): TAiMediaFile;
     // Eventos de Computer Use
     procedure DoExecuteAction(Sender: TObject; const ActionData: TAiActionData; var Result: TAiActionResult);
     procedure DoRequestScreenshot(Sender: TObject; var MediaFile: TAiMediaFile);
     procedure DoSafetyConfirmation(Sender: TObject; const Explanation: string; var Allow: Boolean);
-    // Eventos de la conexión
+    // Connection events
     procedure DoReceiveEnd(const Sender: TObject; aMsg: TAiChatMessage; aResponse: TJSONObject; aRole, aText: String);
     procedure DoError(Sender: TObject; const ErrorMsg: string; E: Exception; const AResponse: IHTTPResponse);
   end;
@@ -90,7 +90,7 @@ begin
   FCU.OnExecuteAction := DoExecuteAction;
   FCU.OnRequestScreenshot := DoRequestScreenshot;
   FCU.OnSafetyConfirmation := DoSafetyConfirmation;
-  FCU.EnableZoom := True; // permite la acción zoom de Claude (computer_20251124)
+  FCU.EnableZoom := True; // enables the zoom action of Claude (computer_20251124)
 
   // Capture area = physical primary monitor (origin 0,0).
   FCU.AreaLeft := 0;
@@ -377,7 +377,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// Conexión
+// Connection
 // -----------------------------------------------------------------------------
 procedure TFormComputerUse.DoReceiveEnd(const Sender: TObject; aMsg: TAiChatMessage; aResponse: TJSONObject; aRole, aText: String);
 begin
@@ -398,7 +398,7 @@ end;
 procedure TFormComputerUse.btnRunClick(Sender: TObject);
 begin
   meLog.Lines.Clear;
-  FShotCount := 0; // los screenshots de esta corrida empiezan en shot_001
+  FShotCount := 0; // the screenshots of this run start at shot_001
   btnRun.Enabled := False;
 
   if cbProvider.ItemIndex = 1 then

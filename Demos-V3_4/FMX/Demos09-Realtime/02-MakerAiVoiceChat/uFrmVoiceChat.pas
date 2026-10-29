@@ -92,7 +92,7 @@ type
     procedure SetStateColor(AColor: TAlphaColor);
     procedure AddConvLine(const APrefix, AText: string);
     procedure Log(const AMsg: string);
-    // Eventos del driver MakerAI
+    // MakerAI driver events
     procedure OnChatConnected(Sender: TObject);
     procedure OnChatDisconnected(Sender: TObject);
     procedure OnChatSessionReady(Sender: TObject);
@@ -102,7 +102,7 @@ type
     procedure OnChatAudioChunk(Sender: TObject; const AData: TBytes);
     procedure OnChatAudioDone(Sender: TObject);
     procedure OnChatError(Sender: TObject; const ErrorMsg, ErrorCode: string);
-    // Eventos del microfono
+    // Microphone events
     procedure OnMicCalibrated(Sender: TObject; const NoiseLevel, Sensitivity, StopSensitivity: Integer);
     procedure OnMicError(Sender: TObject; const ErrorMessage: string);
     procedure OnMicSpeechChange(Sender: TObject; aUserSpeak, aIsValidForIA: Boolean; aStream: TMemoryStream);

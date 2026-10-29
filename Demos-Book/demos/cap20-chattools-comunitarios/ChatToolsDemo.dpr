@@ -52,7 +52,7 @@ begin
     Search.MaxResults := 3;
 
     WriteLn('Searching: "latest Delphi 2025 news"');
-    // ExecuteSearch es protected → se invoca via interfaz
+    // ExecuteSearch is protected → it is invoked via interface
     (Search as IAiWebSearchTool).ExecuteSearch(
       'latest Delphi 2025 news', ResMsg, AskMsg);
 
@@ -101,7 +101,7 @@ begin
     Media.LoadFromFile(ImagePath);
     WriteLn('Analyzing image: ', ImagePath);
 
-    // ExecuteImageDescription es protected → se invoca via interfaz
+    // ExecuteImageDescription is protected → it is invoked via interface
     (Vision as IAiVisionTool).ExecuteImageDescription(Media, ResMsg, AskMsg);
 
     WriteLn('Description:');
@@ -137,7 +137,7 @@ begin
     AiConn.Params.Values['Url']          := 'http://localhost:11434/';
     AiConn.Params.Values['Asynchronous'] := 'False';
 
-    // ChatTool 1: búsqueda web — activa el gap cap_WebSearch automáticamente
+    // ChatTool 1: web search — automatically activates the cap_WebSearch gap
     Search.ApiKey        := '@TAVILY_API_KEY';
     AiConn.WebSearchTool := Search;
 
@@ -151,13 +151,13 @@ begin
     WriteLn;
 
     Resp := AiConn.AddMessageAndRun(
-      '¿Qué novedades trae Delphi 13 Florence? Busca información actualizada.',
+      'What is new in Delphi 13 Florence? Search for updated information.',
       'user', []);
 
     WriteLn('Model response:');
     WriteLn(Resp);
   finally
-    AiConn.WebSearchTool := nil;  // evitar doble liberación
+    AiConn.WebSearchTool := nil;  // avoid double free
     AiConn.SpeechTool    := nil;
     AiConn.Free;
     Search.Free;

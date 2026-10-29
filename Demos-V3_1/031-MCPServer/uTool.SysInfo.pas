@@ -40,14 +40,14 @@ uses
   uMakerAi.MCPServer.Core,
   System.SysUtils,
   System.Classes,
-  System.JSON; // <-- Añadir System.JSON
+  System.JSON; // <-- Add System.JSON
 
 type
   TSysInfoParams = class
   private
     FInfoType: string;
     FIncludeDetails: Boolean;
-    FFormatAsJson: Boolean; // <-- Nuevo parámetro
+    FFormatAsJson: Boolean; // <-- New parameter
   public
     [AiMCPSchemaDescription('Type of information: "basic", "memory", "disk", "network" or "all"')]
     property InfoType: string read FInfoType write FInfoType;
@@ -59,7 +59,7 @@ type
     [AiMCPOptional]
     // <-- New parameter to control output format
     [AiMCPSchemaDescription
-      ('Devolver la información como un objeto JSON estructurado (default: true). Si es false, devuelve texto formateado.')]
+      ('Return the information as a structured JSON object (default: true). If false, it returns formatted text.')]
     property FormatAsJson: Boolean read FFormatAsJson write FFormatAsJson;
   end;
 
@@ -112,7 +112,7 @@ begin
   inherited Create;
   FName := 'system_info';
   FDescription :=
-    'Obtiene información del sistema (CPU, memoria, disco, etc.) donde se está ejecutando el servidor. Puede devolver la información como texto formateado o como un objeto JSON estructurado.';
+    'Gets system information (CPU, memory, disk, etc.) where the server is running. Can return the information as formatted text or as a structured JSON object.';
   // By default, FormatAsJson will be True
   TSysInfoParams.Create.FFormatAsJson := True;
 end;
@@ -127,7 +127,7 @@ begin
   LInfoType := Trim(LowerCase(AParams.InfoType));
   ResultText := '';
   try
-    // Decidir si se devuelve JSON o texto
+    // Decide whether to return JSON or text
     if AParams.FormatAsJson then
     begin
       // --- Logic to return JSON ---
@@ -153,7 +153,7 @@ begin
 
       // We use the builder to add the JSON as text. The AI will parse it.
       Result := TAiMCPResponseBuilder.New.AddText(ResultJson.ToJSON).Build;
-      ResultJson.Free; // Liberamos el JSON que creamos
+      ResultJson.Free; // Free the JSON we created
     end
     else
     begin
@@ -277,7 +277,7 @@ begin
     var
     LDetails := TJSONObject.Create;
     LDetails.AddPair('mcpServerPath', ExtractFilePath(ParamStr(0)));
-    LDetails.AddPair('delphiVersion', '12.2'); // O obtenerlo dinámicamente si es posible
+    LDetails.AddPair('delphiVersion', '12.2'); // Or get it dynamically if possible
     Result.AddPair('extraDetails', LDetails);
   end;
 end;

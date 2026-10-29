@@ -28,11 +28,11 @@ uses
   uMakerAi.Chat.AiConnection,
   uMakerAi.Chat.Messages,
   uMakerAi.Tools.Functions,
-  uMakerAi.Chat.Ollama;   // DriverName = 'Ollama' — auto-registro en el factory
+  uMakerAi.Chat.Ollama;   // DriverName = 'Ollama' — auto-registration in the factory
 
 const
   DRIVER = 'Ollama';
-  MODEL  = 'gemma4:e4b';   // Soporta tool calling nativo en Ollama
+  MODEL  = 'gemma4:e4b';   // Supports native tool calling in Ollama
   // Alternatives if the model is not installed:
   //   'gemma4:e2b'    — lighter
   //   'llama3.2:latest' — if installed with: ollama pull llama3.2

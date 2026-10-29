@@ -31,7 +31,7 @@ uses
   uMakerAi.Chat.AiConnection,
   uMakerAi.Chat.Messages,
   uMakerAi.Chat.Tools,       // IAiWebSearchTool
-  uMakerAi.Chat.Gemini,      // auto-registra driver 'Gemini' en el factory
+  uMakerAi.Chat.Gemini,      // auto-registers driver 'Gemini' in the factory
   uMakerAi.ChatTools.Tavily; // TAiTavilyWebSearchTool — paquete ChatTools
 
 const
@@ -52,7 +52,7 @@ begin
 end;
 
 // =============================================================================
-//  A) Búsqueda NATIVA — Gemini con Google Search integrado
+//  A) NATIVE search — Gemini with integrated Google Search
 // =============================================================================
 // ModelCaps=[cap_WebSearch] means the model has native search.
 // SessionCaps=[cap_WebSearch] tells MakerAI that we need it in this
@@ -75,8 +75,8 @@ begin
     Conn.Model      := MODEL_GEMINI;
     Conn.Params.Values['Asynchronous'] := 'False';
     Conn.Params.Values['Max_Tokens']   := '1024';
-    // gemini-2.0-flash tiene cap_WebSearch nativo registrado en el framework.
-    // Sobreescribimos explícitamente para que el demo sea claro y autocontenido.
+    // gemini-2.0-flash has native cap_WebSearch registered in the framework.
+    // We explicitly override so the demo is clear and self-contained.
     Conn.Params.Values['ModelCaps']   := '[cap_WebSearch]';
     Conn.Params.Values['SessionCaps'] := '[cap_WebSearch]';
     Conn.SystemPrompt.Text :=
@@ -119,16 +119,16 @@ begin
     // Configurar Tavily
     Tavily.ApiKey        := '@TAVILY_API_KEY';
     Tavily.MaxResults    := 5;
-    Tavily.IncludeAnswer := True;   // Tavily genera una respuesta sintetizada propia
+    Tavily.IncludeAnswer := True;   // Tavily generates its own synthesized answer
 
-    // Configurar la conexión con gap analysis
+    // Configure the connection with gap analysis
     Conn.DriverName := 'Gemini';
     Conn.Model      := MODEL_GEMINI;
     Conn.Params.Values['Asynchronous'] := 'False';
     Conn.Params.Values['Max_Tokens']   := '1024';
-    Conn.Params.Values['ModelCaps']    := '[]';              // sin búsqueda nativa
-    Conn.Params.Values['SessionCaps']  := '[cap_WebSearch]'; // la necesitamos
-    Conn.WebSearchTool := Tavily;  // MakerAI usará Tavily para cubrir el gap
+    Conn.Params.Values['ModelCaps']    := '[]';              // without native search
+    Conn.Params.Values['SessionCaps']  := '[cap_WebSearch]'; // we need it
+    Conn.WebSearchTool := Tavily;  // MakerAI will use Tavily to cover the gap
 
     Conn.SystemPrompt.Text :=
       'You are a financial assistant. Analyze the information received from search ' +
@@ -148,7 +148,7 @@ begin
 end;
 
 // =============================================================================
-//  C) Búsqueda DIRECTA — Tavily sin LLM
+//  C) DIRECT search — Tavily without LLM
 // =============================================================================
 // Direct call to the tool without going through TAiChatConnection.
 // ExecuteSearch is protected in the class but is exposed via IAiWebSearchTool.
@@ -181,7 +181,7 @@ begin
     WriteLn('(Without LLM — immediate result)');
     WriteLn;
 
-    // ExecuteSearch es protected en la clase → se invoca via interfaz
+    // ExecuteSearch is protected in the class → it is invoked via interface
     (Tavily as IAiWebSearchTool).ExecuteSearch(QUERY_DELPHI, ResMsg, AskMsg);
 
     Resultado := ResMsg.Prompt;
@@ -209,7 +209,7 @@ begin
     WriteLn('════════════════════════════════════════════════════════════════');
     WriteLn;
 
-    // A: Nativa — requiere GEMINI_API_KEY
+    // A: Native — requires GEMINI_API_KEY
     if KeyPresente('GEMINI_API_KEY') then
     begin
       DemoNativa;
@@ -218,7 +218,7 @@ begin
     else
       WriteLn('SKIP A: GEMINI_API_KEY not configured.' + sLineBreak);
 
-    // B: Bridge — requiere GEMINI_API_KEY + TAVILY_API_KEY
+    // B: Bridge — requires GEMINI_API_KEY + TAVILY_API_KEY
     if KeyPresente('GEMINI_API_KEY') and KeyPresente('TAVILY_API_KEY') then
     begin
       DemoBridge;
@@ -227,7 +227,7 @@ begin
     else
       WriteLn('SKIP B: GEMINI_API_KEY and/or TAVILY_API_KEY not configured.' + sLineBreak);
 
-    // C: Directa — requiere solo TAVILY_API_KEY
+    // C: Direct — requires only TAVILY_API_KEY
     if KeyPresente('TAVILY_API_KEY') then
     begin
       DemoDirecta;

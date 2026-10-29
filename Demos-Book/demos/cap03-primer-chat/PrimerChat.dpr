@@ -63,7 +63,7 @@ begin
     Conn.Params.Values['Max_Tokens']   := '512';
 
     Conn.SystemPrompt.Text :=
-      'Eres un asistente amable y conciso. Responde siempre en español.';
+      'You are a friendly and concise assistant. Always respond in Spanish.';
 
     WriteLn('');
     WriteLn('=== MakerAI — Chapter 3: First Chat ===');

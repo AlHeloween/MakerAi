@@ -45,7 +45,7 @@ uses
 
 const
   // ==========================================================================
-  // CONFIGURACION
+  // CONFIGURATION
   // ==========================================================================
   TARGET_LANG_REMOTE = 'Spanish'; // what the other side says -> Spanish (for me)
   TARGET_LANG_LOCAL = 'English'; // what I say -> English (for the meeting)
@@ -153,8 +153,8 @@ begin
   FSTT.Model := STT_MODEL;
   // gpt-live-transcribe (Aug 2026): better WER with meeting noise and accents
   FSTT.TranscriptionModel := otmGptLiveTranscribe;
-  FSTT.TranscriptionPrompt := 'Reunion de trabajo traducida en tiempo real';
-  FSTT.Language := aSttLanguage; // el driver lo envia como languages[]
+  FSTT.TranscriptionPrompt := 'Work meeting translated in real time';
+  FSTT.Language := aSttLanguage; // the driver sends it as languages[]
   FSTT.OnSessionReady := SttSessionReady;
   FSTT.OnTranscriptCompleted := SttTranscriptCompleted;
   FSTT.OnError := SttError;

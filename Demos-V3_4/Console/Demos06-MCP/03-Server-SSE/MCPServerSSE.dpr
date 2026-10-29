@@ -150,7 +150,7 @@ begin
       Writeln('{');
       Writeln('  "mcpServers": {');
       Writeln('    "makerai-demo": {');
-      Writeln('      "command": "ruta\\al\\MCPServerSSE.exe",');
+      Writeln('      "command": "path\\to\\MCPServerSSE.exe",');
       Writeln('      "args": []');
       Writeln('    }');
       Writeln('  }');

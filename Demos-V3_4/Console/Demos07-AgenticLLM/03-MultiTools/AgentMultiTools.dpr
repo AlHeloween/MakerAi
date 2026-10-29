@@ -294,7 +294,7 @@ begin
     RunQuery(Manager, 'What date and time is it now?');
     RunQuery(Manager, 'What is 37 degrees Celsius in Fahrenheit?');
     RunQuery(Manager, 'Encode this URL: artificial intelligence search');
-    // Esta requiere dos herramientas: temperatura + calculadora
+    // This requires two tools: temperature + calculator
     RunQuery(Manager, 'What is 100 Fahrenheit in Celsius? And what is that value squared?');
 
   finally

@@ -39,7 +39,7 @@ uses
   System.StrUtils,
   System.Net.HttpClient,
   uMakerAi.Chat.AiConnection,
-  uMakerAi.Chat.Initializations,   // registra los drivers
+  uMakerAi.Chat.Initializations,   // registers the drivers
   uMakerAi.Tools.Functions,
   uMakerAi.Prompts,
   uMakerAi.Agents,
@@ -56,7 +56,7 @@ const
     '  L := TStringList.Create;'#10 +
     '  L.LoadFromFile(''datos.txt'');'#10 +
     '  try'#10 +
-    '    Procesar(L);'#10 +
+    '  Procesar(L);'#10 +
     '  except'#10 +
     '  end;'#10 +
     'end;';
@@ -217,7 +217,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// B. TLLMNode con TAiSkill: el skill como personalidad fija del nodo
+// B. TLLMNode with TAiSkill: the skill as fixed personality of the node
 // ---------------------------------------------------------------------------
 procedure BloqueB;
 var
@@ -253,7 +253,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// C. TAiPrompts.ApplySkill: el skill copiado al SystemPrompt a mano
+// C. TAiPrompts.ApplySkill: the skill copied to SystemPrompt by hand
 // ---------------------------------------------------------------------------
 procedure BloqueC(Eventos: TEventos);
 var

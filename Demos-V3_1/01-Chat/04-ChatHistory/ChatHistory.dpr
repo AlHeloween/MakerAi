@@ -87,8 +87,8 @@ begin
   Conn.Messages.Clear;
 
   // First conversation
-  Conn.AddMessageAndRun('El código secreto de hoy es ALFA-7.', 'user', []);
-  Conn.AddMessageAndRun('¿Recuerdas el código secreto?', 'user', []);
+  Conn.AddMessageAndRun('The secret code for today is ALFA-7.', 'user', []);
+  Conn.AddMessageAndRun('Do you remember the secret code?', 'user', []);
 
   Writeln('Before reset — the LLM remembers the secret code:');
   Response := Conn.AddMessageAndRun('What was the exact code?', 'user', []);
@@ -101,7 +101,7 @@ begin
 
   // Second conversation — remembers nothing from the previous one
   Response := Conn.AddMessageAndRun(
-    '¿Cuál era el código secreto que te mencioné?', 'user', []);
+    'What was the secret code I mentioned to you?', 'user', []);
   Writeln('After reset — the LLM no longer remembers:');
   Writeln('  ', Response);
   Writeln;

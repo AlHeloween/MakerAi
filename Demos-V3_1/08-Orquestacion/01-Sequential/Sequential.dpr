@@ -104,7 +104,7 @@ begin
     Writeln('Running sequential pipeline...');
     Resultado := Manager.Run(ATema);
 
-    // Mostrar salidas intermedias del blackboard
+    // Show intermediate outputs from the blackboard
     Writeln;
     Writeln('--- Key concepts (Analizador) ---');
     Writeln(Manager.Blackboard.GetString('Analizador.output'));
@@ -139,6 +139,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

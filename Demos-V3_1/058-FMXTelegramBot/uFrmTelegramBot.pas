@@ -158,7 +158,7 @@ begin
   MemoLog.Lines.Add(Prefix + AText);
   MemoLog.GoToTextEnd;
 
-  // Actualizar stats en cada evento de log
+  // Update stats on each log event
   if BtnStop.Enabled then
     UpdateStats;
 end;

@@ -101,7 +101,7 @@ begin
   try
     // Embedding connection
     FEmbConn            := TAiEmbeddingConnection.Create(nil);
-    FEmbConn.ApiKey     := AApiKey;         // establecer ApiKey ANTES del DriverName
+    FEmbConn.ApiKey     := AApiKey;         // set ApiKey BEFORE DriverName
     FEmbConn.DriverName := AEmbDriverName;
     if AEmbModel <> '' then
       FEmbConn.Model := AEmbModel;
@@ -331,7 +331,7 @@ begin
 end;
 
 // =============================================================================
-// Búsqueda semántica (RAG)
+// Semantic search (RAG)
 // =============================================================================
 
 function TBotMemory.Search(const AQuery: string; ALimit: Integer): string;

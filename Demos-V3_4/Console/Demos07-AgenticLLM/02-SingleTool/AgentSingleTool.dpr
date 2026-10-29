@@ -187,7 +187,7 @@ begin
     LLMAgent.DriverName   := DRIVER;
     LLMAgent.Model        := MODEL;
     LLMAgent.ApiKey       := API_KEY;
-    LLMAgent.UseAllTools  := True; // expone todas las herramientas del registry
+    LLMAgent.UseAllTools  := True; // exposes all tools in the registry
     LLMAgent.SystemPrompt :=
       'You are a math assistant. ' +
       'ALWAYS use the calculator tool for any arithmetic operation. ' +

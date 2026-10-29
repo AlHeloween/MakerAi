@@ -79,23 +79,23 @@ begin
 end;
 
 // =============================================================================
-//  Crea y configura la conexión Ollama con gemma3:4b.
-//  El llamador es responsable de liberar con Free.
+//  Creates and configures the Ollama connection with gemma3:4b.
+//  The caller is responsible for freeing with Free.
 // =============================================================================
 function CrearConexion: TAiChatConnection;
 begin
   Result := TAiChatConnection.Create(nil);
   Result.DriverName := DRIVER;
   Result.Model      := MODEL;
-  Result.Params.Values['Asynchronous'] := 'False';  // Ollama default es True
+  Result.Params.Values['Asynchronous'] := 'False';  // Ollama default is True
   Result.Params.Values['Max_Tokens']   := '512';
   Result.SystemPrompt.Text :=
-    'Eres un asistente experto en análisis visual. ' +
-    'Describe lo que ves de forma clara y concisa. Responde en español.';
+    'You are an expert visual analysis assistant. ' +
+    'Describe what you see clearly and concisely. Respond in Spanish.';
 end;
 
 // =============================================================================
-//  Demo 1 — Descripción general
+//  Demo 1 — General description
 //
 //  The base vision pattern with MakerAI:
 //    1. Create a TAiMediaFile and load the image
@@ -196,7 +196,7 @@ begin
   Conn.NewChat;
   Conn.SystemPrompt.Text :=
     'You are a visual analysis system. ' +
-    'Responde ÚNICAMENTE con JSON válido. Sin texto adicional fuera del JSON.';
+    'Respond ONLY with valid JSON. No additional text outside the JSON.';
 
   Write('  Extracting structured data... ');
   R := Conn.AddMessageAndRun(
@@ -214,8 +214,8 @@ begin
 
   // Restore system prompt for following demos
   Conn.SystemPrompt.Text :=
-    'Eres un asistente experto en análisis visual. ' +
-    'Describe lo que ves de forma clara y concisa. Responde en español.';
+    'You are an expert visual analysis assistant. ' +
+    'Describe what you see clearly and concisely. Respond in Spanish.';
 
   WriteLn('');
   WriteLn('→ JSON in SystemPrompt + format example = parseable response.');
@@ -223,7 +223,7 @@ begin
 end;
 
 // =============================================================================
-//  Demo 4 — Conversación multi-turno con imagen
+//  Demo 4 — Multi-turn conversation with image
 //
 //  Once the image is sent in the first turn, the model "remembers" its
 //  content in the following turns. There is no need to resend the image.
@@ -245,7 +245,7 @@ begin
 
   Conn.NewChat;
 
-  // Turno 1: enviar la imagen con la primera pregunta
+  // Turn 1: send the image with the first question
   Write('  [Turn 1] Sending image... ');
   R := Conn.AddMessageAndRun(
     'Look at this image. What is the most prominent element you see?',
@@ -254,7 +254,7 @@ begin
   WriteLn('  Response: ', R);
   WriteLn('  [History: ', Conn.Messages.Count, ' messages]');
 
-  // Turno 2: segunda pregunta SIN reenviar la imagen
+  // Turn 2: second question WITHOUT resending the image
   WriteLn('');
   Write('  [Turn 2] Follow-up question (without resending image)... ');
   R := Conn.AddMessageAndRun(
@@ -281,7 +281,7 @@ begin
 end;
 
 // =============================================================================
-//  Demo 5 — Dos imágenes en un mismo mensaje (comparación)
+//  Demo 5 — Two images in the same message (comparison)
 //
 //  MakerAI allows sending multiple TAiMediaFile in a single call.
 //  The model receives both images and can compare them, contrast them
@@ -296,11 +296,11 @@ var
 begin
   Separador('Demo 5 — Comparison of two images');
 
-  // Buscar una segunda imagen en el sistema si IMG2 es igual a IMG1
+  // Look for a second image in the system if IMG2 equals IMG1
   Img2Path := IMG2;
   if SameText(Img2Path, IMG1) then
   begin
-    // Buscar en carpetas de wallpapers de Windows
+    // Search in Windows wallpaper folders
     var Candidatos := TDirectory.GetFiles(
       'C:\Windows\Web', '*.jpg', TSearchOption.soAllDirectories);
     for var Ruta in Candidatos do
@@ -330,7 +330,7 @@ begin
   WriteLn('  Image 2: ', MF2.FileName);
   WriteLn('');
 
-  // Enviar las dos imágenes en el mismo mensaje
+  // Send both images in the same message
   SetLength(Files, 2);
   Files[0] := MF1;
   Files[1] := MF2;

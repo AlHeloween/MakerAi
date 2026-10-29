@@ -156,7 +156,7 @@ begin
 end;
 
 // =============================================================================
-//  Demo 2 -- El mismo codigo con Groq (hasta 216x tiempo real)
+//  Demo 2 -- The same code with Groq (up to 216x real time)
 //
 //  The code is identical to Demo 1. Only Url and ApiKey change.
 //  Groq uses LPU (Language Processing Unit) to run Whisper at maximum
@@ -201,7 +201,7 @@ begin
 end;
 
 // =============================================================================
-//  Demo 3 -- El mismo codigo con whisper.cpp local (sin internet)
+//  Demo 3 -- The same code with local whisper.cpp (without internet)
 //
 //  whisper.cpp exposes the same HTTP API as OpenAI. No data leaves
 //  your machine. Ideal for environments with privacy restrictions.
@@ -266,7 +266,7 @@ begin
 end;
 
 // =============================================================================
-//  Demo 4 -- Timestamps por palabra con verbose_json
+//  Demo 4 -- Word timestamps with verbose_json
 //
 //  ResponseFormat = 'verbose_json' returns the full text plus an array
 //  'words' with the start time of each word. Useful for:

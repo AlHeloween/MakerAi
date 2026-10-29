@@ -232,7 +232,7 @@ begin
 end;
 
 // =============================================================================
-// Demo 3 — Gemini nativo: sin bridge, completions con responseModalities
+// Demo 3 — Native Gemini: without bridge, completions with responseModalities
 //
 // ModelCaps=[cap_Image,cap_GenImage] → Gap=[] → driver sends
 // responseModalities=["TEXT","IMAGE"] → the image arrives in the response.
@@ -411,7 +411,7 @@ begin
 end;
 
 // =============================================================================
-// Demo 5 — Video con TAiVeoGenerator
+// Demo 5 — Video with TAiVeoGenerator
 //
 // GenerateFromText() returns ITask (real asynchronous).
 // Task.Wait blocks until polling finishes and the video is ready.
@@ -496,7 +496,7 @@ begin
 end;
 
 // =============================================================================
-// Punto de entrada
+// Entry point
 // =============================================================================
 
 begin

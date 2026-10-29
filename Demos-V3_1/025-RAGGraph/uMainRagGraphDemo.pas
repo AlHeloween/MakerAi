@@ -632,19 +632,19 @@ end;
 procedure TMainRagGraphDemo.BtnSaveClick(Sender: TObject);
 begin
   // --- Configure the save dialog ---
-  SaveDialog1.Title := 'Guardar Grafo de Conocimiento';
+  SaveDialog1.Title := 'Save Knowledge Graph';
   SaveDialog1.InitialDir := 'c:\temp\';
 
   // Configure the filters. The first line is the one selected by default.
   SaveDialog1.Filter := 'MakerAI Graph (*.mkai)|*.mkai|' + // Formato nativo (completo o ligero)
-    'GraphML File (*.graphml)|*.graphml|' + // Para Gephi, yEd
-    'Graphviz DOT File (*.dot)|*.dot|' + // Para Graphviz
+    'GraphML File (*.graphml)|*.graphml|' + // For Gephi, yEd
+    'Graphviz DOT File (*.dot)|*.dot|' + // For Graphviz
     'JSON Graph (Legacy) (*.json)|*.json|' + // Si quieres mantener compatibilidad
-    'Todos los archivos (*.*)|*.*';
+    'All files (*.*)|*.*';
 
   // Set the default extension that will be added if the user does not type one.
   SaveDialog1.DefaultExt := '.mkai';
-  SaveDialog1.FileName := 'mi_grafo_de_conocimiento'; // Nombre de archivo sugerido
+  SaveDialog1.FileName := 'my_knowledge_graph'; // Suggested file name
 
   // --- Execute the dialog and save ---
   if SaveDialog1.Execute then
@@ -738,8 +738,8 @@ procedure TMainRagGraphDemo.BtnLoadTextClick(Sender: TObject);
 var
   TextStream: TStringStream;
 begin
-  OpenDialog1.Filter := 'Archivos de Texto (*.txt)|*.txt|' + 'Archivos Text (*.text)|*.text|' + 'Archivos JSON (*.json)|*.json|' + 'Archivos CSV (*.csv)|*.csv|' +
-    'Todos los archivos de texto (*.txt;*.text;*.json;*.csv)|*.txt;*.text;*.json;*.csv|' + 'Todos los archivos (*.*)|*.*';
+  OpenDialog1.Filter := 'Text Files (*.txt)|*.txt|' + 'Text Files (*.text)|*.text|' + 'JSON Files (*.json)|*.json|' + 'CSV Files (*.csv)|*.csv|' +
+    'All text files (*.txt;*.text;*.json;*.csv)|*.txt;*.text;*.json;*.csv|' + 'All files (*.*)|*.*';
   OpenDialog1.DefaultExt := '.txt';
   OpenDialog1.FilterIndex := 5; // Selects "All text files" by default
   OpenDialog1.InitialDir := 'c:\temp\';
@@ -876,7 +876,7 @@ begin
   if not(JsonValue is TJSONObject) then
   begin
     JsonValue.Free;
-    raise Exception.Create('El JSON proporcionado no es un objeto v�lido.');
+    raise Exception.Create('The provided JSON is not a valid object.');
   end;
 
   RootObject := JsonValue as TJSONObject;
@@ -1536,9 +1536,9 @@ begin
     begin
       // COMPLEX CASE: Expansion. The CTE is perfect. We only select the IDs at the end.
       Query.SQL.Text := 'WITH RECURSIVE traversal AS (' + '  SELECT id, 1 AS depth, ARRAY[id] AS path' + '  FROM (' + '    SELECT id' + '    FROM graph_nodes' + '    WHERE entidad = :entidad AND (embedding <-> ''' + EmbeddingStr +
-        ''') < :distance_threshold' + '    ORDER BY embedding <-> ''' + EmbeddingStr + '''' + '    LIMIT :limit' + '  ) AS initial' + '  UNION ALL' + '  SELECT' +
+        ''') < :distance_threshold' + '  ORDER BY embedding <-> ''' + EmbeddingStr + '''' + '    LIMIT :limit' + '  ) AS initial' + '  UNION ALL' + '  SELECT' +
         '    CASE WHEN e.source_node_id = t.id THEN e.target_node_id ELSE e.source_node_id END AS id,' + '    t.depth + 1,' + '    t.path || CASE WHEN e.source_node_id = t.id THEN e.target_node_id ELSE e.source_node_id END' +
-        '  FROM traversal t' + '  JOIN graph_edges e ON (e.source_node_id = t.id OR e.target_node_id = t.id) AND e.entidad = :entidad' + '  WHERE t.depth <= :depth' + // <= para incluir el nivel de profundidad final
+        '  FROM traversal t' + '  JOIN graph_edges e ON (e.source_node_id = t.id OR e.target_node_id = t.id) AND e.entidad = :entidad' + '  WHERE t.depth <= :depth' + // <= to include the final depth level
         '    AND NOT (CASE WHEN e.source_node_id = t.id THEN e.target_node_id ELSE e.source_node_id END = ANY(t.path))' + ')' +
       // Final query: we only want the unique IDs of all nodes in the subgraph
         'SELECT DISTINCT id FROM traversal';
@@ -1796,7 +1796,7 @@ begin
   end;
 end;
 
-// ----- Funciones de b�squeda por match ------
+// ----- Match search functions ------
 
 function TMainRagGraphDemo.MatchBuilder_GetNextNodeVar: string;
 begin

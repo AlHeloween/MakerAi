@@ -539,7 +539,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// Eventos del driver (llegan en el hilo principal)
+// Driver events (arrive on the main thread)
 // -----------------------------------------------------------------------------
 
 procedure TFormGPTLive.LiveConnected(Sender: TObject);
@@ -688,7 +688,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// Funciones locales: corren en un hilo del driver; la UI va por TThread.Queue
+// Local functions: run in a driver thread; the UI goes through TThread.Queue
 // -----------------------------------------------------------------------------
 
 procedure TFormGPTLive.FuncHoraActual(Sender: TObject; FunctionAction: TFunctionActionItem;
@@ -698,7 +698,7 @@ var
 begin
   Zona := ToolCall.Params.Values['zona'];
   // Demo: local time of the machine; a real service would convert to the requested zone
-  ToolCall.Response := Format('{"zona":"%s","hora_local_del_equipo":"%s","nota":"%s"}',
+  ToolCall.Response := Format('{"habitacion":"%s","encendida":%s}',
     [Zona, FormatDateTime('yyyy-mm-dd hh:nn', Now),
      'time of the machine where the demo runs']);
   Handled := True;

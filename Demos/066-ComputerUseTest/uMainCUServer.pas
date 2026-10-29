@@ -1,7 +1,7 @@
 ﻿unit uMainCUServer;
 
 // =============================================================================
-//  Computer Use contra el SERVIDOR cimamaker (no directo a Claude).
+//  Computer Use against the cimamaker SERVER (not direct to Claude).
 //
 //  Difference from uMainComputerUseTest:
 //   - That one uses TAiChatConnection with an INTERNAL agentic loop direct to Claude/Gemini.
@@ -79,12 +79,12 @@ implementation
 const
   MAKERAI_URL = 'https://api.cimamaker.com';
   CU_MODEL    = 'mk-claude-sonnet';   // confirmado via GET /v1/models
-  MAX_STEPS   = 40;                   // tope de iteraciones del loop
+  MAX_STEPS   = 40;                   // maximum loop iterations
   DEF_PROMPT  =
-    'Eres un agente de automatizacion de escritorio en Windows.' + sLineBreak +
-    'Tarea: toma primero un screenshot para ver la pantalla, luego abre el menu Inicio ' +
-    'haciendo click en el icono de Windows de la barra de tareas. Toma otro screenshot ' +
-    'para confirmar que el menu se abrio y describe brevemente lo que ves.';
+    'You are a desktop automation agent on Windows.' + sLineBreak +
+    'Task: first take a screenshot to see the screen, then open the Start menu ' +
+    'by clicking the Windows icon on the taskbar. Take another screenshot ' +
+    'to confirm the menu opened and briefly describe what you see.';
 
 { TFormCUServer }
 
@@ -331,7 +331,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// Loop manual contra el servidor
+// Manual loop against the server
 // -----------------------------------------------------------------------------
 procedure TFormCUServer.AddUserMsg(const ARole, AText: string);
 var
@@ -413,11 +413,11 @@ begin
 
       JResp := TJSONObject.ParseJSONValue(RespStr) as TJSONObject;
       if not Assigned(JResp) then
-        raise Exception.Create('Respuesta no es JSON: ' + Copy(RespStr, 1, 300));
+        raise Exception.Create('Response is not JSON: ' + Copy(RespStr, 1, 300));
       try
         JChoices := JResp.GetValue('choices') as TJSONArray;
         if (not Assigned(JChoices)) or (JChoices.Count = 0) then
-          raise Exception.Create('Sin choices en la respuesta: ' + Copy(RespStr, 1, 300));
+          raise Exception.Create('No choices in the response: ' + Copy(RespStr, 1, 300));
 
         JChoice := JChoices.Items[0] as TJSONObject;
         FinishReason := '';

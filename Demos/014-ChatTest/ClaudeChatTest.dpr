@@ -140,7 +140,7 @@ begin
   try
     ConfigureClaude(Ai);
     Res := Ai.AddMessageAndRun(
-      'Qué es TAIAgentManager y cuál es su función principal? Responde en 2 oraciones.',
+      'What is TAIAgentManager and what is its main function? Answer in 2 sentences.',
       'user', MakePdf(CPdfAgentes));
     WriteLn(Res);
   finally
@@ -160,7 +160,7 @@ begin
   try
     ConfigureClaude(Ai);
     Res := Ai.AddMessageAndRun(
-      'Lista los tipos de RAG que soporta MakerAI según el documento.',
+      'List the types of RAG supported by MakerAI according to the document.',
       'user', MakePdf(CPdfRag));
     WriteLn(Res);
   finally
@@ -180,10 +180,10 @@ begin
   try
     ConfigureClaude(Ai);
     WriteLn('--- Turn 1 ---');
-    Res := Ai.AddMessageAndRun('Qué es TAIBlackboard?', 'user', MakePdf(CPdfAgentes));
+    Res := Ai.AddMessageAndRun('What is TAIBlackboard?', 'user', MakePdf(CPdfAgentes));
     WriteLn(Res);
     WriteLn('--- Turn 2 ---');
-    Res := Ai.AddMessageAndRun('Dame un ejemplo corto de uso de TAIBlackboard.', 'user', []);
+    Res := Ai.AddMessageAndRun('Give me a short example of using TAIBlackboard.', 'user', []);
     WriteLn(Res);
   finally
     Ai.Free;
@@ -238,7 +238,7 @@ begin
     Chat.OnProgress   := OnMakerAiProgress;
     H.Reset;
     Res := Chat.AddMessageAndRun(
-      'Qué es TAIAgentManager y cuál es su función principal? Responde en 2 oraciones.',
+      'What is TAIAgentManager and what is its main function? Answer in 2 sentences.',
       'user', MakePdf(CPdfAgentes));
     if H.FError <> '' then WriteLn('ERROR: ' + H.FError)
     else WriteLn(Res);
@@ -268,7 +268,7 @@ begin
     Chat.OnProgress       := OnMakerAiProgress;
     H.Reset;
     Chat.AddMessageAndRun(
-      'Lista los tipos de RAG que soporta MakerAI según el documento.',
+      'List the types of RAG supported by MakerAI according to the document.',
       'user', MakePdf(CPdfRag));
     Res := H.WaitAsync;
     WriteLn;
@@ -301,7 +301,7 @@ begin
     // Turn 1: with PDF
     WriteLn('--- Turn 1 (with PDF) ---');
     H.Reset;
-    Chat.AddMessageAndRun('Qué es TAIBlackboard y para qué se usa?',
+    Chat.AddMessageAndRun('What is TAIBlackboard and what is it used for?',
       'user', MakePdf(CPdfAgentes));
     Res := H.WaitAsync;
     WriteLn;
@@ -311,7 +311,7 @@ begin
     WriteLn;
     WriteLn('--- Turn 2 (without PDF, follow-up) ---');
     H.Reset;
-    Chat.AddMessageAndRun('Dame un ejemplo corto de uso de TAIBlackboard.', 'user', []);
+    Chat.AddMessageAndRun('Give me a short example of using TAIBlackboard.', 'user', []);
     Res := H.WaitAsync;
     WriteLn;
     if Res.StartsWith('ERROR:') then WriteLn(Res)
@@ -382,7 +382,7 @@ type
     FResult:       string;
     FError:        string;
     FSavedFiles:   TStringList;  // paths of saved output files
-    OutFilePrefix: string;       // prefijo para nombres de archivo (opcional)
+    OutFilePrefix: string;       // prefix for file names (optional)
     constructor Create;
     destructor  Destroy; override;
     procedure Reset;
@@ -677,7 +677,7 @@ begin
     Chat.ApiKey          := '@MAKERAI_API_KEY';
     Chat.Model           := AModel;
     Chat.Max_tokens      := 4096;
-    Chat.Asynchronous    := False;   // sync: respuesta JSON completa, no SSE
+    Chat.Asynchronous    := False;   // sync: complete JSON response, not SSE
     Chat.ResponseTimeOut := 600000;  // 10 min
     Chat.ModelCaps       := [cap_Image, cap_CodeInterpreter];
     Chat.SessionCaps     := [cap_Image, cap_CodeInterpreter];

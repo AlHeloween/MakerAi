@@ -305,8 +305,8 @@ begin
   // them the insertion violates the foreign key in a new database.
   Conn.ExecSQL(
     'insert into genero (id, nombre) values ' +
-    '(1,''Accion''),(2,''Drama''),(3,''Comedia''),' +
-    '(4,''Ciencia ficcion''),(5,''Suspenso''),(6,''Documental'') ' +
+    '(1,''Action''),(2,''Drama''),(3,''Comedy''),' +
+    '(4,''Science fiction''),(5,''Suspense''),(6,''Documentary'') ' +
     'on conflict (id) do nothing');
   // In a DO block: 'select setval(...)' returns a result set and FireDAC
   // refuses to execute it with ExecSQL ("use Open method for SELECT-like commands").

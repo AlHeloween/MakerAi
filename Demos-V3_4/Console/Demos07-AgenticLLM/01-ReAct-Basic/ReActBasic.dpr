@@ -35,7 +35,7 @@ const
   API_KEY = '@CLAUDE_API_KEY';
 
 // =============================================================================
-//  Ejecuta una pregunta y muestra la respuesta
+//  Execute a question and show the response
 // =============================================================================
 procedure Preguntar(Manager: TAIAgentManager; const Pregunta: String);
 begin

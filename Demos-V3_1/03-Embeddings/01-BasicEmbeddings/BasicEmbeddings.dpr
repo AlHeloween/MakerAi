@@ -37,7 +37,7 @@ const
   API_KEY = '@OPENAI_API_KEY';
 
 // =============================================================================
-//  Imprime un resumen del vector (primeros 8 valores)
+//  Prints a summary of the vector (first 8 values)
 // =============================================================================
 procedure PrintVectorSummary(const V: TAiEmbeddingData; const Name: String);
 var
@@ -75,19 +75,19 @@ begin
     Writeln('--- Demo 1: Generar un embedding ---');
     Writeln('Text: "Artificial intelligence transforms the industry"');
     V1 := Conn.CreateEmbedding(
-      'La inteligencia artificial transforma la industria', 'user');
+      'Artificial intelligence transforms the industry', 'user');
     PrintVectorSummary(V1, 'V1');
     Writeln(Format('  Tokens used: prompt=%d, total=%d',
       [Conn.prompt_tokens, Conn.total_tokens]));
     Writeln;
 
     // ── Demo 2: similar vs. different texts ────────────────────────────
-    Writeln('--- Demo 2: Similitud coseno ---');
+    Writeln('--- Demo 2: Cosine similarity ---');
 
     V2 := Conn.CreateEmbedding(
-      'La IA y el machine learning cambian la industria', 'user');
+      'AI and machine learning change the industry', 'user');
     V3 := Conn.CreateEmbedding(
-      'Las recetas de cocina mexicana son muy sabrosas', 'user');
+      'Mexican cooking recipes are very tasty', 'user');
 
     Sim12 := TAiEmbeddingsCore.CosineSimilarity(V1, V2);
     Sim13 := TAiEmbeddingsCore.CosineSimilarity(V1, V3);
@@ -96,18 +96,18 @@ begin
     Writeln('  Text B: "AI and machine learning change the industry"  (similar)');
     Writeln('  Text C: "Mexican cooking recipes are very tasty"  (different)');
     Writeln;
-    Writeln(Format('  Similitud A↔B: %.4f  (esperado: alto ~0.85+)', [Sim12]));
-    Writeln(Format('  Similitud A↔C: %.4f  (esperado: bajo ~0.10-0.30)', [Sim13]));
+    Writeln(Format('  Similarity A↔B: %.4f  (expected: high ~0.85+)', [Sim12]));
+    Writeln(Format('  Similarity A↔C: %.4f  (expected: low ~0.10-0.30)', [Sim13]));
     Writeln;
 
     if Sim12 > Sim13 then
       Writeln('  Correct: A is more similar to B than to C.')
     else
-      Writeln('  Nota: resultado inesperado — verifica el modelo/driver.');
+      Writeln('  Note: unexpected result — check the model/driver.');
 
     // ── Demo 3: vector magnitude ───────────────────────────────────────
     Writeln;
-    Writeln('--- Demo 3: Propiedades del vector ---');
+    Writeln('--- Demo 3: Vector properties ---');
     Writeln(Format('  Dimensions      : %d', [Length(V1)]));
     Writeln(Format('  Magnitude (norm) : %.6f', [TAiEmbeddingsCore.Magnitude(V1)]));
     Writeln(Format('  Euclidean dist.  : %.6f', [TAiEmbeddingsCore.EuclideanDistance(V1, V2)]));

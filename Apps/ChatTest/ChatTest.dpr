@@ -81,8 +81,8 @@ begin
     Conn.Params.Values['Tool_Active']  := 'False';
     Conn.SystemPrompt.Text             := 'You are a helpful assistant. Be brief.';
 
-    Writeln('--- Turn 1: "Hola, como te llamas?" ---');
-    Conn.AddMessage('Hola, como te llamas?', 'user');
+    Writeln('--- Turn 1: "Hello, what is your name?" ---');
+    Conn.AddMessage('Hello, what is your name?', 'user');
     Conn.Run;
 
     Last := Conn.GetLastMessage;
@@ -101,8 +101,8 @@ begin
     RebuildHistory(Conn);
     PrintMessages(Conn, 'Messages after rebuild:');
 
-    Writeln('--- Turn 2: "Mi nombre es Gustavo" ---');
-    Conn.AddMessage('Mi nombre es Gustavo', 'user');
+    Writeln('--- Turn 2: "My name is Gustavo" ---');
+    Conn.AddMessage('My name is Gustavo', 'user');
     try
       Conn.Run;
       Last := Conn.GetLastMessage;

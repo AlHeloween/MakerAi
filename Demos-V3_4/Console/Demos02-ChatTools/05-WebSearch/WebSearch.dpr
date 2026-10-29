@@ -34,12 +34,12 @@ uses
   uMakerAi.Chat.Grok;
 
 const
-  // Gemini tiene búsqueda web nativa sin configuración extra
+  // Gemini has native web search without extra configuration
   DRIVER  = 'Gemini';
   MODEL   = 'gemini-2.0-flash';
   API_KEY = '@GEMINI_API_KEY';
 
-// Preguntas que requieren información actual
+// Questions that require current information
 const
   PREGUNTAS: array[0..3] of String = (
     'What are the latest artificial intelligence news this week?',

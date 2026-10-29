@@ -152,7 +152,7 @@ begin
 end;
 
 // =============================================================================
-//  RegistrarTextEditor: define la funcion text_editor en TAiFunctions
+//  RegisterTextEditor: defines the text_editor function in TAiFunctions
 // =============================================================================
 
 procedure TSistemaDemo.RegistrarTextEditor(LFuncs: TAiFunctions);
@@ -190,14 +190,14 @@ begin
   LParam := LFn.Parameters.Add;
   LParam.Name := 'old_str';
   LParam.Description.Text :=
-    'Fragmento EXACTO a reemplazar (para str_replace). Debe ser unico en el archivo.';
+    'EXACT fragment to replace (for str_replace). It must be unique in the file.';
   LParam.ParamType := ptString;
   LParam.Required  := False;
 
   LParam := LFn.Parameters.Add;
   LParam.Name := 'new_str';
   LParam.Description.Text :=
-    'Texto de reemplazo (para str_replace) o texto a insertar (para insert)';
+    'Replacement text (for str_replace) or text to insert (for insert)';
   LParam.ParamType := ptString;
   LParam.Required  := False;
 
@@ -300,7 +300,7 @@ begin
     LShell.OnConsoleLog := OnShellLog;
     LShell.RegisterInFunctions(LFuncs, 'bash');
 
-    // La unica diferencia con Demo 1: DriverName y Model
+    // The only difference from Demo 1: DriverName and Model
     Conn.DriverName := OLLAMA_DRV;
     Conn.Model      := OLLAMA_MDL;
     Conn.Params.Values['Asynchronous'] := 'False';
@@ -309,9 +309,9 @@ begin
     Conn.AiFunctions := LFuncs;
 
     Conn.SystemPrompt.Text :=
-      'Eres un asistente de sistema. Usa bash para ejecutar comandos Windows. ' +
-      'Trabaja solo en ' + WORK_DIR + '. ' +
-      'Comandos disponibles: dir, type. Responde en espanol.';
+      'You are a system assistant. Use bash to run Windows commands. ' +
+      'Work only in ' + WORK_DIR + '. ' +
+      'Available commands: dir, type. Respond in Spanish.';
 
     WriteLn('  Driver : ', OLLAMA_DRV, '   Model : ', OLLAMA_MDL);
     WriteLn('  Task   : list the files in ', WORK_DIR);
@@ -372,9 +372,9 @@ begin
     Conn.AiFunctions := LFuncs;
 
     Conn.SystemPrompt.Text :=
-      'Eres un asistente de desarrollo Delphi experto. ' +
-      'Usas text_editor para leer y editar archivos. ' +
-      'Trabaja solo en ' + WORK_DIR + '. ' +
+      'You are an expert Delphi development assistant. ' +
+      'You use text_editor to read and edit files. ' +
+      'Work only in ' + WORK_DIR + '. ' +
       'Always respond in Spanish.';
 
     WriteLn('  Task: read fibonacci.pas and add validation for N < 0');
@@ -431,7 +431,7 @@ begin
   FTextEditor := TAiTextEditorTool.Create(nil);
   Conn        := TAiChatConnection.Create(nil);
   try
-    // Registrar ambas herramientas en el mismo TAiFunctions
+    // Register both tools in the same TAiFunctions
     LShell.SecurityMode := ssmAllowList;
     LShell.SecurityList.CommaText := 'dir,type,echo';
     LShell.OnConsoleLog := OnShellLog;
@@ -447,10 +447,10 @@ begin
     Conn.AiFunctions := LFuncs;
 
     Conn.SystemPrompt.Text :=
-      'Eres un agente de desarrollo con dos herramientas: ' +
-      'bash (ejecuta comandos Windows: dir, type, echo) y ' +
-      'text_editor (lee y edita archivos). ' +
-      'Trabaja solo en ' + WORK_DIR + '. Responde siempre en espanol.';
+      'You are a development agent with two tools: ' +
+      'bash (runs Windows commands: dir, type, echo) and ' +
+      'text_editor (reads and edits files). ' +
+      'Work only in ' + WORK_DIR + '. Always respond in Spanish.';
 
     WriteLn('  Multi-step task:');
     WriteLn('    1. List files (bash)');

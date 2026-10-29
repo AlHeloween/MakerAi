@@ -58,7 +58,7 @@ begin
     Runner.AddCase('cuenta-contable').Input('How do I record depreciation?')
       .ExpectContains('159210')                                 // deterministic check
       .ExpectScore('It mentions the accumulated depreciation account', 0.7);
-    Runner.AddCase('sin-inventar').Input('What is VAT?')
+    Runner.AddCase('without-inventing').Input('What is VAT?')
       .ExpectScore('It does not invent figures not present in the question', 0.7);
 
     Report := Runner.Run(

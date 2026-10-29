@@ -10,7 +10,7 @@
 // furnished to do so, subject to the following conditions:
 //
 // The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+// Example functions (TAiFunctions): hora_actual(zona) and luz(habitacion,
 //
 // HE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -18,7 +18,7 @@
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+// with PostgreSQL and the example document conocimiento_cafe_la_ceiba.txt.
 //
 // Name: Gustavo Enr�quez
 // Social Networks:
@@ -55,7 +55,7 @@ uses
   uMakerAi.Chat.Mistral, uMakerAi.Chat.Ollama, uMakerAi.Chat.Groq, uMakerAi.Chat.Grok, uMakerAi.Whisper,
   uMakerAi.Utils.VoiceMonitor, System.Actions, FMX.ActnList, uMakerAi.RAG.Vectors, uMakerAi.Tools.Functions,
   uMakerAi.Embeddings.Core, uMakerAi.Embeddings, uMakerAi.MCPServer.Core, uMakerAi.MCPServer.Http,
-
+//  Function that sends the same question to a provider and measures the time
   System.ImageList, FMX.ImgList, FMX.TabControl, uMakerAi.Tools.Shell, uMakerAi.Tools.TextEditor, uMakerAi.Chat.Cohere,
   uMakerAi.Utils.DiffUpdater, uMakerAi.Prompts, uMakerAi.Tools.ComputerUse, uMakerAi.Tools.ComputerUse.WindowsFMX, uMakerAi.Chat.Tools, uMakerAi.Embeddings.OpenAi;
 
@@ -371,7 +371,7 @@ type
     function LoadRAGFromStream(AContainerStream: TStream): TMemoryStream;
     Procedure AddLog(Value: String);
     //procedure LoadMCPClientsFromJSON(AJsonString: string; AFunctions: TAiFunctions);
-    function WebSearchToString(AWebSearch: TAiWebSearch): String; // Recupera los detalles de la b�squeda web
+    function WebSearchToString(AWebSearch: TAiWebSearch): String; // Retrieves the details of the web search
   public
     Procedure ShowArtefacts(Visible: Boolean);
     Procedure InitChats;  //Configures models by default
@@ -925,7 +925,7 @@ begin
     If SearchText <> '' then
     Begin
       Try
-        ToolCall.Response := AiRAGVector1.SearchText(SearchText, 10, 0.3); // 03 es mas permisivo para el indice que maneja RAG
+        ToolCall.Response := AiRAGVector1.SearchText(SearchText, 10, 0.3); // 03 is more permissive for the index handled by RAG
 
       Except
         ON E: Exception do
@@ -1473,7 +1473,7 @@ begin
         LBitmap := FMX.Graphics.TBitMap.Create;
         try
           LBitmap.LoadFromStream(AMediaFile.Content);
-          ClipboardSvc.SetClipboard(LBitmap); // FMX sabe c�mo poner un TBitmap en el portapapeles
+          ClipboardSvc.SetClipboard(LBitmap); // FMX knows how to put a TBitmap on the clipboard
           Result := True;
         finally
           LBitmap.Free;
@@ -1926,7 +1926,7 @@ begin
     ZStream.Free;
   end;
 
-  // Posicionar el stream al inicio para su uso posterior
+  // Compress to the result stream
   Result.Position := 0;
 end;
 
@@ -2015,7 +2015,7 @@ begin
   Result := TMemoryStream.Create;
   StreamOrigen.Position := 0;
 
-  // Comprimir al stream de resultado
+  // Compress to the result stream
   ZStream := TZCompressionStream.Create(Result);
   try
     ZStream.CopyFrom(StreamOrigen, 0);
@@ -2023,7 +2023,7 @@ begin
     ZStream.Free;
   end;
 
-  // Posicionar el stream al inicio para su uso posterior
+  // Position the stream at the beginning for later use
   Result.Position := 0;
 end;
 
@@ -2041,7 +2041,7 @@ begin
     StreamOrigen.WriteBuffer(Datos[0], Length(Datos));
     StreamOrigen.Position := 0;
 
-    // Comprimir al stream de resultado
+    // Compress to the result stream
     ZStream := TZCompressionStream.Create(Result);
     try
       ZStream.CopyFrom(StreamOrigen, 0);
@@ -2049,7 +2049,7 @@ begin
       ZStream.Free;
     end;
 
-    // Posicionar el stream al inicio para su uso posterior
+    // Position the stream at the beginning for later use
     Result.Position := 0;
   finally
     StreamOrigen.Free;
@@ -2217,7 +2217,7 @@ begin
     begin
       // 1. Atomic update in FMX
       // FMX is usually more efficient assigning directly to .Text
-      MemoEditTool.Model.Lines.BeginUpdate; // Congela el repintado
+      MemoEditTool.Model.Lines.BeginUpdate; // Freezes repainting
       try
         MemoEditTool.Text := LContent;
       finally
@@ -2286,16 +2286,16 @@ var
   OldStr, NewStr, FileContent: string;
   Occurrences: Integer;
 
-  // Funci�n local para normalizar TODO a #10 (Est�ndar Unix/AI)
+  // Local function to normalize EVERYTHING to #10 (Unix/AI standard)
   function NormalizeToLF(const S: string): string;
   begin
-    // Paso 1: Convertir Windows CRLF a LF
+    // Step 1: Convert Windows CRLF to LF
     Result := StringReplace(S, #13#10, #10, [rfReplaceAll]);
-    // Paso 2: Convertir Mac antiguo CR a LF (por si acaso)
+    // Step 2: Convert old Mac CR to LF (just in case)
     Result := StringReplace(Result, #13, #10, [rfReplaceAll]);
   end;
 
-// Conteo de ocurrencias sobre texto normalizado
+// Count of occurrences over normalized text
   function CountOccurrencesLocal(const Text, SubText: string): Integer;
   var
     P, Offset: Integer;

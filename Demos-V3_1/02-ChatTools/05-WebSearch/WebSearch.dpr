@@ -78,8 +78,8 @@ end;
 // =============================================================================
 procedure RunDemo;
 var
-  ConnSin : TAiChatConnection;   // Claude — sin web search
-  ConnCon : TAiChatConnection;   // Gemini — con web search
+  ConnSin : TAiChatConnection;   // Claude — without web search
+  ConnCon : TAiChatConnection;   // Gemini — with web search
   Res     : String;
   I       : Integer;
 begin
@@ -94,16 +94,16 @@ begin
   ConnSin := TAiChatConnection.Create(nil);
   ConnCon := TAiChatConnection.Create(nil);
   try
-    // Conexión SIN web search — Claude
+    // Connection WITHOUT web search — Claude
     ConnSin.DriverName := DRIVER_SIN;
     ConnSin.Model      := MODEL_SIN;
     ConnSin.Params.Values['ApiKey']       := API_KEY_SIN;
     ConnSin.Params.Values['Asynchronous'] := 'False';
     ConnSin.Params.Values['Max_Tokens']   := '1024';
     ConnSin.SystemPrompt.Text :=
-      'Responde basándote únicamente en tu conocimiento interno. Responde en español.';
+      'Respond based only on your internal knowledge. Respond in Spanish.';
 
-    // Conexión CON web search — Gemini
+    // Connection WITH web search — Gemini
     ConnCon.DriverName := DRIVER_CON;
     ConnCon.Model      := MODEL_CON;
     ConnCon.Params.Values['ApiKey']       := API_KEY_CON;
@@ -112,12 +112,12 @@ begin
     ConnCon.SystemPrompt.Text :=
       'You are an assistant with web search access. ' +
       'When you use web search, mention the consulted sources. ' +
-      'Responde en español.';
+      'Respond in Spanish.';
 
     // ── Demo 1: Comparison with/without search ─────────────────────────────
     Writeln('=== COMPARISON: with vs. without web search ===');
     CompararConSinBusqueda(ConnSin, ConnCon,
-      '¿Cuál es el LLM más potente disponible hoy?');
+      'What is the most powerful LLM available today?');
 
     // ── Demo 2: Questions that need current info ───────────────────────
     Writeln('=== QUESTIONS THAT REQUIRE CURRENT INFORMATION (Gemini) ===');
@@ -138,10 +138,10 @@ begin
     ConnCon.Messages.Clear;
     ConnCon.SystemPrompt.Text :=
       'Respond with sources. At the end include a section "Sources:" with ' +
-      'las URLs consultadas. Responde en español.';
+      'the consulted URLs. Respond in Spanish.';
 
     Res := ConnCon.AddMessageAndRun(
-      '¿Qué es Model Context Protocol (MCP) de Anthropic y para qué sirve?',
+      'What is Model Context Protocol (MCP) from Anthropic and what is it for?',
       'user', []);
     Writeln(Res);
 

@@ -39,7 +39,7 @@ uses
 
 const
   // ==========================================================================
-  // CONFIGURACION
+  // CONFIGURATION
   // ==========================================================================
 
   // Target language for each side
@@ -123,7 +123,7 @@ begin
   // gpt-live-transcribe (Aug 2026): better WER with background noise, accents and
   // terminology; accepts domain context (prompt + expected languages)
   FSTT.TranscriptionModel := otmGptLiveTranscribe;
-  FSTT.TranscriptionPrompt := 'Llamada de trabajo traducida en tiempo real';
+  FSTT.TranscriptionPrompt := 'Work call translated in real time';
   FSTT.Language := aSttLanguage;
   if aSttLanguage = '' then
   begin
@@ -140,7 +140,7 @@ begin
   FCapture.Source := aSource;
   FCapture.OutputSampleRate := 16000;
   FCapture.OutputChannels := 1;
-  FCapture.RealtimeSTT := FSTT; // cada chunk PCM16 se reenvia al STT
+  FCapture.RealtimeSTT := FSTT; // each PCM16 chunk is forwarded to the STT
   FCapture.OnError := CaptureError;
 end;
 

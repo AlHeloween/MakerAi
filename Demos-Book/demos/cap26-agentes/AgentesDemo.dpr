@@ -28,10 +28,10 @@ uses
   uMakerAi.Agents.IAiTool,      // IAiTool
   uMakerAi.Agents.ToolRegistry, // TAiToolRegistry
   uMakerAi.Chat.AiConnection,   // TAiChatConnection (conector universal)
-  uMakerAi.Chat.Initializations; // auto-registra todos los drivers
+  uMakerAi.Chat.Initializations; // auto-registers all drivers
 
 // ---------------------------------------------------------------------------
-//  Configuracion del provider
+//  Provider configuration
 // ---------------------------------------------------------------------------
 
 const
@@ -244,7 +244,7 @@ begin
   begin
     FSchema := TJSONObject.Create;
     FSchema.AddPair('type', 'object');
-    FSchema.AddPair('properties', TJSONObject.Create); // sin parametros
+    FSchema.AddPair('properties', TJSONObject.Create); // without parameters
   end;
   Result := FSchema;
 end;
@@ -399,7 +399,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-//  Demo B -- TLLMNode con herramientas IAiTool
+//  Demo B -- TLLMNode with IAiTool tools
 // ---------------------------------------------------------------------------
 
 procedure DemoB;
@@ -426,7 +426,7 @@ begin
     //    of components via TComponent's Notification mechanism.
     Node := TLLMNode.Create(Manager);
     Node.Name         := 'Agente';
-    Node.Graph        := Manager;    // necesario para Blackboard y link traversal
+    Node.Graph        := Manager;    // necessary for Blackboard and link traversal
     Node.DriverName   := DRV;
     Node.ApiKey       := APIKEY;
     Node.Model        := MDL;
@@ -435,7 +435,7 @@ begin
       'For the current date/time use FechaHoraActual. ' +
       'For arithmetic calculations use Calculadora. ' +
       'Show the result clearly and concisely.';
-    Node.UseAllTools  := True;   // inyecta todo el TAiToolRegistry.Instance
+    Node.UseAllTools  := True;   // injects all of TAiToolRegistry.Instance
 
     Manager
       .SetEntryPoint('Agente')
@@ -455,7 +455,7 @@ begin
     end;
 
   finally
-    TAiToolRegistry.Instance.Clear;   // limpiar el registry al terminar el demo
+    TAiToolRegistry.Instance.Clear;   // clear the registry when the demo ends
     Manager.Free;
   end;
 end;

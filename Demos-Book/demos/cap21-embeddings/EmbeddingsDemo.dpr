@@ -23,7 +23,7 @@ uses
   uMakerAi.Embeddings,
   uMakerAi.Embeddings.core,
   uMakerAi.Embeddings.Connection,
-  uMakerAi.Embeddings.Ollama;  // auto-registra el driver en initialization
+  uMakerAi.Embeddings.Ollama;  // auto-registers the driver in initialization
 
 // ---------------------------------------------------------------------------
 //  Driver and model constants
@@ -200,7 +200,7 @@ begin
     Conn.DriverName := OLLAMA_DRV;
     Conn.Model      := MDL_SNOWFLAKE;
 
-    // Pre-calcular embeddings del corpus (una sola vez, reutilizar en las 3 queries)
+    // Pre-calculate corpus embeddings (once, reuse in the 3 queries)
     Write('  Indexing corpus...');
     Corpus := BuildCorpus(Conn, D2_CORPUS);
     WriteLn(Format(' OK  (%d embeddings ready)', [Length(Corpus)]));

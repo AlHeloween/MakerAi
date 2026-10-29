@@ -196,7 +196,7 @@ var Props, Txt: TJSONObject; Req: TJSONArray;
 begin
   inherited; FSchema := TJSONObject.Create; FSchema.AddPair('type', 'object');
   Props := TJSONObject.Create;
-  Txt := TJSONObject.Create; Txt.AddPair('type', 'string'); Txt.AddPair('description', 'Texto a codificar como URL'); Props.AddPair('text', Txt);
+  Txt := TJSONObject.Create; Txt.AddPair('type', 'string'); Txt.AddPair('description', 'Text to encode as URL'); Props.AddPair('text', Txt);
   FSchema.AddPair('properties', Props);
   Req := TJSONArray.Create; Req.Add('text'); FSchema.AddPair('required', Req);
 end;

@@ -2238,7 +2238,7 @@ begin
 
   if InstallMCPPackage(Capability, PkgName, ToolsList) then
   begin
-    DoLog('TOOL', Format('[PPM] %s installed - tools: %s', [PkgName, ToolsList]));
+    DoLog('SYS', Format('[PPM] %s installed - tools: %s', [PkgName, ToolsList]));
     JResult := TJSONObject.Create;
     JArr    := TJSONArray.Create;
     try

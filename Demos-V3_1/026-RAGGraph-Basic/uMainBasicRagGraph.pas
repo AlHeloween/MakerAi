@@ -131,7 +131,7 @@ end;
 
 procedure TForm20.BtnBusquedaHibridaClick(Sender: TObject);
 var
-  Plan: TQueryPlan; // Este plan suele generarlo el LLM autom�ticamente
+  Plan: TQueryPlan; // This plan is usually generated automatically by the LLM
 begin
   // 1. ANCHOR (Vector): "Search for someone similar to 'The genius of Apple'"
   Plan.AnchorPrompt := 'The genius of Apple';

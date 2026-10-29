@@ -4,7 +4,7 @@ interface
 
 uses
   System.SysUtils, System.Classes, System.IOUtils, System.JSON, System.Types,
-  uMakerAi.MCPServer.Core; // Tu núcleo MCP
+  uMakerAi.MCPServer.Core; // Your MCP core
 
 const
   // Root folder that will control the AI.

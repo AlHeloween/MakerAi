@@ -34,7 +34,7 @@ uses
   uMakerAi.Chat.Claude,    // DriverName = 'Claude'
   uMakerAi.Chat.OpenAi,    // DriverName = 'OpenAI'
   uMakerAi.Chat.Gemini,    // DriverName = 'Gemini'
-  uMakerAi.Chat.Ollama,    // DriverName = 'Ollama'  (local, sin API key)
+  uMakerAi.Chat.Ollama,    // DriverName = 'Ollama'  (local, without API key)
   uMakerAi.Chat.Groq,      // DriverName = 'Groq'
   uMakerAi.Chat.Mistral;   // DriverName = 'Mistral'
 
@@ -69,7 +69,7 @@ begin
     Conn.Model      := MODEL;
 
     Conn.Params.Values['ApiKey']       := API_KEY;
-    Conn.Params.Values['Asynchronous'] := 'False';  // llamada síncrona
+    Conn.Params.Values['Asynchronous'] := 'False';  // synchronous call
     Conn.Params.Values['Max_Tokens']   := '1024';
 
     Conn.SystemPrompt.Text := SYSTEM_PROMPT;

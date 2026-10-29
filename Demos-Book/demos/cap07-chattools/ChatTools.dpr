@@ -105,7 +105,7 @@ var
   Files     : TAiMediaFilesArray;
   R         : string;
 begin
-  Separador('Demo 1 — Bridge de visión (Groq + Ollama)');
+  Separador('Demo 1 — Vision bridge (Groq + Ollama)');
 
   if not TFile.Exists(IMG_PATH) then
   begin
@@ -143,7 +143,7 @@ begin
 
     Conn.SystemPrompt.Text :=
       'You are a visual analysis assistant. You will receive text descriptions ' +
-      'de imágenes y responderás preguntas sobre ellas. Responde en español, conciso.';
+      'of images and you will answer questions about them. Respond in Spanish, concisely.';
 
     // Load the image into a TAiMediaFile
     // NOTE: AddMessageAndRun takes ownership of the TAiMediaFile items in the array.
@@ -193,7 +193,7 @@ procedure Demo2_DirectTool;
 var
   Descripcion: string;
 begin
-  Separador('Demo 2 — Uso directo del VisionTool (sin LLM)');
+  Separador('Demo 2 — Direct use of VisionTool (without LLM)');
 
   if not TFile.Exists(IMG_PATH) then
   begin

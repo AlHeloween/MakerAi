@@ -34,7 +34,7 @@ uses
   uMakerAi.Chat.Messages,        // TAiChatMessage, TAiMsgCitation
   uMakerAi.Chat.AiConnection,    // TAiChatConnection
   uMakerAi.Chat.Claude,          // TAiClaudeChat
-  uMakerAi.Chat.Initializations; // auto-registra todos los drivers
+  uMakerAi.Chat.Initializations; // auto-registers all drivers
 
 // ---------------------------------------------------------------------------
 //  TCacheMonitor — captures cache metrics from OnReceiveDataEnd
@@ -176,7 +176,7 @@ end;
 
 procedure DemoA_ClaudePromptCaching;
 const
-  // ~270 chars x 40 repeticiones ≈ 10 800 chars ≈ 2 700 tokens (sobre el mínimo)
+  // ~270 chars x 40 repetitions ≈ 10 800 chars ≈ 2 700 tokens (above the minimum)
   BASE_SYS =
     'You are an expert assistant in software technical documentation. ' +
     'Your goal is to analyze documents, extract key information, ' +
@@ -207,7 +207,7 @@ begin
     WriteLn('--- Call 1 (Cache MISS expected) ---');
     Mon.Reset;
     Resp := Conn.AddMessageAndRun(
-      '¿Cuál es tu función principal como asistente?', 'user', []);
+      'What is your main function as an assistant?', 'user', []);
     Mon.Print('Call 1');
     WriteLn('  Response: ', Copy(Resp, 1, 100), '...');
 
@@ -215,14 +215,14 @@ begin
     WriteLn('--- Call 2 (Cache HIT expected) ---');
     Mon.Reset;
     Resp := Conn.AddMessageAndRun(
-      '¿Cómo analizas los documentos?', 'user', []);
+      'How do you analyze documents?', 'user', []);
     Mon.Print('Call 2');
 
     WriteLn;
     WriteLn('--- Call 3 (Cache HIT confirmed) ---');
     Mon.Reset;
     Resp := Conn.AddMessageAndRun(
-      '¿Qué tipo de información extraes de los documentos?', 'user', []);
+      'What kind of information do you extract from documents?', 'user', []);
     Mon.Print('Call 3');
   finally
     Conn.Free;
@@ -293,9 +293,9 @@ begin
 
     Mon.Reset;
     Resp := Conn.AddMessageAndRun(
-      '¿Cuántos paquetes hay que compilar y en qué orden? ' +
-      '¿Qué providers soporta MakerAI? ' +
-      '¿Cómo funciona el prompt caching?',
+      'How many packages need to be compiled and in what order? ' +
+      'Which providers does MakerAI support? ' +
+      'How does prompt caching work?',
       'user', [MF]);
 
     WriteLn('Model response:');
@@ -323,7 +323,7 @@ end;
 
 procedure DemoC_OpenAIAutoCaching;
 const
-  // ~230 chars x 30 repeticiones ≈ 6 900 chars ≈ 1 725 tokens (sobre el mínimo)
+  // ~230 chars x 30 repetitions ≈ 6 900 chars ≈ 1 725 tokens (above the minimum)
   BASE_SYS =
     'You are an expert in artificial intelligence applied to software development. ' +
     'Your role is to answer technical questions with precision and clarity. ' +

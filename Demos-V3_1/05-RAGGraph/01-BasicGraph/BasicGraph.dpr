@@ -124,7 +124,7 @@ begin
   // --- RELATIONSHIPS between companies ---
   RAG.AddEdge(Microsoft, OpenAI, 'r009', 'INVESTED_IN', 'invested in', 0.7);
 
-  Writeln(Format('Grafo creado: %d nodos, %d aristas.',
+  Writeln(Format('Graph created: %d nodes, %d edges.',
     [RAG.NodeCount, RAG.EdgeCount]));
   Writeln;
 end;

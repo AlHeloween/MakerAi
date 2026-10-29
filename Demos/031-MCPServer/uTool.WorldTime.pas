@@ -83,7 +83,7 @@ begin
     // END OF IMPLEMENTATION SPACE
     // =========================================================================
 
-    // Construir respuesta estructurada
+    // Build structured response
     ResultObject := TJSONObject.Create;
     try
       ResultObject.AddPair('country', AParams.Country);

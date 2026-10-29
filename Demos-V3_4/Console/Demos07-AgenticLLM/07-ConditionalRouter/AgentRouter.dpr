@@ -55,7 +55,7 @@ begin
   Classification := Trim(LowerCase(Node.Graph.Blackboard.GetString('Classifier.output')));
 
   // Normalize: take the first word (the LLM sometimes generates extra text)
-  Route     := 'history';  // valor por defecto
+  Route     := 'history';  // default value
   FirstWord := '';
   if Length(Classification) > 0 then
     FirstWord := Trim(Classification.Split([' ', #10, #13, #9, '.', ','])[0]);

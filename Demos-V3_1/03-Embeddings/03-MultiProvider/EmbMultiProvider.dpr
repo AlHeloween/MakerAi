@@ -53,7 +53,7 @@ const
   );
 
 // =============================================================================
-//  Prueba un proveedor: genera dos embeddings y calcula similitud
+//  Tests a provider: generates two embeddings and calculates similarity
 // =============================================================================
 procedure TestProvider(const Cfg: TProviderConfig);
 var

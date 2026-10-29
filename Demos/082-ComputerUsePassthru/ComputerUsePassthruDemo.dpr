@@ -199,7 +199,7 @@ begin
           Sleep(200);
           Inc(Waited, 200);
         end;
-        Sleep(3000); // gracia: el ultimo tramo del stream corre en su hilo
+        Sleep(3000); // grace: the last part of the stream runs in its thread
       end;
 
       if Res.Trim <> '' then

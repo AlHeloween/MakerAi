@@ -55,7 +55,7 @@ type
   end;
 
 // =============================================================================
-//  Handler: simula consultar el clima de una ciudad
+//  Handler: simulates querying the weather of a city
 // =============================================================================
 procedure TSingleFunctionDemo.OnFnGetWeather(Sender: TObject;
   FunctionAction: TFunctionActionItem; FunctionName: String;
@@ -175,7 +175,7 @@ begin
 end;
 
 // =============================================================================
-//  Punto de entrada
+//  Entry point
 // =============================================================================
 begin
   try

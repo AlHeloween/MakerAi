@@ -160,21 +160,21 @@ begin
     '  "parts": [' + sLineBreak +
     '    {' + sLineBreak +
     '      "name": "<section name>",' + sLineBreak +
-    '      "label": "Seccion",' + sLineBreak +
+    '      "label": "Section",' + sLineBreak +
     '      "text": "<text of this section>",' + sLineBreak +
-    '      "parts": []' + sLineBreak +
+    '  "parts": []' + sLineBreak +
     '    }' + sLineBreak +
     '  ]' + sLineBreak +
     '}' + sLineBreak +
     sLineBreak +
-    'Reglas:' + sLineBreak +
+    'Rules:' + sLineBreak +
     '- Identify the natural sections of the text (titles, topics, thematic paragraphs)' + sLineBreak +
     '- Each "part" must have "name", "label" and "text" required' + sLineBreak +
     '- If a section has subsections, use "parts" recursively' + sLineBreak +
     '- The "text" field of each part must contain the original text, not a summary' + sLineBreak +
     '- Respond ONLY with the JSON, without additional explanations or markdown' + sLineBreak +
     sLineBreak +
-    'DOCUMENTO:' + sLineBreak +
+    'DOCUMENT:' + sLineBreak +
     MemoDocumento.Lines.Text;
 
   Cursor := crHourGlass;

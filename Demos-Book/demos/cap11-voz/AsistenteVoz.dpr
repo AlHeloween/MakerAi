@@ -114,7 +114,7 @@ begin
 end;
 
 // =============================================================================
-//  Demo 1 — STT directo con TAIWhisper
+//  Demo 1 — Direct STT with TAIWhisper
 //
 //  TAIWhisper is the legacy interface for Whisper. Simple and direct:
 //  loads the audio into a TMemoryStream and calls Transcription().
@@ -163,7 +163,7 @@ begin
 end;
 
 // =============================================================================
-//  Demo 2 — TTS directo con TAiOpenAiAudio
+//  Demo 2 — Direct TTS with TAiOpenAiAudio
 //
 //  TAiOpenAiAudio is the modern OpenAI Audio API. Uses typed enums
 //  instead of strings to avoid typing errors in model/voice.
@@ -228,7 +228,7 @@ end;
 // =============================================================================
 //  Demo 3 — Asistente de voz completo (pipeline manual)
 //
-//  Encadena tres fases sin magia:
+//  Chains three phases without magic:
 //    1. STT: audio file → text (TAIWhisper)
 //    2. LLM: text → AI response (TAiChatConnection with OpenAI)
 //    3. TTS: response → MP3 audio (TAiOpenAiAudio)
@@ -353,11 +353,11 @@ begin
   Conn    := TAiChatConnection.Create(nil);
   MF      := TAiMediaFile.Create;
   try
-    // Configurar el SpeechTool
+    // Configure the SpeechTool
     Whisper.ApiKey   := '@OPENAI_API_KEY';
     Whisper.Languaje := 'es';
 
-    // Configurar la conexión con el modo de transcripción forzado
+    // Configure the connection with forced transcription mode
     Conn.DriverName              := OPENAI_DRIVER;
     Conn.Model                   := OPENAI_MODEL;
     Conn.Params.Values['ApiKey'] := '@OPENAI_API_KEY';
@@ -490,6 +490,6 @@ begin
       WriteLn('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   WriteLn('');
-  WriteLn('Presiona Enter para salir...');
+  WriteLn('Press Enter to exit...');
   ReadLn;
 end.

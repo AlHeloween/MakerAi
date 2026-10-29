@@ -19,7 +19,7 @@ uses
   FMX.Edit, FMX.ListBox, FMX.TabControl, FMX.WebBrowser,
   // TeeChart (FMX)
   FMXTee.Engine, FMXTee.Procs, FMXTee.Chart, FMXTee.Series,
-  // FireDAC (SQLite embebido, sin DLL externa via SQLiteWrapper.Stat)
+  // FireDAC (embedded SQLite, no external DLL via SQLiteWrapper.Stat)
   FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf,
   FireDAC.Phys.Intf, FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async,
   FireDAC.Phys, FireDAC.Phys.SQLite, FireDAC.Phys.SQLiteDef,
@@ -89,7 +89,7 @@ const
   CHART_DT_FMT = 'dd/mm hh:nn';
 
 // =============================================================================
-//  Creacion del form
+// Form creation
 // =============================================================================
 procedure TFormMain.FormCreate(Sender: TObject);
 begin
@@ -111,7 +111,7 @@ begin
 end;
 
 // =============================================================================
-//  UI - construida por codigo
+// UI - built in code
 // =============================================================================
 procedure TFormMain.BuildUI;
 var
@@ -292,12 +292,12 @@ begin
     'Receives a title and an array of points {date, value}.';
   LFn.RawSchemaJson :=
     '{"type":"object","properties":{' +
-    '"titulo":{"type":"string","description":"Titulo de la grafica"},' +
-    '"puntos":{"type":"array","description":"Puntos de la serie de tiempo",' +
+    '"titulo":{"type":"string","description":"Chart title"},' +
+    '"puntos":{"type":"array","description":"Time series points",' +
     '"items":{"type":"object","properties":{' +
-    '"fecha":{"type":"string","description":"Fecha u hora en ISO 8601"},' +
-    '"valor":{"type":"number","description":"Valor numerico del punto"}},' +
-    '"required":["fecha","valor"]}}},"required":["puntos"]}';
+    '"fecha":{"type":"string","description":"Date or time in ISO 8601"},' +
+    '"valor":{"type":"number","description":"Numeric value of the point"}},' +
+    '"required":["puntos"]}},"required":["puntos"]}';
   LFn.OnAction := FuncGraficarSerie;
 
   // connect functions to chat
@@ -359,7 +359,7 @@ begin
 end;
 
 // =============================================================================
-//  Envio del prompt (con RAG opcional)
+// Prompt submission (with optional RAG)
 // =============================================================================
 procedure TFormMain.BtnSendClick(Sender: TObject);
 var
@@ -415,7 +415,7 @@ begin
 end;
 
 // =============================================================================
-//  Cargar documentos a RAG (SQLite)
+// Load documents into RAG (SQLite)
 // =============================================================================
 procedure TFormMain.BtnLoadRAGClick(Sender: TObject);
 var
@@ -452,7 +452,7 @@ begin
 end;
 
 // =============================================================================
-//  Eventos del chat
+// Chat events
 // =============================================================================
 procedure TFormMain.AiConnReceiveData(const Sender: TObject; aMsg: TAiChatMessage; aResponse: TJSONObject; aRole, aText: string);
 begin
@@ -496,7 +496,7 @@ begin
 end;
 
 // =============================================================================
-//  Funciones (tools) llamadas por la IA
+// Functions (tools) called by the AI
 // =============================================================================
 procedure TFormMain.FuncGetFechaHora(Sender: TObject; FunctionAction: TFunctionActionItem; FunctionName: string; ToolCall: TAiToolsFunction; var Handled: Boolean);
 begin

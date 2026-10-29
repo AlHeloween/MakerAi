@@ -304,9 +304,9 @@ begin
   FLastError := '';
   try
     LResp := FAiConn.AddMessageAndRun(
-      'Puedes verificar si mi base de datos postgres local está activa? ' +
-      'Usa esta cadena de conexión: ' + FPGConn +
-      '. Ejecuta un SELECT 1 para confirmar que está activa.',
+      'Can you check if my local postgres database is active? ' +
+      'Use this connection string: ' + FPGConn +
+      '. Execute a SELECT 1 to confirm it is active.',
       'user', []);
   except
     on E: Exception do LResp := '(exception: ' + E.Message + ')';
@@ -505,9 +505,9 @@ begin
   FLastError := '';
   try
     LResp := FAiConn.AddMessageAndRun(
-      'Usa el servidor MCP mcp-tts-gemini para generar audio con el texto "hola". ' +
-      'Llama a call_mcp_tool con tool_name="mcp-tts-gemini" y el texto. ' +
-      'Muéstrame la respuesta JSON cruda que devuelve el servidor.',
+      'Use the MCP server mcp-tts-gemini to generate audio with the text "hola". ' +
+      'Call call_mcp_tool with tool_name="mcp-tts-gemini" and the text. ' +
+      'Show me the raw JSON response returned by the server.',
       'user', []);
   except
     on E: Exception do LResp := '(exception: ' + E.Message + ')';

@@ -158,7 +158,7 @@ begin
     // Specialists
     EspMath := MakeLLM(Manager, 'EspecialistaMath',
       'You are a mathematics expert. Answer the question clearly ' +
-      'mostrando todos los pasos si hay calculos. Responde en espanol.');
+      'showing all steps if there are calculations. Respond in Spanish.');
 
     EspCiencia := MakeLLM(Manager, 'EspecialistaCiencia',
       'You are a science expert. Answer with scientific precision ' +
@@ -166,13 +166,13 @@ begin
 
     EspHistoria := MakeLLM(Manager, 'EspecialistaHistoria',
       'You are a history expert. Answer with historical context ' +
-      'y datos clave. Responde en espanol.');
+      'and key data. Respond in Spanish.');
 
     // Final formatter: jmAny (only one specialist arrives)
     Formatter := MakeLLM(Manager, 'Formatter',
       'You receive an expert''s answer. ' +
       'Format it: add a brief title, then the structured answer. ' +
-      'Mantén la concision. Responde en espanol.');
+      'Keep it concise. Respond in Spanish.');
     Formatter.JoinMode := jmAny;
 
     // Link: Classifier -> Router

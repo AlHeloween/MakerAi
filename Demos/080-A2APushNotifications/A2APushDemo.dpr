@@ -190,7 +190,7 @@ end;
 procedure THandlers.Fabrica(Sender: TObject; var AManager: TAIAgentManager);
 begin
   AManager := TAIAgentManager.Create(nil);
-  AManager.AddNode('Procesar', NodoLento);
+  AManager.AddNode('Process', NodoLento);
   AManager.SetEntryPoint('Procesar').SetFinishPoint('Procesar');
 end;
 
@@ -250,10 +250,10 @@ begin
     Server := TAiA2AServer.Create(nil);
     Receptor := TReceptorWebhook.Create(PuertoHook);
     try
-      Agente.AddNode('Procesar', Handlers.NodoLento);
+      Agente.AddNode('Process', Handlers.NodoLento);
       Agente.SetEntryPoint('Procesar').SetFinishPoint('Procesar');
       Server.AgentManager := Agente;
-      Server.AgentName := 'Agente con avisos';
+      Server.AgentName := 'Agent with notifications';
       Server.OnAcquireManager := Handlers.Fabrica;
       Server.MaxConcurrentTasks := 8;
       Server.Port := Puerto;
@@ -281,7 +281,7 @@ begin
 
       R := Rpc(Url, Format('{"jsonrpc":"2.0","id":2,"method":"CreateTaskPushNotificationConfig","params":' +
         '{"taskId":"%s","config":{"id":"cfg-1","url":"%s",' +
-        '"authentication":{"scheme":"Bearer","credentials":"mi-token-secreto"}}}}', [TaskId, HookUrl]));
+        '"authentication":{"scheme":"Bearer","credentials":"my-secret-token"}}}}', [TaskId, HookUrl]));
       try
         Writeln('   config registered: ' + R.GetValue<TJSONObject>('result').ToJSON);
       finally
@@ -318,9 +318,9 @@ begin
       Receptor.Limpiar;
 
       R := Rpc(Url, Format('{"jsonrpc":"2.0","id":4,"method":"SendMessage","params":{' +
-        '"message":{"messageId":"m2","role":"ROLE_USER","parts":[{"text":"lote-2"}]},' +
+        '"message":{"messageId":"m2","role":"ROLE_USER","parts":[{"text":"batch-2"}]},' +
         '"configuration":{"blocking":false,"taskPushNotificationConfig":' +
-        '{"id":"cfg-2","url":"%s","authentication":{"scheme":"Bearer","credentials":"otro-token"}}}}}',
+        '{"id":"cfg-2","url":"%s","authentication":{"scheme":"Bearer","credentials":"other-token"}}}}',
         [HookUrl]));
       try
         Writeln('   task: ' + R.GetValue<TJSONObject>('result').GetValue<TJSONObject>('task')

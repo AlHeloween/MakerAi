@@ -208,8 +208,8 @@ begin
     JevGuard.BlockedCategories.Add('financial');
     JevGuard.BlockedCategories.Add('system');
     // Without this 'anular_comprobante' is read as 'read' (0.83)
-    JevGuard.ToolDescriptions.Add('anular_comprobante=Anula un comprobante contable: genera el ' +
-      'comprobante de reversion y lo marca como anulado');
+    JevGuard.ToolDescriptions.Add('anular_comprobante=Cancels an accounting voucher: generates the ' +
+      'reversal voucher and marks it as canceled');
     Guard.Classifier := JevGuard;
 
     for L in CALLS do

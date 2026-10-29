@@ -213,7 +213,7 @@ begin
       Server.OnUnauthorizedRequest := H.HandleUnauthorized;
       H.AllowUnauth := False;
 
-      // 2a. tools/call sin sesion -> rechazado
+      // 2a. tools/call without session -> rejected
       H.UnauthFired := False;
       if DoPost(CallEchoBody, '', st, body, sess) then
       begin
@@ -235,14 +235,14 @@ begin
         sid := sess;
       end;
 
-      // 2c. tools/call con la sesion emitida -> permitido
+      // 2c. tools/call with the issued session -> allowed
       if DoPost(CallEchoBody, sid, st, body, sess) then
       begin
         Check(Pos(ECHO_MARK, body) > 0, '2c. tools/call with valid Mcp-Session-Id executes the tool');
         Check(Pos('-32001', body) = 0, '2c. no authorization error');
       end;
 
-      // 2d. tools/call con sesion invalida -> rechazado
+      // 2d. tools/call with invalid session -> rejected
       H.UnauthFired := False;
       if DoPost(CallEchoBody, 'sesion-invalida-xyz', st, body, sess) then
       begin

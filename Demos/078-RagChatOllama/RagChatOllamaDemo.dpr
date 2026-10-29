@@ -70,9 +70,9 @@ const
   TOP_K = 4;
 
   // The system prompt is half the work in a RAG. These three rules are
-  // las que evitan el fallo mas comun: que el modelo complete con lo que "sabe"
-  // cuando el contexto no alcanza.
-  SYSTEM_RAG = 'Eres el asistente de un catalogo de peliculas.' + sLineBreak +
+  // the ones that avoid the most common failure: the model completing with what it "knows"
+  // when the context is not enough.
+  SYSTEM_RAG = 'You are the assistant of a movie catalog.' + sLineBreak +
     'Answer ONLY with the information from the CATALOG below.' + sLineBreak +
     'If the catalog does not contain the answer, say exactly: "I do not have that information in the catalog".' + sLineBreak +
     'Do not invent titles, directors or years. Cite the title of the movies you use.' + sLineBreak +
@@ -189,7 +189,7 @@ begin
     if Resp.StatusCode <> 200 then
       raise Exception.CreateFmt('Ollama returned HTTP %d', [Resp.StatusCode]);
     if not Resp.ContentAsString(TEncoding.UTF8).Contains(ModeloChat) then
-      raise Exception.CreateFmt('El modelo de chat "%s" no esta en Ollama. Descargalo con: ollama pull %s',
+      raise Exception.CreateFmt('The chat model "%s" is not in Ollama. Download it with: ollama pull %s',
         [ModeloChat, ModeloChat]);
   finally
     Http.Free;
@@ -239,7 +239,7 @@ begin
   // much larger token budget is needed.
   Chat.Url := OllamaUrl;
   Chat.Model := ModeloChat;
-  Chat.Asynchronous := False; // consola: respuesta completa de una vez
+  Chat.Asynchronous := False; // console: full response at once
   if HasFlag('--think') then
     Chat.Max_tokens := 16000
   else

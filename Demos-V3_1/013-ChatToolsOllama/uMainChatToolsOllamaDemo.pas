@@ -77,7 +77,7 @@ type
     FAiFunctions: TAiFunctions;
     FArchivoAdjunto: TAiMediaFile;
     FStreamBuffer: string;
-    FUltimoTmpVideo: string;  // ruta del último video temporal (para limpieza)
+    FUltimoTmpVideo: string;  // path of the last temporary video (for cleanup)
     procedure InicializarFunciones;
     procedure ConfigurarModo(aModo: Integer);
     procedure AgregarAlChat(const aRol, aTexto: string);
@@ -374,7 +374,7 @@ begin
   FAudio.Stop;
   FreeAndNil(FAudio);
   FreeAndNil(FArchivoAdjunto);
-  // Limpiar video temporal
+  // Clean temporary video
   if (FUltimoTmpVideo <> '') and TFile.Exists(FUltimoTmpVideo) then
     TFile.Delete(FUltimoTmpVideo);
 end;
@@ -420,7 +420,7 @@ begin
     OpenDialog1.Filter := 'Imagenes|*.jpg;*.jpeg;*.png;*.gif;*.webp;*.bmp|'
   else if LModo = 3 then
     OpenDialog1.Filter := 'Documentos PDF|*.pdf|';
-  OpenDialog1.Filter := OpenDialog1.Filter + 'Todos los archivos|*.*';
+  OpenDialog1.Filter := OpenDialog1.Filter + 'All files|*.*';
 
   if not OpenDialog1.Execute then
     Exit;
@@ -710,7 +710,7 @@ begin
       LLinea := LLineas[I];
       LTrim := Trim(LLinea);
 
-      // Bloque de código
+      // Code block
       if LTrim.StartsWith('```') then
       begin
         if LEnBloque then

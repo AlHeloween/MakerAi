@@ -640,7 +640,7 @@ begin
         LBitmap := FMX.Graphics.TBitmap.Create;
         try
           LBitmap.LoadFromStream(AMediaFile.Content);
-          ClipboardSvc.SetClipboard(LBitmap); // FMX sabe c�mo poner un TBitmap en el portapapeles
+          ClipboardSvc.SetClipboard(LBitmap); // FMX knows how to put a TBitmap on the clipboard
           Result := True;
         finally
           LBitmap.Free;

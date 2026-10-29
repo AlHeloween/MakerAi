@@ -44,7 +44,7 @@ type
     procedure FloatSpinEditStartChange(Sender: TObject);
     procedure FloatSpinEditStopChange(Sender: TObject);
     procedure AnimationTimerTimer(Sender: TObject);
-    // NUEVO: Evento para el nuevo control
+    // NEW: Event for the new control
     procedure SpinEditWakeWordChange(Sender: TObject);
     procedure AIVoiceMonitorChangeState(Sender: TObject; aState, aIsValidForIA: Boolean; aStream: TMemoryStream);
     procedure AIVoiceMonitorCalibrated(Sender: TObject; const aNoiseLevel, aSensitivity, aStopSensitivity: Integer);
@@ -482,7 +482,7 @@ begin
   MemoLog.Perform(EM_SCROLLCARET, 0, 0);
 end;
 
-// --- FUNCIÓN AUXILIAR PARA PROCESAR COMANDOS ---
+// --- AUXILIARY FUNCTION TO PROCESS COMMANDS ---
 procedure TForm6.ProcessVoiceCommand(const Command: String);
 var
   LowerCommand: String;
@@ -518,7 +518,7 @@ begin
   end;
 end;
 
-// --- FUNCIÓN AUXILIAR PARA ENVIAR A IA ---
+// --- AUXILIARY FUNCTION TO SEND TO AI ---
 procedure TForm6.SendToAI(const Command: String);
 begin
   // Here you would implement the call to your preferred LLM

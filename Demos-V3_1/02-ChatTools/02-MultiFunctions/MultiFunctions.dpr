@@ -85,7 +85,7 @@ begin
     City := 'unknown';
 
   ToolCall.Response := Format(
-    '{"city":"%s","temp_c":24,"condition":"Parcialmente nublado","wind_kmh":15}',
+    '{"city":"%s","temp_c":24,"condition":"Partly cloudy","wind_kmh":15}',
     [City]);
   Handled := True;
 end;
@@ -291,8 +291,8 @@ begin
       Writeln(StringOfChar('-', 60));
       Writeln('P3 — Chained: temperature conversion + currency conversion');
       Res := Conn.AddMessageAndRun(
-        'Si en Ciudad de México hay 18°C, ¿cuánto es eso en Fahrenheit? ' +
-        '(usa calculate: F = 18 * 9/5 + 32, es decir 18 * 1.8 + 32). ' +
+        'If in Mexico City it is 18°C, how much is that in Fahrenheit? ' +
+        '(use calculate: F = 18 * 9/5 + 32, that is 18 * 1.8 + 32). ' +
         'Also, how many euros are 1800 MXN?',
         'user', []);
       Writeln('R: ', Res);

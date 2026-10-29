@@ -57,7 +57,7 @@ const
   PG_PASSWORD = 'postgres';
 
   TABLE_NAME  = 'PGVectorDemo';
-  EMB_DIM     = 1536; // dimensión de text-embedding-3-small
+  EMB_DIM     = 1536; // dimension of text-embedding-3-small
 
 const
   DOCS: array[0..4] of String = (

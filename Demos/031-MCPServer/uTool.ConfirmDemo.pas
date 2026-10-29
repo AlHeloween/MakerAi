@@ -52,7 +52,7 @@ begin
   FDescription := 'Demo MRTR: executes an operation only after the user confirms it via elicitation (spec 2026-07-28)';
 end;
 
-// Construye el InputRequiredResult con un ElicitRequest 'user_confirmation'.
+// Builds the InputRequiredResult with an ElicitRequest 'user_confirmation'.
 function TConfirmDemoTool.BuildInputRequired(const AOperation: string): TJSONObject;
 var
   Reqs, Elicit, ElicitParams, Schema, Props, ConfirmProp: TJSONObject;
@@ -83,7 +83,7 @@ begin
   Required.Add('confirm');
   Schema.AddPair('required', Required);
 
-  // Estado opaco que el cliente debe ecoar en el reintento (demo: Base64).
+  // Opaque state that the client must echo in the retry (demo: Base64).
   Result.AddPair('requestState', TNetEncoding.Base64.Encode(AOperation));
 end;
 

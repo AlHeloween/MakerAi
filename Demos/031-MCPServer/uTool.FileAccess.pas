@@ -151,11 +151,11 @@ uses
 
 { TListFilesTool }
 
-// ... (RegisterTools y los métodos de configuración de TListFilesTool no cambian)
+// ... (RegisterTools and the configuration methods of TListFilesTool do not change)
 procedure RegisterTools(ALogicServer: TAiMCPServer);
 begin
   if not Assigned(ALogicServer) then
-    raise Exception.Create('LogicServer no puede ser nulo para registrar herramientas.');
+    raise Exception.Create('LogicServer cannot be null to register tools.');
   ALogicServer.RegisterTool('list_files', function: IAiMCPTool begin Result := TListFilesTool.Create; end);
   ALogicServer.RegisterTool('read_file', function: IAiMCPTool begin Result := TReadFileTool.Create; end);
   ALogicServer.RegisterTool('write_file', function: IAiMCPTool begin Result := TWriteFileTool.Create; end);

@@ -300,7 +300,7 @@ begin
   Stream := TBytesStream.Create(Bytes);
   Parts  := TMultipartFormData.Create;
   try
-    // sendVoice (MP3/OGG) → aparece como nota de voz; sendAudio para otros formatos
+    // sendVoice (MP3/OGG) → appears as a voice note; sendAudio for other formats
     var Endpoint: string;
     var FieldName: string;
     if AnsiIndexText(Ext, ['mp3','ogg','m4a']) >= 0 then
