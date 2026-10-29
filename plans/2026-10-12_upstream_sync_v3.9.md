@@ -76,3 +76,29 @@ backup branch pre-sync   S6 oracle: MSBuild 4 packages + leak scans
 ## Validation
 
 Plan follows repo conventions: `plans/[ISO8601]_`. Merging on `local` (fork's working branch). No product-source edit before this plan; merge is the first mutation, preceded by the safety branch.
+
+## Execution Record (2026-10-29)
+
+**Status:** COMPLETE for the core scope; demos deferred (owner decision).
+
+| Task | Result | Evidence |
+|------|--------|----------|
+| S1 merge | `e2b5cf4` — `upstream/master` (`39c093b`, v3.9.0) merged into `local`; 52 conflicts resolved: 46 to the upstream side, 5 `scripts/build/*.bat` kept ours, `.gitignore` union | `git log --oneline`; `.temp/mergetree.txt` |
+| S2 conflicts | 0 unmerged files; `.gitignore` union dropping upstream's `*.bat`/`*.ps1` patterns (our build scripts are tracked artifacts) | `git diff --diff-filter=U` empty |
+| S3 core translation | ~130 Source units translated via two pipelines (whole-file and line-map), EVERY file gated by `scripts/audit/check_edit_skeleton.py` (code skeleton identical; Pascal case-insensitive) | skeleton OK per applied file; commits `f9f0bf4`, `80dbbd9` |
+| S4 docs/manuals | New EN manuals: ChatModes, ChatTools-SmartDispatch, FunctionCalling-SmartDispatch, OpenAI-Dalle, AudioBridge, Agents-Skill (upstream EN: Skills, Jev-TypeSafe, Qwen-Alibaba); ES originals moved to `Docs/Version 3/ES/`; PPMRegistry EN updated to `registry.cimamaker.com`; README, module CLAUDE.md files and reports translated | `git show --stat 5f68d52`; `.temp/md_scan2.txt` |
+| S5 identifier renames | NOT re-applied — the merge took upstream identifiers; the fork's earlier ES→EN identifier set was not reinstated (upstream compatibility kept) | residual |
+| S6 oracle | (1) full rebuild of all 4 packages: 0 errors (`.temp/rebuild_a..d.log`); (2) RegressionSuite 117/117 PASS, exit 0 (`.temp/suite_run3.log`); (3) ES-leak scans recorded | see files |
+| S7 push | `git push origin local` after the green oracles | remote ref |
+| S8 demos | deferred (owner decision) — Demos*/Apps arrived in Spanish | residual |
+
+**Residual (bounded):**
+- Tests comments remain Spanish (`uRegression.Suites.pas`, `uRegression.Fixtures.pas`); test DATA strings stay Spanish by design.
+- Source leak-scan residual (~800 comment + ~590 string flags) — the detector over-reports (English words such as `actual`, `ms` match the Spanish word list); the true remainder is driven to zero with the committed line-map pipeline (`scripts/audit/scan_spanish_leaks.py` → aicall map → `.temp/pair_apply.py`).
+- Demos*/Apps (~1143 files, ~400k lines) — translation deferred per owner decision.
+- Owner's framework dirty files (`.codex/`, `.cursor/`, `.opencode/`, `Docs/ADID_Framework_15_4.md`, `tools/claude_svchain.py`) were left untouched.
+
+**Tool defects encountered (class, not anecdote):**
+- Sub-agent facility: every `task` child was terminated ~2.5 min after dispatch ("failed: undefined"; the job then reads "killed") — long work cannot be delegated there → switched to `aicall` pipelines.
+- `logsearch` fails with `ENAMETOOLONG` on any pattern (host spawn defect).
+- `aicall` providers: nvidia free endpoint fails 3x; opencode free tier exhausted; the streamlake free model trips its circuit breaker after timeouts; openrouter `:free` returned truncated maps; the reliable channel was `deepseek-flash` ($0.15/$0.60 per M).

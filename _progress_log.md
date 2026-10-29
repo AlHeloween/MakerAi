@@ -4,7 +4,27 @@
 > **Last updated:** 2026-05-20
 
 ---
+---
 
+## 2026-10-29 — Upstream Sync v3.3 → v3.9.0 + Full English Pass
+
+**Reason:** Owner decision: update the fork to upstream master (v3.9.0) and keep the whole repository in English.
+
+### Done
+
+- Merged `upstream/master` (`39c093b`, 314 commits) into `local`; resolved 52 conflicts; safety branch `pre-sync-2026-10-12`.
+- Translated Source (~130 units) under a string-level invariant verified per file by `scripts/audit/check_edit_skeleton.py`.
+- Translated the new manuals, reports, README and module `CLAUDE.md` files; placed upstream docs into `Docs/Version 3/ES/` (archive) and `EN/` (deliverable).
+- Updated five regression-suite expectations to the new English messages.
+
+### Verification
+
+- Full rebuild of the four packages: 0 errors.
+- Regression suite: **117/117 PASS** (exit 0).
+- Leak scans recorded; residual list lives in the plan.
+
+**Commits:** `e2b5cf4` (merge), `ade66df`, `60ceea7`, `f9f0bf4`, `80dbbd9`, `5f68d52`.
+**Plan:** `plans/2026-10-12_upstream_sync_v3.9.md`.
 ## 2026-05-20 — Project Organization (ADID Style Cleanup)
 
 **Reason:** Repository accumulated organizational debt after translation work. Required index files, workspace lanes, and script categorization per ADID conventions.
