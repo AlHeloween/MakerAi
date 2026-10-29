@@ -56,6 +56,14 @@
 - After the pass the detector still flags 1015 lines in `Source`, of which **2 carry an accent** and both must (a tokenizer's `'¿'`/`'¡'` character set and the accent-stripping table). The rest is the word-list false-positive class.
 - A lost `### FILE:` header now has two defences: `.temp/check_maps.py` catches it before an apply (it applies NOTHING and still exits 0), and `.temp/reattribute.py` restores attribution from the batch when the rows themselves are correct.
 
+### Round 11 — the demo `.pas`/`.dpr` trees
+
+- `.temp/tree_emit.py` over the five demo roots reported **1679 lines in 244 files**; two rounds of the same pipeline took it to 1253, and **120 files changed, +452/−452** — line-for-line, nothing inserted or removed.
+- `check_tree.py` — **120/120 files code-identical to HEAD** ✓. The demo compile oracle stays unavailable (the control project fails identically untranslated), so the skeleton gate is the whole proof for these trees, and that limit is stated rather than papered over.
+- What is left carries **27 accented lines**, and every one is data, not prose: the graph key `año` (also used inside the VQL queries that must match it), `categoria`, the comparison `Contains('méxico')`, and the proper name `Café La Ceiba`. Translating them would break the demos' own queries.
+- Round 2 of the pass converted only 12 lines of 1165 offered — the model returned the rest unchanged because they were already English. That is the signal that the real Spanish is exhausted and the remaining list is the detector's false-positive class.
+- `Tree/forms` pipeline pieces are now reusable: `tree_emit.py` (recall from the detector, block expansion), `forms_split.py` (split by written volume, merge repeated blocks by path), `check_maps.py` (a lost header applies nothing and still exits 0), `reattribute.py` (restores attribution from the batch), `check_tree.py` (working tree vs HEAD, text-only).
+
 ## 2026-10-29 — Upstream Sync v3.3 → v3.9.0 + Full English Pass
 
 **Reason:** Owner decision: update the fork to upstream master (v3.9.0) and keep the whole repository in English.
