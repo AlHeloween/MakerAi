@@ -21,6 +21,13 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 STRING_RE = re.compile(r"'((?:[^']|'')*)'")
 # Single-token protocol-ish strings: lowercase words joined by _ - . / : (e.g. json keys, urls)
 PROTOCOLISH = re.compile(r"^[a-z0-9_\-\./:@#%+~]*$")
+# The acceptance surface is every file whose text a user can read: units, program
+# files, and the form files that carry the captions, hints and labels shown in the
+# UI. `.fmx` here is the OBJECT/PROPERTY text format, not the XML variant.
+CODE_EXTS = (".pas", ".dpr", ".dfm", ".fmx")
+# A drive-letter path or a resource reference is not prose, whatever words it carries:
+# `E:\Delphi\...\Resources\btn_Save` must never be translated.
+PATHISH = re.compile(r"[A-Za-z]:[\\/]|\\Resources\\|/Resources/")
 
 
 ESCAPE_RE = re.compile(r'#(\$[0-9A-Fa-f]+|[0-9]+)')
@@ -28,7 +35,10 @@ NO_ACCENT = str.maketrans('áéíóúñüÁÉÍÓÚÑÜ', 'aeiounuAEIOUNU')
 # An accent escape can only ever render an accented letter. English needs none, so its
 # presence in a .pas/.dfm/.fmx file is by itself proof of non-English text — a signal with
 # no false positives on a word list that happens to lack a given Spanish word.
-ACCENT_ESCAPE = re.compile(r'#(?:225|233|237|243|250|241|252|191|161)')
+# Accent escapes cover LOWER AND UPPER case. The first definition knew only the nine
+# lowercase codes, so `EXTRACCI'#211'N` and `V'#205'A` were invisible: the detector said
+# clean while the user read Spanish. `(?![0-9])` keeps `#161` from matching `#1610`.
+ACCENT_ESCAPE = re.compile(r'#(?:161|191|193|201|205|209|211|218|220|225|233|237|241|243|250|252)(?![0-9])')
 ACCENT_CHARS = set('áéíóúñüÁÉÍÓÚÑÜ¿¡')
 
 
@@ -125,7 +135,7 @@ def analyze(path):
         # An accent ESCAPE is a hit on its own: English text never needs one.
         visible = visible_text(raw)
         accent = ACCENT_ESCAPE.search(raw) is not None or any(ch in ACCENT_CHARS for ch in visible)
-        if accent or (len(visible) >= 7 and not PROTOCOLISH.match(visible)):
+        if not PATHISH.search(visible) and (accent or (len(visible) >= 7 and not PROTOCOLISH.match(visible))):
             if accent or has_spanish_text(visible):
                 string_hits.append((i, (visible[:110] or raw.strip()[:110])))
     return comment_hits, string_hits
@@ -142,7 +152,7 @@ def main():
         for dirpath, dirs, files in os.walk(base):
             dirs[:] = [d for d in dirs if d not in ("Packages", "Resources", "hpp", "__history")]
             for fn in sorted(files):
-                if not fn.endswith(".pas"):
+                if not fn.lower().endswith(CODE_EXTS):
                     continue
                 fp = os.path.join(dirpath, fn)
                 r = analyze(fp)

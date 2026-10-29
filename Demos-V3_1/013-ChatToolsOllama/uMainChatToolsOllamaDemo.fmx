@@ -227,7 +227,7 @@
             Size.PlatformDefault = False
             StyleLookup = ''
             TabOrder = 0
-            Text = 'Respuesta'
+            Text = 'Answer'
             ExplicitSize.cx = 67.000000000000000000
             ExplicitSize.cy = 26.000000000000000000
             object MemoTexto: TMemo
@@ -349,8 +349,8 @@
     User = 'user'
     SystemPrompt.Strings = (
       
-        'Eres un asistente util y servicial. Responde siempre en el mismo' +
-        ' idioma que el usuario.')
+        'You are a helpful and accommodating assistant. Always respond in the same' +
+        ' language as the user.')
     Completion_tokens = 0
     OnReceiveThinking = AiOllamaChat1ReceiveThinking
     OnReceiveData = AiOllamaChat1ReceiveData

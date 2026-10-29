@@ -14,14 +14,14 @@ object FMCPServerFileSystem_Tool: TFMCPServerFileSystem_Tool
         OnAction = AiFunctions1Functions0fs_listarAction
         Description.Strings = (
           
-            'Lista el directorio al cual tiene acceso, es un directorio '#250'nico' +
-            ' sandbox.')
+            'Lists the directory to which it has access; it is a single' +
+            ' sandbox directory.')
         Parameters = <
           item
             Name = 'filtro'
             ParamType = ptString
             Description.Strings = (
-              'Filtro de b'#250'squeda para los archivos')
+              'Search filter for files')
             Required = True
           end>
         Default = False

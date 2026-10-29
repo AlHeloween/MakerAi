@@ -1,7 +1,7 @@
 ﻿object FormAgentChatHITL: TFormAgentChatHITL
   Left = 0
   Top = 0
-  Caption = 'Demo 081 - Agente con human-in-the-loop en el chat'
+  Caption = 'Demo 081 - Agent with human-in-the-loop in the chat'
   ClientHeight = 640
   ClientWidth = 900
   Position = ScreenCenter

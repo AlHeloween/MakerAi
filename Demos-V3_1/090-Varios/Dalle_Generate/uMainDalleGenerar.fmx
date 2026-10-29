@@ -41,7 +41,7 @@
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 
-            'Prompt Negativo para generar la im'#225'gen (Solo con algunos modelos' +
+            'Negative Prompt to generate the image (Only with some models' +
             ')'
           TabOrder = 0
         end
@@ -80,7 +80,7 @@
           Size.Width = 869.000000000000000000
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
-          Text = 'Prompt para generar la im'#225'gen'
+          Text = 'Prompt to generate the image'
           TabOrder = 0
         end
         object MemoPrompt: TMemo

@@ -36,7 +36,7 @@
           Size.Height = 19.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 2
-          Text = 'Autom'#225'tico'
+          Text = 'Automatic'
         end
         object rbInter: TRadioButton
           Position.X = 103.000000000000000000
@@ -54,7 +54,7 @@
           Size.Height = 19.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 0
-          Text = 'Referencia de Estilo'
+          Text = 'Style Reference'
         end
       end
       object cbModel: TComboBox
@@ -185,78 +185,78 @@
           DataDetectorTypes = []
           Lines.Strings = (
             '--------------------------------------'
-            '        '#55357#56960' C'#211'MO FUNCIONA '#55357#56960
+            '        '#55357#56960' HOW IT WORKS '#55357#56960
             '--------------------------------------'
-            'La magia est'#225' en lo que adjuntas:'
+            'The magic is in what you attach:'
             ''
             ''
-            #9997#65039'  Sin Archivos Adjuntos'
-            '    Acci'#243'n: TEXTO A VIDEO'
-            '    Escribe tu idea y VEO crear'#225' un'
-            '    video desde cero.'
+            #9997#65039'  No Attached Files'
+            '    Action: TEXT TO VIDEO'
+            '    Write your idea and VEO will create a'
+            '    video from scratch.'
             ''
             ''
-            #55357#56526'  Con 1 Archivo Adjunto'
+            #55357#56526'  With 1 Attached File'
             ''
-            '    '#55357#56764#65039'  Si es una IMAGEN:'
-            '        Acci'#243'n: IMAGEN A VIDEO'
-            '        VEO animar'#225' tu imagen bas'#225'ndose'
-            '        en el prompt.'
+            '    '#55357#56764#65039'  If it is an IMAGE:'
+            '        Action: IMAGE TO VIDEO'
+            '        VEO will animate your image based'
+            '        on the prompt.'
             ''
-            '    '#55356#57246#65039'  Si es un VIDEO (de VEO):'
-            '        Acci'#243'n: EXTENSI'#211'N DE VIDEO'
-            '        VEO continuar'#225' la historia.'
-            '        ('#161'Recuerda que necesita su'
-            '        archivo .veometa asociado!)'
-            ''
-            ''
-            #55357#56764#65039'+'#55357#56764#65039'  Con 2 Im'#225'genes Adjuntas'
-            '    '#161'Aqu'#237' es donde decides el "Modo"!'
-            ''
-            '    - Modo Autom'#225'tico o Interpolar:'
-            '      Crea una transici'#243'n suave entre'
-            '      la primera y la segunda imagen.'
-            ''
-            '    - Modo Referencia de Estilo:'
-            '      Usa ambas im'#225'genes como'
-            '      inspiraci'#243'n visual.'
+            '    '#55356#57246#65039'  If it is a VIDEO (from VEO):'
+            '        Action: VIDEO EXTENSION'
+            '        VEO will continue the story.'
+            '        (Remember that it needs its'
+            '        .veometa file associated!)'
             ''
             ''
-            #55356#57256'  Con 3 Im'#225'genes Adjuntas'
-            '    Acci'#243'n: REFERENCIA DE ESTILO'
-            '    VEO usar'#225' las im'#225'genes para'
-            '    mantener la apariencia de'
+            #55357#56764#65039'+'#55357#56764#65039'  With 2 Attached Images'
+            '    This is where you choose the "Mode"!'
+            ''
+            '    - Automatic or Interpolate Mode:'
+            '      Creates a smooth transition between'
+            '      the first and second image.'
+            ''
+            '    - Style Reference Mode:'
+            '      Uses both images as'
+            '      visual inspiration.'
+            ''
+            ''
+            #55356#57256'  With 3 Attached Images'
+            '    Action: STYLE REFERENCE'
+            '    VEO will use the images to'
+            '    maintain the appearance of'
             '    personajes u objetos.'
             ''
             ''
             '--------------------------------------'
-            ' '#55358#56596' '#191'CU'#193'NDO CAMBIAR EL "MODO"? '#55358#56596
+            ' '#55358#56596' WHEN TO CHANGE THE "MODE"? '#55358#56596
             '--------------------------------------'
-            'Usa los selectores de Modo para casos'
-            'espec'#237'ficos, principalmente con 2'
-            'im'#225'genes.'
+            'Use the Mode selectors for cases'
+            'specific, mainly with 2'
+            'images.'
             ''
             ''
-            #9898' Autom'#225'tico'
-            '   La opci'#243'n segura. D'#233'jalo aqu'#237' y la'
-            '   demo tomar'#225' la decisi'#243'n m'#225's com'#250'n.'
-            '   Para 2 im'#225'genes, asumir'#225' INTERPOLAR.'
+            #9898' Automatic'
+            '   The safe option. Leave it here and the'
+            '   demo will make the most common decision.'
+            '   For 2 images, it will assume INTERPOLATE.'
             ''
             ''
             #9898' Interpolar'
-            '   Selecciona esto si quieres crear una'
-            '   transici'#243'n fluida entre 2 im'#225'genes'
+            '   Select this if you want to create a'
+            '   smooth transition between 2 images'
             '   (de un punto A -> a un punto B).'
             ''
             ''
-            #55357#56629' Referencia de Estilo'
-            '   Selecciona esto para que VEO copie'
-            '   la apariencia de los sujetos en'
-            '   1, 2 o 3 im'#225'genes.'
+            #55357#56629' Style Reference'
+            '   Select this so VEO copies'
+            '   the appearance of the subjects in'
+            '   1, 2 or 3 images.'
             ''
             ''
             '======================================'
-            '     '#161'Ahora a crear! '#55356#57253
+            '     Now to create! '#55356#57253
             '======================================')
           ReadOnly = True
           TextSettings.WordWrap = True
@@ -293,8 +293,8 @@
               Size.Height = 17.000000000000000000
               Size.PlatformDefault = False
               Text = 
-                'Historial de Mensajes (No es un Chat, el modelo no recuerda llam' +
-                'ados anteriores)'
+                'Message History (Not a Chat, the model does not remember previous ' +
+                'calls)'
               TabOrder = 0
             end
             object ChatList1: TChatList

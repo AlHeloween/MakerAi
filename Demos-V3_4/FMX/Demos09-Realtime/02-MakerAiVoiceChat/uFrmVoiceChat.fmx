@@ -169,7 +169,7 @@
       Size.Width = 944.000000000000000000
       Size.Height = 20.000000000000000000
       Size.PlatformDefault = False
-      Text = 'Desconectado. Presione Conectar para iniciar.'
+      Text = 'Disconnected. Press Connect to start.'
       TabOrder = 0
     end
     object ProgressBarLevel: TProgressBar

@@ -23,7 +23,7 @@
       Size.Width = 110.000000000000000000
       Size.Height = 20.000000000000000000
       Size.PlatformDefault = False
-      Text = 'Tema del Debate:'
+      Text = 'Debate Topic:'
       TabOrder = 0
     end
     object EdTopic: TEdit
@@ -121,7 +121,7 @@
       Size.PlatformDefault = False
       Font.Style = [fsBold]
       StyledSettings = [Family, Size, FontColor]
-      Text = 'TRANSCRIPCION DEL DEBATE'
+      Text = 'TRANSCRIPT OF THE DEBATE'
       TabOrder = 0
     end
     object MemoLog: TMemo

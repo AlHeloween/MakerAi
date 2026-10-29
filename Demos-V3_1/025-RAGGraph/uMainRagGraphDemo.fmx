@@ -282,7 +282,7 @@
       end
       object BtnSave: TButton
         Align = Left
-        Hint = 'Guarda el grafo de memoria en un archivo'
+        Hint = 'Save the memory graph to a file'
         ImageIndex = 1
         Margins.Left = 5.000000000000000000
         Margins.Top = 3.000000000000000000
@@ -415,7 +415,7 @@
       end
       object BtnLoad: TButton
         Align = Left
-        Hint = 'Abre un archivo de grafo previamente guardado'
+        Hint = 'Open a previously saved graph file'
         Margins.Top = 3.000000000000000000
         Margins.Right = 3.000000000000000000
         Margins.Bottom = 3.000000000000000000
@@ -1476,7 +1476,7 @@
             Size.Width = 399.000000000000000000
             Size.Height = 17.000000000000000000
             Size.PlatformDefault = False
-            Text = 'Texto a Adicionar al Grafo'
+            Text = 'Text to Add to the Graph'
             TabOrder = 0
           end
           object MemoToProcess: TMemo
@@ -1504,7 +1504,7 @@
             TabOrder = 41
             object BtnAddNodos: TButton
               Align = Left
-              Hint = 'Procesa Texto a Adicionar - Primero pegue el texto en el memo'
+              Hint = 'Process Text to Add - First paste the text into the memo'
               Margins.Top = 3.000000000000000000
               Margins.Right = 3.000000000000000000
               Margins.Bottom = 3.000000000000000000
@@ -2388,8 +2388,8 @@
           TabOrder = 41
           object ChDetailed: TCheckBox
             Hint = 
-              'Incluye en el resultado de la b'#250'squeda las propiedades aumentand' +
-              'o a'#250'n m'#225's el contexto recuperado.'
+              'Includes in the search result the properties, ' +
+              'further increasing the recovered context.'
             Position.X = 267.000000000000000000
             Position.Y = 29.000000000000000000
             Size.Width = 150.000000000000000000
@@ -2405,8 +2405,8 @@
             Position.X = 15.000000000000000000
             Position.Y = 26.000000000000000000
             Hint = 
-              'Indica cuantas aristas se expande la respuesta a partir de los n' +
-              'odos encontrados'
+              'Indicates how many edges the response expands ' +
+              'from the found nodes.'
             Size.Width = 65.000000000000000000
             Size.Height = 22.000000000000000000
             Size.PlatformDefault = False
@@ -2417,7 +2417,7 @@
             Text = '2'
             Position.X = 98.000000000000000000
             Position.Y = 26.000000000000000000
-            Hint = 'L'#237'mite de resultados de la b'#250'squeda RAG'
+            Hint = 'Limit of RAG search results'
             Size.Width = 65.000000000000000000
             Size.Height = 22.000000000000000000
             Size.PlatformDefault = False
@@ -2429,9 +2429,9 @@
             Position.X = 183.000000000000000000
             Position.Y = 26.000000000000000000
             Hint = 
-              'Presici'#243'n de la b'#250'squeda  si es  por  Cosenos debe ser entre 0 y' +
-              ' 1 donde 1 es el m'#225's parecido,  si es por L2  el m'#225's cercano a c' +
-              'ero es el m'#225's parecido'
+              'Search precision: if by Cosines it must be between 0 and' +
+              ' 1, where 1 is the most similar; if by L2, the closest to ' +
+              'zero is the most similar.'
             Size.Width = 65.000000000000000000
             Size.Height = 22.000000000000000000
             Size.PlatformDefault = False
@@ -2465,8 +2465,8 @@
           end
           object BtnMatch: TButton
             Hint = 
-              'Realiza una b'#250'squeda MATCH sobre el grafo sin utilizar Embedding' +
-              's'
+              'Performs a MATCH search on the graph without ' +
+              'using Embeddings.'
             Margins.Top = 3.000000000000000000
             Margins.Right = 3.000000000000000000
             Margins.Bottom = 3.000000000000000000
@@ -2598,8 +2598,8 @@
           end
           object BtnConsultaQueryLLM: TButton
             Hint = 
-              'Realiza una B'#250'squeda Hibrida RAG y aumenta la presici'#243'n con el G' +
-              'rafo'
+              'Performs a Hybrid RAG Search and increases ' +
+              'precision with the Graph.'
             Margins.Top = 3.000000000000000000
             Margins.Right = 3.000000000000000000
             Margins.Bottom = 3.000000000000000000
@@ -3112,7 +3112,7 @@
             end
           end
           object BtnBusquedaRAG: TButton
-            Hint = 'Realiza una B'#250'squeda RAG sobre el Grafo'
+            Hint = 'Performs a RAG Search on the Graph'
             Margins.Top = 3.000000000000000000
             Margins.Right = 3.000000000000000000
             Margins.Bottom = 3.000000000000000000
@@ -3602,7 +3602,7 @@
             Size.Width = 1032.000000000000000000
             Size.Height = 17.000000000000000000
             Size.PlatformDefault = False
-            Text = 'Respuesta del RAG'
+            Text = 'RAG Response'
             TabOrder = 0
           end
           object MemoResultados: TMemo
@@ -3782,8 +3782,8 @@
             end
             object chMatchShowProperties: TCheckBox
               Hint = 
-                'Incluye en el resultado de la b'#250'squeda las propiedades aumentand' +
-                'o a'#250'n m'#225's el contexto recuperado.'
+                'Includes in the search result the properties, ' +
+                'further increasing the recovered context.'
               Position.X = 333.000000000000000000
               Position.Y = 93.000000000000000000
               Size.Width = 150.000000000000000000
@@ -4007,8 +4007,8 @@
                     TabOrder = 0
                     object BtnExecuteMakerGQL: TButton
                       Hint = 
-                        'Realiza una b'#250'squeda MATCH sobre el grafo sin utilizar Embedding' +
-                        's'
+                        'Performs a MATCH search on the graph without ' +
+                        'using Embeddings.'
                       Margins.Top = 3.000000000000000000
                       Margins.Right = 3.000000000000000000
                       Margins.Bottom = 3.000000000000000000
@@ -4201,173 +4201,173 @@
     Items = <
       item
         Nombre = 'CreaJsonFromTexto'
-        Descripcion = 'convierte el texto de entrada en insumo procesable por el modelo'
+        Descripcion = 'converts the input text into processable input for the model'
         Strings.Strings = (
           
-            'Eres un asistente experto en an'#225'lisis de texto y construcci'#243'n de' +
-            ' grafos de conocimiento. Tu tarea es extraer entidades y relacio' +
-            'nes sem'#225'nticas en forma de tripletas JSON para alimentar un sist' +
-            'ema RAG de alta precisi'#243'n.'
+            'You are an expert assistant in text analysis and knowledge' +
+            ' graph construction. Your task is to extract entities and semantic ' +
+            'relationships in the form of JSON triples to feed a ' +
+            'high-precision RAG system.'
           ''
-          'CONTEXTO DEL SISTEMA:'
+          'SYSTEM CONTEXT:'
           
-            '- El grafo usa b'#250'squeda h'#237'brida: l'#233'xica (BM25) y sem'#225'ntica (embe' +
-            'ddings)'
+            '- Properties are used for filtering and ' +
+            'structured queries.'
           
-            '- Las propiedades se usan para filtrado y consultas estructurada' +
-            's'
+            '- The "text" field is used to generate embeddings and ' +
+            'full-text search.'
           
-            '- El campo "text" se usa para generar embeddings y b'#250'squeda por ' +
+            '- Name normalization is CRITICAL to avoid duplicates.'+
             'texto completo'
-          '- La normalizaci'#243'n de nombres es CR'#205'TICA para evitar duplicados'
+          'EXTRACTION RULES:'
           ''
-          'REGLAS DE EXTRACCI'#211'N:'
+          '1. ENTITY IDENTIFICATION AND NORMALIZATION:'
           ''
-          '1. IDENTIFICACI'#211'N Y NORMALIZACI'#211'N DE ENTIDADES:'
-          '   '#10003' Usa el nombre can'#243'nico m'#225's com'#250'n y reconocible'
-          '   '#10003' Mant'#233'n may'#250'sculas solo donde corresponda (nombres propios)'
-          '   '#10003' Evita art'#237'culos, adjetivos descriptivos y pronombres'
+          '1. IDENTIFICATION AND NORMALIZATION OF ENTITIES:'
+          '   '#10003' Keep capitalization only where appropriate (proper nouns)'
+          '   '#10003' Avoid articles, descriptive adjectives, and pronouns'
+          '   '#10003' Avoid articles, descriptive adjectives and pronouns'
           
-            '   '#10003' Para personas: Usa "Nombre Apellido" completo si est'#225' dispo' +
-            'nible'
-          '   '#10003' Para empresas: Usa el nombre legal o comercial oficial'
-          '   '#10003' Para lugares: Usa el nombre geogr'#225'fico est'#225'ndar'
+            '   '#10003' For people: Use the full "First Last" name if ' +
+            'available'
+          '   '#10003' For companies: Use the official legal or commercial name'
+          '   '#10003' For places: Use the standard geographic name'
           '   '
-          '   Ejemplos de normalizaci'#243'n:'
+          '   Normalization examples:'
           
-            '   '#10060' "la empresa Apple", "Apple Inc.", "la compa'#241#237'a de Cupertino' +
+            '   '#10060' "the company Apple", "Apple Inc.", "the Cupertino company' +
             '"'
           '   '#9989' "Apple"'
           '   '
-          '   '#10060' "el se'#241'or Steve Jobs", "Jobs", "el cofundador"'
+          '   '#10060' "Mr. Steve Jobs", "Jobs", "the cofounder"'
           '   '#9989' "Steve Jobs"'
           ''
-          '2. CATEGORIZACI'#211'N (nodeLabel):'
-          '   - Usa SOLO estas categor'#237'as estandarizadas:'
-          '     * Persona, Empresa, Organizaci'#243'n, Producto, Servicio'
-          '     * Ciudad, Pa'#237's, Regi'#243'n, Lugar'
-          '     * Concepto, Tecnolog'#237'a, Metodolog'#237'a'
-          '     * Fecha, Evento, Proyecto'
-          '     * Documento, Ley, Regulaci'#243'n'
+          '2. CATEGORIZATION (nodeLabel):'
+          '   - Use ONLY these standardized categories:'
+          '     * Person, Company, Organization, Product, Service'
+          '     * City, Country, Region, Place'
+          '     * Concept, Technology, Methodology'
+          '     * Date, Event, Project'
+          '     * Document, Law, Regulation'
           '   - Si no encaja claramente, usa "Concepto"'
-          '   - NO inventes nuevas categor'#237'as'
+          '   - DO NOT invent new categories'
           ''
           '3. RELACIONES (edgeLabel):'
           
-            '   '#10003' Usa verbos en infinitivo o constantes en MAY'#218'SCULAS_CON_GUI' +
-            'ONES'
-          '   '#10003' S'#233' espec'#237'fico y sem'#225'nticamente rico'
+            '   '#10003' Use verbs in infinitive or constants in UPPERCASE_WITH_' +
+            'UNDERSCORES'
+          '   '#10003' Be specific and semantically rich'
           
-            '   '#10003' Mant'#233'n coherencia: usa el mismo predicado para la misma rel' +
-            'aci'#243'n'
+            '   '#10003' Maintain consistency: use the same predicate for the ' +
+            'same relationship.'
           '   '
-          '   Predicados preferidos por dominio:'
+          '   Preferred predicates by domain:'
           
-            '   - Organizacional: TRABAJA_EN, DIRIGE, FUND'#211', ES_CEO_DE, PERTE' +
-            'NECE_A'
-          '   - Geogr'#225'fico: UBICADO_EN, SEDE_EN, NACI'#211'_EN, OPERA_EN'
-          '   - Temporal: OCURRI'#211'_EN, FUNDADO_EN, DUR'#211'_HASTA'
-          '   - Jer'#225'rquico: ES_PARTE_DE, SUBSIDIARIA_DE, REPORTA_A'
-          '   - Relacional: CONOCE, HIJO_DE, CASADO_CON, SOCIO_DE'
-          '   - T'#233'cnico: DESARROLLA, UTILIZA_TECNOLOG'#205'A, IMPLEMENTA'
-          '   - Comercial: VENDE, COMPR'#211', INVIRTI'#211'_EN, CLIENTE_DE'
+            '   - Organizational: WORKS_IN, MANAGES, FOUNDED, IS_CEO_OF, ' +
+            'BELONGS_TO'
+          '   - Geographic: LOCATED_IN, HEADQUARTERED_IN, BORN_IN, OPERATES_IN'
+          '   - Temporal: OCCURRED_IN, FOUNDED_IN, LASTED_UNTIL'
+          '   - Hierarchical: IS_PART_OF, SUBSIDIARY_OF, REPORTS_TO'
+          '   - Relational: KNOWS, SON_OF, MARRIED_TO, PARTNER_OF'
+          '   - Technical: DEVELOPS, USES_TECHNOLOGY, IMPLEMENTS'
+          '   - Commercial: SELLS, PURCHASED, INVESTED_IN, CLIENT_OF'
           ''
-          '4. PROPIEDADES (CR'#205'TICO PARA FILTRADO):'
+          '4. PROPERTIES (CRITICAL FOR FILTERING):'
           '   '#10003' Extrae atributos cuantificables y estructurados'
-          '   '#10003' Usa tipos de datos consistentes'
-          '   '#10003' NO dupliques informaci'#243'n que ya est'#225' en name o nodeLabel'
+          '   '#10003' Use consistent data types'
+          '   '#10003' Do not duplicate information already in name or nodeLabel'
           '   '
           '   Formatos estandarizados:'
           '   - Fechas: "AAAA-MM-DD" (ISO 8601)'
           
-            '   - Cantidades: n'#250'meros sin unidades '#8594' propiedad aparte para la' +
-            ' unidad'
-          '   - Booleanos: true/false (no "s'#237'"/"no")'
+            '   - Quantities: numbers without units '#8594' separate property for the' +
+            ' unit'
+          '   - Booleans: true/false (not "yes"/"no")'
           
-            '   - Enumeraciones: valores consistentes ("activo"/"inactivo", n' +
-            'o "s'#237'"/"no")'
+            '   - Enumerations: consistent values ("active"/"inactive", not ' +
+            '"yes"/"no")'
           '   '
           '   Ejemplos:'
-          '   '#10003' "edad": 45, "unidad_edad": "a'#241'os"'
+          '   '#10003' "edad": 45, "unidad_edad": "years"'
           '   '#10003' "fecha_fundacion": "1976-04-01"'
           '   '#10003' "ingresos_anuales": 394328000000, "moneda": "USD"'
           '   '#10003' "empleados": 164000'
           '   '#10003' "es_publica": true'
           ''
           '5. TEXTO NARRATIVO (text):'
-          '   '#10003' Incluye la oraci'#243'n o fragmento completo del texto original'
-          '   '#10003' Este texto se usa para generar embeddings y b'#250'squeda BM25'
+          '   '#10003' Include the full sentence or fragment from the original text'
+          '   '#10003' This text is used to generate embeddings and BM25 search'
           
-            '   '#10003' Debe ser autocontenido y comprensible sin contexto adiciona' +
-            'l'
+            '   '#10003' It must be self-contained and understandable without additional ' +
+            'context'
           
-            '   '#10003' NO incluyas texto si la entidad es obvia (ej: pa'#237'ses conoci' +
-            'dos)'
+            '   '#10003' Do not include text if the entity is obvious (e.g.: known ' +
+            'countries)'
           
-            '   '#10003' S'#205' incluye texto para entidades espec'#237'ficas del dominio o c' +
-            'on matices'
+            '   '#10003' DO include text for domain-specific entities or with ' +
+            'nuances'
           '   '
-          '   Ejemplo:'
+          '   Example:'
           
-            '   '#10003' "text": "Apple Inc., fundada en 1976, revolucion'#243' la indust' +
-            'ria tecnol'#243'gica con productos innovadores como el iPhone y el iP' +
-            'ad."'
-          '   '#10060' "text": "Apple" (muy corto, sin contexto)'
+            '   '#10003' "text": "Apple Inc., founded in 1976, revolutionized the ' +
+            'technology industry with innovative products such as the iPhone and the ' +
+            'iPad."'
+          '   '#10060' "text": "Apple" (too short, no context)'
           ''
           '6. CALIDAD Y COMPLETITUD:'
           
-            '   '#10003' Extrae TODAS las entidades relevantes, no solo las principa' +
-            'les'
-          '   '#10003' Captura relaciones impl'#237'citas cuando sean evidentes'
+            '   '#10003' Extract ALL relevant entities, not only the main ' +
+            'ones'
+          '   '#10003' Capture implicit relationships when they are evident'
           
-            '   '#10003' Si una entidad aparece m'#250'ltiples veces, crea m'#250'ltiples trip' +
-            'letas'
+            '   '#10003' If an entity appears multiple times, create multiple ' +
+            'triples'
           
-            '   '#10003' Mant'#233'n la granularidad: mejor muchas tripletas simples que ' +
-            'pocas complejas'
+            '   '#10003' Maintain granularity: better many simple triples than ' +
+            'few complex ones'
           ''
-          'ESQUEMA JSON DE SALIDA:'
+          'JSON OUTPUT SCHEMA:'
           ''
           
-            'Devuelve '#218'NICAMENTE un array JSON v'#225'lido. NO incluyas texto expl' +
-            'icativo, markdown, ni comentarios.'
+            'Return ONLY a valid JSON array. Do not include explanatory ' +
+            'text, markdown, or comments.'
           ''
           '['
           '  {'
           '    "subject": {'
-          '      "name": "string (nombre can'#243'nico)",'
-          '      "nodeLabel": "string (categor'#237'a estandarizada)",'
+          '      "name": "string (canonical name)",'
+          '      "nodeLabel": "string (standardized category)",'
           '      "text": "string (contexto narrativo completo) - OPCIONAL",'
           '      "properties": {'
-          '        "clave": "valor tipado correctamente"'
+          '        "clave": "correctly typed value"'
           '      }'
           '    },'
           '    "predicate": {'
           
-            '      "edgeLabel": "string (VERBO_EN_INFINITIVO o CONSTANTE_MAY'#218 +
-            'SCULAS)",'
+            '      "edgeLabel": "string (VERB_IN_INFINITIVE or UPPERCASE_' +
+            'CONSTANT)",'
           '      "properties": {'
-          '        "fecha": "AAAA-MM-DD",'
-          '        "otros_atributos": "valor"'
+          '        "fecha": "YYYY-MM-DD",'
+          '        "otros_atributos": "value"'
           '      }'
           '    },'
           '    "object": {'
-          '      "name": "string (nombre can'#243'nico)",'
-          '      "nodeLabel": "string (categor'#237'a estandarizada)",'
+          '      "name": "string (canonical name)",'
+          '      "nodeLabel": "string (standardized category)",'
           '      "text": "string (contexto narrativo completo) - OPCIONAL",'
           '      "properties": {'
-          '        "clave": "valor tipado correctamente"'
+          '        "clave": "correctly typed value"'
           '      }'
           '    }'
           '  }'
           ']'
           ''
-          'EJEMPLO DE SALIDA DE CALIDAD:'
+          'EXAMPLE OF QUALITY OUTPUT:'
           ''
           
-            'Texto: "Steve Jobs cofund'#243' Apple en 1976 junto a Steve Wozniak e' +
-            'n Cupertino, California. Apple desarroll'#243' el iPhone, que revoluc' +
-            'ion'#243' la industria m'#243'vil en 2007."'
+            'Text: "Steve Jobs co-founded Apple in 1976 with Steve Wozniak in ' +
+            'Cupertino, California. Apple developed the iPhone, which revolutionized the ' +
+            'mobile industry in 2007."'
           ''
           '['
           '  {'
@@ -4375,14 +4375,14 @@
           '      "name": "Steve Jobs",'
           '      "nodeLabel": "Persona",'
           
-            '      "text": "Steve Jobs cofund'#243' Apple en 1976 junto a Steve Wo' +
-            'zniak en Cupertino, California.",'
+            '      "text": "Steve Jobs co-founded Apple in 1976 with Steve ' +
+            'Wozniak in Cupertino, California.",'
           '      "properties": {'
           '        "rol": "cofundador"'
           '      }'
           '    },'
           '    "predicate": {'
-          '      "edgeLabel": "COFUND'#211'",'
+          '      "edgeLabel": "COFOUNDED",'
           '      "properties": {'
           '        "fecha": "1976-01-01",'
           '        "lugar": "Cupertino"'
@@ -4392,11 +4392,11 @@
           '      "name": "Apple",'
           '      "nodeLabel": "Empresa",'
           
-            '      "text": "Apple fue cofundada en 1976 y desarroll'#243' producto' +
-            's revolucionarios como el iPhone.",'
+            '      "text": "Apple was co-founded in 1976 and developed revolutionary ' +
+            'products such as the iPhone.",'
           '      "properties": {'
-          '        "a'#241'o_fundacion": 1976,'
-          '        "industria": "tecnolog'#237'a"'
+          '        "año_fundacion": 1976,'
+          '        "industria": "technology"'
           '      }'
           '    }'
           '  },'
@@ -4423,7 +4423,7 @@
           '      "nodeLabel": "Empresa"'
           '    },'
           '    "predicate": {'
-          '      "edgeLabel": "DESARROLL'#211'",'
+          '      "edgeLabel": "DEVELOPED",'
           '      "properties": {'
           '        "fecha_lanzamiento": "2007-06-29"'
           '      }'
@@ -4432,8 +4432,8 @@
           '      "name": "iPhone",'
           '      "nodeLabel": "Producto",'
           
-            '      "text": "El iPhone revolucion'#243' la industria m'#243'vil cuando f' +
-            'ue lanzado en 2007.",'
+            '      "text": "The iPhone revolutionized the mobile industry when ' +
+            'it was launched in 2007.",'
           '      "properties": {'
           '        "categoria": "smartphone",'
           '        "impacto": "revolucionario"'
@@ -4449,7 +4449,7 @@
           '      }'
           '    },'
           '    "predicate": {'
-          '      "edgeLabel": "COFUND'#211'",'
+          '      "edgeLabel": "COFOUNDED",'
           '      "properties": {'
           '        "fecha": "1976-01-01"'
           '      }'
@@ -4461,94 +4461,94 @@
           '  }'
           ']'
           ''
-          'TEXTO A PROCESAR:'
+          'TEXT TO PROCESS:'
           '<#texto>')
       end
       item
         Nombre = 'CreaJSonQueryPlan'
-        Descripcion = 'Sql para crear un query plan de una consulta'
+        Descripcion = 'SQL to create a query plan for a query'
         Strings.Strings = (
           
-            'Eres un experto planificador de consultas para una base de datos' +
-            ' de grafos de conocimiento sobre la obra "Don Quijote de la Manc' +
-            'ha". Tu '#250'nica tarea es convertir la pregunta de un usuario en un' +
-            ' plan de consulta JSON estructurado y v'#225'lido. Este plan combina ' +
-            'una b'#250'squeda sem'#225'ntica inicial con pasos de traves'#237'a estructural' +
-            ' a trav'#233's del grafo.'
+            'You are an expert query planner for a knowledge graph database' +
+            ' about the work "Don Quijote de la Mancha". ' +
+            'Your only task is to convert a user question into a' +
+            ' structured and valid JSON query plan. ' +
+            'This plan combines an initial semantic search with structural traversal' +
+            ' through the graph.'
           ''
-          '# Contexto: Esquema del Grafo de Conocimiento'
+          '# Context: Knowledge Graph Schema'
           
-            'A continuaci'#243'n se describe la estructura (esquema) del grafo con' +
-            ' el que trabajar'#225's. Debes adherirte ESTRICTAMENTE a las etiqueta' +
-            's de nodos y aristas proporcionadas. No inventes nuevas etiqueta' +
-            's.'
+            'Next, the structure (schema) of the graph with' +
+            ' which you will work is described. You must STRICTLY adhere to the' +
+            ' provided node and edge labels. Do not invent new' +
+            ' labels.'
           ''
           '--- GRAPH SCHEMA ---'
           ''
           '**Tipos de Nodos (Node Labels):**'
           
-            '- Personaje: Una identidad ficticia dentro de la narrativa (ej. ' +
+            '- Character: A fictional identity within the narrative (e.g. ' +
             'Don Quijote).'
           
-            '- Persona: Un individuo real o la identidad real de un personaje' +
-            ' (ej. Alonso Quijano).'
+            '- Person: A real individual or the real identity of a character' +
+            ' (e.g. Alonso Quijano).'
           
-            '- Condici'#243'n: Un estado o caracter'#237'stica de un personaje (ej. hid' +
+            '- Condition: A state or characteristic of a character (e.g. hid' +
             'algo).'
-          '- Caballo: Un animal equino en la historia (ej. Rocinante).'
-          '- Lugar: Una ubicaci'#243'n geogr'#225'fica o ficticia (ej. La Mancha).'
+          '- Horse: An equine animal in the story (e.g. Rocinante).'
+          '- Place: A geographic or fictional location (e.g. La Mancha).'
           
-            '- Identidad: Una representaci'#243'n conceptual de un personaje (ej. ' +
-            'Don Quijote de la Mancha como idea).'
+            '- Identity: A conceptual representation of a character (e.g. ' +
+            'Don Quijote de la Mancha as an idea).'
           ''
           '**Tipos de Relaciones (Edge Labels) y su estructura:**'
           '- (Persona)-[UBICADO_EN]->(Lugar)'
           '- (Persona)-[CONVIERTE_EN]->(Identidad)'
-          '- (Personaje)-[ES]->(Condici'#243'n)'
+          '- (Character)-[ES]->(Condition)'
           '- (Personaje)-[NOMBRA_A]->(Caballo)'
-          '- (Personaje)-[ELIGE]->(Persona) -- usado para elegir a su dama.'
+          '- (Character)-[ELIGE]->(Person) -- used to choose his lady.'
           ''
           '--- END OF SCHEMA ---'
           ''
           ''
-          '# Formato de Salida Requerido'
+          '# Required Output Format'
           
-            'La salida DEBE ser un '#250'nico objeto JSON v'#225'lido, sin ning'#250'n texto' +
-            ', explicaci'#243'n o markdown adicional. La estructura del JSON debe ' +
-            'ser la siguiente:'
+            'The output MUST be a single valid JSON object, without any additional' +
+            ' text, explanation, or markdown. The JSON structure must be' +
+            ' as follows:'
           ''
           '```json'
           '{'
           
-            '  "anchorPrompt": "Texto para la b'#250'squeda sem'#225'ntica inicial. Deb' +
-            'e ser conciso y capturar la entidad principal de la pregunta.",'
+            '  "anchorPrompt": "Text for the initial semantic search. It must be' +
+            ' concise and capture the main entity of the question.",'
           
-            '  "anchorVariable": "Nombre de la variable para los resultados d' +
-            'e la b'#250'squeda sem'#225'ntica (ej. '#39'personaje_inicial'#39').",'
+            '  "anchorVariable": "Name of the variable for the semantic search' +
+            ' results (e.g. '#39'personaje_inicial'#39').",'
           
-            '  "resultVariable": "La variable de los '#39'steps'#39' cuyos nodos debe' +
-            'n ser el resultado final de la consulta.",'
+            '  "resultVariable": "The variable from the '#39'steps'#39' whose nodes must' +
+            ' be the final result of the query.",'
           '  "steps": ['
           '    {'
-          '      "sourceVariable": "Variable de origen para este paso.",'
+          '      "sourceVariable": "Source variable for this step.",'
           
-            '      "edgeLabel": "La etiqueta EXACTA de la arista a seguir, se' +
-            'g'#250'n el esquema.",'
+            '      "edgeLabel": "The EXACT label of the edge to follow, according' +
+            ' to the schema.",'
           
-            '      "targetVariable": "Un nuevo nombre de variable para los no' +
-            'dos encontrados.",'
+            '      "targetVariable": "A new variable name for the found' +
+            ' nodes.",'
           
-            '      "targetNodeLabel": "Filtro opcional para el tipo de nodo d' +
-            'e destino.",'
+            '      "targetNodeLabel": "Optional filter for the destination node' +
+            ' type.",'
           
-            '      "isReversed": "true si la traves'#237'a es hacia atr'#225's, de lo c' +
-            'ontrario false."'
+            '      "isReversed": "true if the traversal is backwards, otherwise' +
+            ' false."'
           '    }'
           '  ]'
           '}'
-          'Ejemplos de Conversi'#243'n'
-          'Ejemplo 1:'
-          'Pregunta: "'#191'C'#243'mo se llamaba el caballo de Don Quijote?"'
+          'Conversion Examples'
+          'Example 1:'
+          'Question: "What was the horse of Don Quijote called?"'
           'Plan JSON:'
           'code'
           'JSON'
@@ -4566,8 +4566,8 @@
           '    }'
           '  ]'
           '}'
-          'Ejemplo 2:'
-          'Pregunta: "'#191'Qui'#233'n se convirti'#243' en Don Quijote de la Mancha?"'
+          'Example 2:'
+          'Question: "Who became Don Quijote de la Mancha?"'
           'Plan JSON:'
           'code'
           'JSON'
@@ -4585,10 +4585,10 @@
           '    }'
           '  ]'
           '}'
-          'Ejemplo 3:'
+          'Example 3:'
           
-            'Pregunta: "'#191'D'#243'nde viv'#237'a la persona que se convirti'#243' en Don Quijo' +
-            'te?"'
+            'Question: "Where did the person who became Don Quijo' +
+            'te live?"'
           'Plan JSON:'
           'code'
           'JSON'
@@ -4615,20 +4615,20 @@
           '}'
           'Reglas Finales'
           
-            'Analiza la pregunta del usuario cuidadosamente para determinar l' +
-            'a entidad de partida (anchorPrompt) y la secuencia de pasos de t' +
-            'raves'#237'a.'
+            'Analyze the user question carefully to determine the starting' +
+            ' entity (anchorPrompt) and the sequence of traversal' +
+            ' steps.'
           
-            'El anchorPrompt debe ser la entidad m'#225's espec'#237'fica y central de ' +
-            'la pregunta.'
+            'The anchorPrompt must be the most specific and central entity of' +
+            ' the question.'
           
-            'Usa isReversed: true cuando la pregunta requiera navegar la rela' +
-            'ci'#243'n en direcci'#243'n opuesta a como est'#225' definida en el esquema (ej' +
-            '. de Identidad a Persona en (Persona)-[CONVIERTE_EN]->(Identidad' +
+            'Use isReversed: true when the question requires navigating the rela' +
+            'tionship in the opposite direction to how it is defined in the schema (e.g.' +
+            ' from Identity to Person in (Person)-[CONVIERTE_EN]->(Identity' +
             ')).'
-          'La salida debe ser exclusivamente el objeto JSON.'
+          'The output must be exclusively the JSON object.'
           ''
-          '--- PREGUNTA DEL USUARIO A PROCESAR ---'
+          '--- USER QUESTION TO PROCESS ---'
           ''
           '<#texto>')
       end>

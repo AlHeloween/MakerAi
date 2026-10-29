@@ -17,7 +17,7 @@ object FMain: TFMain
     Width = 100
     Height = 14
     Alignment = taRightJustify
-    Caption = 'Tipo documento'
+    Caption = 'Document type'
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
     Font.Height = -12
@@ -146,12 +146,12 @@ object FMain: TFMain
     Top = 271
     Width = 251
     Height = 38
-    Caption = 'C'#225'lculo distancia'
+    Caption = 'Distance calculation'
     Columns = 2
     ItemIndex = 0
     Items.Strings = (
       'Cosine'
-      'L2 (eucl'#237'dea)')
+      'L2 (Euclidean)')
     TabOrder = 9
   end
   object seK: TSpinEdit

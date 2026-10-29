@@ -59,28 +59,28 @@
       '      "name": "Steve Jobs",'
       '      "nodeLabel": "PERSONA",'
       
-        '      "text": "Steve Jobs fue un empresario y magnate de los neg' +
-        'ocios del sector inform'#225'tico, cofundador de Apple.",'
+        '      "text": "Steve Jobs was a businessman and magnate in the computer ' +
+        'sector, co-founder of Apple.",'
       '      "properties": {'
       '        "nacimiento": 1955'
       '      }'
       '    },'
       '    "predicate": {'
-      '      "edgeLabel": "FUND'#211'",'
-      '      "name": "fue el fundador de",'
+      '      "edgeLabel": "FOUNDED",'
+      '      "name": "was the founder of",'
       '      "properties": {'
-      '        "a'#241'o": 1976'
+      '        "año": 1976'
       '      }'
       '    },'
       '    "object": {'
       '      "name": "Apple Inc.",'
       '      "nodeLabel": "EMPRESA",'
       
-        '      "text": "Apple Inc. es una empresa tecnol'#243'gica multinacion' +
-        'al estadounidense que dise'#241'a y produce equipos electr'#243'nicos y so' +
-        'ftware.",'
+        '      "text": "Apple Inc. is a multinational American technology ' +
+        'company that designs and produces electronic equipment and ' +
+        'software.",'
       '      "properties": {'
-      '        "industria": "Tecnolog'#237'a"'
+      '        "industria": "Technology"'
       '      }'
       '    }'
       '  }'

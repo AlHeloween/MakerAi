@@ -1,7 +1,7 @@
 ﻿object FrmConfig: TFrmConfig
   Left = 0
   Top = 0
-  Caption = 'Configuracion de Proveedores'
+  Caption = 'Configuration of Providers'
   ClientHeight = 520
   ClientWidth = 720
   FormFactor.Width = 320

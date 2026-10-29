@@ -1,7 +1,7 @@
 ﻿object FormGPTLive: TFormGPTLive
   Left = 0
   Top = 0
-  Caption = 'MakerAI '#8212' GPT-Live (voz full-duplex con delegaci'#243'n)'
+  Caption = 'MakerAI '#8212' GPT-Live (full-duplex voice with delegation)'
   ClientHeight = 720
   ClientWidth = 1040
   FormFactor.Width = 320
@@ -32,7 +32,7 @@
         Size.Width = 72.000000000000000000
         Size.Height = 34.000000000000000000
         Size.PlatformDefault = False
-        Text = 'Micr'#243'fono'
+        Text = 'Microphone'
         TabOrder = 0
       end
       object CbxMic: TComboBox
@@ -168,7 +168,7 @@
         Size.Height = 34.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 6
-        Text = 'B'#250'squeda web (Responses)'
+        Text = 'Web search (Responses)'
       end
     end
     object LayRow3: TLayout
@@ -195,7 +195,7 @@
         Size.Height = 34.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 2
-        Text = 'Modo altavoz (pausar micr'#243'fono mientras habla)'
+        Text = 'Speaker mode (mute microphone while speaking)'
       end
       object EdInstructions: TEdit
         Touch.InteractiveGestures = [LongTap, DoubleTap]
@@ -222,7 +222,7 @@
         Size.Height = 34.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 0
-        Text = 'RAG del demo 037 por MCP'
+        Text = 'RAG from demo 037 via MCP'
       end
       object LblRagUrl: TLabel
         Align = Left
@@ -290,7 +290,7 @@
       Size.Height = 32.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 1
-      Text = 'Silenciar micr'#243'fono'
+      Text = 'Mute microphone'
       OnClick = BtnMuteClick
     end
     object PbMicLevel: TProgressBar
@@ -380,7 +380,7 @@
       Size.Width = 1024.000000000000000000
       Size.Height = 26.000000000000000000
       Size.PlatformDefault = False
-      Text = 'Sesi'#243'n: -'
+      Text = 'Session: -'
       TabOrder = 0
     end
   end
@@ -424,7 +424,7 @@
       Size.Width = 320.000000000000000000
       Size.Height = 22.000000000000000000
       Size.PlatformDefault = False
-      Text = 'Gu'#237'a r'#225'pida: qu'#233' preguntar'
+      Text = 'Quick guide: what to ask'
       TabOrder = 0
     end
     object MemoGuide: TMemo

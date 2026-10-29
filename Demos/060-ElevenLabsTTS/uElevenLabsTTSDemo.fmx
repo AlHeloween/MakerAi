@@ -102,7 +102,7 @@
     Size.Height = 28.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 6
-    Text = 'Guardar audio'
+    Text = 'Save audio'
     Enabled = False
     OnClick = BtnGuardarClick
   end
@@ -112,7 +112,7 @@
     Size.Width = 640.000000000000000000
     Size.Height = 17.000000000000000000
     Size.PlatformDefault = False
-    Text = 'Listo para generar voz.'
+    Text = 'Ready to generate speech.'
     FontColor = claGray
   end
   object LblSeparador: TLabel
@@ -141,7 +141,7 @@
     Size.Height = 26.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 7
-    Text = 'Cargar audio...'
+    Text = 'Load audio...'
     OnClick = BtnCargarClick
   end
   object LblAudio: TLabel
@@ -150,7 +150,7 @@
     Size.Width = 640.000000000000000000
     Size.Height = 17.000000000000000000
     Size.PlatformDefault = False
-    Text = 'Sin archivo cargado'
+    Text = 'No file loaded'
     FontColor = claGray
   end
   object BtnTranscribir: TButton

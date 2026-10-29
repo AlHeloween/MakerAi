@@ -194,7 +194,7 @@ object frmLlamacppChat: TfrmLlamacppChat
       Size.Height = 24.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 18
-      Text = 'Nuevo chat'
+      Text = 'New chat'
       TextSettings.Trimming = None
       OnClick = BtnNuevoClick
     end

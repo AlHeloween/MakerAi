@@ -19852,16 +19852,16 @@ object Form2: TForm2
         FunctionName = 'GetSystemDateTime'
         OnAction = AiFunctions1Functions0GetSystemDateTimeAction
         Description.Strings = (
-          'Retorna la fecha y la hora del sistema')
+          'Returns the system date and time')
         Parameters = <
           item
             Name = 'NA'
             ParamType = ptString
             Description.Strings = (
               
-                'No hay par'#225'metros pero por compatibilidad con Ollama y otras pla' +
-                'taformas se adiciona'
-              'El par'#225'metro no es obligatorio')
+                'There are no parameters, but for compatibility with Ollama and other ' +
+                'platforms, one is added'
+              'The parameter is not mandatory')
             Required = False
           end>
         Default = False
@@ -19872,16 +19872,16 @@ object Form2: TForm2
         FunctionName = 'AddInfoToRAG'
         OnAction = AiFunctions1Functions1AddInfoToRAGAction
         Description.Strings = (
-          'Adiciona informaci'#243'n a la base de conocimientos del sistema'
-          'El sistema RAG se utiliza para recordar cosas importantes')
+          'Adds information to the system knowledge base'
+          'The RAG system is used to remember important things')
         Parameters = <
           item
             Name = 'InfoToSave'
             ParamType = ptString
             Description.Strings = (
               
-                'Informaci'#243'n a guardar, puede estar en formato texto, MarkDown, J' +
-                'son o'
+                'Information to save, can be in text, MarkDown, ' +
+                'JSON or'
               'cualquier otro formato de texto disponible.')
             Required = True
           end>
@@ -19894,10 +19894,10 @@ object Form2: TForm2
         OnAction = AiFunctions1Functions2SearchInRagAction
         Description.Strings = (
           
-            'Recupera la informaci'#243'n almacenada en la base de datos de conoci' +
-            'miento RAG'
+            'Retrieves the information stored in the RAG ' +
+            'knowledge base'
           
-            'Busca aqu'#237' primero sobre informaci'#243'n personalizada antes de cont' +
+            'Search here first for personalized information before ' +
             'estar.')
         Parameters = <
           item
@@ -19905,9 +19905,9 @@ object Form2: TForm2
             ParamType = ptString
             Description.Strings = (
               
-                'El parametro representa el concepto que deseo buscar en la base ' +
-                'de datos'
-              'de conocimiento, un texto para b'#250'squeda en RAG')
+                'The parameter represents the concept I want to search in the ' +
+                'knowledge database, '
+              'a text for searching in RAG')
             Required = True
           end>
         Default = False
@@ -19992,7 +19992,7 @@ object Form2: TForm2
     Tool_choice = 'auto'
     User = 'user'
     SystemPrompt.Strings = (
-      'Eres un asistente muy '#250'til y servicial')
+      'You are a very helpful and accommodating assistant')
     Completion_tokens = 0
     Url = 'https://api.openai.com/v1/'
     ResponseTimeOut = 61000
@@ -20033,7 +20033,7 @@ object Form2: TForm2
     Tool_choice = 'auto'
     User = 'user'
     SystemPrompt.Strings = (
-      'Eres un asistente muy '#250'til y servicial')
+      'You are a very helpful and accommodating assistant')
     Completion_tokens = 0
     Url = 'https://generativelanguage.googleapis.com/v1beta/'
     ResponseTimeOut = 61000
@@ -20062,7 +20062,7 @@ object Form2: TForm2
     Tool_choice = 'auto'
     User = 'user'
     SystemPrompt.Strings = (
-      'Eres un asistente muy '#250'til y servicial')
+      'You are a very helpful and accommodating assistant')
     Completion_tokens = 0
     Url = 'http://localhost:11434/'
     ResponseTimeOut = 61000
@@ -20081,7 +20081,7 @@ object Form2: TForm2
     Tool_choice = 'auto'
     User = 'user'
     SystemPrompt.Strings = (
-      'Eres un asistente muy '#250'til y servicial')
+      'You are a very helpful and accommodating assistant')
     Completion_tokens = 0
     Url = 'http://127.0.0.1:7134/v1/'
     ResponseTimeOut = 120000

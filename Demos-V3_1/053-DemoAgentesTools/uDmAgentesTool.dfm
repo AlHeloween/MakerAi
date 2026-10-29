@@ -12,7 +12,7 @@
     Tool_Active = False
     User = 'user'
     SystemPrompt.Strings = (
-      'Eres un asistente muy '#250'til y servicial')
+      'You are a very helpful and serviceable assistant')
     Completion_tokens = 0
     Url = 'https://generativelanguage.googleapis.com/v1beta/'
     ResponseTimeOut = 60000
@@ -33,7 +33,7 @@
     Tool_Active = False
     User = 'user'
     SystemPrompt.Strings = (
-      'Eres un asistente muy '#250'til y servicial')
+      'You are a very helpful and serviceable assistant')
     Completion_tokens = 0
     Url = 'https://api.openai.com/v1/'
     ResponseTimeOut = 60000
@@ -102,7 +102,7 @@
     Tool_Active = False
     User = 'user'
     SystemPrompt.Strings = (
-      'Eres un asistente muy '#250'til y servicial')
+      'You are a very helpful and serviceable assistant')
     Completion_tokens = 0
     Url = 'https://generativelanguage.googleapis.com/v1beta/'
     ResponseTimeOut = 120000
@@ -124,9 +124,9 @@
     User = 'user'
     SystemPrompt.Strings = (
       
-        'Eres un asistente para la creaci'#243'n de Dashboards en html con css' +
-        ' utilizando un framework de bootstrap'
-      'Siempre generas html + CSS + JS en el mismo documento'
+        'You are an assistant for creating Dashboards in html with css' +
+        ' using a bootstrap framework'
+      'You always generate html + CSS + JS in the same document'
       'Presentaciones gerenciales.')
     Completion_tokens = 0
     Url = 'http://localhost:11434/'

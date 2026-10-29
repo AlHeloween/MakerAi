@@ -47,7 +47,7 @@
         Size.Height = 32.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 1
-        Text = 'Guardar Base...'
+        Text = 'Save Base...'
         TextSettings.Trimming = None
         OnClick = BtnSaveToFileClick
       end
@@ -58,7 +58,7 @@
         Size.Height = 32.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 2
-        Text = 'Cargar Base...'
+        Text = 'Load Base...'
         TextSettings.Trimming = None
         OnClick = BtnLoadFromfileClick
       end
@@ -69,7 +69,7 @@
         Size.Height = 30.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 3
-        Text = 'Crear Tabla PostgreSQL'
+        Text = 'Create PostgreSQL Table'
         TextSettings.Trimming = None
         OnClick = BtnCreateTableClick
       end
@@ -114,7 +114,7 @@
         Size.Height = 22.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 0
-        Text = 'Busqueda Semantica (Embeddings)'
+        Text = 'Semantic Search (Embeddings)'
         OnChange = ChSemanticSearchChange
       end
       object ChLexicalSearch: TCheckBox
@@ -199,7 +199,7 @@
         Size.Height = 22.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 4
-        Text = 'Incluir metadatos en resultado'
+        Text = 'Include metadata in result'
       end
     end
     object BtnMostrarTodos: TButton
@@ -213,7 +213,7 @@
       Size.Height = 32.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 3
-      Text = 'Mostrar Todos los Nodos'
+      Text = 'Show All Nodes'
       TextSettings.Trimming = None
       OnClick = BtnMostrarTodosClick
     end
@@ -301,7 +301,7 @@
         Size.Width = 895.000000000000000000
         Size.Height = 20.000000000000000000
         Size.PlatformDefault = False
-        Text = 'Consulta / VQL Query'
+        Text = 'Query / VQL Query'
         TabOrder = 0
       end
       object LayoutButtons: TLayout
@@ -317,7 +317,7 @@
           Size.Height = 38.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 0
-          Text = 'Buscar (Modo Simple)'
+          Text = 'Search (Simple Mode)'
           TextSettings.Trimming = None
           OnClick = BtnConsultarClick
         end
@@ -328,7 +328,7 @@
           Size.Height = 38.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 1
-          Text = 'Ejecutar Consulta VQL'
+          Text = 'Execute VQL Query'
           TextSettings.Trimming = None
           OnClick = BtnBuscarVGQLClick
         end

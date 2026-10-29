@@ -21,8 +21,8 @@
       Size.Height = 50.000000000000000000
       Size.PlatformDefault = False
       Text = 
-        'Este demo muestra como adicionar informaci'#243'n a una base de datos' +
-        ' postgres con pgvector de diferentes tipos de documentos'
+        'This demo shows how to add information to a postgres database' +
+        ' with pgvector of different document types'
       TextSettings.Font.Size = 14.000000000000000000
     end
   end
@@ -71,7 +71,7 @@
     Size.Width = 553.000000000000000000
     Size.Height = 22.000000000000000000
     Size.PlatformDefault = False
-    TextPrompt = 'Digita aqu'#237' tu consulta'
+    TextPrompt = 'Type your query here'
   end
   object Label1: TLabel
     Position.X = 456.000000000000000000
@@ -285,7 +285,7 @@
     Tool_choice = 'auto'
     User = 'user'
     SystemPrompt.Strings = (
-      'Eres un asistente muy '#250'til y servicial')
+      'You are a very helpful and accommodating assistant')
     Completion_tokens = 0
     Url = 'http://localhost:11434/'
     ResponseTimeOut = 61000

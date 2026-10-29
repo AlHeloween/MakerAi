@@ -26,7 +26,7 @@ object Form70: TForm70
     Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
     DataDetectorTypes = []
     Lines.Strings = (
-      'pregunta sobre delphi')
+      'question about delphi')
     TextSettings.WordWrap = True
     Position.X = 56.000000000000000000
     Position.Y = 568.000000000000000000
@@ -66,8 +66,8 @@ object Form70: TForm70
     Size.Height = 17.000000000000000000
     Size.PlatformDefault = False
     Text = 
-      'Prompt del programa que se desea desarrollar, ya est'#225' configurad' +
-      'o para que genere un progrma de consola'
+      'Prompt for the program to be developed, already configured ' +
+      'to generate a console program'
     TabOrder = 41
   end
   object Label3: TLabel
@@ -76,7 +76,7 @@ object Form70: TForm70
     Size.Width = 481.000000000000000000
     Size.Height = 17.000000000000000000
     Size.PlatformDefault = False
-    Text = 'Resultado de la Funci'#243'n Print de cada Nodo'
+    Text = 'Result of the Print Function of each Node'
     TabOrder = 42
   end
   object Button2: TButton
@@ -102,9 +102,9 @@ object Form70: TForm70
         Nombre = 'AiPrompt'
         Strings.Strings = (
           ''
-          'genera un programa de consola en Delphi pascal '#250'ltima versi'#243'n'
-          'Los programas de consola si tienen la extensi'#243'n .dpr y '
-          'tienen la siguiente estructura'
+          'generates a console program in Delphi pascal latest version'
+          'Console programs do have the .dpr extension and '
+          'have the following structure'
           ''
           'program Nombre_del_Proyecto;'
           ''
@@ -119,7 +119,7 @@ object Form70: TForm70
           '    { TODO -oUser -cConsole Main : Insert code here }'
           ''
           ''
-          '   Write('#39'digite enter para terminar'#39');'
+          '   Write('#39'press enter to finish'#39');'
           '   Readln;'
           '  except'
           '    on E: Exception do'
@@ -129,48 +129,48 @@ object Form70: TForm70
           ''
           ''
           
-            'Al generar el c'#243'digo debes tener en cuenta que el Nombre_del_Pro' +
-            'yecto debe'
+            'When generating the code, keep in mind that the Project_Name ' +
+            'must be'
           
-            'ser '#250'nico y no puede existir una variable o clase con el mismo n' +
-            'ombre.'
+            'unique and there cannot be a variable or class with the same ' +
+            'name.'
           ''
           ''
-          'Genera un json de la siguiente forma'
+          'Generate a json as follows'
           '{'
           '  "languaje":"lenguaje_de_programacion",'
           '  "filename":"nombre_del_archivo_sin_ruta",'
           '  "codigo":"codigo_generado",'
           '}'
           ''
-          'El c'#243'digo se refiere a:'
+          'The code refers to:'
           '<#prompt>')
       end
       item
         Nombre = 'Eval'
         Strings.Strings = (
-          'El siguiente texto corresponde al resultado de la compilaci'#243'n de'
-          'una aplicaci'#243'n en Delphi con la linea de comando DCC64,'
-          'Revisa el texto en busca de mensajes de error los cuales pueden'
+          'The following text corresponds to the result of the compilation of'
+          'an application in Delphi with the DCC64 command line,'
+          'Check the text for error messages which can'
           
-            'estar representados por las palabars Fatal o Error, aqu'#237' te dejo' +
-            ' dos ejemplos:'
-          '  Ejemplo1: Fatal: F2613 Unit '#39#39'Classes'#39#39' not found.'
+            'be represented by the words Fatal or Error, here are' +
+            ' two examples:'
+          '  Example1: Fatal: F2613 Unit '#39#39'Classes'#39#39' not found.'
           
-            '  Ejemplo2: Error: E2009 Incompatible types: '#39'method pointer and' +
+            '  Example2: Error: E2009 Incompatible types: '#39'method pointer and' +
             ' regular procedure'#39' '
           ''
           ''
           
-            'Si el texto no muestra ning'#250'n error retorna la palabra <CONFIRMA' +
-            'DO>,'
+            'If the text shows no error, return the word <CONFIRMED>' +
+            ','
           
-            'pero si el resultado_compilacion muestra alg'#250'n error retorna la ' +
-            'palabra <ERROR> y al frente el mensaje de error.  Ejemplo: <ERRO' +
-            'R>:Fatal: F2613 Unit '#39#39'Classes'#39#39' not found. '
+            'but if resultado_compilacion shows any error, return the word ' +
+            '<ERROR> and the error message in front. Example: <ERROR>' +
+            ':Fatal: F2613 Unit '#39#39'Classes'#39#39' not found. '
           ''
           ''
-          'El mensaje que retorna el compilador es el siguiente:'
+          'The message returned by the compiler is the following:'
           '<#resultado>')
       end>
     Left = 504
@@ -264,7 +264,7 @@ object Form70: TForm70
     Tool_Active = False
     User = 'user'
     SystemPrompt.Strings = (
-      'Eres un asistente muy '#250'til y servicial')
+      'You are a very helpful and useful assistant')
     Prompt_tokens = 0
     Completion_tokens = 0
     Total_tokens = 0

@@ -36,6 +36,16 @@
 - Consequence found by the corrected scanner: it walks `.pas` only — **16 `.fmx` and 8 `.dfm`** files still carry accented interface text. Tracked as the next unit.
 - A defect of my own applier, found and fixed: replacing a line dropped its `\r`, leaving mixed line endings (git showed symmetric 33/33 instead of the 33 lines lost it looked like).
 
+### Round 9 — the form files (`.fmx`/`.dfm`), and two more instrument defects
+
+- The detector walked `.pas` only, so **the captions, hints and embedded prompts of the form files were never measured at all**: 40 files carried 746 lines of non-English text (`.temp/forms_emit.py`).
+- Translated them through the numbered applier — five model passes (`opencode-go/beam-free`, free) plus a hand pass for the ~40 lines whose escapes the model kept damaging. **38 files changed, +693/−693**: content replaced line-for-line, no line added or removed.
+- **Coverage gap closed:** `CODE_EXTS = (.pas, .dpr, .dfm, .fmx)`. Control: a resource path is not prose; a Spanish caption beside a path is still a hit.
+- **Accent-set defect closed:** the nine codes known were all LOWERCASE, so `EXTRACCI'#211'N` and `V'#205'A` were reported clean. Sixteen codes now with a digit lookahead, and `.temp/numbered.py` imports that single definition instead of holding its own copy.
+- **Refusal model fixed:** one row that dropped a `)` used to cost the file every other row. Refusal is per line, a dropped trailing `)`/`;`/`,` is restored from the original line, and the whole file still passes the skeleton gate as the final oracle.
+- A sentence split across physical lines is now translated as ONE block (`.temp/forms_emit.py: expr_block`): before that the model translated `'... de conoci'` and left `'miento'` in Spanish.
+- Consequence, and it is not good news: with `Source` in scope the scan reports **2871 flagged hits in 392 files** (`.temp/inv12.txt`), of which **964 are classified REAL Spanish (33.6%)**. `Source/Tools/uMakerAi.Tools.Functions.pas` still carries `Error al procesar JSON:` — the round-3 core pass did not reach it.
+
 ## 2026-10-29 — Upstream Sync v3.3 → v3.9.0 + Full English Pass
 
 **Reason:** Owner decision: update the fork to upstream master (v3.9.0) and keep the whole repository in English.

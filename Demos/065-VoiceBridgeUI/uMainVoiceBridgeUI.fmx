@@ -47,7 +47,7 @@
         Size.Height = 18.0
         Size.PlatformDefault = False
         AutoSize = False
-        Text = 'Micr'#243'fono:'
+        Text = 'Microphone:'
         TextSettings.HorzAlign = Trailing
       end
       object CboMic: TComboBox
@@ -83,7 +83,7 @@
         Size.Height = 18.0
         Size.PlatformDefault = False
         AutoSize = False
-        Text = 'TTS Reuni'#243'n:'
+        Text = 'TTS Meeting:'
         TextSettings.HorzAlign = Trailing
       end
       object CboTTSReun: TComboBox
@@ -168,7 +168,7 @@
       object LblStatus: TLabel
         Align = Client
         AutoSize = False
-        Text = 'Listo. Configure los dispositivos e inicie el puente.'
+        Text = 'Ready. Configure the devices and start the bridge.'
         TextSettings.HorzAlign = Leading
         TextSettings.VertAlign = Center
       end
@@ -193,7 +193,7 @@
           object LblYoHeader: TLabel
             Align = Client
             AutoSize = False
-            Text = 'YO (Micr'#243'fono)'
+            Text = 'ME (Microphone)'
             TextSettings.FontColor = claWhite
             TextSettings.HorzAlign = Center
             TextSettings.VertAlign = Center
@@ -227,7 +227,7 @@
           object LblEllosHeader: TLabel
             Align = Client
             AutoSize = False
-            Text = 'ELLOS (Reuni'#243'n)'
+            Text = 'THEM (Meeting)'
             TextSettings.FontColor = claWhite
             TextSettings.HorzAlign = Center
             TextSettings.VertAlign = Center
@@ -259,7 +259,7 @@
             end
             object EdtSpeaker1: TEdit
               Align = Client
-              TextPrompt = 'Nombre del hablante 1 (auto-registrado)'
+              TextPrompt = 'Speaker 1 name (auto-registered)'
               OnChangeTracking = EdtSpeaker1ChangeTracking
             end
           end
@@ -280,7 +280,7 @@
             end
             object EdtSpeaker2: TEdit
               Align = Client
-              TextPrompt = 'Nombre del hablante 2 (auto-registrado)'
+              TextPrompt = 'Speaker 2 name (auto-registered)'
               OnChangeTracking = EdtSpeaker2ChangeTracking
             end
           end
@@ -301,7 +301,7 @@
             end
             object EdtSpeaker3: TEdit
               Align = Client
-              TextPrompt = 'Nombre del hablante 3 (auto-registrado)'
+              TextPrompt = 'Speaker 3 name (auto-registered)'
               OnChangeTracking = EdtSpeaker3ChangeTracking
             end
           end
@@ -322,7 +322,7 @@
             end
             object EdtSpeaker4: TEdit
               Align = Client
-              TextPrompt = 'Nombre del hablante 4 (auto-registrado)'
+              TextPrompt = 'Speaker 4 name (auto-registered)'
               OnChangeTracking = EdtSpeaker4ChangeTracking
             end
           end

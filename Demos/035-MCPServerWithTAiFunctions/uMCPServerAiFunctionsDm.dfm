@@ -8,13 +8,13 @@ object MCPServerAiFunctionsDm: TMCPServerAiFunctionsDm
         FunctionName = 'GetFechaHora'
         OnAction = AiFunctions1Functions0GetFechaHoraAction
         Description.Strings = (
-          'Obtiene la fecha y hora de una ciudad  PAIS,CIUDAD determinada')
+          'Gets the date and time of a given city  COUNTRY,CITY')
         Parameters = <
           item
             Name = 'Ciudad'
             ParamType = ptString
             Description.Strings = (
-              'La Ciudad a la cual se desea conocer la fecha y hora')
+              'The city whose date and time you want to know')
             Required = True
           end>
         Default = False

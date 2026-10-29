@@ -119,7 +119,7 @@
       Size.PlatformDefault = False
       Font.Style = [fsBold]
       StyledSettings = [Family, Size, FontColor]
-      Text = 'CHAT LOG   >>> entrada Telegram     <<< respuesta Claude     [T] tool call     *** sistema'
+      Text = 'CHAT LOG   >>> Telegram input     <<< Claude response     [T] tool call     *** system'
       TabOrder = 0
     end
     object MemoLog: TMemo

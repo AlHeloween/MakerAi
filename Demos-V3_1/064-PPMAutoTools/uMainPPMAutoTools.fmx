@@ -113,7 +113,7 @@
           Size.PlatformDefault = False
           IsChecked = True
           StyledSettings = [Family, Size, Style]
-          Text = 'Asíncrono'
+          Text = 'Asynchronous'
           TextSettings.FontColor = xFFCDD6F4
         end
         object LineSep1: TLine
