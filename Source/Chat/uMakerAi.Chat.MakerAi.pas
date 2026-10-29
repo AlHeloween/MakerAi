@@ -1,50 +1,4 @@
-﻿// MIT License
-//
-// Copyright (c) 2013 Gustavo Enríquez - CimaMaker
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
-// Nombre: Gustavo Enríquez
-// Redes Sociales:
-// - Email: gustavoeenriquez@gmail.com
-// - Telegram: https://t.me/MakerAi_Suite_Delphi
-// - Telegram: https://t.me/MakerAi_Delphi_Suite_English
-// - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
-// - Youtube: https://www.youtube.com/@cimamaker3945
-// - GitHub: https://github.com/gustavoeenriquez/
-
-// Driver para MakerAI API (https://api.cimamaker.com/v1/).
-// El servidor envía SSE real cuando stream=true (default en Asynchronous=True).
-// OnInternalReceiveData filtra mk_progress chunks antes de que la base los procese.
-//
-// PDFs/documentos: ToJSon base deja vacío el caso Tfc_Pdf. Este driver inyecta
-// el content part {type:"file", file:{filename, file_data}} en InitChatCompletions.
-// Requiere cap_Pdf en ModelCaps y SessionCaps para los modelos que lo soportan.
-//
-// session_id: campo extra en el root del payload, igual en todos los turnos de
-// la conversación. Se renueva automáticamente en cada NewChat.
-//
-// mk_progress: chunks SSE de progreso (extracting/embedding/querying) que el
-// servidor emite mientras procesa PDFs. Tienen delta:{} — se filtran aquí y se
-// notifican vía OnProgress sin pasarlos al acumulador de tokens de la base.
-
-unit uMakerAi.Chat.MakerAi;
+﻿unit uMakerAi.Chat.MakerAi;
 
 interface
 
@@ -71,18 +25,18 @@ type
     FFileReaderSlug:     string;
     FFileReaderId:       Integer;
     FPendingMediaParts:  TList<TAiMediaFile>;
-    // Usage REAL visto en los chunks SSE. El cierre sintetico del stream
-    // rellenaba usage con ceros fijos, asi que con streaming los contadores de
-    // tokens de TODA la aplicacion quedaban a cero (la CLI mostraba 0 en
-    // /tokens y no habia forma de medir consumo). El servidor SI lo manda, en
-    // el penultimo chunk; solo habia que quedarselo.
+    // REAL usage seen in SSE chunks. The synthetic stream closure
+    // filled usage with fixed zeros, so with streaming the token
+    // counters of the ENTIRE application stayed at zero (the CLI showed 0 in
+    // /tokens and there was no way to measure consumption). The server DOES send it,
+    // in the penultimate chunk; we just had to keep it.
     FStreamPromptTok:    Integer;
     FStreamComplTok:     Integer;
     FStreamTotalTok:     Integer;
-    // prompt_tokens_details.cached_tokens del stream: el broker SI lo manda
-    // (medido 2026-09-05: 1828 de 1831 en cache), pero el cierre sintetico lo
-    // tiraba y en streaming Cached_tokens quedaba siempre a cero — sin el no
-    // hay forma de saber si la cache del prefijo esta sirviendo o no.
+    // prompt_tokens_details.cached_tokens from the stream: the broker DOES send it
+    // (measured 2026-09-05: 1828 out of 1831 in cache), but the synthetic closure
+    // discarded it and in streaming Cached_tokens was always zero — without it there is
+    // no way to know if the prefix cache is serving or not.
     FStreamCachedTok:    Integer;
     procedure ResetSessionId;
     procedure HandleStreamDone;
@@ -103,13 +57,13 @@ type
     class function GetDriverName: string; override;
     class procedure RegisterDefaultParams(Params: TStrings); override;
     class function CreateInstance(Sender: TComponent): TAiChat; override;
-    // Notifica el progreso mientras el servidor procesa un PDF:
+    // Reports progress while the server processes a PDF:
     //   step  = 'extracting' | 'embedding' | 'querying'
-    //   aFile = nombre del archivo
-    //   pct   = porcentaje de avance del paso (0-100)
+    //   aFile = file name
+    //   pct   = progress percentage for the step (0-100)
     property OnProgress: TProc<string, string, Integer> read FOnProgress write FOnProgress;
-    // RAG: slug o ID del knowledge base a conectar vía mk_tools.file_reader.
-    // Si FileReaderSlug <> '' se usa el slug; si FileReaderId > 0 se usa el ID.
+    // RAG: slug or ID of the knowledge base to connect via mk_tools.file_reader.
+    // If FileReaderSlug <> '' the slug is used; if FileReaderId > 0 the ID is used.
     property FileReaderSlug: string  read FFileReaderSlug write FFileReaderSlug;
     property FileReaderId:   Integer read FFileReaderId   write FFileReaderId;
   published
@@ -169,9 +123,9 @@ end;
 constructor TAiMakerAiChat.Create(Sender: TComponent);
 begin
   inherited;
-  Url := GlMakerAiUrl;  // sobreescribe el GlOpenAIUrl que pone el base en Create
-  // El mismo default que RegisterDefaultParams: sin esto heredaba el modelo
-  // de TAiOpenChat (gpt-5 y luego gpt-6-sol), que el broker no sirve
+  Url := GlMakerAiUrl;  // overwrites the GlOpenAIUrl that the base class sets in Create
+  // Same default as RegisterDefaultParams: without this it inherited the model
+  // from TAiOpenChat (gpt-5 and later gpt-6-sol), which the broker does not serve
   Model := 'mk-gpt-oss-20b';
   ResetSessionId;
   FPendingMediaParts := TList<TAiMediaFile>.Create;
@@ -211,15 +165,15 @@ var
 begin
   Result := inherited InitChatCompletions;
 
-  // Siempre parsear: se inyecta session_id en cada request; también mk_tools,
-  // tool_choice y PDF file parts según las caps activas.
+  // Always parse: session_id is injected in every request; also mk_tools,
+  // tool_choice and PDF file parts according to the active caps.
   LJson := TJSonObject.ParseJSONValue(Result) as TJSonObject;
   if Assigned(LJson) then
   try
-    // Eliminar campos OpenAI no soportados por el routing MKAI/Claude.
-    // frequency_penalty, presence_penalty, n: Claude API los rechaza.
-    // top_p: Claude rechaza si top_p y temperature están presentes simultáneamente.
-    // user: MKAI no lo usa; response_format:text es redundante (default).
+    // Remove OpenAI fields not supported by the MKAI/Claude routing.
+    // frequency_penalty, presence_penalty, n: Claude API rejects them.
+    // top_p: Claude rejects if top_p and temperature are present simultaneously.
+    // user: MKAI does not use it; response_format:text is redundant (default).
     LPair := LJson.RemovePair('frequency_penalty');
     if Assigned(LPair) then LPair.Free;
     LPair := LJson.RemovePair('presence_penalty');
@@ -241,7 +195,7 @@ begin
       end;
     end;
 
-    // Construir mk_tools si alguna cap lo requiere o hay file_reader configurado.
+    // Build mk_tools if any cap requires it or a file_reader is configured.
     var LNeedsMkTools :=
       (cap_WebSearch      in SessionCaps) or
       (cap_CodeInterpreter in SessionCaps) or
@@ -255,8 +209,8 @@ begin
     begin
       LPair := LJson.RemovePair('mk_tools');
       if Assigned(LPair) then LPair.Free;
-      // MKAI usa mk_tools para web search — el campo web_search_options (OpenAI nativo)
-      // no es reconocido por el servidor y puede interferir con el routing.
+      // MKAI uses mk_tools for web search — the native OpenAI web_search_options field
+      // is not recognized by the server and may interfere with routing.
       LPair := LJson.RemovePair('web_search_options');
       if Assigned(LPair) then LPair.Free;
       var LMkTools := TJSONObject.Create;
@@ -281,7 +235,7 @@ begin
       LJson.AddPair('mk_tools', LMkTools);
     end;
 
-    // reasoning_effort: parámetro top-level para modelos con ThinkingLevel configurado.
+    // reasoning_effort: top-level parameter for models with ThinkingLevel configured.
     if ModelConfig.ThinkingLevel <> tlDefault then
     begin
       LPair := LJson.RemovePair('reasoning_effort');
@@ -290,7 +244,7 @@ begin
       case ModelConfig.ThinkingLevel of
         tlLow:    sEffort := 'low';
         tlHigh:   sEffort := 'high';
-      else        sEffort := 'medium'; // tlMedium y cualquier otro
+      else        sEffort := 'medium'; // tlMedium and any other
       end;
       LJson.AddPair('reasoning_effort', sEffort);
     end;
@@ -309,7 +263,7 @@ begin
       LEffective := Tool_choice;
       if LEffective = '' then LEffective := 'auto';
 
-      LChoiceVal := TJSonObject.ParseJSONValue(LEffective); // ParseJSONValue es método de clase de TJSONObject (TJSonValue no lo expone en D10.4)
+      LChoiceVal := TJSonObject.ParseJSONValue(LEffective); // ParseJSONValue is a class method of TJSONObject (not exposed by TJSonValue in D10.4)
       if Assigned(LChoiceVal) and (LChoiceVal is TJSonObject) then
         LJson.AddPair('tool_choice', LChoiceVal)
       else
@@ -323,8 +277,8 @@ begin
     end;
 
     // Inject PDF file parts as {type:"file"} content parts.
-    // ToJSon base deja el caso Tfc_Pdf vacío; lo completamos aquí.
-    // FMessages[I] es 1:1 con messages[I] en el JSON (el system prompt vive en FMessages).
+    // ToJSon base leaves the Tfc_Pdf case empty; we complete it here.
+    // FMessages[I] is 1:1 with messages[I] in the JSON (the system prompt lives in FMessages).
     if cap_Pdf in ModelCaps then
     begin
       var LMessages: TJSONArray;
@@ -339,8 +293,8 @@ begin
 
           var LJsonMsg := LMessages.Items[LFIdx] as TJSONObject;
 
-          // content debería ser array (cap_Pdf en ModelCaps hace que ToJSon cree JContent
-          // aunque el caso Tfc_Pdf no añada nada al array). Manejar string como fallback.
+          // content should be an array (cap_Pdf in ModelCaps makes ToJSon create JContent
+          // even if the Tfc_Pdf case adds nothing to the array). Handle string as fallback.
           var LContent: TJSONArray;
           var LContentVal := LJsonMsg.GetValue('content');
           if LContentVal is TJSONArray then
@@ -376,8 +330,8 @@ begin
       end;
     end;
 
-    // session_id: identifica la sesión; el servidor recupera el contexto entre turnos.
-    // Se renueva en NewChat para separar conversaciones distintas.
+    // session_id: identifies the session; the server recovers context between turns.
+    // It is renewed in NewChat to separate different conversations.
     LPair := LJson.RemovePair('session_id');
     if Assigned(LPair) then LPair.Free;
     LJson.AddPair('session_id', FSessionId);
@@ -423,10 +377,10 @@ begin
         LHasMkFile := Pos('```mk_file:', LContent) > 0
       else if LMessage.TryGetValue<TJSonArray>('content', LContentArr) and
               Assigned(LContentArr) then
-        LHasImageArr := True   // content es array (p.ej. image_url de mk-claude-sonnet)
+        LHasImageArr := True   // content is array (e.g. image_url from mk-claude-sonnet)
       else
       begin
-        // Diagnóstico: tokens consumidos pero sin content ni tool_calls.
+        // Diagnosis: tokens consumed but without content or tool_calls.
         if not LMessage.TryGetValue<TJSonValue>('tool_calls', LToolCalls) then
         begin
           LCompletionTokens := 0;
@@ -434,9 +388,9 @@ begin
             LUsage.TryGetValue<Integer>('completion_tokens', LCompletionTokens);
           if LCompletionTokens > 0 then
             MKLog('SERVER-WARN',
-              'content="" + sin tool_calls + completion_tokens=' +
+              'content="" + no tool_calls + completion_tokens=' +
               IntToStr(LCompletionTokens) +
-              ' — posible bug del servidor');
+              ' — possible server bug');
         end;
       end;
     end;
@@ -450,15 +404,15 @@ begin
       inherited ParseChat(jObj, ResMsg);
       if LHasMkFile then
       begin
-        MKLog('MK_FILE-DETECT', 'extrayendo bloques mk_file del prompt...');
+        MKLog('MK_FILE-DETECT', 'extracting mk_file blocks from prompt...');
         ExtractMkFileBlocks(ResMsg);
-        MKLog('MK_FILE-DONE', IntToStr(ResMsg.MediaFiles.Count) + ' archivo(s) extraído(s)');
+        MKLog('MK_FILE-DONE', IntToStr(ResMsg.MediaFiles.Count) + ' file(s) extracted');
       end
       else
       begin
-        MKLog('IMAGE_URL', 'extrayendo image_url del content array...');
+        MKLog('IMAGE_URL', 'extracting image_url from content array...');
         ExtractImageUrlContent(LContentArr, ResMsg);
-        MKLog('IMAGE_URL-DONE', IntToStr(ResMsg.MediaFiles.Count) + ' archivo(s) extraído(s)');
+        MKLog('IMAGE_URL-DONE', IntToStr(ResMsg.MediaFiles.Count) + ' file(s) extracted');
       end;
     finally
       OnReceiveDataEnd := LSavedHandler;
@@ -469,12 +423,12 @@ begin
   else
   begin
     inherited ParseChat(jObj, ResMsg);
-    // ISSUE #99 (regresión): en async la clase base delega el cierre del turno al handler
-    // de [DONE] de OnInternalReceiveData. Pero este driver intercepta [DONE] él mismo
-    // (-> HandleStreamDone) y se salta ese handler, así que para contenido plano nadie
-    // dispara FOnReceiveDataEnd/acsFinished y el cliente cuelga (DEADLINE). Lo disparamos
-    // aquí. Guard 'not FPendingToolRun': si la base dejó una continuación tool-calling
-    // diferida (ISSUE #100), NO cerramos el turno a mitad del loop agéntico.
+    // ISSUE #99 (regression): in async mode the base class delegates the turn closure to the
+    // [DONE] handler in OnInternalReceiveData. But this driver intercepts [DONE] itself
+    // (-> HandleStreamDone) and skips that handler, so for plain content nobody
+    // fires FOnReceiveDataEnd/acsFinished and the client hangs (DEADLINE). We fire it
+    // here. Guard 'not FPendingToolRun': if the base left a deferred tool-calling
+    // continuation (ISSUE #100), we do NOT close the turn in the middle of the agentic loop.
     if FClient.Asynchronous and (not FPendingToolRun) and Assigned(FOnReceiveDataEnd) then
     begin
       DoStateChange(acsFinished, 'Done');
@@ -528,11 +482,11 @@ begin
     LClosePos := PosEx(CCloseTag, LText, LHeaderEnd + 1);
     if LClosePos <= 0 then
     begin
-      // El servidor omitió la etiqueta de cierre — todo lo que queda desde
-      // LHeaderEnd+1 hasta el final es el base64 del archivo.
+      // The server omitted the closing tag — everything from LHeaderEnd+1 to the end
+      // is the base64 of the file.
       LB64      := Trim(Copy(LText, LHeaderEnd + 1, MaxInt));
-      LPos      := Length(LText) + 1;  // para salir del while
-      LClosePos := Length(LText) + 1;  // indicador de fin de string
+      LPos      := Length(LText) + 1;  // to exit the while loop
+      LClosePos := Length(LText) + 1;  // end-of-string indicator
     end
     else
       LB64 := Trim(Copy(LText, LHeaderEnd + 1, LClosePos - LHeaderEnd - 1));
@@ -571,10 +525,10 @@ begin
   ResMsg.Prompt := Trim(LResult);
 end;
 
-// Extrae archivos y texto de un content array OpenAI-style:
+// Extracts files and text from an OpenAI-style content array:
 //   [{"type":"image_url","image_url":{"url":"data:mime;base64,XXX"}}, ...]
 //   [{"type":"text","text":"..."}]
-// mk-claude-sonnet devuelve las imágenes generadas en este formato.
+// mk-claude-sonnet returns generated images in this format.
 procedure TAiMakerAiChat.ExtractImageUrlContent(AContentArr: TJSonArray;
   ResMsg: TAiChatMessage);
 var
@@ -611,7 +565,7 @@ begin
       sMime     := Copy(sUrl, 6, LColonPos - 6);
       LB64Start := LColonPos + 8;
       sB64      := Copy(sUrl, LB64Start, MaxInt);
-      // Derivar extensión desde el mime-type (image/png → png, image/jpeg → jpg)
+      // Derive extension from mime-type (image/png → png, image/jpeg → jpg)
       sExt := LowerCase(Copy(sMime, Pos('/', sMime) + 1, MaxInt));
       if sExt = 'jpeg' then sExt := 'jpg';
       if sExt = '' then sExt := 'bin';
@@ -644,8 +598,8 @@ end;
 
 Function TAiMakerAiChat.InternalRunCompletions(ResMsg, AskMsg: TAiChatMessage): String;
 begin
-  // A cero en cada peticion: si un turno no trae usage en sus chunks, sin esto
-  // se reutilizaria el del turno anterior y el consumo saldria inflado.
+  // Reset to zero on each request: if a turn does not bring usage in its chunks, without this
+  // the previous turn's values would be reused and consumption would be inflated.
   FStreamPromptTok := 0;
   FStreamComplTok  := 0;
   FStreamTotalTok  := 0;
@@ -681,7 +635,7 @@ begin
       LInner.TryGetValue<string>('filename',  sFilename);
       LInner.TryGetValue<string>('mime_type', sMime);
       LInner.TryGetValue<string>('data',      sData);
-      // Variante solo-URL (lazy): si no trae base64 pero sí una URL http(s)
+      // URL-only variant (lazy): if it does not carry base64 but does carry an http(s) URL
       if (sData = '') then
       begin
         sUrl := '';
@@ -693,7 +647,7 @@ begin
                          GetFileExtensionFromMimeType(sMime);
           LMF := TAiMediaFile.Create;
           LMF.filename := sFilename;
-          LMF.UrlMedia := sUrl;          // LAZY: descarga al 1er acceso a .Content
+          LMF.UrlMedia := sUrl;          // LAZY: download on first access to .Content
           FPendingMediaParts.Add(LMF);
           MKLog('MEDIA_PART', 'lazy url ' + sType + ' ' + sFilename + ' <- ' + sUrl);
           Continue;
@@ -705,22 +659,22 @@ begin
       if not LPart.TryGetValue<TJSONObject>('image_url', LInner) then Continue;
       LInner.TryGetValue<string>('url', sUrl);
 
-      // Rama URL LAZY (Pieza S del server: media solo-URL -> http(s), no data:).
-      // SetUrlMedia es puro lazy (Core:1169); baja al 1er acceso a .Content.
+      // URL LAZY branch (Server piece S: media-only URL -> http(s), not data:).
+      // SetUrlMedia is purely lazy (Core:1169); downloads on first access to .Content.
       if sUrl.StartsWith('http', True) then
       begin
         sMime := '';
-        LInner.TryGetValue<string>('mime_type', sMime);   // opcional
+        LInner.TryGetValue<string>('mime_type', sMime);   // optional
         LMF := TAiMediaFile.Create;
         LMF.filename := 'ci_image-' + IntToStr(FPendingMediaParts.Count + 1) +
                         GetFileExtensionFromMimeType(sMime);
         LMF.UrlMedia := sUrl;
         FPendingMediaParts.Add(LMF);
         MKLog('MEDIA_PART', 'lazy url ' + LMF.filename + ' <- ' + sUrl);
-        Continue;   // acumulada; saltar el decode base64 compartido de abajo
+        Continue;   // accumulated; skip the shared base64 decode below
       end;
 
-      // data:mime/type;base64,<data>  (rama existente)
+      // data:mime/type;base64,<data>  (existing branch)
       IComma := Pos(',', sUrl);
       if IComma <= 0 then Continue;
       sData := Copy(sUrl, IComma + 1, MaxInt);
@@ -773,11 +727,11 @@ begin
   LRole := FTmpRole;
   if LRole = '' then LRole := 'assistant';
 
-  // El servidor stremea los tool_calls como delta SSE (NO fuerza un JSON completo cuando
-  // hay tools). La clase base los acumuló en FTmpToolCallBuffer durante el stream. Como
-  // este driver intercepta [DONE] y se salta el handler base que normalmente los reconstruye,
-  // lo hacemos aquí para que ParseChat vea las tools y las ejecute; si no, async+tools queda
-  // con respuesta vacía y, tras el cierre, sin continuación (la tool nunca se llama).
+  // The server streams tool_calls as SSE delta (does NOT force a complete JSON when
+  // there are tools). The base class accumulated them in FTmpToolCallBuffer during the stream. Since
+  // this driver intercepts [DONE] and skips the base handler that normally reconstructs them,
+  // we do it here so that ParseChat sees the tools and executes them; otherwise, async+tools ends up
+  // with an empty response and, after closure, no continuation (the tool is never called).
   LToolCallsStr := '';
   if FTmpToolCallBuffer.Count > 0 then
   begin
@@ -806,12 +760,12 @@ begin
     LFakeJson.AddPair('model', Model);
 
     LFakeUsage := TJSONObject.Create;
-    // Los del stream, no ceros: ver FStreamPromptTok.
+    // Those from the stream, not zeros: see FStreamPromptTok.
     LFakeUsage.AddPair('prompt_tokens',     TJSONNumber.Create(FStreamPromptTok));
     LFakeUsage.AddPair('completion_tokens', TJSONNumber.Create(FStreamComplTok));
     LFakeUsage.AddPair('total_tokens',      TJSONNumber.Create(FStreamTotalTok));
-    // Con la misma forma que el JSON real, para que TAiChat.ParseChat lo lea
-    // por el camino de siempre ('prompt_tokens_details.cached_tokens').
+    // With the same shape as the real JSON, so that TAiChat.ParseChat reads it
+    // via the usual path ('prompt_tokens_details.cached_tokens').
     if FStreamCachedTok > 0 then
     begin
       var LFakeDetails := TJSONObject.Create;
@@ -843,22 +797,22 @@ begin
       TempMsg.Id := FMessages.Count + 1;
       FMessages.Add(TempMsg);
       var LHistMsg := TempMsg;
-      TempMsg := nil;  // FMessages es owner
+      TempMsg := nil;  // FMessages is owner
 
-      // Transferir archivos acumulados de media_parts (code_execution, etc.)
-      // antes de ParseChat para que MediaFiles.Count sea correcto en OnDataEnd.
+      // Transfer accumulated media_parts (code_execution, etc.)
+      // before ParseChat so that MediaFiles.Count is correct in OnDataEnd.
       while FPendingMediaParts.Count > 0 do
       begin
         var LMF := FPendingMediaParts[0];
-        FPendingMediaParts.Delete(0);  // remueve sin liberar
-        LHistMsg.AddMediaFile(LMF);    // mensaje toma ownership
+        FPendingMediaParts.Delete(0);  // remove without freeing
+        LHistMsg.AddMediaFile(LMF);    // message takes ownership
       end;
 
       ParseChat(LFakeJson, LHistMsg);
 
-      // Si LHistMsg quedó vacío, removerlo POR REFERENCIA: en la rama de tools, ParseChat
-      // agregó el mensaje assistant-con-tool_calls y el tool-result DESPUÉS, así que el
-      // último de la lista ya no es LHistMsg (un Delete(Count-1) borraría el tool-result).
+      // If LHistMsg remained empty, remove it BY REFERENCE: in the tools branch, ParseChat
+      // added the assistant-with-tool_calls message AND the tool-result AFTER, so the last
+      // item in the list is no longer LHistMsg (a Delete(Count-1) would delete the tool-result).
       if (LHistMsg.Prompt = '') and (LHistMsg.MediaFiles.Count = 0) and (LHistMsg.Tool_calls = '') then
         FMessages.Remove(LHistMsg);
     finally
@@ -866,7 +820,7 @@ begin
     end;
 
     FLastReasoning := '';
-    // No liberar FBusy si quedó una continuación tool-calling diferida (#100): el turno sigue.
+    // Do not release FBusy if a deferred tool-calling continuation remains (#100): the turn continues.
     if not FPendingToolRun then
       FBusy := False;
   finally
@@ -890,8 +844,8 @@ begin
     Exit;
   end;
 
-  // ISSUE #124: si el chunk termina en un caracter UTF-8 incompleto, DataString
-  // lanza EEncodingError; se sale sin hacer Clear y el proximo chunk lo completa.
+  // ISSUE #124: if the chunk ends with an incomplete UTF-8 character, DataString
+  // raises EEncodingError; we exit without Clear and the next chunk completes it.
   try
     LBuffer := FResponse.DataString;
   except
@@ -929,8 +883,8 @@ begin
       LChunk := TJSONObject.ParseJSONValue(LJsonStr) as TJSONObject;
       if Assigned(LChunk) then
       try
-        // usage: llega en el penultimo chunk del stream. Se guarda el ultimo
-        // visto, que es el acumulado del turno.
+        // usage: arrives in the penultimate chunk of the stream. We save the last
+        // one seen, which is the accumulated usage for the turn.
         var LUsage: TJSONObject;
         if LChunk.TryGetValue<TJSONObject>('usage', LUsage) and Assigned(LUsage) then
         begin
@@ -964,7 +918,7 @@ begin
           Continue;
         end;
 
-        // media_parts: archivos generados por code_execution u otros tools del servidor
+        // media_parts: files generated by code_execution or other server tools
         var LChoicesArr: TJSONArray;
         var LChoiceDelta: TJSONObject;
         var LMediaParts: TJSONArray;
@@ -1007,15 +961,15 @@ begin
   LBody := Trim(FTmpResponseText);
   FTmpResponseText := '';
 
-  // Con tools en el request el servidor fuerza una respuesta JSON completa
-  // (chat.completion) aunque se haya pedido stream=true. En ese caso el buffer
-  // quedo con el JSON integro (sin lineas 'data:' ni [DONE]): procesarlo por
-  // ParseChat, que ademas resuelve los tool_calls y dispara OnReceiveDataEnd.
+  // With tools in the request, the server forces a complete JSON response
+  // (chat.completion) even when stream=true was requested. In that case the buffer
+  // contains the full JSON (without 'data:' lines or [DONE]): process it through
+  // ParseChat, which also resolves tool_calls and fires OnReceiveDataEnd.
   //
-  // ISSUE #100: se procesa ANTES de inherited a proposito. Si ParseChat resuelve
-  // tool_calls deja FPendingToolRun=True (continuacion diferida); el inherited base
-  // (que libera el stream y lanza el siguiente round si FPendingToolRun) debe correr
-  // DESPUES para que la continuacion del loop agentico no se pierda.
+  // ISSUE #100: it is processed BEFORE inherited on purpose. If ParseChat resolves
+  // tool_calls it leaves FPendingToolRun=True (deferred continuation); the inherited base
+  // (which frees the stream and launches the next round if FPendingToolRun) must run
+  // AFTER so that the agentic loop continuation is not lost.
   if Asynchronous and Assigned(aResponse) and
      (aResponse.StatusCode >= 200) and (aResponse.StatusCode <= 299) and
      LBody.StartsWith('{') then
@@ -1036,8 +990,8 @@ begin
     end;
   end;
 
-  // Delegate HTTP-error handling, stream cleanup y la continuacion tool-calling
-  // diferida (FPendingToolRun) a la clase base. Corre al final (ver nota arriba).
+  // Delegate HTTP-error handling, stream cleanup and the deferred tool-calling
+  // continuation (FPendingToolRun) to the base class. Runs at the end (see note above).
   inherited OnRequestCompletedEvent(Sender, aResponse);
 end;
 

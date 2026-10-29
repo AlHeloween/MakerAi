@@ -1,37 +1,4 @@
-﻿// MIT License
-//
-// Copyright (c) <year> <copyright holders>
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
-// Nombre: Gustavo Enr?quez
-// Redes Sociales:
-// - Email: gustavoeenriquez@gmail.com
-
-// - Telegram: https://t.me/MakerAi_Suite_Delphi
-// - Telegram: https://t.me/MakerAi_Delphi_Suite_English
-
-// - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
-// - Youtube: https://www.youtube.com/@cimamaker3945
-// - GitHub: https://github.com/gustavoeenriquez/
-
-unit uMakerAi.Tools.Shell;
+﻿unit uMakerAi.Tools.Shell;
 
 interface
 
@@ -39,12 +6,12 @@ uses
   System.SysUtils, System.Classes, System.JSON, System.StrUtils, System.Diagnostics,
   System.Generics.Collections, uMakerAi.Utils.System, uMakerAi.Tools.Functions, uMakerAi.Chat.Messages
 {$IFDEF MSWINDOWS}
-  , Winapi.Windows   // GetOEMCP: la codepage real en la que escribe cmd.exe
+  , Winapi.Windows   // GetOEMCP: the actual code page in which cmd.exe writes
 {$ENDIF}
   ;
 
 type
-  // Estructura interna del resultado de un comando
+  // Internal structure of a command result
   TShellExecutionResult = record
     StdOut: string;
     StdErr: string;
@@ -52,21 +19,21 @@ type
     TimedOut: Boolean;
   end;
 
-  // Evento para interceptar/auditar comandos antes de ejecutar
+  // Event to intercept/audit commands before execution
   TAiShellCommandEvent = procedure(Sender: TObject; const Command: string; const CallId: string; var Result: TShellExecutionResult; var Handled: Boolean) of object;
   TAiShellLogEvent = procedure(Sender: TObject; const Command: string; const StdOut, StdErr: string; ExitCode: Integer) of object;
 
-  // Modo de seguridad para filtrado de comandos
-  // ssmNone      : sin filtro (comportamiento por defecto)
-  // ssmBlockList : bloquea los comandos de la lista; el resto se permite
-  // ssmAllowList : solo permite los comandos de la lista; el resto se bloquea
+  // Security mode for command filtering
+  // ssmNone      : no filter (default behavior)
+  // ssmBlockList : blocks commands in the list; the rest are allowed
+  // ssmAllowList : only allows commands in the list; the rest are blocked
   TShellSecurityMode = (ssmNone, ssmBlockList, ssmAllowList);
 
-  // Evento disparado cuando un comando es bloqueado por la política de seguridad.
-  // AErrorMessage puede modificarse para personalizar el mensaje devuelto al LLM.
+  // Event raised when a command is blocked by security policy.
+  // AErrorMessage can be modified to customize the message returned to the LLM.
   TAiShellSecurityEvent = procedure(Sender: TObject; const Command: string; const CallId: string; var AErrorMessage: string) of object;
 
-  // Modos soportados (para generar la definici?n del Tool correcta)
+  // Supported modes (to generate the correct Tool definition)
 
   TAiShell = class(TComponent)
   private
@@ -88,11 +55,11 @@ type
     procedure StartSession;
     procedure StopSession;
 
-    // Ejecuci?n de bajo nivel (At?mica)
+    // Low-level execution (Atomic)
     function InternalExecuteCommand(const ACommand: string; TimeOutMs: Cardinal): TShellExecutionResult;
 
-    // M?todos espec?ficos por proveedor
-    // Decodifica la salida del shell tolerando que NO sea UTF-8.
+    // Provider-specific methods
+    // Decodes shell output tolerating that it is NOT UTF-8.
     function DecodeShellBytes(const ABuffer: TBytes; ACount: Integer): string;
     function ExecuteClaudeAction(const CallId: string; JArgs: TJSONObject): string;
     function ExecuteOpenAIAction(const CallId: string; JArgs: TJSONObject): string;
@@ -101,57 +68,57 @@ type
     procedure SetEnvironment(const Value: TStringList);
     procedure SetSecurityList(const Value: TStringList);
 
-    // Devuelve '' si el comando está permitido, o un mensaje de error si está bloqueado.
-    // Compara el primer token del comando (nombre del ejecutable/comando) contra FSecurityList.
+    // Returns '' if the command is allowed, or an error message if blocked.
+    // Compares the first token of the command (executable/command name) against FSecurityList.
     function CheckSecurity(const ACommand, ACallId: string): string;
 
-    // Handler interno usado por RegisterInFunctions
+    // Internal handler used by RegisterInFunctions
     procedure OnFunctionAction(Sender: TObject; FunctionAction: TFunctionActionItem;    FunctionName: string; ToolCall: TAiToolsFunction; var Handled: Boolean);
 
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    // --- PUNTO DE ENTRADA ?NICO ---
-    // Detecta autom?ticamente el formato del JSON y delega.
+    // --- SINGLE ENTRY POINT ---
+    // Automatically detects the JSON format and delegates.
     function Execute(const CallId: string; const JsonArguments: string): string; overload;
     function Execute(const CallId: string; JArgs: TJSONObject): string; overload;
     function ExecuteManual(const Command: string): string;
 
     procedure Restart;
 
-    { Registra la funcion 'bash' en un TAiFunctions para su uso con Ollama
-      (y cualquier provider que requiera definicion explicita de herramientas).
-      AFunctionName permite personalizar el nombre si el modelo lo requiere. }
+    { Registers the 'bash' function in a TAiFunctions for use with Ollama
+      (and any provider that requires explicit tool definition).
+      AFunctionName allows customizing the name if the model requires it. }
     procedure RegisterInFunctions(AFunctions: TAiFunctions;
       const AFunctionName: string = 'bash');
 
   published
     property Active: Boolean read FActive write SetActive default False;
-    // OJO: es un timeout de INACTIVIDAD, no de duracion total. Cada trozo de
-    // salida que llega reinicia el reloj, asi que un comando que escribe algo
-    // cada segundo puede correr indefinidamente sin caducar; lo que corta es
-    // que el comando se quede MUDO este tiempo. Al caducar se reinicia la
-    // sesion (se pierden cwd y variables) porque el proceso colgado sigue
-    // ocupando el pipe y dejaria el shell inservible.
+    // NOTE: it is an INACTIVITY timeout, not a total duration. Each chunk
+    // of output that arrives resets the clock, so a command that writes something
+    // every second can run indefinitely without timing out; what triggers the
+    // timeout is the command staying MUTE for this period. When it expires the
+    // session is restarted (cwd and variables are lost) because the hung process
+    // still occupies the pipe and would leave the shell unusable.
     property TimeOut: Cardinal read FTimeOut write FTimeOut default 30000;
     property ShellPath: string read FShellPath write SetShellPath;
     property MaxOutputSize: Integer read FMaxOutputSize write FMaxOutputSize default 20000;
 
     property Environment: TStringList read FEnvironment write SetEnvironment;
 
-    // --- Seguridad ---
-    // Modo de filtrado de comandos (ssmNone por defecto = sin restricciones).
+    // --- Security ---
+    // Command filtering mode (ssmNone by default = no restrictions).
     property SecurityMode: TShellSecurityMode read FSecurityMode write FSecurityMode default ssmNone;
-    // Lista de comandos para el modo activo.
-    //   ssmBlockList: nombres de comandos bloqueados (ej: 'rm', 'del', 'format')
-    //   ssmAllowList: nombres de comandos permitidos (ej: 'dir', 'ls', 'echo')
-    // Se compara contra el primer token del comando, sin distinguir mayúsculas.
+    // List of commands for the active mode.
+    //   ssmBlockList: names of blocked commands (e.g. 'rm', 'del', 'format')
+    //   ssmAllowList: names of allowed commands (e.g. 'dir', 'ls', 'echo')
+    // Compared against the first token of the command, case-insensitive.
     property SecurityList: TStringList read FSecurityList write SetSecurityList;
 
     property OnCommand: TAiShellCommandEvent read FOnCommand write FOnCommand;
     property OnConsoleLog: TAiShellLogEvent read FOnConsoleLog write FOnConsoleLog;
-    // Evento disparado cuando un comando es rechazado por la política de seguridad.
+    // Event raised when a command is rejected by security policy.
     property OnSecurityViolation: TAiShellSecurityEvent read FOnSecurityViolation write FOnSecurityViolation;
   end;
 
@@ -209,20 +176,20 @@ procedure TAiShell.SetShellPath(const Value: string);
 var
   WasRunning: Boolean;
 begin
-  // Si el valor es el mismo, no hacemos nada
+  // If the value is the same, do nothing
   if SameText(FShellPath, Value) then
     Exit;
 
-  // Guardamos si estaba corriendo para restaurar el estado
+  // Save whether it was running to restore state
   WasRunning := Assigned(FSession);
 
-  // 1. Matar la sesi?n actual (porque tiene el ejecutable incorrecto)
+  // 1. Kill the current session (because it has the wrong executable)
   StopSession;
 
-  // 2. Actualizar la ruta
+  // 2. Update the path
   FShellPath := Value;
 
-  // 3. Si estaba corriendo (o Active estaba True), reiniciamos con el nuevo ejecutable
+  // 3. If it was running (or Active was True), restart with the new executable
   if WasRunning or FActive then
   begin
     StartSession;
@@ -250,13 +217,13 @@ begin
   if FSecurityMode = ssmNone then
     Exit;
 
-  // Extraer el primer token del comando (nombre del ejecutable)
+  // Extract the first token of the command (executable name)
   FirstWord := Trim(LowerCase(ACommand));
   SpacePos := Pos(' ', FirstWord);
   if SpacePos > 0 then
     FirstWord := Copy(FirstWord, 1, SpacePos - 1);
 
-  // Verificar si el primer token está en la lista
+  // Check if the first token is in the list
   IsInList := False;
   for I := 0 to FSecurityList.Count - 1 do
   begin
@@ -286,7 +253,7 @@ begin
   begin
     if FSession.IsRunning then
       Exit;
-    // Sesi?n muerta: limpiar antes de recrear
+    // Dead session: clean up before recreating
     StopSession;
   end;
   if Trim(FShellPath) = '' then
@@ -322,7 +289,7 @@ begin
 end;
 
 // =============================================================================
-// NUCLEO DE EJECUCI?N (Bajo Nivel)
+// EXECUTION CORE (Low Level)
 // =============================================================================
 function TAiShell.DecodeShellBytes(const ABuffer: TBytes; ACount: Integer): string;
 {$IFDEF MSWINDOWS}
@@ -333,13 +300,13 @@ begin
   if ACount <= 0 then
     Exit('');
 
-  // El shell NO siempre habla UTF-8. cmd.exe escribe en la codepage OEM de la
-  // consola (cp850 en un Windows en espanol), y TEncoding.UTF8 VALIDA lo que
-  // recibe: ante bytes que no son UTF-8 valido lanza EEncodingError en vez de
-  // sustituir el caracter. Resultado: TAiShell reventaba en el PRIMER comando
-  // en cualquier Windows no ingles, porque hasta el banner de cmd trae acentos.
-  // En ingles no se notaba porque la salida es ASCII puro, y en Linux tampoco
-  // porque bash si emite UTF-8.
+  // The shell does NOT always speak UTF-8. cmd.exe writes in the console's OEM
+  // code page (cp850 on a Spanish Windows), and TEncoding.UTF8 VALIDATES what
+  // it receives: when bytes are not valid UTF-8 it raises EEncodingError instead
+  // of substituting the character. Result: TAiShell would blow up on the FIRST
+  // command on any non-English Windows, because even the cmd banner carries
+  // accented characters. In English it was not noticed because the output is
+  // pure ASCII, and on Linux it also works because bash does emit UTF-8.
   try
     Result := TEncoding.UTF8.GetString(ABuffer, 0, ACount);
   except
@@ -388,10 +355,10 @@ begin
 
   try
     // -------------------------------------------------------------------------
-    // 1. DETERMINAR SINTAXIS SEG?N EL SHELL (NO SEG?N EL SO)
+    // 1. DETERMINE SYNTAX ACCORDING TO THE SHELL (NOT ACCORDING TO THE OS)
     // -------------------------------------------------------------------------
-    // Si el ejecutable contiene 'wsl', 'bash', 'sh' o estamos en POSIX, usamos sintaxis Linux.
-    // Si es 'cmd.exe' o 'powershell', usamos sintaxis Windows.
+    // If the executable contains 'wsl', 'bash', 'sh' or we are on POSIX, use Linux syntax.
+    // If it is 'cmd.exe' or 'powershell', use Windows syntax.
     IsLinuxStyle := False;
 {$IFDEF POSIX}
     IsLinuxStyle := True;
@@ -403,19 +370,19 @@ begin
 
     if IsLinuxStyle then
     begin
-      // Sintaxis Linux: ; para secuencial (o &&), echo $? para exit code
-      // Importante: En WSL, el comando debe terminar con salto de linea Linux si es posible,
-      // pero el StreamWriter de Delphi se encarga.
+      // Linux syntax: ; for sequential (or &&), echo $? for exit code
+      // Important: In WSL, the command must end with a Linux newline if possible,
+      // but Delphi's StreamWriter handles it.
       FullCommand := ACommand + '; echo "EC:$? ' + Sentinel + '"' + #10;
     end
     else
     begin
-      // Sintaxis Windows CMD: & para secuencial
+      // Windows CMD syntax: & for sequential
       FullCommand := ACommand + sLineBreak + '@echo EC:%ERRORLEVEL% ' + Sentinel + sLineBreak;
     end;
 
     // -------------------------------------------------------------------------
-    // 2. CORRECCI?N DE CODIFICACI?N (INPUT)
+    // 2. ENCODING CORRECTION (INPUT)
     // -------------------------------------------------------------------------
     RawUtf8 := UTF8String(FullCommand);
     SetLength(InputBytes, Length(RawUtf8));
@@ -425,13 +392,13 @@ begin
     FSession.WriteInput(InputBytes[0], Length(InputBytes));
 
     // -------------------------------------------------------------------------
-    // 3. BUCLE DE LECTURA
+    // 3. READ LOOP
     // -------------------------------------------------------------------------
     StopWatch := TStopwatch.StartNew;
 
     while StopWatch.ElapsedMilliseconds < TimeOutMs do
     begin
-      // Leer STDOUT
+      // Read STDOUT
       BytesRead := FSession.ReadOutput(Buffer[0], Length(Buffer));
       if BytesRead > 0 then
       begin
@@ -441,20 +408,20 @@ begin
 
         if Pos(Sentinel, OutputBuilder.ToString) > 0 then
         begin
-          // Drenar STDERR antes de salir. El centinela viaja por STDOUT, y un
-          // comando que solo escribe en STDERR (p.ej. 'ls /no-existe') lo suele
-          // entregar en el mismo instante: si saliesemos aqui sin mas, el pipe
-          // de error no se leeria NUNCA y el error se perderia en silencio.
+          // Drain STDERR before exiting. The sentinel travels via STDOUT, and a
+          // command that only writes to STDERR (e.g. 'ls /no-existe') usually
+          // delivers it at the same instant: if we left here without more, the
+          // error pipe would NEVER be read and the error would be silently lost.
           repeat
             BytesRead := FSession.ReadError(Buffer[0], Length(Buffer));
             if BytesRead > 0 then
               ErrorBuilder.Append(DecodeShellBytes(Buffer, BytesRead));
           until BytesRead <= 0;
 
-          // Si el comando fallo y aun no hay nada en STDERR, puede venir con
-          // unos milisegundos de retraso respecto al centinela: se le da un
-          // margen corto. Solo en ese caso, para no anadir latencia a los
-          // comandos que salieron bien (que son la mayoria).
+          // If the command failed and there is still nothing in STDERR, it may
+          // arrive a few milliseconds after the sentinel: give it a short margin.
+          // Only in that case, to avoid adding latency to commands that succeeded
+          // (which are the majority).
           if (ErrorBuilder.Length = 0) and
              (not ContainsText(OutputBuilder.ToString, 'EC:0 ' + Sentinel)) then
           begin
@@ -478,7 +445,7 @@ begin
         StopWatch.Start;
       end;
 
-      // Leer STDERR
+      // Read STDERR
       BytesRead := FSession.ReadError(Buffer[0], Length(Buffer));
       if BytesRead > 0 then
       begin
@@ -492,23 +459,23 @@ begin
     if StopWatch.ElapsedMilliseconds >= TimeOutMs then
     begin
       Result.TimedOut := True;
-      // Reiniciar la sesion es obligatorio, no opcional: el comando que provoco
-      // el timeout SIGUE corriendo y con el pipe tomado, asi que sin esto todos
-      // los comandos siguientes caducan tambien y la sesion queda inservible
-      // para el resto de la vida del proceso. Verificado en Linux: tras un
-      // 'sleep 20' con TimeOut=3s, hasta un 'echo' devolvia timeout.
-      // El precio es que se pierden el directorio actual y las variables de la
-      // sesion, que es mucho menos malo que un shell muerto.
+      // Restarting the session is mandatory, not optional: the command that
+      // caused the timeout is STILL running and holds the pipe, so without this
+      // all subsequent commands also time out and the session becomes unusable
+      // for the rest of the process's life. Verified on Linux: after a
+      // 'sleep 20' with TimeOut=3s, even an 'echo' returned timeout.
+      // The price is losing the current directory and session variables,
+      // which is much less harmful than a dead shell.
       Restart;
     end;
 
     // -------------------------------------------------------------------------
-    // 4. PROCESAMIENTO DE SALIDA
+    // 4. OUTPUT PROCESSING
     // -------------------------------------------------------------------------
     Result.StdOut := CleanOutput(OutputBuilder.ToString, Sentinel);
     Result.StdErr := ErrorBuilder.ToString;
 
-    // Capturar Exit Code (Windows CMD y Linux/WSL)
+    // Capture Exit Code (Windows CMD and Linux/WSL)
     begin
       var
       OutStr := OutputBuilder.ToString;
@@ -524,7 +491,7 @@ begin
         begin
           CodeStr := Copy(CodeStr, 1, SpacePos - 1);
           Result.ExitCode := StrToIntDef(CodeStr, 0);
-          // Limpiamos el artifacto del ExitCode de la salida visual
+          // Clean the ExitCode artifact from the visual output
           Result.StdOut := StringReplace(Result.StdOut, 'EC:' + CodeStr, '', []);
         end;
       end;
@@ -543,7 +510,7 @@ begin
 end;
 
 // =============================================================================
-// DISPATCHER PRINCIPAL (Smart Detection)
+// MAIN DISPATCHER (Smart Detection)
 // =============================================================================
 
 function TAiShell.Execute(const CallId: string; const JsonArguments: string): string;
@@ -565,19 +532,19 @@ end;
 
 function TAiShell.Execute(const CallId: string; JArgs: TJSONObject): string;
 begin
-  // Detecci?n de formato basada en la presencia de campos clave
+  // Format detection based on presence of key fields
 
-  // CASO 1: OPENAI (Tiene array 'commands')
+  // CASE 1: OPENAI (Has 'commands' array)
   if JArgs.GetValue('commands') is TJSonArray then
   begin
     Result := ExecuteOpenAIAction(CallId, JArgs);
   end
-  // CASO 2: CLAUDE (Tiene string 'command' y opcional 'restart')
+  // CASE 2: CLAUDE (Has 'command' string and optional 'restart')
   else if (JArgs.GetValue('command') <> nil) or (JArgs.GetValue('restart') <> nil) then
   begin
     Result := ExecuteClaudeAction(CallId, JArgs);
   end
-  // CASO 3: GENERICO (Fallback a un solo comando 'command' o 'cmd')
+  // CASE 3: GENERIC (Fallback to single 'command' or 'cmd')
   else
   begin
     Result := ExecuteGenericAction(CallId, JArgs);
@@ -585,7 +552,7 @@ begin
 end;
 
 // =============================================================================
-// IMPLEMENTACIONES ESPEC?FICAS
+// SPECIFIC IMPLEMENTATIONS
 // =============================================================================
 
 // --- CLAUDE ---
@@ -616,7 +583,7 @@ begin
   if not Handled then
     ExecRes := InternalExecuteCommand(Cmd, FTimeOut);
 
-  // Formato de salida Claude: Texto plano simple
+  // Claude output format: Simple plain text
   if ExecRes.TimedOut then
     Result := 'Error: Command timed out.' + sLineBreak + ExecRes.StdOut
   else if ExecRes.StdErr <> '' then
@@ -644,13 +611,13 @@ var
   Handled: Boolean;
   jVal: TJSONValue;
 begin
-  // Construir el objeto de salida complejo
+  // Build the complex output object
   OutputObj := TJSONObject.Create;
   try
     OutputObj.AddPair('type', 'shell_call_output');
     OutputObj.AddPair('call_id', CallId);
 
-    // 3. Verificar que existe y NO es TJSONNull
+    // 3. Check that it exists and is NOT TJSONNull
 
     LocalTimeOut := Self.FTimeOut;
 
@@ -658,9 +625,9 @@ begin
     Begin
       if Assigned(jVal) and not(jVal is TJSONNull) then
       begin
-        // Intentar convertir solo si es un valor v?lido
+        // Try to convert only if it is a valid value
         if not jVal.TryGetValue<Cardinal>(LocalTimeOut) then
-          LocalTimeOut := FTimeOut; // Fallback si la conversi?n falla
+          LocalTimeOut := FTimeOut; // Fallback if conversion fails
       end;
     End;
 
@@ -694,7 +661,7 @@ begin
             ExecRes := InternalExecuteCommand(Cmd, LocalTimeOut);
         end;
 
-        // Estructura espec?fica OpenAI
+        // OpenAI-specific structure
         ItemOut.AddPair('stdout', ExecRes.StdOut);
         ItemOut.AddPair('stderr', ExecRes.StdErr);
 
@@ -712,7 +679,7 @@ begin
       end;
     end;
 
-    // Retornamos JSON Stringificado (OpenAI Chat Component lo parsear? si necesita, o enviar? raw)
+    // Return JSON Stringified (OpenAI Chat Component will parse it if needed, or send raw)
     Result := OutputObj.ToJSON;
   finally
     OutputObj.Free;
@@ -726,7 +693,7 @@ var
   ExecRes: TShellExecutionResult;
   Handled: Boolean;
 begin
-  // Intenta encontrar 'cmd' o 'command'
+  // Tries to find 'cmd' or 'command'
   if not JArgs.TryGetValue<string>('command', Cmd) then
     if not JArgs.TryGetValue<string>('cmd', Cmd) then
       Exit('Error: Unknown command format.');
@@ -742,7 +709,7 @@ begin
   if not Handled then
     ExecRes := InternalExecuteCommand(Cmd, FTimeOut);
 
-  // Retorna texto plano por defecto
+  // Returns plain text by default
   if ExecRes.StdErr <> '' then
     Result := 'STDOUT: ' + ExecRes.StdOut + sLineBreak + 'STDERR: ' + ExecRes.StdErr
   else
@@ -753,16 +720,16 @@ function TAiShell.ExecuteManual(const Command: string): string;
 var
   ExecRes: TShellExecutionResult;
 begin
-  // 1. Asegurar que la sesi?n est? viva
+  // 1. Ensure the session is alive
   if not Active then
     Active := True;
 
-  // 2. Ejecutar directamente (saltando la intercepci?n de seguridad OnCommand)
-  // Usamos el mismo TimeOut configurado en el componente
+  // 2. Execute directly (skipping OnCommand security interception)
+  // Uses the same TimeOut configured in the component
   ExecRes := InternalExecuteCommand(Command, FTimeOut);
 
-  // 3. Formatear el resultado para devolverlo como string
-  // (Aunque la UI se actualizar? sola v?a OnConsoleLog)
+  // 3. Format the result to return as a string
+  // (Although the UI will update automatically via OnConsoleLog)
   if ExecRes.TimedOut then
     Result := 'Error: Command timed out.' + sLineBreak + ExecRes.StdOut
   else if ExecRes.StdErr <> '' then
@@ -785,13 +752,13 @@ end;
 // end;
 
 // =============================================================================
-// REGISTRO EN TAiFunctions
+// REGISTRATION IN TAiFunctions
 // =============================================================================
 
 procedure TAiShell.OnFunctionAction(Sender: TObject; FunctionAction: TFunctionActionItem;
   FunctionName: string; ToolCall: TAiToolsFunction; var Handled: Boolean);
 begin
-  // Activar la sesion si no estaba activa
+  // Activate session if not active
   if not Active then
     Active := True;
   try
@@ -812,7 +779,7 @@ begin
   if not Assigned(AFunctions) then
     Exit;
 
-  // Evitar duplicados
+  // Avoid duplicates
   if AFunctions.Functions.IndexOf(AFunctionName) >= 0 then
     Exit;
 

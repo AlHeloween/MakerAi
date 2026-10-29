@@ -20,24 +20,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr�quez
-// Redes Sociales:
+// Name: Gustavo Enríquez
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - Telegram: https://t.me/MakerAi_Delphi_Suite_English
 
 // - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
-// - Youtube: https://www.youtube.com/@cimamaker3945
+// - YouTube: https://www.youtube.com/@cimamaker3945
 // - GitHub: https://github.com/gustavoeenriquez/
 
 
-// Modelos con vision actualmente en Groq (Abr 2026):
+// Models with vision currently in Groq (Apr 2026):
 //   meta-llama/llama-4-scout-17b-16e-instruct  (131K ctx, 8K output, vision + tools)
 //   openai/gpt-oss-120b                        (131K ctx, 65K output, vision + reasoning)
-// Limites de vision en Groq:
-//   - Imagen maxima por URL: 20MB | por base64: 4MB
-//   - Maximo 5 imagenes por request (llama-4-scout)
+// Vision limits in Groq:
+//   - Max image per URL: 20MB | per base64: 4MB
+//   - Max 5 images per request (llama-4-scout)
 
 unit uMakerAi.Chat.Groq;
 
@@ -58,7 +58,7 @@ uses
   uMakerAi.ParamsRegistry, uMakerAi.Chat, uMakerAi.Embeddings, uMakerAi.Core, uMakerAi.Embeddings.Core, uMakerAi.Chat.Messages;
 
 Type
-  // Este modelo de reasoning por ahora solo se ha detectado en Groq, as� que se implementa solo aqu�
+  // This reasoning model has only been detected in Groq so far, so it is implemented only here
 
   TAiReasoningFormat = (rfAuto, rfParsed, rfRaw, rfHidden);
   TAiReasoningEffort = (reAuto, reNone, reDefault);
@@ -85,7 +85,7 @@ Type
 
   TAiGroqEmbeddings = Class(TAiEmbeddings)
   Public
-    // groq actualmente no maneja modelos de embeddings
+    // groq currently does not handle embedding models
     Function CreateEmbedding(Input, User: String; Dimensions: Integer = 1536; Model: String = 'Llama3-8b-8192'; EncodingFormat: String = 'float'): TAiEmbeddingData; Override;
   End;
 
@@ -112,7 +112,7 @@ class procedure TAiGroqChat.RegisterDefaultParams(Params: TStrings);
 Begin
   Params.Clear;
   Params.Add('ApiKey=@GROQ_API_KEY');
-  Params.Add('Model=openai/gpt-oss-20b'); // los llama-3.x se retiraron en sep 2026
+  Params.Add('Model=openai/gpt-oss-20b'); // the llama-3.x were retired in Sep 2026
   Params.Add('Max_Tokens=4096');
   Params.Add('URL=https://api.groq.com/openai/v1/');
 End;
@@ -147,7 +147,7 @@ Var
   I: Integer;
   LAsincronico: Boolean;
   Res, LModel: String;
-begin
+Begin
 
   If User = '' then
     User := 'user';
@@ -157,7 +157,7 @@ begin
   If LModel = '' then
     LModel := 'openai/gpt-oss-20b';
 
-  // Las funciones no trabajan en modo ascincrono
+  // Functions do not work in asynchronous mode
   // LAsincronico := Self.Asynchronous and (not Self.Tool_Active);
   LAsincronico := Self.Asynchronous;
 
@@ -170,7 +170,7 @@ begin
 
     if (ModelConfig.Format = 'Raw') and (Tool_Active or (Response_format = tiaChatRfJson) or (Response_format = tiaChatRfJsonSchema)) then
     begin
-      Raise Exception.Create('Groq Error: ReasoningFormat no puede ser "raw" cuando se usan Tools o JSON mode. Use "parsed" o "hidden".');
+      Raise Exception.Create('Groq Error: ReasoningFormat cannot be "raw" when using Tools or JSON mode. Use "parsed" or "hidden".');
     end;
 
     AJSONObject.AddPair('stream', TJSONBool.Create(LAsincronico));
@@ -183,7 +183,7 @@ begin
       JArr := TJSonArray(TJSonArray.ParseJSONValue(GetTools(TToolFormat.tfOpenAi).Text));
 {$ENDIF}
       If Not Assigned(JArr) then
-        Raise Exception.Create('La propiedad Tools est�n mal definido, debe ser un JsonArray');
+        Raise Exception.Create('The Tools property is poorly defined, must be a JsonArray');
       AJSONObject.AddPair('tools', JArr);
 
       If (Trim(Tool_choice) <> '') then
@@ -198,18 +198,18 @@ begin
       End;
     End;
 
-    // Groq compound (Tool_Active=False + cap_CodeInterpreter): el modelo maneja herramientas
-    // internamente, pero sin tool_choice explícito Groq rechaza las llamadas internas con
-    // "Tool choice is none, but model called a tool". Necesita tool_choice:"auto" sin tools array.
+    // Groq compound (Tool_Active=False + cap_CodeInterpreter): the model handles tools
+    // internally, but without explicit tool_choice Groq rejects internal calls with
+    // "Tool choice is none, but model called a tool". It needs tool_choice:"auto" without tools array.
     if (cap_CodeInterpreter in ModelConfig.ModelCaps) and (not Tool_Active) then
     begin
       if not Assigned(AJSONObject.GetValue('tool_choice')) then
         AJSONObject.AddPair('tool_choice', 'auto');
     end;
 
-    // Groq explicit code_interpreter tool — solo para modelos que requieren declararlo
-    // (gpt-oss-20b, etc.). Los modelos compound lo tienen nativo y rechazan este campo.
-    // Criterio: inyectar solo si Tool_Active=True (compound usa Tool_Active=False).
+    // Groq explicit code_interpreter tool — only for models that require declaring it
+    // (gpt-oss-20b, etc.). Compound models have it natively and reject this field.
+    // Criterion: inject only if Tool_Active=True (compound uses Tool_Active=False).
     if (cap_CodeInterpreter in ModelConfig.ModelCaps) and Tool_Active then
     begin
       var JExistingTools := AJSONObject.GetValue('tools') as TJSonArray;
@@ -239,10 +239,10 @@ begin
 
     AJSONObject.AddPair('model', LModel);
 
-    // Reasoning: guardado estrictamente por familia de modelos para evitar param leak al cambiar modelo
+    // Reasoning: stored strictly by model family to avoid param leak when changing model
     // - openai/gpt-oss-*: include_reasoning:true + reasoning_effort (low/medium/high)
     // - qwen/*:           reasoning_format (parsed/raw/hidden) + reasoning_effort (default/none)
-    // - otros modelos:    ninguno de estos parametros (causarian error 422)
+    // - other models:    none of these parameters (would cause error 422)
     if LModel.StartsWith('openai/gpt-oss') then
     begin
       if ModelConfig.ThinkingLevel <> tlDefault then
@@ -259,33 +259,33 @@ begin
     begin
       if ModelConfig.ThinkingLevel <> tlDefault then
       begin
-        // Thinking activo: reasoning_format parsed + reasoning_effort=default
+        // Thinking active: reasoning_format parsed + reasoning_effort=default
         var LFormat: String := ModelConfig.Format;
         if LFormat = '' then
-          LFormat := 'parsed'; // default: reasoning en campo separado message.reasoning
+          LFormat := 'parsed'; // default: reasoning in separate field message.reasoning
         AJSONObject.AddPair('reasoning_format', LFormat);
         AJSONObject.AddPair('reasoning_effort', 'default');
       end
       else if ModelConfig.Format <> '' then
       begin
-        // Format explicitamente seteado sin ThinkingLevel (ej: 'hidden' para non-thinking)
+        // Format explicitly set without ThinkingLevel (e.g., 'hidden' for non-thinking)
         AJSONObject.AddPair('reasoning_format', ModelConfig.Format);
       end
       else
       begin
-        // Sin config explicita = modelo de chat directo: apagar el thinking.
-        // qwen3.6 por defecto vuelca el razonamiento en el content, y a veces
-        // SIN etiquetas <think> (parsed no basta: solo separa lo etiquetado).
-        // reasoning_effort none suprime el thinking por completo.
+        // Without explicit config = direct chat model: turn off thinking.
+        // qwen3.6 by default dumps reasoning into the content, and sometimes
+        // WITHOUT thinking tags (parsed is not enough: it only separates tagged content).
+        // reasoning_effort none suppresses thinking completely.
         AJSONObject.AddPair('reasoning_format', 'parsed');
         AJSONObject.AddPair('reasoning_effort', 'none');
       end;
     end;
-    // Otros modelos (llama, mistral, kimi, etc.): sin params de reasoning
+    // Other models (llama, mistral, kimi, etc.): no reasoning params
 
     AJSONObject.AddPair('temperature', TJSONNumber.Create(Trunc(Temperature * 100) / 100));
 
-    // Groq docs: reasoning models usan max_completion_tokens (incluye reasoning tokens en el budget)
+    // Groq docs: reasoning models use max_completion_tokens (includes reasoning tokens in the budget)
     // Only include when > 0; omitting it lets Groq use the full remaining context automatically.
     if Max_tokens > 0 then
     begin
@@ -303,19 +303,19 @@ begin
     AJSONObject.AddPair('user', User);
     AJSONObject.AddPair('n', TJSONNumber.Create(N));
 
-    // 1. JSON Schema (Structured Outputs) — ParseJsonSchemaProperty acepta el
-    // schema puro o el wrapper {name, strict, schema} y falla con error claro
-    // si JsonSchema esta vacio (el type solo produce un 400 remoto).
+    // 1. JSON Schema (Structured Outputs) — ParseJsonSchemaProperty accepts the
+    // raw schema or the wrapper {name, strict, schema} and fails with a clear error
+    // if JsonSchema is empty (the type alone produces a remote 400).
     if (FResponse_format = tiaChatRfJsonSchema) then
     begin
       var sSchemaName := 'structured_response';
-      // NOTA: No enviamos "strict": true por defecto para maximizar compatibilidad
-      // con modelos Groq que no soportan constrained decoding completo a�n.
+      // NOTE: We do not send "strict": true by default to maximize compatibility
+      // with Groq models that do not yet support full constrained decoding.
       var bStrict := False;
       var JInnerSchema := ParseJsonSchemaProperty(sSchemaName, bStrict);
 
       var JSchemaWrapper := TJSonObject.Create;
-      JSchemaWrapper.AddPair('name', sSchemaName); // 'name' es OBLIGATORIO en esta estructura
+      JSchemaWrapper.AddPair('name', sSchemaName); // 'name' is MANDATORY in this structure
       if bStrict then
         JSchemaWrapper.AddPair('strict', TJSONBool.Create(True));
       JSchemaWrapper.AddPair('schema', JInnerSchema);
@@ -335,7 +335,7 @@ begin
       AJSONObject.AddPair('response_format', JResponseFormat);
     end
 
-    // 3. Text Mode (Solo si se especifica expl�citamente, o dejar por defecto)
+    // 3. Text Mode (Only if explicitly specified, or leave as default)
     else if (FResponse_format = tiaChatRfText) then
     begin
       var
@@ -353,7 +353,7 @@ begin
       AJSONObject.AddPair('stop', JStop);
     End;
 
-    // NOTA: Groq no soporta logprobs, logit_bias ni top_logprobs en chat completions (error 400)
+    // NOTE: Groq does not support logprobs, logit_bias or top_logprobs in chat completions (error 400)
 
     If Seed > 0 then
       AJSONObject.AddPair('seed', TJSONNumber.Create(Seed));
@@ -379,8 +379,8 @@ Var
   St: TStringStream;
   sUrl: String;
 begin
-  // OJO OJO OJO OJO
-  Raise Exception.Create('Actualmente Groq no maneja modelos de embeddings');
+  // WARNING WARNING WARNING WARNING
+  Raise Exception.Create('Currently Groq does not handle embedding models');
 
   Client := TNetHTTPClient.Create(Nil);
 {$IF CompilerVersion >= 34}
@@ -449,7 +449,7 @@ var
 begin
   Result := '';
   if not Assigned(aMediaFile) or (aMediaFile.Content.Size = 0) then
-    raise Exception.Create('Se necesita un archivo de audio con contenido para la transcripci?n.');
+    raise Exception.Create('An audio file with content is required for transcription.');
 
   sUrl := Url + 'audio/transcriptions';
   LModel := TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model);
@@ -512,7 +512,7 @@ begin
       Result := ResMsg.Prompt;
     end
     else
-      raise Exception.CreateFmt('Error en la transcripci?n: %d, %s', [Res.StatusCode, Res.ContentAsString]);
+      raise Exception.CreateFmt('Error in transcription: %d, %s', [Res.StatusCode, Res.ContentAsString]);
 
   finally
     Body.Free;
@@ -523,10 +523,10 @@ begin
   end;
 end;
 
-{ TAiGroqChat — chunking para code interpreter }
+{ TAiGroqChat — chunking for code interpreter }
 
-// Modifica el código Python original para imprimir solo el slice [AOffset:AEnd] del b64.
-// Busca el bloque FILE_B64_BEGIN / print(<expr>) / FILE_B64_END y lo reemplaza.
+// Modifies the original Python code to print only the slice [AOffset:AEnd] of the b64.
+// Looks for the FILE_B64_BEGIN / print(<expr>) / FILE_B64_END block and replaces it.
 function TAiGroqChat.BuildChunkRequestCode(const AOriginalCode: string; AOffset, AEnd: Integer): string;
 var
   Lines: TStringList;
@@ -548,10 +548,10 @@ begin
       else if (IBeginLine >= 0) and (IPrintLine < 0) and LTrim.StartsWith('print(') then
       begin
         IPrintLine := I;
-        // extraer expresión: print(EXPR) → EXPR
+        // extract expression: print(EXPR) → EXPR
         LLine := LTrim;
         if LLine.EndsWith(')') then
-          B64Expr := Copy(LLine, 7, Length(LLine) - 7);  // quitar 'print(' y ')'
+          B64Expr := Copy(LLine, 7, Length(LLine) - 7);  // remove 'print(' and ')'
       end
       else if (IBeginLine >= 0) and (Pos('FILE_B64_END', LTrim) > 0) then
       begin
@@ -562,7 +562,7 @@ begin
 
     if (IBeginLine < 0) or (B64Expr = '') or (IEndLine < 0) then
     begin
-      // Patrón no encontrado: agregar chunk al final del código original
+      // Pattern not found: append chunk at the end of the original code
       Result := AOriginalCode + #10 +
         '_ci_b64 = globals().get(''_ci_b64'', '''')' + #10 +
         'print(''CHUNK_START'')' + #10 +
@@ -571,14 +571,14 @@ begin
       Exit;
     end;
 
-    // Líneas anteriores al bloque FILE_B64
+    // Lines before the FILE_B64 block
     for I := 0 to IBeginLine - 1 do
       SB.Add(Lines[I]);
 
-    // Si la expresión usa .read(), insertar seek(0) con la variable de buffer detectada
+    // If the expression uses .read(), insert seek(0) with the detected buffer variable
     if Pos('.read()', B64Expr) > 0 then
     begin
-      // Detectar variable del buffer: base64.b64encode(buf.read()) → buf
+      // Detect buffer variable: base64.b64encode(buf.read()) → buf
       var LBufVar := '';
       var IRead := Pos('.read()', B64Expr);
       if IRead > 1 then
@@ -592,13 +592,13 @@ begin
         SB.Add(LBufVar + '.seek(0)');
     end;
 
-    // Bloque de chunk
+    // Chunk block
     SB.Add('_ci_b64 = ' + B64Expr);
     SB.Add('print(''CHUNK_START'')');
     SB.Add(Format('print(_ci_b64[%d:%d])', [AOffset, AEnd]));
     SB.Add('print(''CHUNK_END'')');
 
-    // Líneas posteriores al bloque FILE_B64_END
+    // Lines after the FILE_B64_END block
     for I := IEndLine + 1 to Lines.Count - 1 do
       SB.Add(Lines[I]);
 
@@ -609,7 +609,7 @@ begin
   end;
 end;
 
-// Hace una llamada HTTP directa a Groq con code_interpreter y devuelve el tool output concatenado.
+// Makes a direct HTTP call to Groq with code_interpreter and returns the concatenated tool output.
 function TAiGroqChat.CallCodeInterpreterForChunk(const ACode: string): string;
 const
   RETRY_MAX = 5;
@@ -636,7 +636,7 @@ begin
     LHeaders := [TNetHeader.Create('Authorization', 'Bearer ' + ApiKey),
                  TNetHeader.Create('Content-Type',   'application/json')];
 
-    // Construir payload mínimo
+    // Build minimal payload
     LMsg := TJSonObject.Create;
     LMsg.AddPair('role', 'user');
     LMsg.AddPair('content', 'Run this Python code:' + #10 + ACode);
@@ -669,7 +669,7 @@ begin
         LRes := LClient.Post(Url + 'chat/completions', LReqStream, LRespStream, LHeaders);
         if LRes.StatusCode = 429 then
         begin
-          // Rate limit — esperar y reintentar
+          // Rate limit — wait and retry
           LWait := 35000;
           var sErr := LRes.ContentAsString;
           var IWaitPos := Pos('try again in ', sErr);
@@ -694,7 +694,7 @@ begin
           var JResp := TJSonObject.ParseJSONValue(LRespStream.DataString) as TJSonObject;
           if Assigned(JResp) then
           try
-            // Extraer executed_tools de choices[0].message
+            // Extract executed_tools from choices[0].message
             var JChoices: TJSonArray;
             if JResp.TryGetValue<TJSonArray>('choices', JChoices) and (JChoices.Count > 0) then
             begin
@@ -712,7 +712,7 @@ begin
                 end;
               end;
             end;
-            // compound-beta: executed_tools en raíz
+            // compound-beta: executed_tools at root
             if (Result = '') and JResp.TryGetValue<TJSonArray>('executed_tools', LExecTools) then
               for LOutVal in LExecTools do
               begin
@@ -724,7 +724,7 @@ begin
             JResp.Free;
           end;
         end;
-        Break; // salir del retry loop
+        Break; // exit retry loop
       finally
         LReqStream.Free;
         LRespStream.Free;
@@ -735,7 +735,7 @@ begin
   end;
 end;
 
-// Extrae base64 de un tool output (con o sin marcadores CHUNK_START/CHUNK_END).
+// Extracts base64 from a tool output (with or without CHUNK_START/CHUNK_END markers).
 function ExtractB64FromOutput(const AOutput: string; AExpectedLen: Integer): string;
 const
   B64_CHARS = ['A'..'Z','a'..'z','0'..'9','+','/','='];
@@ -755,7 +755,7 @@ begin
   end
   else
   begin
-    // Sin marcadores: tomar todo si es >90% base64
+    // Without markers: take everything if >90% base64
     sRaw := AOutput;
   end;
   sClean := '';
@@ -768,7 +768,7 @@ begin
     Result := sClean;
 end;
 
-// Pide los chunks restantes y devuelve el b64 completo.
+// Requests the remaining chunks and returns the complete b64.
 function TAiGroqChat.FetchRemainingChunks(const AOriginalCode, APartialB64: string; AOffset: Integer): string;
 const
   CHUNK_SIZE = 40000;
@@ -786,13 +786,13 @@ begin
     LChunk := ExtractB64FromOutput(LOutput, CHUNK_SIZE);
     if LChunk = '' then Break;
     LFullB64 := LFullB64 + LChunk;
-    if Length(LChunk) < CHUNK_SIZE then Break; // último chunk
+    if Length(LChunk) < CHUNK_SIZE then Break; // last chunk
     Inc(LOffset, Length(LChunk));
   until False;
   Result := LFullB64;
 end;
 
-// Override: detecta truncamiento de FILE_B64_BEGIN y completa el b64 con chunks adicionales.
+// Override: detects truncation of FILE_B64_BEGIN and completes the b64 with additional chunks.
 procedure TAiGroqChat.ProcessExecutedTools(const AExecutedToolsJSON: string; ResMsg: TAiChatMessage);
 var
   JArr: TJSonArray;
@@ -808,7 +808,7 @@ begin
     Exit;
   end;
 
-  JArr := TJSonObject.ParseJSONValue(AExecutedToolsJSON) as TJSonArray; // ParseJSONValue es método de clase de TJSONObject (TJSonValue no lo expone en D10.4)
+  JArr := TJSonObject.ParseJSONValue(AExecutedToolsJSON) as TJSonArray; // ParseJSONValue is a class method of TJSONObject (TJSonValue does not expose it in D10.4)
   if not Assigned(JArr) then
   begin
     inherited ProcessExecutedTools(AExecutedToolsJSON, ResMsg);
@@ -832,10 +832,10 @@ begin
       iB := Pos('FILE_B64_BEGIN:', sOutput);
       iE := Pos('FILE_B64_END',    sOutput);
 
-      // Solo actuar si hay FILE_B64_BEGIN pero NO FILE_B64_END (output truncado)
+      // Only act if there is FILE_B64_BEGIN but NOT FILE_B64_END (truncated output)
       if (iB <= 0) or (iE > 0) then Continue;
 
-      // Extraer nombre de archivo
+      // Extract file name
       sAfterBegin := Copy(sOutput, iB + Length('FILE_B64_BEGIN:'), MaxInt);
       iNL := Pos(#10, sAfterBegin);
       if iNL = 0 then iNL := Pos(#13, sAfterBegin);
@@ -843,7 +843,7 @@ begin
       if iNL > 0 then
         sFileName := Trim(Copy(sAfterBegin, 1, iNL - 1));
 
-      // Extraer base64 parcial ya recibido
+      // Extract received partial base64
       iDataStart := iB + Length('FILE_B64_BEGIN:') + iNL;
       var sPartialRaw := Copy(sOutput, iDataStart, MaxInt);
       sPartialB64 := '';
@@ -854,12 +854,12 @@ begin
       iOffset := Length(sPartialB64);
       if iOffset = 0 then Continue;
 
-      // Obtener chunks restantes
+      // Get remaining chunks
       sFullB64 := FetchRemainingChunks(sCode, sPartialB64, iOffset);
 
       if sFullB64 <> '' then
       begin
-        // Reemplazar output con el b64 completo bien delimitado
+        // Replace output with the complete, well-delimited b64
         JItem.RemovePair('output');
         JItem.AddPair('output',
           'FILE_B64_BEGIN:' + sFileName + #10 + sFullB64 + #10 + 'FILE_B64_END');

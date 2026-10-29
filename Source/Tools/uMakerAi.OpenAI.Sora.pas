@@ -1,38 +1,4 @@
-﻿// MIT License
-//
-// Copyright (c) <year> <copyright holders>
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
-// Nombre: Gustavo Enriquez
-// Social Networks:
-// - Email: gustavoeenriquez@gmail.com
-
-// - Telegram: https://t.me/MakerAi_Suite_Delphi
-// - Telegram: https://t.me/MakerAi_Delphi_Suite_English
-
-// - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
-// - Youtube: https://www.youtube.com/@cimamaker3945
-// - GitHub: https://github.com/gustavoeenriquez/
-
-
-unit uMakerAi.OpenAI.Sora;
+﻿unit uMakerAi.OpenAI.Sora;
 
 interface
 
@@ -43,19 +9,19 @@ uses
   System.Net.HttpClientComponent;
 
 type
-  // Enums para los parameters de Sora
+  // Enums for Sora parameters
   TSoraModel = (smSora2, smCustom);
   TSoraResolution = (srDefault, sr1280x720, sr720x1280, sr1920x1080, sr1080x1920);
 
-  // Eventos
+  // Events
   TProgressEvent = procedure(Sender: TObject; const StatusMessage: string) of object;
   TGenerationSuccessEvent = procedure(Sender: TObject; ResultVideo: TAiMediaFile) of object;
   TGenerationErrorEvent = procedure(Sender: TObject; const ErrorMessage: string) of object;
 
-  // --- Componente Especializado para SORA ---
+  // --- Specialized Component for SORA ---
   TAiSoraGenerator = class(TComponent)
   private
-    // Propiedades
+    // Properties
     FApiKey: string;
     FModel: TSoraModel;
     FCustomModelName: string;
@@ -63,12 +29,12 @@ type
     FSeconds: Integer;
     FSeed: Int64;
 
-    // Eventos
+    // Events
     FOnProgress: TProgressEvent;
     FOnSuccess: TGenerationSuccessEvent;
     FOnError: TGenerationErrorEvent;
 
-    // methods internos
+    // Internal methods
     function GetEffectiveModelName: string;
     function GetResolutionString: string;
     procedure DoError(const AMessage: string);
@@ -85,7 +51,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    // methods publics like thisncronos
+    // public methods (asynchronous)
     function GenerateFromText(const APrompt: string): ITask;
     function GenerateFromImage(const APrompt: string; AImage: TAiMediaFile): ITask;
     function RemixVideo(const APrompt: string; const AOriginalVideoId: string): ITask;
@@ -105,7 +71,7 @@ type
     property OnError: TGenerationErrorEvent read FOnError write FOnError;
   end;
 
-  // --- Tool Bridge para SORA (integrado con TAiChat) ---
+  // --- Tool Bridge for SORA (integrated with TAiChat) ---
   TAiSoraVideoTool = class(TAiVideoToolBase)
   private
     FApiKey: string;
@@ -535,20 +501,20 @@ procedure TAiSoraVideoTool.ExecuteVideoGeneration(ResMsg, AskMsg: TAiChatMessage
 var
   LTaskMsg: TAiChatMessage;
 begin
-  // Sora SIEMPRE es as�ncrono (tarda minutos). NO usamos ResMsg directamente
-  // porque TAiChat.Run puede liberarlo antes de que el polling termine.
-  // Creamos un mensaje propio y encolamos su liberaci�n despu�s de ReportDataEnd
-  // para respetar el orden FIFO de TThread.Queue.
+  // Sora is ALWAYS asynchronous (takes minutes). Do NOT use ResMsg directly
+  // because TAiChat.Run may free it before polling finishes.
+  // We create our own message and queue its release after ReportDataEnd
+  // to respect the FIFO order of TThread.Queue.
   LTaskMsg := TAiChatMessage.Create('', 'assistant');
   TTask.Run(procedure
   begin
     try
       InternalRunSora(LTaskMsg, TAiChatMessage(AskMsg));
     except
-      on E: Exception do ReportError('Error en Sora Tool: ' + E.Message, E);
+      on E: Exception do ReportError('Error in Sora Tool: ' + E.Message, E);
     end;
-    // ReportDataEnd ya encol� DoDataEnd(LTaskMsg,...) al hilo principal.
-    // Encolamos el Free despu�s para ejecutarse en orden FIFO.
+    // ReportDataEnd already queued DoDataEnd(LTaskMsg,...) to the main thread.
+    // We queue the Free afterward to execute in FIFO order.
     TThread.Queue(nil, procedure begin LTaskMsg.Free; end);
   end);
 end;
@@ -569,10 +535,10 @@ begin
   HTTP := TNetHTTPClient.Create(nil);
   LFormData := TMultipartFormData.Create;
   try
-    // 1. Cabeceras de autenticaci�n
+    // 1. Authentication headers
     LHeaders := [TNetHeader.Create('Authorization', 'Bearer ' + GetApiKey)];
 
-    // 2. Construir cuerpo multipart
+    // 2. Build multipart body
     LFormData.AddField('prompt', AAskMsg.Prompt);
     LFormData.AddField('model', GetEffectiveModelName);
     if FSeconds > 0 then
@@ -581,7 +547,7 @@ begin
     if not LSizeStr.IsEmpty then
       LFormData.AddField('size', LSizeStr);
 
-    // Soporte para Image-to-Video (si hay una imagen en el mensaje)
+    // Support for Image-to-Video (if there is an image in the message)
     LMediaArr := AAskMsg.MediaFiles.GetMediaList([Tfc_Image], False);
     if Length(LMediaArr) > 0 then
     begin
@@ -593,13 +559,13 @@ begin
       {$ENDIF}
     end;
 
-    // 3. Iniciar generaci�n
+    // 3. Start generation
     LUrl := OPENAI_API_BASE_URL + 'videos';
     ReportState(acsReasoning, 'Starting Sora video generation...');
     LResponse := HTTP.Post(LUrl, LFormData, nil, LHeaders);
 
     if LResponse.StatusCode <> 200 then
-      raise Exception.CreateFmt('Error iniciando Sora: %d, %s', [LResponse.StatusCode, LResponse.ContentAsString]);
+      raise Exception.CreateFmt('Error starting Sora: %d, %s', [LResponse.StatusCode, LResponse.ContentAsString]);
 
     LResponseObj := TJSONObject.ParseJSONValue(LResponse.ContentAsString) as TJSONObject;
     try
@@ -610,10 +576,10 @@ begin
       LResponseObj.Free;
     end;
 
-    // 4. Bucle de Polling
+    // 4. Polling loop
     LPollCount := 0;
     LProgress := 0;
-    ReportState(acsReasoning, Format('Job creado (ID: %s). Estado inicial: %s', [LVideoJobId, LStatus]));
+    ReportState(acsReasoning, Format('Job created (ID: %s). Initial status: %s', [LVideoJobId, LStatus]));
 
     while True do
     begin
@@ -624,13 +590,13 @@ begin
       LUrl := OPENAI_API_BASE_URL + 'videos/' + LVideoJobId;
       LResponse := HTTP.Get(LUrl, nil, LHeaders);
       if LResponse.StatusCode <> 200 then
-        raise Exception.CreateFmt('Error en polling del job %s: %d, %s', [LVideoJobId, LResponse.StatusCode, LResponse.ContentAsString]);
+        raise Exception.CreateFmt('Error polling job %s: %d, %s', [LVideoJobId, LResponse.StatusCode, LResponse.ContentAsString]);
 
       LPollingResponse := TJSONObject.ParseJSONValue(LResponse.ContentAsString) as TJSONObject;
       try
         LPollingResponse.TryGetValue<string>('status', LStatus);
         LPollingResponse.TryGetValue<Integer>('progress', LProgress);
-        ReportState(acsReasoning, Format('Procesando video... [%d%%] %s', [LProgress, LStatus]));
+        ReportState(acsReasoning, Format('Processing video... [%d%%] %s', [LProgress, LStatus]));
 
         if LStatus.Equals('completed') then
           break
@@ -646,7 +612,7 @@ begin
       end;
     end;
 
-    // 5. Download Final Video
+    // 5. Download final video
     ReportState(acsWriting, 'Downloading generated video...');
     LUrl := OPENAI_API_BASE_URL + 'videos/' + LVideoJobId + '/content';
     LVideoStream := TMemoryStream.Create;

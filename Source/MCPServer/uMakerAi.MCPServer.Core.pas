@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Name: Gustavo Enr?quez
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -42,12 +42,12 @@ uses
 
 type
 
-  // Callback de progreso para tools de larga duraci?n (MCP notifications/progress).
-  // AProgress avanza hacia ATotal (convenci?n: ATotal=1.0 y AProgress en 0..1).
+  // Progress callback for long-running tools (MCP notifications/progress).
+  // AProgress advances toward ATotal (convention: ATotal=1.0 and AProgress in 0..1).
   TAiMCPProgressProc = reference to procedure(AProgress, ATotal: Double; const AMessage: string);
 
-  // Entrega de una notificaci?n JSON-RPC al cliente de una sesi?n (lo implementa
-  // el transporte; en SSE es un push al Outbox de la sesi?n).
+  // Delivery of a JSON-RPC notification to a session client (implemented by
+  // the transport; in SSE it is a push to the session Outbox).
   TAiMCPSendNotificationProc = reference to procedure(const ASessionID, ANotificationJson: string);
 
   TAiAuthContext = record
@@ -55,42 +55,42 @@ type
     UserID: string;
     UserName: string;
     Roles: TArray<string>;
-    // Asignado por el server en tools/call cuando el request trae _meta.progressToken
-    // y el transporte soporta notificaciones. Los tools lo invocan si Assigned para
-    // emitir notifications/progress sin conocer la sesi?n ni el token.
+    // Assigned by the server in tools/call when the request carries _meta.progressToken
+    // and the transport supports notifications. Tools invoke it if Assigned to
+    // emit notifications/progress without knowing the session or the token.
     OnProgress: TAiMCPProgressProc;
-    // --- MCP 2026-07-28, patron MRTR ---
-    // Si el request tools/call es un reintento MRTR, aqui llegan las respuestas
-    // del cliente a los inputRequests previos (mapa id->resultado, p.ej.
-    // ElicitResult) y el requestState opaco que el tool emitio. InputResponses
-    // pertenece al request: los tools NO deben liberarlo ni retener la
-    // referencia. OJO: requestState viaja por el cliente y debe tratarse como
-    // entrada no confiable (proteger integridad si afecta autorizacion/logica).
+    // --- MCP 2026-07-28, MRTR pattern ---
+    // If the tools/call request is an MRTR retry, the responses arrive here
+    // from the client to the previous inputRequests (map id->result, e.g.
+    // ElicitResult) and the opaque requestState emitted by the tool. InputResponses
+    // belongs to the request: tools MUST NOT free it or retain the
+    // reference. WARNING: requestState travels through the client and must be treated as
+    // untrusted input (protect integrity if it affects authorization/logic).
     InputResponses: TJSONObject;
     RequestState: string;
   end;
 
-  // Evento de validación custom (Layer 2).
-  // AAuthHeader: valor del header Authorization o X-API-Key.
-  // ARemoteIP: IP del cliente.
-  // AAuthContext: contexto de autenticación a poblar.
-  // AIsValid: True si la petición es válida.
+  // Custom validation event (Layer 2).
+  // AAuthHeader: value of the Authorization or X-API-Key header.
+  // ARemoteIP: client IP.
+  // AAuthContext: authentication context to populate.
+  // AIsValid: True if the request is valid.
   TAiMCPValidateEvent = procedure(Sender: TObject; const AAuthHeader, ARemoteIP: string;
     out AAuthContext: TAiAuthContext; out AIsValid: Boolean) of object;
 
-  // ISSUE #110: se dispara durante 'initialize' con la identidad del cliente
-  // (clientInfo.name/version + protocolVersion). Poner AAllow:=False rechaza la
-  // conexion devolviendo un error JSON-RPC con AReason. 100% opt-in: si no se asigna
-  // el handler, no cambia nada.
+  // ISSUE #110: fired during 'initialize' with the client identity
+  // (clientInfo.name/version + protocolVersion). Setting AAllow:=False rejects the
+  // connection by returning a JSON-RPC error with AReason. 100% opt-in: if not assigned
+  // the handler, nothing changes.
   TAiMCPClientConnectEvent = procedure(Sender: TObject;
     const AClientName, AClientVersion, AProtocolVersion: string;
     var AAllow: Boolean; var AReason: string) of object;
 
-  // ISSUE #110 (Parte B): se dispara cuando un request a tools/, resources/ o
-  // prompts/ llega SIN una sesion autorizada (no se hizo 'initialize' o el
-  // Mcp-Session-Id no es valido). El handler puede permitir la peticion
-  // (AAllow:=True) o personalizar el motivo del rechazo (AReason). Solo se evalua
-  // cuando el gating de sesion esta activo (hay OnClientConnect asignado).
+  // ISSUE #110 (Part B): fired when a request to tools/, resources/, or
+  // prompts/ arrives WITHOUT an authorized session (no 'initialize' was performed or the
+  // Mcp-Session-Id is not valid). The handler can allow the request
+  // (AAllow:=True) or customize the rejection reason (AReason). It is only evaluated
+  // when session gating is active (OnClientConnect is assigned).
   TAiMCPUnauthorizedEvent = procedure(Sender: TObject;
     const ASessionID, AMethod: string;
     var AAllow: Boolean; var AReason: string) of object;
@@ -103,16 +103,16 @@ type
     class function New: TAiMCPResponseBuilder;
     destructor Destroy; override;
 
-    // A?ade un bloque de texto simple a la respuesta
+    // Adds a simple text block to the response
     function AddText(const AText: string): TAiMCPResponseBuilder;
 
-    // A?ade un archivo desde una ruta en disco
+    // Adds a file from a disk path
     function AddFile(const AFilePath: string; AFileName: string = ''): TAiMCPResponseBuilder;
 
-    // A?ade un archivo desde un TStream
+    // Adds a file from a TStream
     function AddFileFromStream(AStream: TStream; const AFileName: string; const AMimeType: string): TAiMCPResponseBuilder;
 
-    // Construye el objeto JSON final que se devolver? como 'result' en la llamada al tool
+    // Builds the final JSON object that will be returned as 'result' in the tool call
     function Build: TJSONObject;
   end;
 
@@ -155,8 +155,8 @@ type
     ['{B1A4D0F8-9A7B-4C6C-8D1F-4B9E3A5F7C1E}']
     function GetName: string;
     function GetDescription: string;
-    // Devuelve un objeto NUEVO en cada llamada: el que llama es su dueno
-    // (TAiMCPToolBase<T> lo genera desde la clase de parametros)
+    // Returns a NEW object on each call: the caller owns it
+    // (TAiMCPToolBase<T> generates it from the parameter class)
     function GetInputSchema: TJSONObject;
     // function Execute(const Arguments: TJSONObject): string;
     function Execute(const Arguments: TJSONObject; const AuthContext: TAiAuthContext): TJSONObject;
@@ -242,16 +242,16 @@ type
     FActiveResources: TDictionary<string, IAiMCPResource>;
     FUser: String;
     FOnSendNotification: TAiMCPSendNotificationProc;
-    FOnClientConnect: TAiMCPClientConnectEvent; // ISSUE #110: vetting del cliente en initialize
-    // ISSUE #110 (Parte B): registro de sesiones autorizadas + gating opt-in.
+    FOnClientConnect: TAiMCPClientConnectEvent; // ISSUE #110: client vetting in initialize
+    // ISSUE #110 (Part B): registry of authorized sessions + opt-in gating.
     FAuthorizedSessions: TDictionary<string, TDateTime>;
     FSessionsLock: TCriticalSection;
     FOnUnauthorizedRequest: TAiMCPUnauthorizedEvent;
 
     // --- Private Methods ---
-    // Motor compartido por todos los overloads de ExecuteRequest. AEnforceSession
-    // habilita el gating de sesion (solo lo activa el transporte HTTP). En un
-    // 'initialize' exitoso devuelve la sesion emitida en AIssuedSessionID.
+    // Engine shared by all ExecuteRequest overloads. AEnforceSession
+    // enables session gating (only the HTTP transport activates it). In an
+    // successful 'initialize' returns the issued session in AIssuedSessionID.
     function DoExecuteRequest(const ARequestJson, ASessionID: string;
       const AAuthContext: TAiAuthContext; AEnforceSession: Boolean;
       out AIssuedSessionID: string): string;
@@ -304,15 +304,15 @@ type
 
     function ExecuteRequest(const ARequestJson: string; const ASessionID: string): string; overload;
     function ExecuteRequest(const ARequestJson: string; const ASessionID: string; const AAuthContext: TAiAuthContext): string; overload;
-    // ISSUE #110 (Parte B): overload con gating de sesion (la usa el transporte HTTP).
-    // Si la peticion fue un 'initialize' exitoso, AIssuedSessionID trae el nuevo
-    // Mcp-Session-Id que el transporte debe devolver al cliente en la cabecera.
+    // ISSUE #110 (Part B): overload with session gating (used by the HTTP transport).
+    // If the request was a successful 'initialize', AIssuedSessionID carries the new
+    // Mcp-Session-Id that the transport must return to the client in the header.
     function ExecuteRequest(const ARequestJson: string; const ASessionID: string;
       const AAuthContext: TAiAuthContext; out AIssuedSessionID: string): string; overload;
 
-    // --- ISSUE #110 (Parte B): gestion de sesiones autorizadas ---
-    // El gating solo se activa cuando hay un handler OnClientConnect asignado:
-    // sin el, el servidor se comporta igual que antes (acepta todo).
+    // --- ISSUE #110 (Part B): authorized session management ---
+    // Gating is only activated when an OnClientConnect handler is assigned:
+    // without it, the server behaves as before (accepts everything).
     function SessionEnforcementActive: Boolean;
     function IsSessionAuthorized(const ASessionID: string): Boolean;
     procedure RegisterAuthorizedSession(const ASessionID: string);
@@ -329,12 +329,12 @@ type
     property CorsEnabled: Boolean read FCorsEnabled write FCorsEnabled;
     property CorsAllowedOrigins: string read FCorsAllowedOrigins write FCorsAllowedOrigins;
     property User: String read FUser write SetUser;
-    // Lo asigna el transporte (SSE) para habilitar notifications/progress.
-    // Si est? nil, los tools simplemente no reciben OnProgress en su AuthContext.
+    // It is assigned by the transport (SSE) to enable notifications/progress.
+    // If it is nil, tools simply do not receive OnProgress in their AuthContext.
     property OnSendNotification: TAiMCPSendNotificationProc read FOnSendNotification write FOnSendNotification;
-    // ISSUE #110: vetting opt-in del cliente al conectar (initialize).
+    // ISSUE #110: opt-in client vetting on connect (initialize).
     property OnClientConnect: TAiMCPClientConnectEvent read FOnClientConnect write FOnClientConnect;
-    // ISSUE #110 (Parte B): se dispara cuando un request llega sin sesion autorizada.
+    // ISSUE #110 (Part B): fired when a request arrives without an authorized session.
     property OnUnauthorizedRequest: TAiMCPUnauthorizedEvent read FOnUnauthorizedRequest write FOnUnauthorizedRequest;
 
   end;
@@ -366,24 +366,24 @@ type
     function GetOnUnauthorizedRequest: TAiMCPUnauthorizedEvent;
     procedure SetOnUnauthorizedRequest(const Value: TAiMCPUnauthorizedEvent);
     procedure SetAiFunctions(const Value: TAiFunctions);
-    // Helper: registra una sola funci?n. Al estar en un m?todo separado,
-    // cada llamada tiene su propio frame de captura — garantiza que el
-    // closure de la factory no comparte AItem con otras iteraciones del loop.
+    // Helper: registers a single function. Being in a separate method,
+    // each call has its own capture frame — guarantees that the
+    // factory closure does not share AItem with other loop iterations.
     procedure InternalRegisterOneFunction(AItem: TFunctionActionItem);
   protected
-    // Lo hacemos protected para que los descendientes puedan acceder a él directamente.
+    // We make it protected so descendants can access it directly.
     FLogicServer: TAiMCPLogicServer;
-    // Hacemos el setter protected para que solo los descendientes controlen el estado.
+    // We make the setter protected so only descendants control the state.
     procedure SetActive(const Value: Boolean);
     Procedure InternalRegisterFromAiFunctions;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    // Validación de requests: Layer 1 (API Key) + Layer 2 (evento custom)
+    // Request validation: Layer 1 (API Key) + Layer 2 (custom event)
     function ValidateRequest(const AAuthHeader, ARemoteIP: string; out AAuthContext: TAiAuthContext): Boolean;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    // Hacemos Start y Stop virtuales para que los descendientes puedan extenderlos.
+    // We make Start and Stop virtual so descendants can extend them.
     procedure Start; virtual;
     procedure Stop; virtual;
 
@@ -395,34 +395,34 @@ type
     procedure LoadSettingsFromFile;
 
     property Port: Integer read GetPort write SetPort;
-    // IP local donde escuchan los transportes de red (SSE/HTTP). Vacía = todas
-    // las interfaces (comportamiento histórico). Si está vacía se usa la
-    // variable de entorno MCP_BIND_ADDRESS, así un servicio se ata a 127.0.0.1
-    // desde su unidad systemd sin recompilar el programa que lo usa.
+    // Local IP where network transports listen (SSE/HTTP). Empty = all
+    // interfaces (historical behavior). If empty, the
+    // environment variable MCP_BIND_ADDRESS is used, so a service binds to 127.0.0.1
+    // from its systemd unit without recompiling the program that uses it.
     property BindAddress: string read FBindAddress write FBindAddress;
-    // BindAddress o, si está vacía, MCP_BIND_ADDRESS ('' = todas)
+    // BindAddress or, if empty, MCP_BIND_ADDRESS ('' = all)
     function EffectiveBindAddress: string;
     property Endpoint: string read GetEndpoint;
     property CorsEnabled: Boolean read FCorsEnabled write FCorsEnabled;
     property CorsAllowedOrigins: string read FCorsAllowedOrigins write FCorsAllowedOrigins;
 
-    // Propiedades comunes a todos los servidores
+    // Properties common to all servers
     property LogicServer: TAiMCPLogicServer read FLogicServer;
     property IsActive: Boolean read FActive;
     property User: String read GetUser Write SetUser;
     property SettingsFile: String read GetSettingsFile write SetSettingsFile;
   Published
     Property ServerName: String read GetServerName write SetServerName;
-    // Version que reporta initialize en serverInfo (delega en el motor logico)
+    // Version reported by initialize in serverInfo (delegates to the logic engine)
     property ServerVersion: String read GetServerVersion write SetServerVersion;
     property AiFunctions: TAiFunctions read FAiFunctions write SetAiFunctions;
-    // Autenticación: Si ApiKey está configurado, valida "Authorization: Bearer <key>" o "X-API-Key: <key>"
+    // Authentication: If ApiKey is configured, validates "Authorization: Bearer <key>" or "X-API-Key: <key>"
     property ApiKey: string read FApiKey write FApiKey;
-    // Evento custom para validación avanzada (JWT, OAuth, DB lookup, etc.)
+    // Custom event for advanced validation (JWT, OAuth, DB lookup, etc.)
     property OnValidateRequest: TAiMCPValidateEvent read FOnValidateRequest write FOnValidateRequest;
-    // ISSUE #110: vetting opt-in del cliente al recibir 'initialize' (proxy al motor lógico)
+    // ISSUE #110: opt-in client vetting upon receiving 'initialize' (proxy to the logic engine)
     property OnClientConnect: TAiMCPClientConnectEvent read GetOnClientConnect write SetOnClientConnect;
-    // ISSUE #110 (Parte B): rechazo de peticiones sin sesion autorizada (proxy al motor lógico)
+    // ISSUE #110 (Part B): rejection of requests without an authorized session (proxy to the logic engine)
     property OnUnauthorizedRequest: TAiMCPUnauthorizedEvent read GetOnUnauthorizedRequest write SetOnUnauthorizedRequest;
   end;
 
@@ -488,7 +488,7 @@ end;
 
 class procedure TAiMCPSerializerUtils.DeserializeObject(Instance: TObject; JSON: TJSONObject);
 begin
-  // Como este m?todo NO es gen?rico, s? puede llamar a un tipo local de la implementation.
+  // Since this method is NOT generic, it CAN call a local type from the implementation.
   TInternalSerializer.DeserializeObject(Instance, JSON);
 end;
 // -----------------------------------------------------------
@@ -497,7 +497,7 @@ class function TAiMCPSerializerUtils.Deserialize<T>(JSON: TJSONObject): T;
 begin
   Result := T.Create;
   try
-    // Ahora llamamos al intermediario p?blico, lo que es v?lido para el compilador.
+    // Now we call the public intermediary, which is valid for the compiler.
     DeserializeObject(Result, JSON);
   except
     Result.Free;
@@ -550,13 +550,13 @@ function TAiMCPToolBase<T>.Execute(const Arguments: TJSONObject; const AuthConte
 var
   ParamsInstance: T;
 begin
-  // El c?digo de deserializaci?n es el mismo
+  // The deserialization code is the same
   if not Assigned(Arguments) then
     raise Exception.Create('Arguments cannot be nil for tool execution.');
 
   ParamsInstance := TAiMCPSerializerUtils.Deserialize<T>(Arguments);
   try
-    // La diferencia es que ahora el resultado es un TJSONObject
+    // The difference is that now the result is a TJSONObject
     Result := ExecuteWithParams(ParamsInstance, AuthContext);
   finally
     ParamsInstance.Free;
@@ -695,19 +695,19 @@ begin
   if FIsActive then
     Exit;
 
-  // 1. Limpiamos cualquier instancia activa previa para evitar duplicados en reinicios
+  // 1. Clear any previous active instance to avoid duplicates on restarts
   FActiveTools.Clear;
   FActiveResources.Clear;
 
-  // 2. Ejecutamos las factor?as de herramientas.
-  // Cada Pair.Value es una funci?n que al ser llamada devuelve una instancia de IAiMCPTool.
+  // 2. Run the tool factories.
+  // Each Pair.Value is a function that, when called, returns an IAiMCPTool instance.
   for Pair in FToolFactories do
   begin
-    // Importante: Pair.Key es el nombre registrado, Pair.Value() crea la instancia.
+    // Important: Pair.Key is the registered name, Pair.Value() creates the instance.
     FActiveTools.Add(Pair.Key, Pair.Value());
   end;
 
-  // 3. Ejecutamos las factor?as de recursos.
+  // 3. Run the resource factories.
   for ResourcePair in FResourceFactories do
   begin
     FActiveResources.Add(ResourcePair.Key, ResourcePair.Value());
@@ -777,7 +777,7 @@ begin
   end;
 end;
 
-// Overload sin AuthContext: backward compatible (Stdio, Direct)
+// Overload without AuthContext: backward compatible (Stdio, Direct)
 function TAiMCPLogicServer.ExecuteRequest(const ARequestJson: string; const ASessionID: string): string;
 var
   LAuthContext: TAiAuthContext;
@@ -788,7 +788,7 @@ begin
   Result := ExecuteRequest(ARequestJson, ASessionID, LAuthContext);
 end;
 
-// Overload con AuthContext: usado por SSE (sin gating de sesion HTTP)
+// Overload with AuthContext: used by SSE (without HTTP session gating)
 function TAiMCPLogicServer.ExecuteRequest(const ARequestJson: string; const ASessionID: string; const AAuthContext: TAiAuthContext): string;
 var
   LIssued: string;
@@ -796,7 +796,7 @@ begin
   Result := DoExecuteRequest(ARequestJson, ASessionID, AAuthContext, False, LIssued);
 end;
 
-// ISSUE #110 (Parte B): overload con gating de sesion, usado por el transporte HTTP.
+// ISSUE #110 (Part B): overload with session gating, used by the HTTP transport.
 function TAiMCPLogicServer.ExecuteRequest(const ARequestJson: string; const ASessionID: string;
   const AAuthContext: TAiAuthContext; out AIssuedSessionID: string): string;
 begin
@@ -805,14 +805,14 @@ end;
 
 class function TAiMCPLogicServer.RequiresSession(const AMethodName: string): Boolean;
 begin
-  // initialize/ping no requieren sesion (initialize justamente la crea).
+  // initialize/ping do not require a session (initialize creates it).
   Result := StartsText('tools/', AMethodName) or StartsText('resources/', AMethodName) or
     StartsText('prompts/', AMethodName);
 end;
 
 function TAiMCPLogicServer.SessionEnforcementActive: Boolean;
 begin
-  // 100% opt-in: el gating solo se activa si el usuario asigno OnClientConnect.
+  // 100% opt-in: gating is only activated if the user assigned OnClientConnect.
   Result := Assigned(FOnClientConnect);
 end;
 
@@ -897,8 +897,8 @@ begin
         Exit('');
       end;
 
-      // Los params se extraen antes del gate: el modo moderno (spec 2026-07-28,
-      // stateless) se detecta por _meta['io.modelcontextprotocol/protocolVersion'].
+      // Params are extracted before the gate: modern mode (spec 2026-07-28,
+      // stateless) is detected by _meta['io.modelcontextprotocol/protocolVersion'].
       var
       ParamsValue := JSONRequest.GetValue('params');
       if Assigned(ParamsValue) and (ParamsValue is TJSONObject) then
@@ -906,14 +906,14 @@ begin
       else
         Params := nil;
 
-      // --- MCP 2026-07-28: negociacion de version por request ---
-      // Si el cliente declara una version moderna que no soportamos, se responde
-      // UnsupportedProtocolVersionError con la lista de versiones soportadas para
-      // que el cliente reintente con una compatible.
+      // --- MCP 2026-07-28: per-request version negotiation ---
+      // If the client declares a modern version that we do not support, it responds
+      // UnsupportedProtocolVersionError with the list of supported versions so
+      // that the client can retry with a compatible one.
       var LModernProto: string := GetModernProtocolVersion(Params);
 
-      // Telemetria: si el cliente propago traceparent en _meta (convencion de
-      // la spec 2026-07-28), el span del servidor continua esa traza remota.
+      // Telemetry: if the client propagated traceparent in _meta (convention of
+      // spec 2026-07-28), the server span continues that remote trace.
       var LTraceParent: string := '';
       var LMetaTel := GetRequestMeta(Params);
       if Assigned(LMetaTel) then
@@ -941,12 +941,12 @@ begin
         Exit;
       end;
 
-      // --- ISSUE #110 (Parte B): gate de sesion ---
-      // Solo cuando el transporte lo pide (HTTP) y el gating esta activo
-      // (hay OnClientConnect). tools/resources/prompts exigen una sesion creada
-      // previamente por un 'initialize' exitoso. Excepcion (spec 2026-07-28): un
-      // request moderno es stateless y no usa sesiones; el vetting de
-      // OnClientConnect se aplica por request con la identidad que viaja en _meta.
+      // --- ISSUE #110 (Part B): session gate ---
+      // Only when the transport requests it (HTTP) and gating is active
+      // (OnClientConnect is assigned). tools/resources/prompts require a session created
+      // previously by a successful 'initialize'. Exception (spec 2026-07-28): a
+      // modern request is stateless and does not use sessions; vetting of
+      // OnClientConnect is applied per request with the identity carried in _meta.
       if AEnforceSession and SessionEnforcementActive and RequiresSession(MethodName) and
         (not IsSessionAuthorized(ASessionID)) then
       begin
@@ -982,9 +982,9 @@ begin
 
       ExecuteResult := ExecuteMethodCall(MethodName, Params, ASessionID, AAuthContext);
 
-      // --- ISSUE #110 (Parte B): emitir sesion tras 'initialize' exitoso ---
-      // Core_Initialize ya paso el vetting (OnClientConnect). Reutilizamos el
-      // Mcp-Session-Id entrante si vino y es valido; si no, emitimos uno nuevo.
+      // --- ISSUE #110 (Part B): issue session after successful 'initialize' ---
+      // Core_Initialize already passed vetting (OnClientConnect). We reuse the
+      // incoming Mcp-Session-Id if it came and is valid; otherwise, we issue a new one.
       if AEnforceSession and SessionEnforcementActive and (MethodName = 'initialize') then
       begin
         if IsSessionAuthorized(ASessionID) then
@@ -999,9 +999,9 @@ begin
       else if ExecuteResult.IsType<TJSONObject> then
       begin
         var LResultObj := ExecuteResult.AsType<TJSONObject>;
-        // MCP 2026-07-28: resultType obligatorio + serverInfo en _meta.
-        // Los clientes legacy ignoran los campos que no conocen, asi que
-        // decorar siempre es inocuo y mantiene una sola ruta de codigo.
+        // MCP 2026-07-28: mandatory resultType + serverInfo in _meta.
+        // Legacy clients ignore fields they do not know, so
+        // always decorating is harmless and keeps a single code path.
         DecorateModernResult(LResultObj);
         JSONResponse.AddPair('result', LResultObj);
       end
@@ -1015,8 +1015,8 @@ begin
       begin
         var
         ErrorCode := JSONRPC_INTERNAL_ERROR;
-        // Spec 2026-07-28: solo un METODO desconocido es -32601; un tool o
-        // resource inexistente es Invalid Params (-32602, antes -32002/-32601).
+        // Spec 2026-07-28: only an unknown METHOD is -32601; a tool or
+        // nonexistent resource is Invalid Params (-32602, previously -32002/-32601).
         if Pos('not found', E.Message) > 0 then
         begin
           if StartsText('Method', E.Message) then
@@ -1162,14 +1162,14 @@ function TAiMCPLogicServer.HandlePromptsMethod(const Method: string; const Param
 var
   ResultJSON: TJSONObject;
 begin
-  // No exponemos prompts, pero respondemos 'prompts/list' con una lista vacia para no
-  // devolver -32601: clientes reales (p.ej. opencode) descartan el server si este
-  // metodo falla durante el handshake. ISSUE #109.
+  // We do not expose prompts, but respond to 'prompts/list' with an empty list so as not to
+  // return -32601: real clients (e.g. opencode) discard the server if this
+  // method fails during the handshake. ISSUE #109.
   if Method = 'prompts/list' then
   begin
     ResultJSON := TJSONObject.Create;
     ResultJSON.AddPair('prompts', TJSONArray.Create);
-    AddCacheHints(ResultJSON, 60000); // spec 2026-07-28: prompts/list es CacheableResult
+    AddCacheHints(ResultJSON, 60000); // spec 2026-07-28: prompts/list is CacheableResult
     Result := TValue.From<TJSONObject>(ResultJSON);
   end
   else
@@ -1180,9 +1180,9 @@ function TAiMCPLogicServer.Core_Initialize(const Params: TJSONObject): TValue;
 var
   ResultJSON, Capabilities, ToolsCap, ResourcesCap, ServerInfo: TJSONObject;
 begin
-  // ISSUE #110: vetting opt-in del cliente. Si hay handler, se le pasa la identidad
-  // (clientInfo + protocolVersion) y puede rechazar la conexion (AAllow:=False) ->
-  // se lanza excepcion que la capa JSON-RPC convierte en error para el cliente.
+  // ISSUE #110: opt-in client vetting. If a handler exists, the identity is passed
+  // (clientInfo + protocolVersion) and can reject the connection (AAllow:=False) ->
+  // an exception is raised that the JSON-RPC layer converts into an error for the client.
   if Assigned(FOnClientConnect) then
   begin
     var LCliName: string := '';
@@ -1227,8 +1227,8 @@ end;
 // --- MCP 2026-07-28 (modo stateless / dual-era) ---
 // -----------------------------------------------------------------------------
 
-// Devuelve el objeto _meta de los params del request, o nil si no viene.
-// El objeto pertenece al request; el llamador NO debe liberarlo.
+// Returns the _meta object from the request params, or nil if not present.
+// The object belongs to the request; the caller MUST NOT free it.
 class function TAiMCPLogicServer.GetRequestMeta(Params: TJSONObject): TJSONObject;
 var
   V: TJSONValue;
@@ -1242,8 +1242,8 @@ begin
   end;
 end;
 
-// Version de protocolo declarada por el cliente en _meta (modo moderno).
-// Cadena vacia = request legacy (handshake initialize / sin metadatos).
+// Protocol version declared by the client in _meta (modern mode).
+// Empty string = legacy request (handshake initialize / no metadata).
 class function TAiMCPLogicServer.GetModernProtocolVersion(Params: TJSONObject): string;
 var
   Meta: TJSONObject;
@@ -1253,15 +1253,15 @@ begin
   Meta := GetRequestMeta(Params);
   if Assigned(Meta) then
   begin
-    // GetValue con nombre exacto: la clave lleva puntos y las variantes por
-    // path los interpretarian como separadores de niveles.
+    // GetValue with exact name: the key contains dots and the variants by
+    // path would interpret them as level separators.
     V := Meta.GetValue(MCP_META_PROTOCOL_VERSION);
     if V is TJSONString then
       Result := TJSONString(V).Value;
   end;
 end;
 
-// Extrae clientInfo.name/version desde _meta (modo moderno).
+// Extracts clientInfo.name/version from _meta (modern mode).
 class procedure TAiMCPLogicServer.GetClientInfoFromMeta(Params: TJSONObject; out AName, AVersion: string);
 var
   Meta: TJSONObject;
@@ -1281,8 +1281,8 @@ begin
   end;
 end;
 
-// Vetting compartido (ISSUE #110 + modo moderno): consulta OnClientConnect si
-// esta asignado. Devuelve False con AReason cuando el servidor rechaza al cliente.
+// Shared vetting (ISSUE #110 + modern mode): queries OnClientConnect if
+// it is assigned. Returns False with AReason when the server rejects the client.
 function TAiMCPLogicServer.VetClientAllowed(const AClientName, AClientVersion, AProtocolVersion: string;
   out AReason: string): Boolean;
 var
@@ -1302,7 +1302,7 @@ begin
   end;
 end;
 
-// Variante de CreateErrorResponse con objeto 'data' (toma posesion de AData).
+// Variant of CreateErrorResponse with a 'data' object (takes ownership of AData).
 function TAiMCPLogicServer.CreateErrorResponseWithData(const RequestID: TValue; ErrorCode: Integer;
   const ErrorMessage: string; AData: TJSONObject): string;
 var
@@ -1324,8 +1324,8 @@ begin
   end;
 end;
 
-// Anota un result con los campos que exige la spec 2026-07-28: resultType
-// ('complete' salvo que el metodo ya lo haya puesto) y serverInfo dentro de _meta.
+// Annotates a result with the fields required by spec 2026-07-28: resultType
+// ('complete' unless the method has already set it) and serverInfo inside _meta.
 procedure TAiMCPLogicServer.DecorateModernResult(AResult: TJSONObject);
 var
   MetaVal: TJSONValue;
@@ -1354,8 +1354,8 @@ begin
   end;
 end;
 
-// ttlMs/cacheScope (interfaz CacheableResult de la spec 2026-07-28) en los
-// resultados cacheables: hints de frescura para que el cliente reduzca polling.
+// ttlMs/cacheScope (CacheableResult interface from spec 2026-07-28) in the
+// cacheable results: freshness hints so the client reduces polling.
 class procedure TAiMCPLogicServer.AddCacheHints(AResult: TJSONObject; ATtlMs: Integer);
 begin
   if not Assigned(AResult.GetValue('ttlMs')) then
@@ -1364,17 +1364,17 @@ begin
     AResult.AddPair('cacheScope', 'private');
 end;
 
-// MCP 2026-07-28: discovery sin handshake. Devuelve versiones soportadas,
-// capacidades e identidad del servidor. Tambien funciona como sonda de
-// compatibilidad para clientes dual-era (un servidor legacy responde -32601).
+// MCP 2026-07-28: discovery without handshake. Returns supported versions,
+// capabilities and server identity. It also works as a probe for
+// compatibility for dual-era clients (a legacy server responds -32601).
 function TAiMCPLogicServer.Core_ServerDiscover(const Params: TJSONObject): TValue;
 var
   ResultJSON, Capabilities, MetaObj, ServerInfo: TJSONObject;
   Versions: TJSONArray;
   CliName, CliVersion, CliProto, VetReason: string;
 begin
-  // Vetting opt-in con la identidad de _meta: equivalente moderno del vetting
-  // que Core_Initialize aplica en el handshake legacy.
+  // Opt-in vetting with the _meta identity: modern equivalent of the vetting
+  // that Core_Initialize applies in the legacy handshake.
   CliProto := GetModernProtocolVersion(Params);
   GetClientInfoFromMeta(Params, CliName, CliVersion);
   if not VetClientAllowed(CliName, CliVersion, CliProto, VetReason) then
@@ -1397,7 +1397,7 @@ begin
   ServerInfo.AddPair('version', FServerVersion);
   MetaObj.AddPair(MCP_META_SERVER_INFO, ServerInfo);
   ResultJSON.AddPair('_meta', MetaObj);
-  AddCacheHints(ResultJSON, 3600000); // la identidad del servidor cambia poco: 1 hora
+  AddCacheHints(ResultJSON, 3600000); // server identity changes little: 1 hour
   Result := TValue.From<TJSONObject>(ResultJSON);
 end;
 
@@ -1413,8 +1413,8 @@ begin
   ResultJSON := TJSONObject.Create;
   ToolsArray := TJSONArray.Create;
   ResultJSON.AddPair('tools', ToolsArray);
-  // Spec 2026-07-28: orden deterministico (por nombre) para que los clientes
-  // puedan cachear la lista y mejorar el hit-rate del prompt cache del LLM.
+  // Spec 2026-07-28: deterministic order (by name) so that clients
+  // can cache the list and improve the LLM prompt cache hit rate.
   Names := FActiveTools.Keys.ToArray;
   TArray.Sort<string>(Names);
   for ToolName in Names do
@@ -1423,9 +1423,9 @@ begin
     ToolJSON := TJSONObject.Create;
     ToolJSON.AddPair('name', Tool.Name);
     ToolJSON.AddPair('description', Tool.Description);
-    // GetInputSchema devuelve un esquema nuevo (ver IAiMCPTool): AddPair toma
-    // posesion. Clonarlo, como se hacia, perdia el original en cada tools/list
-    // (servidor MCP que crecia en memoria con cada peticion).
+    // GetInputSchema returns a new schema (see IAiMCPTool): AddPair takes
+    // ownership. Cloning it, as was done, lost the original on every tools/list
+    // (MCP server that grew in memory with every request).
     Schema := Tool.GetInputSchema;
     if Assigned(Schema) then
       ToolJSON.AddPair('inputSchema', Schema)
@@ -1433,12 +1433,12 @@ begin
       ToolJSON.AddPair('inputSchema', TJSONObject.Create);
     ToolsArray.AddElement(ToolJSON);
   end;
-  AddCacheHints(ResultJSON, 60000); // spec 2026-07-28: tools/list es CacheableResult
+  AddCacheHints(ResultJSON, 60000); // spec 2026-07-28: tools/list is CacheableResult
   Result := TValue.From<TJSONObject>(ResultJSON);
 end;
 
-// Construye el JSON-RPC de notifications/progress seg?n el spec MCP.
-// ATokenJson es el valor crudo del progressToken ("abc" o 42) para preservar su tipo.
+// Builds the JSON-RPC for notifications/progress according to the MCP spec.
+// ATokenJson is the raw progressToken value ("abc" or 42) to preserve its type.
 function TAiMCPLogicServer.BuildProgressNotification(const ATokenJson: string; AProgress, ATotal: Double; const AMessage: string): string;
 var
   Root, ParamsObj: TJSONObject;
@@ -1488,13 +1488,13 @@ begin
   if ToolName = '' then
     raise Exception.CreateHelp('Invalid params: Tool "name" not provided in tools/call', JSONRPC_INVALID_PARAMS);
 
-  // Progreso MCP: si el cliente envi? _meta.progressToken y el transporte
-  // soporta notificaciones, el tool recibe OnProgress en su AuthContext.
+  // MCP progress: if the client sent _meta.progressToken and the transport
+  // supports notifications, the tool receives OnProgress in its AuthContext.
   ExecContext := AAuthContext;
 
-  // MCP 2026-07-28 (MRTR): si es un reintento, inputResponses/requestState
-  // viajan como hermanos de name/arguments en params y se entregan al tool
-  // via AuthContext. El objeto pertenece al request: el tool no lo libera.
+  // MCP 2026-07-28 (MRTR): if it is a retry, inputResponses/requestState
+  // travel as siblings of name/arguments in params and are delivered to the tool
+  // via AuthContext. The object belongs to the request: the tool does not free it.
   ExecContext.InputResponses := Params.GetValue<TJSONObject>('inputResponses', nil);
   ExecContext.RequestState := Params.GetValue<string>('requestState', '');
 
@@ -1504,7 +1504,7 @@ begin
   begin
     TokenVal := MetaObj.GetValue('progressToken');
     if Assigned(TokenVal) and not(TokenVal is TJSONNull) then
-      TokenJson := TokenVal.ToJSON; // preserva tipo string o number
+      TokenJson := TokenVal.ToJSON; // preserves string or number type
   end;
 
   if (TokenJson <> '') and Assigned(FOnSendNotification) then
@@ -1516,14 +1516,14 @@ begin
         try
           FOnSendNotification(SessionForProgress, BuildProgressNotification(TokenJson, AProgress, ATotal, AMessage));
         except
-          // El progreso es best-effort: nunca debe tumbar la ejecuci?n del tool.
+          // Progress is best-effort: it must never bring down tool execution.
         end;
       end;
   end;
 
   if FActiveTools.TryGetValue(ToolName, Tool) then
   begin
-    // Telemetria: span por ejecucion del tool, anidado al span del request
+    // Telemetry: span per tool execution, nested under the request span
     var LSpan := AiSpanStart('mcp.tool ' + ToolName);
     AiSpanAttr(LSpan, 'gen_ai.tool.name', ToolName);
     AiSpanAttr(LSpan, 'mcp.mrtr.retry', Assigned(ExecContext.InputResponses));
@@ -1541,7 +1541,7 @@ begin
   else
     raise Exception.CreateFmt('Tool not found: %s', [ToolName]);
 
-  // Pasamos el TJSONObject resultante al TValue
+  // Pass the resulting TJSONObject to TValue
   Result := TValue.From<TJSONObject>(ResultJSON);
 end;
 
@@ -1556,7 +1556,7 @@ begin
   ResultJSON := TJSONObject.Create;
   ResourcesArray := TJSONArray.Create;
   ResultJSON.AddPair('resources', ResourcesArray);
-  // Spec 2026-07-28: orden deterministico (por URI), igual que tools/list.
+  // Spec 2026-07-28: deterministic order (by URI), same as tools/list.
   URIs := FActiveResources.Keys.ToArray;
   TArray.Sort<string>(URIs);
   for URI in URIs do
@@ -1569,7 +1569,7 @@ begin
     ResourceObj.AddPair('mimeType', Resource.MimeType);
     ResourcesArray.AddElement(ResourceObj);
   end;
-  AddCacheHints(ResultJSON, 60000); // spec 2026-07-28: resources/list es CacheableResult
+  AddCacheHints(ResultJSON, 60000); // spec 2026-07-28: resources/list is CacheableResult
   Result := TValue.From<TJSONObject>(ResultJSON);
 end;
 
@@ -1609,7 +1609,7 @@ begin
   begin
     raise Exception.CreateFmt('Resource not found: %s', [URI]);
   end;
-  AddCacheHints(ResultJSON, 60000); // spec 2026-07-28: resources/read es CacheableResult
+  AddCacheHints(ResultJSON, 60000); // spec 2026-07-28: resources/read is CacheableResult
   Result := TValue.From<TJSONObject>(ResultJSON);
 end;
 
@@ -1621,7 +1621,7 @@ begin
   ResultJSON := TJSONObject.Create;
   TemplatesArray := TJSONArray.Create;
   ResultJSON.AddPair('resourceTemplates', TemplatesArray);
-  AddCacheHints(ResultJSON, 60000); // spec 2026-07-28: resources/templates/list es CacheableResult
+  AddCacheHints(ResultJSON, 60000); // spec 2026-07-28: resources/templates/list is CacheableResult
   Result := TValue.From<TJSONObject>(ResultJSON);
 end;
 
@@ -1691,7 +1691,7 @@ var
   RttiProp: TRttiProperty;
   Attr: TCustomAttribute;
   PropTypeStr: string;
-  // Variables nuevas para manejar arrays
+  // New variables to handle arrays
   DynArrayType: TRttiDynamicArrayType;
   ElementType: TRttiType;
 begin
@@ -1713,11 +1713,11 @@ begin
         PropSchema := TJSONObject.Create;
         Properties.AddPair(JsonName, PropSchema);
 
-        // 1. Obtenemos el tipo base
+        // 1. Get the base type
         PropTypeStr := GetJsonTypeFromRttiType(RttiProp.PropertyType);
         PropSchema.AddPair('type', PropTypeStr);
 
-        // 2. L?gica espec?fica para Arrays (NUEVO)
+        // 2. Specific logic for Arrays (NEW)
         if PropTypeStr = 'array' then
         begin
           if RttiProp.PropertyType is TRttiDynamicArrayType then
@@ -1725,7 +1725,7 @@ begin
             DynArrayType := TRttiDynamicArrayType(RttiProp.PropertyType);
             ElementType := DynArrayType.ElementType;
 
-            // Definimos qu? hay dentro del array (items)
+            // Define what is inside the array (items)
             var
             ItemsObj := TJSONObject.Create;
             ItemsObj.AddPair('type', GetJsonTypeFromRttiType(ElementType));
@@ -1733,7 +1733,7 @@ begin
           end
           else
           begin
-            // Fallback por si es un array est?tico u otro tipo complejo no soportado
+            // Fallback in case it is a static array or another unsupported complex type
             var
             ItemsObj := TJSONObject.Create;
             ItemsObj.AddPair('type', 'string');
@@ -1741,7 +1741,7 @@ begin
           end;
         end;
 
-        // 3. Manejo de atributos (Descripci?n y Enums) - (Igual que antes)
+        // 3. Handling of attributes (Description and Enums) - (Same as before)
         for Attr in RttiProp.GetAttributes do
         begin
           if Attr is AiMCPSchemaDescriptionAttribute then
@@ -1963,7 +1963,7 @@ begin
 
   LFileItem := TJSONObject.Create;
 
-  // Mapeamos el MimeType al 'type' que espera el cliente
+  // Map the MimeType to the 'type' expected by the client
   if StartsText('image/', AMimeType) then
     LType := 'image'
   else if StartsText('audio/', AMimeType) then
@@ -1973,7 +1973,7 @@ begin
   else if SameText(AMimeType, 'application/pdf') then
     LType := 'document'
   else
-    LType := 'binary'; // Un tipo gen?rico
+    LType := 'binary'; // A generic type
 
   LFileItem.AddPair('type', LType);
   LFileItem.AddPair('mimeType', AMimeType);
@@ -2075,9 +2075,9 @@ end;
 
 procedure TAiMCPServer.InternalRegisterOneFunction(AItem: TFunctionActionItem);
 begin
-  // Cada llamada a este m?todo crea un frame propio en el heap de captura.
-  // El closure captura AItem de este frame, no del loop padre.
-  // As? cada factory tiene su propio TFunctionActionItem independiente.
+  // Each call to this method creates its own capture frame on the heap.
+  // The closure captures AItem from this frame, not from the parent loop.
+  // This way each factory has its own independent TFunctionActionItem.
   RegisterTool(AItem.FunctionName,
     function: IAiMCPTool
     begin
@@ -2111,17 +2111,17 @@ procedure TAiMCPServer.Notification(AComponent: TComponent; Operation: TOperatio
 begin
   inherited Notification(AComponent, Operation);
 
-  // Si la operaci?n es eliminar (opRemove) y el componente es el que tenemos guardado
+  // If the operation is remove (opRemove) and the component is the one we have stored
   if (Operation = opRemove) and (AComponent = FAiFunctions) then
   begin
-    // Ponemos la referencia a NIL de forma segura
+    // We safely set the reference to NIL
     FAiFunctions := nil;
 
-    // Opcional: Si el servidor estaba activo y depend?a de estas funciones,
-    // podr?as decidir detenerlo o simplemente logear un aviso.
+    // Optional: If the server was active and depended on these functions,
+    // you could decide to stop it or simply log a warning.
     if FActive then
     begin
-      // Podr?as llamar a Stop; si consideras que sin funciones el servidor no debe seguir.
+      // You could call Stop; if you consider that without functions the server should not continue.
     end;
   end;
 end;
@@ -2147,7 +2147,7 @@ begin
   begin
     FAiFunctions := Value;
 
-    // Si se asigna un componente, le pedimos que nos notifique su destrucci?n
+    // If a component is assigned, we ask it to notify us of its destruction
     if Assigned(FAiFunctions) then
       FAiFunctions.FreeNotification(Self);
   end;
@@ -2160,10 +2160,10 @@ begin
   Result := True;
   AAuthContext := Default(TAiAuthContext);
 
-  // Layer 1: Validación de API Key
+  // Layer 1: API Key validation
   if FApiKey <> '' then
   begin
-    // Extraer key de "Bearer <key>" o valor directo
+    // Extract key from "Bearer <key>" or direct value
     if AAuthHeader.StartsWith('Bearer ', True) then
       ProvidedKey := Trim(Copy(AAuthHeader, 8, Length(AAuthHeader)))
     else
@@ -2179,12 +2179,12 @@ begin
     AAuthContext.UserID := FLogicServer.User;
   end;
 
-  // Layer 2: Evento de validación custom (JWT, OAuth, DB lookup, etc.)
+  // Layer 2: Custom validation event (JWT, OAuth, DB lookup, etc.)
   if Assigned(FOnValidateRequest) then
     FOnValidateRequest(Self, AAuthHeader, ARemoteIP, AAuthContext, Result)
   else if FApiKey = '' then
   begin
-    // Sin API Key ni evento -> backward compatible (permitir todo)
+    // Without API Key or event -> backward compatible (allow everything)
     AAuthContext.IsAuthenticated := True;
     AAuthContext.UserID := FLogicServer.User;
   end;
@@ -2219,11 +2219,11 @@ begin
   if FActive then
     Exit;
 
-  // 1. PASO CLAVE: Antes de iniciar el LogicServer, registramos
-  // autom?ticamente las funciones del componente vinculado.
+  // 1. KEY STEP: Before starting the LogicServer, we register
+  // automatically the functions of the linked component.
   InternalRegisterFromAiFunctions;
 
-  // 2. Iniciamos el motor l?gico (que instanciar? los Proxies creados arriba)
+  // 2. Start the logic engine (which will instantiate the Proxies created above)
   FLogicServer.Start;
 
   FActive := True;

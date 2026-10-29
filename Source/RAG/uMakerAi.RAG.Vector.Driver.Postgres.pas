@@ -17,10 +17,10 @@ uses
   uMakerAi.Embeddings.Core,
   uMakerAi.RAG.Vectors,
   uMakerAi.RAG.Vectors.Index,
-  uMakerAi.RAG.MetaData; // Ahora contiene TFilterOperator unificado
+  uMakerAi.RAG.MetaData; // Now contains unified TFilterOperator
 
 type
-  // Tipos de datos para conversi�n correcta a SQL
+  // Data types for correct conversion to SQL
   TJSONBDataType = (jdtString, jdtInteger, jdtFloat, jdtBoolean, jdtDate, jdtDateTime, jdtJSON, jdtArray);
 
   TQueryParamValue = record
@@ -28,11 +28,11 @@ type
     Value: Variant;
   end;
 
-  // Clase helper para construcci�n de condiciones SQL
+  // Helper class for building SQL conditions
   TJSONBFilterCondition = class
   private
     FPath: string;
-    FOperator: TFilterOperator; // Usamos el enum unificado
+    FOperator: TFilterOperator; // Using the unified enum
     FValue: Variant;
     FSecondValue: Variant;
     FDataType: TJSONBDataType;
@@ -46,7 +46,7 @@ type
     property SecondValue: Variant read FSecondValue write FSecondValue;
   end;
 
-  // Builder para construir la cl�usula WHERE
+  // Builder to construct the WHERE clause
   TJSONBFilterBuilder = class
   private
     // FConditions: TObjectList<TJSONBFilterCondition>;
@@ -59,10 +59,10 @@ type
     constructor Create(AQuery: TFDQuery);
     destructor Destroy; override;
 
-    // M�todo principal que consume los criterios unificados
+    // Main method that consumes the unified criteria
     function BuildSQL(ACriteria: TAiFilterCriteria): string;
 
-    // Generaci�n SQL
+    // SQL generation
     procedure ApplyParams(AQuery: TFDQuery);
     property Params: TList<TQueryParamValue> read FParams;
   end;
@@ -87,10 +87,10 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    { M�todos Principales }
+    { Main Methods }
     procedure Add(const ANode: TAiEmbeddingNode; const AEntidad: string = ''); override;
 
-    // Firma actualizada para coincidir con la clase base y usar TAiFilterCriteria
+    // Updated signature to match base class and use TAiFilterCriteria
     function Search(const ATarget: TAiEmbeddingNode; const AEntidad: string; ALimit: Integer; APrecision: Double; AFilter: TAiFilterCriteria; Options: TAiSearchOptions): TAiRAGVector; override;
 
     procedure Delete(const AID: string; const AEntidad: string); override;
@@ -114,7 +114,7 @@ procedure Register;
 
 implementation
 
-{$R ..\Resources\uMakerAiRAGDriversIcons.res}  // iconos de paleta del paquete
+{$R ..\Resources\uMakerAiRAGDriversIcons.res}  // palette icons of the package
 
 procedure Register;
 begin
@@ -134,7 +134,7 @@ end;
 
 function TJSONBFilterCondition.GetSQLOperator: string;
 begin
-  // Mapeo directo de TFilterOperator (MetaData) a SQL Postgres
+  // Direct mapping from TFilterOperator (MetaData) to Postgres SQL
   case FOperator of
     foEqual:
       Result := '=';
@@ -150,13 +150,13 @@ begin
       Result := '<=';
 
     foContains:
-      Result := '@>'; // JSONB contiene
+      Result := '@>'; // JSONB contains
     foExists:
-      Result := '?'; // Clave existe
+      Result := '?'; // Key exists
     foExistsAny:
-      Result := '?|'; // Alguna clave
+      Result := '?|'; // Any key
     foExistsAll:
-      Result := '?&'; // Todas las claves
+      Result := '?&'; // All keys
 
     foLike:
       Result := 'LIKE';
@@ -173,7 +173,7 @@ begin
     foIsNotNull:
       Result := 'IS NOT NULL';
 
-    // foContainedBy y foStartsWith/EndsWith se manejan con l�gica especial o LIKE
+    // foContainedBy and foStartsWith/EndsWith are handled with special logic or LIKE
     foStartsWith, foEndsWith:
       Result := 'LIKE';
   else
@@ -271,7 +271,7 @@ begin
           end;
         end
         else
-          raise Exception.Create('foExistsAny / foExistsAll requiere un array de valores.');
+          raise Exception.Create('foExistsAny / foExistsAll requires an array of values.');
       end;
 
     foIn, foNotIn:
@@ -327,7 +327,7 @@ var
 begin
   for P in FParams do
   begin
-    // Ahora FireDAC encontrar� los par�metros porque ya asignamos el SQL.Text antes
+    // Now FireDAC will find the parameters because we already assigned the SQL.Text before
     AQuery.ParamByName(P.Name).Value := P.Value;
   end;
 end;
@@ -338,14 +338,14 @@ var
   I: Integer;
   JsonPath: string;
 begin
-  // 1. Mapeo de campos virtuales / Columnas directas
+  // 1. Mapping of virtual fields / Direct columns
   if SameText(AKey, 'text') then
-    Exit('content'); // El campo 'text' en VGQL apunta a la columna 'content' en Postgres
+    Exit('content'); // The 'text' field in VGQL points to the 'content' column in Postgres
 
   if SameText(AKey, 'model') then
-    Exit('model'); // Opcional: permitir filtrar por el nombre del modelo directamente
+    Exit('model'); // Optional: allow filtering by model name directly
 
-  // 2. Si la llave tiene puntos (ej: user.name), usamos la sintaxis de rutas de Postgres #>>
+  // 2. If the key has dots (e.g., user.name), use Postgres path syntax #>>
   if AKey.Contains('.') then
   begin
     Parts := AKey.Split(['.']);
@@ -358,12 +358,12 @@ begin
     end;
     JsonPath := JsonPath + '}';
 
-    // El operador #>> devuelve el valor como TEXT
+    // The #>> operator returns the value as TEXT
     Result := Format('properties #>> ''%s''', [JsonPath]);
   end
   else
   begin
-    // 3. Si es una llave simple, usamos el operador est�ndar ->> (devuelve TEXT)
+    // 3. If it's a simple key, use the standard ->> operator (returns TEXT)
     Result := Format('properties->>''%s''', [AKey]);
   end;
 end;
@@ -379,19 +379,19 @@ function TJSONBFilterBuilder.InferDataType(const AValue: Variant): TJSONBDataTyp
 var
   TestVal: Variant;
 begin
-  // Si es un Array (caso de foIn / foNotIn)
+  // If it's an Array (case of foIn / foNotIn)
   if VarIsArray(AValue) then
   begin
     if VarArrayHighBound(AValue, 1) >= VarArrayLowBound(AValue, 1) then
     begin
-      // Tomamos el primer elemento para inferir el tipo
+      // Take the first element to infer the type
       TestVal := VarArrayGet(AValue, [VarArrayLowBound(AValue, 1)]);
-      Result := InferDataType(TestVal); // Llamada recursiva con un solo valor
+      Result := InferDataType(TestVal); // Recursive call with a single value
       Exit;
     end;
   end;
 
-  // Tipos at�micos
+  // Atomic types
   case VarType(AValue) and varTypeMask of
     varSmallint, varInteger, varShortInt, varByte, varWord, varLongWord, varInt64:
       Result := jdtInteger;
@@ -428,24 +428,24 @@ begin
 
       if Criterion.IsGroup then
       begin
-        // RECURSIVIDAD: Llamamos a Process para el subgrupo
+        // RECURSION: Call Process for the subgroup
         SubSQL := Process(Criterion.SubCriteria);
         if SubSQL <> '' then
           SQLParts.Add('(' + SubSQL + ')');
       end
       else
       begin
-        // CONDICI�N AT�MICA
+        // ATOMIC CONDITION
         Inc(FParamCounter);
 
-        // 1. Crear la condici�n
+        // 1. Create the condition
         Cond := TJSONBFilterCondition.Create(BuildPath(Criterion.Key, Criterion.Op), Criterion.Op, Criterion.Value, InferDataType(Criterion.Value));
         try
           if Criterion.Op = foBetween then
             Cond.SecondValue := Criterion.Value2;
 
-          // 2. Llamada CORREGIDA: Pasamos FParams en lugar de FQuery
-          // Esto genera el fragmento SQL y guarda el valor en la lista diferida
+          // 2. CORRECTED call: We pass FParams instead of FQuery
+          // This generates the SQL fragment and stores the value in the deferred list
           SQLParts.Add(Cond.ToSQL(FParamCounter, FParams));
         finally
           Cond.Free;
@@ -453,7 +453,7 @@ begin
       end;
     end;
 
-    // Unir las partes con AND/OR
+    // Join parts with AND/OR
     if SQLParts.Count > 0 then
     begin
       Result := SQLParts[0];
@@ -480,7 +480,7 @@ end;
 function TAiRAGVectorPostgresDriver.NewQuery: TFDQuery;
 begin
   if not Assigned(FConnection) then
-    raise Exception.Create('Error Cr�tico: Driver Postgres sin conexi�n asignada.');
+    raise Exception.Create('Critical Error: Postgres driver without assigned connection.');
   Result := TFDQuery.Create(nil);
   Result.Connection := FConnection;
 end;
@@ -741,7 +741,7 @@ begin
     // Build SQL with all values inlined — avoids PQexecParams null-byte bug on Linux
     SQL.AppendLine('WITH ');
 
-    // --- BLOQUE VECTOR ---
+    // --- VECTOR BLOCK ---
     SQL.AppendLine('vector_res AS (');
     if DoVector then
     begin
@@ -766,7 +766,7 @@ begin
       SQL.AppendLine('  SELECT NULL::text as id, NULL::text as entidad, NULL::text as content, NULL::text as model, NULL::jsonb as properties, NULL::vector as embedding, 0::float as v_score, 0::bigint as v_rank WHERE FALSE');
     SQL.AppendLine('),');
 
-    // --- BLOQUE LEXICAL ---
+    // --- LEXICAL BLOCK ---
     SQL.AppendLine('lexical_res AS (');
     if DoLexical then
     begin
@@ -788,7 +788,7 @@ begin
       SQL.AppendLine('  SELECT NULL::text as id, NULL::text as entidad, NULL::text as content, NULL::text as model, NULL::jsonb as properties, NULL::vector as embedding, 0::float as l_score, 0::bigint as l_rank WHERE FALSE');
     SQL.AppendLine('),');
 
-    // --- BLOQUE COMBINE / RRF / SCORE ---
+    // --- COMBINE / RRF / SCORE BLOCK ---
     SQL.AppendLine('combined AS (');
     SQL.AppendLine('  SELECT COALESCE(v.id, l.id) as id, COALESCE(v.entidad, l.entidad) as entidad, COALESCE(v.content, l.content) as content, COALESCE(v.model, l.model) as model, ' +
       'COALESCE(v.properties, l.properties) as properties, COALESCE(v.embedding, l.embedding) as embedding,');
@@ -833,12 +833,12 @@ begin
       SQL.AppendLine('    raw_score as final_score');
     SQL.AppendLine('  FROM scored');
     SQL.AppendLine(')');
-    // embedding::text NO es cosmetico: FireDAC mapea el tipo vector de pgvector a
-    // ftBlob y AsString devuelve los bytes crudos, que StringToEmbedding no sabe
-    // leer (acaba produciendo un vector [0] de un elemento). Los nodos volvian
-    // asi SIN vector, y con ellos cualquier calculo posterior sobre el resultado
-    // (RERANK por coseno, la diversidad de MMR) operaba sobre ceros. Casteado a
-    // texto vuelve como '[0.1,0.2,...]', que es justo lo que espera el parser.
+    // embedding::text is NOT cosmetic: FireDAC maps the pgvector vector type to
+    // ftBlob and AsString returns the raw bytes, which StringToEmbedding cannot
+    // parse (it ends up producing a [0] vector of one element). Nodes thus returned
+    // WITHOUT vector, and any subsequent calculation on the result
+    // (RERANK by cosine, MMR diversity) would operate on zeros. Cast to
+    // text returns it as '[0.1,0.2,...]', which is exactly what the parser expects.
     SQL.AppendLine('SELECT id, entidad, content, model, properties, embedding::text AS embedding, final_score');
     SQL.AppendLine('FROM final_scored');
     if APrecision > 0 then
@@ -856,7 +856,7 @@ begin
         raise Exception.CreateFmt('Postgres Error: %s'#13#10'SQL: %s', [E.Message, FLastSQL]);
     end;
 
-    // 7. PROCESAMIENTO DE RESULTADOS
+    // 7. RESULT PROCESSING
     while not Q.Eof do
     begin
       Node := TAiEmbeddingNode.Create(ATarget.Dim);

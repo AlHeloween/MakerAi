@@ -1,67 +1,4 @@
-﻿// MIT License
-//
-// Copyright (c) 2026 Gustavo Enriquez
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
-// Nombre: Gustavo Enriquez
-// Redes Sociales:
-// - Email: gustavoeenriquez@gmail.com
-// - Telegram: https://t.me/MakerAi_Suite_Delphi
-// - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
-// - Youtube: https://www.youtube.com/@cimamaker3945
-// - GitHub: https://github.com/gustavoeenriquez/
-
-{
-  uMakerAi.Utils.AudioPlayback
-  ============================
-
-  TAiAudioPlayer: componente de reproduccion de audio PCM16 sobre un
-  dispositivo de salida WASAPI SELECCIONABLE. Es la pieza simetrica de
-  TAiAudioCapture (uMakerAi.Utils.AudioCapture).
-
-  Caso de uso tipico: reproducir el TTS de un traductor en tiempo real:
-  - La traduccion para MI se reproduce en mis auriculares (predeterminado).
-  - La traduccion para la REUNION se reproduce en un cable virtual
-    (p.ej. VB-CABLE "CABLE Input"); en Zoom/Meet se selecciona el extremo
-    "CABLE Output" como microfono, y el otro lado escucha el TTS.
-
-  Caracteristicas:
-  - Cola de reproduccion: cada PlayPCM16() encola una frase; se reproducen
-    en orden, sin solaparse, en un hilo dedicado.
-  - Conversion automatica al formato del dispositivo (remuestreo lineal y
-    mapeo de canales), igual que hace el capturador.
-  - OnStateChange(IsPlaying): util para silenciar la captura loopback
-    mientras suena el propio TTS (propiedad Muted de TAiAudioCapture).
-
-  Uso minimo:
-
-    Player := TAiAudioPlayer.Create(Self);
-    Player.DeviceId := '';      // '' = dispositivo de salida predeterminado
-    Player.Active := True;
-    Player.PlayPCM16(PcmBytes, 24000, 1);  // p.ej. TTS de OpenAI (trfPcm)
-
-  Plataformas: solo Windows. En otras plataformas el componente compila pero
-  Active := True dispara OnError.
-}
-
-unit uMakerAi.Utils.AudioPlayback;
+﻿unit uMakerAi.Utils.AudioPlayback;
 
 interface
 
@@ -71,11 +8,11 @@ uses
 {$IFDEF MSWINDOWS}
   Winapi.Windows, Winapi.ActiveX, Winapi.MMSystem,
 {$ENDIF}
-  uMakerAi.Utils.AudioCapture; // TAiAudioDeviceInfo + enumeracion de endpoints
+  uMakerAi.Utils.AudioCapture; // TAiAudioDeviceInfo + endpoint enumeration
 
 type
   TAiAudioPlayItem = record
-    Data: TBytes; // PCM16 entrelazado
+    Data: TBytes; // PCM16 interleaved
     SampleRate: Integer;
     Channels: Integer;
   end;
@@ -100,25 +37,25 @@ type
   protected
     procedure Loaded; override;
     procedure DoError(const aMessage: string);
-    // Llamados desde el hilo de reproduccion:
+    // Called from the playback thread:
     procedure HandleStateChange(aIsPlaying: Boolean);
     procedure HandleThreadError(const aMessage: string);
   public
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
 
-    // Encola PCM16 para reproducir (no bloquea; las frases suenan en orden).
+    // Enqueues PCM16 to play (non-blocking; phrases play in order).
     procedure PlayPCM16(const aData: TBytes; aSampleRate, aChannels: Integer);
-    // Vacia la cola (no corta la frase que ya esta sonando).
+    // Empties the queue (does not cut the currently playing phrase).
     procedure ClearQueue;
 
-    // Dispositivos de SALIDA disponibles (delega en TAiAudioCapture).
+    // Available OUTPUT devices (delegates to TAiAudioCapture).
     class function GetPlaybackDevices: TArray<TAiAudioDeviceInfo>;
 
     property IsPlaying: Boolean read FIsPlaying;
   published
     property Active: Boolean read FActive write SetActive default False;
-    // ID WASAPI del endpoint de salida (ver GetPlaybackDevices). '' = predeterminado.
+    // WASAPI endpoint ID for output (see GetPlaybackDevices). '' = default.
     property DeviceId: string read FDeviceId write SetDeviceId;
     property OnStateChange: TAiPlayerStateEvent read FOnStateChange write FOnStateChange;
     property OnError: TAiPlayerErrorEvent read FOnError write FOnError;
@@ -136,8 +73,8 @@ end;
 {$IFDEF MSWINDOWS}
 
 // ---------------------------------------------------------------------------
-// Declaraciones WASAPI minimas para render (autocontenidas, prefijo IAiPb*
-// para no colisionar con las del capturador ni con MfPack).
+// Minimal WASAPI declarations for render (self-contained, prefix IAiPb*
+// to avoid collision with the capture unit and MfPack).
 // ---------------------------------------------------------------------------
 
 const
@@ -211,20 +148,20 @@ type
   PPbWaveFormatExtensible = ^TPbWaveFormatExtensible;
 
   // ---------------------------------------------------------------------------
-  // Hilo de reproduccion: consume la cola y escribe en el buffer WASAPI
+  // Playback thread: consumes the queue and writes to the WASAPI buffer
   // ---------------------------------------------------------------------------
   TAiWasapiPlayThread = class(TThread)
   private
     FOwner: TAiAudioPlayer;
     FDeviceId: string;
-    // Formato de mezcla del dispositivo
+    // Device mix format
     FMixRate: Integer;
     FMixCh: Integer;
     FMixBits: Integer;
     FMixFloat: Boolean;
     FBufFrames: UINT;
     procedure RaiseIfFailed(hr: HResult; const aContext: string);
-    // Convierte un item PCM16 al formato float interleaved del dispositivo
+    // Converts a PCM16 item to the device's float interleaved format
     function ConvertItem(const aItem: TAiAudioPlayItem): TArray<Single>;
   protected
     procedure Execute; override;
@@ -243,7 +180,7 @@ end;
 procedure TAiWasapiPlayThread.RaiseIfFailed(hr: HResult; const aContext: string);
 begin
   if Failed(hr) then
-    raise Exception.CreateFmt('%s fallo (HRESULT=0x%.8x)', [aContext, Cardinal(hr)]);
+    raise Exception.CreateFmt('%s failed (HRESULT=0x%.8x)', [aContext, Cardinal(hr)]);
 end;
 
 function TAiWasapiPlayThread.ConvertItem(const aItem: TAiAudioPlayItem): TArray<Single>;
@@ -254,7 +191,7 @@ var
 
   function InSample(aFrame, aChan: Integer): Single;
   begin
-    // mapeo de canales: mono se duplica, sobrantes se repiten ciclicamente
+    // Channel mapping: mono is duplicated, extras cyclically repeated
     Result := PSmallInt(@aItem.Data[(aFrame * aItem.Channels + (aChan mod aItem.Channels)) * 2])^ / 32768;
   end;
 
@@ -268,7 +205,7 @@ begin
 
   if aItem.SampleRate = FMixRate then
   begin
-    // Solo mapeo de canales
+    // Only channel mapping
     SetLength(Result, InFrames * FMixCh);
     for I := 0 to InFrames - 1 do
       for C := 0 to FMixCh - 1 do
@@ -276,7 +213,7 @@ begin
   end
   else
   begin
-    // Remuestreo lineal + mapeo de canales
+    // Linear resampling + channel mapping
     Ratio := aItem.SampleRate / FMixRate;
     OutFrames := Trunc((InFrames - 1) / Ratio) + 1;
     SetLength(Result, OutFrames * FMixCh);
@@ -356,17 +293,17 @@ begin
           else if IsEqualGUID(pExt.SubFormat, KSDATAFORMAT_SUBTYPE_PCM) then
             FMixFloat := False
           else
-            raise Exception.Create('Formato de mezcla no soportado (SubFormat desconocido)');
+            raise Exception.Create('Unsupported mix format (unknown SubFormat)');
         end
         else
-          raise Exception.CreateFmt('Formato de mezcla no soportado (tag=%d)', [pwfx.wFormatTag]);
+          raise Exception.CreateFmt('Unsupported mix format (tag=%d)', [pwfx.wFormatTag]);
 
         if FMixFloat and (FMixBits <> 32) then
-          raise Exception.CreateFmt('Formato float de %d bits no soportado', [FMixBits]);
+          raise Exception.CreateFmt('Unsupported float format of %d bits', [FMixBits]);
         if (not FMixFloat) and (FMixBits <> 16) and (FMixBits <> 32) then
-          raise Exception.CreateFmt('Formato PCM entero de %d bits no soportado', [FMixBits]);
+          raise Exception.CreateFmt('Unsupported integer PCM format of %d bits', [FMixBits]);
 
-        // Buffer de 300 ms
+        // 300 ms buffer
         RaiseIfFailed(AudioClient.Initialize(AUDCLNT_SHAREMODE_SHARED, 0, 300 * REFTIMES_PER_MS, 0, pwfx, nil),
           'IAudioClient.Initialize');
       finally
@@ -383,7 +320,7 @@ begin
         begin
           if FOwner.FQueue.PopItem(Item) <> TWaitResult.wrSignaled then
           begin
-            // Cola vacia: si estabamos reproduciendo, esperar a que drene
+            // Queue empty: if we were playing, wait for it to drain
             if WasPlaying then
             begin
               if (AudioClient.GetCurrentPadding(Padding) = S_OK) and (Padding = 0) then
@@ -408,7 +345,7 @@ begin
             FOwner.HandleStateChange(True);
           end;
 
-          // Escribir el item completo en el buffer WASAPI por tramos
+          // Write the entire item into the WASAPI buffer in chunks
           TotalFrames := Length(Samples) div FMixCh;
           Pos := 0;
           while (Pos < TotalFrames) and not Terminated do
@@ -436,7 +373,7 @@ begin
                   V := -32768;
                 PSmallInt(pData + I * 2)^ := SmallInt(V);
               end
-              else // PCM entero de 32 bits
+              else // 32-bit integer PCM
               begin
                 if S > 1.0 then
                   S := 1.0
@@ -460,7 +397,7 @@ begin
           FOwner.HandleThreadError(E.Message);
     end;
   finally
-    // Liberar interfaces COM ANTES de CoUninitialize
+    // Release COM interfaces BEFORE CoUninitialize
     RenderClient := nil;
     AudioClient := nil;
     Device := nil;
@@ -481,7 +418,7 @@ begin
   FActive := False;
   FDeviceId := '';
   FIsPlaying := False;
-  // Profundidad 256 frases; PopItem con timeout de 100 ms para poder terminar
+  // Depth of 256 phrases; PopItem with 100 ms timeout to allow termination
   FQueue := TThreadedQueue<TAiAudioPlayItem>.Create(256, INFINITE, 100);
 end;
 
@@ -530,7 +467,7 @@ begin
   FPlayThread := TAiWasapiPlayThread.Create(Self);
 {$ELSE}
   FActive := False;
-  DoError('TAiAudioPlayer solo esta disponible en Windows (WASAPI).');
+  DoError('TAiAudioPlayer is only available on Windows (WASAPI).');
 {$ENDIF}
 end;
 
@@ -539,11 +476,11 @@ begin
   if Assigned(FPlayThread) then
   begin
     FPlayThread.Terminate;
-    FQueue.DoShutDown; // desbloquear PopItem
+    FQueue.DoShutDown; // unblock PopItem
     FPlayThread.WaitFor;
     FreeAndNil(FPlayThread);
 {$IFDEF MSWINDOWS}
-    // Restaurar la cola tras el shutdown para poder reactivar el componente
+    // Restore the queue after shutdown to allow reactivating the component
     FQueue.Free;
     FQueue := TThreadedQueue<TAiAudioPlayItem>.Create(256, INFINITE, 100);
 {$ENDIF}
@@ -569,21 +506,21 @@ procedure TAiAudioPlayer.ClearQueue;
 var
   Item: TAiAudioPlayItem;
 begin
-  // El QueueSize > 0 es lo que hace que esto termine. Con la cola ya apagada
-  // (DoShutDown) y vacía, PopItem devuelve wrSignaled sin esperar y este bucle
-  // giraría para siempre quemando un núcleo — el mismo fallo que tumbó a
-  // TMCPClientSSE el 2026-09-18. Aquí importa porque StopPlayback recrea la
-  // cola sólo bajo {$IFDEF MSWINDOWS}: fuera de Windows queda apagada y
-  // cualquier ClearQueue posterior entraría en ese bucle.
-  // De paso evita el pinchazo de 100 ms del timeout cuando la cola ya está vacía.
+  // The QueueSize > 0 is what makes this terminate. With the queue already shut down
+  // (DoShutDown) and empty, PopItem returns wrSignaled instantly and this loop
+  // would spin forever burning a core — the same bug that brought down
+  // TMCPClientSSE on 2026-09-18. It matters here because StopPlayback recreates the
+  // queue only under {$IFDEF MSWINDOWS}: outside Windows the queue remains shut down
+  // and any subsequent ClearQueue would enter that loop.
+  // This also avoids the 100 ms spike of the timeout when the queue is already empty.
   while (FQueue.QueueSize > 0) and (FQueue.PopItem(Item) = TWaitResult.wrSignaled) do
     ;
 end;
 
 class function TAiAudioPlayer.GetPlaybackDevices: TArray<TAiAudioDeviceInfo>;
 begin
-  // Los dispositivos de salida son los mismos que enumera el capturador
-  // para loopback (endpoints de render).
+  // Output devices are the same ones enumerated by the capture unit
+  // for loopback (render endpoints).
   Result := TAiAudioCapture.GetAudioDevices(asLoopback);
 end;
 
@@ -605,7 +542,7 @@ begin
       if csDestroying in ComponentState then
         Exit;
       FActive := False;
-      StopPlayback; // el hilo ya termino: WaitFor retorna de inmediato
+      StopPlayback; // the thread has already finished: WaitFor returns immediately
       if Assigned(FOnError) then
         FOnError(Self, aMessage);
     end);

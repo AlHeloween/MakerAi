@@ -1,35 +1,4 @@
-﻿// MakerAI Suite — Driver xAI Grok Voice (speech-to-speech full-duplex)
-// wss://api.x.ai/v1/realtime  (RFC 6455 + protocolo compatible OpenAI Realtime)
-//
-// Conversacion de voz completa en un solo WebSocket:
-//   1. STT — el servidor transcribe el audio del usuario
-//   2. LLM — genera la respuesta del asistente (razonamiento opcional)
-//   3. TTS — devuelve la respuesta como audio PCM16 a 24 kHz
-//
-// Modelos: grok-voice-think-fast-2.0 (default), grok-voice-think-fast-1.0,
-//          grok-voice-latest (alias movil — preferir version pineada)
-// Audio:   PCM16, 24 kHz, mono, little-endian (base64 sobre JSON)
-// ApiKey:  convencion @XAI_API_KEY
-//
-// Diferencias vs OpenAI Realtime que maneja este driver:
-//   - La transcripcion del usuario llega ACUMULADA en
-//     conversation.item.input_audio_transcription.updated (no .delta);
-//     el driver calcula el delta por diferencia.
-//   - No se envia Sec-WebSocket-Protocol: Grok reserva el subprotocolo
-//     para tokens efimeros (xai-client-secret.*).
-//   - language_hint requiere variante regional para es/pt (es-MX, pt-BR).
-//   - Sin semantic_vad ni noise_reduction; VAD default threshold 0.85.
-//
-// Function calling: asignar AiFunctions (TAiFunctions, funciones locales +
-// MCP) o el evento OnCallToolFunction. El driver declara las tools en
-// session.update, ejecuta los calls en hilos propios y envia los outputs +
-// response.create automaticamente. Tools nativas de xAI (las ejecuta el
-// servidor): EnableWebSearch / EnableXSearch.
-//
-// Autor: Gustavo Enriquez
-// Email: gustavoeenriquez@gmail.com
-
-unit uMakerAi.Realtime.Grok;
+﻿unit uMakerAi.Realtime.Grok;
 
 interface
 
@@ -40,54 +9,54 @@ uses
   uMakerAi.Realtime, uMakerAi.Realtime.WebSocket, uMakerAi.WebSocket.Client;
 
 type
-  // Nivel de razonamiento del modelo mientras habla
+  // Model reasoning level while speaking
   TAiGrokReasoningEffort = (
-    greHigh, // razonamiento completo (default del servidor)
-    greNone  // sin razonamiento — menor latencia
+    greHigh, // full reasoning (server default)
+    greNone  // no reasoning — lower latency
   );
 
-  // Fallback de function calling cuando AiFunctions no maneja la funcion.
-  // El handler debe asignar ToolCall.Response con el resultado.
+  // Fallback for function calling when AiFunctions does not handle the function.
+  // The handler must assign ToolCall.Response with the result.
   TAiGrokToolCallEvent = procedure(Sender: TObject;
     ToolCall: TAiToolsFunction) of object;
 
   TAiGrokRealtimeChat = class(TAiRealtimeVoiceBase)
   private
     FWebSocket:         TAiRealtimeWSClient;
-    FConnectThread:     TThread; // hilo de conexion — esperado antes de liberar FWebSocket
+    FConnectThread:     TThread; // connection thread — waits before freeing FWebSocket
     FSessionConfigured: Boolean;
-    // Propiedades especificas del driver Grok
+    // Grok driver specific properties
     FVoice:           string;
     FInstructions:    string;
     FReasoningEffort: TAiGrokReasoningEffort;
     FIdleTimeoutMs:   Integer;
-    FOutputSpeed:     Double;   // 0.7..1.5; 0 = default del servidor
-    FKeyterms:        TStrings; // sesgo de transcripcion (max 100 terminos)
-    FPronunciationReplace: TStrings; // Frase=ComoSePronuncia para el TTS
-    // Fase 3: resumption, transporte binario, tokens efimeros, file_search
+    FOutputSpeed:     Double;   // 0.7..1.5; 0 = server default
+    FKeyterms:        TStrings; // transcription bias (max 100 terms)
+    FPronunciationReplace: TStrings; // Phrase=Pronunciation for TTS
+    // Phase 3: resumption, binary transport, ephemeral tokens, file_search
     FEnableResumption: Boolean;
-    FConversationId:   string;  // asignado por el servidor (conversation.created)
-    FBinaryAudio:      Boolean; // PCM crudo en frames binarios (in + out)
-    FEphemeralToken:   string;  // auth client-side via subprotocolo WS
-    FFileSearchCollections: TStrings; // vector_store_ids para file_search
+    FConversationId:   string;  // assigned by server (conversation.created)
+    FBinaryAudio:      Boolean; // raw PCM in binary WS frames (in + out)
+    FEphemeralToken:   string;  // auth client-side via WS subprotocol
+    FFileSearchCollections: TStrings; // vector_store_ids for file_search
     FFileSearchMaxResults:  Integer;
-    FCustomToolsJson:  TStrings; // tools extra en JSON crudo (mcp remoto, etc.)
+    FCustomToolsJson:  TStrings; // extra tools in raw JSON (remote MCP, etc.)
     // Function calling / tools
-    FAiFunctions:        TAiFunctions; // referencia externa (FreeNotification)
+    FAiFunctions:        TAiFunctions; // external reference (FreeNotification)
     FOnCallToolFunction: TAiGrokToolCallEvent;
     FEnableWebSearch:    Boolean;
     FEnableXSearch:      Boolean;
-    FPendingToolCalls:   Integer; // tool calls en ejecucion (TInterlocked)
-    FHadToolCalls:       Boolean; // el response actual contiene function calls
-    FToolsDone:          Boolean; // llego response.done del response con tools
-    FContinuationSent:   Integer; // guard 0/1 para un unico response.create
-    // Estado para convertir transcripcion acumulada -> deltas
+    FPendingToolCalls:   Integer; // tool calls in progress (TInterlocked)
+    FHadToolCalls:       Boolean; // current response contains function calls
+    FToolsDone:          Boolean; // response.done arrived for the response with tools
+    FContinuationSent:   Integer; // guard 0/1 for a single response.create
+    // State to convert accumulated transcription -> deltas
     FLastItemId:     string;
     FLastTranscript: string;
-    // Acumulador del texto del asistente en el turno actual
+    // Accumulator for assistant text in current turn
     FAssistantText:  string;
-    // Texto hablado antes de un tool call — se conserva para que el
-    // OnAssistantText final incluya el turno completo (pre + post tools)
+    // Text spoken before a tool call — preserved so that final OnAssistantText
+    // includes the full turn (pre + post tools)
     FCarryAssistantText: string;
     procedure OnWSFrame(Sender: TObject; Opcode: TAiRealtimeWSOpcode;
       const Data: TBytes; IsFinal: Boolean);
@@ -121,78 +90,78 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
-    // Despacha el envio al hilo principal: el callback de WaveIn no puede
-    // llamar a SChannel/sockets directamente (misma razon que el driver MakerAI)
+    // Dispatches sending to main thread: WaveIn callback cannot call
+    // SChannel/sockets directly (same reason as MakerAI driver)
     procedure SendAudioChunk(const PCM16Data: TBytes); override;
-    // Solicita explicitamente una respuesta del modelo (response.create).
-    // Necesario en VADMode = rvmManual despues de CommitAudio; con server_vad
-    // el servidor la dispara solo al detectar fin de turno.
+    // Explicitly requests a response from the model (response.create).
+    // Needed in VADMode = rvmManual after CommitAudio; with server_vad
+    // the server triggers it automatically upon detecting end of turn.
     procedure CreateResponse;
-    // Frase TTS forzada sin pasar por el modelo (avisos IVR, disclosures).
-    // AInterruptible=False descarta el audio del usuario hasta terminar.
+    // Forced TTS phrase without going through the model (IVR announcements, disclosures).
+    // AInterruptible=False discards user audio until finished.
     procedure ForceMessage(const AText: string; AInterruptible: Boolean = True);
-    // Mintea un token efimero via POST /v1/realtime/client_secrets usando la
-    // API key (acepta la convencion @VAR_NAME). Pensado para backends que
-    // entregan el token a clientes moviles/browser; asignarlo en
-    // EphemeralToken. Lanza excepcion si el servidor rechaza la peticion.
+    // Mints an ephemeral token via POST /v1/realtime/client_secrets using the
+    // API key (accepts @VAR_NAME convention). Intended for backends that
+    // deliver the token to mobile/browser clients; assign it in
+    // EphemeralToken. Raises exception if server rejects request.
     class function MintEphemeralToken(const AApiKey: string;
       AExpiresSeconds: Integer = 300): string;
     class function GetDriverName:   string; override;
     class function GetDefaultModel: string; override;
-    // Id de conversacion asignado por el servidor (conversation.created).
-    // Persistirlo y reasignarlo antes de Connect (con EnableResumption=True)
-    // reanuda la conversacion con replay de turnos (expira a los 30 min).
+    // Conversation id assigned by server (conversation.created).
+    // Persist and reassign before Connect (with EnableResumption=True)
+    // to resume conversation with turn replay (expires after 30 min).
     property ConversationId: string read FConversationId write FConversationId;
   published
-    // Voz TTS: eva, ara, rex, sal, leo... o voice_id de Custom Voices.
-    // Vacio = default del servidor
+    // TTS voice: eva, ara, rex, sal, leo... or voice_id from Custom Voices.
+    // Empty = server default
     property Voice: string read FVoice write FVoice;
-    // System prompt de la sesion
+    // System prompt for the session
     property Instructions: string read FInstructions write FInstructions;
-    // Razonamiento mientras habla (greNone reduce latencia)
+    // Reasoning while speaking (greNone reduces latency)
     property ReasoningEffort: TAiGrokReasoningEffort
       read FReasoningEffort write FReasoningEffort default greHigh;
-    // Si el usuario no habla en este lapso el modelo re-engancha (0 = omitir)
+    // If user does not speak within this period, the model re-engages (0 = omit)
     property IdleTimeoutMs: Integer read FIdleTimeoutMs write FIdleTimeoutMs
       default 0;
-    // Velocidad de reproduccion del TTS (0.7..1.5; 0 = default del servidor)
+    // TTS playback speed (0.7..1.5; 0 = server default)
     property OutputSpeed: Double read FOutputSpeed write FOutputSpeed;
-    // Componente de funciones (locales + MCP); se declaran en session.update
-    // y el driver ejecuta los tool calls automaticamente
+    // Function component (local + MCP); declared in session.update
+    // and the driver executes tool calls automatically
     property AiFunctions: TAiFunctions read FAiFunctions write SetAiFunctions;
-    // Fallback cuando AiFunctions no maneja la funcion (o no esta asignado)
+    // Fallback when AiFunctions does not handle the function (or not assigned)
     property OnCallToolFunction: TAiGrokToolCallEvent
       read FOnCallToolFunction write FOnCallToolFunction;
-    // Tools nativas de xAI (las ejecuta el servidor)
+    // Native xAI tools (executed by server)
     property EnableWebSearch: Boolean read FEnableWebSearch
       write FEnableWebSearch default False;
     property EnableXSearch: Boolean read FEnableXSearch
       write FEnableXSearch default False;
-    // Terminos de dominio para sesgar la transcripcion (max 100)
+    // Domain terms to bias transcription (max 100)
     property Keyterms: TStrings read FKeyterms write SetKeyterms;
-    // Correcciones de pronunciacion TTS, formato Frase=ComoSePronuncia
-    // (match case-insensitive por palabra completa)
+    // TTS pronunciation corrections, format Phrase=Pronunciation
+    // (case-insensitive match by whole word)
     property PronunciationReplace: TStrings read FPronunciationReplace
       write SetPronunciationReplace;
-    // Reanudacion de sesion: el servidor cachea los turnos y los reproduce
-    // al reconectar con el mismo ConversationId (ambas sesiones deben
-    // habilitarla; el historial expira a los 30 min de inactividad)
+    // Session resumption: server caches turns and replays them
+    // upon reconnection with same ConversationId (both sessions must
+    // enable it; history expires after 30 min of inactivity)
     property EnableResumption: Boolean read FEnableResumption
       write FEnableResumption default False;
-    // Audio PCM crudo en frames binarios WebSocket (entrada y salida):
-    // ~33% menos ancho de banda que base64. Los eventos JSON siguen en texto
+    // Raw PCM audio in binary WebSocket frames (input and output):
+    // ~33% less bandwidth than base64. JSON events remain as text.
     property BinaryAudio: Boolean read FBinaryAudio
       write FBinaryAudio default False;
-    // Token efimero (con o sin prefijo xai-client-secret.). Si esta asignado
-    // se autentica via subprotocolo WebSocket y NO se envia la ApiKey —
-    // pensado para clientes moviles/browser. Ver MintEphemeralToken
+    // Ephemeral token (with or without xai-client-secret. prefix). If assigned,
+    // authenticates via WebSocket subprotocol and does NOT send the ApiKey —
+    // intended for mobile/browser clients. See MintEphemeralToken
     property EphemeralToken: string read FEphemeralToken write FEphemeralToken;
-    // Colecciones (vector_store_ids) para la tool nativa file_search
+    // Collections (vector_store_ids) for the native file_search tool
     property FileSearchCollections: TStrings read FFileSearchCollections
       write SetFileSearchCollections;
     property FileSearchMaxResults: Integer read FFileSearchMaxResults
       write FFileSearchMaxResults default 0;
-    // Tools adicionales en JSON crudo (objeto o array de objetos), p.ej.
+    // Additional tools in raw JSON (single object or array of objects), e.g.
     // {"type":"mcp","server_url":"https://...","server_label":"mis-tools"}
     property CustomToolsJson: TStrings read FCustomToolsJson
       write SetCustomToolsJson;
@@ -204,7 +173,7 @@ implementation
 
 const
   CGROKREALTIME_WSS = 'wss://api.x.ai/v1/realtime';
-  CGROKREALTIME_LOG = ''; // ruta de log diagnostico; '' para deshabilitar
+  CGROKREALTIME_LOG = ''; // diagnostic log path; '' to disable
 
 procedure GkLog(const AMsg: string);
 begin
@@ -235,7 +204,7 @@ begin
   FFileSearchCollections := TStringList.Create;
   FCustomToolsJson       := TStringList.Create;
   FFileSearchMaxResults  := 0;
-  // El default de VAD de Grok es 0.85; la base inicializa 0.5 (OpenAI)
+  // Grok default VAD is 0.85; base initializes 0.5 (OpenAI)
   VADThreshold       := 0.85;
   FWebSocket         := TAiRealtimeWSClient.Create;
   FWebSocket.OnFrame        := OnWSFrame;
@@ -247,7 +216,7 @@ end;
 destructor TAiGrokRealtimeChat.Destroy;
 begin
   if IsConnected then InternalDisconnect;
-  // Abortar conexion pendiente aunque todavia no este conectado
+  // Abort pending connection even if not yet connected
   if Assigned(FConnectThread) then
   begin
     FWebSocket.Disconnect;
@@ -325,16 +294,16 @@ begin
         'MintEphemeralToken: HTTP %d — %s', [Resp.StatusCode, Content]);
     JObj := TJSONObject.ParseJSONValue(Content) as TJSONObject;
     if not Assigned(JObj) then
-      raise Exception.Create('MintEphemeralToken: respuesta no es JSON valido');
+      raise Exception.Create('MintEphemeralToken: response is not valid JSON');
     try
-      // El esquema de la respuesta no esta documentado: buscar el token en
-      // las ubicaciones tipicas de APIs OpenAI-compatibles
+      // Response schema is not documented: look for token in
+      // typical locations in OpenAI-compatible APIs
       if not JObj.TryGetValue<string>('client_secret.value', Result) then
         if not JObj.TryGetValue<string>('value', Result) then
           if not JObj.TryGetValue<string>('client_secret', Result) then
             if not JObj.TryGetValue<string>('token', Result) then
               raise Exception.Create(
-                'MintEphemeralToken: no se encontro el token en la respuesta: ' +
+                'MintEphemeralToken: token not found in response: ' +
                 Copy(Content, 1, 300));
     finally
       JObj.Free;
@@ -352,13 +321,13 @@ end;
 
 class function TAiGrokRealtimeChat.GetDefaultModel: string;
 begin
-  // Version pineada para comportamiento estable entre releases
+  // Pinned version for stable behavior across releases
   Result := 'grok-voice-think-fast-2.0';
 end;
 
 function TAiGrokRealtimeChat.GetTargetSampleRate: Integer;
 begin
-  Result := 24000; // audio/pcm default de Grok Voice
+  Result := 24000; // audio/pcm default for Grok Voice
 end;
 
 function TAiGrokRealtimeChat.BuildWssUrl: string;
@@ -368,13 +337,13 @@ begin
   M := Model;
   if M = '' then M := GetDefaultModel;
   Result := CGROKREALTIME_WSS + '?model=' + M;
-  // Reanudar una conversacion previa (replay de turnos cacheados)
+  // Resume a previous conversation (replay of cached turns)
   if FEnableResumption and (FConversationId <> '') then
     Result := Result + '&conversation_id=' + FConversationId;
 end;
 
-// Grok exige variante regional BCP-47 para espanol y portugues
-// (es-MX, no 'es'; pt-BR, no 'pt'). Se corrigen los dos casos documentados.
+// Grok requires BCP-47 regional variant for Spanish and Portuguese
+// (es-MX, not 'es'; pt-BR, not 'pt'). Both documented cases are corrected.
 function TAiGrokRealtimeChat.LanguageHint: string;
 begin
   Result := Language;
@@ -389,7 +358,7 @@ begin
     Result := nil;
     Exit;
   end;
-  // Grok solo soporta server_vad; rvmSemanticVad se mapea a server_vad
+  // Grok only supports server_vad; rvmSemanticVad maps to server_vad
   Result := TJSONObject.Create;
   Result.AddPair('type', 'server_vad');
   Result.AddPair('threshold',           TJSONNumber.Create(VADThreshold));
@@ -400,8 +369,8 @@ begin
 end;
 
 procedure TAiGrokRealtimeChat.SendSessionUpdate;
-// Esquema Grok: voice/instructions/turn_detection/reasoning al nivel de
-// session; formatos y transcripcion anidados bajo session.audio.input/output.
+// Grok schema: voice/instructions/turn_detection/reasoning at session level;
+// formats and transcription nested under session.audio.input/output.
 var
   JMsg, JSession, JAudio, JInput, JOutput, JFormat, JOutFormat: TJSONObject;
   JTranscription, JVAD, JReasoning, JReplace: TJSONObject;
@@ -428,7 +397,7 @@ begin
   else
     JSession.AddPair('turn_detection', TJSONNull.Create);
 
-  // Razonamiento mientras habla
+  // Reasoning while speaking
   JReasoning := TJSONObject.Create;
   if FReasoningEffort = greNone then
     JReasoning.AddPair('effort', 'none')
@@ -436,12 +405,12 @@ begin
     JReasoning.AddPair('effort', 'high');
   JSession.AddPair('reasoning', JReasoning);
 
-  // Tools: funciones locales/MCP (AiFunctions) + tools nativas de xAI
+  // Tools: local/MCP functions (AiFunctions) + native xAI tools
   JTools := BuildToolsArray;
   if Assigned(JTools) then
     JSession.AddPair('tools', JTools);
 
-  // Correcciones de pronunciacion del TTS (Frase=ComoSePronuncia)
+  // TTS pronunciation corrections (Phrase=Pronunciation)
   if FPronunciationReplace.Count > 0 then
   begin
     JReplace := TJSONObject.Create;
@@ -452,15 +421,15 @@ begin
     JSession.AddPair('replace', JReplace);
   end;
 
-  // Reanudacion de sesion (debe habilitarse tambien al reconectar)
+  // Session resumption (must also be enabled upon reconnection)
   if FEnableResumption then
   begin
-    JReplace := TJSONObject.Create; // reutiliza la variable local
+    JReplace := TJSONObject.Create; // reuse local variable
     JReplace.AddPair('enabled', TJSONBool.Create(True));
     JSession.AddPair('resumption', JReplace);
   end;
 
-  // Formato de entrada: PCM16 a 24 kHz
+  // Input format: PCM16 at 24 kHz
   JFormat := TJSONObject.Create;
   JFormat.AddPair('type', 'audio/pcm');
   JFormat.AddPair('rate', TJSONNumber.Create(24000));
@@ -468,7 +437,7 @@ begin
   if FBinaryAudio then
     JInput.AddPair('transport', 'binary');
 
-  // Sesgo de transcripcion: idioma y terminos de dominio (opcionales)
+  // Transcription bias: language and domain terms (optional)
   if (Language <> '') or (FKeyterms.Count > 0) then
   begin
     JTranscription := TJSONObject.Create;
@@ -484,14 +453,14 @@ begin
     JInput.AddPair('transcription', JTranscription);
   end;
 
-  // Formato de salida: PCM16 a 24 kHz
+  // Output format: PCM16 at 24 kHz
   JOutFormat := TJSONObject.Create;
   JOutFormat.AddPair('type', 'audio/pcm');
   JOutFormat.AddPair('rate', TJSONNumber.Create(24000));
   JOutput.AddPair('format', JOutFormat);
   if FBinaryAudio then
     JOutput.AddPair('transport', 'binary');
-  // Velocidad de reproduccion (solo si el usuario la configuro en rango valido)
+  // Playback speed (only if user configured within valid range)
   if (FOutputSpeed >= 0.7) and (FOutputSpeed <= 1.5) then
     JOutput.AddPair('speed', TJSONNumber.Create(FOutputSpeed));
 
@@ -506,9 +475,9 @@ begin
   end;
 end;
 
-// Transcripcion del usuario: Grok envia el texto ACUMULADO del item en
-// cada evento .updated. Se calcula el delta contra lo ya recibido para
-// mantener la semantica de OnTranscriptDelta del resto de drivers.
+// User transcription: Grok sends the item's ACCUMULATED text in each
+// .updated event. The delta is computed against what was already received
+// to maintain the OnTranscriptDelta semantics of other drivers.
 procedure TAiGrokRealtimeChat.HandleTranscriptionUpdated(const JObj: TJSONObject);
 var
   ItemId, Transcript, Delta: string;
@@ -516,13 +485,13 @@ begin
   Transcript := '';
   ItemId     := '';
   if not JObj.TryGetValue<string>('transcript', Transcript) then
-    JObj.TryGetValue<string>('delta', Transcript); // tolerancia al esquema
+    JObj.TryGetValue<string>('delta', Transcript); // schema tolerance
   JObj.TryGetValue<string>('item_id', ItemId);
   if Transcript = '' then Exit;
 
   if ItemId <> FLastItemId then
   begin
-    // Nuevo item de audio: reiniciar acumulado
+    // New audio item: reset accumulator
     FLastItemId     := ItemId;
     FLastTranscript := '';
   end;
@@ -530,7 +499,7 @@ begin
   if Transcript.StartsWith(FLastTranscript) then
     Delta := Copy(Transcript, Length(FLastTranscript) + 1, MaxInt)
   else
-    Delta := Transcript; // el servidor reescribio el texto: emitir completo
+    Delta := Transcript; // server rewrote text: emit full
 
   FLastTranscript := Transcript;
   if Delta <> '' then
@@ -554,14 +523,14 @@ begin
 
   if EventType = 'session.created' then
   begin
-    // El servidor confirmo la sesion — enviamos nuestra configuracion
+    // Server confirmed session — send our configuration
     FSessionConfigured := False;
     SendSessionUpdate;
   end
 
   else if EventType = 'conversation.created' then
   begin
-    // Guardar el id para reanudacion (?conversation_id= al reconectar)
+    // Save id for resumption (?conversation_id= upon reconnection)
     JObj.TryGetValue<string>('conversation.id', FConversationId);
     GkLog('CONVERSATION_ID=' + FConversationId);
   end
@@ -569,10 +538,10 @@ begin
   else if (EventType = 'conversation.item.created') or
           (EventType = 'conversation.item.added') then
   begin
-    // Items de conversacion. Al reanudar con conversation_id, los turnos
-    // cacheados (user, assistant, tool calls y outputs) llegan replicados
-    // aqui — verificado: llegan como .added aunque la doc dice .created.
-    // El contexto se restaura en el servidor; el cliente solo lo registra
+    // Conversation items. When resuming with conversation_id, cached turns
+    // (user, assistant, tool calls and outputs) arrive replicated here —
+    // verified: they arrive as .added although docs say .created.
+    // Context is restored on the server; client only records it.
     GkLog('CONV_ITEM ' + EventType);
   end
 
@@ -605,9 +574,9 @@ begin
 
   else if EventType = 'conversation.item.input_audio_transcription.completed' then
   begin
-    // Grok emite .completed tambien para segmentos parciales: el campo
-    // status distingue 'in_progress' (parcial) de 'completed' (final).
-    // Solo el final dispara OnTranscriptCompleted.
+    // Grok also emits .completed for partial segments: the status field
+    // distinguishes 'in_progress' (partial) from 'completed' (final).
+    // Only final triggers OnTranscriptCompleted.
     Status := '';
     JObj.TryGetValue<string>('status', Status);
     if SameText(Status, 'in_progress') then
@@ -618,7 +587,7 @@ begin
       ItemId     := '';
       JObj.TryGetValue<string>('transcript', Transcript);
       JObj.TryGetValue<string>('item_id', ItemId);
-      // Reiniciar el acumulado del item cerrado
+      // Reset accumulator for the closed item
       FLastItemId     := '';
       FLastTranscript := '';
       DoTranscriptCompleted(Transcript, ItemId);
@@ -627,8 +596,8 @@ begin
 
   else if EventType = 'response.created' then
   begin
-    // FCarryAssistantText (texto pre-tools) se conserva; FAssistantText
-    // acumula solo el response actual
+    // FCarryAssistantText (pre-tools text) is preserved; FAssistantText
+    // accumulates only the current response
     FAssistantText     := '';
     FHadToolCalls      := False;
     FToolsDone         := False;
@@ -639,8 +608,8 @@ begin
   else if EventType = 'response.function_call_arguments.done' then
     HandleFunctionCall(JObj)
 
-  // Grok entrega el texto hablado en response.output_audio_transcript.*;
-  // response.text.delta se acepta tambien por compatibilidad OpenAI
+  // Grok delivers spoken text in response.output_audio_transcript.*;
+  // response.text.delta is also accepted for OpenAI compatibility
   else if (EventType = 'response.output_audio_transcript.delta') or
           (EventType = 'response.text.delta') then
   begin
@@ -655,7 +624,7 @@ begin
 
   else if EventType = 'response.output_audio_transcript.done' then
   begin
-    // Trae el transcript completo autoritativo del turno del asistente
+    // Carries the authoritative full transcript of the assistant turn
     Transcript := '';
     JObj.TryGetValue<string>('transcript', Transcript);
     if Transcript <> '' then
@@ -674,9 +643,9 @@ begin
   begin
     if FHadToolCalls then
     begin
-      // Turno intermedio de tool calls: la respuesta hablada llega en el
-      // siguiente response (tras enviar los outputs + response.create).
-      // Conservar el texto ya hablado para el OnAssistantText final.
+      // Intermediate turn of tool calls: the spoken response arrives in the
+      // next response (after sending outputs + response.create).
+      // Preserve already spoken text for final OnAssistantText.
       if FAssistantText <> '' then
         FCarryAssistantText := FCarryAssistantText + FAssistantText + ' ';
       FToolsDone := True;
@@ -684,7 +653,7 @@ begin
     end
     else
     begin
-      // Turno final: emitir el texto completo (pre-tools + este response)
+      // Final turn: emit full text (pre-tools + this response)
       if FCarryAssistantText + FAssistantText <> '' then
         DoAssistantText(FCarryAssistantText + FAssistantText);
       FAssistantText      := '';
@@ -695,7 +664,7 @@ begin
 
   else if EventType = 'error' then
   begin
-    ErrMsg  := 'Error desconocido';
+    ErrMsg  := 'Unknown error';
     ErrCode := '';
     JError  := nil;
     JObj.TryGetValue<TJSONObject>('error', JError);
@@ -708,12 +677,12 @@ begin
   end;
 end;
 
-{ Handlers del WebSocket }
+{ WebSocket handlers }
 
 procedure TAiGrokRealtimeChat.OnWSConnected(Sender: TObject);
 begin
   GkLog('WS_CONNECTED');
-  // session.update se enviara cuando llegue session.created
+  // session.update will be sent when session.created arrives
   DoConnected;
 end;
 
@@ -736,7 +705,7 @@ var
   JsonStr: string;
   JObj:    TJSONObject;
 begin
-  // Audio de salida en modo binario: el frame ES el PCM crudo del asistente
+  // Output audio in binary mode: the frame IS the raw PCM from assistant
   if Opcode = rwsoBinary then
   begin
     GkLog('FRAME binary len=' + IntToStr(Length(Data)));
@@ -758,17 +727,17 @@ begin
   end;
 end;
 
-{ Override de SendAudioChunk: encola el resampling + envio al hilo principal.
-  El VoiceMonitor llama a este metodo desde el callback de WaveIn (hilo del
-  sistema de audio de Windows), donde NO esta permitido llamar a funciones
-  de socket o SChannel. TThread.Queue mueve la operacion al hilo principal. }
+{ Override of SendAudioChunk: enqueues resampling + sending to main thread.
+  VoiceMonitor calls this method from the WaveIn callback (Windows audio system
+  thread), where calling socket or SChannel functions is NOT allowed.
+  TThread.Queue moves the operation to the main thread. }
 procedure TAiGrokRealtimeChat.SendAudioChunk(const PCM16Data: TBytes);
 var
   LData: TBytes;
 begin
   if not IsConnected then Exit;
   if Length(PCM16Data) = 0 then Exit;
-  LData := Copy(PCM16Data); // copia rapida antes de salir del callback
+  LData := Copy(PCM16Data); // quick copy before leaving callback
   TThread.Queue(nil, procedure
   var
     Resampled: TBytes;
@@ -784,7 +753,7 @@ begin
   end);
 end;
 
-{ Metodos abstractos implementados }
+{ Implemented abstract methods }
 
 procedure TAiGrokRealtimeChat.InternalConnect;
 var
@@ -792,8 +761,8 @@ var
 begin
   if FEphemeralToken <> '' then
   begin
-    // Auth client-side: el token efimero viaja como subprotocolo WebSocket
-    // y la API key NO se envia (puede ni existir en el cliente)
+    // Client-side auth: ephemeral token travels as WebSocket subprotocol
+    // and API key is NOT sent (may not even exist on client)
     Token := FEphemeralToken;
     if not Token.StartsWith('xai-client-secret.') then
       Token := 'xai-client-secret.' + Token;
@@ -802,8 +771,8 @@ begin
   end
   else
   begin
-    // Auth server-side con API key. NO enviar Sec-WebSocket-Protocol:
-    // Grok reserva el subprotocolo para los tokens efimeros
+    // Server-side auth with API key. Do NOT send Sec-WebSocket-Protocol:
+    // Grok reserves the subprotocol for ephemeral tokens
     FWebSocket.ExtraHeaders.Values['Authorization'] := 'Bearer ' + ResolvedApiKey;
     FWebSocket.ExtraHeaders.Values['Sec-WebSocket-Protocol'] := '';
   end;
@@ -811,7 +780,7 @@ begin
   GkLog('CONNECT url=' + URL);
   FConnectThread := TThread.CreateAnonymousThread(procedure begin
     if not FWebSocket.Connect(URL) then
-      DoError('No se pudo conectar al servidor WebSocket de xAI',
+      DoError('Could not connect to xAI WebSocket server',
               'connection_failed');
   end);
   FConnectThread.FreeOnTerminate := False;
@@ -837,7 +806,7 @@ var
   B64:  string;
 begin
   if Length(ResampledPCM16) = 0 then Exit;
-  // Modo binario: PCM crudo como frame binario, sin sobre JSON/base64
+  // Binary mode: raw PCM as binary frame, without JSON/base64 overhead
   if FBinaryAudio then
   begin
     FWebSocket.SendBinary(ResampledPCM16);
@@ -854,10 +823,10 @@ begin
   end;
 end;
 
-// Construye el array de tools para session.update:
-// tools nativas de xAI (booleans) + funciones locales/MCP de AiFunctions
-// en formato plano OpenAI Responses (el mismo que usa Grok).
-// Retorna nil si no hay ninguna tool que declarar.
+// Builds the tools array for session.update:
+// native xAI tools (booleans) + local/MCP functions from AiFunctions
+// in plain OpenAI Responses format (same as Grok uses).
+// Returns nil if there are no tools to declare.
 function TAiGrokRealtimeChat.BuildToolsArray: TJSONArray;
 var
   JTool:    TJSONObject;
@@ -881,7 +850,7 @@ begin
     Result.Add(JTool);
   end;
 
-  // file_search sobre colecciones de xAI (vector stores)
+  // file_search over xAI collections (vector stores)
   if FFileSearchCollections.Count > 0 then
   begin
     JTool := TJSONObject.Create;
@@ -912,7 +881,7 @@ begin
     end;
   end;
 
-  // Tools en JSON crudo (mcp remoto, formas nuevas del API, etc.)
+  // Tools in raw JSON (remote MCP, new API shapes, etc.)
   if Trim(FCustomToolsJson.Text) <> '' then
   begin
     JParsed := TJSONObject.ParseJSONValue(FCustomToolsJson.Text);
@@ -933,11 +902,11 @@ begin
     FreeAndNil(Result);
 end;
 
-// Ejecuta un tool call solicitado por el modelo. La ejecucion corre en un
-// hilo propio para no bloquear el reader thread del WebSocket (los handlers
-// del usuario pueden tardar). El envio de response.create se coordina con
-// response.done via TryContinueAfterTools: xAI exige que TODOS los outputs
-// esten enviados antes del response.create.
+// Executes a tool call requested by the model. Execution runs in its own
+// thread so as not to block the WebSocket reader thread (user handlers may
+// be slow). Sending response.create is coordinated with response.done via
+// TryContinueAfterTools: xAI requires ALL outputs to be sent before
+// response.create.
 procedure TAiGrokRealtimeChat.HandleFunctionCall(const JObj: TJSONObject);
 var
   FuncName, CallId, Args: string;
@@ -971,7 +940,7 @@ begin
             Handled := FAiFunctions.DoCallFunction(ToolCall);
           if (not Handled) and Assigned(FOnCallToolFunction) then
           begin
-            // El fallback corre sincronizado al hilo principal (puede tocar UI)
+            // Fallback runs synchronized to the main thread (may touch UI)
             TThread.Synchronize(nil, procedure begin
               FOnCallToolFunction(Self, ToolCall);
             end);
@@ -979,10 +948,10 @@ begin
           end;
           if not Handled then
             ToolCall.Response :=
-              'Error: no hay un manejador para la funcion ' + FuncName;
+              'Error: no handler for function ' + FuncName;
         except
           on E: Exception do
-            ToolCall.Response := 'Error ejecutando ' + FuncName + ': ' + E.Message;
+            ToolCall.Response := 'Error executing ' + FuncName + ': ' + E.Message;
         end;
         SendFunctionOutput(CallId, ToolCall.Response);
       finally
@@ -1011,10 +980,10 @@ begin
   end;
 end;
 
-// Envia el response.create de continuacion exactamente una vez, solo cuando
-// (a) ya llego el response.done del turno de tools y (b) no quedan tool calls
-// en ejecucion. Puede dispararse desde el reader thread (response.done) o
-// desde el hilo del ultimo tool call — el CompareExchange evita duplicados.
+// Sends response.create continuation exactly once, only when
+// (a) response.done of the tools turn already arrived and (b) no tool calls
+// are still running. Can be triggered from reader thread (response.done) or
+// from the last tool call thread — CompareExchange prevents duplicates.
 procedure TAiGrokRealtimeChat.TryContinueAfterTools;
 begin
   if not FToolsDone then Exit;

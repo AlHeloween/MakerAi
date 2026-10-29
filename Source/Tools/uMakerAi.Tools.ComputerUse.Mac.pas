@@ -1,26 +1,26 @@
 ﻿unit uMakerAi.Tools.ComputerUse.Mac;
 
 // =============================================================================
-//  Executor de Computer Use para macOS.
+//  Computer Use Executor for macOS.
 //
-//  - Input (mouse / teclado / scroll) vía Quartz Event Services (CGEvent*).
-//  - Captura de pantalla delegada en TScreenCapture (uMakerAi.Utils.ScreenCapture),
-//    que ya implementa la captura nativa de macOS (CGDisplayCreateImageForRect).
-//  - Cursor dibujado sobre el bitmap (CGEventGetLocation) como en el executor FMX.
+//  - Input (mouse / keyboard / scroll) via Quartz Event Services (CGEvent*).
+//  - Screen capture delegated to TScreenCapture (uMakerAi.Utils.ScreenCapture),
+//    which already implements native macOS capture (CGDisplayCreateImageForRect).
+//  - Cursor drawn on the bitmap (CGEventGetLocation) as in the FMX executor.
 //
-//  IMPORTANTE:
-//   * macOS está marcado como NO soportado oficialmente en uMakerAi.Version.inc
-//     (MAKERAI_SUPPORT_MACOS = False). Esta unidad compila solo bajo {$IFDEF MACOS};
-//     en Windows/Linux queda como una unidad vacía válida.
-//   * CGEventPost requiere que la app tenga permisos de Accesibilidad
-//     (System Settings > Privacy & Security > Accessibility). Sin ellos los
-//     eventos se crean pero el sistema los ignora.
-//   * NO probado en hardware macOS todavía — pendiente de validación runtime,
-//     igual que los transports OpenSSL/Android del módulo WebSocket.
+//  IMPORTANT:
+//   * macOS is marked as NOT officially supported in uMakerAi.Version.inc
+//     (MAKERAI_SUPPORT_MACOS = False). This unit compiles only under {$IFDEF MACOS};
+//     on Windows/Linux it remains a valid empty unit.
+//   * CGEventPost requires the app to have Accessibility permissions
+//     (System Settings > Privacy & Security > Accessibility). Without them the
+//     events are created but the system ignores them.
+//   * NOT tested on macOS hardware yet — pending runtime validation,
+//     same as the OpenSSL/Android transports of the WebSocket module.
 //
-//  La interfaz pública (Execute / CaptureScreen) es idéntica a TAiWindowsFMXExecutor
-//  para que el manejador OnExecuteAction / OnRequestScreenshot sea intercambiable
-//  por plataforma.
+//  The public interface (Execute / CaptureScreen) is identical to TAiWindowsFMXExecutor
+//  so that the OnExecuteAction / OnRequestScreenshot handler is interchangeable
+//  by platform.
 // =============================================================================
 
 interface
@@ -37,7 +37,7 @@ uses
 type
   TAiMacExecutor = class
   private
-    // --- Helpers de input (CGEvent) ---
+    // --- Input helpers (CGEvent) ---
     class procedure PostMouse(EvType, Btn: Integer; X, Y: Double; ClickState: Integer; Flags: CGEventFlags);
     class procedure MoveMouse(X, Y: Double);
     class procedure PostScroll(WheelV, WheelH: Integer; Flags: CGEventFlags);
@@ -62,9 +62,9 @@ implementation
 {$IFDEF MACOS}
 
 const
-  // --- Quartz Event Services (valores estables de la API; se castean al enum
-  //     correspondiente al invocar, para no depender de los identificadores
-  //     concretos que exponga la versión de Macapi.CoreGraphics instalada). ---
+  // --- Quartz Event Services (stable API values; they are cast to the
+  //     corresponding enum when called, to avoid depending on the specific
+  //     identifiers exposed by the installed version of Macapi.CoreGraphics). ---
 
   // CGEventTapLocation
   cHIDTap = 0; // kCGHIDEventTap
@@ -90,20 +90,20 @@ const
   // CGEventField
   cFieldClickState = 1; // kCGMouseEventClickState
 
-  // CGEventFlags (máscara de modificadores)
+  // CGEventFlags (modifier mask)
   cFlagShift   = CGEventFlags($00020000); // kCGEventFlagMaskShift
   cFlagControl = CGEventFlags($00040000); // kCGEventFlagMaskControl
   cFlagAlt     = CGEventFlags($00080000); // kCGEventFlagMaskAlternate
   cFlagCmd     = CGEventFlags($00100000); // kCGEventFlagMaskCommand
 
-  // Keycodes virtuales ANSI de macOS para modificadores
+  // macOS ANSI virtual keycodes for modifiers
   kVK_Command = 55;
   kVK_Shift   = 56;
   kVK_Option  = 58;
   kVK_Control = 59;
 
 // -----------------------------------------------------------------------------
-// Helpers de input
+// Input helpers
 // -----------------------------------------------------------------------------
 class procedure TAiMacExecutor.PostMouse(EvType, Btn: Integer; X, Y: Double; ClickState: Integer; Flags: CGEventFlags);
 var
@@ -133,7 +133,7 @@ begin
   P.X := X;
   P.Y := Y;
   CGWarpMouseCursorPosition(P);
-  // Un MouseMoved adicional ayuda a que las apps detecten el hover.
+  // An additional MouseMoved helps apps detect hover.
   PostMouse(cMouseMoved, cBtnLeft, X, Y, 0, 0);
 end;
 
@@ -240,14 +240,14 @@ begin
   IsModifier := False;
   K := LowerCase(Trim(KeyName));
 
-  // Modificadores (devuelven keycode real para hold_key)
+  // Modifiers (return real keycode for hold_key)
   if (K = 'shift') then begin IsModifier := True; Exit(kVK_Shift); end;
   if (K = 'ctrl') or (K = 'control') then begin IsModifier := True; Exit(kVK_Control); end;
   if (K = 'alt') or (K = 'option') then begin IsModifier := True; Exit(kVK_Option); end;
   if (K = 'cmd') or (K = 'command') or (K = 'win') or (K = 'meta') or (K = 'super') then
   begin IsModifier := True; Exit(kVK_Command); end;
 
-  // Teclas comunes (kVK_ANSI_*)
+  // Common keys (kVK_ANSI_*)
   if K = 'enter' then Exit(36)        // kVK_Return
   else if K = 'return' then Exit(36)
   else if K = 'tab' then Exit(48)
@@ -264,7 +264,7 @@ begin
   else if K = 'page_up' then Exit(116)
   else if K = 'page_down' then Exit(121);
 
-  // Función F1..F12
+  // Function keys F1..F12
   if (Length(K) >= 2) and (K[1] = 'f') then
   begin
     case StrToIntDef(Copy(K, 2, 2), 0) of
@@ -274,7 +274,7 @@ begin
     end;
   end;
 
-  // Letras a-z (mapa ANSI no secuencial)
+  // Letters a-z (non-sequential ANSI map)
   if (Length(K) = 1) and (K[1] >= 'a') and (K[1] <= 'z') then
   begin
     case K[1] of
@@ -287,7 +287,7 @@ begin
     end;
   end;
 
-  // Dígitos 0-9
+  // Digits 0-9
   if (Length(K) = 1) and (K[1] >= '0') and (K[1] <= '9') then
   begin
     case K[1] of
@@ -309,9 +309,8 @@ var
   MainKeys: TList<Word>;
   I: Integer;
 begin
-  // En macOS los atajos se expresan como flags de modificador sobre la tecla
-  // principal. Acumulamos los modificadores como flags y posteamos las teclas
-  // principales con esos flags.
+  // On macOS shortcuts are expressed as modifier flags on the main key.
+  // Accumulate modifiers as flags and post the main keys with those flags.
   Parts := Combo.Replace('-', '+').Split(['+']);
   Flags := 0;
   MainKeys := TList<Word>.Create;
@@ -327,10 +326,10 @@ begin
 
     if MainKeys.Count = 0 then
     begin
-      // Solo modificadores: pulsar/soltar el primero con su keycode.
+      // Only modifiers: press/release the first one with its keycode.
       if Flags <> 0 then
       begin
-        // No hay tecla principal; nada que disparar de forma fiable.
+        // No main key; nothing reliable to trigger.
         Exit;
       end;
     end;
@@ -354,8 +353,8 @@ var
   Keys: TList<Word>;
   I: Integer;
 begin
-  // Mantiene presionada(s) la(s) tecla(s) durante DurationSecs. Presiona todas
-  // (modificadores incluidos) por keycode, espera y suelta en orden inverso.
+  // Holds down the key(s) for DurationSecs. Presses all (modifiers included)
+  // by keycode, waits, and releases in reverse order.
   Parts := Combo.Replace('-', '+').Split(['+']);
   Keys := TList<Word>.Create;
   try
@@ -485,8 +484,8 @@ begin
 
       catType:
       begin
-        // Pre-click solo si hay posición (Gemini). Claude 'type' llega (0,0) y NO
-        // debe clicar: quitaría el foco del control donde hay que escribir.
+        // Pre-click only if there is a position (Gemini). Claude 'type' arrives at (0,0) and MUST
+        // NOT click: it would remove focus from the control where we need to type.
         if (Action.X <> 0) or (Action.Y <> 0) then
         begin
           MoveMouse(Action.X, Action.Y);
@@ -516,13 +515,13 @@ begin
       end;
 
       catZoom:
-        ; // Sin input físico: la región (CurrentAction.ZoomRect) se captura ampliada
+        ; // No physical input: the region (CurrentAction.ZoomRect) is captured zoomed
 
       catWait:
         Sleep(5000);
 
       catNavigate:
-        ; // En escritorio no hay acción física; el componente principal gestiona la URL
+        ; // On desktop there is no physical action; the main component handles the URL
     end;
   except
     on E: Exception do
@@ -534,7 +533,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// Captura de pantalla (delegada en uMakerAi.Utils.ScreenCapture)
+// Screen capture (delegated to uMakerAi.Utils.ScreenCapture)
 // -----------------------------------------------------------------------------
 class procedure TAiMacExecutor.DrawCursorOnBitmap(Bmp: FMX.Graphics.TBitmap; AreaLeft, AreaTop: Integer);
 var
@@ -573,14 +572,14 @@ begin
   if not Assigned(MediaFile) then
     MediaFile := TAiMediaFile.Create;
 
-  // Área por defecto: pantalla principal completa.
+  // Default area: full main screen.
   if TargetArea.IsEmpty then
   begin
     Sz := TScreenCapture.GetScreenSize;
     TargetArea := Rect(0, 0, Sz.X, Sz.Y);
   end;
 
-  // Captura nativa macOS (CGDisplayCreateImageForRect) vía TScreenCapture.
+  // Native macOS capture (CGDisplayCreateImageForRect) via TScreenCapture.
   Bmp := TScreenCapture.CaptureArea(TargetArea);
   if not Assigned(Bmp) then
     Exit;

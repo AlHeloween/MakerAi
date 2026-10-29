@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr�quez
+// Name: Gustavo Enr�quez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -141,7 +141,7 @@ type
     FMicVisible: Boolean;
     FSoundVisible: Boolean;
 
-    // Variables del SoundMonitor
+    // SoundMonitor variables
     FCurrentSoundLevel: Integer;
     FMaxLevelSeen: Integer; // Reset the maximum so the bar adjusts
     // FProgressBarLevel: TSoundLevel;
@@ -157,7 +157,7 @@ type
     FMnuClear: TMenuItem;
 
     procedure LoadImageResources; // New procedure to load images
-    procedure CreateInternalControls; // Nuevo to create la UI
+    procedure CreateInternalControls; // New to create the UI
     procedure Resize; Override;
     procedure Loaded; override;
 
@@ -258,14 +258,14 @@ constructor TChatInput.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  // --- 1. Inicializar propiedades y variables de estado ---
+  // --- 1. Initialize properties and state variables ---
   FImagesVisible := False;
   FValidExtensions := 'jpg,jpeg,png,bmp,pdf,mp3,wav,mp4,avi';
   FWakeWordDetectedInSession := False;
-  Width := 400; // Un ancho By default razonable
+  Width := 400; // A reasonable default width
   Height := 100; // MIN_FRAME_HEIGHT;; // An initial minimum height
 
-  // --- 2. Crear y cargar los ImageLists desde recursos ---
+  // --- 2. Create and load the ImageLists from resources ---
   FImageList1 := TImageList.Create(Self);
   FImageListVoice := TImageList.Create(Self);
 
@@ -283,9 +283,9 @@ begin
   FFont := TFont.Create;
   FFont.OnChanged := FontChanged;
 
-  // --- 3. Crear toda la interfaz de usuario interna ---
+  // --- 3. Create the entire internal user interface ---
 
-  // --- 4. Crear timers y objetos de l�gica ---
+  // --- 4. Create timers and logic objects ---
   FTimer := TTimer.Create(Self);
   FTimer.Enabled := False;
   FTimer.Interval := 1;
@@ -296,9 +296,9 @@ begin
   FAnimationTimer.OnTimer := AnimationTimerTimer;
   FAnimationTimer.Enabled := True; // Inicia deshabilitado si no Is used
 
-  // --- 5. L�GICA CLAVE: Crear objetos que no deben ser "streameados" ---
-  // El PopupMenu y sus items se crean aqu� solo si el componente no est�
-  // siendo cargado desde un DFM. Esto evita conflictos con el streaming.
+  // --- 5. KEY LOGIC: Create objects that must not be "streamed" ---
+  // The PopupMenu and its items are created here only if the component is not
+  // being loaded from a DFM. This avoids conflicts with streaming.
   FMenu := Nil;
   InitPopupMenu;
 
@@ -333,41 +333,41 @@ begin
   if TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService, IInterface(ClipboardService)) then
   begin
     try
-      // Verificar si el servicio de clipboard est� disponible y asignado
+      // Check whether the clipboard service is available and assigned
       if Assigned(ClipboardService) then
       begin
         ClipboardValue := ClipboardService.GetClipboard;
 
-        // Verificar si hay contenido v�lido en el clipboard
+        // Check whether there is valid content in the clipboard
         if not ClipboardValue.IsEmpty then
         begin
           case ClipboardValue.Kind of
             tkString, tkWString, tkUString:
               begin
-                // Hay texto en el clipboard
+                // There is text in the clipboard
                 HasContent := ClipboardValue.AsString.Trim <> '';
               end;
             tkClass:
               begin
-                // Hay un objeto en el clipboard (posiblemente una imagen)
+                // There is an object in the clipboard (possibly an image)
                 if (ClipboardValue.AsObject <> nil) and (ClipboardValue.AsObject is TBitMapSurface) then
                   HasContent := True;
               end;
             tkVariant:
               begin
-                // Contenido variant (puede ser imagen u otros tipos)
+                // Variant content (may be an image or other types)
                 HasContent := not VarIsEmpty(ClipboardValue.AsVariant);
               end;
           end;
         end;
       end;
     except
-      // En caso de error al acceder al clipboard
+      // In case of an error accessing the clipboard
       HasContent := False;
     end;
   end;
 
-  // Habilitar o deshabilitar la acci�n seg�n si hay contenido
+  // Enable or disable the action depending on whether there is content
   FMnuPaste.Enabled := HasContent;
 end;
 
@@ -393,32 +393,32 @@ begin
     Exit;
 
   try
-    // Generar nombre si no se proporciona
+    // Generate a name if none is provided
     if ItemName = '' then
       FinalName := 'Item_' + IntToStr(ImageList.Source.Count)
     else
       FinalName := ItemName;
 
-    // Agregar la imagen al Source del ImageList
+    // Add the image to the ImageList Source
     SourceItem := TSourceItem(ImageList.Source.Add);
     SourceItem.MultiResBitmap.Add;
     SourceItem.MultiResBitmap.Items[0].BitMap.Assign(ABitmap);
     SourceItem.Name := FinalName;
 
-    // Agregar un destination item que mapee a este source
+    // Add a destination item that maps to this source
     DestinationItem := TDestinationItem(ImageList.Destination.Add);
     DestinationItem.Layers.Add;
     DestinationItem.Layers[0].SourceRect.Rect := RectF(0, 0, ABitmap.Width, ABitmap.Height);
     DestinationItem.Layers[0].Name := FinalName;
     // DestinationItem.Name := FinalName + '_Dest';
 
-    // Retornar el �ndice del item agregado
+    // Return the index of the added item
     Result := ImageList.Source.Count - 1;
 
   except
     on E: Exception do
     begin
-      ShowMessage('Error agregando bitmap al ImageList: ' + E.Message);
+      ShowMessage('Error adding bitmap to ImageList: ' + E.Message);
       Result := -1;
     end;
   end;
@@ -452,7 +452,7 @@ begin
   Check.Text := ExtractFileName(FileName);
   Check.IsChecked := True;
   Check.Opacity := 0.4;
-  Check.Visible := False; // Esta se oculta for now
+  Check.Visible := False; // This is hidden for now
 
   btnDelete := TSpeedButton.Create(Self);
   btnDelete.Width := 15;
@@ -511,14 +511,14 @@ procedure TChatInput.AIVoiceMonitorChangeState(Sender: TObject; aUserSpeak, aIsV
 begin
   if aUserSpeak then
   begin
-    // El monitor ha detectado que el usuario ha empezado a hablar.
+    // The monitor has detected that the user has started speaking.
     SetMicImageStatus(Integer(TImageStatus.isUserTalking));
     // FBtnMic.ImageIndex := Integer(TImageStatus.isUserTalking);
-    AddStatus('usuario hablando...');
+    AddStatus('user speaking...');
   end
   else
   begin
-    // El monitor ha detectado silencio y ha terminado la grabaci�n.
+    // The monitor has detected silence and has finished recording.
     SetMicImageStatus(Integer(TImageStatus.isListening));
     // FBtnMic.ImageIndex := Integer(TImageStatus.isListening);
     AddStatus('Escuchando...');
@@ -538,7 +538,7 @@ Var
   Res: String;
 begin
 
-  // Aqu� est� la l�gica clave: solo procesamos el audio completo si la palabra de activaci�n fue validada.
+  // Here is the key logic: we only process the complete audio if the wake word was validated.
   if aIsValidForIA then
   begin
 
@@ -561,7 +561,7 @@ begin
   end
   else
   begin
-    // En caso que no se utilice el WakeWord
+    // In case the WakeWord is not used
   end;
 
   FWakeWordDetectedInSession := False;
@@ -572,7 +572,7 @@ procedure TChatInput.AIVoiceMonitorTranscriptionFragment(Sender: TObject; aFragm
 begin
 
   if FBusy then
-    Exit; // Si estamos enviando, ignora nuevos fragmentos de voz
+    Exit; // If we are sending, ignore new voice fragments
 
   TTask.Run(
     procedure
@@ -606,7 +606,7 @@ begin
             TThread.Queue(nil,
               procedure
               begin
-                // Aqu� puedes mostrar el error o manejarlo
+                // Here you can show the error or handle it
               end);
           end;
         end;
@@ -631,7 +631,7 @@ procedure TChatInput.AIVoiceMonitorWakeWordCheck(Sender: TObject; aWakeWordStrea
   Begin
   IsValid := Res.Contains(Trim(LowerCase(FVoiceMonitor.WakeWord)));
   FWakeWordDetectedInSession := IsValid;
-  Res := 'Valido --- ' + Res;
+  Res := 'Valid --- ' + Res;
   End;
 
   OutputDebugString(PChar(Res));
@@ -640,12 +640,12 @@ procedure TChatInput.AIVoiceMonitorWakeWordCheck(Sender: TObject; aWakeWordStrea
 var
   StreamCopy: TMemoryStream;
 begin
-  // Creamos una copia del stream porque el original se liberar� al salir de este evento
+  // We create a copy of the stream because the original will be freed when leaving this event
   StreamCopy := TMemoryStream.Create;
   StreamCopy.CopyFrom(aWakeWordStream, 0);
   StreamCopy.Position := 0;
 
-  // Lanzamos la validaci�n pesada en un hilo aparte
+  // We launch the heavy validation in a separate thread
   TTask.Run(
     procedure
     var
@@ -659,7 +659,7 @@ begin
         try
           DoTranscriptText(aWakeWordStream, Res);
 
-          // --- L�gica de limpieza y comparaci�n ---
+          // --- Cleaning and comparison logic ---
           Res := Trim(Res);
           TargetWakeWord := Trim(FVoiceMonitor.WakeWord);
           if TargetWakeWord = '' then
@@ -685,7 +685,7 @@ begin
             end;
           end;
 
-          // --- NOTIFICAR AL COMPONENTE the result ---
+          // --- NOTIFY THE COMPONENT of the result ---
           FVoiceMonitor.ConfirmWakeWord(IsValidResult);
           FWakeWordDetectedInSession := IsValidResult;
 
@@ -750,15 +750,15 @@ begin
 
   case FVoiceMonitor.State of
     msCalibrating:
-      StateStr := 'Calibrando...';
+      StateStr := 'Calibrating...';
     msMonitoring:
-      StateStr := 'Monitorizando';
+      StateStr := 'Monitoring';
     msRequestingPermission:
-      StateStr := 'Pidiendo permiso...';
+      StateStr := 'Requesting permission...';
     msError:
       StateStr := 'Error';
   else
-    StateStr := 'Inactivo';
+    StateStr := 'Inactive';
   end;
 end;
 
@@ -791,13 +791,13 @@ procedure TChatInput.BtnSendClick(Sender: TObject);
 begin
   if FBusy then
   begin
-    // Si ya est� ocupado, el clic significa "Cancelar"
+    // If already busy, the click means "Cancel"
     if Assigned(FOnCancel) then
       FOnCancel(Self);
   end
   else
   begin
-    // Si no est� ocupado, inicia el proceso de env�o
+    // If not busy, start the send process
     DoSendEvent(nil);
   end;
 end;
@@ -819,11 +819,11 @@ begin
     ExtList.StrictDelimiter := True;
     ExtList.DelimitedText := LowerCase(ValidExtensions);
 
-    // Limpiar espacios en blanco
+    // Trim whitespace
     for I := 0 to ExtList.Count - 1 do
       ExtList[I] := Trim(ExtList[I]);
 
-    // Construir la cadena de extensiones for the filtro
+    // Build the extensions string for the filter
     ExtensionsStr := '';
     for I := 0 to ExtList.Count - 1 do
     begin
@@ -832,11 +832,11 @@ begin
       ExtensionsStr := ExtensionsStr + '*.' + ExtList[I];
     end;
 
-    // Crear el filtro completo
-    FilterStr := 'Archivos compatibles (' + ExtensionsStr + ')|' + ExtensionsStr;
+    // Create the complete filter
+    FilterStr := 'Compatible files (' + ExtensionsStr + ')|' + ExtensionsStr;
 
-    // Agregar filtro para todos los archivos
-    FilterStr := FilterStr + '|Todos los archivos (*.*)|*.*';
+    // Add a filter for all files
+    FilterStr := FilterStr + '|All files (*.*)|*.*';
 
     Result := FilterStr;
   finally
@@ -849,7 +849,7 @@ var
   I: Integer;
   Child: TFMXObject;
 begin
-  // Liberar la memoria de los TagObject antes de destruir los controles
+  // Free the memory of the TagObject objects before destroying the controls
   for I := FImageLayout.ChildrenCount - 1 downto 0 do
   begin
     Child := FImageLayout.Children[I];
@@ -879,14 +879,14 @@ begin
       Result.Assign(BitmapItem)
     else
     begin
-      // Si no Can be obtener del ImageList, crear un bitmap vac�o
+      // If it cannot be obtained from the ImageList, create an empty bitmap
       Result.SetSize(32, 32);
-      Result.Clear($FFFFFFFF); // Blanco
+      Result.Clear($FFFFFFFF); // White
     end;
   end
   else
   begin
-    // ImageList no disponible o �ndice inv�lido
+    // ImageList not available or invalid index
     Result.SetSize(32, 32);
     Result.Clear($FFFFFFFF);
   end;
@@ -909,22 +909,22 @@ begin
       ResourceStream.Free;
     end;
   except
-    // Cualquier excepci�n (incluyendo EResNotFound) se maneja silenciosamente
+    // Any exception (including EResNotFound) is handled silently
     Result := False;
   end;
 
-  // Si no se pudo cargar, crear bitmap en blanco
+  // If it could not be loaded, create a blank bitmap
   if not Result then
   begin
     ABitmap.SetSize(32, 32); // Default size, you can adjust it
-    ABitmap.Clear(TAlphaColorRec.Null); // Transparente
+    ABitmap.Clear(TAlphaColorRec.Null); // Transparent
   end;
 end;
 
 procedure TChatInput.CreateInternalControls;
 begin
-  // Este m�todo replica la estructura de tu .fmx, pero en c�digo.
-  // Es muy importante que 'Self' sea el Parent de todos los controles de primer nivel.
+  // This method replicates the structure of your .fmx, but in code.
+  // It is very important that 'Self' be the Parent of all top-level controls.
 
   FChatLayout := TRectangle.Create(Self);
   FChatLayout.Stored := False;
@@ -969,7 +969,7 @@ begin
   FMemoPrompt.TextSettings.Font.Size := 16;
   FMemoPrompt.StyledSettings := FMemoPrompt.StyledSettings - [TStyledSetting.Size];
 
-  // Layout inferior (contiene botones, etc.)
+  // Bottom layout (contains buttons, etc.)
   FLayoutSend := TLayout.Create(Self);
   FLayoutSend.Stored := False;
   FLayoutSend.Parent := FLayout1;
@@ -990,7 +990,7 @@ begin
   FBtnMic.OnClick := BtnMicClick;
   FImageBtnMic := TImage.Create(FBtnMic);
   FImageBtnMic.Stored := False;
-  // OJO FImageBtnMic.Parent := FBtnMic;  //Is created pero no Is assigned para pruebas
+  // NOTE FImageBtnMic.Parent := FBtnMic;  //Is created but not Is assigned for testing
   FImageBtnMic.Align := TAlignLayout.Client;
 
   LoadImageFromResource(FImageBtnMic.BitMap, 'MIC_INACTIVO_PNG');
@@ -1012,7 +1012,7 @@ begin
   FImageBtnSend.Align := TAlignLayout.Client;
   FBtnSend.Visible := True;
 
-  // ya no Is used aqu� LoadImageFromResource(FImageBtnSend.BitMap, 'BTN_SEND_PNG');
+  // no longer used here LoadImageFromResource(FImageBtnSend.BitMap, 'BTN_SEND_PNG');
   FImageBtnSend.HitTest := False;
 
   FBtnSound := TCornerButton.Create(Self);
@@ -1099,7 +1099,7 @@ procedure TChatInput.LoadImageResources;
         BM.Free;
       end;
     except
-      // Manejar error si el recurso no se encuentra
+      // Handle error if the resource is not found
     end;
   end;
 
@@ -1107,7 +1107,7 @@ begin
 
   try
 
-    // Cargar ImageList1
+    // Load ImageList1
     LoadImg('IMG_PASTE_PNG', FImageList1);
     LoadImg('IMG_UPLOAD_PNG', FImageList1);
     LoadImg('IMG_SCREENSHOT_PNG', FImageList1);
@@ -1120,7 +1120,7 @@ begin
     LoadImg('IMG_UNKNOWN_PNG', FImageList1);
     // LoadImg('IMG_UNKNOWN_PNG', FImageList1);
 
-    // Cargar ImageListVoice
+    // Load ImageListVoice
     LoadImg('MIC_INACTIVO_PNG', FImageListVoice);
     LoadImg('MIC_PREPARING_PNG', FImageListVoice);
     LoadImg('MIC_LISTENING_PNG', FImageListVoice);
@@ -1135,14 +1135,14 @@ procedure TChatInput.Loaded;
 begin
   inherited; // !Always call inherited first!
 
-  // En este punto, el componente est� completamente cargado desde el FMX.
-  // Es el momento perfecto y seguro para capturar las dimensiones iniciales.
+  // At this point, the component is fully loaded from the FMX.
+  // It is the perfect and safe time to capture the initial dimensions.
 
-  // La bandera FInitialHeightsCaptured sigue siendo �til in case alguna l�gica
-  // futura pudiera volver a llamar a esto, aunque con Loaded no es estrictamente necesario.
+  // The FInitialHeightsCaptured flag is still useful in case some logic
+  // in the future might call this again, although with Loaded it is not strictly necessary.
   if not FInitialHeightsCaptured then
   begin
-    // Comprobamos que el componente no est� oculto o con tama�o cero
+    // We check that the component is not hidden or has zero size
     if (Self.Height > 0) and Assigned(FMemoPrompt) then
     begin
       FInitialMemoHeight := FMemoPrompt.Height;
@@ -1151,10 +1151,10 @@ begin
     end;
   end;
 
-  // --- APLICAR LA FUENTE INICIAL ---
-  // Aplica la configuraci�n de FFont (ya sea la By default o la del dise�ador)
-  // al TMemo interno.
-  FontChanged(Self); // <-- NUEVO
+  // --- APPLY THE INITIAL FONT ---
+  // Applies the FFont configuration (whether the default one or the designer's)
+  // to the internal TMemo.
+  FontChanged(Self); // <-- NEW
 end;
 
 procedure TChatInput.LoadFromFile;
@@ -1168,7 +1168,7 @@ var
 begin
   OpenDialogImage := TOpenDialog.Create(Self);
   Try
-    // Configurar el filtro del di�logo basado en las extensiones v�lidas
+    // Configure the file dialog filter based on the valid extensions
     if FValidExtensions <> '' then
       OpenDialogImage.Filter := BuildFileDialogFilter;
 
@@ -1177,7 +1177,7 @@ begin
       FileName := OpenDialogImage.FileName;
       Ext := System.IOUtils.TPath.GetExtension(FileName).ToLower;
 
-      // Validar que la extensi�n est� en la lista de extensiones v�lidas
+      // Validate that the extension is in the list of valid extensions
       if not IsValidFileExtension(Ext) then
       begin
         ShowMessage('Unsupported file type: ' + Ext);
@@ -1209,7 +1209,7 @@ begin
             begin
               BitMap.Free;
               St.Free;
-              ShowMessage('Error al cargar la imagen: ' + E.Message);
+              ShowMessage('Error loading the image: ' + E.Message);
               Exit;
             end;
           end;
@@ -1240,7 +1240,7 @@ begin
       except
         on E: Exception do
         begin
-          // Limpieza de seguridad en caso de error
+          // Safety cleanup in case of error
           if Assigned(BitMap) then
             BitMap.Free;
           if Assigned(St) then
@@ -1263,7 +1263,7 @@ procedure TChatInput.MemoPromptKeyUp(Sender: TObject; var Key: Word; var KeyChar
 begin
   if FEnterAsSend then
   begin
-    // Enter = enviar; Shift+Enter o Ctrl+Enter = salto de línea
+    // Enter = send; Shift+Enter or Ctrl+Enter = line break
     if (Key = vkReturn) and (Shift = []) then
     begin
       DoSendEvent(nil);
@@ -1272,7 +1272,7 @@ begin
   end
   else
   begin
-    // Comportamiento clásico: Ctrl+Enter = enviar
+    // Classic behavior: Ctrl+Enter = send
     if (ssCtrl in Shift) and (Key = vkReturn) then
     begin
       DoSendEvent(nil);
@@ -1283,7 +1283,7 @@ end;
 
 procedure TChatInput.MenuItem2Click(Sender: TObject);
 begin
-  ShowMessage('Hola');
+  ShowMessage('Hello');
 end;
 
 procedure TChatInput.OnSlideItemDelete(Sender: TObject);
@@ -1321,14 +1321,14 @@ begin
     // Verificar si hay una imagen en el portapapeles
     if (ClipboardService.GetClipboard.Kind = tkClass) and (ClipboardService.GetClipboard.AsObject is TBitMapSurface) then
     begin
-      // Es una imagen
+      // It is an image
       Sur := TBitMapSurface(ClipboardService.GetClipboard.AsObject);
       BitMap := TBitMap.Create;
       BitMap.SetSize(Sur.Width, Sur.Height);
       BitMap.Assign(Sur);
       BitMap.SaveToStream(St);
       ContentType := ctImage;
-      FileName := 'imagen.png';
+      FileName := 'image.png';
     end
     // Verificar si hay texto en el portapapeles
     else if ClipboardService.GetClipboard.Kind = tkUString then
@@ -1336,14 +1336,14 @@ begin
       ClipboardText := ClipboardService.GetClipboard.AsString;
       ContentType := GetContentTypeFromText(ClipboardText);
 
-      // Convertir texto a stream
+      // Convert text to a stream
       ClipboardData := TEncoding.UTF8.GetBytes(ClipboardText);
       St.WriteBuffer(ClipboardData[0], Length(ClipboardData));
       St.Position := 0;
 
       case ContentType of
         ctText:
-          FileName := 'texto.txt';
+          FileName := 'text.txt';
         ctPDF:
           FileName := 'documento.pdf';
         ctImage:
@@ -1361,7 +1361,7 @@ begin
     // Check for binary data in the clipboard
     else if ClipboardService.GetClipboard.Kind = tkRecord then
     begin
-      // Intentar obtener datos como bytes (esto puede variar seg�n la plataforma)
+      // Try to get data as bytes (this may vary by platform)
       try
         ClipboardText := ClipboardService.GetClipboard.AsString;
         ClipboardData := TEncoding.Default.GetBytes(ClipboardText);
@@ -1394,19 +1394,19 @@ begin
     end
     else
     begin
-      Raise Exception.Create('El portapapeles no contiene contenido compatible.');
+      Raise Exception.Create('The clipboard does not contain compatible content.');
       FMemoPrompt.SetFocus;
       Exit;
     end;
 
-    // Si no es una imagen, crear bitmap desde ImageList
+    // If it is not an image, create a bitmap from the ImageList
     if (ContentType <> ctImage) or (BitMap = nil) then
     begin
       ImageIndex := GetImageIndexFromContentType(ContentType);
       BitMap := CreateBitmapFromImageList(ImageIndex);
     end;
 
-    // Reiniciar posici�n del stream
+    // Reset the stream position
     St.Position := 0;
 
     // Agregar el elemento a la lista
@@ -1425,36 +1425,36 @@ var
   AspectRatio: Double;
 begin
 
-  // Inicialmente, the results son iguales a the values originales
+  // Initially, the results are equal to the original values
   ScaledX := X;
   ScaledY := Y;
 
-  // Si ambos lados son menores o iguales a 500, no Is needed escalar
+  // If both sides are less than or equal to 500, scaling is not needed
   if (X <= MaxSize) and (Y <= MaxSize) then
   begin
     ScaledX := X;
     ScaledY := Y;
-    Result := False; // Has not been escalado
+    Result := False; // Has not been scaled
     Exit;
   end;
 
-  // Calcular la relaci�n de aspecto
+  // Calculate the aspect ratio
   AspectRatio := X / Y;
 
   if X > Y then
   begin
-    // Escalar por el ancho
+    // Scale by width
     ScaledX := MaxSize;
     ScaledY := MaxSize / AspectRatio;
   end
   else
   begin
-    // Escalar por el alto
+    // Scale by height
     ScaledY := MaxSize;
     ScaledX := MaxSize * AspectRatio;
   end;
 
-  Result := True; // Se ha escalado
+  Result := True; // It has been scaled
 end;
 
 procedure TChatInput.ScreenCapture;
@@ -1469,7 +1469,7 @@ begin
     // Bm.SaveToFile('c:\temp\caputra.jpg');
     St := TMemoryStream.Create;
     BM.SaveToStream(St);
-    AddImageToSlide('imagen.jpg', BM, St);
+    AddImageToSlide('image.jpg', BM, St);
     FMemoPrompt.SetFocus;
   End;
 end;
@@ -1489,18 +1489,18 @@ begin
         // Actualizar la UI basado en el nuevo estado de 'Busy'
         if FBusy then
         begin
-          // --- ESTADO OCUPADO ---
-          FImageBtnSend.BitMap.Assign(FCancelBitmap); // Cambia el icono a "Cancelar"
+          // --- BUSY STATE ---
+          FImageBtnSend.BitMap.Assign(FCancelBitmap); // Change the icon to "Cancel"
           FMemoPrompt.ReadOnly := True;
           FBtnMenu.Enabled := False; // Good idea to disable the menu too
         end
         else
         begin
-          // --- ESTADO NORMAL ---
-          FImageBtnSend.BitMap.Assign(FSendBitmap); // Vuelve al icono de "Enviar"
+          // --- NORMAL STATE ---
+          FImageBtnSend.BitMap.Assign(FSendBitmap); // Return to the "Send" icon
           FMemoPrompt.ReadOnly := False;
           FBtnMenu.Enabled := True;
-          FMemoPrompt.SetFocus; // Devuelve el foco al memo
+          FMemoPrompt.SetFocus; // Return focus to the memo
         end;
       end);
   end;
@@ -1623,7 +1623,7 @@ begin
   If Not Assigned(FVoiceMonitor) then
     Exit;
 
-  AddStatus('Preparando el ambiente, por favor espere');
+  AddStatus('Preparing the environment, please wait');
 
   FCurrentSoundLevel := 0;
   FMaxLevelSeen := 100; // Reset the maximum so the bar adjusts
@@ -1647,7 +1647,7 @@ begin
 
   // Habilitar controles
   FProgressBarLevel.Value := 0;
-  AddStatus('Monitor Inactivo');
+  AddStatus('Monitor Inactive');
   FBtnMic.ImageIndex := Integer(TImageStatus.isInactivo);
 end;
 
@@ -1680,45 +1680,45 @@ var
   RequiredMemoHeight, NewMemoHeight, NewFrameHeight: Single;
   Padding: Single; // <-- NEW: Variable for the padding
 begin
-  // Asegurarnos de que las alturas iniciales hayan sido capturadas
+  // Make sure the initial heights have been captured
   if not FInitialHeightsCaptured then
     Exit;
 
-  // --- Paso 1: Calcular la altura necesaria for the Memo ---
+  // --- Step 1: Calculate the required height for the Memo ---
 
-  // Definimos un peque�o colch�n de p�xeles para evitar la barra de scroll.
-  // Un valor entre 2 y 5 suele ser suficiente.
-  Padding := 4; // <-- NUEVO
+  // We define a small pixel padding to avoid the scroll bar.
+  // A value between 2 and 5 is usually sufficient.
+  Padding := 4; // <-- NEW
 
-  // Calculamos la altura del contenido y le sumamos los m�rgenes Y el nuevo padding.
+  // Calculate the content height and add the margins and the new padding.
   RequiredMemoHeight := FMemoPrompt.ContentBounds.Height + FMemoPrompt.Margins.Top + FMemoPrompt.Margins.Bottom + Padding; // <-- CAMBIO CLAVE
 
-  // El resto de la l�gica permanece igual
+  // The rest of the logic remains the same
   RequiredMemoHeight := Max(FInitialMemoHeight, RequiredMemoHeight);
   NewMemoHeight := Min(MAX_MEMO_HEIGHT, RequiredMemoHeight);
 
-  // --- Paso 2: Calcular la altura total que necesita el FRAME ---
+  // --- Step 2: Calculate the total height needed by the FRAME ---
   NewFrameHeight := 0;
 
-  // Sumar la altura del layout de im�genes si es visible
+  // Add the height of the image layout if it is visible
   if FImageLayout.Visible then
   begin
     NewFrameHeight := NewFrameHeight + FImageLayout.Height + FImageLayout.Margins.Top + FImageLayout.Margins.Bottom;
   end;
 
-  // Sumar la altura (ya calculada) del Memo
+  // Add the height (already calculated) of the Memo
   NewFrameHeight := NewFrameHeight + NewMemoHeight;
 
-  // Sumar la altura del layout inferior (botones, etc.)
+  // Add the height of the bottom layout (buttons, etc.)
   NewFrameHeight := NewFrameHeight + FLayout1.Height + FLayout1.Margins.Top + FLayout1.Margins.Bottom;
 
-  // A�adir paddings si los tuviera el ChatLayout
+  // Add paddings if the ChatLayout has them
   NewFrameHeight := NewFrameHeight + FChatLayout.Padding.Top + FChatLayout.Padding.Bottom;
 
-  // --- PASO 3: Forzar la altura m�nima ---
+  // --- STEP 3: Force the minimum height ---
   NewFrameHeight := Max(MIN_FRAME_HEIGHT, NewFrameHeight);
 
-  // --- Paso 4: Aplicar los cambios si son necesarios ---
+  // --- Step 4: Apply the changes if necessary ---
   if (Abs(NewMemoHeight - FMemoPrompt.Height) > 0.1) or (Abs(NewFrameHeight - Self.Height) > 0.1) then
   begin
     FMemoPrompt.Height := NewMemoHeight;
@@ -1773,13 +1773,13 @@ var
 begin
   BitMap := Nil;
   try
-    // --- Caso 1: Se arrastran archivos desde el explorador ---
+    // --- Case 1: Files are dragged from the explorer ---
     if Length(Data.Files) > 0 then
     begin
       for I := 0 to High(Data.Files) do
       begin
         FileName := Data.Files[I];
-        // Usamos TPath.GetExtension to obtain/get la extensi�n in a segura
+        // We use TPath.GetExtension to obtain/get the extension safely
         Ext := System.IOUtils.TPath.GetExtension(FileName).ToLower;
 
         // Validar con la lista de extensiones configurada
@@ -1822,13 +1822,13 @@ begin
         end;
       end;
     end
-    // --- Caso 2: Se arrastra una URL (texto) desde el navegador ---
+    // --- Case 2: A URL (text) is dragged from the browser ---
     else
     begin
       FileName := Data.Data.AsString;
       if FileName.StartsWith('http://', True) or FileName.StartsWith('https://', True) then
       begin
-        // Usamos TURI para analizar the URL y TPath to obtain/get la extensi�n in a robusta.
+        // We use TURI to parse the URL and TPath to obtain/get the extension robustly.
         Uri := TURI.Create(FileName);
         try
           CleanPath := Uri.Path;
@@ -1847,7 +1847,7 @@ begin
           try
             if ContentType = ctImage then
             begin
-              // Para im�genes, descargar y cargar la imagen
+              // For images, download and load the image
               St := DownLoadFromUrl(FileName);
               if (St = nil) or (St.Size = 0) then
                 raise Exception.Create('The download resulted in an empty stream.');
@@ -1857,7 +1857,7 @@ begin
             end
             else
             begin
-              // Para otros tipos, descargar como stream y usar icono
+              // For other types, download as a stream and use the icon
               St := DownLoadFromUrl(FileName);
               if (St = nil) or (St.Size = 0) then
                 raise Exception.Create('The download resulted in an empty stream.');
@@ -1878,13 +1878,13 @@ begin
         end
         else
         begin
-          // Si no tiene extensi�n reconocible, intentar detectar por contenido
+          // If it has no recognizable extension, try to detect by content
           St := DownLoadFromUrl(FileName);
           if (St <> nil) and (St.Size > 0) then
           begin
             try
               St.Position := 0;
-              // Intentar detectar tipo por contenido del stream
+              // Try to detect the type from the stream content
               SetLength(ByteData, St.Size);
               St.ReadBuffer(ByteData[0], St.Size);
               ContentType := GetContentTypeFromData(ByteData);
@@ -1923,8 +1923,8 @@ begin
   except
     on E: Exception do
     begin
-      // Mensaje de error gen�rico for the usuario
-      ShowMessage('Error al procesar el archivo: ' + E.Message);
+      // Generic error message for the user
+      ShowMessage('Error processing the file: ' + E.Message);
     end;
   end;
 end;
@@ -1964,9 +1964,9 @@ procedure TChatInput.FontChanged(Sender: TObject);
 begin
   if Assigned(FMemoPrompt) then
   begin
-    // Usamos TextSettings.Font para componentes FMX
+    // We use TextSettings.Font for FMX components
     FMemoPrompt.TextSettings.Font.Assign(FFont);
-    // Forzamos una actualizaci�n de la altura en caso de que el tama�o de la fuente cambie el contenido.
+    // Force an update of the height in case the font size changes the content.
     UpdateChatLayoutHeight;
   end;
 end;
@@ -2000,28 +2000,28 @@ var
   Child: TFMXObject;
   ImageData: TImageData;
 begin
-  // Inicializamos el array resultado con una longitud de 0
+  // Initialize the result array with a length of 0
   SetLength(Result, 0);
 
-  // Verificaci�n de seguridad in case el layout no estuviera creado
+  // Safety check in case the layout has not been created
   if not Assigned(FImageLayout) then
     Exit;
 
-  // Iteramos sobre todos los controles hijos del FlowLayout
+  // Iterate over all child controls of the FlowLayout
   for I := 0 to FImageLayout.ChildrenCount - 1 do
   begin
     Child := FImageLayout.Children[I];
 
-    // Nos aseguramos que el hijo sea un TLayout y que su TagObject sea un TImageData
+    // We ensure that the child is a TLayout and that its TagObject is a TImageData
     if (Child is TLayout) and (Child.TagObject is TImageData) then
     begin
-      // Hacemos un typecast seguro del TagObject to obtain/get nuestra data
+      // We perform a safe typecast of the TagObject to obtain our data
       ImageData := TImageData(Child.TagObject);
 
-      // Aumentamos el tama�o del array resultado en 1
+      // Increase the size of the result array by 1
       SetLength(Result, Length(Result) + 1);
 
-      // Asignamos el objeto TImageData encontrado a la �ltima posici�n del array
+      // Assign the found TImageData object to the last position of the array
       Result[High(Result)] := ImageData;
     end;
   end;
@@ -2034,7 +2034,7 @@ begin
   if Length(Data) < 4 then
     Exit;
 
-  // Detectar tipo por signatura de bytes
+  // Detect type by byte signature
   // PDF
   if (Data[0] = $25) and (Data[1] = $50) and (Data[2] = $44) and (Data[3] = $46) then // %PDF
     Result := ctPDF
@@ -2077,7 +2077,7 @@ begin
   Result := ctText;
   LowerText := LowerCase(Text);
 
-  // Detectar URLs o referencias a archivos
+  // Detect URLs or file references
   if (Pos('http://', LowerText) = 1) or (Pos('https://', LowerText) = 1) then
   begin
     if (Pos('.pdf', LowerText) > 0) then
@@ -2126,7 +2126,7 @@ begin
     FMenu := TPopupMenu.Create(Self);
     FMenu.Images := FImageList1;
 
-    // Crear items del men�
+    // Create menu items
     FMnuPaste := TMenuItem.Create(FMenu);
     FMnuPaste.Name := 'MnuPaste';
     FMnuPaste.Text := 'Paste';
@@ -2181,7 +2181,7 @@ begin
     ExtList.StrictDelimiter := True;
     ExtList.DelimitedText := LowerCase(ValidExtensions);
 
-    // Limpiar espacios en blanco de cada elemento
+    // Trim whitespace from each element
     for I := 0 to ExtList.Count - 1 do
       ExtList[I] := Trim(ExtList[I]);
 
@@ -2200,7 +2200,7 @@ var
 begin
   Operation := TDragOperation.None;
 
-  // Si son archivos
+  // If they are files
   if (Length(Data.Files) > 0) then
   begin
     Ext := ExtractFileExt(LowerCase(Data.Files[0]));
@@ -2211,15 +2211,15 @@ begin
   begin
     S := Data.Data.AsString;
 
-    // Verificar si es una URL
+    // Check whether it is a URL
     if (Copy(S, 1, 7) = 'http://') or (Copy(S, 1, 8) = 'https://') then
     begin
-      // Buscar la extensi�n en la URL de manera m�s robusta
+      // Search for the extension in the URL more robustly
       I := LastDelimiter('/', S);
       if I > 0 then
       begin
         UrlExt := ExtractFileExt(LowerCase(Copy(S, I + 1, Length(S))));
-        // Tambi�n verificar par�metros de consulta
+        // Also check query parameters
         I := Pos('?', UrlExt);
         if I > 0 then
           UrlExt := Copy(UrlExt, 1, I - 1);
@@ -2229,15 +2229,15 @@ begin
       end
       else
       begin
-        // Si no hay extensi�n visible, permitir el drop para URLs gen�ricas
-        // Se detectar� el tipo en el evento Drop
+        // If there is no visible extension, allow the drop for generic URLs
+        // The type will be detected in the Drop event
         Operation := TDragOperation.Move;
       end;
     end
     else
     begin
-      // Verificar si el texto contiene una ruta de archivo v�lida
-      if Pos('\', S) > 0 then // Ruta Windows
+      // Check whether the text contains a valid file path
+      if Pos('\', S) > 0 then // Windows path
       begin
         Ext := ExtractFileExt(LowerCase(S));
         if IsValidFileExtension(Ext) then
@@ -2261,11 +2261,11 @@ end;
   Begin
   Busy := True;
 
-  MediaFiles := TAiMediaFiles.Create; // Siempre Is created
+  MediaFiles := TAiMediaFiles.Create; // Always Is created
   Try
   If Assigned(FOnSendEvent) then
   Begin
-  // Aqu� crea la lista de MediaFiles
+  // Here it creates the MediaFiles list
   If FImageLayout.ChildrenCount > 0 then
   Begin
   For I := 0 to FImageLayout.ChildrenCount - 1 do
@@ -2314,13 +2314,13 @@ Var
   I: Integer;
   St: TMemoryStream;
 begin
-  // BtnSendClick ya ha verificado que Busy es False.
+  // BtnSendClick has already verified that Busy is False.
 
-  // 1. Poner la UI en estado "Ocupado" INMEDIATAMENTE.
-  Self.Busy := True; // Esto llama a SetBusy y actualiza la UI al instante.
+  // 1. Put the UI in the "Busy" state IMMEDIATELY.
+  Self.Busy := True; // This calls SetBusy and updates the UI instantly.
 
-  // Si no hay un manejador for the evento, no podemos continuar.
-  // Volvemos al estado normal.
+  // If there is no handler for the event, we cannot continue.
+  // We return to the normal state.
   if not Assigned(FOnSendEvent) then
   begin
     Self.Busy := False;
@@ -2329,9 +2329,9 @@ begin
 
   MediaFiles := TAiMediaFiles.Create;
   try
-    // 2. Preparar la lista de MediaFiles de forma s�ncrona.
-    // Esta parte puede causar un breve bloqueo si los archivos son grandes,
-    // pero es la responsabilidad que el componente asume seg�n tu dise�o.
+    // 2. Prepare the MediaFiles list synchronously.
+    // This part may cause a brief block if the files are large,
+    // but it is the responsibility that the component assumes according to your design.
     if FImageLayout.ChildrenCount > 0 then
     begin
       for I := 0 to FImageLayout.ChildrenCount - 1 do
@@ -2346,10 +2346,10 @@ begin
             St.Position := 0; // Rebobinar el stream para su lectura
 
             MF := TAiMediaFile.Create;
-            // OJO: Asumimos que LoadFromStream hace una copia de los datos del stream
-            // y no toma posesi�n del stream `St`.
+            // NOTE: We assume that LoadFromStream makes a copy of the stream data
+            // and does not take ownership of the stream `St`.
             MF.LoadFromStream(Data.FileName, St);
-            MF.FullFileName := Data.FullFileName; // Asegura que si es un archivo contiene la ruta completa.
+            MF.FullFileName := Data.FullFileName; // Ensures that if it is a file it contains the full path.
             MediaFiles.Add(MF);
           finally
             St.Free; // `St` is temporary and freed here.
@@ -2358,22 +2358,22 @@ begin
       end;
     end;
 
-    // 3. Capturar el prompt y disparar el evento.
-    // El control se pasa al c�digo del formulario.
+    // 3. Capture the prompt and fire the event.
+    // The control is passed to the form code.
     APrompt := Trim(FMemoPrompt.Lines.Text);
     FOnSendEvent(Self, APrompt, MediaFiles, aAudioFile);
 
-    // 4. Limpiar la UI for the siguiente mensaje.
-    // Esto se ejecuta DESPU�S de que el manejador OnSendEvent del usuario retorne.
+    // 4. Clean the UI for the next message.
+    // This executes AFTER the user's OnSendEvent handler returns.
     FMemoPrompt.Lines.Clear;
     ClearSlides;
     UpdateChatLayoutHeight;
 
-    // NOTA: NO hacemos "Busy := False" aqu�.
-    // Esa es la responsabilidad del c�digo del formulario.
+    // NOTE: We do NOT do "Busy := False" here.
+    // That is the responsibility of the form code.
 
   finally
-    // 5. Liberar la lista de MediaFiles. El consumidor ya los ha procesado.
+    // 5. Free the MediaFiles list. The consumer has already processed them.
     MediaFiles.Free;
   end;
 end;
@@ -2395,8 +2395,8 @@ begin
 
   CleanExt := LowerCase(CleanExt);
 
-  // Detectar tipo por extensi�n (puedes personalizar esta l�gica)
-  // Im�genes
+  // Detect type by extension (you can customize this logic)
+  // Images
   if (CleanExt = 'jpg') or (CleanExt = 'jpeg') or (CleanExt = 'png') or (CleanExt = 'bmp') or (CleanExt = 'gif') or (CleanExt = 'tiff') or (CleanExt = 'webp') then
     Result := ctImage
     // PDF
@@ -2408,10 +2408,10 @@ begin
     // Video
   else if (CleanExt = 'mp4') or (CleanExt = 'avi') or (CleanExt = 'mov') or (CleanExt = 'wmv') or (CleanExt = 'mkv') or (CleanExt = 'flv') or (CleanExt = 'webm') or (CleanExt = 'm4v') then
     Result := ctVideo
-    // Documentos
+    // Documents
   else if (CleanExt = 'doc') or (CleanExt = 'docx') or (CleanExt = 'xls') or (CleanExt = 'xlsx') or (CleanExt = 'ppt') or (CleanExt = 'pptx') or (CleanExt = 'rtf') or (CleanExt = 'odt') or (CleanExt = 'ods') or (CleanExt = 'odp') then
     Result := ctDocument
-    // Texto y otros
+    // Text and others
   else if (CleanExt = 'txt') or (CleanExt = 'log') or (CleanExt = 'ini') or (CleanExt = 'cfg') or (CleanExt = 'xml') or (CleanExt = 'json') or (CleanExt = 'csv') or (CleanExt = 'html') or (CleanExt = 'css') or (CleanExt = 'js') or
     (CleanExt = 'sql') or (CleanExt = 'md') then
     Result := ctText

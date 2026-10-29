@@ -1,8 +1,8 @@
 ﻿// MIT License
 //
-// MakerAI - Jev: preguntas tipadas al modelo Jev de TypeSafe AI (System One)
+// MakerAI - Jev: typed questions for the Jev model from TypeSafe AI (System One)
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
@@ -12,44 +12,44 @@
 unit uMakerAi.Jev;
 
 // -----------------------------------------------------------------------------
-// TAiJev: cliente del modelo Jev (TypeSafe AI, https://docs.typesafe.ai).
+// TAiJev: client for the Jev model (TypeSafe AI, https://docs.typesafe.ai).
 //
-// Jev NO es un LLM de chat: no genera texto. Recibe un "state" (texto o JSON)
-// y un mapa de preguntas tipadas, y devuelve por cada una probabilidades
-// calibradas y una confianza. Sirve para decisiones rapidas y baratas que hoy
-// se le piden a un LLM completo: enrutar una consulta al agente correcto,
-// clasificar, filtrar relevancia, aprobar o no una accion.
+// Jev is NOT a chat LLM: it does not generate text. It receives a "state" (text or JSON)
+// and a map of typed questions, and returns for each one probabilities
+// calibrated and a confidence. It is for fast, cheap decisions that today
+// are asked of a full LLM: routing a query to the correct agent,
+// classifying, filtering relevance, approving or not an action.
 //
-// Tres tipos de pregunta:
-//   jqChoice  elige una opcion de un conjunto (max. 255). Criteria: una linea
-//             por opcion, 'clave=descripcion' (la descripcion es opcional).
-//   jqScore   califica contra niveles ordenados (2 a 10). Criteria: una linea
-//             por nivel, del mas bajo al mas alto.
-//   jqNoul    si/no; devuelve la probabilidad de "si". Criteria opcional:
-//             'true=...' y 'false=...'.
+// Three question types:
+//   jqChoice  selects an option from a set (max. 255). Criteria: one line
+//             per option, 'key=description' (description is optional).
+//   jqScore   scores against ordered levels (2 to 10). Criteria: one line
+//             per level, from lowest to highest.
+//   jqNoul    yes/no; returns the probability of "yes". Optional Criteria:
+//             'true=...' and 'false=...'.
 //
-// Varias preguntas viajan en UNA sola llamada (se cobra el state una vez):
-// preferir un TAiJevQuestions con todo lo que se necesita decidir a llamadas
-// sueltas.
+// Multiple questions travel in ONE single call (the state is charged once):
+// prefer a TAiJevQuestions with everything that needs to be decided over individual
+// calls.
 //
-// Lo que el modelo NO hace bien (docs: model-jaggedness): aritmetica, contar,
-// comparar fechas y generar texto. Eso va en codigo; a Jev solo el juicio.
+// What the model does NOT do well (docs: model-jaggedness): arithmetic, counting,
+// comparing dates and generating text. That goes in code; give Jev only judgment.
 //
-// Umbrales: la confianza de una misma entrada varia unos puntos entre llamadas.
-// Fijar Model a una version concreta (por defecto 'jev-1.13.0', no
-// 'jev-latest') antes de calibrar umbrales, y dejarles margen.
+// Thresholds: confidence for the same input varies a few points between calls.
+// Set Model to a concrete version (default 'jev-1.13.0', not
+// 'jev-latest') before calibrating thresholds, and leave margin.
 //
-// DoPost es virtual: la suite de regresion lo sustituye para probar sin red.
+// DoPost is virtual: the regression suite replaces it to test without network.
 //
-// Otros servidores System One (oct 2026): Ollama 0.35+ expone el mismo
-// contrato en http://localhost:11434/v1/systemone con modelos de decision
-// locales (nimble, tev1, clef, clef-flash). Basta con Url + Model:
+// Other System One servers (Oct 2026): Ollama 0.35+ exposes the same
+// contract at http://localhost:11434/v1/systemone with decision models
+// local (nimble, tev1, clef, clef-flash). Just set Url + Model:
 //   Jev.Url := 'http://localhost:11434/v1/'; Jev.Model := 'nimble';
-// Diferencias: Choice y Score admiten de 2 a 26 opciones (el servidor rechaza
-// mas con HTTP 400), requests de hasta 64 KiB, sin API key. Clef y Clef Flash
-// (Ollama 0.35.1+) leen IMAGENES: Ask(State, [Imagen1, ...], Preguntas).
-// El precio por defecto (JEV_PRICE_PER_MILLION_INPUT) solo se cobra cuando
-// Url apunta a TypeSafe; un precio fijado a mano se respeta siempre.
+// Differences: Choice and Score allow 2 to 26 options (the server rejects
+// more with HTTP 400), requests up to 64 KiB, no API key. Clef and Clef Flash
+// (Ollama 0.35.1+) read IMAGES: Ask(State, [Image1, ...], Questions).
+// The default price (JEV_PRICE_PER_MILLION_INPUT) is charged only when
+// Url points to TypeSafe; a manually set price is always respected.
 // -----------------------------------------------------------------------------
 
 interface
@@ -64,7 +64,7 @@ type
     FStatusCode: Integer;
   public
     constructor Create(const AMsg: string; AStatusCode: Integer = 0);
-    // Codigo HTTP de la respuesta; 0 si el error es local (validacion, parseo)
+    // HTTP code of the response; 0 if the error is local (validation, parsing)
     property StatusCode: Integer read FStatusCode;
   end;
 
@@ -84,14 +84,14 @@ type
     constructor Create(Collection: TCollection); override;
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
-    // Lanza EAiJevError si la pregunta no cumple las reglas de la API
+    // Raises EAiJevError if the question does not meet the API rules
     procedure Validate;
     function ToJSON: TJSONObject;
   published
-    // Id de la pregunta: la respuesta vuelve bajo este mismo nombre
+    // Question id: the answer comes back under this same name
     property Name: string read FName write FName;
     property Kind: TAiJevQuestionKind read FKind write FKind default jqChoice;
-    // La pregunta. Puede referirse a campos del state entre backticks: `consulta`
+    // The question. It can refer to state fields between backticks: `consulta`
     property Instructions: string read FInstructions write FInstructions;
     property Criteria: TStrings read FCriteria write SetCriteria;
   end;
@@ -102,9 +102,9 @@ type
   public
     constructor Create(AOwner: TPersistent);
     function Add: TAiJevQuestion;
-    // AOptions: 'clave' o 'clave=descripcion'
+    // AOptions: 'key' or 'key=description'
     function AddChoice(const AName, AInstructions: string; const AOptions: array of string): TAiJevQuestion;
-    // ALevels: del mas bajo al mas alto
+    // ALevels: from lowest to highest
     function AddScore(const AName, AInstructions: string; const ALevels: array of string): TAiJevQuestion;
     function AddNoul(const AName, AInstructions: string; const AWhenTrue: string = '';
       const AWhenFalse: string = ''): TAiJevQuestion;
@@ -125,22 +125,22 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    // Probabilidad de una opcion (Choice) o nivel (Score, clave '0','1',...); 0 si no existe
+    // Probability of an option (Choice) or level (Score, key '0','1',...); 0 if it does not exist
     function Probability(const AOption: string): Double;
-    // Opciones ordenadas de mayor a menor probabilidad
+    // Options sorted from highest to lowest probability
     function Ranked: TArray<TPair<string, Double>>;
-    // Las ACount opciones mas probables (sugerencias para revision humana)
+    // The ACount most probable options (suggestions for human review)
     function Top(ACount: Integer): TArray<string>;
 
     property Name: string read FName;
     property Kind: TAiJevQuestionKind read FKind;
-    // jqChoice: opcion con mayor probabilidad
+    // jqChoice: option with highest probability
     property Choice: string read FChoice;
-    // jqScore: valor esperado entre niveles (0 = primer nivel); puede caer entre dos
+    // jqScore: expected value between levels (0 = first level); it can fall between two
     property Score: Double read FScore;
-    // jqNoul: probabilidad de "si" (0..1)
+    // jqNoul: probability of "yes" (0..1)
     property Noul: Double read FNoul;
-    // jqChoice / jqScore: certeza derivada de la distribucion (0..1). La API no la da para Noul.
+    // jqChoice / jqScore: certainty derived from the distribution (0..1). The API does not provide it for Noul.
     property Confidence: Double read FConfidence;
     property Probabilities: TDictionary<string, Double> read FProbabilities;
   end;
@@ -156,20 +156,20 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    // Parsea el cuerpo de respuesta de /v1/systemone
+    // Parses the response body from /v1/systemone
     class function FromJSON(const AJson: string): TAiJevResult;
     function TryGetAnswer(const AName: string; out AAnswer: TAiJevAnswer): Boolean;
-    // Lanza EAiJevError si no hay respuesta con ese nombre
+    // Raises EAiJevError if there is no answer with that name
     property Answers[const AName: string]: TAiJevAnswer read GetAnswer; default;
     property Count: Integer read GetCount;
-    // Version concreta que respondio (p.ej. 'jev-1.13.0' aunque se pidiera un alias)
+    // Concrete version that responded (e.g. 'jev-1.13.0' even if an alias was requested)
     property Model: string read FModel;
     property InputTokens: Integer read FInputTokens;
     property OutputTokens: Integer read FOutputTokens;
   end;
 
-  // Consumo de Jev: peticiones, tokens y costo. Precio vigente (sep 2026):
-  // US$0.042 por millon de tokens de entrada; la salida no se cobra.
+  // Jev usage: requests, tokens, and cost. Current price (Sep 2026):
+  // US$0.042 per million input tokens; output is not charged.
   TAiJevUsage = record
     Requests: Int64;
     InputTokens: Int64;
@@ -177,12 +177,12 @@ type
     CostUSD: Double;
   end;
 
-  // Se dispara SINCRONO en el hilo que ejecuto la operacion (no por TThread.Queue):
-  // en un servidor ese es el hilo de la peticion, asi que el integrador sabe a
-  // que cliente cargarle el consumo.
+  // Fires SYNCHRONOUSLY on the thread that executed the operation (not via TThread.Queue):
+  // on a server that is the request thread, so the integrator knows which
+  // client to charge the usage to.
   TAiJevUsageEvent = procedure(Sender: TObject; const AUsage: TAiJevUsage) of object;
 
-  // Acumulador seguro entre hilos (los adaptadores llaman a Jev en paralelo)
+  // Thread-safe accumulator (adapters call Jev in parallel)
   TAiJevUsageMeter = class
   private
     FRequests, FInputTokens, FOutputTokens: Int64;
@@ -190,7 +190,7 @@ type
     procedure Add(AResult: TAiJevResult); overload;
     procedure Add(const AUsage: TAiJevUsage); overload;
     procedure Reset;
-    // Totales con el costo calculado a los precios dados (US$ por millon)
+    // Totals with cost calculated at the given prices (US$ per million)
     function Snapshot(APricePerMillionInput, APricePerMillionOutput: Double): TAiJevUsage;
   end;
 
@@ -214,56 +214,56 @@ type
     function GetApiKey: string;
     procedure SetQuestions(const Value: TAiJevQuestions);
   protected
-    // Envia el cuerpo y devuelve el status HTTP. Virtual para sustituir la red en pruebas.
+    // Sends the body and returns the HTTP status. Virtual to replace the network in tests.
     function DoPost(const ABody: string; out AResponse: string): Integer; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    // Cuerpo JSON del request (valida las preguntas y las imagenes). El
-    // llamador libera el resultado.
+    // JSON request body (validates the questions and images). The
+    // caller frees the result.
     function BuildRequest(AState: TJSONValue; AQuestions: TAiJevQuestions): TJSONObject; overload;
     function BuildRequest(AState: TJSONValue; AQuestions: TAiJevQuestions;
       const AImages: array of TAiMediaFile): TJSONObject; overload;
 
-    // AQuestions = nil usa la propiedad Questions. El llamador libera el resultado.
-    // Lanza EAiJevError si la API responde con error (tras OnError y LastError).
+    // AQuestions = nil uses the Questions property. The caller frees the result.
+    // Raises EAiJevError if the API responds with an error (after OnError and LastError).
     function Ask(const AState: string; AQuestions: TAiJevQuestions = nil): TAiJevResult; overload;
-    // State estructurado (objeto o arreglo JSON). No toma posesion de AState.
+    // Structured state (JSON object or array). It does not take ownership of AState.
     function Ask(AState: TJSONValue; AQuestions: TAiJevQuestions = nil): TAiJevResult; overload;
-    // Con imagenes (PNG, JPEG o WebP, compartidas por todas las preguntas y
-    // juzgadas junto con el state). Solo modelos que leen imagenes, como Clef
-    // en Ollama 0.35.1+. No toma posesion de las imagenes.
+    // With images (PNG, JPEG, or WebP, shared by all questions and
+    // judged together with the state). Only models that read images, such as Clef
+    // in Ollama 0.35.1+. It does not take ownership of the images.
     function Ask(const AState: string; const AImages: array of TAiMediaFile;
       AQuestions: TAiJevQuestions = nil): TAiJevResult; overload;
     function Ask(AState: TJSONValue; const AImages: array of TAiMediaFile;
       AQuestions: TAiJevQuestions = nil): TAiJevResult; overload;
 
-    // Atajos para una sola pregunta
+    // Shortcuts for a single question
     function Choose(const AState, AInstructions: string; const AOptions: array of string;
       out AConfidence: Double): string;
     function Noul(const AState, AInstructions: string): Double;
 
     property LastError: string read FLastError;
-    // Consumo acumulado de este componente desde que se creo o desde ResetUsage
+    // Accumulated usage for this component since it was created or since ResetUsage
     property Usage: TAiJevUsage read GetUsage;
     procedure ResetUsage;
   published
-    // Precios para CostUSD (US$ por millon de tokens)
+    // Prices for CostUSD (US$ per million tokens)
     property PricePerMillionInput: Double read FPricePerMillionInput write FPricePerMillionInput;
     property PricePerMillionOutput: Double read FPricePerMillionOutput write FPricePerMillionOutput;
-    // Una vez por llamada exitosa a la API, con el consumo de esa llamada
+    // Once per successful API call, with the usage for that call
     property OnUsage: TAiJevUsageEvent read FOnUsage write FOnUsage;
-    // '@TYPESAFE_API_KEY' se resuelve con la variable de entorno
+    // '@TYPESAFE_API_KEY' is resolved from the environment variable
     property ApiKey: string read GetApiKey write FApiKey;
     property Model: string read FModel write FModel;
     property Url: string read FUrl write FUrl;
-    // Preguntas definidas en diseno (se usan cuando Ask recibe AQuestions = nil)
+    // Questions defined at design time (used when Ask receives AQuestions = nil)
     property Questions: TAiJevQuestions read FQuestions write SetQuestions;
-    // Reintentos ante 429 / 503 / 529, con espera exponencial desde RetryDelay (ms)
+    // Retries on 429 / 503 / 529, with exponential wait from RetryDelay (ms)
     property MaxRetries: Integer read FMaxRetries write FMaxRetries default 2;
     property RetryDelay: Integer read FRetryDelay write FRetryDelay default 500;
-    // Timeout de conexion y de respuesta (ms)
+    // Connection and response timeout (ms)
     property Timeout: Integer read FTimeout write FTimeout default 30000;
     property OnError: TAiErrorEvent read FOnError write FOnError;
   end;
@@ -272,24 +272,24 @@ const
   JEV_PRICE_PER_MILLION_INPUT = 0.042;
   JEV_DEFAULT_URL = 'https://api.typesafe.ai/v1/';
 
-// True si la Url es la de TypeSafe ('' = la de TypeSafe por defecto)
+// True if Url is TypeSafe's ('' = the TypeSafe default)
 function JevIsTypeSafeUrl(const AUrl: string): Boolean;
 // '' -> JEV_DEFAULT_URL
 function JevUrlOrDefault(const AUrl: string): string;
-// Precio de entrada efectivo: el precio por defecto de TypeSafe no se cobra en
-// otros servidores (Ollama local, etc.); un precio fijado a mano se respeta.
+// Effective input price: the TypeSafe default price is not charged on
+// other servers (local Ollama, etc.); a manually set price is respected.
 function JevEffectiveInputPrice(const AUrl: string; APrice: Double): Double;
-// Igual para un adaptador: la Url que cuenta es la del Jev que realmente usa
-// (el externo si esta asignado, si no la propia del adaptador).
+// Same for an adapter: the Url that counts is the one of the Jev it actually uses
+// (the external one if assigned, otherwise the adapter's own).
 function JevAdapterInputPrice(AExternalJev: TAiJev; const AUrl: string; APrice: Double): Double;
 
-// Cierra una operacion de un adaptador: suma su consumo al total del adaptador
-// y dispara OnUsage (sincrono, en el hilo del llamador) si hubo peticiones.
+// Closes an adapter operation: adds its usage to the adapter total
+// and fires OnUsage (synchronous, on the caller thread) if there were requests.
 procedure JevReportOperation(ASender: TObject; AOperation, ATotal: TAiJevUsageMeter;
   APricePerMillionInput, APricePerMillionOutput: Double; AEvent: TAiJevUsageEvent);
 
-// Igual para una operacion de una sola llamada: suma AResult al total del
-// adaptador y dispara OnUsage con el consumo de esa llamada.
+// Same for a single-call operation: adds AResult to the adapter total
+// and fires OnUsage with the usage for that call.
 procedure JevReportResult(ASender: TObject; AResult: TAiJevResult; ATotal: TAiJevUsageMeter;
   APricePerMillionInput, APricePerMillionOutput: Double; AEvent: TAiJevUsageEvent);
 
@@ -331,7 +331,7 @@ begin
     Result := JevEffectiveInputPrice(JevUrlOrDefault(AUrl), APrice);
 end;
 
-// Formato real de la imagen por sus bytes iniciales: 'png', 'jpeg', 'webp' o ''
+// Actual image format from its leading bytes: 'png', 'jpeg', 'webp', or ''
 function JevImageKind(const AData: TBytes): string;
 begin
   Result := '';
@@ -416,7 +416,7 @@ begin
     AEvent(ASender, U);
 end;
 
-// 'clave=descripcion' -> clave, descripcion. Sin '=' la descripcion queda vacia.
+// 'key=description' -> key, description. Without '=' the description is empty.
 procedure SplitOption(const ALine: string; out AKey, ADesc: string);
 var
   P: Integer;
@@ -516,16 +516,16 @@ var
   Seen: TDictionary<string, Boolean>;
 begin
   if Trim(FName) = '' then
-    raise EAiJevError.Create('Jev: una pregunta no tiene Name');
+    raise EAiJevError.Create('Jev: a question has no Name');
   if Trim(FInstructions) = '' then
-    raise EAiJevError.CreateFmt('Jev: la pregunta "%s" no tiene Instructions', [FName]);
+    raise EAiJevError.CreateFmt('Jev: question "%s" has no Instructions', [FName]);
 
   Lines := CriteriaLines;
   case FKind of
     jqChoice:
       begin
         if (Length(Lines) < 2) or (Length(Lines) > JEV_MAX_CHOICE_OPTIONS) then
-          raise EAiJevError.CreateFmt('Jev: la pregunta "%s" tiene %d opciones; un Choice admite de 2 a %d',
+          raise EAiJevError.CreateFmt('Jev: question "%s" has %d options; a Choice allows 2 to %d',
             [FName, Length(Lines), JEV_MAX_CHOICE_OPTIONS]);
         Seen := TDictionary<string, Boolean>.Create;
         try
@@ -533,9 +533,9 @@ begin
           begin
             SplitOption(Line, Key, Desc);
             if Key = '' then
-              raise EAiJevError.CreateFmt('Jev: la pregunta "%s" tiene una opcion sin clave: "%s"', [FName, Line]);
+              raise EAiJevError.CreateFmt('Jev: question "%s" has an option with no key: "%s"', [FName, Line]);
             if Seen.ContainsKey(Key) then
-              raise EAiJevError.CreateFmt('Jev: la pregunta "%s" repite la opcion "%s"', [FName, Key]);
+              raise EAiJevError.CreateFmt('Jev: question "%s" repeats option "%s"', [FName, Key]);
             Seen.Add(Key, True);
           end;
         finally
@@ -544,10 +544,10 @@ begin
       end;
     jqScore:
       if (Length(Lines) < JEV_MIN_SCORE_LEVELS) or (Length(Lines) > JEV_MAX_SCORE_LEVELS) then
-        raise EAiJevError.CreateFmt('Jev: la pregunta "%s" tiene %d niveles; un Score admite de %d a %d',
+        raise EAiJevError.CreateFmt('Jev: question "%s" has %d levels; a Score allows %d to %d',
           [FName, Length(Lines), JEV_MIN_SCORE_LEVELS, JEV_MAX_SCORE_LEVELS]);
     jqNoul:
-      ; // criteria opcional
+      ; // optional criteria
   end;
 end;
 
@@ -683,14 +683,14 @@ var
   Seen: TDictionary<string, Boolean>;
 begin
   if Count = 0 then
-    raise EAiJevError.Create('Jev: no hay preguntas');
+    raise EAiJevError.Create('Jev: there are no questions');
   Seen := TDictionary<string, Boolean>.Create;
   try
     for i := 0 to Count - 1 do
     begin
       Items[i].Validate;
       if Seen.ContainsKey(Items[i].Name) then
-        raise EAiJevError.CreateFmt('Jev: el nombre de pregunta "%s" esta repetido', [Items[i].Name]);
+        raise EAiJevError.CreateFmt('Jev: question name "%s" is repeated', [Items[i].Name]);
       Seen.Add(Items[i].Name, True);
     end;
   finally
@@ -758,7 +758,7 @@ end;
 function TAiJevResult.GetAnswer(const AName: string): TAiJevAnswer;
 begin
   if not FAnswers.TryGetValue(AName, Result) then
-    raise EAiJevError.CreateFmt('Jev: no hay respuesta para la pregunta "%s"', [AName]);
+    raise EAiJevError.CreateFmt('Jev: no answer for question "%s"', [AName]);
 end;
 
 function TAiJevResult.GetCount: Integer;
@@ -782,10 +782,10 @@ begin
   Root := TJSONObject.ParseJSONValue(AJson);
   try
     if not (Root is TJSONObject) then
-      raise EAiJevError.Create('Jev: la respuesta no es un objeto JSON');
+      raise EAiJevError.Create('Jev: the response is not a JSON object');
     Obj := TJSONObject(Root);
     if not Obj.TryGetValue<TJSONObject>('answers', Answers) then
-      raise EAiJevError.Create('Jev: la respuesta no trae "answers"');
+      raise EAiJevError.Create('Jev: the response does not include "answers"');
 
     Result := TAiJevResult.Create;
     try
@@ -823,7 +823,7 @@ begin
           A.TryGetValue<Double>('noul', Ans.FNoul);
         end
         else
-          raise EAiJevError.CreateFmt('Jev: tipo de respuesta desconocido "%s" en "%s"', [Kind, Ans.FName]);
+          raise EAiJevError.CreateFmt('Jev: unknown response type "%s" in "%s"', [Kind, Ans.FName]);
 
         A.TryGetValue<Double>('confidence', Ans.FConfidence);
         if A.TryGetValue<TJSONObject>('probabilities', Probs) then
@@ -904,11 +904,11 @@ var
   i: Integer;
 begin
   if AState = nil then
-    raise EAiJevError.Create('Jev: el state no puede ser nil');
+    raise EAiJevError.Create('Jev: state cannot be nil');
   AQuestions.Validate;
 
-  // Imagenes: base64 crudo (sin data URL ni saltos de linea), solo PNG, JPEG
-  // o WebP; se valida por los bytes, no por la extension del archivo
+  // Images: raw base64 (no data URL or line breaks), only PNG, JPEG
+  // or WebP; validated by the bytes, not by the file extension
   SetLength(Encoded, Length(AImages));
   if Length(AImages) > 0 then
   begin
@@ -917,12 +917,12 @@ begin
       for i := 0 to High(AImages) do
       begin
         if (AImages[i] = nil) or (AImages[i].Content = nil) or (AImages[i].Content.Size = 0) then
-          raise EAiJevError.CreateFmt('Jev: la imagen %d esta vacia', [i + 1]);
+          raise EAiJevError.CreateFmt('Jev: image %d is empty', [i + 1]);
         SetLength(Data, AImages[i].Content.Size);
         AImages[i].Content.Position := 0;
         AImages[i].Content.ReadBuffer(Data[0], Length(Data));
         if JevImageKind(Data) = '' then
-          raise EAiJevError.CreateFmt('Jev: la imagen %d ("%s") no es PNG, JPEG ni WebP',
+          raise EAiJevError.CreateFmt('Jev: image %d ("%s") is not PNG, JPEG, or WebP',
             [i + 1, AImages[i].filename]);
         Encoded[i] := B64.EncodeBytesToString(Data);
       end;
@@ -966,7 +966,7 @@ begin
     HTTP.ConnectionTimeout := FTimeout;
     HTTP.ResponseTimeout := FTimeout;
     HTTP.ContentType := 'application/json';
-    // UTF-8 explicito: con la codificacion por defecto la API rechaza tildes y signos (400)
+    // Explicit UTF-8: with the default encoding the API rejects accents and symbols (400)
     Body := TStringStream.Create(ABody, TEncoding.UTF8);
     try
       Resp := HTTP.Post(FUrl + 'systemone', Body, nil,
@@ -1029,7 +1029,7 @@ begin
     if JevIsTypeSafeUrl(FUrl) then
       AiSpanAttr(Span, 'gen_ai.system', 'typesafe')
     else
-      AiSpanAttr(Span, 'gen_ai.system', 'systemone'); // Ollama u otro servidor
+      AiSpanAttr(Span, 'gen_ai.system', 'systemone'); // Ollama or another server
     AiSpanAttr(Span, 'gen_ai.request.model', FModel);
     AiSpanAttr(Span, 'jev.questions', Int64(AQuestions.Count));
     AiSpanAttr(Span, 'jev.images', Int64(Length(AImages)));
@@ -1044,7 +1044,7 @@ begin
     Attempt := 0;
     repeat
       Status := DoPost(Body, Resp);
-      // 429 rate limit, 529 sobrecarga (docs), 503 no disponible: transitorios
+      // 429 rate limit, 529 overload (docs), 503 unavailable: transient
       if not ((Status = 429) or (Status = 503) or (Status = 529)) or (Attempt >= FMaxRetries) then
         Break;
       Inc(Attempt);

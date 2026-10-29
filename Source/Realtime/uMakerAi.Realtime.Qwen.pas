@@ -1,31 +1,31 @@
-﻿// MakerAI Suite — Drivers realtime de Qwen (Alibaba Model Studio / DashScope)
-// wss://dashscope-intl.aliyuncs.com/api-ws/v1/realtime?model=<modelo>
-// Protocolo compatible con OpenAI Realtime (eventos beta: response.audio.delta,
+﻿// MakerAI Suite — Qwen Realtime Drivers (Alibaba Model Studio / DashScope)
+// wss://dashscope-intl.aliyuncs.com/api-ws/v1/realtime?model=<model>
+// Protocol compatible with OpenAI Realtime (beta events: response.audio.delta,
 // response.audio_transcript.*). Auth: Authorization: Bearer (@DASHSCOPE_API_KEY).
 //
-// Tres drivers, registrados en TAiRealtimeFactory (usables tal cual desde
-// TAiRealtimeConnection con DriverName):
-//   'Qwen'          TAiQwenRealtimeChat       voz a voz (omni): STT + LLM + TTS
-//   'QwenSTT'       TAiQwenRealtimeSTT        transcripcion en vivo (asr)
-//   'QwenTranslate' TAiQwenRealtimeTranslate  traduccion simultanea con voz
+// Three drivers, registered in TAiRealtimeFactory (usable directly from
+// TAiRealtimeConnection with DriverName):
+//   'Qwen'          TAiQwenRealtimeChat       voice to voice (omni): STT + LLM + TTS
+//   'QwenSTT'       TAiQwenRealtimeSTT        live transcription (asr)
+//   'QwenTranslate' TAiQwenRealtimeTranslate  simultaneous translation with voice
 //
-// Audio: entrada PCM16 mono 16 kHz (todos los modelos); salida PCM16 24 kHz.
+// Audio: input PCM16 mono 16 kHz (all models); output PCM16 24 kHz.
 //
-// Diferencias que normaliza el driver (verificadas en vivo, sep 2026):
-//   - La transcripcion del usuario llega en tres formas segun el modelo:
-//       omni:      ...transcription.delta con text='' y stash=texto acumulado
-//       asr:       ...transcription.text  con text=confirmado + stash=pendiente
-//       translate: ...transcription.delta con delta incremental
-//     Todo se convierte a la semantica de OnTranscriptDelta (incremental; si el
-//     servidor reescribe el comienzo se emite el texto completo, igual que Grok).
-//   - Cada modelo tiene su voz por defecto (qwen3.8-omni: Tina; qwen3-omni: Cherry)
-//     y rechaza voces ajenas con un error. Voice vacia = la del servidor, salvo en
-//     traduccion: si session.update no trae voz el servidor cae a una invalida
-//     (Chelsie), por eso QwenTranslate manda Tina por defecto.
-//   - VAD: server_vad (rvmSemanticVad se mapea a server_vad); rvmManual envia
-//     turn_detection null y requiere CommitAudio + CreateResponse.
+// Differences normalized by the driver (verified live, sep 2026):
+//   - User transcription arrives in three forms depending on the model:
+//       omni:      ...transcription.delta with text='' and stash=accumulated text
+//       asr:       ...transcription.text  with text=confirmed + stash=pending
+//       translate: ...transcription.delta with incremental delta
+//     Everything is converted to OnTranscriptDelta semantics (incremental; if the
+//     server rewrites the beginning the full text is emitted, same as Grok).
+//   - Each model has its default voice (qwen3.8-omni: Tina; qwen3-omni: Cherry)
+//     and rejects foreign voices with an error. Empty voice = server default, except in
+//     translation: if session.update does not include voice the server falls to an invalid
+//     one (Chelsie), so QwenTranslate sends Tina by default.
+//   - VAD: server_vad (rvmSemanticVad maps to server_vad); rvmManual sends
+//     turn_detection null and requires CommitAudio + CreateResponse.
 //
-// Autor: Gustavo Enriquez
+// Author: Gustavo Enriquez
 // Email: gustavoeenriquez@gmail.com
 
 unit uMakerAi.Realtime.Qwen;
@@ -37,7 +37,7 @@ uses
   uMakerAi.Realtime, uMakerAi.Realtime.WebSocket, uMakerAi.WebSocket.Client;
 
 type
-  // Base comun: WebSocket, sesion y traduccion de eventos del servidor
+  // Common base: WebSocket, session and translation of server events
   TAiQwenRealtimeBase = class(TAiRealtimeVoiceBase)
   private
     FWebSocket:         TAiRealtimeWSClient;
@@ -45,11 +45,11 @@ type
     FSessionConfigured: Boolean;
     FUrl:               string;
     FVoice:             string;
-    FB64:               TBase64Encoding; // sin saltos de linea
-    // Transcripcion acumulada -> deltas
+    FB64:               TBase64Encoding; // without line breaks
+    // Accumulated transcription -> deltas
     FLastItemId:     string;
     FLastTranscript: string;
-    // Texto del asistente en el turno actual
+    // Assistant text in current turn
     FAssistantText:  string;
     procedure OnWSFrame(Sender: TObject; Opcode: TAiRealtimeWSOpcode;
       const Data: TBytes; IsFinal: Boolean);
@@ -59,9 +59,9 @@ type
     procedure SendJson(AObj: TJSONObject);
     procedure EmitCumulative(const ItemId, Full: string);
   protected
-    FInstructions: string; // publicado solo en el driver de conversacion
+    FInstructions: string; // published only in the conversation driver
     function  VADObject: TJSONValue;
-    // Cuerpo de 'session' en session.update; cada driver agrega lo suyo
+    // Body of 'session' in session.update; each driver adds its own
     function  BuildSession: TJSONObject; virtual; abstract;
     function  GetTargetSampleRate: Integer; override;
     procedure InternalSendAudio(const ResampledPCM16: TBytes); override;
@@ -69,26 +69,26 @@ type
     procedure InternalDisconnect; override;
     procedure InternalCommitAudio; override;
     procedure InternalClearAudio;  override;
-    // Procesa un evento JSON del servidor (protegido: la suite lo alimenta sin red)
+    // Process a JSON event from the server (protected: the suite feeds it without red)
     procedure ProcessServerEvent(const JObj: TJSONObject); virtual;
-    // Mensaje session.update completo (protegido: la suite lo inspecciona)
+    // Full session.update message (protected: the suite inspects it)
     function  BuildSessionUpdate: TJSONObject;
   public
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
-    // El callback de WaveIn no puede tocar sockets: el envio se encola al hilo principal
+    // WaveIn callback cannot touch sockets: sending is queued to the main thread
     procedure SendAudioChunk(const PCM16Data: TBytes); override;
-    // Pide una respuesta (response.create). Necesario con VADMode = rvmManual
-    // despues de CommitAudio, o tras enviar audio de un archivo en rafaga.
+    // Request a response (response.create). Needed with VADMode = rvmManual
+    // after CommitAudio, or after sending audio from a file in a burst.
     procedure CreateResponse;
   published
-    // Endpoint base (otra region: wss://dashscope.aliyuncs.com/api-ws/v1/realtime)
+    // Base endpoint (other region: wss://dashscope.aliyuncs.com/api-ws/v1/realtime)
     property Url: string read FUrl write FUrl;
-    // Voz del TTS; vacia = la del servidor para el modelo
+    // TTS voice; empty = server default for the model
     property Voice: string read FVoice write FVoice;
   end;
 
-  // 'Qwen' — conversacion de voz (omni realtime)
+  // 'Qwen' — voice conversation (omni realtime)
   TAiQwenRealtimeChat = class(TAiQwenRealtimeBase)
   protected
     function BuildSession: TJSONObject; override;
@@ -96,11 +96,11 @@ type
     class function GetDriverName:   string; override;
     class function GetDefaultModel: string; override;
   published
-    // System prompt de la sesion
+    // Session system prompt
     property Instructions: string read FInstructions write FInstructions;
   end;
 
-  // 'QwenSTT' — transcripcion en vivo (qwen3-asr-flash-realtime)
+  // 'QwenSTT' — live transcription (qwen3-asr-flash-realtime)
   TAiQwenRealtimeSTT = class(TAiQwenRealtimeBase)
   protected
     function BuildSession: TJSONObject; override;
@@ -109,8 +109,8 @@ type
     class function GetDefaultModel: string; override;
   end;
 
-  // 'QwenTranslate' — traduccion simultanea: OnTranscriptDelta/Completed = idioma
-  // origen; OnAssistantTextDelta/Text = traduccion; OnAudioChunk = voz traducida
+  // 'QwenTranslate' — simultaneous translation: OnTranscriptDelta/Completed = source
+  // language; OnAssistantTextDelta/Text = translation; OnAudioChunk = translated voice
   TAiQwenRealtimeTranslate = class(TAiQwenRealtimeBase)
   private
     FTargetLanguage: string;
@@ -121,7 +121,7 @@ type
     class function GetDriverName:   string; override;
     class function GetDefaultModel: string; override;
   published
-    // Idioma destino ('en', 'es', 'zh', 'ja'...)
+    // Target language ('en', 'es', 'zh', 'ja'...)
     property TargetLanguage: string read FTargetLanguage write FTargetLanguage;
   end;
 
@@ -171,7 +171,7 @@ end;
 
 function TAiQwenRealtimeBase.GetTargetSampleRate: Integer;
 begin
-  Result := 16000; // entrada de todos los modelos realtime de Qwen
+  Result := 16000; // input for all Qwen realtime models
 end;
 
 procedure TAiQwenRealtimeBase.SendJson(AObj: TJSONObject);
@@ -218,7 +218,7 @@ begin
   if Full.StartsWith(FLastTranscript) then
     Delta := Copy(Full, Length(FLastTranscript) + 1, MaxInt)
   else
-    Delta := Full; // el servidor reescribio el comienzo: se emite completo
+    Delta := Full; // server rewrote the beginning: emit full text
   FLastTranscript := Full;
   if Delta <> '' then
     DoTranscriptDelta(Delta);
@@ -260,8 +260,8 @@ begin
     DoSpeechStopped(AudioMs, ItemId);
   end
 
-  // Transcripcion parcial del usuario: delta incremental (traduccion) o
-  // text + stash acumulados (omni, asr)
+  // Partial user transcription: incremental delta (translation) or
+  // text + stash accumulated (omni, asr)
   else if (EventType = 'conversation.item.input_audio_transcription.delta') or
           (EventType = 'conversation.item.input_audio_transcription.text') then
   begin
@@ -305,7 +305,7 @@ begin
   else if (EventType = 'response.audio_transcript.done') or (EventType = 'response.text.done') or
           (EventType = 'response.output_audio_transcript.done') then
   begin
-    // Texto completo autoritativo del turno
+    // Authoritative full text of the turn
     Transcript := JObj.GetValue<string>('transcript', JObj.GetValue<string>('text', ''));
     if Transcript <> '' then
       FAssistantText := Transcript;
@@ -328,7 +328,7 @@ begin
 
   else if EventType = 'error' then
   begin
-    ErrMsg := 'Error desconocido';
+    ErrMsg := 'Unknown error';
     ErrCode := '';
     if JObj.TryGetValue<TJSONObject>('error', JError) then
     begin
@@ -341,7 +341,7 @@ end;
 
 procedure TAiQwenRealtimeBase.OnWSConnected(Sender: TObject);
 begin
-  // session.update se envia al llegar session.created
+  // session.update is sent upon receiving session.created
   DoConnected;
 end;
 
@@ -395,7 +395,7 @@ procedure TAiQwenRealtimeBase.InternalConnect;
 var
   LUrl: string;
 begin
-  // TAiRealtimeConnection copia su ApiKey/Model aunque esten vacios
+  // TAiRealtimeConnection copies its ApiKey/Model even if they are empty
   if ApiKey = '' then
     ApiKey := '@DASHSCOPE_API_KEY';
   FWebSocket.ExtraHeaders.Values['Authorization'] := 'Bearer ' + ResolvedApiKey;
@@ -404,7 +404,7 @@ begin
   LUrl := FUrl + '?model=' + Model;
   FConnectThread := TThread.CreateAnonymousThread(procedure begin
     if not FWebSocket.Connect(LUrl) then
-      DoError('No se pudo conectar al servidor realtime de Qwen', 'connection_failed');
+      DoError('Could not connect to the Qwen realtime server', 'connection_failed');
   end);
   FConnectThread.FreeOnTerminate := False;
   FConnectThread.Start;
@@ -430,8 +430,8 @@ begin
   if Length(ResampledPCM16) = 0 then Exit;
   J := TJSONObject.Create;
   J.AddPair('type', 'input_audio_buffer.append');
-  // Base64 SIN saltos de linea: TNetEncoding.Base64 corta cada 76 caracteres y
-  // DashScope responde "Illegal base64 character d" (xAI y OpenAI si los toleran)
+  // Base64 WITHOUT line breaks: TNetEncoding.Base64 breaks every 76 characters and
+  // DashScope responds "Illegal base64 character d" (xAI and OpenAI tolerate them)
   J.AddPair('audio', FB64.EncodeBytesToString(ResampledPCM16));
   SendJson(J);
 end;
@@ -553,7 +553,7 @@ begin
   jTr := TJSONObject.Create;
   jTr.AddPair('language', FTargetLanguage);
   Result.AddPair('translation', jTr);
-  // Sin voz explicita el servidor cae a Chelsie, que este modelo rechaza
+  // Without explicit voice the server falls to Chelsie, which this model rejects
   if Voice <> '' then
     Result.AddPair('voice', Voice)
   else

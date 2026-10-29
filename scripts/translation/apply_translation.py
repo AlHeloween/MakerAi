@@ -12,24 +12,26 @@ from check_edit_skeleton import skeleton  # noqa: E402
 
 def clean(text):
     lines = text.split('\n')
-    if lines and lines[0].strip().startswith('```'):
+    while lines and lines[0].strip() == '':
         lines = lines[1:]
-    if lines and lines[0].strip().startswith('--- BEGIN FILE'):
-        lines = lines[1:]
-    while lines and lines[0].strip().strip('-=').strip() == '':
-        lines = lines[1:]
+    while lines:
+        s = lines[0].strip()
+        if s.startswith('```') or s.startswith('---') or s.upper().startswith('BEGIN FILE'):
+            lines = lines[1:]
+            while lines and lines[0].strip() == '':
+                lines = lines[1:]
+            continue
+        break
     while lines and lines[-1].strip() == '':
         lines.pop()
-    if lines and lines[-1].strip().startswith('```'):
-        lines = lines[:-1]
-        while lines and lines[-1].strip() == '':
-            lines.pop()
-    if lines and lines[-1].strip().startswith('--- END FILE'):
-        lines = lines[:-1]
-    while lines and lines[-1].strip().strip('-=').strip() == '':
-        lines = lines[:-1]
-    while lines and lines[-1].strip() == '':
-        lines.pop()
+    while lines:
+        s = lines[-1].strip()
+        if s.startswith('```') or s.upper().startswith('END FILE') or s.strip('-=').strip() == '':
+            lines = lines[:-1]
+            while lines and lines[-1].strip() == '':
+                lines.pop()
+            continue
+        break
     return '\n'.join(lines) + '\n'
 
 

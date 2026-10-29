@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Name: Gustavo Enr?quez
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -42,10 +42,10 @@ uses
 
 implementation
 
-// Estos imports activan los initialization de cada driver de Chat,
-// que registran tanto TAiChatFactory (chat) como TAiEmbeddingFactory (embeddings).
-// Centralizado aquí para que cualquier app que use uMakerAi.Chat.Initializations
-// tenga todos los drivers disponibles automáticamente.
+// These imports activate the initialization of each Chat driver,
+// which register both TAiChatFactory (chat) and TAiEmbeddingFactory (embeddings).
+// Centralized here so that any app using uMakerAi.Chat.Initializations
+// has all drivers available automatically.
 uses
   uMakerAi.Chat.OpenAi,
   uMakerAi.Chat.Claude,
@@ -62,7 +62,7 @@ uses
   uMakerAi.Chat.LMStudio,
   uMakerAi.Chat.GenericLLM,
   uMakerAi.Chat.MakerAi,
-  // uMakerAi.Chat.Llamacpp,      // Solo demos — requiere makerai.gen.dll (Windows)
+  // uMakerAi.Chat.Llamacpp,      // Demos only — requires makerai.gen.dll (Windows)
   uMakerAi.Embeddings.OpenAi,
   uMakerAi.Embeddings.Gemini,
   uMakerAi.Embeddings.Ollama,
@@ -71,7 +71,7 @@ uses
   uMakerAi.Embeddings.Cohere,
   uMakerAi.Embeddings.LMStudio,
   uMakerAi.Embeddings.Generic;
-  // uMakerAi.Embeddings.Llamacpp; // Solo demos — requiere makerai.gen.dll (Windows)
+  // uMakerAi.Embeddings.Llamacpp; // Demos only — requires makerai.gen.dll (Windows)
 
 Procedure InitChatModels;
 Var
@@ -80,11 +80,11 @@ Begin
 
 
   // ===================================================================
-  // CONFIGURACION GLOBAL DE OLLAMA
+  // GLOBAL CONFIGURATION FOR OLLAMA
   // https://ollama.com/library
   // Ultima actualizacion: May 2026
   // ===================================================================
-  // Por defecto: texto puro, sin tools nativos (conservador)
+  // Default: plain text, no native tools (conservative)
   TAiChatFactory.Instance.RegisterUserParam('Ollama', 'Max_Tokens',   '8000');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', 'Temperature',  '0.7');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', 'Asynchronous', 'True');
@@ -92,22 +92,22 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Ollama', 'ModelCaps',    '[]');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', 'SessionCaps',  '[]');
 
-  // ------- Llama 3.3 (texto + tools, 128K ctx) ------
+  // ------- Llama 3.3 (text + tools, 128K ctx) ------
   Model := 'llama3.3:latest';
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'Tool_Active', 'True');
 
-  // ------- Qwen 2.5 (texto + tools, 128K ctx) ------
+  // ------- Qwen 2.5 (text + tools, 128K ctx) ------
   Model := 'qwen2.5:latest';
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'Tool_Active', 'True');
 
-  // ------- Qwen3 (texto + tools + reasoning, 128K ctx) ------
+  // ------- Qwen3 (text + tools + reasoning, 128K ctx) ------
   Model := 'qwen3:latest';
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'Tool_Active',   'True');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'ModelCaps',    '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'SessionCaps',  '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'ThinkingLevel', 'tlMedium');
 
-  // ------- DeepSeek R1 (reasoning via <think>, sin tools) ------
+  // ------- DeepSeek R1 (reasoning via <think>, without tools) ------
   Model := 'deepseek-r1:latest';
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'ModelCaps',    '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'SessionCaps',  '[cap_Reasoning]');
@@ -118,14 +118,14 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'ModelCaps',   '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'SessionCaps', '[cap_Image]');
 
-  // ------- Qwen 2.5 VL (vision avanzada + tools, 128K ctx) ------
+  // ------- Qwen 2.5 VL (advanced vision + tools, 128K ctx) ------
   Model := 'qwen2.5vl:latest';
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'ModelCaps',   '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'SessionCaps', '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'Tool_Active', 'True');
 
-  // ------- Gemma 3 (vision + tools, tamanios: 1b/4b/12b/27b) ------
-  // Todos los tamanios comparten las mismas capacidades
+  // ------- Gemma 3 (vision + tools, sizes: 1b/4b/12b/27b) ------
+  // All sizes share the same capabilities
   Model := 'gemma3:1b';  // = gemma3:4b
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'ModelCaps',   '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'SessionCaps', '[cap_Image]');
@@ -146,8 +146,8 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'SessionCaps', '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('Ollama', Model, 'Tool_Active', 'False');
 
-  // ------- Gemma 4 (vision + audio + reasoning nativo, tamaños: e4b / 4b / 12b / 27b) ------
-  // gemma4 soporta imagen, audio y reasoning de forma nativa.
+  // ------- Gemma 4 (vision + audio + native reasoning, sizes: e4b / 4b / 12b / 27b) ------
+  // gemma4 supports image, audio and reasoning natively.
   for Model in ['gemma4', 'gemma4:latest',
                 'gemma4:e2b', 'gemma4:e4b',
                 'gemma4:4b',  'gemma4:12b', 'gemma4:27b'] do
@@ -164,14 +164,14 @@ Begin
   // Ultima actualizacion: May 2026
   // ------------------------- OPENAI ----------------------------------
 
-  // --- Valores globales por defecto para todos los modelos OpenAI ---
+  // --- Default global values for all OpenAI models ---
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', 'Max_Tokens', '16000');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', 'Tool_Active', 'True');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', 'Temperature', '1');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', 'ModelCaps',   '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', 'SessionCaps', '[cap_Image]');
 
-  // deprecated feb 2026 — mantenidos por backward compatibility
+  // deprecated Feb 2026 — kept for backward compatibility
   // ------- GPT-4.1 (Apr 2025) -- 1M ctx, 32K output, vision + tools ------
   // https://platform.openai.com/docs/models/gpt-4.1
   Model := 'gpt-4.1';
@@ -201,7 +201,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ModelCaps',   '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'SessionCaps', '[cap_Image]');
 
-  // ------- Razonamiento: o3 / o4-mini -- 200K ctx, 100K output ------
+  // ------- Reasoning: o3 / o4-mini -- 200K ctx, 100K output ------
   // https://platform.openai.com/docs/models/o3
   Model := 'o3';
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Max_Tokens',    '100000');
@@ -222,7 +222,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'SessionCaps',  '[cap_Image, cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ThinkingLevel', 'tlMedium');
 
-  // ------- Deep Research -- tiempo de respuesta extendido ------
+  // ------- Deep Research -- extended response time ------
   Model := 'o3-deep-research';
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Max_Tokens',    '100000');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ModelCaps',    '[cap_Reasoning, cap_WebSearch, cap_CodeInterpreter]');
@@ -235,9 +235,9 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'SessionCaps',  '[cap_Reasoning, cap_WebSearch, cap_CodeInterpreter]');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ResponseTimeOut', '120000');
 
-  // ------- Busqueda web nativa via Responses API ------
-  // Nota: gpt-4o-search-preview solo funciona via Chat Completions API (no Responses API)
-  // Para Responses API usar gpt-4.1 + tool web_search (recomendado)
+  // ------- Native web search via Responses API ------
+  // Note: gpt-4o-search-preview only works via Chat Completions API (not Responses API)
+  // For Responses API use gpt-4.1 + tool web_search (recommended)
   TAiChatFactory.Instance.RegisterCustomModel('OpenAi', 'aa_gpt-4.1-web-search', 'gpt-4.1');
   Model := 'aa_gpt-4.1-web-search';
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Max_Tokens',   '32768');
@@ -245,7 +245,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'SessionCaps', '[cap_Image, cap_WebSearch]');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Tool_Active', 'False');
 
-  // Legacy Chat Completions search models (pueden no funcionar via Responses API)
+  // Legacy Chat Completions search models (may not work via Responses API)
   Model := 'gpt-4o-search-preview';
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ModelCaps',   '[cap_WebSearch]');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'SessionCaps', '[cap_WebSearch]');
@@ -256,10 +256,10 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'SessionCaps', '[cap_WebSearch]');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Tool_Active', 'False');
 
-  // ------- Familia GPT-5 (2026) ------
+  // ------- GPT-5 family (2026) ------
   // https://platform.openai.com/docs/models/gpt-5
 
-  // --- GPT-5.4 (May 2026) -- 1M ctx, vision + tools, produccion estandar ---
+  // --- GPT-5.4 (May 2026) -- 1M ctx, vision + tools, standard production ---
   Model := 'gpt-5.4';
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Max_Tokens',   '32768');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ModelCaps',   '[cap_Image]');
@@ -272,9 +272,9 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'SessionCaps', '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Tool_Active', 'True');
 
-  // --- GPT-5.5 (Abr 2026) -- 1M ctx, reasoning + vision + tools + computer use ---
+  // --- GPT-5.5 (Apr 2026) -- 1M ctx, reasoning + vision + tools + computer use ---
   // https://platform.openai.com/docs/models/gpt-5.5
-  // reasoning.effort mapeado desde ThinkingLevel via Responses API
+  // reasoning.effort mapped from ThinkingLevel via Responses API
   Model := 'gpt-5.5';
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Max_Tokens',    '32768');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ModelCaps',    '[cap_Image, cap_Reasoning]');
@@ -290,9 +290,9 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ThinkingLevel', 'tlHigh');
 
   // --- GPT-5.6 Sol/Terra/Luna (Jul 2026) -- 1.05M ctx, 128K out ---
-  // Toda la familia: vision + reasoning + tools + prompt caching.
-  // Sol = flagship; Terra = balance costo/capacidad; Luna = tier economico.
-  // El alias 'gpt-5.6' enruta a Sol en el API.
+  // The whole family: vision + reasoning + tools + prompt caching.
+  // Sol = flagship; Terra = cost/capability balance; Luna = economical tier.
+  // The alias 'gpt-5.6' routes to Sol in the API.
   for Model in ['gpt-5.6', 'gpt-5.6-sol'] do
   begin
     TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Max_Tokens',    '32768');
@@ -316,23 +316,23 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Tool_Active',  'True');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ThinkingLevel', 'tlLow');
 
-  // --- GPT-6 Astra (ago 27/2026) -- 1.05M ctx (272K sin recargo), 128K out ---
+  // --- GPT-6 Astra (Aug 27/2026) -- 1.05M ctx (272K without surcharge), 128K out ---
   // https://developers.openai.com/api/docs/models/gpt-6-astra
-  // Vision + reasoning + tools. $10/$50 por 1M ($1 cached). Por encima de 272K
-  // tokens de entrada el input se cobra 2x y el output 1.5x.
+  // Vision + reasoning + tools. $10/$50 per 1M ($1 cached). Above 272K
+  // input tokens are charged 2x and output 1.5x.
   //
-  // COMPUTER USE: astra trae el tool nativo 'computer' (sustituye al modelo
-  // dedicado computer-use-preview, apagado el 23-jul-2026). NO se activa por
-  // defecto: cap_ComputerUse le da al modelo el raton y el teclado de la
-  // maquina, asi que es opt-in explicito (mismo criterio que Claude y que
-  // gemini-3.5-flash). Para habilitarlo, sobreescribir en la app:
+  // COMPUTER USE: astra brings the native 'computer' tool (replaces the
+  // dedicated computer-use-preview, shut down on 23-Jul-2026). It is NOT enabled by
+  // default: cap_ComputerUse gives the model the mouse and keyboard of the
+  // machine, so it is explicit opt-in (same criterion as Claude and as
+  // gemini-3.5-flash). To enable it, override in the app:
   //   TAiChatFactory.Instance.RegisterUserParam('OpenAi', 'gpt-6-astra',
   //     'ModelCaps',   '[cap_Image, cap_Reasoning, cap_ComputerUse]');
   //   TAiChatFactory.Instance.RegisterUserParam('OpenAi', 'gpt-6-astra',
   //     'SessionCaps', '[cap_Image, cap_Reasoning, cap_ComputerUse]');
   //
-  // Effort: la familia GPT-6 acepta none/low/medium/high/xhigh/max; desde
-  // v3.8 TAiThinkingLevel los expresa todos (tlXHigh/tlMax).
+  // Effort: the GPT-6 family accepts none/low/medium/high/xhigh/max; starting
+  // v3.8 TAiThinkingLevel expresses them all (tlXHigh/tlMax).
   Model := 'gpt-6-astra';
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Max_Tokens',    '32768');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ModelCaps',    '[cap_Image, cap_Reasoning]');
@@ -340,14 +340,14 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Tool_Active',  'True');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ThinkingLevel', 'tlHigh');
 
-  // --- GPT-6 Sol / Luna (sep 2026) -- 1.05M ctx, 128K out, texto + imagen ---
+  // --- GPT-6 Sol / Luna (Sep 2026) -- 1.05M ctx, 128K out, text + image ---
   // https://developers.openai.com/api/docs/models/gpt-6-sol (y gpt-6-luna)
-  // Revisado sep 29/2026 contra la doc oficial. Ambos: reasoning.effort
+  // Reviewed Sep 29/2026 against the official docs. Both: reasoning.effort
   // none..max (default medium), function calling, web/file search, code
-  // interpreter, computer use, structured outputs y prompt caching. Por
-  // encima de 272K de entrada: input 2x y output 1.5x.
-  // Sol: codigo y agentes, $2/$10 ($0.2 cached) -- DEFAULT DEL DRIVER desde
-  //      v3.8 (sucesor natural de gpt-5.1 en la misma franja de precio).
+  // interpreter, computer use, structured outputs and prompt caching. For
+  // above 272K input: input 2x and output 1.5x.
+  // Sol: code and agents, $2/$10 ($0.2 cached) -- DRIVER DEFAULT since
+  //      v3.8 (natural successor to gpt-5.1 in the same price band).
   Model := 'gpt-6-sol';
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Max_Tokens',    '32768');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ModelCaps',    '[cap_Image, cap_Reasoning]');
@@ -355,9 +355,9 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Tool_Active',  'True');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ThinkingLevel', 'tlMedium');
 
-  // Luna: alto volumen y tareas acotadas, $0.10/$0.50 ($0.01 cached). OJO: por
-  // Chat Completions solo acepta function calling con reasoning_effort=none
-  // (el driver usa Responses API, donde no hay esa restriccion).
+  // Luna: high volume and bounded tasks, $0.10/$0.50 ($0.01 cached). WARNING: via
+  // Chat Completions only accepts function calling with reasoning_effort=none
+  // (the driver uses Responses API, where there is no such restriction).
   Model := 'gpt-6-luna';
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Max_Tokens',    '32768');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ModelCaps',    '[cap_Image, cap_Reasoning]');
@@ -368,9 +368,9 @@ Begin
   // ------- Generacion de imagenes ------
   // https://platform.openai.com/docs/guides/images
   // ModelCaps=[]: usa endpoint dedicado; Gap=[cap_GenImage] activa InternalRunImageGeneration
-  // Familia gpt-image-2.5 (sep 2026): flare = rapido y de alta calidad,
-  // sunburst = premium para edicion fina. Ambos con fondo transparente real
-  // y calidad xhigh/max. Endpoints: /images/generations y /images/edits.
+  // gpt-image-2.5 family (Sep 2026): flare = fast and high quality,
+  // sunburst = premium for fine editing. Both with real transparent background
+  // and xhigh/max quality. Endpoints: /images/generations and /images/edits.
   for Model in ['gpt-image-2.5-flare', 'gpt-image-2.5-flare-2026-09-08',
                 'gpt-image-2.5-sunburst', 'gpt-image-2.5-sunburst-2026-09-08'] do
   begin
@@ -392,8 +392,8 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Tool_Active',    'False');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ResponseTimeOut', '36000');
 
-  // DEPRECADOS por OpenAI (may 2026): se mantienen registrados mientras el
-  // API los acepte, pero para proyectos nuevos usar gpt-image-1/1.5/2
+  // DEPRECATED by OpenAI (May 2026): they remain registered while the
+  // API accepts them, but for new projects use gpt-image-1/1.5/2
   Model := 'dall-e-3';
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ModelCaps',   '[]');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'SessionCaps', '[cap_GenImage]');
@@ -410,9 +410,9 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Tool_Active',     'False');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ResponseTimeOut', '36000');
 
-  // Resto de la familia gpt-image visible en /v1/models (jul 2026). Sin estas
-  // entradas heredan los defaults del driver (ModelCaps=[cap_Image]) -> gap
-  // vacio -> la peticion sale por /responses -> "model was not found".
+  // Rest of the gpt-image family visible in /v1/models (Jul 2026). Without these
+  // entries they inherit the driver defaults (ModelCaps=[cap_Image]) -> gap
+  // empty -> the request goes through /responses -> "model was not found".
   for Model in ['chatgpt-image-latest', 'gpt-image-1-mini', 'gpt-image-2-2026-04-21'] do
   begin
     TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ModelCaps',       '[]');
@@ -424,8 +424,8 @@ Begin
   // ------- Audio TTS -- ModelCaps=[]: usa endpoint TTS dedicado ------
   // Gap=[cap_GenAudio] activa InternalRunSpeechGeneration
   // https://platform.openai.com/docs/guides/audio
-  // DEPRECADO por OpenAI el 2026-10-01 (junto con tts-1 / tts-1-hd), apagado
-  // el 2027-01-06. OpenAI recomienda gpt-realtime-2.1-mini (realtime).
+  // DEPRECATED by OpenAI on 2026-10-01 (along with tts-1 / tts-1-hd), shut down
+  // on 2027-01-06. OpenAI recommends gpt-realtime-2.1-mini (realtime).
   Model := 'gpt-4o-mini-tts';
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ModelCaps',    '[]');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'SessionCaps',  '[cap_GenAudio]');
@@ -433,23 +433,23 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Voice',        'alloy');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Voice_Format', 'mp3');
 
-  // ------- Transcripcion (STT) -- cap_Audio: procesa audio nativo ------
+  // ------- Transcription (STT) -- cap_Audio: processes native audio ------
   // Usar con ChatMode = cmTranscription
-  // gpt-transcribe: recomendado para archivos/batch (WER 8.98% vs 15.21% whisper)
+  // gpt-transcribe: recommended for files/batch (WER 8.98% vs 15.21% whisper)
   Model := 'gpt-transcribe';
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ModelCaps',   '[cap_Audio]');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'SessionCaps', '[cap_Audio]');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Tool_Active', 'False');
 
-  // gpt-live-transcribe: transcripcion en vivo de baja latencia (Realtime)
+  // gpt-live-transcribe: low-latency live transcription (Realtime)
   Model := 'gpt-live-transcribe';
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ModelCaps',   '[cap_Audio]');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'SessionCaps', '[cap_Audio]');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Tool_Active', 'False');
 
-  // gpt-4o-transcribe, gpt-4o-mini-transcribe, gpt-4o-transcribe-diarize y
-  // whisper-1: DEPRECADOS por OpenAI el 2026-08-26, apagado el 2027-02-26.
-  // Se mantienen registrados mientras funcionen; migrar a los dos de arriba.
+  // gpt-4o-transcribe, gpt-4o-mini-transcribe, gpt-4o-transcribe-diarize and
+  // whisper-1: DEPRECATED by OpenAI on 2026-08-26, shut down on 2027-02-26.
+  // They remain registered while they work; migrate to the two above.
   Model := 'gpt-4o-transcribe';
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ModelCaps',   '[cap_Audio]');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'SessionCaps', '[cap_Audio]');
@@ -471,8 +471,8 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'SessionCaps', '[cap_Audio]');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Tool_Active', 'False');
 
-  // ------- Audio multimodal (audio I/O en completions) ------
-  // cap_Audio + cap_GenAudio en ModelCaps: procesa y genera audio via completions
+  // ------- Audio multimodal (audio I/O in completions) ------
+  // cap_Audio + cap_GenAudio in ModelCaps: processes and generates audio via completions
   Model := 'gpt-4o-audio-preview';
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ModelCaps',   '[cap_Audio, cap_GenAudio]');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'SessionCaps', '[cap_Audio, cap_GenAudio]');
@@ -484,18 +484,18 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'Tool_Active', 'False');
 
   // ------- Perfiles personalizados (aa_*) ------
-  // GPT-4.1 con soporte PDF nativo (file API de OpenAI)
+  // GPT-4.1 with native PDF support (OpenAI file API)
   TAiChatFactory.Instance.RegisterCustomModel('OpenAi', 'aa_gpt-4.1-pdf', 'gpt-4.1');
   Model := 'aa_gpt-4.1-pdf';
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ModelCaps',   '[cap_Image, cap_Pdf]');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'SessionCaps', '[cap_Image, cap_Pdf]');
 
-  // o3 con nivel de razonamiento alto
+  // o3 with high reasoning level
   TAiChatFactory.Instance.RegisterCustomModel('OpenAi', 'aa_o3-high', 'o3');
   Model := 'aa_o3-high';
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ThinkingLevel', 'tlHigh');
 
-  // o4-mini -- niveles de razonamiento alto y bajo
+  // o4-mini -- high and low reasoning levels
   TAiChatFactory.Instance.RegisterCustomModel('OpenAi', 'aa_o4-mini-high', 'o4-mini');
   Model := 'aa_o4-mini-high';
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', Model, 'ThinkingLevel', 'tlHigh');
@@ -506,21 +506,21 @@ Begin
 
   // ------------------------- GEMINI ----------------------------------
   // https://ai.google.dev/gemini-api/docs/models
-  // Ultima actualizacion: Sep 29 2026 (contra la doc oficial, SIN prueba
-  // runtime: no habia API key). Default del driver: gemini-3.8-flash.
-  // La familia 2.5 sigue registrada pero Google la limita a cuentas que ya
-  // la usaban; para un usuario nuevo falla.
+  // Last updated: Sep 29 2026 (against the official docs, WITHOUT testing
+  // runtime: there was no API key). Driver default: gemini-3.8-flash.
+  // The 2.5 family remains registered but Google limits it to accounts that already
+  // used it; for a new user it fails.
   // ------------------------- GEMINI ----------------------------------
 
-  // --- Valores globales por defecto para todos los modelos Gemini ---
+  // --- Default global values for all Gemini models ---
   TAiChatFactory.Instance.RegisterUserParam('Gemini', 'Max_Tokens',  '32768');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', 'Tool_Active', 'True');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', 'ModelCaps',   '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', 'SessionCaps', '[cap_Image]');
 
-  // ------- Familia Gemini 3.x (2026) ------
+  // ------- Gemini 3.x family (2026) ------
 
-  // ------- Gemini 3.1 Pro Preview -- flagship, 2M ctx, multimodal completo + reasoning ------
+  // ------- Gemini 3.1 Pro Preview -- flagship, 2M ctx, full multimodal + reasoning ------
   Model := 'gemini-3.1-pro-preview';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Max_Tokens',   '65536');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',
@@ -530,7 +530,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ThinkingLevel', 'tlHigh');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Tool_Active',   'True');
 
-  // ------- Gemini 3 Flash Preview -- balance velocidad/calidad, multimodal + reasoning ------
+  // ------- Gemini 3 Flash Preview -- speed/quality balance, multimodal + reasoning ------
   Model := 'gemini-3-flash-preview';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Max_Tokens',   '65536');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',
@@ -540,7 +540,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ThinkingLevel', 'tlMedium');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Tool_Active',   'True');
 
-  // ------- Gemini 3.1 Flash Lite -- economico, multimodal + reasoning ------
+  // ------- Gemini 3.1 Flash Lite -- economical, multimodal + reasoning ------
   Model := 'gemini-3.1-flash-lite';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Max_Tokens',   '65536');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',
@@ -550,13 +550,13 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ThinkingLevel', 'tlLow');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Tool_Active',   'True');
 
-  // ------- Familia Gemini 3.5/3.6 (may-jul 2026, GA) ------
-  // Sampling params (temperature/topP/topK) deprecados en esta familia:
-  // el driver los omite automaticamente.
+  // ------- Gemini 3.5/3.6 family (May-Jul 2026, GA) ------
+  // Sampling params (temperature/topP/topK) deprecated in this family:
+  // the driver omits them automatically.
 
   // gemini-3.5-flash -- flash flagship GA (may 19/2026); alias gemini-flash-latest.
-  // Computer Use tool en public preview para este modelo (cap_ComputerUse
-  // opt-in del usuario, no por defecto)
+  // Computer Use tool in public preview for this model (cap_ComputerUse
+  // user opt-in, not by default)
   Model := 'gemini-3.5-flash';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Max_Tokens',   '65536');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',
@@ -566,7 +566,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ThinkingLevel', 'tlMedium');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Tool_Active',   'True');
 
-  // gemini-flash-latest -- alias movil que apunta al flash GA mas reciente
+  // gemini-flash-latest -- moving alias that points to the most recent GA flash
   Model := 'gemini-flash-latest';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Max_Tokens',   '65536');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',
@@ -576,8 +576,8 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ThinkingLevel', 'tlMedium');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Tool_Active',   'True');
 
-  // gemini-3.6-flash -- GA (jul 21/2026): mejor eficiencia de tokens y
-  // planificacion agentica, mas barato que 3.5 Flash
+  // gemini-3.6-flash -- GA (Jul 21/2026): better token efficiency and
+  // agentic planning, cheaper than 3.5 Flash
   Model := 'gemini-3.6-flash';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Max_Tokens',   '65536');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',
@@ -587,7 +587,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ThinkingLevel', 'tlMedium');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Tool_Active',   'True');
 
-  // gemini-3.5-flash-lite -- GA (jul 21/2026): baja latencia, subagentes
+  // gemini-3.5-flash-lite -- GA (Jul 21/2026): low latency, subagents
   Model := 'gemini-3.5-flash-lite';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Max_Tokens',   '65536');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',
@@ -597,14 +597,14 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ThinkingLevel', 'tlLow');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Tool_Active',   'True');
 
-  // ------- Familia Gemini 3.7/3.8 (ago-sep 2026, estables) ------
-  // 1M ctx, 65K output; entrada texto/imagen/video/audio/PDF; function calling,
-  // Google Search, code execution, url context, structured output y computer
-  // use (preview). Thinking solo low/medium/high: 'minimal' da error y no se
-  // puede apagar (el driver lleva tlMinimal/tlNone a LOW). Sampling omitido
-  // (familia 3.5+). Sin prueba runtime.
+  // ------- Gemini 3.7/3.8 family (Aug-Sep 2026, stable) ------
+  // 1M ctx, 65K output; input text/image/video/audio/PDF; function calling,
+  // Google Search, code execution, url context, structured output and computer
+  // use (preview). Thinking only low/medium/high: 'minimal' errors and cannot
+  // be turned off (the driver maps tlMinimal/tlNone to LOW). Sampling omitted
+  // (3.5+ family). Without runtime testing.
 
-  // gemini-3.8-flash -- estable (sep 2026): DEFAULT DEL DRIVER
+  // gemini-3.8-flash -- stable (Sep 2026): DRIVER DEFAULT
   Model := 'gemini-3.8-flash';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Max_Tokens',   '65536');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',
@@ -614,7 +614,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ThinkingLevel', 'tlMedium');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Tool_Active',   'True');
 
-  // gemini-3.7-flash -- estable (ago 2026), orientado a codigo
+  // gemini-3.7-flash -- stable (Aug 2026), code-oriented
   Model := 'gemini-3.7-flash';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Max_Tokens',   '65536');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',
@@ -624,10 +624,10 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ThinkingLevel', 'tlMedium');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Tool_Active',   'True');
 
-  // ------- Gemini 3.8 TTS (estables, sep 22 2026) ------
-  // Reemplazo oficial de gemini-2.5-flash-preview-tts. Mismo schema en ambos.
-  // La doc presenta la API nueva /interactions, pero la guia de migracion
-  // sigue cubriendo generateContent, que es lo que usa el driver.
+  // ------- Gemini 3.8 TTS (stable, Sep 22 2026) ------
+  // Official replacement for gemini-2.5-flash-preview-tts. Same schema in both.
+  // The docs present the new /interactions API, but the migration guide
+  // still covers generateContent, which is what the driver uses.
   Model := 'gemini-3.8-flash-tts';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',       '[]');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'SessionCaps',     '[cap_GenAudio]');
@@ -642,22 +642,22 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Voice',           'Sol=Kore,Gustavo=Puck');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ResponseTimeOut', '36000');
 
-  // ------- Gemini 3.1 Flash TTS Preview -- TTS nueva generacion ------
-  // Desde jun 17/2026 soporta streaming via streamGenerateContent
+  // ------- Gemini 3.1 Flash TTS Preview -- new generation TTS ------
+  // Since Jun 17/2026 it supports streaming via streamGenerateContent
   Model := 'gemini-3.1-flash-tts-preview';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',       '[]');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'SessionCaps',     '[cap_GenAudio]');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Tool_Active',     'False');
 
-  // ------- Gemini 3.1 Flash Image Preview -- imagen + chat ------
+  // ------- Gemini 3.1 Flash Image Preview -- image + chat ------
   Model := 'gemini-3.1-flash-image-preview';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',   '[cap_Image, cap_GenImage]');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'SessionCaps', '[cap_Image, cap_GenImage]');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Tool_Active', 'False');
 
-  // ------- Familia Nano Banana GA (may-jun 2026) ------
-  // OJO: los Imagen 4.0 (imagen-4.0-*-generate-001) se APAGAN el 17 ago 2026.
-  // Nano Banana 2 (GA del flash-image, may 28/2026); soporta video-to-image
+  // ------- Nano Banana GA family (May-Jun 2026) ------
+  // WARNING: Imagen 4.0 models (imagen-4.0-*-generate-001) SHUT DOWN on 17 Aug 2026.
+  // Nano Banana 2 (GA of flash-image, May 28/2026); supports video-to-image
   Model := 'gemini-3.1-flash-image';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',   '[cap_Image, cap_GenImage]');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'SessionCaps', '[cap_Image, cap_GenImage]');
@@ -669,14 +669,14 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'SessionCaps', '[cap_Image, cap_GenImage]');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Tool_Active', 'False');
 
-  // Nano Banana 2 Lite (GA jun 30/2026): imagen ultra-rapida y economica
+  // Nano Banana 2 Lite (GA Jun 30/2026): ultra-fast and economical image
   Model := 'gemini-3.1-flash-lite-image';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',   '[cap_Image, cap_GenImage]');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'SessionCaps', '[cap_Image, cap_GenImage]');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Tool_Active', 'False');
 
-  // ------- Veo 3.1 -- video nueva generacion ------
-  // OJO: veo-2.0 y veo-3.0 fueron APAGADOS el 30 jun 2026 — usar solo 3.1
+  // ------- Veo 3.1 -- new generation video ------
+  // WARNING: veo-2.0 and veo-3.0 were SHUT DOWN on 30 Jun 2026 — use only 3.1
   Model := 'veo-3.1-generate-preview';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',   '[]');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'SessionCaps', '[cap_GenVideo]');
@@ -688,22 +688,22 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'SessionCaps', '[cap_GenVideo]');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Tool_Active', 'False');
 
-  // ------- Gemini 2.5 Computer Use -- automatizacion de navegador ------
+  // ------- Gemini 2.5 Computer Use -- browser automation ------
   // https://ai.google.dev/gemini-api/docs/computer-use
-  // Modelo dedicado: tool nativo computerUse (environment=ENVIRONMENT_BROWSER).
-  // cap_ComputerUse activa la declaracion del tool y la delegacion en TAiComputerUseTool.
+  // Dedicated model: native computerUse tool (environment=ENVIRONMENT_BROWSER).
+  // cap_ComputerUse enables the tool declaration and delegation to TAiComputerUseTool.
   Model := 'gemini-2.5-computer-use-preview-10-2025';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Max_Tokens',   '65536');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',    '[cap_Image, cap_ComputerUse]');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'SessionCaps',  '[cap_Image, cap_ComputerUse]');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Tool_Active',  'True');
 
-  // ------- Familia 2.5: acceso LIMITADO (Google solo la sirve a cuentas que
-  // ya la usaban; sin fecha de apagado). Se conserva para esas cuentas; para
-  // proyectos nuevos usar gemini-3.8-flash.
-  // ------- Gemini 2.5 Flash -- 1M ctx, 65K output, multimodal completo ------
+  // ------- 2.5 family: LIMITED access (Google only serves it to accounts that
+  // already used it; no shutdown date). It is kept for those accounts; for
+  // new projects use gemini-3.8-flash.
+  // ------- Gemini 2.5 Flash -- 1M ctx, 65K output, full multimodal ------
   // https://ai.google.dev/gemini-api/docs/models/gemini-2.5-flash
-  // Entrada: Audio, Video, PDF, Imagenes; WebSearch+CodeInterpreter+Thinking nativos
+  // Input: Audio, Video, PDF, Images; WebSearch+CodeInterpreter+Thinking native
   Model := 'gemini-2.5-flash';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Max_Tokens',   '65536');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',
@@ -712,7 +712,7 @@ Begin
     '[cap_Image, cap_Audio, cap_Video, cap_Pdf, cap_WebSearch, cap_Reasoning, cap_CodeInterpreter]');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Tool_Active', 'True');
 
-  // ------- Gemini 2.5 Flash Lite -- budget/rapido, multimodal ------
+  // ------- Gemini 2.5 Flash Lite -- budget/fast, multimodal ------
   Model := 'gemini-2.5-flash-lite';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Max_Tokens',   '32768');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',
@@ -720,7 +720,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'SessionCaps',
     '[cap_Image, cap_Audio, cap_Video, cap_Pdf]');
 
-  // ------- Gemini 2.5 Pro -- 1M ctx, alta capacidad ------
+  // ------- Gemini 2.5 Pro -- 1M ctx, high capability ------
   // https://ai.google.dev/gemini-api/docs/models/gemini-2.5-pro
   Model := 'gemini-2.5-pro';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Max_Tokens',   '65536');
@@ -730,9 +730,9 @@ Begin
     '[cap_Image, cap_Audio, cap_Video, cap_Pdf, cap_WebSearch, cap_Reasoning, cap_CodeInterpreter]');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Tool_Active', 'True');
 
-  // ------- Gemini 3 Pro Preview -- APAGADO por Google ------
-  // Queda como alias de gemini-3.1-pro-preview (su sucesor) para no romper
-  // configuraciones existentes: el driver envia el modelo base.
+  // ------- Gemini 3 Pro Preview -- SHUT DOWN by Google ------
+  // Remains as an alias of gemini-3.1-pro-preview (its successor) to avoid breaking
+  // existing configurations: the driver sends the base model.
   TAiChatFactory.Instance.RegisterCustomModel('Gemini', 'gemini-3-pro-preview', 'gemini-3.1-pro-preview');
   Model := 'gemini-3-pro-preview';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Max_Tokens',   '65536');
@@ -743,7 +743,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ThinkingLevel', 'tlHigh');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Tool_Active',   'True');
 
-  // ------- TTS -- ModelCaps=[]: usa endpoint TTS dedicado ------
+  // ------- TTS -- ModelCaps=[]: uses dedicated TTS endpoint ------
   // Gap=[cap_GenAudio] activa InternalRunSpeechGeneration
   // https://ai.google.dev/gemini-api/docs/speech-generation
   Model := 'gemini-2.5-flash-preview-tts';
@@ -760,35 +760,35 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Voice',           'Sol=Kore,Gustavo=Puck');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ResponseTimeOut', '36000');
 
-  // ------- Generacion de imagenes via completions ------
-  // cap_GenImage en ModelCaps y SessionCaps: InternalRunCompletions + responseModalities=[IMAGE]
+  // ------- Image generation via completions ------
+  // cap_GenImage in ModelCaps and SessionCaps: InternalRunCompletions + responseModalities=[IMAGE]
   // https://ai.google.dev/gemini-api/docs/image-generation
-  // Nota: 'gemini-2.5-flash-image-preview' (nombre anterior, devuelve 404 en v1beta)
+  // Note: 'gemini-2.5-flash-image-preview' (previous name, returns 404 in v1beta)
   Model := 'gemini-2.5-flash-image';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',   '[cap_Image, cap_GenImage]');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'SessionCaps', '[cap_Image, cap_GenImage]');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Tool_Active', 'False');
 
-  // OJO: gemini-2.5-flash-image se APAGA el 2 oct 2026 (reemplazo oficial:
-  // gemini-3.1-flash-image). Tras esa fecha convertirlo en alias.
+  // WARNING: gemini-2.5-flash-image SHUTS DOWN on 2 Oct 2026 (official replacement:
+  // gemini-3.1-flash-image). After that date convert it into an alias.
 
-  // ------- Gemini 3 Pro Image (Nano Banana Pro) -- generacion de imagenes avanzada ------
+  // ------- Gemini 3 Pro Image (Nano Banana Pro) -- advanced image generation ------
   // https://ai.google.dev/gemini-api/docs/image-generation
-  // Nota: no soporta ThinkingLevel (INVALID_ARGUMENT si se envía)
+  // Note: does not support ThinkingLevel (INVALID_ARGUMENT if sent)
   Model := 'gemini-3-pro-image-preview';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',   '[cap_Image, cap_GenImage]');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'SessionCaps', '[cap_Image, cap_GenImage]');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'Tool_Active', 'False');
 
   // ------- Imagen 4 (via Gemini API :predict endpoint) ------
-  // ModelCaps=[]: usa endpoint :predict; Gap=[cap_GenImage] activa InternalRunNativeImageGeneration
+  // ModelCaps=[]: uses :predict endpoint; Gap=[cap_GenImage] enables InternalRunNativeImageGeneration
   // https://ai.google.dev/gemini-api/docs/imagen
   // Params via ImageParams.Params: aspectRatio (1:1 3:4 4:3 9:16 16:9), imageSize (1K 2K), personGeneration
-  // APAGADOS el 17 ago 2026. Los tres nombres quedan como alias de Nano
-  // Banana 2 (gemini-3.1-flash-image) con sus capacidades: la generacion pasa
-  // del endpoint :predict a completions con responseModalities=[IMAGE], y el
-  // codigo existente sigue funcionando. ImageParams.aspectRatio se sigue
-  // enviando (imageConfig); personGeneration puede no aplicar.
+  // SHUT DOWN on 17 Aug 2026. The three names remain as aliases of Nano
+  // Banana 2 (gemini-3.1-flash-image) with their capabilities: generation moves
+  // from the :predict endpoint to completions with responseModalities=[IMAGE], and the
+  // existing code keeps working. ImageParams.aspectRatio is still
+  // sent (imageConfig); personGeneration may not apply.
   TAiChatFactory.Instance.RegisterCustomModel('Gemini', 'imagen-4.0-generate-001',       'gemini-3.1-flash-image');
   TAiChatFactory.Instance.RegisterCustomModel('Gemini', 'imagen-4.0-fast-generate-001',  'gemini-3.1-flash-image');
   TAiChatFactory.Instance.RegisterCustomModel('Gemini', 'imagen-4.0-ultra-generate-001', 'gemini-3.1-flash-image');
@@ -800,13 +800,13 @@ Begin
     TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ResponseTimeOut', '120000');
   end;
 
-  // ------- Generacion de video (Veo) ------
-  // ModelCaps=[cap_Image]: acepta imagen de entrada
-  // SessionCaps agrega cap_GenVideo: Gap activa InternalRunImageVideoGeneration
+  // ------- Video generation (Veo) ------
+  // ModelCaps=[cap_Image]: accepts input image
+  // SessionCaps adds cap_GenVideo: Gap enables InternalRunImageVideoGeneration
   // https://ai.google.dev/gemini-api/docs/video
-  // RETIRADOS: veo-2.0-generate-001 y veo-3.0-generate-preview fueron APAGADOS
-  // por Google el 30 jun 2026 — los perfiles aa_veo-2.0/aa_veo-3.0 se eliminan
-  // del registro; usar aa_veo-3.1-generate-preview.
+  // RETIRED: veo-2.0-generate-001 and veo-3.0-generate-preview were SHUT DOWN
+  // by Google on 30 Jun 2026 — the aa_veo-2.0/aa_veo-3.0 profiles are removed
+  // from the registry; use aa_veo-3.1-generate-preview.
 
   TAiChatFactory.Instance.RegisterCustomModel('Gemini', 'aa_veo-3.1-generate-preview', 'veo-3.1-generate-preview');
   Model := 'aa_veo-3.1-generate-preview';
@@ -838,8 +838,8 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',   '[cap_Image, cap_WebSearch]');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'SessionCaps', '[cap_Image, cap_WebSearch]');
 
-  // Los mismos perfiles sobre gemini-3.8-flash (los de 2.5 solo sirven a
-  // cuentas que ya usaban esa familia)
+  // The same profiles on gemini-3.8-flash (the 2.5 ones only work for
+  // accounts that already used that family)
   TAiChatFactory.Instance.RegisterCustomModel('Gemini', 'aa_gemini-3.8-flash-pdf', 'gemini-3.8-flash');
   Model := 'aa_gemini-3.8-flash-pdf';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',   '[cap_Image, cap_Pdf]');
@@ -857,9 +857,9 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ModelCaps',   '[cap_Image, cap_WebSearch]');
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'SessionCaps', '[cap_Image, cap_WebSearch]');
 
-  // Gemini 3 Pro: thinking bajo (respuesta rapida, bajo costo de tokens de razonamiento)
-  // gemini-3-pro-preview fue apagado: el perfil apunta a su sucesor (el
-  // alias no se encadena, GetBaseModel resuelve un solo nivel)
+  // Gemini 3 Pro: low thinking (fast response, low reasoning token cost)
+  // gemini-3-pro-preview was shut down: the profile points to its successor (the
+  // alias does not chain, GetBaseModel resolves only one level)
   TAiChatFactory.Instance.RegisterCustomModel('Gemini', 'aa_gemini-3-pro-fast', 'gemini-3.1-pro-preview');
   Model := 'aa_gemini-3-pro-fast';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ThinkingLevel', 'tlLow');
@@ -868,7 +868,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'SessionCaps',
     '[cap_Image, cap_Audio, cap_Video, cap_Pdf, cap_WebSearch]');
 
-  // Gemini 3.1 Pro: thinking bajo (respuesta rapida)
+  // Gemini 3.1 Pro: low thinking (fast response)
   TAiChatFactory.Instance.RegisterCustomModel('Gemini', 'aa_gemini-3.1-pro-fast', 'gemini-3.1-pro-preview');
   Model := 'aa_gemini-3.1-pro-fast';
   TAiChatFactory.Instance.RegisterUserParam('Gemini', Model, 'ThinkingLevel', 'tlLow');
@@ -879,12 +879,12 @@ Begin
 
   // ------------------------- GROQ ----------------------------------
   // https://console.groq.com/docs/models
-  // Ultima actualizacion: Sep 28 2026 — verificado contra GET /models y con
-  // llamadas reales. Groq retiro los llama-3.x (model_not_found): quedan
-  // alias hacia gpt-oss para que el codigo previo siga funcionando.
+  // Last updated: Sep 28 2026 — verified against GET /models and with
+  // real calls. Groq retired llama-3.x (model_not_found): aliases remain
+  // toward gpt-oss so previous code keeps working.
   // ------------------------- GROQ ----------------------------------
 
-  // --- Valores globales por defecto para todos los modelos Groq ---
+  // --- Default global values for all Groq models ---
   TAiChatFactory.Instance.RegisterUserParam('Groq', 'Max_Tokens',    '8192');
   TAiChatFactory.Instance.RegisterUserParam('Groq', 'Tool_Active',   'True');
   TAiChatFactory.Instance.RegisterUserParam('Groq', 'ModelCaps',     '[]');
@@ -892,14 +892,14 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Groq', 'ThinkingLevel', 'tlDefault'); // Reset al cambiar modelo
   TAiChatFactory.Instance.RegisterUserParam('Groq', 'Format',        '');          // Reset reasoning_format al cambiar modelo
 
-  // ------- Modelos de produccion -- texto/chat ------
-  // RETIRADOS sep 2026 (model_not_found, fuera de /models): llama-3.1-8b-instant
-  // y llama-3.3-70b-versatile. Alias al reemplazo mas cercano: el rapido y el
-  // de calidad. Los alias heredan solo los params globales de Groq.
+  // ------- Production models -- text/chat ------
+  // RETIRED Sep 2026 (model_not_found, not in /models): llama-3.1-8b-instant
+  // and llama-3.3-70b-versatile. Aliases to the closest replacement: the fast one and the
+  // quality one. The aliases inherit only Groq's global params.
   TAiChatFactory.Instance.RegisterCustomModel('Groq', 'llama-3.1-8b-instant',    'openai/gpt-oss-20b');
   TAiChatFactory.Instance.RegisterCustomModel('Groq', 'llama-3.3-70b-versatile', 'openai/gpt-oss-120b');
 
-  // gpt-oss-20b (default del driver desde sep 2026): 131K ctx, 65K output, ~1000 t/s, reasoning + code_interpreter (include_reasoning API)
+  // gpt-oss-20b (driver default since Sep 2026): 131K ctx, 65K output, ~1000 t/s, reasoning + code_interpreter (include_reasoning API)
   Model := 'openai/gpt-oss-20b';
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'Max_Tokens',    '65536');
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'ModelCaps',    '[cap_Reasoning, cap_CodeInterpreter]');
@@ -907,28 +907,28 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'ThinkingLevel', 'tlMedium');
 
   // gpt-oss-120b: 131K ctx, 65K output, ~500 t/s, reasoning (include_reasoning API)
-  // OJO ago 2026: NO acepta imagenes ("content must be a string") — verificado
-  // runtime; cap_Image eliminado. Con llama-4-scout retirado, Groq NO tiene
-  // modelo de chat con vision actualmente.
+  // WARNING Aug 2026: does NOT accept images ("content must be a string") — verified
+  // at runtime; cap_Image removed. With llama-4-scout retired, Groq does NOT have
+  // a chat model with vision currently.
   Model := 'openai/gpt-oss-120b';
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'Max_Tokens',    '65536');
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'ModelCaps',    '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'SessionCaps',  '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'ThinkingLevel', 'tlMedium');
 
-  // gpt-oss-safeguard-20b: 131K ctx, 65K output, ~1000 t/s, moderacion/seguridad
-  // Tool calling: si (no parallel). Sin built-in tools. Sin reasoning ni vision.
+  // gpt-oss-safeguard-20b: 131K ctx, 65K output, ~1000 t/s, moderation/safety
+  // Tool calling: yes (no parallel). No built-in tools. No reasoning or vision.
   Model := 'openai/gpt-oss-safeguard-20b';
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'Max_Tokens', '65536');
 
-  // ------- Modelos de razonamiento ------
-  // qwen3.6-27b (ago 2026): 131K ctx, reasoning nativo (reasoning_format API).
-  // Mismo contrato que el retirado qwen3-32b (verificado runtime): sin params deja
-  // <think> crudo en content; 'parsed' -> campo message.reasoning; effort 'none' apaga.
-  // reasoning_format: 'parsed' (message.reasoning), 'raw' (<think> tags), 'hidden' (solo resp)
-  // reasoning_effort: 'default' (thinking activo), 'none' (non-thinking)
-  // Max_Tokens: la API rechaza max_completion_tokens > 16384 (400; verificado
-  // sep 28 2026 — antes estaba en 40960 y el modelo no respondia)
+  // ------- Reasoning models ------
+  // qwen3.6-27b (Aug 2026): 131K ctx, native reasoning (reasoning_format API).
+  // Same contract as the retired qwen3-32b (verified at runtime): without params it leaves
+  // <think> raw in content; 'parsed' -> message.reasoning field; effort 'none' turns it off.
+  // reasoning_format: 'parsed' (message.reasoning), 'raw' (<think> tags), 'hidden' (response only)
+  // reasoning_effort: 'default' (thinking active), 'none' (non-thinking)
+  // Max_Tokens: the API rejects max_completion_tokens > 16384 (400; verified
+  // Sep 28 2026 — before it was 40960 and the model did not respond)
   Model := 'qwen/qwen3.6-27b';
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'Max_Tokens',    '16384');
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'ModelCaps',    '[cap_Reasoning]');
@@ -936,45 +936,45 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'ThinkingLevel', 'tlMedium');
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'Format',        'parsed');
 
-  // qwen3.8-27b (sep 2026): 131K ctx. Verificado runtime: responde sin
-  // razonamiento visible (ni message.reasoning con 'parsed' ni <think> crudo),
-  // asi que se registra como modelo de chat, sin cap_Reasoning. La API rechaza
+  // qwen3.8-27b (Sep 2026): 131K ctx. Verified at runtime: it responds without
+  // visible reasoning (neither message.reasoning with 'parsed' nor raw <think>),
+  // so it is registered as a chat model, without cap_Reasoning. The API rejects
   // max_completion_tokens > 16384 (400 invalid_request_error).
   Model := 'qwen/qwen3.8-27b';
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'Max_Tokens', '16384');
 
-  // RETIRADO ago 2026: qwen/qwen3-32b — alias hacia qwen3.6-27b para codigo previo
+  // RETIRED Aug 2026: qwen/qwen3-32b — alias to qwen3.6-27b for previous code
   TAiChatFactory.Instance.RegisterCustomModel('Groq', 'qwen/qwen3-32b', 'qwen/qwen3.6-27b');
 
-  // DEPRECATED 10/02/25 — usar llama-3.3-70b-versatile
-  // deepseek-r1-distill-llama-70b eliminado
-  // DEPRECATED 07/14/25 — reemplazado por qwen (hoy qwen3.6-27b)
-  // qwen-qwq-32b eliminado
+  // DEPRECATED 10/02/25 — use llama-3.3-70b-versatile
+  // deepseek-r1-distill-llama-70b removed
+  // DEPRECATED 07/14/25 — replaced by qwen (now qwen3.6-27b)
+  // qwen-qwq-32b removed
 
   // ------- Vision ------
-  // RETIRADOS: llama-4-scout (ago 2026) y llama-4-maverick (03/09/26).
-  // Groq NO tiene modelo de chat con vision actualmente (gpt-oss-120b es solo texto).
+  // RETIRED: llama-4-scout (Aug 2026) and llama-4-maverick (03/09/26).
+  // Groq does NOT have a chat model with vision currently (gpt-oss-120b is text only).
 
-  // RETIRADOS 04/15/26: moonshotai/kimi-k2-instruct y kimi-k2-instruct-0905
-  // (usar openai/gpt-oss-120b, o el driver Kimi nativo con kimi-k3)
+  // RETIRED 04/15/26: moonshotai/kimi-k2-instruct and kimi-k2-instruct-0905
+  // (use openai/gpt-oss-120b, or the native Kimi driver with kimi-k3)
 
-  // ------- Arabe ------
-  // allam-2-7b: 4K ctx, bilingue arabe/ingles (SDAIA), sin tools
+  // ------- Arabic ------
+  // allam-2-7b: 4K ctx, bilingual Arabic/English (SDAIA), without tools
   Model := 'allam-2-7b';
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'Max_Tokens',  '4000');
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'Tool_Active', 'False');
 
-  // meta-llama/llama-prompt-guard-2-22m/-86m: clasificadores de seguridad de
-  // prompts (512 ctx) — no son modelos de chat, no se registran
+  // meta-llama/llama-prompt-guard-2-22m/-86m: prompt safety classifiers for
+  // prompts (512 ctx) — they are not chat models, they are not registered
 
-  // ------- Sistemas agentes con herramientas integradas ------
-  // NO DISPONIBLES sep 2026: groq/compound y groq/compound-mini (web search +
-  // code execution server-side) responden model_not_found y no aparecen en
-  // GET /models. Sin alias a proposito: no hay reemplazo con web search, y
-  // redirigirlos cambiaria el comportamiento en silencio. Para ejecutar codigo
-  // queda openai/gpt-oss-20b (cap_CodeInterpreter).
+  // ------- Agent systems with built-in tools ------
+  // NOT AVAILABLE Sep 2026: groq/compound and groq/compound-mini (web search +
+  // server-side code execution) return model_not_found and do not appear in
+  // GET /models. No alias on purpose: there is no replacement with web search, and
+  // redirecting them would silently change behavior. To execute code
+  // openai/gpt-oss-20b remains (cap_CodeInterpreter).
 
-  // ------- Audio STT -- cap_Audio: procesa audio nativo ------
+  // ------- Audio STT -- cap_Audio: processes native audio ------
   // Usar con ChatMode = cmTranscription
   // https://console.groq.com/docs/speech-text
   Model := 'whisper-large-v3';
@@ -990,40 +990,40 @@ Begin
   // ------- Audio TTS -- ModelCaps=[]: usa endpoint TTS dedicado ------
   // Gap=[cap_GenAudio] activa InternalRunSpeechGeneration
   // https://console.groq.com/docs/text-to-speech
-  // Orpheus TTS (Canopy Labs) -- unico TTS disponible en Groq (playai-tts decommissioned 12/31/25)
+  // Orpheus TTS (Canopy Labs) -- only TTS available in Groq (playai-tts decommissioned 12/31/25)
   // https://console.groq.com/docs/text-to-speech/orpheus
-  // Voces ingles: autumn, diana, hannah, austin, daniel, troy
+  // English voices: autumn, diana, hannah, austin, daniel, troy
   Model := 'canopylabs/orpheus-v1-english';
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'ModelCaps',   '[]');
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'SessionCaps', '[cap_GenAudio]');
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'Tool_Active', 'False');
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'Voice',       'austin');
 
-  // Voces arabe: fahad, sultan, lulwa, noura
+  // Arabic voices: fahad, sultan, lulwa, noura
   Model := 'canopylabs/orpheus-arabic-saudi';
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'ModelCaps',   '[]');
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'SessionCaps', '[cap_GenAudio]');
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'Tool_Active', 'False');
   TAiChatFactory.Instance.RegisterUserParam('Groq', Model, 'Voice',       'lulwa');
 
-  // playai-tts y playai-tts-arabic: ELIMINADOS (decommissioned 12/31/25)
+  // playai-tts and playai-tts-arabic: REMOVED (decommissioned 12/31/25)
 
   // ===========================================================================
-  // CLAUDE — CONFIGURACION GLOBAL
-  // Fuente: https://platform.claude.com/docs/en/about-claude/models/overview
-  // Todos los modelos actuales soportan de forma nativa:
-  //   - Vision (imagenes + PDF)
-  //   - Extended Thinking (razonamiento CoT)
-  //   - Web Search (via tool nativa de Anthropic)
+  // CLAUDE — GLOBAL CONFIGURATION
+  // Source: https://platform.claude.com/docs/en/about-claude/models/overview
+  // All current models natively support:
+  //   - Vision (images + PDF)
+  //   - Extended Thinking (CoT reasoning)
+  //   - Web Search (via native Anthropic tool)
   //   - Tool calling
-  // Contexto estandar: 200K tokens
-  // Contexto extendido (1M, beta): Opus 4.6, Sonnet 4.6, Sonnet 4.5, Sonnet 4
-  //   Requiere header: context-1m-2025-08-07
+  // Standard context: 200K tokens
+  // Extended context (1M, beta): Opus 4.6, Sonnet 4.6, Sonnet 4.5, Sonnet 4
+  //   Requires header: context-1m-2025-08-07
   //
-  // ModelCaps  = capacidades nativas del modelo (SetModelCaps sincroniza NativeInputFiles + ChatMediaSupports)
-  // SessionCaps = capacidades deseadas en la sesion (SetSessionCaps sincroniza NativeOutputFiles + EnabledFeatures)
-  //   Gap = SessionCaps - ModelCaps -> determina que bridges/tools se activan en RunNew
-  //   Sin gap (SessionCaps = ModelCaps) -> llamada directa a InternalRunCompletions
+  // ModelCaps  = native model capabilities (SetModelCaps synchronizes NativeInputFiles + ChatMediaSupports)
+  // SessionCaps = desired session capabilities (SetSessionCaps synchronizes NativeOutputFiles + EnabledFeatures)
+  //   Gap = SessionCaps - ModelCaps -> determines which bridges/tools are enabled in RunNew
+  //   No gap (SessionCaps = ModelCaps) -> direct call to InternalRunCompletions
   // ===========================================================================
   TAiChatFactory.Instance.RegisterUserParam('Claude', 'Max_Tokens', '16000');
   TAiChatFactory.Instance.RegisterUserParam('Claude', 'ModelCaps',  '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
@@ -1033,12 +1033,12 @@ Begin
 
   // ===========================================================================
   // CLAUDE HAIKU 4.5  |  Alias: claude-haiku-4-5
-  // El mas rapido, inteligencia cercana a frontera
+  // The fastest, near-frontier intelligence
   // Contexto:     200K tokens
   // Max output:   64K tokens
-  // Thinking:     Extended thinking (SIN Adaptive thinking)
-  // Precio:       $1 / $5 MTok (input / output)
-  // Cutoff datos: Jul 2025 (conocimiento fiable: Feb 2025)
+  // Thinking:     Extended thinking (WITHOUT Adaptive thinking)
+  // Price:        $1 / $5 MTok (input / output)
+  // Data cutoff: Jul 2025 (reliable knowledge: Feb 2025)
   // ===========================================================================
   Model := 'claude-haiku-4-5-20251001';
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'Max_Tokens', '16000');
@@ -1047,7 +1047,7 @@ Begin
 
   // ===========================================================================
   // CLAUDE SONNET 4  |  Alias: claude-sonnet-4-0  [Legacy]
-  // Primer Sonnet de la familia Claude 4
+  // First Sonnet of the Claude 4 family
   // Contexto:     200K tokens (1M tokens beta disponible)
   // Max output:   64K tokens
   // Thinking:     Extended thinking + Adaptive thinking
@@ -1061,11 +1061,11 @@ Begin
 
   // ===========================================================================
   // CLAUDE OPUS 4  |  Alias: claude-opus-4-0  [Legacy]
-  // Primer Opus de la familia Claude 4 — muy capaz en agentes y codigo
+  // First Opus of the Claude 4 family — highly capable in agents and code
   // Contexto:     200K tokens
   // Max output:   32K tokens
   // Thinking:     Extended thinking + Adaptive thinking
-  // Precio:       $15 / $75 MTok
+  // Price:        $15 / $75 MTok
   // Cutoff datos: Mar 2025 (conocimiento fiable: Ene 2025)
   // ===========================================================================
   Model := 'claude-opus-4-20250514';
@@ -1074,9 +1074,9 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'SessionCaps', '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
 
   // ===========================================================================
-  // CLAUDE OPUS 4.1  |  RETIRADO el 5 ago 2026: alias de claude-opus-5-5
-  // (ver el bloque de la generacion sep 2026, mas abajo). Estos params se
-  // aplican al nombre viejo y son los del modelo que ahora lo atiende.
+  // CLAUDE OPUS 4.1  |  RETIRED on 5 Aug 2026: alias of claude-opus-5-5
+  // (see the Sep 2026 generation block, below). These params are
+  // applied to the old name and are those of the model that now serves it.
   // ===========================================================================
   Model := 'claude-opus-4-1-20250805';
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'Max_Tokens', '32000');
@@ -1085,12 +1085,12 @@ Begin
 
   // ===========================================================================
   // CLAUDE SONNET 4.5  |  Alias: claude-sonnet-4-5  [Legacy]
-  // Equilibrio velocidad / inteligencia — generacion 4.5
+  // Speed / intelligence balance — 4.5 generation
   // Contexto:     200K tokens (1M tokens beta disponible)
   // Max output:   64K tokens
   // Thinking:     Extended thinking + Adaptive thinking
   // Precio:       $3 / $15 MTok
-  // Cutoff datos: Jul 2025 (conocimiento fiable: Ene 2025)
+  // Data cutoff: Jul 2025 (reliable knowledge: Jan 2025)
   // ===========================================================================
   Model := 'claude-sonnet-4-5-20250929';
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'Max_Tokens', '16000');
@@ -1099,7 +1099,7 @@ Begin
 
   // ===========================================================================
   // CLAUDE OPUS 4.5  |  Alias: claude-opus-4-5  [Legacy]
-  // Mejor en codificacion y tareas de agente complejas — generacion 4.5
+  // Best in coding and complex agent tasks — 4.5 generation
   // Contexto:     200K tokens
   // Max output:   64K tokens
   // Thinking:     Extended thinking + Adaptive thinking
@@ -1112,13 +1112,13 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'SessionCaps', '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
 
   // ===========================================================================
-  // CLAUDE SONNET 4.6  |  Alias: claude-sonnet-4-6  [MODELO ACTUAL]
-  // Mejor equilibrio velocidad / inteligencia de la familia 4.6
+  // CLAUDE SONNET 4.6  |  Alias: claude-sonnet-4-6  [CURRENT MODEL]
+  // Best speed / intelligence balance of the 4.6 family
   // Contexto:     200K tokens (1M tokens beta disponible)
   // Max output:   64K tokens
   // Thinking:     Extended thinking + Adaptive thinking
   // Precio:       $3 / $15 MTok
-  // Cutoff datos: Ene 2026 (conocimiento fiable: Ago 2025)  <- cutoff mas reciente
+  // Data cutoff: Jan 2026 (reliable knowledge: Aug 2025)  <- most recent cutoff
   // ===========================================================================
   Model := 'claude-sonnet-4-6';
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'Max_Tokens', '32000');
@@ -1126,10 +1126,10 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'SessionCaps', '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
 
   // ===========================================================================
-  // CLAUDE OPUS 4.6  |  Alias: claude-opus-4-6  [generacion anterior]
-  // El modelo mas inteligente de Anthropic para agentes complejos y codigo
+  // CLAUDE OPUS 4.6  |  Alias: claude-opus-4-6  [previous generation]
+  // The most intelligent Anthropic model for complex agents and code
   // Contexto:     200K tokens (1M tokens beta disponible)
-  // Max output:   128K tokens  <- unico modelo con salida de 128K
+  // Max output:   128K tokens  <- only model with 128K output
   // Thinking:     Extended thinking + Adaptive thinking
   // Precio:       $5 / $25 MTok
   // Cutoff datos: Ago 2025 (conocimiento fiable: May 2025)
@@ -1140,19 +1140,19 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'SessionCaps', '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
 
   // ===========================================================================
-  // FAMILIA 4.7/4.8/5 (jul-ago 2026) — thinking ADAPTATIVO OBLIGATORIO
-  // budget_tokens y temperature/top_p/top_k devuelven 400 en estos modelos;
-  // el driver los maneja automaticamente (thinking adaptive + effort).
-  // Todos: 1M contexto, 128K max output, vision + PDF + reasoning + web search.
+  // FAMILY 4.7/4.8/5 (Jul-Aug 2026) — MANDATORY ADAPTIVE thinking
+  // budget_tokens and temperature/top_p/top_k return 400 on these models;
+  // the driver handles them automatically (thinking adaptive + effort).
+  // All: 1M context, 128K max output, vision + PDF + reasoning + web search.
   // ===========================================================================
 
-  // CLAUDE OPUS 4.7 — generacion anterior de Opus (alta autonomia)
+  // CLAUDE OPUS 4.7 — previous Opus generation (high autonomy)
   Model := 'claude-opus-4-7';
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'Max_Tokens', '32000');
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'ModelCaps',  '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'SessionCaps', '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
 
-  // CLAUDE OPUS 4.8 — el Opus 4.x mas capaz (long-horizon, knowledge work)
+  // CLAUDE OPUS 4.8 — the most capable Opus 4.x (long-horizon, knowledge work)
   Model := 'claude-opus-4-8';
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'Max_Tokens', '32000');
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'ModelCaps',  '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
@@ -1160,80 +1160,80 @@ Begin
 
   // ------- Computer Use (Claude) ------
   // https://docs.claude.com/en/docs/agents-and-tools/tool-use/computer-use-tool
-  // Tool actual: computer_toolset_20260801 (ago 2026). Sustituye a computer_20251124,
-  // que el API ya rechaza para TODOS los modelos; los anteriores a opus-4-8 se
-  // quedaron sin computer use (su lista de tools soportados ya no lo incluye).
-  // Verificado contra el API sep 10/2026 — solo lo aceptan:
+  // Current tool: computer_toolset_20260801 (Aug 2026). Replaces computer_20251124,
+  // which the API now rejects for ALL models; those prior to opus-4-8 were
+  // left without computer use (their supported tools list no longer includes it).
+  // Verified against the API Sep 10/2026 — only these accept it:
   //   claude-opus-4-8, claude-opus-5, claude-sonnet-5, claude-fable-5
-  // NO se activa por defecto: cap_ComputerUse deja que el modelo mueva el raton y
-  // el teclado de la maquina, asi que es opt-in explicito del usuario (mismo
-  // criterio que gemini-3.5-flash). Para habilitarlo, sobreescribir en la app:
+  // It is NOT enabled by default: cap_ComputerUse lets the model move the mouse and
+  // the machine keyboard, so it is explicit user opt-in (same
+  // criterion as gemini-3.5-flash). To enable it, override in the app:
   //   TAiChatFactory.Instance.RegisterUserParam('Claude', 'claude-opus-5',
   //     'ModelCaps',   '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch, cap_ComputerUse]');
   //   TAiChatFactory.Instance.RegisterUserParam('Claude', 'claude-opus-5',
   //     'SessionCaps', '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch, cap_ComputerUse]');
-  // (ver Demos/066-ComputerUseTest)
+  // (see Demos/066-ComputerUseTest)
 
-  // CLAUDE OPUS 5  [MODELO ACTUAL — RECOMENDADO]
-  // Sucesor de Opus 4.8 al mismo precio ($5/$25). Thinking activo por defecto.
-  // Los clasificadores pueden declinar con stop_reason:"refusal" (el driver lo
-  // reporta via OnError).
+  // CLAUDE OPUS 5  [CURRENT MODEL — RECOMMENDED]
+  // Successor to Opus 4.8 at the same price ($5/$25). Thinking active by default.
+  // Classifiers may decline with stop_reason:"refusal" (the driver
+  // reports it via OnError).
   Model := 'claude-opus-5';
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'Max_Tokens', '32000');
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'ModelCaps',  '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'SessionCaps', '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
 
-  // CLAUDE SONNET 5  [MODELO ACTUAL — MEJOR PRECIO/CALIDAD]
-  // Calidad casi-Opus en codigo/agentes. $3/$15 (intro $2/$10 hasta ago 31/2026).
-  // Tokenizer nuevo: ~30% mas tokens que sonnet-4-6 para el mismo texto.
+  // CLAUDE SONNET 5  [CURRENT MODEL — BEST PRICE/QUALITY]
+  // Near-Opus quality in code/agents. $3/$15 (intro $2/$10 until Aug 31/2026).
+  // New tokenizer: ~30% more tokens than sonnet-4-6 for the same text.
   Model := 'claude-sonnet-5';
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'Max_Tokens', '32000');
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'ModelCaps',  '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'SessionCaps', '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
 
-  // CLAUDE FABLE 5 — tope de capacidad ($10/$50)
-  // OJO: requiere retencion de datos de 30 dias en la organizacion (orgs con
-  // ZDR reciben 400 en TODA peticion); thinking siempre activo.
+  // CLAUDE FABLE 5 — top capability ($10/$50)
+  // WARNING: requires 30-day data retention in the organization (orgs with
+  // ZDR receive 400 on EVERY request); thinking always active.
   Model := 'claude-fable-5';
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'Max_Tokens', '32000');
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'ModelCaps',  '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'SessionCaps', '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
 
   // ===========================================================================
-  // GENERACION SEP 2026: OPUS 5.5 / SONNET 5.5 / FABLE 5.1
-  // 1M contexto, 128K output, mismo tokenizer que la familia 5. Cambios que
-  // rompen frente a la familia 5 (el driver los maneja):
-  //  - el thinking NO se puede apagar ({type:"disabled"} = 400); la
-  //    profundidad va por output_config.effort. El driver nunca manda disabled.
-  //  - forzar una tool (tool_choice any/tool) = 400: el driver lo baja a auto.
-  //  - bloques de thinking atados al modelo y a la conversacion.
-  // Revisado sep 29/2026 contra la referencia oficial de modelos.
+  // SEP 2026 GENERATION: OPUS 5.5 / SONNET 5.5 / FABLE 5.1
+  // 1M context, 128K output, same tokenizer as the 5 family. Changes that
+  // break versus the 5 family (the driver handles them):
+  //  - thinking CANNOT be turned off ({type:"disabled"} = 400); the
+  //    depth goes through output_config.effort. The driver never sends disabled.
+  //  - forcing a tool (tool_choice any/tool) = 400: the driver downgrades it to auto.
+  //  - thinking blocks tied to the model and to the conversation.
+  // Reviewed Sep 29/2026 against the official model reference.
   // ===========================================================================
 
-  // CLAUDE OPUS 5.5 — sucesor de Opus 5, MAS BARATO ($4/$20). Effort por
-  // defecto MEDIUM (Opus 5 era high): fijar ThinkingLevel si se necesita mas.
+  // CLAUDE OPUS 5.5 — successor to Opus 5, CHEAPER ($4/$20). Effort by
+  // default MEDIUM (Opus 5 was high): set ThinkingLevel if more is needed.
   Model := 'claude-opus-5-5';
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'Max_Tokens', '32000');
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'ModelCaps',  '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'SessionCaps', '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
 
-  // CLAUDE SONNET 5.5 — sucesor de Sonnet 5, mismo precio ($2/$10). Acepta
-  // mensajes system a mitad de conversacion (Sonnet 5 no).
+  // CLAUDE SONNET 5.5 — successor to Sonnet 5, same price ($2/$10). Accepts
+  // system messages mid-conversation (Sonnet 5 does not).
   Model := 'claude-sonnet-5-5';
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'Max_Tokens', '32000');
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'ModelCaps',  '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'SessionCaps', '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
 
-  // CLAUDE FABLE 5.1 — sucesor de Fable 5, mismo precio ($10/$50). Igual que
-  // Fable 5: retencion de 30 dias obligatoria (ZDR = 400) y thinking siempre
-  // activo.
+  // CLAUDE FABLE 5.1 — successor to Fable 5, same price ($10/$50). Same as
+  // Fable 5: mandatory 30-day retention (ZDR = 400) and thinking always
+  // active.
   Model := 'claude-fable-5-1';
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'Max_Tokens', '32000');
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'ModelCaps',  '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'SessionCaps', '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
 
-  // CLAUDE OPUS 4.1 — RETIRADO el 5 ago 2026. Sus nombres quedan como alias
-  // del reemplazo oficial (claude-opus-5-5) para no romper configuraciones.
+  // CLAUDE OPUS 4.1 — RETIRED on 5 Aug 2026. Its names remain as aliases
+  // of the official replacement (claude-opus-5-5) to avoid breaking configurations.
   TAiChatFactory.Instance.RegisterCustomModel('Claude', 'claude-opus-4-1-20250805', 'claude-opus-5-5');
   TAiChatFactory.Instance.RegisterCustomModel('Claude', 'claude-opus-4-1',          'claude-opus-5-5');
   Model := 'claude-opus-4-1';
@@ -1242,15 +1242,15 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Claude', Model, 'SessionCaps', '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
 
   // ===========================================================================
-  // PERFILES PERSONALIZADOS CLAUDE (aa_*)
-  // Basados en los modelos actuales de la familia 4.6
+  // CUSTOM CLAUDE PROFILES (aa_*)
+  // Based on current models of the 4.6 family
   //
-  // ModelCaps  = lo que el perfil declara como nativo del modelo
-  // SessionCaps = lo que se quiere en la sesion (gap activa bridges automaticos)
+  // ModelCaps  = what the profile declares as native to the model
+  // SessionCaps = what is wanted in the session (gap enables automatic bridges)
   // ===========================================================================
   var BaseName: string;
 
-  // 1. Sonnet 4.6 — Thinking profundo (equilibrio coste/razonamiento)
+  // 1. Sonnet 4.6 — Deep thinking (cost/reasoning balance)
   //    Gap = [] -> InternalRunCompletions con ThinkingLevel=tlHigh activo
   BaseName := 'aa_claude-sonnet-4-6-thinking';
   TAiChatFactory.Instance.RegisterCustomModel('Claude', BaseName, 'claude-sonnet-4-6');
@@ -1259,7 +1259,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Claude', BaseName, 'ModelCaps',  '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
   TAiChatFactory.Instance.RegisterUserParam('Claude', BaseName, 'SessionCaps', '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
 
-  // 2. Opus 4.6 — Thinking profundo (maxima capacidad de razonamiento)
+  // 2. Opus 4.6 — Deep thinking (maximum reasoning capability)
   //    Gap = [] -> InternalRunCompletions con ThinkingLevel=tlHigh activo
   BaseName := 'aa_claude-opus-4-6-thinking';
   TAiChatFactory.Instance.RegisterCustomModel('Claude', BaseName, 'claude-opus-4-6');
@@ -1268,9 +1268,9 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Claude', BaseName, 'ModelCaps',  '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
   TAiChatFactory.Instance.RegisterUserParam('Claude', BaseName, 'SessionCaps', '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
 
-  // 3. Opus 4.6 — Agentes (tool calling + TextEditor + Shell habilitados)
+  // 3. Opus 4.6 — Agents (tool calling + TextEditor + Shell enabled)
   //    Gap = [] -> InternalRunCompletions con Tool_Active=True
-  //    cap_TextEditor y cap_Shell en ModelCaps habilitan esos tools via ChatMediaSupports
+  //    cap_TextEditor and cap_Shell in ModelCaps enable those tools via ChatMediaSupports
   BaseName := 'aa_claude-opus-4-6-agent';
   TAiChatFactory.Instance.RegisterCustomModel('Claude', BaseName, 'claude-opus-4-6');
   TAiChatFactory.Instance.RegisterUserParam('Claude', BaseName, 'Tool_Active', 'True');
@@ -1278,7 +1278,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Claude', BaseName, 'ModelCaps',  '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch, cap_TextEditor, cap_Shell]');
   TAiChatFactory.Instance.RegisterUserParam('Claude', BaseName, 'SessionCaps', '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch, cap_TextEditor, cap_Shell]');
 
-  // 4. Haiku 4.5 — Rapido para clasificacion y tools sencillas (bajo coste)
+  // 4. Haiku 4.5 — Fast for classification and simple tools (low cost)
   //    Gap = [] -> InternalRunCompletions con Tool_Active=True
   BaseName := 'aa_claude-haiku-4-5-tools';
   TAiChatFactory.Instance.RegisterCustomModel('Claude', BaseName, 'claude-haiku-4-5-20251001');
@@ -1287,8 +1287,8 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Claude', BaseName, 'ModelCaps',  '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
   TAiChatFactory.Instance.RegisterUserParam('Claude', BaseName, 'SessionCaps', '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
 
-  // 5. Sonnet 5 — Thinking profundo (mejor precio/calidad de la familia 5)
-  //    El driver envia thinking adaptive + output_config.effort=high
+  // 5. Sonnet 5 — Deep thinking (best price/quality of the 5 family)
+  //    The driver sends thinking adaptive + output_config.effort=high
   BaseName := 'aa_claude-sonnet-5-thinking';
   TAiChatFactory.Instance.RegisterCustomModel('Claude', BaseName, 'claude-sonnet-5');
   TAiChatFactory.Instance.RegisterUserParam('Claude', BaseName, 'ThinkingLevel', 'tlHigh');
@@ -1296,7 +1296,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Claude', BaseName, 'ModelCaps',  '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
   TAiChatFactory.Instance.RegisterUserParam('Claude', BaseName, 'SessionCaps', '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
 
-  // 6. Opus 5 — Thinking profundo (maxima capacidad de la linea Opus)
+  // 6. Opus 5 — Deep thinking (maximum capability of the Opus line)
   BaseName := 'aa_claude-opus-5-thinking';
   TAiChatFactory.Instance.RegisterCustomModel('Claude', BaseName, 'claude-opus-5');
   TAiChatFactory.Instance.RegisterUserParam('Claude', BaseName, 'ThinkingLevel', 'tlHigh');
@@ -1304,7 +1304,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Claude', BaseName, 'ModelCaps',  '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
   TAiChatFactory.Instance.RegisterUserParam('Claude', BaseName, 'SessionCaps', '[cap_Image, cap_Pdf, cap_Reasoning, cap_WebSearch]');
 
-  // 7. Opus 5 — Agentes (tool calling + TextEditor + Shell habilitados)
+  // 7. Opus 5 — Agents (tool calling + TextEditor + Shell enabled)
   BaseName := 'aa_claude-opus-5-agent';
   TAiChatFactory.Instance.RegisterCustomModel('Claude', BaseName, 'claude-opus-5');
   TAiChatFactory.Instance.RegisterUserParam('Claude', BaseName, 'Tool_Active', 'True');
@@ -1315,17 +1315,17 @@ Begin
 
   // ------------------------- MISTRAL ----------------------------------
   // https://docs.mistral.ai/getting-started/models
-  // Ultima actualizacion: Jun 2026
+  // Last updated: Jun 2026
   // ------------------------- MISTRAL ----------------------------------
 
-  // --- Valores globales por defecto para todos los modelos Mistral ---
-  // La mayoria soporta vision nativa -> ModelCaps=[cap_Image] por defecto
+  // --- Default global values for all Mistral models ---
+  // Most support native vision -> ModelCaps=[cap_Image] by default
   TAiChatFactory.Instance.RegisterUserParam('Mistral', 'Max_Tokens',  '16000');
   TAiChatFactory.Instance.RegisterUserParam('Mistral', 'Tool_Active', 'True');
   TAiChatFactory.Instance.RegisterUserParam('Mistral', 'ModelCaps',   '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('Mistral', 'SessionCaps', '[cap_Image]');
 
-  // ------- Modelos frontier/generalistas (vision + reasoning_effort) ------
+  // ------- Frontier/generalist models (vision + reasoning_effort) ------
   // https://docs.mistral.ai/getting-started/models/overview
   // mistral-large-latest -> Mistral Large 3 (v25.12), 256K ctx, vision + tools
   // Hereda defaults: ModelCaps=[cap_Image], Tool_Active=True
@@ -1348,9 +1348,9 @@ Begin
   // ministral-14b-latest -> 262K ctx, vision + tools
   // ministral-8b-latest  -> 262K ctx, vision + tools
   // ministral-3b-latest  -> 262K ctx, vision + tools
-  // Todos heredan defaults: ModelCaps=[cap_Image], Tool_Active=True
+  // All inherit defaults: ModelCaps=[cap_Image], Tool_Active=True
 
-  // ------- Razonamiento: Magistral (NO vision) ------
+  // ------- Reasoning: Magistral (NO vision) ------
   // https://docs.mistral.ai/getting-started/models/reasoning
   Model := 'magistral-medium-latest';
   TAiChatFactory.Instance.RegisterUserParam('Mistral', Model, 'ModelCaps',    '[cap_Reasoning]');
@@ -1368,8 +1368,8 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Mistral', Model, 'SessionCaps',  '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Mistral', Model, 'ThinkingLevel', 'tlMedium');
 
-  // ------- Codigo: Devstral + Codestral ------
-  // devstral-latest -> Devstral 2 (v25.12), 256K ctx, agente de codigo, tools
+  // ------- Code: Devstral + Codestral ------
+  // devstral-latest -> Devstral 2 (v25.12), 256K ctx, code agent, tools
   Model := 'devstral-latest';
   TAiChatFactory.Instance.RegisterUserParam('Mistral', Model, 'ModelCaps',   '[]');
   TAiChatFactory.Instance.RegisterUserParam('Mistral', Model, 'SessionCaps', '[]');
@@ -1379,18 +1379,18 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Mistral', Model, 'ModelCaps',   '[]');
   TAiChatFactory.Instance.RegisterUserParam('Mistral', Model, 'SessionCaps', '[]');
 
-  // codestral-latest -> 256K ctx, code completion, sin tools
+  // codestral-latest -> 256K ctx, code completion, without tools
   Model := 'codestral-latest';
   TAiChatFactory.Instance.RegisterUserParam('Mistral', Model, 'ModelCaps',   '[]');
   TAiChatFactory.Instance.RegisterUserParam('Mistral', Model, 'SessionCaps', '[]');
   TAiChatFactory.Instance.RegisterUserParam('Mistral', Model, 'Tool_Active', 'False');
 
-  // ------- Vision dedicada: Pixtral ------
+  // ------- Dedicated vision: Pixtral ------
   // pixtral-12b-latest -> 128K ctx, vision + tools
   // Hereda defaults: ModelCaps=[cap_Image], Tool_Active=True
 
   // pixtral-large-latest -> 131K ctx, vision + tools (frontier multimodal)
-  // Hereda defaults
+  // Inherits defaults
 
   // ------- Audio STT: Voxtral ------
   // cap_Audio: procesa audio nativo; usar con ChatMode=cmTranscription
@@ -1400,27 +1400,27 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Mistral', Model, 'SessionCaps', '[cap_Audio]');
   TAiChatFactory.Instance.RegisterUserParam('Mistral', Model, 'Tool_Active', 'False');
 
-  // voxtral-small-latest -> disponible jun 2026, mismas caps que voxtral-mini
+  // voxtral-small-latest -> available Jun 2026, same caps as voxtral-mini
   Model := 'voxtral-small-latest';
   TAiChatFactory.Instance.RegisterUserParam('Mistral', Model, 'ModelCaps',   '[cap_Audio]');
   TAiChatFactory.Instance.RegisterUserParam('Mistral', Model, 'SessionCaps', '[cap_Audio]');
   TAiChatFactory.Instance.RegisterUserParam('Mistral', Model, 'Tool_Active', 'False');
 
-  // ------- Voxtral TTS (mar 23/2026) -- texto a voz con clonado zero-shot ------
-  // Gap [cap_GenAudio] activa InternalRunNativeSpeechGeneration del driver
-  // (POST /v1/audio/speech). Formatos: mp3/wav/pcm/flac/opus (TtsFormat)
+  // ------- Voxtral TTS (Mar 23/2026) -- text-to-speech with zero-shot cloning ------
+  // Gap [cap_GenAudio] enables the driver's InternalRunNativeSpeechGeneration
+  // (POST /v1/audio/speech). Formats: mp3/wav/pcm/flac/opus (TtsFormat)
   Model := 'voxtral-mini-tts-2603';
   TAiChatFactory.Instance.RegisterUserParam('Mistral', Model, 'ModelCaps',   '[]');
   TAiChatFactory.Instance.RegisterUserParam('Mistral', Model, 'SessionCaps', '[cap_GenAudio]');
   TAiChatFactory.Instance.RegisterUserParam('Mistral', Model, 'Tool_Active', 'False');
 
   // ------- OCR: mistral-ocr ------
-  // OCR 4 (mistral-ocr-4-0) desde jun 23/2026: mistral-ocr-latest apunta a el.
-  // Nuevo: OcrIncludeBlocks (bloques estructurales con bounding boxes) y el
-  // parametro pages acepta rangos ("0-5", "0,2-4")
-  // ModelCaps=[] intencionalmente: crea Gap=[cap_Pdf] para que RunNew active la Fase 1
+  // OCR 4 (mistral-ocr-4-0) since Jun 23/2026: mistral-ocr-latest points to it.
+  // New: OcrIncludeBlocks (structural blocks with bounding boxes) and the
+  // pages parameter accepts ranges ("0-5", "0,2-4")
+  // ModelCaps=[] intentionally: creates Gap=[cap_Pdf] so RunNew enables Phase 1
   // (InternalRunPDFDescription → endpoint /v1/ocr). TAiMistralChat.InternalRunCompletions
-  // detecta el modelo OCR-only y omite la Fase 3 (chat completions no soportado).
+  // detects the OCR-only model and skips Phase 3 (chat completions not supported).
   // https://docs.mistral.ai/capabilities/document
   Model := 'mistral-ocr-latest';
   TAiChatFactory.Instance.RegisterUserParam('Mistral', Model, 'ModelCaps',   '[]');
@@ -1436,48 +1436,48 @@ Begin
   // ------------------------- GROK ----------------------------------
   // https://docs.x.ai/developers/models
   // Ultima actualizacion: Ago 2026 (probado runtime)
-  // Familia actual: grok-4.5 / grok-4.3 / grok-4.20 / grok-build + grok-imagine.
-  // Los modelos de texto actuales RAZONAN SIEMPRE (reasoning_content en la
-  // respuesta) y NO aceptan frequency/presence/stop ni reasoning_effort.
-  // logprobs/top_logprobs NO soportados en grok-4.20 y posteriores.
-  // RETIRADOS ago 2026: familia grok-3 completa, grok-4-0709, grok-4-fast-*,
+  // Current family: grok-4.5 / grok-4.3 / grok-4.20 / grok-build + grok-imagine.
+  // Current text models ALWAYS REASON (reasoning_content in the
+  // response) and do NOT accept frequency/presence/stop or reasoning_effort.
+  // logprobs/top_logprobs NOT supported in grok-4.20 and later.
+  // RETIRED Aug 2026: complete grok-3 family, grok-4-0709, grok-4-fast-*,
   // grok-4-1*, grok-code-fast-1, grok-2-vision-1212, grok-2-image-1212.
   // ------------------------- GROK ----------------------------------
 
-  // --- Valores globales por defecto para todos los modelos Grok ---
+  // --- Default global values for all Grok models ---
   TAiChatFactory.Instance.RegisterUserParam('Grok', 'Max_Tokens',  '16000');
   TAiChatFactory.Instance.RegisterUserParam('Grok', 'Tool_Active', 'True');
   TAiChatFactory.Instance.RegisterUserParam('Grok', 'ModelCaps',   '[]');
   TAiChatFactory.Instance.RegisterUserParam('Grok', 'SessionCaps', '[]');
 
-  // ------- Grok 4.3 [default del driver] ------
-  // 1M ctx, vision + reasoning siempre activo (probados). $1.25/M in, $2.50/M out (<200K)
+  // ------- Grok 4.3 [driver default] ------
+  // 1M ctx, vision + reasoning always active (tested). $1.25/M in, $2.50/M out (<200K)
   Model := 'grok-4.3';
   TAiChatFactory.Instance.RegisterUserParam('Grok', Model, 'ModelCaps',   '[cap_Image, cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Grok', Model, 'SessionCaps', '[cap_Image, cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Grok', Model, 'Max_Tokens',  '32000');
 
-  // ------- Grok 4.5 [premium, recomendado para codigo y chat] ------
-  // 500K ctx, vision + reasoning siempre activo (probados). $2/M in, $6/M out (<200K)
+  // ------- Grok 4.5 [premium, recommended for code and chat] ------
+  // 500K ctx, vision + reasoning always active (tested). $2/M in, $6/M out (<200K)
   Model := 'grok-4.5';
   TAiChatFactory.Instance.RegisterUserParam('Grok', Model, 'ModelCaps',   '[cap_Image, cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Grok', Model, 'SessionCaps', '[cap_Image, cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Grok', Model, 'Max_Tokens',  '32000');
 
-  // ------- Grok Build (coding, 256K ctx, reasoning siempre activo) ------
-  // $1/M in, $2/M out (<200K). Sin vision confirmada.
+  // ------- Grok Build (coding, 256K ctx, reasoning always active) ------
+  // $1/M in, $2/M out (<200K). No confirmed vision.
   Model := 'grok-build-0.1';
   TAiChatFactory.Instance.RegisterUserParam('Grok', Model, 'ModelCaps',   '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Grok', Model, 'SessionCaps', '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Grok', Model, 'Max_Tokens',  '32000');
 
-  // Aliases de modelos retirados hacia equivalentes actuales
+  // Aliases of retired models to current equivalents
   TAiChatFactory.Instance.RegisterCustomModel('Grok', 'grok-3',           'grok-4.3');
   TAiChatFactory.Instance.RegisterCustomModel('Grok', 'grok-4',           'grok-4.3');
   TAiChatFactory.Instance.RegisterCustomModel('Grok', 'grok-4-0709',      'grok-4.3');
   TAiChatFactory.Instance.RegisterCustomModel('Grok', 'grok-code-fast-1', 'grok-build-0.1');
 
-  // ------- Grok 4.20 (mar 2026, 1M ctx, vision + tools) ------
+  // ------- Grok 4.20 (Mar 2026, 1M ctx, vision + tools) ------
   Model := 'grok-4.20-0309-non-reasoning';
   TAiChatFactory.Instance.RegisterUserParam('Grok', Model, 'ModelCaps',   '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('Grok', Model, 'SessionCaps', '[cap_Image]');
@@ -1506,14 +1506,14 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Grok', Model, 'SessionCaps', '[cap_GenImage]');
   TAiChatFactory.Instance.RegisterUserParam('Grok', Model, 'Tool_Active', 'False');
 
-  // Aliases de modelos de imagen retirados
+  // Aliases of retired image models
   TAiChatFactory.Instance.RegisterCustomModel('Grok', 'grok-2-image-1212',      'grok-imagine-image');
   TAiChatFactory.Instance.RegisterCustomModel('Grok', 'grok-2-image',           'grok-imagine-image');
   TAiChatFactory.Instance.RegisterCustomModel('Grok', 'grok-imagine-image-pro', 'grok-imagine-image-quality');
 
-  // ------- Generacion de video ------
-  // Gap=[cap_GenVideo] activa InternalRunImageVideoGeneration
-  // grok-imagine-video $0.05/seg; grok-imagine-video-1.5 $0.08/seg
+  // ------- Video generation ------
+  // Gap=[cap_GenVideo] enables InternalRunImageVideoGeneration
+  // grok-imagine-video $0.05/sec; grok-imagine-video-1.5 $0.08/sec
   Model := 'grok-imagine-video';
   TAiChatFactory.Instance.RegisterUserParam('Grok', Model, 'ModelCaps',   '[]');
   TAiChatFactory.Instance.RegisterUserParam('Grok', Model, 'SessionCaps', '[cap_GenVideo]');
@@ -1525,13 +1525,13 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Grok', Model, 'Tool_Active', 'False');
 
   // ------- Perfiles personalizados (aa_*) ------
-  // Grok con web search nativo (Agent Tools API - grok-4+)
+  // Grok with native web search (Agent Tools API - grok-4+)
   TAiChatFactory.Instance.RegisterCustomModel('Grok', 'aa_grok-3-search', 'grok-4.3');
   Model := 'aa_grok-3-search';
   TAiChatFactory.Instance.RegisterUserParam('Grok', Model, 'ModelCaps',   '[cap_WebSearch]');
   TAiChatFactory.Instance.RegisterUserParam('Grok', Model, 'SessionCaps', '[cap_WebSearch]');
 
-  // Perfil rapido con reasoning (retarget: grok-4-fast-reasoning fue retirado)
+  // Fast profile with reasoning (retarget: grok-4-fast-reasoning was retired)
   TAiChatFactory.Instance.RegisterCustomModel('Grok', 'aa_grok-4-fast-high', 'grok-4.20-0309-reasoning');
   Model := 'aa_grok-4-fast-high';
   TAiChatFactory.Instance.RegisterUserParam('Grok', Model, 'ThinkingLevel', 'tlHigh');
@@ -1541,7 +1541,7 @@ Begin
   // Ultima actualizacion: Ago 2026 (probado runtime)
   // ------------------------- COHERE ----------------------------------
 
-  // --- Valores globales por defecto para todos los modelos Cohere ---
+  // --- Default global values for all Cohere models ---
   TAiChatFactory.Instance.RegisterUserParam('Cohere', 'Max_Tokens',  '8000');
   TAiChatFactory.Instance.RegisterUserParam('Cohere', 'Tool_Active', 'True');
   TAiChatFactory.Instance.RegisterUserParam('Cohere', 'Asynchronous', 'False');
@@ -1549,57 +1549,57 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Cohere', 'SessionCaps', '[]');
 
   // ------- Command A+ (may 2026) [FLAGSHIP] ------
-  // command-a-plus-05-2026: MoE 218B (25B activos), Apache 2.0, 436K ctx.
-  // Vision + reasoning SIEMPRE activo (content trae bloque 'thinking' antes del
-  // 'text'; enviar thinking disabled falla con INVALID_TOOL_GENERATION).
+  // command-a-plus-05-2026: MoE 218B (25B active), Apache 2.0, 436K ctx.
+  // Vision + reasoning ALWAYS active (content brings a 'thinking' block before the
+  // 'text'; sending thinking disabled fails with INVALID_TOOL_GENERATION).
   // $2.5/M input, $10/M output.
   Model := 'command-a-plus-05-2026';
   TAiChatFactory.Instance.RegisterUserParam('Cohere', Model, 'ModelCaps',   '[cap_Image, cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Cohere', Model, 'SessionCaps', '[cap_Image, cap_Reasoning]');
 
   // ------- North Mini Code (436K ctx, coding + tools) ------
-  // north-mini-code-1-0: razona por defecto; sin cap_Reasoning el driver envia
-  // thinking disabled (modo rapido); agregar cap_Reasoning para razonar.
-  // north-mini-code-1-0: hereda defaults globales
+  // north-mini-code-1-0: reasons by default; without cap_Reasoning the driver sends
+  // thinking disabled (fast mode); add cap_Reasoning to reason.
+  // north-mini-code-1-0: inherits global defaults
 
-  // ------- Command A (288K ctx, texto + tools) ------
-  // command-a-03-2025: hereda defaults globales (default del driver)
+  // ------- Command A (288K ctx, text + tools) ------
+  // command-a-03-2025: inherits global defaults (driver default)
 
-  // ------- Command A Reasoning (256K ctx, texto + tools + reasoning) ------
+  // ------- Command A Reasoning (256K ctx, text + tools + reasoning) ------
   Model := 'command-a-reasoning-08-2025';
   TAiChatFactory.Instance.RegisterUserParam('Cohere', Model, 'ModelCaps',    '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Cohere', Model, 'SessionCaps',  '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Cohere', Model, 'ThinkingLevel', 'tlMedium');
 
-  // ------- Command A Vision (128K ctx, vision, sin tools) ------
+  // ------- Command A Vision (128K ctx, vision, without tools) ------
   Model := 'command-a-vision-07-2025';
   TAiChatFactory.Instance.RegisterUserParam('Cohere', Model, 'ModelCaps',   '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('Cohere', Model, 'SessionCaps', '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('Cohere', Model, 'Tool_Active', 'False');
 
-  // ------- Command A Translate (16K ctx, traduccion especializada, sin tools) ------
+  // ------- Command A Translate (16K ctx, specialized translation, without tools) ------
   Model := 'command-a-translate-08-2025';
   TAiChatFactory.Instance.RegisterUserParam('Cohere', Model, 'Tool_Active', 'False');
 
-  // ------- Command R7B (128K ctx, texto + tools, ligero) ------
-  // command-r7b-12-2024: hereda defaults globales
+  // ------- Command R7B (128K ctx, text + tools, lightweight) ------
+  // command-r7b-12-2024: inherits global defaults
 
-  // ------- Aya Expanse (texto multilingual, sin tools) ------
-  // Los 8b (aya-expanse-8b / aya-vision-8b) ya NO estan en /v1/models (ago 2026)
+  // ------- Aya Expanse (multilingual text, without tools) ------
+  // The 8b (aya-expanse-8b / aya-vision-8b) are NO LONGER in /v1/models (Aug 2026)
   Model := 'c4ai-aya-expanse-32b';
   TAiChatFactory.Instance.RegisterUserParam('Cohere', Model, 'Tool_Active', 'False');
 
-  // ------- Aya Vision (vision multilingual, sin tools, 16K ctx) ------
+  // ------- Aya Vision (multilingual vision, without tools, 16K ctx) ------
   Model := 'c4ai-aya-vision-32b';
   TAiChatFactory.Instance.RegisterUserParam('Cohere', Model, 'ModelCaps',   '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('Cohere', Model, 'SessionCaps', '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('Cohere', Model, 'Tool_Active', 'False');
 
-  // ------- Tiny Aya (8K ctx, multilingual ligeros, sin tools) ------
+  // ------- Tiny Aya (8K ctx, lightweight multilingual, without tools) ------
   Model := 'tiny-aya-global';
   TAiChatFactory.Instance.RegisterUserParam('Cohere', Model, 'Max_Tokens',  '4000');
   TAiChatFactory.Instance.RegisterUserParam('Cohere', Model, 'Tool_Active', 'False');
-  // tiny-aya-earth / tiny-aya-fire / tiny-aya-water: variantes regionales, misma config
+  // tiny-aya-earth / tiny-aya-fire / tiny-aya-water: regional variants, same config
   Model := 'tiny-aya-earth';
   TAiChatFactory.Instance.RegisterUserParam('Cohere', Model, 'Max_Tokens',  '4000');
   TAiChatFactory.Instance.RegisterUserParam('Cohere', Model, 'Tool_Active', 'False');
@@ -1610,9 +1610,9 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Cohere', Model, 'Max_Tokens',  '4000');
   TAiChatFactory.Instance.RegisterUserParam('Cohere', Model, 'Tool_Active', 'False');
 
-  // ------- Rerank v4.0 (ago 2026) ------
-  // rerank-v4.0-fast / rerank-v4.0-pro: 32K ctx (vs 4K de v3.x). Se usan via
-  // TCohereChat.RerankModel + metodo Rerank(); rerank-english-v3.0 sigue activo.
+  // ------- Rerank v4.0 (Aug 2026) ------
+  // rerank-v4.0-fast / rerank-v4.0-pro: 32K ctx (vs 4K in v3.x). They are used via
+  // TCohereChat.RerankModel + Rerank() method; rerank-english-v3.0 remains active.
 
   // ------- Audio STT: cohere-transcribe (Mar 2026) ------
   // cap_Audio: procesa audio nativo; usar con ChatMode=cmTranscription
@@ -1625,51 +1625,51 @@ Begin
   // ------------------------- DEEPSEEK ----------------------------------
   // https://api-docs.deepseek.com/quick_start/pricing
   // ------------------------- DEEPSEEK ----------------------------------
-  // https://api-docs.deepseek.com/ — actualizado sep 2026, probado runtime
-  // V4 (abr 2026): unicos modelos en /v1/models. 1M ctx / 384K output ambos.
-  // sep 2026: RENOMBRE. Los canonicos son 'deepseek-flash' y 'deepseek-v4-pro'.
-  // 'deepseek-v4-flash' y 'deepseek-v4-flash-vision-exp' siguen aceptados como
-  // alias, pero esos modelos fueron retirados (enrutan al nuevo flash).
-  // v4-pro CONTINUA despues del 14 sep 2026 (aviso oficial), facturacion igual.
-  // El API activa thinking por defecto (effort=high); el driver lo controla:
+  // https://api-docs.deepseek.com/ — updated Sep 2026, tested at runtime
+  // V4 (Apr 2026): only models in /v1/models. 1M ctx / 384K output both.
+  // Sep 2026: RENAME. The canonical ones are 'deepseek-flash' and 'deepseek-v4-pro'.
+  // 'deepseek-v4-flash' and 'deepseek-v4-flash-vision-exp' are still accepted as
+  // aliases, but those models were retired (they route to the new flash).
+  // v4-pro CONTINUES after 14 Sep 2026 (official notice), billing unchanged.
+  // The API enables thinking by default (effort=high); the driver controls it:
   // cap_Reasoning => thinking enabled + reasoning_effort (tlLow=low, tlMedium=high,
-  // tlHigh=max); sin cap_Reasoning el driver envia thinking disabled (modo rapido).
-  // OJO pricing: la tarifa pico/valle YA ESTA VIGENTE. Fuera de pico se paga la
-  // mitad; horas pico 01:00-04:00 y 06:00-10:00 UTC de lunes a viernes.
+  // tlHigh=max); without cap_Reasoning the driver sends thinking disabled (fast mode).
+  // WARNING pricing: peak/off-peak rates are ALREADY IN EFFECT. Off-peak you pay
+  // half; peak hours 01:00-04:00 and 06:00-10:00 UTC Monday through Friday.
 
-  // --- Valores globales por defecto para todos los modelos DeepSeek ---
+  // --- Default global values for all DeepSeek models ---
   TAiChatFactory.Instance.RegisterUserParam('DeepSeek', 'Max_Tokens',  '8192');
   TAiChatFactory.Instance.RegisterUserParam('DeepSeek', 'Tool_Active', 'True');
   TAiChatFactory.Instance.RegisterUserParam('DeepSeek', 'ModelCaps',   '[]');
   TAiChatFactory.Instance.RegisterUserParam('DeepSeek', 'SessionCaps', '[]');
 
-  // ------- DeepSeek Flash [MODELO ACTUAL - default del driver] ------
-  // Precio pico: $0.30/M in (miss) / $0.003/M (hit) / $1.20/M out.
-  // Fuera de pico es la MITAD. Horas pico 01:00-04:00 y 06:00-10:00 UTC (L-V).
-  // Sin cap_Reasoning por defecto = modo rapido; para razonar agregar
+  // ------- DeepSeek Flash [CURRENT MODEL - driver default] ------
+  // Peak price: $0.30/M in (miss) / $0.003/M (hit) / $1.20/M out.
+  // Off-peak it is HALF. Peak hours 01:00-04:00 and 06:00-10:00 UTC (Mon-Fri).
+  // Without cap_Reasoning by default = fast mode; to reason add
   // ModelCaps [cap_Reasoning] + ThinkingLevel
   Model := 'deepseek-flash';
   TAiChatFactory.Instance.RegisterUserParam('DeepSeek', Model, 'Max_Tokens', '65536');
 
-  // Alias legacy: el modelo original fue retirado, el nombre sigue enrutando
-  // al nuevo deepseek-flash. Se mantiene registrado para configuraciones viejas.
+  // Legacy alias: the original model was retired, the name still routes
+  // to the new deepseek-flash. It remains registered for old configurations.
   Model := 'deepseek-v4-flash';
   TAiChatFactory.Instance.RegisterUserParam('DeepSeek', Model, 'Max_Tokens', '65536');
 
-  // ------- DeepSeek V4 Pro (razonamiento por defecto) ------
-  // 1.6T params (49B activos). Precio pico: $1.32/M in (miss) / $0.022/M (hit)
-  // / $3.96/M out; fuera de pico la mitad ($1.98/M out)
-  // Nota: en v4-pro el API mapea effort low->high (min soportado, ago 2026)
+  // ------- DeepSeek V4 Pro (reasoning by default) ------
+  // 1.6T params (49B active). Peak price: $1.32/M in (miss) / $0.022/M (hit)
+  // / $3.96/M out; off-peak half ($1.98/M out)
+  // Note: in v4-pro the API maps effort low->high (minimum supported, Aug 2026)
   Model := 'deepseek-v4-pro';
   TAiChatFactory.Instance.RegisterUserParam('DeepSeek', Model, 'Max_Tokens', '65536');
   TAiChatFactory.Instance.RegisterUserParam('DeepSeek', Model, 'ModelCaps',    '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('DeepSeek', Model, 'SessionCaps',  '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('DeepSeek', Model, 'ThinkingLevel', 'tlMedium');
 
-  // ------- Aliases RETIRADOS oficialmente el 24 jul 2026 ------
-  // deepseek-chat y deepseek-reasoner aun enrutan a v4-flash (no-thinking/thinking)
-  // en periodo de gracia, pero NO depender de ellos. deepseek-reasoner conserva
-  // su entrada para que configuraciones existentes mantengan el reasoning.
+  // ------- Aliases OFFICIALLY RETIRED on 24 Jul 2026 ------
+  // deepseek-chat and deepseek-reasoner still route to v4-flash (no-thinking/thinking)
+  // in a grace period, but do NOT depend on them. deepseek-reasoner keeps
+  // its entry so existing configurations keep reasoning.
   Model := 'deepseek-reasoner';
   TAiChatFactory.Instance.RegisterUserParam('DeepSeek', Model, 'ModelCaps',    '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('DeepSeek', Model, 'SessionCaps',  '[cap_Reasoning]');
@@ -1677,43 +1677,43 @@ Begin
 
   // ------------------------- GLM (Zhipu AI / Z.ai) -----------------
   // https://docs.z.ai/api-reference/llm/chat-completion
-  // Ultima actualizacion: Ago 2026 (capacidades verificadas vs docs oficiales;
-  // registrado SIN prueba runtime)
+  // Last updated: Aug 2026 (capabilities verified vs official docs;
+  // registered WITHOUT runtime testing)
   // ------------------------- GLM (Zhipu AI / Z.ai) -----------------
-  // El API trae thinking ACTIVADO por defecto en glm-4.7/5.x; el driver lo
-  // controla explicitamente segun cap_Reasoning (patron DeepSeek V4).
-  // glm-5.3 usa FORCED thinking (no acepta disabled - el driver lo maneja).
-  // reasoning_effort (low/high/max, default max) solo glm-5.2/5.3.
-  // tool_choice: el API solo soporta 'auto'. Salida maxima 128K (16K en 4.5v).
-  // Endpoint internacional api.z.ai; para China continental cambiar URL a
-  // https://open.bigmodel.cn/api/paas/v4/. Sampling acotado: temperature [0,1],
-  // top_p [0.01,1], max_tokens hasta 131072 (clamp en el driver).
+  // The API has thinking ENABLED by default in glm-4.7/5.x; the driver
+  // controls it explicitly based on cap_Reasoning (DeepSeek V4 pattern).
+  // glm-5.3 uses FORCED thinking (does not accept disabled - the driver handles it).
+  // reasoning_effort (low/high/max, default max) only glm-5.2/5.3.
+  // tool_choice: the API only supports 'auto'. Maximum output 128K (16K in 4.5v).
+  // International endpoint api.z.ai; for mainland China change URL to
+  // https://open.bigmodel.cn/api/paas/v4/. Bounded sampling: temperature [0,1],
+  // top_p [0.01,1], max_tokens up to 131072 (clamp in the driver).
 
-  // --- Valores globales por defecto para todos los modelos GLM ---
+  // --- Default global values for all GLM models ---
   TAiChatFactory.Instance.RegisterUserParam('GLM', 'Max_Tokens',  '8192');
   TAiChatFactory.Instance.RegisterUserParam('GLM', 'Tool_Active', 'True');
   TAiChatFactory.Instance.RegisterUserParam('GLM', 'ModelCaps',   '[]');
   TAiChatFactory.Instance.RegisterUserParam('GLM', 'SessionCaps', '[]');
 
-  // ------- GLM-4.7 [default del driver] ------
-  // 200K ctx / 128K out. Balance costo/capacidad: $0.60/M in / $2.20/M out.
-  // Sin cap_Reasoning por defecto = modo rapido (el driver manda disabled);
-  // para razonar agregar ModelCaps [cap_Reasoning]
+  // ------- GLM-4.7 [driver default] ------
+  // 200K ctx / 128K out. Cost/capability balance: $0.60/M in / $2.20/M out.
+  // Without cap_Reasoning by default = fast mode (the driver sends disabled);
+  // to reason add ModelCaps [cap_Reasoning]
   Model := 'glm-4.7';
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'Max_Tokens', '16384');
 
-  // ------- GLM-4.7-Flash (GRATIS) ------
-  // Sin costo para cuentas registradas (incluye cache de input); prototipos
+  // ------- GLM-4.7-Flash (FREE) ------
+  // No cost for registered accounts (includes input cache); prototypes
   Model := 'glm-4.7-flash';
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'Max_Tokens', '16384');
 
-  // ------- GLM-4.7-FlashX (ligero rapido, $0.07/M in / $0.40/M out) ------
+  // ------- GLM-4.7-FlashX (lightweight fast, $0.07/M in / $0.40/M out) ------
   Model := 'glm-4.7-flashx';
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'Max_Tokens', '16384');
 
-  // ------- GLM-5.3 (ago 14/2026) -- flagship coding open-weights ------
-  // 1M ctx / 128K out. MoE ~744B (40B activos). $1.40/M in / $4.40/M out.
-  // FORCED thinking: no se puede desactivar (el driver siempre manda enabled);
+  // ------- GLM-5.3 (Aug 14/2026) -- flagship coding open-weights ------
+  // 1M ctx / 128K out. MoE ~744B (40B active). $1.40/M in / $4.40/M out.
+  // FORCED thinking: cannot be disabled (the driver always sends enabled);
   // reasoning_effort low/high/max (default max) via ThinkingLevel
   Model := 'glm-5.3';
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'Max_Tokens',    '32768');
@@ -1721,7 +1721,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'SessionCaps',  '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'ThinkingLevel', 'tlMedium');
 
-  // ------- GLM-5.2 (jun 2026) -- 1M ctx / 128K out, reasoning_effort ------
+  // ------- GLM-5.2 (Jun 2026) -- 1M ctx / 128K out, reasoning_effort ------
   // $1.40/M in / $4.40/M out
   Model := 'glm-5.2';
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'Max_Tokens',    '32768');
@@ -1729,8 +1729,8 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'SessionCaps',  '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'ThinkingLevel', 'tlMedium');
 
-  // ------- GLM-5.1 (agentes de larga duracion) ------
-  // $1.40/M in / $4.40/M out; sesiones autonomas hasta 8h
+  // ------- GLM-5.1 (long-running agents) ------
+  // $1.40/M in / $4.40/M out; autonomous sessions up to 8h
   Model := 'glm-5.1';
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'Max_Tokens',    '32768');
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'ModelCaps',    '[cap_Reasoning]');
@@ -1745,38 +1745,38 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'SessionCaps',  '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'ThinkingLevel', 'tlMedium');
 
-  // ------- GLM-5-Turbo (agentes de alto throughput) ------
-  // 200K ctx / 128K out. $1.20/M in / $4.00/M out. Sin cap_Reasoning por
-  // defecto = el driver manda thinking disabled (respuesta rapida)
+  // ------- GLM-5-Turbo (high-throughput agents) ------
+  // 200K ctx / 128K out. $1.20/M in / $4.00/M out. Without cap_Reasoning by
+  // default = the driver sends thinking disabled (fast response)
   Model := 'glm-5-turbo';
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'Max_Tokens', '16384');
 
-  // ------- GLM-5V-Turbo (vision + tools + agentes) ------
+  // ------- GLM-5V-Turbo (vision + tools + agents) ------
   // 200K ctx / 128K out. $1.20/M in / $4.00/M out. Image/video/file input
   Model := 'glm-5v-turbo';
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'ModelCaps',   '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'SessionCaps', '[cap_Image]');
 
   // ------- GLM-4.6V (vision, 128K ctx) ------
-  // $0.30/M in / $0.90/M out. Primera familia V con function calling NATIVO
-  // (imagenes como parametros de tools)
+  // $0.30/M in / $0.90/M out. First V family with NATIVE function calling
+  // (images as tool parameters)
   Model := 'glm-4.6v';
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'ModelCaps',   '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'SessionCaps', '[cap_Image]');
 
-  // ------- GLM-4.6V-Flash (vision GRATIS, 128K ctx) ------
+  // ------- GLM-4.6V-Flash (FREE vision, 128K ctx) ------
   Model := 'glm-4.6v-flash';
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'ModelCaps',   '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'SessionCaps', '[cap_Image]');
 
-  // ------- GLM-4.6V-FlashX (vision ligera, $0.04/M in / $0.40/M out) ------
+  // ------- GLM-4.6V-FlashX (lightweight vision, $0.04/M in / $0.40/M out) ------
   Model := 'glm-4.6v-flashx';
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'ModelCaps',   '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'SessionCaps', '[cap_Image]');
 
   // ------- GLM-4.5V (vision open-source ~100B) ------
-  // $0.60/M in / $1.80/M out. Salida maxima 16K. SIN function calling
-  // (el FC nativo en vision llego con 4.6V)
+  // $0.60/M in / $1.80/M out. Maximum output 16K. WITHOUT function calling
+  // (native FC in vision arrived with 4.6V)
   Model := 'glm-4.5v';
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'Tool_Active', 'False');
   TAiChatFactory.Instance.RegisterUserParam('GLM', Model, 'Max_Tokens',  '8192');
@@ -1785,78 +1785,78 @@ Begin
 
   // ------------------------- QWEN (Alibaba Model Studio) ----------
   // https://www.alibabacloud.com/help/en/model-studio/models
-  // Registrado sep 28 2026. Todo lo marcado 'probado' se verifico runtime contra
-  // dashscope-intl (Singapur). Key: @DASHSCOPE_API_KEY (atada a su region).
-  // La cuenta expone ~170 modelos (tambien DeepSeek, GLM y Kimi servidos por
-  // Alibaba); aqui se registran los probados. Cualquier otro id funciona con los
-  // params globales asignandolo en Model.
-  // Razonamiento: el driver manda enable_thinking=true solo con cap_Reasoning en
-  // ModelCaps; los hibridos se registran SIN el cap (rapidos) y se activa
-  // agregandolo. ThinkingLevel -> thinking_budget (tlLow 1024, tlMedium 4096,
-  // tlHigh 16384, tlDefault sin limite).
+  // Registered Sep 28 2026. Everything marked 'tested' was verified at runtime against
+  // dashscope-intl (Singapore). Key: @DASHSCOPE_API_KEY (tied to its region).
+  // The account exposes ~170 models (also DeepSeek, GLM and Kimi served by
+  // Alibaba); here the tested ones are registered. Any other id works with the
+  // global params by assigning it in Model.
+  // Reasoning: the driver sends enable_thinking=true only with cap_Reasoning in
+  // ModelCaps; hybrids are registered WITHOUT the cap (fast) and it is enabled
+  // by adding it. ThinkingLevel -> thinking_budget (tlLow 1024, tlMedium 4096,
+  // tlHigh 16384, tlDefault no limit).
   // ------------------------- QWEN (Alibaba Model Studio) ----------
 
-  // --- Valores globales por defecto para todos los modelos Qwen ---
+  // --- Default global values for all Qwen models ---
   TAiChatFactory.Instance.RegisterUserParam('Qwen', 'Max_Tokens',  '8192');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', 'Tool_Active', 'True');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', 'ModelCaps',   '[]');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', 'SessionCaps', '[]');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', 'ThinkingLevel', 'tlDefault');
 
-  // ------- Insignia multimodales (texto + imagen) -- probados ------
-  // qwen3.8-flash: default del driver; rapido, vision, razonamiento hibrido, tools+stream
+  // ------- Flagship multimodal (text + image) -- tested ------
+  // qwen3.8-flash: driver default; fast, vision, hybrid reasoning, tools+stream
   Model := 'qwen3.8-flash';
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'ModelCaps',   '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'SessionCaps', '[cap_Image]');
 
-  // qwen3.8-max: el mas capaz; vision, razonamiento hibrido
+  // qwen3.8-max: the most capable; vision, hybrid reasoning
   Model := 'qwen3.8-max';
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'ModelCaps',   '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'SessionCaps', '[cap_Image]');
 
-  // qwen3.7-plus: vision, razonamiento hibrido
+  // qwen3.7-plus: vision, hybrid reasoning
   Model := 'qwen3.7-plus';
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'ModelCaps',   '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'SessionCaps', '[cap_Image]');
 
-  // qwen3-vl-flash: vision dedicado
+  // qwen3-vl-flash: dedicated vision
   Model := 'qwen3-vl-flash';
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'ModelCaps',   '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'SessionCaps', '[cap_Image]');
 
-  // qwen3.8-omni-flash: omnimodal; probado con imagen y con audio de entrada
-  // (sync y stream; el driver convierte el audio a data URI). Video sin probar
+  // qwen3.8-omni-flash: omnimodal; tested with image and with input audio
+  // (sync and stream; the driver converts audio to a data URI). Video untested
   Model := 'qwen3.8-omni-flash';
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'ModelCaps',   '[cap_Image, cap_Audio]');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'SessionCaps', '[cap_Image, cap_Audio]');
 
-  // ------- Texto -- probados (razonamiento hibrido, SIN vision) ------
-  // qwen3-max, qwen-plus, qwen-flash, qwen-turbo: usan los globales ([] = rapido)
+  // ------- Text -- tested (hybrid reasoning, WITHOUT vision) ------
+  // qwen3-max, qwen-plus, qwen-flash, qwen-turbo: use the globals ([] = fast)
   TAiChatFactory.Instance.RegisterUserParam('Qwen', 'qwen3-max',  'Max_Tokens', '8192');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', 'qwen-plus',  'Max_Tokens', '8192');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', 'qwen-flash', 'Max_Tokens', '8192');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', 'qwen-turbo', 'Max_Tokens', '8192');
 
-  // ------- Codigo -- probados (no razonan: enable_thinking se ignora) ------
+  // ------- Code -- tested (they do not reason: enable_thinking is ignored) ------
   TAiChatFactory.Instance.RegisterUserParam('Qwen', 'qwen3-coder-plus',  'Max_Tokens', '8192');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', 'qwen3-coder-flash', 'Max_Tokens', '8192');
 
-  // ------- Solo razonamiento -- probados ------
-  // qwq-plus: SOLO responde en streaming (sin stream devuelve vacio y sin error)
+  // ------- Reasoning only -- tested ------
+  // qwq-plus: ONLY responds in streaming (without stream it returns empty and without error)
   Model := 'qwq-plus';
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'ModelCaps',    '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'SessionCaps',  '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'Asynchronous', 'True');
 
-  // qwen3-235b-a22b-thinking-2507: pesos abiertos, razona con y sin stream
+  // qwen3-235b-a22b-thinking-2507: open weights, reasons with and without stream
   Model := 'qwen3-235b-a22b-thinking-2507';
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'ModelCaps',   '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'SessionCaps', '[cap_Reasoning]');
 
-  // ------- Fase 2: generacion de imagen [cap_GenImage] -- probados ------
-  // Gap [cap_GenImage] -> InternalRunNativeImageGeneration (API nativa, sincrona).
-  // Tamano: ImageParams.Params.Values['size'] (default 1024*1024; qwen-image-plus
-  // solo admite 1328*1328, 1664*928, 928*1664, 1472*1104, 1104*1472)
+  // ------- Phase 2: image generation [cap_GenImage] -- tested ------
+  // Gap [cap_GenImage] -> InternalRunNativeImageGeneration (native API, synchronous).
+  // Size: ImageParams.Params.Values['size'] (default 1024*1024; qwen-image-plus
+  // only accepts 1328*1328, 1664*928, 928*1664, 1472*1104, 1104*1472)
   Model := 'qwen-image-3.0';
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'ModelCaps',   '[]');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'SessionCaps', '[cap_GenImage]');
@@ -1890,10 +1890,10 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'SessionCaps', '[cap_GenImage]');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'Tool_Active', 'False');
 
-  // ------- Edicion de imagen [cap_GenImage] -- probados ------
-  // Las imagenes adjuntas al prompt (1 a 3) son la entrada. Sin 'size' se
-  // conserva la proporcion del original. qwen-image-2.0/3.0 y wan2.7-image
-  // tambien editan; z-image-turbo no. Tiempos: plus ~9 s, edit ~17 s, max ~40 s
+  // ------- Image editing [cap_GenImage] -- tested ------
+  // Images attached to the prompt (1 to 3) are the input. Without 'size' the
+  // original aspect ratio is preserved. qwen-image-2.0/3.0 and wan2.7-image
+  // also edit; z-image-turbo does not. Times: plus ~9 s, edit ~17 s, max ~40 s
   Model := 'qwen-image-edit-plus';
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'ModelCaps',   '[]');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'SessionCaps', '[cap_GenImage]');
@@ -1908,10 +1908,10 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'Tool_Active', 'False');
 
   // ------- Video (wan) [cap_GenVideo] ------
-  // Tarea asincrona (5 s de video: wan2.6 ~45 s, wan2.7 ~95 s). Imagenes adjuntas:
-  // 0 = texto a video, 1 = imagen a video (un -t2v pasa a su -i2v), 2 = primer y
-  // ultimo cuadro (kf2v). Por defecto 720P; VideoParams.Params pasa al API
-  // (duration 2-15 en wan2.6/2.7; wan2.1/2.2 no admiten duration). wan2.5+ trae audio.
+  // Asynchronous task (5 s of video: wan2.6 ~45 s, wan2.7 ~95 s). Attached images:
+  // 0 = text to video, 1 = image to video (a -t2v switches to its -i2v), 2 = first and
+  // last frame (kf2v). Default 720P; VideoParams.Params passes to the API
+  // (duration 2-15 in wan2.6/2.7; wan2.1/2.2 do not accept duration). wan2.5+ includes audio.
   Model := 'wan2.6-t2v';
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'ModelCaps',   '[]');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'SessionCaps', '[cap_GenVideo]');
@@ -1973,12 +1973,12 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'SessionCaps', '[cap_GenVideo]');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'Tool_Active', 'False');
 
-  // ------- Traduccion de texto (qwen-mt) -- probados ------
-  // El driver manda solo el ultimo mensaje user + translation_options (el API
-  // rechaza system, historial y tools). Idiomas en TranslateTo / TranslateFrom
-  // (Params), glosario en TranslateTerms, dominio en TranslateDomain.
-  // qwen-mt-plus traduce mejor terminos de dominio ("caja menor" -> petty cash);
-  // flash/turbo/lite los aciertan con TranslateTerms o TranslateDomain
+  // ------- Text translation (qwen-mt) -- tested ------
+  // The driver sends only the last user message + translation_options (the API
+  // rejects system, history and tools). Languages in TranslateTo / TranslateFrom
+  // (Params), glossary in TranslateTerms, domain in TranslateDomain.
+  // qwen-mt-plus translates domain terms better ("caja menor" -> petty cash);
+  // flash/turbo/lite get them right with TranslateTerms or TranslateDomain
   Model := 'qwen-mt-plus';
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'ModelCaps',   '[]');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'SessionCaps', '[]');
@@ -1996,9 +1996,9 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'SessionCaps', '[]');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'Tool_Active', 'False');
 
-  // ------- Fase 2: voz (TTS) [cap_GenAudio] -- probados ------
-  // Voz en TtsParams.Voice (default Cherry; tambien Ethan...), idioma en
-  // TtsParams.Language ('es' o 'Spanish'; vacio = Auto). Devuelve un WAV.
+  // ------- Phase 2: voice (TTS) [cap_GenAudio] -- tested ------
+  // Voice in TtsParams.Voice (default Cherry; also Ethan...), language in
+  // TtsParams.Language ('es' or 'Spanish'; empty = Auto). Returns a WAV.
   Model := 'qwen3-tts-flash';
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'ModelCaps',   '[]');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'SessionCaps', '[cap_GenAudio]');
@@ -2008,9 +2008,9 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'SessionCaps', '[cap_GenAudio]');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'Tool_Active', 'False');
 
-  // ------- Voces propias (TAiQwenVoices) -- probados ------
-  // Una voz clonada (qwen-tts-vc-*) o diseñada (qwen-tts-vd-*) solo funciona con
-  // su modelo; el driver lo elige por el prefijo de TtsParams.Voice
+  // ------- Custom voices (TAiQwenVoices) -- tested ------
+  // A cloned voice (qwen-tts-vc-*) or designed voice (qwen-tts-vd-*) only works with
+  // its model; the driver chooses it by the prefix of TtsParams.Voice
   Model := 'qwen3-tts-vc-2026-01-22';
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'ModelCaps',   '[]');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'SessionCaps', '[cap_GenAudio]');
@@ -2020,10 +2020,10 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'SessionCaps', '[cap_GenAudio]');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'Tool_Active', 'False');
 
-  // ------- Fase 2: transcripcion (ASR) -- probado ------
-  // Usar con ChatMode = cmTranscription: el Prompt viaja como contexto del
-  // reconocedor (nombres propios). Un modelo de texto con SessionCaps [cap_Audio]
-  // tambien transcribe con este modelo antes de responder (puente de Fase 1).
+  // ------- Phase 2: transcription (ASR) -- tested ------
+  // Use with ChatMode = cmTranscription: the Prompt travels as context for the
+  // recognizer (proper nouns). A text model with SessionCaps [cap_Audio]
+  // also transcribes with this model before responding (Phase 1 bridge).
   Model := 'qwen3-asr-flash';
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'ModelCaps',   '[cap_Audio]');
   TAiChatFactory.Instance.RegisterUserParam('Qwen', Model, 'SessionCaps', '[cap_Audio]');
@@ -2034,24 +2034,24 @@ Begin
   // Ultima actualizacion: May 2026
   // ------------------------- KIMI ----------------------------------
 
-  // --- Valores globales por defecto para todos los modelos Kimi ---
+  // --- Default global values for all Kimi models ---
   TAiChatFactory.Instance.RegisterUserParam('Kimi', 'Max_Tokens',  '16000');
   TAiChatFactory.Instance.RegisterUserParam('Kimi', 'Tool_Active', 'True');
   TAiChatFactory.Instance.RegisterUserParam('Kimi', 'Temperature', '1');
-  // top_p ELIMINADO de los defaults: la familia nueva (k3/k2.6/k2.7) devuelve
-  // 400 si se envia top_p (solo acepta temperature) — verificado runtime ago 2026
+  // top_p REMOVED from defaults: the new family (k3/k2.6/k2.7) returns
+  // 400 if top_p is sent (only accepts temperature) — verified at runtime Aug 2026
   TAiChatFactory.Instance.RegisterUserParam('Kimi', 'ModelCaps',   '[]');
   TAiChatFactory.Instance.RegisterUserParam('Kimi', 'SessionCaps', '[]');
 
-  // ------- Kimi K3 (jul 16/2026) -- flagship, 1M ctx  [MODELO ACTUAL] ------
-  // Sucesor de la familia K2 (~2.8T MoE). Precio plano en todo el contexto:
+  // ------- Kimi K3 (Jul 16/2026) -- flagship, 1M ctx  [CURRENT MODEL] ------
+  // Successor to the K2 family (~2.8T MoE). Flat price across the entire context:
   // $3/M input (cache-miss), $0.30/M cache-hit, $15/M output.
   Model := 'kimi-k3';
   TAiChatFactory.Instance.RegisterUserParam('Kimi', Model, 'Max_Tokens',   '16000');
   TAiChatFactory.Instance.RegisterUserParam('Kimi', Model, 'ModelCaps',    '[cap_Image, cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Kimi', Model, 'SessionCaps',  '[cap_Image, cap_Reasoning]');
 
-  // ------- Kimi K2.7 Code (jul 2026) -- coding multimodal ------
+  // ------- Kimi K2.7 Code (Jul 2026) -- coding multimodal ------
   Model := 'kimi-k2.7-code';
   TAiChatFactory.Instance.RegisterUserParam('Kimi', Model, 'ModelCaps',    '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('Kimi', Model, 'SessionCaps',  '[cap_Image]');
@@ -2060,23 +2060,23 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Kimi', Model, 'ModelCaps',    '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('Kimi', Model, 'SessionCaps',  '[cap_Image]');
 
-  // ------- Kimi K2.6 (256K ctx, vision + texto + tools) ------
+  // ------- Kimi K2.6 (256K ctx, vision + text + tools) ------
   Model := 'kimi-k2.6';
   TAiChatFactory.Instance.RegisterUserParam('Kimi', Model, 'ModelCaps',    '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('Kimi', Model, 'SessionCaps',  '[cap_Image]');
 
-  // kimi-latest: alias movil al modelo mas reciente (hereda defaults)
+  // kimi-latest: moving alias to the most recent model (inherits defaults)
 
-  // ------- Kimi K2.5 -- RETIRA el 31 ago 2026 (migrar a kimi-k3) ------
+  // ------- Kimi K2.5 -- RETIRES on 31 Aug 2026 (migrate to kimi-k3) ------
   Model := 'kimi-k2.5';
   TAiChatFactory.Instance.RegisterUserParam('Kimi', Model, 'ModelCaps',    '[cap_Image, cap_Pdf, cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Kimi', Model, 'SessionCaps',  '[cap_Image, cap_Pdf, cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('Kimi', Model, 'ThinkingLevel', 'tlMedium');
 
-  // RETIRADOS del API (jul 2026): kimi-k2 y kimi-k2-thinking ya no existen
-  // en /v1/models — entradas eliminadas del registro.
+  // RETIRED from the API (Jul 2026): kimi-k2 and kimi-k2-thinking no longer exist
+  // in /v1/models — entries removed from the registry.
 
-  // ------- Moonshot V1 Legacy -- SUNSET TOTAL el 31 ago 2026 ------
+  // ------- Moonshot V1 Legacy -- FULL SUNSET on 31 Aug 2026 ------
   Model := 'moonshot-v1-8k';
   TAiChatFactory.Instance.RegisterUserParam('Kimi', Model, 'Max_Tokens',  '4096');
   TAiChatFactory.Instance.RegisterUserParam('Kimi', Model, 'Tool_Active', 'False');
@@ -2089,7 +2089,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('Kimi', Model, 'Max_Tokens',  '65536');
   TAiChatFactory.Instance.RegisterUserParam('Kimi', Model, 'Tool_Active', 'False');
 
-  // ------- Moonshot V1 Vision Preview (vision, sin tools) ------
+  // ------- Moonshot V1 Vision Preview (vision, without tools) ------
   Model := 'moonshot-v1-8k-vision-preview';
   TAiChatFactory.Instance.RegisterUserParam('Kimi', Model, 'Max_Tokens',  '4096');
   TAiChatFactory.Instance.RegisterUserParam('Kimi', Model, 'ModelCaps',   '[cap_Image]');
@@ -2111,20 +2111,20 @@ Begin
   // ------------------------- LMSTUDIO ----------------------------------
   // https://lmstudio.ai
   // Ultima actualizacion: May 2026
-  // Inferencia local OpenAI-compatible (http://127.0.0.1:1234/v1/)
+  // Local inference OpenAI-compatible (http://127.0.0.1:1234/v1/)
   // ------------------------- LMSTUDIO ----------------------------------
 
-  // --- Valores globales (conservadores: texto, sin tools) ---
+  // --- Global values (conservative: text, without tools) ---
   TAiChatFactory.Instance.RegisterUserParam('LMStudio', 'Max_Tokens',  '4096');
   TAiChatFactory.Instance.RegisterUserParam('LMStudio', 'Tool_Active', 'False');
   TAiChatFactory.Instance.RegisterUserParam('LMStudio', 'ModelCaps',   '[]');
   TAiChatFactory.Instance.RegisterUserParam('LMStudio', 'SessionCaps', '[]');
 
-  // ------- Llama 3.3 70B (texto + tools) ------
+  // ------- Llama 3.3 70B (text + tools) ------
   Model := 'llama-3.3-70b-instruct';
   TAiChatFactory.Instance.RegisterUserParam('LMStudio', Model, 'Tool_Active', 'True');
 
-  // ------- Qwen 2.5 7B (texto + tools) ------
+  // ------- Qwen 2.5 7B (text + tools) ------
   Model := 'qwen2.5-7b-instruct';
   TAiChatFactory.Instance.RegisterUserParam('LMStudio', Model, 'Tool_Active', 'True');
 
@@ -2139,12 +2139,12 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('LMStudio', Model, 'ModelCaps',   '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('LMStudio', Model, 'SessionCaps', '[cap_Image]');
 
-  // ------- Mistral 7B (texto + tools) ------
+  // ------- Mistral 7B (text + tools) ------
   Model := 'mistral-7b-instruct-v0.3';
   TAiChatFactory.Instance.RegisterUserParam('LMStudio', Model, 'Tool_Active', 'True');
 
-  // ------- Gemma 3 (vision + tools, tamanios: 4b/12b/27b) ------
-  // En LM Studio el ID es el nombre del modelo o alias configurado en la app
+  // ------- Gemma 3 (vision + tools, sizes: 4b/12b/27b) ------
+  // In LM Studio the ID is the model name or alias configured in the app
   Model := 'gemma-3-4b-it';
   TAiChatFactory.Instance.RegisterUserParam('LMStudio', Model, 'ModelCaps',   '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('LMStudio', Model, 'SessionCaps', '[cap_Image]');
@@ -2161,7 +2161,7 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('LMStudio', Model, 'Tool_Active', 'True');
 
   // ------- Gemma 4 (vision + audio + reasoning + tools) ------
-  // En LM Studio el ID es el nombre/alias configurado en la app
+  // In LM Studio the ID is the name/alias configured in the app
   Model := 'gemma-4-4b-it';
   TAiChatFactory.Instance.RegisterUserParam('LMStudio', Model, 'ModelCaps',    '[cap_Image, cap_Audio, cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('LMStudio', Model, 'SessionCaps',  '[cap_Image, cap_Audio, cap_Reasoning]');
@@ -2188,26 +2188,26 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('LMStudio', Model, 'Tool_Active',  'True');
 
   // ------------------------- GENERICLLM ----------------------------------
-  // Driver para cualquier API compatible con OpenAI
+  // Driver for any OpenAI-compatible API
   // Ultima actualizacion: May 2026
-  // Configurar: DriverName='GenericLLM', URL='http://host/v1/', Model='model-name'
+  // Configure: DriverName='GenericLLM', URL='http://host/v1/', Model='model-name'
   // ------------------------- GENERICLLM ----------------------------------
 
-  // --- Valores globales conservadores (el usuario configura todo manualmente) ---
+  // --- Conservative global values (the user configures everything manually) ---
   TAiChatFactory.Instance.RegisterUserParam('GenericLLM', 'Max_Tokens',  '4096');
   TAiChatFactory.Instance.RegisterUserParam('GenericLLM', 'Tool_Active', 'False');
   TAiChatFactory.Instance.RegisterUserParam('GenericLLM', 'ModelCaps',   '[]');
   TAiChatFactory.Instance.RegisterUserParam('GenericLLM', 'SessionCaps', '[]');
 
   // ------------------------- MAKERAI -------------------------------------
-  // Driver para MakerAI API (https://api.cimamaker.com/v1/).
-  // Fase 1: compatible con OpenAI Chat Completions API.
-  // Fase 2: endpoints propios via overrides de InternalRunCompletions/ParseChat.
-  // API Key: variable de entorno MAKERAI_API_KEY
+  // Driver for MakerAI API (https://api.cimamaker.com/v1/).
+  // Phase 1: compatible with OpenAI Chat Completions API.
+  // Phase 2: own endpoints via overrides of InternalRunCompletions/ParseChat.
+  // API Key: environment variable MAKERAI_API_KEY
   // Ultima actualizacion: May 2026
   // ------------------------- MAKERAI -------------------------------------
 
-  // --- Valores globales por defecto ---
+  // --- Default global values ---
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', 'Max_Tokens',   '16000');
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', 'Temperature',  '1');
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', 'Tool_Active',  'True');
@@ -2215,14 +2215,14 @@ Begin
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', 'ModelCaps',    '[cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', 'SessionCaps',  '[cap_Image]');
 
-  // --- Modelos de Chat ---
-  // mk-pro: modelo avanzado (OpenAI-backed), vision + web_search + code_execution + file_reader
+  // --- Chat models ---
+  // mk-pro: advanced model (OpenAI-backed), vision + web_search + code_execution + file_reader
   Model := 'mk-pro';
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'ModelCaps',   '[cap_Image, cap_Pdf, cap_WebSearch, cap_CodeInterpreter]');
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'SessionCaps', '[cap_Image, cap_Pdf, cap_WebSearch, cap_CodeInterpreter]');
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'Tool_Active', 'True');
 
-  // mk-claude-sonnet: Claude Sonnet vía MKAI — visión + todos los mk_tools Claude
+  // mk-claude-sonnet: Claude Sonnet via MKAI — vision + all Claude mk_tools
   // (web_search, code_execution, computer_use, text_editor, bash, memory, file_reader)
   Model := 'mk-claude-sonnet';
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'ModelCaps',
@@ -2231,34 +2231,34 @@ Begin
     '[cap_Image, cap_Pdf, cap_WebSearch, cap_CodeInterpreter, cap_ComputerUse, cap_TextEditor, cap_Shell, cap_Memory]');
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'Tool_Active', 'True');
 
-  // mk-gpt-oss-20b: modelo principal de chat, reasoning + vision + file_reader
+  // mk-gpt-oss-20b: main chat model, reasoning + vision + file_reader
   Model := 'mk-gpt-oss-20b';
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'ModelCaps',    '[cap_Reasoning, cap_Image, cap_Pdf]');
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'SessionCaps',  '[cap_Reasoning, cap_Image, cap_Pdf]');
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'ThinkingLevel', 'tlMedium');
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'Tool_Active',  'True');
 
-  // mk-think: reasoning especializado + vision (confirmado May 2026)
+  // mk-think: specialized reasoning + vision (confirmed May 2026)
   Model := 'mk-think';
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'ModelCaps',    '[cap_Reasoning, cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'SessionCaps',  '[cap_Reasoning, cap_Image]');
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'ThinkingLevel', 'tlMedium');
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'Tool_Active',  'True');
 
-  // mk-basic-8b: modelo ligero, sin visión, sin tools, con file_reader
+  // mk-basic-8b: lightweight model, without vision, without tools, with file_reader
   Model := 'mk-basic-8b';
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'ModelCaps',   '[cap_Pdf]');
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'SessionCaps', '[cap_Pdf]');
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'Tool_Active', 'False');
 
-  // mk-scout: routing multi-provider server-side (Llama-4-scout vía Groq / Gemini / Mistral fallback).
-  // Las rutas 1 y 2 tienen visión; todas tienen file_reader.
+  // mk-scout: server-side multi-provider routing (Llama-4-scout via Groq / Gemini / Mistral fallback).
+  // Routes 1 and 2 have vision; all have file_reader.
   Model := 'mk-scout';
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'ModelCaps',   '[cap_Image, cap_Pdf]');
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'SessionCaps', '[cap_Image, cap_Pdf]');
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'Tool_Active', 'True');
 
-  // mk-local-fast, mk-local-coder: modelos locales sin vision (Mistral-small-latest)
+  // mk-local-fast, mk-local-coder: local models without vision (Mistral-small-latest)
   for Model in ['mk-local-fast', 'mk-local-coder'] do
   begin
     TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'ModelCaps',   '[]');
@@ -2279,13 +2279,13 @@ Begin
     TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'Tool_Active', 'False');
   end;
 
-  // --- DeepSeek via broker (solo texto) ---
-  // Estas entradas faltaban: sin ellas los modelos heredaban el default global
-  // ModelCaps=[cap_Image] y declaraban una vision que DeepSeek no tiene en su
-  // API publica. 'mk-deepseek-flash' sigue el renombre de sep 2026;
-  // 'mk-deepseek-v4-flash' es el nombre que el broker usaba en produccion y se
-  // mantiene como alias. Sin cap_Reasoning = modo rapido, igual que en el
-  // driver DeepSeek directo.
+  // --- DeepSeek via broker (text only) ---
+  // These entries were missing: without them the models inherited the global default
+  // ModelCaps=[cap_Image] and declared a vision that DeepSeek does not have in its
+  // public API. 'mk-deepseek-flash' follows the Sep 2026 rename;
+  // 'mk-deepseek-v4-flash' is the name the broker used in production and is
+  // kept as an alias. Without cap_Reasoning = fast mode, as in the
+  // direct DeepSeek driver.
   for Model in ['mk-deepseek-flash', 'mk-deepseek-v4-flash'] do
   begin
     TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'ModelCaps',   '[]');
@@ -2293,16 +2293,16 @@ Begin
     TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'Tool_Active', 'True');
   end;
 
-  // mk-deepseek-v4-pro: razonamiento por defecto (patron del driver directo)
+  // mk-deepseek-v4-pro: reasoning by default (direct driver pattern)
   Model := 'mk-deepseek-v4-pro';
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'ModelCaps',      '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'SessionCaps',    '[cap_Reasoning]');
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'ThinkingLevel',  'tlMedium');
   TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'Tool_Active',    'True');
 
-  // --- Generacion de imagenes ---
-  // La familia 2.5 (flare/sunburst, sep 2026) acepta quality xhigh/max y fondo
-  // transparente con alpha real; el broker traduce el nombre mk- al de OpenAi.
+  // --- Image generation ---
+  // The 2.5 family (flare/sunburst, Sep 2026) accepts quality xhigh/max and
+  // real transparent background with real alpha; the broker translates the mk- name to OpenAi's.
   for Model in ['mk-gpt-image-1', 'mk-gpt-image-1.5', 'mk-gpt-image-1-mini', 'mk-gpt-image-2',
                 'mk-gpt-image-2.5-flare', 'mk-gpt-image-2.5-sunburst'] do
   begin
@@ -2311,7 +2311,7 @@ Begin
     TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'Tool_Active', 'False');
   end;
 
-  // --- STT (Transcripcion) ---
+  // --- STT (Transcription) ---
   for Model in ['mk-whisper-large', 'mk-whisper-medium', 'mk-whisper-turbo'] do
   begin
     TAiChatFactory.Instance.RegisterUserParam('MakerAi', Model, 'ModelCaps',   '[cap_Audio]');
@@ -2323,22 +2323,22 @@ End;
 
 Procedure InitEmbeddingModels;
 Begin
-  // OpenAI - modelos adicionales con dimensiones espec?ficas
+  // OpenAI - additional models with specific dimensions
   TAiEmbeddingFactory.Instance.RegisterUserParam('OpenAi', 'text-embedding-3-large', 'Dimensions', '3072');
   TAiEmbeddingFactory.Instance.RegisterUserParam('OpenAi', 'text-embedding-ada-002', 'Dimensions', '1536');
 
-  // Ollama - modelos comunes de embeddings
+  // Ollama - common embedding models
   TAiEmbeddingFactory.Instance.RegisterUserParam('Ollama', 'nomic-embed-text', 'Dimensions', '768');
   TAiEmbeddingFactory.Instance.RegisterUserParam('Ollama', 'mxbai-embed-large', 'Dimensions', '1024');
 
-  // Gemini - text-embedding-004 deprecado (shutdown Jan 2026); usar text-embedding-005
+  // Gemini - text-embedding-004 deprecated (shutdown Jan 2026); use text-embedding-005
   TAiEmbeddingFactory.Instance.RegisterUserParam('Gemini', 'text-embedding-004', 'Dimensions', '768');
   TAiEmbeddingFactory.Instance.RegisterUserParam('Gemini', 'text-embedding-005', 'Dimensions', '768');
-  // gemini-embedding-2 (GA abr 22/2026): multimodal (texto + imagen via File
-  // Search); 3072 dims por defecto (MRL permite truncar). SIN prueba runtime
+  // gemini-embedding-2 (GA Apr 22/2026): multimodal (text + image via File
+  // Search); 3072 dims by default (MRL allows truncating). WITHOUT runtime testing
   TAiEmbeddingFactory.Instance.RegisterUserParam('Gemini', 'gemini-embedding-2', 'Dimensions', '3072');
 
-  // Cohere - modelos de embeddings
+  // Cohere - embedding models
   TAiEmbeddingFactory.Instance.RegisterUserParam('Cohere', 'embed-multilingual-v3.0', 'Dimensions', '1024');
   TAiEmbeddingFactory.Instance.RegisterUserParam('Cohere', 'embed-v4.0',              'Dimensions', '1536');
 End;

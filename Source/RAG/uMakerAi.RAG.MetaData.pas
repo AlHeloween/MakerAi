@@ -12,59 +12,59 @@ uses
   System.StrUtils,
   System.DateUtils,
   System.Math,
-  System.Masks, // Necesario para simular LIKE
+  System.Masks, // Needed to simulate LIKE
   System.VarUtils;
 
 type
   TAiLanguage = (alSpanish, alEnglish, alPortuguese, alCustom);
 
-  { Operador l�gico para determinar c�mo se eval�an los �tems de la lista }
+  { Logical operator to determine how items in the list are evaluated }
   TLogicalOperator = (loAnd, loOr);
 
-  { Super-set de operadores unificados (Memoria + SQL) }
+  { Superset of unified operators (Memory + SQL) }
   TFilterOperator = (
-    // B�sicos
-    foEqual, // =
+    // Basic
+    foEqual,   // =
     foNotEqual, // <>
-    foGreater, // >
+    foGreater,  // >
     foGreaterOrEqual, // >=
-    foLess, // <
+    foLess,     // <
     foLessOrEqual, // <=
 
-    // Texto Avanzado
-    foContains, // String contiene (LIKE %val%) / JSON @>
-    foStartsWith, // String empieza (LIKE val%)
-    foEndsWith, // String termina (LIKE %val)
-    foLike, // Standard SQL pattern (with % and _)
-    foILike, // Case insensitive Like
+    // Advanced Text
+    foContains,    // String contains (LIKE %val%) / JSON @>
+    foStartsWith,  // String starts with (LIKE val%)
+    foEndsWith,    // String ends with (LIKE %val)
+    foLike,        // Standard SQL pattern (with % and _)
+    foILike,       // Case insensitive Like
 
-    // Listas y Rangos
-    foIn, // IN (lista)
-    foNotIn, // NOT IN (lista)
-    foBetween, // Rango (requiere dos valores)
+    // Lists and Ranges
+    foIn,          // IN (list)
+    foNotIn,       // NOT IN (list)
+    foBetween,     // Range (requires two values)
 
-    // Existencia y Estructura
-    foIsNull, // Valor es nulo o clave does not exist
-    foIsNotNull, // Valor no es nulo y clave existe
-    foExists, // La clave existe (independiente del valor)
+    // Existence and Structure
+    foIsNull,      // Value is null or key does not exist
+    foIsNotNull,   // Value is not null and key exists
+    foExists,      // The key exists (regardless of value)
 
-    // --- AGREGADOS FALTANTES ---
-    foExistsAny, // ?| (Alguna de las claves existe en el JSON)
-    foExistsAll // ?& (Todas las claves existen en el JSON)
+    // --- MISSING ADDITIONS ---
+    foExistsAny,   // ?| (Any of the keys exists in the JSON)
+    foExistsAll    // ?& (All keys exist in the JSON)
     );
 
   TAiEmbeddingMetaData = class;
   TAiFilterCriteria = class; // Forward declaration
 
 
-  { Estructura para almacenar una condici�n individual O un subgrupo }
+  { Structure to store an individual condition OR a subgroup }
   TFilterCriterion = record
     Key: string;
     Op: TFilterOperator;
     Value: Variant;
-    Value2: Variant; // Usado solo para foBetween
+    Value2: Variant; // Used only for foBetween
 
-    // --- SOPORTE PARA �RBOL DE DECISI�N (VGQL) ---
+    // --- SUPPORT FOR DECISION TREE (VGQL) ---
     IsGroup: Boolean;
     SubCriteria: TAiFilterCriteria;
 
@@ -73,7 +73,7 @@ type
     constructor CreateGroup(ASub: TAiFilterCriteria);
   end;
 
-  { Clase contenedora de criterios de b�squeda complejos (Recursiva) }
+  { Container class for complex search criteria (Recursive) }
   TAiFilterCriteria = class
   private
     FCriteria: TList<TFilterCriterion>;
@@ -81,13 +81,13 @@ type
     function GetCount: Integer;
     function GetItem(Index: Integer): TFilterCriterion;
   public
-    { Constructor con opci�n de definir l�gica (Default = AND para compatibilidad) }
+    { Constructor with option to define logic (Default = AND for compatibility) }
     constructor Create(ALogic: TLogicalOperator = loAnd);
     destructor Destroy; override;
 
     procedure Clear;
 
-    // M�todos Fluent para construir filtros f�cilmente
+    // Fluent methods to easily build filters
     function Add(const Key: string; Op: TFilterOperator; const Value: Variant): TAiFilterCriteria; overload;
     function Add(const Key: string; Op: TFilterOperator; const Value, Value2: Variant): TAiFilterCriteria; overload;
 
@@ -98,10 +98,10 @@ type
     function AddGreater(const Key: string; const Value: Variant): TAiFilterCriteria;
     function AddLess(const Key: string; const Value: Variant): TAiFilterCriteria;
     function AddBetween(const Key: string; const Min, Max: Variant): TAiFilterCriteria;
-    function AddIn(const Key: string; const Values: Variant): TAiFilterCriteria; // Values puede ser Array Variant
+    function AddIn(const Key: string; const Values: Variant): TAiFilterCriteria; // Values can be Variant Array
     function AddLike(const Key, Pattern: string; CaseInsensitive: Boolean = True): TAiFilterCriteria;
 
-    // Carga de compatibilidad desde MetaData antiguo (Todo foEqual)
+    // Compatibility loading from old MetaData (all foEqual)
     procedure LoadFromMetaData(AMeta: TAiEmbeddingMetaData);
 
     property LogicalOp: TLogicalOperator read FLogicalOp write FLogicalOp;
@@ -110,7 +110,7 @@ type
     property List: TList<TFilterCriterion> read FCriteria;
   end;
 
-  { TAiEmbeddingMetaData: Almac�n de atributos del Nodo }
+  { TAiEmbeddingMetaData: Node attribute store }
   TAiEmbeddingMetaData = class
   private
     FProperties: TDictionary<string, Variant>;
@@ -122,7 +122,7 @@ type
     procedure SetProperty(const Name: string; const Value: Variant);
     procedure SetData(const Value: TStrings);
 
-    // Helpers de comparaci�n internos
+    // Internal comparison helpers
     function CompareNumbers(const A, B: Variant; Op: TFilterOperator): Boolean;
     function CompareStrings(const A, B: string; Op: TFilterOperator): Boolean;
     function CheckInList(const Val: Variant; const List: Variant; Negate: Boolean): Boolean;
@@ -138,14 +138,14 @@ type
     function Get(const Name: string; Default: Variant): Variant;
     procedure Remove(const Name: string);
 
-    { Evalua si este MetaData cumple con un criterio espec�fico }
+    { Evaluates whether this MetaData meets a specific criterion }
     function Evaluate(const Name: string; Op: TFilterOperator; const Value: Variant): Boolean; Overload;
     function Evaluate(const Name: string; Op: TFilterOperator; const Value, Value2: Variant; const ANodeText: string = ''): Boolean; Overload;
 
-    { Evalua si este MetaData cumple con el �rbol de criterios }
+    { Evaluates whether this MetaData meets the criteria tree }
     function Matches(Criteria: TAiFilterCriteria; const ANodeText: string = ''): Boolean;
 
-    { Serializaci�n JSON }
+    { JSON serialization }
     function ToJSON: TJSONObject;
     procedure FromJSON(aJSON: TJSONObject);
 
@@ -185,7 +185,7 @@ begin
   IsGroup := True;
   SubCriteria := ASub;
   Key := '';
-  Op := foEqual; // No relevante para grupos
+  Op := foEqual; // Not relevant for groups
   Value := Unassigned;
   Value2 := Unassigned;
 end;
@@ -202,7 +202,7 @@ destructor TAiFilterCriteria.Destroy;
 var
   C: TFilterCriterion;
 begin
-  // Liberaci�n recursiva de memoria para grupos anidados
+  // Recursive memory release for nested groups
   for C in FCriteria do
   begin
     if C.IsGroup and Assigned(C.SubCriteria) then
@@ -295,7 +295,7 @@ begin
   if not Assigned(AMeta) then
     Exit;
 
-  // Compatibilidad legacy
+  // Legacy compatibility
   for Pair in AMeta.InternalDictionary do
     AddEqual(Pair.Key, Pair.Value);
 end;
@@ -375,7 +375,7 @@ begin
     FData.Clear;
 end;
 
-{ --- Helpers de Comparaci�n --- }
+{ --- Comparison Helpers --- }
 
 function TAiEmbeddingMetaData.CompareNumbers(const A, B: Variant; Op: TFilterOperator): Boolean;
 var
@@ -387,12 +387,12 @@ begin
   TypeA := VarType(A) and varTypeMask;
   TypeB := VarType(B) and varTypeMask;
 
-  // Comprobamos si son tipos enteros nativos (Byte, Integer, Int64, etc.)
-  // Esto es crucial para IDs grandes que Double perder�a precisi�n.
+  // Check if they are native integer types (Byte, Integer, Int64, etc.)
+  // This is crucial for large IDs that Double would lose precision.
   IsIntA := (TypeA = varInt64) or (TypeA = varInteger) or (TypeA = varSmallint) or (TypeA = varByte) or (TypeA = varShortInt) or (TypeA = varWord) or (TypeA = varLongWord);
   IsIntB := (TypeB = varInt64) or (TypeB = varInteger) or (TypeB = varSmallint) or (TypeB = varByte) or (TypeB = varShortInt) or (TypeB = varWord) or (TypeB = varLongWord);
 
-  // 1. Camino R�pido y Preciso: Comparaci�n de Enteros de 64 bits
+  // 1. Fast and Precise Path: 64-bit Integer Comparison
   if IsIntA and IsIntB then
   begin
     try
@@ -410,16 +410,16 @@ begin
       end;
       Exit;
     except
-      // Si falla la conversi�n directa (raro si VarType dice que es int), caemos al Double
+      // If direct conversion fails (unlikely if VarType says it's int), fall back to Double
     end;
   end;
 
-  // 2. Camino Est�ndar: Comparaci�n de Punto Flotante
+  // 2. Standard Path: Floating Point Comparison
   try
     D1 := Double(A);
     D2 := Double(B);
   except
-    // Si no Can be convertir a n�mero, retornamos falso
+    // If unable to convert to number, return false
     Exit(False);
   end;
 
@@ -509,16 +509,16 @@ begin
     Result := not Result;
 end;
 
-{ --- Evalauci�n Principal --- }
+{ --- Main Evaluation --- }
 
 function TAiEmbeddingMetaData.Evaluate(const Name: string; Op: TFilterOperator; const Value: Variant): Boolean;
 begin
   Result := Evaluate(Name, Op, Value, Unassigned);
 end;
 
-{ --- Implementaci�n de Evaluate --- }
+{ --- Implementation of Evaluate --- }
 
-{ --- Implementaci�n de Evaluate --- }
+{ --- Implementation of Evaluate --- }
 
 function TAiEmbeddingMetaData.Evaluate(const Name: string; Op: TFilterOperator; const Value, Value2: Variant; const ANodeText: string = ''): Boolean;
 var
@@ -528,7 +528,7 @@ var
   IsDateComparison: Boolean;
   i: Integer;
 begin
-  // 1. Inyecci�n de campo virtual 'text' (Contenido del nodo)
+  // 1. Injection of virtual field 'text' (Node content)
   if SameText(Name, 'text') then
   begin
     PropValue := ANodeText;
@@ -537,7 +537,7 @@ begin
   else
     Exists := FProperties.TryGetValue(Name, PropValue);
 
-  // 2. Evaluaci�n de existencia y nulidad
+  // 2. Existence and nullity evaluation
   case Op of
     foExists:
       Exit(Exists);
@@ -547,26 +547,26 @@ begin
       Exit(Exists and not VarIsNull(PropValue));
   end;
 
-  // Si la propiedad does not exist o es nula, no puede cumplir criterios de comparaci�n
+  // If the property does not exist or is null, it cannot meet comparison criteria
   if not Exists or VarIsNull(PropValue) then
     Exit(False);
 
-  // 3. Operadores de lista (IN / NOT IN)
+  // 3. List operators (IN / NOT IN)
   if Op in [foIn, foNotIn] then
     Exit(CheckInList(PropValue, Value, Op = foNotIn));
 
-  // 4. Operadores de Conjuntos (Arrays JSON) - ExistsAny / ExistsAll
+  // 4. Set operators (JSON Arrays) - ExistsAny / ExistsAll
   if Op in [foExistsAny, foExistsAll] then
   begin
-    // Solo soportamos si la propiedad es un Array (ej: Tags: ["A", "B"])
+    // Only supported if the property is an Array (e.g., Tags: ["A", "B"])
     if VarIsArray(PropValue) then
     begin
-      // Si el valor buscado es un array (�Alguna de estas etiquetas exists)
+      // If the searched value is an array (Any of these tags exist)
       if VarIsArray(Value) then
       begin
         if Op = foExistsAny then
         begin
-          // ?| : �Alg�n elemento de Value est� en PropValue?
+          // ?| : Is any element of Value in PropValue?
           for i := VarArrayLowBound(Value, 1) to VarArrayHighBound(Value, 1) do
             if CheckInList(VarArrayGet(Value, [i]), PropValue, False) then
               Exit(True);
@@ -574,7 +574,7 @@ begin
         end
         else // foExistsAll
         begin
-          // ?& : �Todos los elementos de Value est�n en PropValue?
+          // ?& : Are all elements of Value in PropValue?
           for i := VarArrayLowBound(Value, 1) to VarArrayHighBound(Value, 1) do
             if not CheckInList(VarArrayGet(Value, [i]), PropValue, False) then
               Exit(False);
@@ -583,32 +583,32 @@ begin
       end
       else
       begin
-        // Si Value es simple, se comporta como un CONTAINS en lista
+        // If Value is simple, behaves like CONTAINS in list
         Exit(CheckInList(Value, PropValue, False));
       end;
     end;
-    // Si la propiedad no es array, fallamos (o podr�as tratarlo como string contains)
+    // If property is not an array, fail (or you could treat it as string contains)
     Exit(False);
   end;
 
-  // 5. Operadores de patr�n de texto (LIKE / ILIKE)
+  // 5. Text pattern operators (LIKE / ILIKE)
   if Op in [foLike, foILike] then
     Exit(CheckLike(VarToStr(PropValue), VarToStr(Value), Op = foILike));
 
-  // 6. DETECCI�N DE COMPARACI�N DE FECHAS
-  // Comprobamos si la propiedad es una fecha o un string con formato ISO8601
+  // 6. DATE COMPARISON DETECTION
+  // Check if the property is a date or a string in ISO8601 format
   IsDateComparison := (VarType(PropValue) = varDate) or
                       ((VarType(PropValue) = varString) and TryISO8601ToDate(VarToStr(PropValue), DTProp));
 
   if IsDateComparison then
   begin
-    // Asegurar que DTProp tenga el valor correcto
+    // Ensure DTProp has the correct value
     if VarType(PropValue) = varDate then
-      DTProp := VarToDateTime(PropValue); // Ya lo tenemos, pero por seguridad en el flujo
+      DTProp := VarToDateTime(PropValue); // We already have it, but for safety in flow
 
     if Op = foBetween then
     begin
-      // Para BETWEEN, ambos l�mites deben ser fechas v�lidas
+      // For BETWEEN, both limits must be valid dates
       if TryISO8601ToDate(VarToStr(Value), DTVal1) and TryISO8601ToDate(VarToStr(Value2), DTVal2) then
         Exit((DTProp >= DTVal1) and (DTProp <= DTVal2))
       else
@@ -616,7 +616,7 @@ begin
     end
     else if TryISO8601ToDate(VarToStr(Value), DTVal1) then
     begin
-      // Comparaciones est�ndar de fechas
+      // Standard date comparisons
       case Op of
         foEqual:          Exit(DTProp = DTVal1);
         foNotEqual:       Exit(DTProp <> DTVal1);
@@ -628,8 +628,8 @@ begin
     end;
   end;
 
-  // 7. DETECCI�N DE COMPARACI�N NUM�RICA
-  // Usamos VarIsNumeric para evitar excepciones. CompareNumbers maneja la precisi�n.
+  // 7. NUMERIC COMPARISON DETECTION
+  // We use VarIsNumeric to avoid exceptions. CompareNumbers handles precision.
   if VarIsNumeric(PropValue) and VarIsNumeric(Value) then
   begin
     if Op = foBetween then
@@ -640,23 +640,23 @@ begin
         Exit(False);
     end;
 
-    // Llamada al helper optimizado
+    // Call to the optimized helper
     Exit(CompareNumbers(PropValue, Value, Op));
   end;
 
-  // 8. COMPARACI�N By default (STRINGS / TEXTO)
-  // Fallback final para strings
+  // 8. DEFAULT COMPARISON (STRINGS / TEXT)
+  // Final fallback for strings
   if Op = foBetween then
   begin
     Exit((VarToStr(PropValue) >= VarToStr(Value)) and
          (VarToStr(PropValue) <= VarToStr(Value2)));
   end;
 
-  // Delegamos en CompareStrings (que maneja Contains, StartsWith, EndsWith, etc.)
+  // Delegate to CompareStrings (which handles Contains, StartsWith, EndsWith, etc.)
   Result := CompareStrings(VarToStr(PropValue), VarToStr(Value), Op);
 end;
 
-{ --- Nuevo Matches Recursivo (Composite Pattern) --- }
+{ --- New Recursive Matches (Composite Pattern) --- }
 
 function TAiEmbeddingMetaData.Matches(Criteria: TAiFilterCriteria; const ANodeText: string = ''): Boolean;
 var
@@ -666,13 +666,13 @@ begin
   if (Criteria = nil) or (Criteria.Count = 0) then
     Exit(True);
 
-  // L�gica AND: Asumimos True y salimos al primer False
+  // AND logic: Assume True and exit at first False
   if Criteria.LogicalOp = loAnd then
   begin
     Result := True;
     for Criterion in Criteria.List do
     begin
-      // Si es grupo, recursividad
+      // If it's a group, recursive
       if Criterion.IsGroup then
         CurrentMatch := Matches(Criterion.SubCriteria, ANodeText)
       else
@@ -685,7 +685,7 @@ begin
       end;
     end;
   end
-  // L�gica OR: Asumimos False y salimos al primer True
+  // OR logic: Assume False and exit at first True
   else
   begin
     Result := False;

@@ -1,8 +1,8 @@
-﻿// MakerAI Suite — Cliente WebSocket RFC 6455 cross-platform
-// Capa de protocolo: HTTP Upgrade + framing RFC 6455 (pure Pascal)
-// Capa TLS: delegada a ITlsTransport (SChannel en Windows, OpenSSL en POSIX)
+﻿// MakerAI Suite — WebSocket Client RFC 6455 cross-platform
+// Protocol layer: HTTP Upgrade + RFC 6455 framing (pure Pascal)
+// TLS layer: delegated to ITlsTransport (SChannel on Windows, OpenSSL on POSIX)
 //
-// Autor: Gustavo Enriquez
+// Author: Gustavo Enriquez
 // Email: gustavoeenriquez@gmail.com
 
 unit uMakerAi.WebSocket.Client;
@@ -14,28 +14,28 @@ uses
   System.NetEncoding, System.Math, System.IOUtils;
 
 const
-  // Poner ruta de archivo para habilitar log de diagnóstico, '' para deshabilitar
+  // Set file path to enable diagnostic log, '' to disable
   WS_DIAG_LOG = '';
 
 type
   // -----------------------------------------------------------------------
-  // Interfaz de transporte TLS — implementada por SChannel (Windows) u OpenSSL (POSIX)
+  // TLS transport interface — implemented by SChannel (Windows) or OpenSSL (POSIX)
   // -----------------------------------------------------------------------
   ITlsTransport = interface
     ['{5C9A1F8E-4B2D-4A71-8E3F-1D5A9C7B2E4F}']
-    // Conecta TCP + TLS al host:port. True = éxito.
+    // Connects TCP + TLS to host:port. True = success.
     function  Connect(const AHost: string; APort: Integer): Boolean;
-    // Cierra la conexión (libera socket y contexto TLS)
+    // Closes the connection (frees socket and TLS context)
     procedure Disconnect;
-    // Envía todos los bytes de AData cifrados. True = éxito.
+    // Sends all bytes of AData encrypted. True = success.
     function  SendAll(const AData: TBytes): Boolean;
-    // Recibe bytes descifrados. > 0 = bytes recibidos, 0 = timeout, -1 = error/cerrado
+    // Receives decrypted bytes. > 0 = bytes received, 0 = timeout, -1 = error/closed
     function  RecvSome(var ABuf: TBytes; ATimeoutMs: Integer): Integer;
     function  IsConnected: Boolean;
   end;
 
   // -----------------------------------------------------------------------
-  // Tipos públicos del cliente WebSocket
+  // Public types of the WebSocket client
   // -----------------------------------------------------------------------
   TAiWSOpcode = (
     rwsoContinuation = 0,
@@ -53,18 +53,18 @@ type
   TAiWSClient = class;
 
   // -----------------------------------------------------------------------
-  // TAiWSReaderThread — lee bytes del transporte y parsea frames RFC 6455
+  // TAiWSReaderThread — reads bytes from transport and parses RFC 6455 frames
   // -----------------------------------------------------------------------
   TAiWSReaderThread = class(TThread)
   private
     FClient:     TAiWSClient;
     FStopping:   Boolean;
-    FBuf:        TBytes;     // buffer acumulador de bytes recibidos
-    FBufLen:     Integer;    // bytes válidos en FBuf
-    FFragBuf:    TBytes;     // acumulador de fragmentos RFC 6455
-    FFragOpcode: Byte;       // opcode del primer fragmento
+    FBuf:        TBytes;     // accumulating buffer of received bytes
+    FBufLen:     Integer;    // valid bytes in FBuf
+    FFragBuf:    TBytes;     // accumulator of RFC 6455 fragments
+    FFragOpcode: Byte;       // opcode of first fragment
     procedure AppendToBuf(const AData: TBytes; ALen: Integer);
-    function  TryParseFrame: Boolean; // True = frame parseado y despachado
+    function  TryParseFrame: Boolean; // True = frame parsed and dispatched
   protected
     procedure Execute; override;
   public
@@ -73,7 +73,7 @@ type
   end;
 
   // -----------------------------------------------------------------------
-  // TAiWSClient — cliente WebSocket sobre ITlsTransport
+  // TAiWSClient — WebSocket client over ITlsTransport
   // -----------------------------------------------------------------------
   TAiWSClient = class
   private
@@ -87,8 +87,8 @@ type
     FPath:            string;
     FUseSSL:          Boolean;
     FExtraHeaders:    TStringList;
-    FHandshakeBuf:    TBytes;    // buffer de lectura durante HTTP upgrade
-    FHandshakeBufLen: Integer;   // bytes válidos (pasados al reader thread al inicio)
+    FHandshakeBuf:    TBytes;    // reading buffer during HTTP upgrade
+    FHandshakeBufLen: Integer;   // valid bytes (passed to reader thread at start)
     FOnFrame:         TAiWSFrameEvent;
     FOnConnected:     TNotifyEvent;
     FOnDisconnected:  TNotifyEvent;
@@ -131,7 +131,7 @@ uses
 {$ENDIF}
 
 // -----------------------------------------------------------------------
-// Diagnóstico
+// Diagnostics
 // -----------------------------------------------------------------------
 
 procedure WsDiag(const S: string);
@@ -169,9 +169,9 @@ begin
   Inc(FBufLen, ALen);
 end;
 
-// Parsea un frame RFC 6455 del buffer FBuf.
-// Retorna True si se parseó y despachó un frame completo.
-// Retorna False si faltan bytes.
+// Parses an RFC 6455 frame from the FBuf buffer.
+// Returns True if a complete frame was parsed and dispatched.
+// Returns False if more bytes are needed.
 function TAiWSReaderThread.TryParseFrame: Boolean;
 var
   B0, B1:    Byte;
@@ -195,7 +195,7 @@ begin
   PayLen    := B1 and $7F;
   HeaderLen := 2;
 
-  // Longitud extendida RFC 6455 sec.5.2
+  // Extended length RFC 6455 sec.5.2
   if PayLen = 126 then
   begin
     if FBufLen < 4 then Exit;
@@ -214,12 +214,12 @@ begin
     begin
       FStopping := True;
       Terminate;
-      FClient.HandleError('WebSocket: frame demasiado grande');
+      FClient.HandleError('WebSocket: frame too large');
       Exit;
     end;
   end;
 
-  // Máscara de servidor (raro, pero RFC lo permite)
+  // Server mask (unusual, but RFC allows it)
   if IsMasked then
   begin
     if FBufLen < HeaderLen + 4 then Exit;
@@ -232,7 +232,7 @@ begin
 
   if FBufLen < HeaderLen + Integer(PayLen) then Exit;
 
-  // Frame completo — extraer payload
+  // Complete frame — extract payload
   SetLength(OutBuf, Integer(PayLen));
   if PayLen > 0 then
     Move(FBuf[HeaderLen], OutBuf[0], Integer(PayLen));
@@ -241,7 +241,7 @@ begin
     for i := 0 to Integer(PayLen) - 1 do
       OutBuf[i] := OutBuf[i] xor MaskKey[i mod 4];
 
-  // Consumir frame del buffer
+  // Consume frame from buffer
   Move(FBuf[HeaderLen + Integer(PayLen)], FBuf[0],
     FBufLen - HeaderLen - Integer(PayLen));
   Dec(FBufLen, HeaderLen + Integer(PayLen));
@@ -250,7 +250,7 @@ begin
 
   WsDiag('FRAME opcode=' + IntToStr(Opcode) + ' len=' + IntToStr(PayLen) + ' fin=' + BoolToStr(IsFinal, True));
 
-  // Despachar frame
+  // Dispatch frame
   case Opcode of
     $8: // Close
     begin
@@ -259,7 +259,7 @@ begin
       FClient.HandleDisconnect;
     end;
 
-    $9: // Ping → responder con Pong (RFC 6455 sec.5.5.2)
+    $9: // Ping → respond with Pong (RFC 6455 sec.5.5.2)
     begin
       FClient.FLock.Enter;
       try
@@ -269,7 +269,7 @@ begin
       end;
     end;
 
-    $A: ; // Pong — ignorar
+    $A: ; // Pong — ignore
 
     $0: // Continuation frame
     begin
@@ -286,12 +286,12 @@ begin
     end;
 
   else
-    // Text ($1), Binary ($2) u opcode desconocido
+    // Text ($1), Binary ($2) or unknown opcode
     if IsFinal then
       FClient.HandleIncomingFrame(TAiWSOpcode(Opcode), OutBuf, True)
     else
     begin
-      // Primer fragmento — guardar opcode e iniciar acumulación
+      // First fragment — store opcode and start accumulation
       FFragOpcode := Opcode;
       FFragBuf    := Copy(OutBuf);
     end;
@@ -303,7 +303,7 @@ var
   NewData: TBytes;
   n:       Integer;
 begin
-  // Inicializar con bytes sobrantes del HTTP upgrade handshake
+  // Initialize with leftover bytes from HTTP upgrade handshake
   FBufLen := FClient.FHandshakeBufLen;
   SetLength(FBuf, Max(FBufLen + 65536, 65536));
   if FBufLen > 0 then
@@ -315,18 +315,18 @@ begin
 
   while not Terminated do
   begin
-    // Intentar parsear un frame con los bytes disponibles
+    // Attempt to parse a frame with available bytes
     if TryParseFrame then
       Continue;
 
-    // Faltan bytes — leer del transporte (timeout 100ms para poder chequear Terminated)
+    // Need more bytes — read from transport (timeout 100ms to check Terminated)
     n := FClient.FTransport.RecvSome(NewData, 100);
-    if n = 0 then Continue; // timeout, reintento
-    if n < 0 then Break;    // error o conexión cerrada
+    if n = 0 then Continue; // timeout, retry
+    if n < 0 then Break;    // error or connection closed
     AppendToBuf(NewData, n);
   end;
 
-  // Si la salida no fue iniciada por Stop() ni por Close frame, notificar desconexión
+  // If exit was not initiated by Stop() or Close frame, notify disconnection
   if not FStopping and not Terminated then
     FClient.HandleDisconnect;
 
@@ -374,7 +374,7 @@ begin
     Rest    := Copy(AUrl, 6, MaxInt);
   end
   else
-    raise EArgumentException.Create('URL WebSocket inválida: ' + AUrl);
+    raise EArgumentException.Create('Invalid WebSocket URL: ' + AUrl);
 
   SlashPos := Pos('/', Rest);
   if SlashPos > 0 then
@@ -398,7 +398,7 @@ begin
     FHost := HostPort;
 end;
 
-// Lee una línea HTTP del transporte, acumulando en FHandshakeBuf
+// Reads an HTTP line from the transport, accumulating in FHandshakeBuf
 function TAiWSClient.ReadHttpLine: string;
 var
   NewBuf:    TBytes;
@@ -406,7 +406,7 @@ var
 begin
   while True do
   begin
-    // Buscar \r\n en el buffer actual
+    // Search for \r\n in the current buffer
     Pos := -1;
     for i := 0 to FHandshakeBufLen - 2 do
       if (FHandshakeBuf[i] = $0D) and (FHandshakeBuf[i + 1] = $0A) then
@@ -418,16 +418,16 @@ begin
     if Pos >= 0 then
     begin
       Result := TEncoding.ASCII.GetString(FHandshakeBuf, 0, Pos);
-      // Desplazar bytes restantes al frente
+      // Shift remaining bytes to front
       Move(FHandshakeBuf[Pos + 2], FHandshakeBuf[0], FHandshakeBufLen - Pos - 2);
       Dec(FHandshakeBufLen, Pos + 2);
       Exit;
     end;
 
-    // Necesitamos más datos del transporte
+    // Need more data from transport
     n := FTransport.RecvSome(NewBuf, 5000);
     if n <= 0 then
-      raise Exception.Create('HTTP handshake: conexión cerrada o timeout');
+      raise Exception.Create('HTTP handshake: connection closed or timeout');
     if FHandshakeBufLen + n > Length(FHandshakeBuf) then
       SetLength(FHandshakeBuf, FHandshakeBufLen + n + 4096);
     Move(NewBuf[0], FHandshakeBuf[FHandshakeBufLen], n);
@@ -446,12 +446,12 @@ var
 begin
   Result := False;
 
-  // Generar Sec-WebSocket-Key: 16 bytes aleatorios en base64 (RFC 6455 sec.4.1)
+  // Generate Sec-WebSocket-Key: 16 random bytes in base64 (RFC 6455 sec.4.1)
   SetLength(KeyBytes, 16);
   for i := 0 to 15 do KeyBytes[i] := Byte(Random($100));
   KeyBase64 := TNetEncoding.Base64.EncodeBytesToString(KeyBytes).Trim;
 
-  // Construir petición HTTP de upgrade
+  // Build HTTP upgrade request
   Handshake := 'GET ' + FPath + ' HTTP/1.1' + #13#10 +
                'Host: ' + FHost + #13#10 +
                'Upgrade: websocket' + #13#10 +
@@ -469,36 +469,36 @@ begin
   SendBuf := TEncoding.ASCII.GetBytes(Handshake);
   if not FTransport.SendAll(SendBuf) then
   begin
-    HandleError('HTTP upgrade: envío fallido');
+    HandleError('HTTP upgrade: send failed');
     Exit;
   end;
 
-  // Inicializar buffer de handshake para ReadHttpLine
+  // Initialize handshake buffer for ReadHttpLine
   FHandshakeBufLen := 0;
   SetLength(FHandshakeBuf, 8192);
 
-  // Leer línea de status — debe contener "101"
+  // Read status line — must contain "101"
   StatusLine := ReadHttpLine;
   WsDiag('HTTP Status: ' + StatusLine);
   if Pos('101', StatusLine) = 0 then
   begin
-    HandleError('WS handshake fallido: ' + StatusLine);
+    HandleError('WS handshake failed: ' + StatusLine);
     Exit;
   end;
 
-  // Leer y descartar cabeceras hasta línea en blanco
+  // Read and discard headers until blank line
   repeat
     Line := ReadHttpLine;
   until (Line = '') or (Line = #13);
 
-  // FHandshakeBuf[0..FHandshakeBufLen-1] contiene bytes recibidos tras las cabeceras
-  // (inicio de frames WebSocket) — el reader thread los consumirá primero
+  // FHandshakeBuf[0..FHandshakeBufLen-1] contains bytes received after the headers
+  // (start of WebSocket frames) — the reader thread will consume them first
 
-  WsDiag('HTTP Upgrade OK — ' + IntToStr(FHandshakeBufLen) + ' bytes sobrantes');
+  WsDiag('HTTP Upgrade OK — ' + IntToStr(FHandshakeBufLen) + ' remaining bytes');
   Result := True;
 end;
 
-// Codifica y envía un frame RFC 6455 (cliente→servidor: MASK=1 obligatorio)
+// Encodes and sends an RFC 6455 frame (client→server: MASK=1 mandatory)
 procedure TAiWSClient.SendFrame(Opcode: Byte; const Data: TBytes; IsFinal: Boolean);
 var
   Header:   array[0..13] of Byte;
@@ -542,18 +542,18 @@ begin
     Header[HdrLen] :=  PayLen and $FF;            Inc(HdrLen);
   end;
 
-  // Clave de máscara: 4 bytes aleatorios (RFC 6455 sec.5.3)
+  // Mask key: 4 random bytes (RFC 6455 sec.5.3)
   Mask[0] := Byte(Random($100)); Header[HdrLen] := Mask[0]; Inc(HdrLen);
   Mask[1] := Byte(Random($100)); Header[HdrLen] := Mask[1]; Inc(HdrLen);
   Mask[2] := Byte(Random($100)); Header[HdrLen] := Mask[2]; Inc(HdrLen);
   Mask[3] := Byte(Random($100)); Header[HdrLen] := Mask[3]; Inc(HdrLen);
 
-  // Payload enmascarado
+  // Masked payload
   SetLength(Masked, PayLen);
   for i := 0 to PayLen - 1 do
     Masked[i] := Data[i] xor Mask[i mod 4];
 
-  // Ensamblar frame y enviar bajo lock
+  // Assemble frame and send under lock
   SetLength(Frame, HdrLen + PayLen);
   Move(Header[0], Frame[0], HdrLen);
   if PayLen > 0 then Move(Masked[0], Frame[HdrLen], PayLen);
@@ -567,7 +567,7 @@ begin
   end;
 end;
 
-// Pong de respuesta — llamar CON FLock ya tomado
+// Response Pong — call WITH FLock already taken
 procedure TAiWSClient.SendPongNoLock(const Data: TBytes);
 var
   PayLen: Integer;
@@ -576,7 +576,7 @@ var
   i:      Integer;
 begin
   if not FConnected then Exit;
-  // Control frames: payload máximo 125 bytes (RFC 6455 sec.5.5)
+  // Control frames: maximum payload 125 bytes (RFC 6455 sec.5.5)
   PayLen  := Min(Length(Data), 125);
   Mask[0] := Byte(Random($100));
   Mask[1] := Byte(Random($100));
@@ -584,7 +584,7 @@ begin
   Mask[3] := Byte(Random($100));
   SetLength(Frame, 6 + PayLen);
   Frame[0] := $8A;                   // FIN=1, Opcode=Pong
-  Frame[1] := $80 or Byte(PayLen);   // MASK=1 + longitud
+  Frame[1] := $80 or Byte(PayLen);   // MASK=1 + length
   Frame[2] := Mask[0]; Frame[3] := Mask[1];
   Frame[4] := Mask[2]; Frame[5] := Mask[3];
   for i := 0 to PayLen - 1 do
@@ -638,7 +638,7 @@ begin
     end;
   end;
 
-  // Crear transporte TLS para la plataforma actual
+  // Create TLS transport for current platform
   try
 {$IFDEF MSWINDOWS}
     FTransport := TSChannelTransport.Create;
@@ -659,7 +659,7 @@ begin
   // TCP + TLS
   if not FTransport.Connect(FHost, FPort) then
   begin
-    HandleError('TLS connect fallido: ' + FHost + ':' + IntToStr(FPort));
+    HandleError('TLS connection failed: ' + FHost + ':' + IntToStr(FPort));
     FTransport := nil;
     Exit;
   end;
@@ -704,7 +704,7 @@ begin
   if Assigned(FReaderThread) then
   begin
     FReaderThread.Stop;
-    // Cerrar transporte para desbloquear RecvSome en el reader thread
+    // Close transport to unblock RecvSome in the reader thread
     if Assigned(FTransport) then
       FTransport.Disconnect;
     FReaderThread.WaitFor;
@@ -713,7 +713,7 @@ begin
   else if Assigned(FTransport) then
     FTransport.Disconnect;
 
-  FTransport := nil; // libera via refcount
+  FTransport := nil; // releases via refcount
 end;
 
 procedure TAiWSClient.SendText(const AText: string);

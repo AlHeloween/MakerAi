@@ -1,6 +1,6 @@
 ﻿unit AIChat.Control.FMX;
 
-// MIT License — Gustavo Enríquez <gustavoeenriquez@gmail.com>
+// MIT License - Gustavo Enríquez <gustavoeenriquez@gmail.com>
 // TAIChatView : TSkCustomControl
 // Single-canvas, virtualized AI chat conversation renderer.
 // Drop it on a form, call AddUserMessage / BeginAssistantMessage + AppendToken
@@ -29,8 +29,8 @@ type
   TAIChatAttachEvent = procedure(Sender: TObject; AMsg: TAIChatMessage;
                          AAttach: TAIChatAttachment) of object;
   TAIChatMsgEvent    = procedure(Sender: TObject; AMsg: TAIChatMessage) of object;
-  // Peticion de leer texto en voz alta (seleccion o mensaje bajo el cursor).
-  // El host implementa el TTS; el item solo aparece si el evento esta asignado.
+  // Request to read text aloud (selection or message under cursor).
+  // The host implements TTS; the item appears only if the event is assigned.
   TAIChatSpeakEvent  = procedure(Sender: TObject; const AText: string) of object;
 
   // Forward
@@ -99,7 +99,7 @@ type
     FCtxTargetAttach  : Integer;
     FCtxCopySelection : TMenuItem;
     FCtxSpeak         : TMenuItem;
-    FCtxMediaURL      : string;   // media (imagen/archivo) bajo el cursor en el right-click
+    FCtxMediaURL      : string;   // media (image/file) under cursor in right-click
     FCtxMediaMime     : string;
 
     // Events
@@ -181,7 +181,7 @@ type
                 AMediaFiles: TAiMediaFiles): TAIChatMessage; overload;
     function  BeginAssistantMessage: TAIChatMessage;  // status = msStreaming
     procedure AppendToken(AMsgIndex: Integer; const AToken: string);
-    // Reemplaza el texto completo de un mensaje (placeholder de progreso → final)
+    // Replaces the full text of a message (progress placeholder → final)
     procedure SetMessageText(AMsgIndex: Integer; const AText: string);
     procedure FinishMessage(AMsgIndex: Integer);
     procedure ClearMessages;
@@ -222,19 +222,19 @@ type
     property OutboundColor      : TAlphaColor  read FOutboundColor        write SetOutboundColor      default TAlphaColors.LightGreen;
     property AttachmentPopupMenu: TPopupMenu   read FAttachmentPopupMenu  write FAttachmentPopupMenu;
 
-    // Provee los bytes de una imagen/archivo referenciado por markdown (![](url)).
-    // El host debe descargar/cachear y devolver AData+AHandled. Delegado a cada renderer.
+    // Provides the bytes of an image/file referenced by markdown (![](url)).
+    // The host must download/cache and return AData+AHandled. Delegated to each renderer.
     property OnLoadMedia             : TAITextMDLoadMediaEvent read GetOnLoadMedia       write SetOnLoadMedia;
     property OnLinkClick             : TAIChatLinkEvent     read FOnLinkClick             write FOnLinkClick;
     property OnAttachmentOpen        : TAIChatAttachEvent   read FOnAttachOpen            write FOnAttachOpen;
-    // Disparado al Abrir/Copiar/Guardar un medio (imagen generada, audio, archivo)
-    // desde el menú contextual o desde los botones de la card. El host implementa
-    // la acción (abrir con el visor del sistema, diálogo Guardar como, etc.).
+    // Fired when Opening/Copying/Saving a media (generated image, audio, file)
+    // from the context menu or from the card buttons. The host implements
+    // the action (open with system viewer, Save As dialog, etc.).
     property OnMediaAction           : TAITextMDMediaActionEvent read FOnMediaAction       write FOnMediaAction;
     property OnMessageCopy           : TAIChatMsgEvent      read FOnMessageCopy           write FOnMessageCopy;
     property OnConversationCopy      : TNotifyEvent         read FOnConversationCopy      write FOnConversationCopy;
-    // "Escuchar en voz alta" del menu contextual: copia el texto al portapapeles
-    // y entrega al host la seleccion (o el mensaje) para que lo lea con TTS.
+    // "Listen aloud" from the context menu: copies the text to clipboard
+    // and delivers to the host the selection (or the message) to read with TTS.
     property OnSpeakRequest          : TAIChatSpeakEvent    read FOnSpeakRequest          write FOnSpeakRequest;
     // Backward-compat events
     property OnMediaFileDblClick     : TAIChatMediaFileEvent read FOnMediaFileDblClick     write FOnMediaFileDblClick;
@@ -339,7 +339,7 @@ begin
   FContextMenu.AddObject(FCtxOpenAttach);
 
   FCtxSaveMedia          := TMenuItem.Create(FContextMenu);
-  FCtxSaveMedia.Text     := 'Guardar como…';
+  FCtxSaveMedia.Text     := 'Save as…';
   FCtxSaveMedia.OnClick  := ContextMenuClick;
   FContextMenu.AddObject(FCtxSaveMedia);
 
@@ -349,7 +349,7 @@ begin
   FContextMenu.AddObject(FCtxCopySelection);
 
   FCtxSpeak         := TMenuItem.Create(FContextMenu);
-  FCtxSpeak.Text    := 'Escuchar en voz alta';
+  FCtxSpeak.Text    := 'Listen aloud';
   FCtxSpeak.OnClick := ContextMenuClick;
   FContextMenu.AddObject(FCtxSpeak);
 
@@ -548,15 +548,15 @@ begin
   FCtxTargetMsg    := AMsgIdx;
   FCtxTargetAttach := AAttachIdx;
   FCtxCopyMsg.Enabled       := AMsgIdx >= 0;
-  // "Open Attachment" sirve para dos casos: un adjunto local (chip) o un medio
-  // (imagen/audio) detectado bajo el cursor en el cuerpo markdown.
+  // "Open Attachment" serves two cases: a local attachment (chip) or a media
+  // (image/audio) detected under cursor in the markdown body.
   if (FCtxMediaURL <> '') and Assigned(FOnMediaAction) then
   begin
     FCtxOpenAttach.Enabled := True;
     if FCtxMediaMime.StartsWith('audio', True) then
-      FCtxOpenAttach.Text := 'Reproducir'
+      FCtxOpenAttach.Text := 'Play'
     else
-      FCtxOpenAttach.Text := 'Abrir';
+      FCtxOpenAttach.Text := 'Open';
     FCtxSaveMedia.Enabled := True;
   end
   else
@@ -567,8 +567,8 @@ begin
     FCtxSaveMedia.Enabled  := False;
   end;
   FCtxCopySelection.Enabled := HasActiveSelection;
-  // Solo visible si el host implementa TTS; lee la seleccion o, si no la hay,
-  // el mensaje bajo el cursor.
+  // Visible only if the host implements TTS; reads the selection or, if not,
+  // the message under cursor.
   FCtxSpeak.Visible := Assigned(FOnSpeakRequest);
   FCtxSpeak.Enabled := HasActiveSelection or (AMsgIdx >= 0);
   FContextMenu.PopupComponent := Self;
@@ -615,16 +615,16 @@ begin
       SpkTxt := FList.Messages[FCtxTargetMsg].Text;
     if (SpkTxt <> '') and Assigned(FOnSpeakRequest) then
     begin
-      DoClipboardSet(SpkTxt);   // "copiar y reproducir": tambien queda en el portapapeles
+      DoClipboardSet(SpkTxt);   // "copy and play": also remains in clipboard
       FOnSpeakRequest(Self, SpkTxt);
     end;
   end
   else if Sender = FCtxOpenAttach then
   begin
-    // Medio markdown (imagen/audio) detectado bajo el cursor → abrir/reproducir.
+    // Markdown media (image/audio) detected under cursor → open/play.
     if (FCtxMediaURL <> '') and Assigned(FOnMediaAction) then
       FOnMediaAction(Self, FCtxMediaURL, FCtxMediaMime, TMediaAction.maOpen)
-    // Si no, adjunto local clásico (chip).
+    // Otherwise, classic local attachment (chip).
     else if (FCtxTargetMsg >= 0) and (FCtxTargetMsg < FList.Messages.Count) and
             Assigned(FOnAttachOpen) then
     begin
@@ -793,7 +793,7 @@ begin
 
   if AButton = TMouseButton.mbLeft then
   begin
-    // Botones Open/Copy/Save de la card de adjunto (medio markdown)
+    // Open/Copy/Save buttons of the attachment card (markdown media)
     Idx := FList.HitTestIndex(DocX, DocY);
     if Idx >= 0 then
     begin
@@ -909,7 +909,7 @@ begin
     if FList.HitTest(DocX, DocY, HMsg, HHit) and
        (HHit.Kind = TChatHitKind.hkAttachment) then
       AttachIdx := HHit.AttachIndex;
-    // Medio markdown (imagen/audio/archivo) bajo el cursor: thumbnail o botón de card.
+    // Markdown media (image/audio/file) under cursor: thumbnail or card button.
     FCtxMediaURL  := '';
     FCtxMediaMime := '';
     if Idx >= 0 then
@@ -1059,9 +1059,9 @@ begin
 
   if Idx >= 0 then
   begin
-    // Botones Open/Copy/Save de la card de medio (markdown): cursor de mano.
-    // FList.HitTest no los conoce — se detectan via el renderer markdown, igual
-    // que en MouseDown (ButtonAreaAtPoint).
+    // Open/Copy/Save buttons of the media card (markdown): hand cursor.
+    // FList.HitTest does not know them — they are detected via the markdown renderer, same
+    // as in MouseDown (ButtonAreaAtPoint).
     var HovBtn := False;
     var HovRdr := FList.GetRenderer(Idx);
     if HovRdr <> nil then

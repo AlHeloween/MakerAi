@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Name: Gustavo Enr?quez
+// Social Media:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -32,25 +32,25 @@
 // - GitHub: https://github.com/gustavoeenriquez/
 
 
-// --- Modificaciones ----
-// 30/08/2024 -- Mejora en la funci?n Edit
+// --- Modifications ----
+// 30/08/2024 -- Improvement in the Edit function
 
-// --------- CAMBIOS --------------------
-// 4/11/2025  - Refactorizaci?n completa para soportar dall-e-2, dall-e-3, y gpt-image-1.
-// 4/11/2025  - A?adido soporte para streaming con eventos (OnPartialImageReceived, OnStreamCompleted).
-// 4/11/2025  - Integraci?n con uMakerAi.Core: Edit y Variation ahora usan TAiMediaFile.
-// 4/11/2025  - Modernizaci?n de enums y nombres de propiedades para mayor claridad.
-// 27/04/2026 - Soporte completo para gpt-image-2, gpt-image-1-mini, gpt-image-1.5, chatgpt-image-latest.
-// 27/04/2026 - Nuevos par?metros: output_compression, moderation, partial_images, input_fidelity.
-// 27/04/2026 - Fix: response_format excluido para todos los modelos GPT Image.
-// 27/04/2026 - Fix: streaming bloqueado para gpt-image-2 (no soportado por la API).
-// 27/04/2026 - Nuevo tama?o isAuto para modelos GPT Image.
-// 28/04/2026 - gpt-image-2: n limitado a 8 (no 10), background transparent no soportado,
-//              input_fidelity excluido en edits (auto-high-fidelity siempre).
-// 28/04/2026 - Nuevo tama?o is3840x2160 (4K UHD) para gpt-image-2.
-// 16/09/2026 - Familia gpt-image-2.5 (flare/sunburst): calidad xhigh/max,
-//              fondo transparente con alpha real, streaming con parciales.
-//              input_fidelity omitido (no documentado para 2.5).
+// --------- CHANGES --------------------
+// 4/11/2025  - Complete refactoring to support dall-e-2, dall-e-3, and gpt-image-1.
+// 4/11/2025  - Added support for streaming with events (OnPartialImageReceived, OnStreamCompleted).
+// 4/11/2025  - Integration with uMakerAi.Core: Edit and Variation now use TAiMediaFile.
+// 4/11/2025  - Modernization of enums and property names for greater clarity.
+// 27/04/2026 - Complete support for gpt-image-2, gpt-image-1-mini, gpt-image-1.5, chatgpt-image-latest.
+// 27/04/2026 - New parameters: output_compression, moderation, partial_images, input_fidelity.
+// 27/04/2026 - Fix: response_format excluded for all GPT Image models.
+// 27/04/2026 - Fix: streaming blocked for gpt-image-2 (not supported by the API).
+// 27/04/2026 - New isAuto size for GPT Image models.
+// 28/04/2026 - gpt-image-2: n limited to 8 (not 10), background transparent not supported,
+//              input_fidelity excluded in edits (auto-high-fidelity always).
+// 28/04/2026 - New is3840x2160 size (4K UHD) for gpt-image-2.
+// 16/09/2026 - gpt-image-2.5 family (flare/sunburst): quality xhigh/max,
+//              transparent background with real alpha, streaming with partials.
+//              input_fidelity omitted (not documented for 2.5).
 
 unit uMakerAi.OpenAi.Dalle;
 
@@ -73,11 +73,11 @@ const
   GlOpenAIUrl = 'https://api.openai.com/v1/';
 
 type
-  // Error HTTP del proveedor. Hereda de Exception y conserva el mensaje de
-  // siempre ('Error Received: <status>, <cuerpo>'), asi que quien capture
-  // Exception no nota nada. Anade lo que el mensaje no dejaba leer: el codigo
-  // HTTP y el Retry-After, para que un broker pueda devolver un 429/503 con su
-  // espera en vez de un error generico.
+  // Provider HTTP error. Inherits from Exception and preserves the message from
+  // always ('Error Received: <status>, <body>'), so whoever catches
+  // Exception does not notice anything. It adds what the message did not let you read: the code
+  // HTTP and the Retry-After, so a broker can return a 429/503 with its
+  // wait instead of a generic error.
   EAiDalleHTTPError = class(Exception)
   private
     FStatusCode: Integer;
@@ -85,7 +85,7 @@ type
   public
     constructor CreateHTTP(AStatusCode: Integer; const ABody, ARetryAfter: string);
     property StatusCode: Integer read FStatusCode;
-    property RetryAfter: string read FRetryAfter;  // '' si el proveedor no lo mando
+    property RetryAfter: string read FRetryAfter;  // '' if the provider did not send it
   end;
 
   TAiDalleImage = class(TObject)
@@ -105,8 +105,8 @@ type
     function Base64ToStream(const ABase64: string): TMemoryStream;
     procedure LoadImageFromUrl(const AUrlFile: string);
     procedure ParseData(JObj: TJSONObject);
-    // La familia gpt-image devuelve background/output_format/size/quality/usage
-    // en la raiz de la respuesta, no dentro de data[]. Completa lo que falte.
+    // The gpt-image family returns background/output_format/size/quality/usage
+    // at the response root, not inside data[]. It fills in what is missing.
     procedure ParseRootMeta(JObj: TJSONObject);
   public
     constructor Create;
@@ -120,53 +120,53 @@ type
     property OutputFormat: string read FOutputFormat;
     property Quality: string read FQuality;
     property Size: string read FSize;
-    // gpt-image-2.5: identificador de la imagen, util para edicion multi-turno
+    // gpt-image-2.5: image identifier, useful for multi-turn editing
     property GenerationId: string read FGenerationId;
     property Usage: TJSONObject read FUsage;
   end;
 
   TAiDalleImages = array of TAiDalleImage;
 
-  // Eventos para el streaming
+  // Streaming events
   TOnPartialImageReceived = procedure(Sender: TObject; const APartialImage: TAiDalleImage; AIndex: Integer) of object;
   TOnStreamCompleted = procedure(Sender: TObject; const AFinalImage: TAiDalleImage) of object;
   TOnStreamError = procedure(Sender: TObject; const AErrorMessage: string) of object;
 
-  // Modelos soportados
-  // Nota: gpt-image-2 NO soporta streaming (SupportsStreaming = False para ese modelo)
-  // La familia gpt-image-2.5 (flare/sunburst) SI soporta streaming, fondo
-  // transparente y los niveles de calidad extra 'xhigh' y 'max'.
+  // Supported models
+  // Note: gpt-image-2 does NOT support streaming (SupportsStreaming = False for that model)
+  // The gpt-image-2.5 family (flare/sunburst) DOES support streaming, background
+  // transparency, and the extra quality levels 'xhigh' and 'max'.
   TAiImageModel = (
-    imDallE2,             // dall-e-2 (DEPRECADO por OpenAI may 2026 — migrar a gpt-image-*)
-    imDallE3,             // dall-e-3 (DEPRECADO por OpenAI may 2026 — migrar a gpt-image-*)
+    imDallE2,             // dall-e-2 (DEPRECATED by OpenAI may 2026 — migrate to gpt-image-*)
+    imDallE3,             // dall-e-3 (DEPRECATED by OpenAI may 2026 — migrate to gpt-image-*)
     imGptImage1,          // gpt-image-1
-    imGptImage1Mini,      // gpt-image-1-mini  (m?s r?pido y econ?mico)
+    imGptImage1Mini,      // gpt-image-1-mini  (faster and cheaper)
     imGptImage15,         // gpt-image-1.5
-    imGptImage2,          // gpt-image-2       (SIN streaming)
-    imGptImage25Flare,    // gpt-image-2.5-flare    (rapido, calidad alta)
-    imGptImage25Sunburst, // gpt-image-2.5-sunburst (premium, edicion fina)
-    imChatGptImageLatest, // chatgpt-image-latest (alias al modelo m?s reciente)
-    imSDXL                // SDXL (endpoint personalizado)
+    imGptImage2,          // gpt-image-2       (WITHOUT streaming)
+    imGptImage25Flare,    // gpt-image-2.5-flare    (fast, high quality)
+    imGptImage25Sunburst, // gpt-image-2.5-sunburst (premium, fine editing)
+    imChatGptImageLatest, // chatgpt-image-latest (alias to the most recent model)
+    imSDXL                // SDXL (custom endpoint)
   );
 
-  // iqXHigh / iqMax: solo la familia gpt-image-2.5 (flare/sunburst). En el
-  // resto de modelos se degradan a 'high' para no provocar un 400.
+  // iqXHigh / iqMax: only the gpt-image-2.5 family (flare/sunburst). In the
+  // rest of the models they are downgraded to 'high' to avoid causing a 400.
   TAiImageQuality    = (iqAuto, iqStandard, iqHD, iqHigh, iqMedium, iqLow, iqXHigh, iqMax);
   TAiImageBackground = (ibAuto, ibTransparent, ibOpaque);
   TAiImageOutputFormat = (ifPng, ifJpeg, ifWebp);
   TAiImageStyle      = (isVivid, isNatural);
   TAiImageResponseFormat = (irfUrl, irfBase64Json);
 
-  // Solo modelos GPT Image: 'auto' desactiva moderaci?n extra
+  // GPT Image models only: 'auto' disables extra moderation
   TAiImageModeration = (imodAuto, imodLow);
 
-  // Para el endpoint /images/edits: controla cu?nto se preserva la imagen original
+  // For the /images/edits endpoint: controls how much of the original image is preserved
   TAiInputFidelity = (ifdDefault, ifdHigh, ifdLow);
 
   TAiImageSize = (
     is256x256,   // dall-e-2
     is512x512,   // dall-e-2
-    is1024x1024, // todos
+    is1024x1024, // all
     is1792x1024, // dall-e-3 landscape
     is1024x1792, // dall-e-3 portrait
     is1536x1024, // gpt-image-* landscape
@@ -175,13 +175,13 @@ type
     is768x768,
     is1216x832,
     is832x1216,
-    // Solo modelos GPT Image
-    // OJO gpt-image-2.5: hay un minimo de pixel budget -> 512x512 se rechaza
-    // con "Requested resolution is below the current minimum pixel budget"
-    // (verificado sep-2026); 1024x1024 en adelante funciona.
+    // GPT Image models only
+    // NOTE gpt-image-2.5: there is a minimum pixel budget -> 512x512 is rejected
+    // with "Requested resolution is below the current minimum pixel budget"
+    // (verified Sep-2026); 1024x1024 and up works.
     isAuto,
-    // gpt-image-2: alta resoluci?n (experimental: >2K)
-    is3840x2160  // 4K UHD (m?x pixel budget: 8.294.400)
+    // gpt-image-2: high resolution (experimental: >2K)
+    is3840x2160  // 4K UHD (max pixel budget: 8.294.400)
   );
 
   TAiDalle = class(TComponent)
@@ -214,10 +214,10 @@ type
     FAutoUpscale: Boolean;
     FStrength: Single;
     FLoraPath: String;
-    // Nuevos par?metros (v3.4)
-    FOutputCompression: Integer;    // 0 = no enviar; 1-100 = comprimir (jpeg/webp)
+    // New parameters (v3.4)
+    FOutputCompression: Integer;    // 0 = do not send; 1-100 = compress (jpeg/webp)
     FModeration: TAiImageModeration;
-    FPartialImages: Integer;        // 0-3 im?genes parciales en streaming
+    FPartialImages: Integer;        // 0-3 partial images in streaming
     FInputFidelity: TAiInputFidelity;
 
     function GetApiKey: string;
@@ -244,13 +244,13 @@ type
     procedure HandleStreamData(const Sender: TObject; AContentLength, AReadCount: Int64; var AAbort: Boolean);
     procedure ProcessStreamBuffer;
     function SizeToString(ASize: TAiImageSize): string;
-    // Helpers de modelo
+    // Model helpers
     function IsGptImageModel: Boolean;
     function IsGptImage25Model: Boolean;
     function SupportsStreaming: Boolean;
-    // 'quality' resuelto segun el modelo ('' = no enviar el parametro)
+    // 'quality' resolved according to the model ('' = do not send the parameter)
     function QualityToString: string;
-    // Formato real: jpeg no tiene canal alpha, con fondo transparente -> png
+    // Actual format: jpeg has no alpha channel, with transparent background -> png
     function EffectiveOutputFormat: TAiImageOutputFormat;
     function ModelToString: string;
   public
@@ -267,12 +267,12 @@ type
     property ApiKey: string read GetApiKey write SetApiKey;
     property Prompt: string read FPrompt;
     property User: string read FUser write FUser;
-    // Default gpt-image-1 desde ago 2026: los snapshots dall-e-2/3 fueron
-    // deprecados por OpenAI (may 2026). imDallE2/imDallE3 siguen disponibles
-    // para quien los seleccione explicitamente mientras el API los acepte.
+    // Default gpt-image-1 since Aug 2026: the dall-e-2/3 snapshots were
+    // deprecated by OpenAI (may 2026). imDallE2/imDallE3 remain available
+    // for whoever selects them explicitly while the API accepts them.
     property Model: TAiImageModel read FModel write SetModel default TAiImageModel.imGptImage1;
-    // Nombre exacto que viaja en 'model'. Vacio -> se deriva de Model.
-    // El porque, en ModelToString.
+    // Exact name sent in 'model'. Empty -> derived from Model.
+    // The reason is in ModelToString.
     property ModelName: string read FModelName write FModelName;
     property Quality: TAiImageQuality read FQuality write SetQuality default TAiImageQuality.iqAuto;
     property Style: TAiImageStyle read FStyle write SetStyle default TAiImageStyle.isVivid;
@@ -302,9 +302,9 @@ type
     property OnStreamError: TOnStreamError read FOnStreamError write FOnStreamError;
   end;
 
-  { TAiDalleImageTool: ImageTool aut?nomo para generaci?n de im?genes con DALL-E/gpt-image-1.
-    Crea internamente su propio TAiDalle — no requiere un componente externo.
-    Configura ApiKey, Model e ImageSize y as?gnalo a ChatTools.ImageTool. }
+  { TAiDalleImageTool: Standalone ImageTool for image generation with DALL-E/gpt-image-1.
+    Creates its own TAiDalle internally — it does not require an external component.
+    Configure ApiKey, Model, and ImageSize and assign it to ChatTools.ImageTool. }
   TAiDalleImageTool = class(TAiImageToolBase)
   private
     FDalle    : TAiDalle;
@@ -337,9 +337,9 @@ type
     procedure InternalRunDalleGeneration(const APrompt: string; ResMsg: TAiChatMessage);
   public
     constructor Create(AOwner: TComponent); override;
-    { Permite inyectar un TAiDalle ya configurado. El caller sigue siendo due?o
-      del objeto y debe liberarlo. El FDalle interno original queda en la lista
-      de componentes hijos y ser? liberado autom?ticamente por el framework. }
+    { Allows injecting an already configured TAiDalle. The caller remains the owner
+      of the object and must free it. The original internal FDalle remains in the list
+      of child components and will be freed automatically by the framework. }
     property Dalle: TAiDalle read FDalle write SetDalle;
   published
     property ApiKey            : string               read GetApiKey            write SetApiKey;
@@ -435,9 +435,9 @@ begin
     FUsage := TJSONObject(FUsage.Clone);
 end;
 
-// A partir de gpt-image-2.5 la respuesta trae background, output_format, size,
-// quality y usage en la RAIZ (verificado contra api.openai.com sep-2026);
-// data[] solo lleva b64_json y generation_id.
+// Starting with gpt-image-2.5 the response brings background, output_format, size,
+// quality and usage at the ROOT (verified against api.openai.com Sep-2026);
+// data[] only carries b64_json and generation_id.
 procedure TAiDalleImage.ParseRootMeta(JObj: TJSONObject);
 var
   LValue: string;
@@ -483,7 +483,7 @@ begin
   inherited;
   FUrl := GlOpenAIUrl;
   FUser := 'user';
-  FModel := imGptImage1; // dall-e-3 deprecado por OpenAI (may 2026)
+  FModel := imGptImage1; // dall-e-3 deprecated by OpenAI (may 2026)
   FQuality := iqAuto;
   FStyle := isVivid;
   FResponseFormat := TAiImageResponseFormat.irfUrl;
@@ -525,7 +525,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-//  Helpers de modelo
+//  Model helpers
 // ---------------------------------------------------------------------------
 
 function TAiDalle.IsGptImageModel: Boolean;
@@ -535,15 +535,15 @@ begin
                        imChatGptImageLatest];
 end;
 
-// Familia gpt-image-2.5 (sep 2026): calidad xhigh/max, fondo transparente
-// con alpha real (png/webp) y streaming con imagenes parciales.
+// gpt-image-2.5 family (sep 2026): xhigh/max quality, transparent background
+// with real alpha (png/webp) and streaming with partial images.
 function TAiDalle.IsGptImage25Model: Boolean;
 begin
   Result := FModel in [imGptImage25Flare, imGptImage25Sunburst];
 end;
 
-// gpt-image-2 NO soporta streaming segun la documentacion oficial.
-// gpt-image-2.5 (flare/sunburst) si lo soporta.
+// gpt-image-2 does NOT support streaming according to the official documentation.
+// gpt-image-2.5 (flare/sunburst) does support it.
 function TAiDalle.SupportsStreaming: Boolean;
 begin
   Result := FModel in [imGptImage1, imGptImage1Mini, imGptImage15,
@@ -553,11 +553,11 @@ end;
 
 function TAiDalle.ModelToString: string;
 begin
-  // ModelName GANA al enum. El enum decide QUE payload se construye; el nombre
-  // que viaja tiene que ser el id real del catalogo del proveedor. Un endpoint
-  // propio compatible-OpenAI sirve su modelo con SU nombre ('juggernaut-xl-v9'),
-  // no con el de la familia ('sdxl'), y rechaza el segundo con 400 — medido
-  // contra el servicio real el 2026-09-19. Vacio = comportamiento de siempre.
+  // ModelName WINS over the enum. The enum decides WHAT payload is built; the name
+  // that is sent must be the real id from the provider catalog. A custom
+  // OpenAI-compatible endpoint serves its model with ITS name ('juggernaut-xl-v9'),
+  // not with the family one ('sdxl'), and rejects the second with 400 — measured
+  // against the real service on 2026-09-19. Empty = usual behavior.
   if FModelName <> '' then
     Exit(FModelName);
 
@@ -577,8 +577,8 @@ begin
   end;
 end;
 
-// Mapea TAiImageQuality al valor que acepta cada familia de modelos.
-// Solo gpt-image-2.5 conoce 'xhigh' y 'max'; en el resto se bajan a 'high'.
+// Maps TAiImageQuality to the value accepted by each model family.
+// Only gpt-image-2.5 knows 'xhigh' and 'max'; in the rest they are lowered to 'high'.
 function TAiDalle.QualityToString: string;
 begin
   case FQuality of
@@ -592,8 +592,8 @@ begin
   end;
 end;
 
-// Con background=transparent la API solo acepta png o webp. Si el usuario
-// dejo jpeg se devuelve png, sin modificar la propiedad publicada.
+// With background=transparent the API only accepts png or webp. If the user
+// left jpeg, png is returned, without modifying the published property.
 function TAiDalle.EffectiveOutputFormat: TAiImageOutputFormat;
 begin
   if (FBackground = ibTransparent) and (FOutputFormat = ifJpeg) then
@@ -628,7 +628,7 @@ begin
   FActiveResponseStream := nil;
   JObj := TJSONObject.Create;
   try
-    // Prompt y user (comunes a todos los modelos)
+    // Prompt and user (common to all models)
     JObj.AddPair('prompt', aPrompt).AddPair('user', FUser);
 
     case FModel of
@@ -650,35 +650,35 @@ begin
           JObj.AddPair('quality', 'hd')
         else
           JObj.AddPair('quality', 'standard');
-        // 'style' fue retirado de la API de OpenAI para dall-e-3 (2026):
-        // enviarlo produce 400 "Unknown parameter: 'style'". Ya no se env?a.
+        // 'style' was removed from the OpenAI API for dall-e-3 (2026):
+        // sending it produces 400 "Unknown parameter: 'style'". It is no longer sent.
       end;
 
-      // ── Familia GPT Image (gpt-image-1/mini/1.5/2/2.5/chatgpt-image-latest) ─
+      // ── GPT Image family (gpt-image-1/mini/1.5/2/2.5/chatgpt-image-latest) ─
       imGptImage1, imGptImage1Mini, imGptImage15, imGptImage2,
       imGptImage25Flare, imGptImage25Sunburst, imChatGptImageLatest:
       begin
         JObj.AddPair('model', ModelToString);
-        // gpt-image-2 soporta n=1..8; resto de la familia hasta 10.
-        // gpt-image-2.5 se trata como 2 (el limite real no esta documentado).
+        // gpt-image-2 supports n=1..8; rest of the family up to 10.
+        // gpt-image-2.5 is treated as 2 (the real limit is not documented).
         if FModel in [imGptImage2, imGptImage25Flare, imGptImage25Sunburst] then
           JObj.AddPair('n', TJSONNumber.Create(Min(8, Max(1, N))))
         else
           JObj.AddPair('n', TJSONNumber.Create(Min(10, Max(1, N))));
         JObj.AddPair('size', SizeToString(ASize));
 
-        // iqAuto: no enviar, la API usa su default
+        // iqAuto: do not send, the API uses its default
         if QualityToString <> '' then
           JObj.AddPair('quality', QualityToString);
 
         case FBackground of
           ibTransparent:
-            // gpt-image-2 no soporta fondo transparente; gpt-image-2.5 si,
-            // pero exige output_format png o webp (el default es png).
+            // gpt-image-2 does not support transparent background; gpt-image-2.5 does,
+            // but it requires output_format png or webp (the default is png).
             if FModel <> imGptImage2 then
               JObj.AddPair('background', 'transparent');
           ibOpaque: JObj.AddPair('background', 'opaque');
-          // ibAuto: no enviar
+          // ibAuto: do not send
         end;
 
         case EffectiveOutputFormat of
@@ -687,16 +687,16 @@ begin
           // ifPng: default, no enviar
         end;
 
-        // Compresi?n solo para jpeg/webp y cuando se especifica
+        // Compression only for jpeg/webp and when specified
         if (FOutputCompression > 0) and (EffectiveOutputFormat in [ifJpeg, ifWebp]) then
           JObj.AddPair('output_compression', TJSONNumber.Create(
             Max(0, Min(100, FOutputCompression))));
 
-        // Moderaci?n
+        // Moderation
         if FModeration = imodLow then
           JObj.AddPair('moderation', 'low');
 
-        // Streaming solo en modelos que lo soportan (NO gpt-image-2)
+        // Streaming only on models that support it (NOT gpt-image-2)
         if FStream and SupportsStreaming then
         begin
           JObj.AddPair('stream', TJSONBool.Create(True));
@@ -706,7 +706,7 @@ begin
         end;
       end;
 
-      // ── SDXL (endpoint personalizado) ───────────────────────────────────
+      // ── SDXL (custom endpoint) ───────────────────────────────────
       imSDXL:
       begin
         JObj.AddPair('model', ModelToString);
@@ -744,9 +744,9 @@ begin
 
     end; // case FModel
 
-    // 'response_format' fue retirado de la API de OpenAI (2026) tambi?n para
-    // dall-e-2/3: enviarlo produce 400 "Unknown parameter". La API decide el
-    // formato y TAiDalleImage.ParseData soporta ambos (b64_json y url).
+    // 'response_format' was removed from the OpenAI API (2026) also for
+    // dall-e-2/3: sending it produces 400 "Unknown parameter". The API decides the
+    // format and TAiDalleImage.ParseData supports both (b64_json and url).
 
     ContentStream.WriteString(JObj.ToJSON);
     ContentStream.Position := 0;
@@ -755,7 +755,7 @@ begin
     Client.CustomHeaders['Authorization'] := 'Bearer ' + ApiKey;
     Client.ContentType := 'application/json';
 
-    // ── Ruta streaming ──────────────────────────────────────────────────────
+    // ── Streaming path ──────────────────────────────────────────────────────
     if FStream and SupportsStreaming then
     begin
       Client.Accept := 'text/event-stream';
@@ -788,7 +788,7 @@ begin
           FActiveResponseStream.Size, AbortFlag);
       end;
     end
-    // ── Ruta sin streaming ──────────────────────────────────────────────────
+    // ── Non-streaming path ──────────────────────────────────────────────────
     else
     begin
       ResponseStream := TMemoryStream.Create;
@@ -872,7 +872,7 @@ begin
   Client.ConnectionTimeout := 30000;
   Body := TMultipartFormData.Create;
   try
-    // Im?genes de entrada
+    // Input images
     for MediaFile in aMediaFiles do
     begin
       MediaFile.Content.Position := 0;
@@ -889,7 +889,7 @@ begin
 {$ENDIF}
     end;
 
-    // M?scara opcional
+    // Optional mask
     if Assigned(aMaskFile) then
     begin
       aMaskFile.Content.Position := 0;
@@ -904,7 +904,7 @@ begin
     Body.AddField('user', FUser);
     Body.AddField('n', N.ToString);
 
-    // Modelo y tama?o
+    // Model and size
     case FModel of
       imDallE2:
       begin
@@ -916,7 +916,7 @@ begin
         end;
       end;
     else
-      // Todos los modelos GPT Image
+      // All GPT Image models
       Body.AddField('model', ModelToString);
       Body.AddField('size', SizeToString(ASize));
 
@@ -936,8 +936,8 @@ begin
         ifWebp: Body.AddField('output_format', 'webp');
       end;
 
-      // gpt-image-2: siempre alta fidelidad autom?ticamente — omitir el par?metro
-      // Resto de modelos: controla cu?nto preservar de la imagen original
+      // gpt-image-2: always high fidelity automatically — omit the parameter
+      // Other models: controls how much of the original image to preserve
       if not (FModel in [imGptImage2, imGptImage25Flare, imGptImage25Sunburst]) then
         case FInputFidelity of
           ifdHigh: Body.AddField('input_fidelity', 'high');
@@ -1391,8 +1391,8 @@ begin FDalle.NegativePrompt := Value; end;
 
 procedure TAiDalleImageTool.SetDalle(const Value: TAiDalle);
 begin
-  // El FDalle interno (creado con Self como owner) sigue en la lista de hijos
-  // y ser? liberado por el framework. Apuntamos a la instancia inyectada.
+  // The internal FDalle (created with Self as owner) remains in the child list
+  // and will be freed by the framework. We point to the injected instance.
   FDalle := Value;
 end;
 
@@ -1409,7 +1409,7 @@ var
   LMediaFile: TAiMediaFile;
   LExt: string;
 begin
-  ReportState(acsToolExecuting, 'Generando imagen con DALL-E...');
+  ReportState(acsToolExecuting, 'Generating image with DALL-E...');
 
   LDalleImage := FDalle.Generate(APrompt, FDalle.NegativePrompt.Text, FImageSize);
 

@@ -1,60 +1,60 @@
 ﻿unit uMakerAi.RAG.Vector.Driver.BinFile;
 
 {
-  TAiMkVecDriver — Driver de archivo binario propio para TAiRAGVector
+  TAiMkVecDriver — Custom binary file driver for TAiRAGVector
 
-  Base de datos local para el usuario, sin dependencias externas.
-  Solo System.*: no SQLite, no FireDAC, no PostgreSQL.
+  Local database for the user, with no external dependencies.
+  Only System.*: no SQLite, no FireDAC, no PostgreSQL.
 
-  Estrategia de memoria / disco:
+  Memory / disk strategy:
   +------------------------------------------------------------------+
-  ¦  EN MEMORIA (liviano)                                            ¦
+  ¦  IN MEMORY (lightweight)                                            ¦
   ¦  --------------------------------------------------------------- ¦
-  ¦  FEntryIndex:  compKey ? TNodeFileEntry  (offsets en archivo)    ¦
-  ¦  FStubNodes:   compKey ? TAiEmbeddingNode (sin embedding!)       ¦
-  ¦  FBm25Indices: entidad ? TAIBm25Index (usa los stubs)            ¦
+  ¦  FEntryIndex:  compKey ? TNodeFileEntry  (offsets in file)    ¦
+  ¦  FStubNodes:   compKey ? TAiEmbeddingNode (without embedding!)       ¦
+  ¦  FBm25Indices: entity ? TAIBm25Index (uses the stubs)            ¦
   ¦                                                                  ¦
-  ¦  Para N=100K nodos / texto promedio 500 bytes:                   ¦
-  ¦    Stubs       ˜ 50 MB    (texto + metadata, sin floats)         ¦
-  ¦    EntryIndex  ˜  6 MB    (solo offsets)                         ¦
-  ¦    BM25 index  ˜ 20 MB    (índice invertido)                     ¦
+  ¦  For N=100K nodes / average text 500 bytes:                   ¦
+  ¦    Stubs       ˜ 50 MB    (text + metadata, without floats)         ¦
+  ¦    EntryIndex  ˜  6 MB    (offsets only)                         ¦
+  ¦    BM25 index  ˜ 20 MB    (inverted index)                     ¦
   ¦                                                                  ¦
-  ¦  EN DISCO (.mkvec)                                               ¦
+  ¦  ON DISK (.mkvec)                                               ¦
   ¦  --------------------------------------------------------------- ¦
-  ¦  Todo: embedding (Dim×8 bytes float64) + texto + metadata        ¦
-  ¦  El disco es el límite, no la RAM de embeddings                  ¦
+  ¦  Everything: embedding (Dim×8 bytes float64) + text + metadata        ¦
+  ¦  Disk is the limit, not embedding RAM                  ¦
   +------------------------------------------------------------------+
 
-  Búsqueda vectorial (Fase 1 — scan de embeddings):
-    Para cada nodo activo: seek(EmbOffset) ? leer Dim×8 bytes ? coseno
-    Solo se leen embeddings, NO el texto. O(n) pero secuencial.
+  Vector search (Phase 1 — embedding scan):
+    For each active node: seek(EmbOffset) ? read Dim×8 bytes ? cosine
+    Only embeddings are read, NOT the text. O(n) but sequential.
 
-  Búsqueda vectorial (Fase 2 — Top-K):
-    seek(TextOffset) ? leer texto + metadata
-    Solo ALimit lecturas completas de disco.
+  Vector search (Phase 2 — Top-K):
+    seek(TextOffset) ? read text + metadata
+    Only ALimit complete disk reads.
 
-  Búsqueda léxical BM25:
-    Completamente en memoria via TAIBm25Index.Search() sobre los stubs.
-    Los stubs tienen Tag = ID del nodo en el archivo.
-    Luego se cargan los textos completos para el Top-K.
+  Lexical BM25 search:
+    Completely in memory via TAIBm25Index.Search() over the stubs.
+    The stubs have Tag = node ID in the file.
+    Then full texts are loaded for the Top-K.
 
-  Búsqueda híbrida:
-    Ambas búsquedas por separado, fusión RRF o ponderada.
+  Hybrid search:
+    Both searches separately, RRF or weighted fusion.
 
-  Formato del archivo (.mkvec):
+  File format (.mkvec):
     Header 64 bytes:
       [4] 'MKVC'  [2] Version=1  [4] Dim  [8] NodeCount  [46] Reserved
-    Registros (variable):
-      [1] Status  [2+N] Entidad  [2+N] ID  [2+N] Model
+    Records (variable):
+      [1] Status  [2+N] Entity  [2+N] ID  [2+N] Model
       [Dim×8] Embedding (float64 = Double)
       [4+N] Text  [4+N] Properties JSON
 
-  Notas:
-    - Delete() y Clear() marcan registros como status=0 (deleted).
-    - Compact() reescribe el archivo sin los registros borrados.
-    - RebuildBm25(entidad) se llama tras Delete/Clear: limpia el
-      índice BM25 y re-agrega los stubs activos. Es O(n_activos),
-      no requiere releer el disco.
+  Notes:
+    - Delete() and Clear() mark records as status=0 (deleted).
+    - Compact() rewrites the file without deleted records.
+    - RebuildBm25(entity) is called after Delete/Clear: it clears the
+      BM25 index and re-adds the active stubs. It is O(n_active),
+      it does not require rereading the disk.
 }
 
 interface
@@ -88,9 +88,9 @@ type
   // File index entry: offsets for efficient reading
   // ---------------------------------------------------------------------------
   TNodeFileEntry = record
-    RecordOffset: Int64;  // inicio del byte de status
-    EmbOffset:    Int64;  // inicio del array float64 (Double)
-    TextOffset:   Int64;  // inicio del campo TextLen
+    RecordOffset: Int64;  // start of the status byte
+    EmbOffset:    Int64;  // start of the float64 array (Double)
+    TextOffset:   Int64;  // start of the TextLen field
   end;
 
   // ---------------------------------------------------------------------------
@@ -105,16 +105,16 @@ type
     FStream:      TFileStream;
     FLock:        TCriticalSection;
 
-    // index de offsets: compKey ? TNodeFileEntry
+    // offset index: compKey ? TNodeFileEntry
     FEntryIndex:  TDictionary<string, TNodeFileEntry>;
 
-    // IDs activos por entidad: entidad ? TList<string> de IDs
+    // Active IDs by entity: entity ? TList<string> of IDs
     FEntidadIDs:  TObjectDictionary<string, TList<string>>;
 
-    // Stubs: compKey ? TAiEmbeddingNode (sin embedding, para BM25)
+    // Stubs: compKey ? TAiEmbeddingNode (without embedding, for BM25)
     FStubNodes:   TObjectDictionary<string, TAiEmbeddingNode>;
 
-    // indexs BM25: entidad ? TAIBm25Index
+    // BM25 indices: entity ? TAIBm25Index
     FBm25Indices: TObjectDictionary<string, TAIBm25Index>;
 
     function  CompKey(const AEntidad, AID: string): string; inline;
@@ -158,7 +158,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
 
-    // ---- Contrato TAiVectorStoreDriverBase ----
+    // ---- TAiVectorStoreDriverBase contract ----
     procedure Add(const ANode: TAiEmbeddingNode; const AEntidad: string = ''); override;
     function  Search(const ATarget: TAiEmbeddingNode; const AEntidad: string;
                 ALimit: Integer; APrecision: Double; AFilter: TAiFilterCriteria;
@@ -250,7 +250,7 @@ end;
 
 function TAiMkVecDriver.CompKey(const AEntidad, AID: string): string;
 begin
-  // #1 como separador — improbable en IDs o entidades reales
+  // #1 as separator — unlikely in real IDs or entities
   Result := AEntidad + #1 + AID;
 end;
 
@@ -299,12 +299,12 @@ var
 begin
   Result := TAiEmbeddingNode.Create(FDim);
   try
-    // Cargar embedding desde disco
+    // Load embedding from disk
     Result.Data := ReadEmbedding(AEntry.EmbOffset);
     if Length(Result.Data) > 0 then
       Result.SetDataLength(Length(Result.Data));
 
-    // Cargar texto y propiedades
+    // Load text and properties
     FStream.Position := AEntry.TextOffset;
     FStream.ReadBuffer(TextLen, 4);
     Text := ReadUTF8(TextLen);
@@ -349,7 +349,7 @@ begin
 end;
 
 // =============================================================================
-// Apertura / cierre
+// Open / close
 // =============================================================================
 
 procedure TAiMkVecDriver.EnsureOpen;
@@ -474,7 +474,7 @@ begin
     FStream.ReadBuffer(ModelLen, 2); Model   := ReadUTF8(ModelLen);
 
     EmbOff := FStream.Position;
-    FStream.Seek(FDim * SizeOf(Double), soFromCurrent); // saltar embedding
+    FStream.Seek(FDim * SizeOf(Double), soFromCurrent); // skip embedding
 
     TxtOff := FStream.Position;
     FStream.ReadBuffer(TextLen, 4);
@@ -492,7 +492,7 @@ begin
     Entry.TextOffset   := TxtOff;
     FEntryIndex.AddOrSetValue(CK, Entry);
 
-    // --- IDs por entidad ---
+    // --- IDs by entity ---
     if not FEntidadIDs.TryGetValue(Entidad, IDList) then
     begin
       IDList := TList<string>.Create;
@@ -500,7 +500,7 @@ begin
     end;
     IDList.Add(ID);
 
-    // --- Stub node para BM25 (sin embedding) ---
+    // --- Stub node for BM25 (without embedding) ---
     Stub := TAiEmbeddingNode.Create(0); // dim=0: sin array de floats
     Stub.Tag   := ID;
     Stub.Text  := TextStr;
@@ -513,7 +513,7 @@ begin
     end;
     FStubNodes.AddOrSetValue(CK, Stub);
 
-    // --- Agregar al BM25 ---
+    // --- Add to BM25 ---
     BM25 := GetOrCreateBm25(Entidad);
     BM25.AddNode(Stub);
   end;
@@ -573,7 +573,7 @@ begin
   // If already exists, delete first (without rebuilding BM25 yet)
   if FEntryIndex.ContainsKey(CK) then
   begin
-    // Marcar como borrado en archivo
+    // Mark as deleted in file
     var OldEntry: TNodeFileEntry;
     if FEntryIndex.TryGetValue(CK, OldEntry) then
     begin
@@ -583,7 +583,7 @@ begin
     end;
     // Clean from memory indices
     FEntryIndex.Remove(CK);
-    FStubNodes.Remove(CK); // libera el stub viejo (doOwnsValues)
+    FStubNodes.Remove(CK); // frees the old stub (doOwnsValues)
     if FEntidadIDs.TryGetValue(LEnt, IDList) then
     begin
       for I := IDList.Count - 1 downto 0 do
@@ -592,7 +592,7 @@ begin
     end;
   end;
 
-  // Preparar bytes
+  // Prepare bytes
   WriteUTF8(LEnt,   EntB,   EntLen);
   WriteUTF8(LID,    IDB,    IDLen);
   WriteUTF8(LModel, ModelB, ModelLen);
@@ -601,8 +601,8 @@ begin
 
   J := ANode.MetaData.ToJSON;
   try
-    // IfThen evalua las dos ramas, asi que con J en nil se llamaba a
-    // J.ToJSON igualmente.
+    // IfThen evaluates both branches, so with J nil it still called
+    // J.ToJSON anyway.
     if Assigned(J) then
       PropsStr := J.ToJSON
     else
@@ -621,7 +621,7 @@ begin
 
   FLock.Enter;
   try
-    // Append al final del archivo
+    // Append at end of file
     FStream.Seek(0, soFromEnd);
     Entry.RecordOffset := FStream.Position;
 
@@ -641,17 +641,17 @@ begin
     // Update offsets index
     FEntryIndex.AddOrSetValue(CK, Entry);
 
-    // Actualizar lista de IDs por entidad
+    // Update ID list by entity
     if not FEntidadIDs.TryGetValue(LEnt, IDList) then
     begin
       IDList := TList<string>.Create;
       FEntidadIDs.Add(LEnt, IDList);
     end;
-    // Agregar solo si no estaba (puede quedar tras el borrado anterior)
+    // Add only if it was not already there (may remain after the previous delete)
     if IDList.IndexOf(LID) < 0 then
       IDList.Add(LID);
 
-    // Crear stub para BM25 (sin embedding)
+    // Create stub for BM25 (without embedding)
     Stub := TAiEmbeddingNode.Create(0);
     Stub.Tag   := LID;
     Stub.Text  := ANode.Text;
@@ -685,7 +685,7 @@ begin
   try
     if not FEntryIndex.TryGetValue(CK, Entry) then Exit;
 
-    // Marcar en archivo
+    // Mark in file
     Status := MKVEC_DELETED;
     FStream.Position := Entry.RecordOffset;
     FStream.WriteBuffer(Status, 1);
@@ -735,7 +735,7 @@ begin
     end;
     IDList.Clear;
 
-    // Limpiar BM25 de la entidad
+    // Clear BM25 for the entity
     if FBm25Indices.ContainsKey(LEnt) then
       FBm25Indices[LEnt].Clear;
   finally
@@ -788,13 +788,13 @@ begin
 
   Candidates := TList<TCandidate>.Create;
   try
-    // FASE 1: Scan de embeddings (solo Dim×8 bytes por nodo)
+    // PHASE 1: Embedding scan (only Dim×8 bytes per node)
     for I := 0 to IDList.Count - 1 do
     begin
       CK := CompKey(AEntidad, IDList[I]);
       if not FEntryIndex.TryGetValue(CK, Entry) then Continue;
 
-      // Aplicar filtro usando el stub (que tiene la metadata en memoria)
+      // Apply filter using the stub (which has metadata in memory)
       if Assigned(AFilter) and (AFilter.Count > 0) then
       begin
         if FStubNodes.TryGetValue(CK, Stub) then
@@ -825,7 +825,7 @@ begin
       end;
     end;
 
-    // FASE 2: Cargar texto completo solo for the Top-K
+    // PHASE 2: Load full text only for the Top-K
     for I := 0 to Candidates.Count - 1 do
     begin
       CK := CompKey(AEntidad, Candidates[I].ID);
@@ -833,7 +833,7 @@ begin
       Node := LoadFullNode(Entry);
       Node.Tag := Candidates[I].ID;
       Node.Idx := Candidates[I].Score;
-      // Recuperar Model del stub
+      // Retrieve Model from the stub
       if FStubNodes.TryGetValue(CK, Stub) then
         Node.Model := Stub.Model;
       Result.Items.Add(Node);
@@ -880,7 +880,7 @@ begin
       if (AMinScore > 0) and (NormScore < AMinScore) then Continue;
       if Result.Items.Count >= ALimit then Break;
 
-      // Cargar nodo completo desde disco (usando Tag del stub)
+      // Load full node from disk (using the stub's Tag)
       CK := CompKey(AEntidad, Pair.Value.Tag);
       if not FEntryIndex.TryGetValue(CK, Entry) then Continue;
 
@@ -896,7 +896,7 @@ begin
 end;
 
 // =============================================================================
-// Fusion RRF y ponderada
+// RRF and weighted fusion
 // =============================================================================
 
 function TAiMkVecDriver.FuseRRF(AVec, ALex: TAiRAGVector; ALimit: Integer): TAiRAGVector;
@@ -1006,7 +1006,7 @@ begin
 end;
 
 // =============================================================================
-// Search — orquestador principal (mismo contrato que Postgres/SQLite)
+// Search — main orchestrator (same contract as Postgres/SQLite)
 // =============================================================================
 
 function TAiMkVecDriver.Search(
@@ -1037,7 +1037,7 @@ begin
 
   if not (DoVector or DoLexical) then Exit;
 
-  // IfThen evalua las dos ramas: con LOptions en nil daba AV.
+  // IfThen evaluates both branches: with LOptions nil it caused an AV.
   MinVec := 0.0;
   MinLex := 0.0;
   if Assigned(LOptions) then
@@ -1062,9 +1062,9 @@ begin
         Fused := FuseRRF(VecRes, LexRes, ALimit)
       else
       begin
-        // OJO: IfThen es una FUNCION, evalua SIEMPRE las dos ramas.
-        // Con LOptions en nil (caso real: ver los Assigned de arriba)
-        // IfThen(Assigned(LOptions), LOptions.X, ...) reventaba con AV.
+        // WARNING: IfThen is a FUNCTION, it ALWAYS evaluates both branches.
+        // With LOptions nil (real case: see the Assigned checks above)
+        // IfThen(Assigned(LOptions), LOptions.X, ...) crashed with an AV.
         VW := 0.7;
         LW := 0.3;
         if Assigned(LOptions) then
@@ -1105,7 +1105,7 @@ var
   TextLen, PropsLen: Cardinal;
   ActiveCount: Int64;
   EntB, IDB, ModB, TxtB, PropB, EmbB: TBytes;
-  // D11 compat: inline var no acepta tipos anonimos "array[..] of" (E2029 en 11.x)
+  // D11 compat: inline var does not accept anonymous types "array[..] of" (E2029 in 11.x)
   Hdr: array [0 .. MKVEC_HEADER_SIZE - 1] of Byte;
 
   procedure ReadBytes(var Dest: TBytes; ALen: Integer);
@@ -1123,7 +1123,7 @@ begin
     FlushNodeCount;
     TempStream := TFileStream.Create(TempPath, fmCreate);
     try
-      // Header provisional
+      // Provisional header
       FillChar(Hdr, MKVEC_HEADER_SIZE, 0);
       Hdr[0] := MKVEC_MAGIC_0; Hdr[1] := MKVEC_MAGIC_1;
       Hdr[2] := MKVEC_MAGIC_2; Hdr[3] := MKVEC_MAGIC_3;
@@ -1158,14 +1158,14 @@ begin
         Inc(ActiveCount);
       end;
 
-      // Actualizar NodeCount en header del temp
+      // Update NodeCount in the temp header
       TempStream.Position := 10;
       TempStream.WriteBuffer(ActiveCount, 8);
     finally
       TempStream.Free;
     end;
 
-    // Reemplazar archivo original
+    // Replace original file
     FStream.Free; FStream := nil;
     DeleteFile(FFilePath);
     RenameFile(TempPath, FFilePath);
@@ -1177,7 +1177,7 @@ begin
     FBm25Indices.Clear;
 
     FStream := TFileStream.Create(FFilePath, fmOpenReadWrite or fmShareDenyWrite);
-    FStream.Seek(18, soFromBeginning); // saltar Magic+Version+Dim+NodeCount
+    FStream.Seek(18, soFromBeginning); // skip Magic+Version+Dim+NodeCount
     FStream.Position := MKVEC_HEADER_SIZE;
     RebuildAllIndices;
   finally

@@ -22,60 +22,57 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
-// Redes Sociales:
+// Author: Gustavo Enriquez
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
-
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - Telegram: https://t.me/MakerAi_Delphi_Suite_English
-
 // - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
 // - Youtube: https://www.youtube.com/@cimamaker3945
 // - GitHub: https://github.com/gustavoeenriquez/
 
-// Driver Qwen (Alibaba Cloud Model Studio / DashScope) - API OpenAI-compatible
+// Qwen Driver (Alibaba Cloud Model Studio / DashScope) - OpenAI-compatible API
 // Docs: https://www.alibabacloud.com/help/en/model-studio/compatibility-of-openai-with-dashscope
-// Endpoint internacional (Singapur): https://dashscope-intl.aliyuncs.com/compatible-mode/v1/
-// Otras regiones: cambiar URL (EE.UU. https://dashscope-us.aliyuncs.com/compatible-mode/v1/,
-// China https://dashscope.aliyuncs.com/compatible-mode/v1/). La API key queda atada a la
-// region donde se creo: con otra region el API responde 401.
+// International endpoint (Singapore): https://dashscope-intl.aliyuncs.com/compatible-mode/v1/
+// Other regions: change URL (US: https://dashscope-us.aliyuncs.com/compatible-mode/v1/,
+// China: https://dashscope.aliyuncs.com/compatible-mode/v1/). The API key is tied to the
+// region where it was created; with a different region the API responds 401.
 //
-// Particularidades verificadas en runtime (sep 2026):
-// - El razonamiento viene ACTIVADO por defecto en los hibridos (qwen3.x, qwen-plus/flash/
-//   turbo, qwen3-max, VL, omni). El driver lo controla SIEMPRE con enable_thinking:
-//   cap_Reasoning -> true; sin el cap -> false (modo rapido, sin pagar tokens de razonar).
-//   enable_thinking=false lo aceptan todos los modelos probados (los que no razonan lo
-//   ignoran). El razonamiento vuelve en reasoning_content (lo captura la clase base,
-//   con y sin streaming).
-// - thinking_budget (tokens de razonamiento) se deriva de ThinkingLevel.
-// - Modelos que solo razonan (qwq-*, *-thinking-*): no se les envia enable_thinking.
-//   qwq-plus SOLO responde en streaming: sin stream devuelve vacio y sin error.
-// - Modelos abiertos (qwen3-32b, qwen3.6-27b, ...) aceptan enable_thinking=true solo en
-//   streaming (400 sin stream): en sincrono el driver envia false.
-// - tools + stream funcionan (la restriccion de la documentacion no aplica a estos modelos).
-// - Vision formato OpenAI (image_url) en qwen3.8-flash/max, qwen3.7-plus, qwen3-vl-*,
-//   qwen3.8-omni-flash. Imagenes muy pequenas (2x2) se rechazan con 400.
-// - Audio de entrada (omni, asr): el API exige data URI en input_audio.data
-//   ('data:audio/wav;base64,...'); el base64 pelado que arma el serializador comun
-//   responde 400 "URL does not appear to be valid". InitChatCompletions lo reescribe.
+// Particularities verified at runtime (Sep 2026):
+// - Reasoning comes ACTIVATED by default in hybrid models (qwen3.x, qwen-plus/flash/
+//   turbo, qwen3-max, VL, omni). The driver ALWAYS controls it with enable_thinking:
+//   cap_Reasoning -> true; without the cap -> false (fast mode, without paying reasoning tokens).
+//   enable_thinking=false is accepted by all tested models (those that do not reason ignore it).
+//   Reasoning returns in reasoning_content (captured by the base class, with and without streaming).
+// - thinking_budget (reasoning tokens) derived from ThinkingLevel.
+// - Models that only reason (qwq-*, *-thinking-*): enable_thinking is not sent.
+//   qwq-plus ONLY responds in streaming: without stream it returns empty and without error.
+// - Open-weight models (qwen3-32b, qwen3.6-27b, ...) accept enable_thinking=true only in
+//   streaming (400 without stream): in synchronous mode the driver sends false.
+// - tools + stream work (the documentation restriction does not apply to these models).
+// - OpenAI format Vision (image_url) in qwen3.8-flash/max, qwen3.7-plus, qwen3-vl-*,
+//   qwen3.8-omni-flash. Very small images (2x2) are rejected with 400.
+// - Audio input (omni, asr): the API requires data URI in input_audio.data
+//   ('data:audio/wav;base64,...'); the plain base64 that the common serializer builds
+//   responds 400 "URL does not appear to be valid". InitChatCompletions rewrites it.
 //
-// Fase 2 (sep 2026), por gap de capacidades como el resto de drivers:
-// - [cap_GenImage] -> API nativa multimodal-generation (sincrona, devuelve URLs):
+// Phase 2 (Sep 2026), due to capability gap like other drivers:
+// - [cap_GenImage] -> Native API multimodal-generation (synchronous, returns URLs):
 //   qwen-image-3.0 [default], qwen-image-2.0(-pro), qwen-image-max, z-image-turbo,
-//   wan2.7-image(-pro). Tamano en ImageParams.Params.Values['size'] ('1024*1024').
-//   Edicion: las imagenes adjuntas al prompt (1 a 3) son la entrada; van como data
-//   URI. qwen-image-edit(-plus/-max) [default: plus], y tambien qwen-image-2.0/3.0 y
-//   wan2.7-image; z-image-turbo no edita. Sin 'size' se conserva la proporcion.
-// - [cap_GenVideo] -> wan (tarea asincrona con consulta cada 5 s). 0 imagenes adjuntas
-//   = texto a video (wan2.6-t2v), 1 = imagen a video (wan2.6-i2v-flash), 2 = primer y
-//   ultimo cuadro (wan2.2-kf2v-flash). VideoParams.Params pasa tal cual al API
-//   (duration, resolution, size, audio, seed...); por defecto 720P.
-// - [cap_GenAudio] -> qwen3-tts-flash por la API nativa (devuelve URL de un WAV).
-//   Voz en TtsParams.Voice (default Cherry), idioma en TtsParams.Language.
-// - [cap_Audio] / cmTranscription -> qwen3-asr-flash por chat/completions con
-//   input_audio. En cmTranscription el Prompt viaja como contexto (nombres propios,
-//   jerga) y mejora la ortografia de lo transcrito.
-// - Embeddings (uMakerAi.Embeddings.Qwen) y rerank (uMakerAi.Qwen.Rerank) van aparte.
+//   wan2.7-image(-pro). Size in ImageParams.Params.Values['size'] ('1024*1024').
+//   Editing: attached images to the prompt (1 to 3) are the input; they go as data
+//   URI. qwen-image-edit(-plus/-max) [default: plus], and also qwen-image-2.0/3.0 and
+//   wan2.7-image; z-image-turbo does not edit. Without 'size' the aspect ratio is preserved.
+// - [cap_GenVideo] -> wan (asynchronous task with polling every 5 s). 0 attached images
+//   = text to video (wan2.6-t2v), 1 = image to video (wan2.6-i2v-flash), 2 = first and
+//   last frame (wan2.2-kf2v-flash). VideoParams.Params passes as-is to the API
+//   (duration, resolution, size, audio, seed...); default 720P.
+// - [cap_GenAudio] -> qwen3-tts-flash via the native API (returns URL of a WAV).
+//   Voice in TtsParams.Voice (default Cherry), language in TtsParams.Language.
+// - [cap_Audio] / cmTranscription -> qwen3-asr-flash via chat/completions with
+//   input_audio. In cmTranscription the Prompt travels as context (proper nouns,
+//   jargon) and improves the spelling of the transcribed text.
+// - Embeddings (uMakerAi.Embeddings.Qwen) and rerank (uMakerAi.Qwen.Rerank) go separately.
 
 interface
 
@@ -95,13 +92,13 @@ Type
   Private
     Function IsThinkingOnly(Const AModel: String): Boolean;
     Function IsOpenWeight(Const AModel: String): Boolean;
-    // Modelo para una tarea dedicada: el de la sesion si es de esa familia, si no el default
+    // Model for a dedicated task: session's if it belongs to that family, otherwise the default
     Function ModelFor(Const AMarker, ADefault: String): String;
-    // POST JSON sincrono (cliente propio: no depende de Asynchronous)
+    // Synchronous JSON POST (own client: not dependent on Asynchronous)
     Function PostJSON(Const AUrl: String; ABody: TJSonObject; AAsyncTask: Boolean = False): TJSonObject;
     Function GetJSON(Const AUrl: String): TJSonObject;
     Function DownloadMedia(Const AUrl, AFileName: String): TAiMediaFile;
-    // Endpoint de la API nativa de DashScope derivado de Url (compatible-mode/v1 -> api/v1)
+    // DashScope native API endpoint derived from Url (compatible-mode/v1 -> api/v1)
     Function NativeUrl(Const APath: String): String;
     Procedure FixAudioDataUris(AMessages: TJSonArray);
     procedure SetTranslateTerms(const Value: TStrings);
@@ -110,27 +107,27 @@ Type
     FTranslateFrom: String;
     FTranslateDomain: String;
     FTranslateTerms: TStrings;
-    FCumulativeStream: Boolean; // stream en curso de un qwen-mt acumulativo
-    FCumSent: String;           // texto ya entregado al parser comun
-    FCumPending: String;        // linea SSE incompleta del chunk anterior
-    // Cuerpo para qwen-mt: el API admite UN solo mensaje 'user' (sin system,
-    // historial ni tools) y sin translation_options no traduce: conversa
+    FCumulativeStream: Boolean; // ongoing stream for a qwen-mt cumulative
+    FCumSent: String;           // text already delivered to the common parser
+    FCumPending: String;        // incomplete SSE line from the previous chunk
+    // Body for qwen-mt: the API accepts ONLY one 'user' message (no system,
+    // history or tools) and without translation_options it does not translate: it converses
     Function BuildTranslationRequest(Const AModel: String; AStream: Boolean): String;
-    // qwen-mt-plus y qwen-mt-turbo emiten en streaming el texto ACUMULADO en cada
-    // chunk (incremental_output no lo cambia); el parser comun los concatena. Se
-    // reescribe cada linea SSE al incremento antes de pasarla a la base.
+    // qwen-mt-plus and qwen-mt-turbo emit in streaming the ACCUMULATED text in each
+    // chunk (incremental_output does not change it); the common parser concatenates them.
+    // Each SSE line is rewritten to the increment before passing it to the base.
     Procedure OnInternalReceiveData(const Sender: TObject; AContentLength, AReadCount: Int64;
       var AAbort: Boolean); Override;
     Function IncrementalSSELine(Const ALine: String): String;
     Function InitChatCompletions: String; Override;
-    // Cuerpo del request de imagen (generar o editar); separado para probarlo sin red
+    // Image request body (generate or edit); separated to test it without network
     Function BuildImageRequest(AskMsg: TAiChatMessage): TJSonObject;
-    // Request de video: devuelve el cuerpo y en AEndpoint la ruta (t2v/i2v o kf2v)
+    // Video request: returns the body and in AEndpoint the path (t2v/i2v or kf2v)
     Function BuildVideoRequest(AskMsg: TAiChatMessage; out AEndpoint: String): TJSonObject;
     function InternalRunNativeVideoGeneration(ResMsg, AskMsg: TAiChatMessage): String; Override;
     function InternalRunNativeImageGeneration(ResMsg, AskMsg: TAiChatMessage): String; Override;
     function InternalRunNativeSpeechGeneration(ResMsg, AskMsg: TAiChatMessage): String; Override;
-    // Modelo TTS segun la voz (las propias exigen su modelo)
+    // TTS model according to voice (custom ones require their own model)
     Function TtsModelFor(Const AVoice: String): String;
     function InternalRunNativeTranscription(aMediaFile: TAiMediaFile; ResMsg, AskMsg: TAiChatMessage): String; Override;
   Public
@@ -140,15 +137,15 @@ Type
     class function CreateInstance(Sender: TComponent): TAiChat; Override;
     Destructor Destroy; Override;
   Published
-    // Traduccion con los modelos qwen-mt-* (se ignoran con cualquier otro modelo).
-    // Idioma destino: nombre en ingles ('English', 'Spanish') o codigo ('en', 'es').
-    // Vacio = English
+    // Translation with qwen-mt-* models (ignored with any other model).
+    // Destination language: name in English ('English', 'Spanish') or code ('en', 'es').
+    // Empty = English
     property TranslateTo: String read FTranslateTo write FTranslateTo;
-    // Idioma origen; vacio = 'auto' (deteccion)
+    // Source language; empty = 'auto' (detection)
     property TranslateFrom: String read FTranslateFrom write FTranslateFrom;
-    // Contexto del dominio en ingles, p.ej. 'Colombian accounting (PUC)'
+    // Domain context in English, e.g. 'Colombian accounting (PUC)'
     property TranslateDomain: String read FTranslateDomain write FTranslateDomain;
-    // Glosario, una entrada por linea: termino origen=termino destino
+    // Glossary, one entry per line: source term=target term
     property TranslateTerms: TStrings read FTranslateTerms write SetTranslateTerms;
   End;
 
@@ -160,16 +157,16 @@ Const
   GlAIUrl = 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/';
   GlDefaultModel = 'qwen3.8-flash';
   GlDefaultImageModel = 'qwen-image-3.0';
-  GlDefaultEditModel = 'qwen-image-edit-plus'; // el mas rapido editando (~9 s)
+  GlDefaultEditModel = 'qwen-image-edit-plus'; // fastest editing (~9 s)
   GlDefaultTtsModel = 'qwen3-tts-flash';
   GlDefaultAsrModel = 'qwen3-asr-flash';
-  GlVoiceCloneModel = 'qwen3-tts-vc-2026-01-22';  // voces qwen-tts-vc-* (TAiQwenVoices)
-  GlVoiceDesignModel = 'qwen3-tts-vd-2026-01-26'; // voces qwen-tts-vd-*
-  GlMediaTimeout = 180000; // una imagen tarda 10-40 s
-  GlDefaultT2VModel = 'wan2.6-t2v';        // ~45 s por 5 s de video, con audio
+  GlVoiceCloneModel = 'qwen3-tts-vc-2026-01-22';  // voices qwen-tts-vc-* (TAiQwenVoices)
+  GlVoiceDesignModel = 'qwen3-tts-vd-2026-01-26'; // voices qwen-tts-vd-*
+  GlMediaTimeout = 180000; // an image takes 10-40 s
+  GlDefaultT2VModel = 'wan2.6-t2v';        // ~45 s for 5 s video, with audio
   GlDefaultI2VModel = 'wan2.6-i2v-flash';
   GlDefaultKF2VModel = 'wan2.2-kf2v-flash';
-  GlVideoTimeout = 600000;                 // wan2.7 tarda ~95 s; margen para cola
+  GlVideoTimeout = 600000;                 // wan2.7 takes ~95 s; margin for queue
   GlVideoPoll = 5000;
 
 procedure Register;
@@ -234,8 +231,8 @@ begin
       (jChoices.Count = 0) or not (jChoices.Items[0] as TJSonObject).TryGetValue<TJSonObject>('delta', jDelta) or
       not jDelta.TryGetValue<String>('content', LFull) then
       Exit;
-    // Se entrega lo que excede a lo ya emitido. Si el modelo reescribio un tramo
-    // anterior, ese cambio se pierde: lo emitido no se puede retirar
+    // What exceeds what has already been emitted is delivered. If the model rewrote a
+    // previous section, that change is lost: what has been emitted cannot be withdrawn.
     if Length(LFull) > Length(FCumSent) then
       LInc := Copy(LFull, Length(FCumSent) + 1, MaxInt)
     else
@@ -265,7 +262,7 @@ begin
     S := FResponse.DataString;
   except
     on EEncodingError do
-      Exit; // caracter UTF-8 partido: el siguiente chunk lo completa
+      Exit; // split UTF-8 character: the next chunk completes it
   end;
   FResponse.Clear;
   S := FCumPending + S;
@@ -295,8 +292,8 @@ var
   LMsg: TAiChatMessage;
   I: Integer;
 begin
-  // El texto a traducir es el ultimo mensaje del usuario; el resto del historial
-  // no se envia (el API rechaza mas de un mensaje)
+  // The text to translate is the last user message; the rest of the history
+  // is not sent (the API rejects more than one message)
   LMsg := nil;
   for I := Messages.Count - 1 downto 0 do
     if SameText(Messages[I].Role, 'user') then
@@ -305,7 +302,7 @@ begin
       Break;
     end;
   if (LMsg = nil) or (Trim(LMsg.Prompt) = '') then
-    raise Exception.Create('Qwen: no hay texto que traducir.');
+    raise Exception.Create('Qwen: no text to translate.');
 
   FCumulativeStream := AStream and (ContainsText(AModel, 'qwen-mt-plus') or ContainsText(AModel, 'qwen-mt-turbo'));
   FCumSent := '';
@@ -357,13 +354,13 @@ end;
 
 function TAiQwenChat.IsThinkingOnly(Const AModel: String): Boolean;
 begin
-  // Siempre razonan: no aceptan apagarlo, asi que no se les manda enable_thinking
+  // Always reason: do not accept turning it off, so enable_thinking is not sent
   Result := StartsText('qwq', AModel) or ContainsText(AModel, '-thinking');
 end;
 
 function TAiQwenChat.IsOpenWeight(Const AModel: String): Boolean;
 begin
-  // Pesos abiertos: el tamano va en el nombre (qwen3-32b, qwen3.6-27b, qwen3-235b-a22b...)
+  // Open weights: the size is in the name (qwen3-32b, qwen3.6-27b, qwen3-235b-a22b...)
   Result := TRegEx.IsMatch(AModel, '-\d+(\.\d+)?b(-|$)', [roIgnoreCase]);
 end;
 
@@ -390,7 +387,7 @@ begin
   LAsincronico := Self.Asynchronous;
   FClient.Asynchronous := LAsincronico;
 
-  // qwen-mt: request propio (un solo mensaje user + translation_options)
+  // qwen-mt: own request (single user message + translation_options)
   if ContainsText(LModel, 'qwen-mt') then
     Exit(BuildTranslationRequest(LModel, LAsincronico));
 
@@ -402,7 +399,7 @@ begin
     AJSONObject.AddPair('stream', TJSONBool.Create(LAsincronico));
     if LAsincronico then
     begin
-      // Sin esto el stream no trae usage y los contadores de tokens quedan en 0
+      // Without this, the stream does not bring usage and token counters remain at 0
       jStreamOpts := TJSonObject.Create;
       jStreamOpts.AddPair('include_usage', TJSONBool.Create(True));
       AJSONObject.AddPair('stream_options', jStreamOpts);
@@ -417,7 +414,7 @@ begin
       JArr := TJSonArray(TJSonArray.ParseJSONValue(GetTools(TToolFormat.tfOpenAi).Text));
 {$ENDIF}
       If Not Assigned(JArr) then
-        Raise Exception.Create('La propiedad Tools estan mal definido, debe ser un JsonArray');
+        Raise Exception.Create('The Tools property is malformed, it must be a JsonArray');
       AJSONObject.AddPair('tools', JArr);
 
       If (Trim(Tool_choice) <> '') then
@@ -439,13 +436,13 @@ begin
 
     AJSONObject.AddPair('model', LModel);
 
-    // Razonamiento: el API lo trae ACTIVADO por defecto en los hibridos, asi que
-    // se controla siempre (mismo criterio que GLM / DeepSeek V4): cap_Reasoning
-    // -> true; sin el cap -> false (rapido y sin tokens de razonamiento).
+    // Reasoning: the API brings it ACTIVATED by default in hybrids, so it is
+    // always controlled (same criteria as GLM / DeepSeek V4): cap_Reasoning
+    // -> true; without the cap -> false (fast and without reasoning tokens).
     if not IsThinkingOnly(LModel) then
     begin
       LThinking := cap_Reasoning in ModelConfig.ModelCaps;
-      // Los modelos abiertos solo razonan en streaming (400 en sincrono)
+      // Open-weight models only reason in streaming (400 in synchronous)
       if LThinking and IsOpenWeight(LModel) and not LAsincronico then
         LThinking := False;
       AJSONObject.AddPair('enable_thinking', TJSONBool.Create(LThinking));
@@ -454,11 +451,11 @@ begin
           tlLow:    AJSONObject.AddPair('thinking_budget', TJSONNumber.Create(1024));
           tlMedium: AJSONObject.AddPair('thinking_budget', TJSONNumber.Create(4096));
           tlHigh:   AJSONObject.AddPair('thinking_budget', TJSONNumber.Create(16384));
-          // tlDefault: sin presupuesto, el largo maximo del modelo
+          // tlDefault: without budget, the model's maximum length
         end;
     end;
 
-    // DashScope acepta temperature en [0, 2)
+    // DashScope accepts temperature in [0, 2)
     LTemperature := Trunc(Temperature * 100) / 100;
     if LTemperature >= 2 then
       LTemperature := 1.99;
@@ -523,7 +520,7 @@ begin
     Client.ResponseTimeout := GlMediaTimeout;
     Client.ContentType := 'application/json';
     if AAsyncTask then
-      // Tareas largas (video): el API responde con un task_id para consultar
+      // Long tasks (video): the API responds with a task_id to poll
       Res := Client.Post(AUrl, Body, nil, [TNetHeader.Create('Authorization', 'Bearer ' + ApiKey),
         TNetHeader.Create('X-DashScope-Async', 'enable')])
     else
@@ -534,7 +531,7 @@ begin
     if not (V is TJSonObject) then
     begin
       V.Free;
-      raise Exception.Create('Qwen: la respuesta no es un objeto JSON');
+      raise Exception.Create('Qwen: the response is not a JSON object');
     end;
     Result := TJSonObject(V);
   finally
@@ -561,7 +558,7 @@ begin
     if not (V is TJSonObject) then
     begin
       V.Free;
-      raise Exception.Create('Qwen: la respuesta no es un objeto JSON');
+      raise Exception.Create('Qwen: the response is not a JSON object');
     end;
     Result := TJSonObject(V);
   finally
@@ -584,7 +581,7 @@ begin
     Client.ResponseTimeout := GlMediaTimeout;
     Res := Client.Get(AUrl, St);
     if Res.StatusCode <> 200 then
-      raise Exception.CreateFmt('Qwen: no se pudo descargar %s (%d)', [AFileName, Res.StatusCode]);
+      raise Exception.CreateFmt('Qwen: could not download %s (%d)', [AFileName, Res.StatusCode]);
     St.Position := 0;
     Result := TAiMediaFile.Create;
     try
@@ -624,9 +621,9 @@ begin
 end;
 
 function TAiQwenChat.BuildImageRequest(AskMsg: TAiChatMessage): TJSonObject;
-// Cuerpo de multimodal-generation para generar (solo texto) o editar (1 a 3
-// imagenes adjuntas al prompt, que llegan intactas porque cap_Image no esta en el
-// gap de un modelo de imagen)
+// Body of multimodal-generation to generate (text only) or edit (1 to 3
+// images attached to the prompt, which arrive intact because cap_Image is not in the
+// gap of an image model)
 var
   jInput, jMsg, jPart, jParams: TJSonObject;
   jMsgs, jContent: TJSonArray;
@@ -635,16 +632,16 @@ var
   MF: TAiMediaFile;
 begin
   if Trim(AskMsg.Prompt) = '' then
-    raise Exception.Create('Se requiere un prompt para generar la imagen.');
+    raise Exception.Create('A prompt is required to generate the image.');
   LImages := AskMsg.MediaFiles.GetMediaList([Tfc_Image], False);
   if Length(LImages) > 3 then
-    raise Exception.CreateFmt('Qwen: la edicion admite de 1 a 3 imagenes (llegaron %d).', [Length(LImages)]);
+    raise Exception.CreateFmt('Qwen: editing accepts 1 to 3 images (%d received).', [Length(LImages)]);
   if Length(LImages) > 0 then
   begin
     LModel := ModelFor('image', GlDefaultEditModel);
     if StartsText('z-image', LModel) then
-      raise Exception.Create('Qwen: ' + LModel + ' solo genera; para editar usa qwen-image-edit-plus, ' +
-        'qwen-image-2.0/3.0 o wan2.7-image.');
+      raise Exception.Create('Qwen: ' + LModel + ' only generates; to edit use qwen-image-edit-plus, ' +
+        'qwen-image-2.0/3.0 or wan2.7-image.');
   end
   else
     LModel := ModelFor('image', GlDefaultImageModel);
@@ -675,9 +672,9 @@ begin
     jInput.AddPair('messages', jMsgs);
     Result.AddPair('input', jInput);
 
-    // Cada familia admite tamanos distintos (qwen-image-plus solo 1328*1328, 1664*928...).
-    // Al editar sin tamano explicito el modelo conserva la proporcion del original
-    // (1024x576 -> 1376x768); forzar 1024*1024 la deformaria
+    // Each family supports different sizes (qwen-image-plus only 1328*1328, 1664*928...).
+    // When editing without explicit size, the model preserves the original aspect ratio
+    // (1024x576 -> 1376x768); forcing 1024*1024 would distort it.
     LSize := ImageParams.Params.Values['size'];
     if (LSize = '') and (Length(LImages) = 0) then
       LSize := '1024*1024';
@@ -698,8 +695,8 @@ begin
 end;
 
 function TAiQwenChat.InternalRunNativeImageGeneration(ResMsg, AskMsg: TAiChatMessage): String;
-// POST api/v1/services/aigc/multimodal-generation/generation (sincrono)
-// -> output.choices[].message.content[] con {"image": url}
+// POST api/v1/services/aigc/multimodal-generation/generation (synchronous)
+// -> output.choices[].message.content[] with {"image": url}
 var
   jBody, jRes, jItem: TJSonObject;
   jChoices, jOut: TJSonArray;
@@ -714,7 +711,7 @@ begin
   jBody := nil;
   jRes := nil;
   try
-    DoStateChange(acsConnecting, 'Generando imagen...');
+    DoStateChange(acsConnecting, 'Generating image...');
     jBody := BuildImageRequest(AskMsg);
     jRes := PostJSON(NativeUrl('services/aigc/multimodal-generation/generation'), jBody);
 
@@ -733,7 +730,7 @@ begin
               end;
             end;
     if LCount = 0 then
-      raise Exception.Create('Qwen: la respuesta no trae imagenes: ' + Copy(jRes.ToJSON, 1, 300));
+      raise Exception.Create('Qwen: the response does not contain images: ' + Copy(jRes.ToJSON, 1, 300));
 
     if ResMsg.Role = '' then
       ResMsg.Role := 'assistant';
@@ -748,13 +745,13 @@ begin
 end;
 
 function TAiQwenChat.BuildVideoRequest(AskMsg: TAiChatMessage; out AEndpoint: String): TJSonObject;
-// Segun las imagenes adjuntas al prompt:
-//   0 -> texto a video (t2v)        video-generation/video-synthesis, input.prompt
-//   1 -> imagen a video (i2v)       mismo endpoint, input.img_url
-//   2 -> primer y ultimo cuadro     image2video/video-synthesis, first/last_frame_url
-// Un modelo -t2v con imagen pasa a su par -i2v (existen todos: wan2.1/2.2/2.5/2.6/2.7).
-// VideoParams.Params pasa tal cual a 'parameters' (duration, resolution, size, audio,
-// seed, prompt_extend, watermark...), salvo negative_prompt que va en 'input'.
+// According to the images attached to the prompt:
+//   0 -> text to video (t2v)        video-generation/video-synthesis, input.prompt
+//   1 -> image to video (i2v)       same endpoint, input.img_url
+//   2 -> first and last frame       image2video/video-synthesis, first/last_frame_url
+// A -t2v model with an image switches to its -i2v counterpart (all exist: wan2.1/2.2/2.5/2.6/2.7).
+// VideoParams.Params passes as-is to 'parameters' (duration, resolution, size, audio,
+// seed, prompt_extend, watermark...), except negative_prompt goes in 'input'.
 var
   jInput, jParams: TJSonObject;
   LImages: TAiMediaFilesArray;
@@ -771,7 +768,7 @@ var
 
 begin
   if Trim(AskMsg.Prompt) = '' then
-    raise Exception.Create('Se requiere un prompt para generar el video.');
+    raise Exception.Create('A prompt is required to generate the video.');
   LImages := AskMsg.MediaFiles.GetMediaList([Tfc_Image], False);
   LModel := TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model);
 
@@ -797,8 +794,8 @@ begin
         AEndpoint := 'services/aigc/image2video/video-synthesis';
       end;
   else
-    raise Exception.CreateFmt('Qwen: el video admite 0 imagenes (texto), 1 (imagen a video) ' +
-      'o 2 (primer y ultimo cuadro); llegaron %d.', [Length(LImages)]);
+    raise Exception.CreateFmt('Qwen: video accepts 0 images (text), 1 (image to video) ' +
+      'or 2 (first and last frame); %d received.', [Length(LImages)]);
   end;
 
   Result := TJSonObject.Create;
@@ -833,9 +830,8 @@ begin
         jParams.AddPair(LKey, LVal);
     end;
 
-    // Sin tamano explicito el API entrega 1080P (el mas caro). Se pide 720P: los
-    // t2v de wan2.5/2.6 lo toman por 'size' (ignoran 'resolution'); el resto por
-    // 'resolution'
+    // Without explicit size the API returns 1080P (the most expensive). 720P is requested: the
+    // t2v from wan2.5/2.6 take it via 'size' (ignore 'resolution'); the rest via 'resolution'.
     if (jParams.GetValue('size') = nil) and (jParams.GetValue('resolution') = nil) then
     begin
       if (Length(LImages) = 0) and (ContainsText(LModel, 'wan2.5') or ContainsText(LModel, 'wan2.6')) then
@@ -850,9 +846,9 @@ begin
 end;
 
 function TAiQwenChat.InternalRunNativeVideoGeneration(ResMsg, AskMsg: TAiChatMessage): String;
-// Tarea asincrona: POST con X-DashScope-Async -> output.task_id; GET api/v1/tasks/{id}
-// hasta SUCCEEDED (output.video_url, mp4 con audio en wan2.5+) o FAILED/CANCELED.
-// El video se descarga a ResMsg.MediaFiles como qwen_video.mp4 (la URL expira en 24 h).
+// Asynchronous task: POST with X-DashScope-Async -> output.task_id; GET api/v1/tasks/{id}
+// until SUCCEEDED (output.video_url, mp4 with audio in wan2.5+) or FAILED/CANCELED.
+// The video is downloaded to ResMsg.MediaFiles as qwen_video.mp4 (the URL expires in 24 h).
 var
   jBody, jRes, jTask: TJSonObject;
   LEndpoint, LTaskId, LStatus, LVideoUrl, LMsg: String;
@@ -867,13 +863,13 @@ begin
   jRes := nil;
   try
     jBody := BuildVideoRequest(AskMsg, LEndpoint);
-    DoStateChange(acsConnecting, 'Enviando video (' + jBody.GetValue<String>('model') + ')...');
+    DoStateChange(acsConnecting, 'Sending video (' + jBody.GetValue<String>('model') + ')...');
     jRes := PostJSON(NativeUrl(LEndpoint), jBody, True);
     LTaskId := jRes.GetValue<String>('output.task_id', '');
     if LTaskId = '' then
-      raise Exception.Create('Qwen: la respuesta no trae task_id: ' + Copy(jRes.ToJSON, 1, 300));
+      raise Exception.Create('Qwen: the response does not contain a task_id: ' + Copy(jRes.ToJSON, 1, 300));
 
-    DoStateChange(acsToolExecuting, 'Generando video (tarea ' + LTaskId + ')...');
+    DoStateChange(acsToolExecuting, 'Generating video (task ' + LTaskId + ')...');
     LElapsed := 0;
     LStatus := '';
     LVideoUrl := '';
@@ -885,7 +881,7 @@ begin
       try
         jTask := GetJSON(NativeUrl('tasks/' + LTaskId));
       except
-        Continue; // error transitorio de consulta: reintentar hasta el timeout
+        Continue; // transient query error: retry until timeout
       end;
       try
         LStatus := jTask.GetValue<String>('output.task_status', '');
@@ -901,10 +897,10 @@ begin
     if FAbort then
       Exit;
     if LStatus <> 'SUCCEEDED' then
-      raise Exception.CreateFmt('Qwen: el video no se completo (estado=%s tras %d s, tarea %s) %s',
+      raise Exception.CreateFmt('Qwen: video did not complete (status=%s after %d s, task %s) %s',
         [LStatus, LElapsed div 1000, LTaskId, LMsg]);
     if LVideoUrl = '' then
-      raise Exception.Create('Qwen: la tarea termino sin video_url (tarea ' + LTaskId + ')');
+      raise Exception.Create('Qwen: task completed without video_url (task ' + LTaskId + ')');
 
     ResMsg.MediaFiles.Add(DownloadMedia(LVideoUrl, 'qwen_video.mp4'));
     if ResMsg.Role = '' then
@@ -921,8 +917,8 @@ end;
 
 function TAiQwenChat.TtsModelFor(Const AVoice: String): String;
 begin
-  // Una voz propia (TAiQwenVoices) solo funciona con el modelo para el que se
-  // registro: se elige por el prefijo del id si la sesion no lo fija
+  // A custom voice (TAiQwenVoices) only works with the model it was registered for:
+  // chosen by the prefix of the id if the session does not set it.
   if StartsText('qwen-tts-vc-', AVoice) and not ContainsText(Model, 'tts-vc') then
     Result := GlVoiceCloneModel
   else if StartsText('qwen-tts-vd-', AVoice) and not ContainsText(Model, 'tts-vd') then
@@ -932,10 +928,10 @@ begin
 end;
 
 function TAiQwenChat.InternalRunNativeSpeechGeneration(ResMsg, AskMsg: TAiChatMessage): String;
-// POST api/v1/services/aigc/multimodal-generation/generation con input {text, voice,
-// language_type} -> output.audio.url (WAV, expira en 24 h)
+// POST api/v1/services/aigc/multimodal-generation/generation with input {text, voice,
+// language_type} -> output.audio.url (WAV, expires in 24 h)
 const
-  // TtsParams.Language admite el codigo ISO; el API quiere el nombre en ingles
+  // TtsParams.Language accepts the ISO code; the API wants the English name
   Codes: array[0..9] of string = ('es', 'en', 'zh', 'fr', 'de', 'it', 'pt', 'ja', 'ko', 'ru');
   Names: array[0..9] of string = ('Spanish', 'English', 'Chinese', 'French', 'German', 'Italian',
     'Portuguese', 'Japanese', 'Korean', 'Russian');
@@ -947,14 +943,14 @@ var
 begin
   Result := '';
   if Trim(AskMsg.Prompt) = '' then
-    raise Exception.Create('Se requiere un texto para generar el audio.');
+    raise Exception.Create('A text is required to generate the audio.');
   FBusy := True;
   FLastError := '';
   FLastPrompt := AskMsg.Prompt;
   jBody := TJSonObject.Create;
   jRes := nil;
   try
-    DoStateChange(acsConnecting, 'Generando audio...');
+    DoStateChange(acsConnecting, 'Generating audio...');
     LVoice := TtsParams.Voice;
     if LVoice = '' then
       LVoice := 'Cherry';
@@ -982,7 +978,7 @@ begin
       MF.LoadFromBase64('qwen_tts.wav', LData);
     end
     else
-      raise Exception.Create('Qwen: la respuesta no trae audio: ' + Copy(jRes.ToJSON, 1, 300));
+      raise Exception.Create('Qwen: the response does not contain audio: ' + Copy(jRes.ToJSON, 1, 300));
     ResMsg.MediaFiles.Add(MF);
 
     if ResMsg.Role = '' then
@@ -998,12 +994,12 @@ begin
 end;
 
 function TAiQwenChat.InternalRunNativeTranscription(aMediaFile: TAiMediaFile; ResMsg, AskMsg: TAiChatMessage): String;
-// qwen3-asr-flash por chat/completions con input_audio (data URI). Dos usos:
-// - cmTranscription: la transcripcion ES la respuesta (ParseJsonTranscript) y el
-//   Prompt viaja como contexto para el reconocedor.
-// - Puente de Fase 1 (un modelo de texto recibe audio): solo se llena
-//   aMediaFile.Transcription; RunNew la inyecta en el prompt y la respuesta final
-//   la da el modelo de chat.
+// qwen3-asr-flash via chat/completions with input_audio (data URI). Two uses:
+// - cmTranscription: the transcription IS the response (ParseJsonTranscript) and the
+//   Prompt travels as context for the recognizer.
+// - Phase 1 bridge (a text model receives audio): only fills
+//   aMediaFile.Transcription; RunNew injects it into the prompt and the final
+//   response comes from the chat model.
 var
   jBody, jMsg, jPart, jAudio, jAsr, jRes, jText, jUsage: TJSonObject;
   jMsgs, jContent: TJSonArray;
@@ -1013,12 +1009,12 @@ var
 begin
   Result := '';
   if not Assigned(aMediaFile) or (aMediaFile.Content.Size = 0) then
-    raise Exception.Create('Se necesita un archivo de audio con contenido para la transcripcion.');
+    raise Exception.Create('An audio file with content is required for transcription.');
   LBridge := ChatMode <> cmTranscription;
   jBody := TJSonObject.Create;
   jRes := nil;
   try
-    DoStateChange(acsConnecting, 'Transcribiendo audio...');
+    DoStateChange(acsConnecting, 'Transcribing audio...');
     jBody.AddPair('model', ModelFor('-asr', GlDefaultAsrModel));
     jBody.AddPair('stream', TJSONBool.Create(False));
     jMsgs := TJSonArray.Create;
@@ -1073,7 +1069,7 @@ begin
     end
     else
     begin
-      // Forma OpenAI de /audio/transcriptions, para reutilizar ParseJsonTranscript
+      // OpenAI format of /audio/transcriptions, to reuse ParseJsonTranscript
       jText := TJSonObject.Create;
       try
         jText.AddPair('text', LText);

@@ -20,28 +20,25 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Author: Gustavo Enríquez
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
-
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - Telegram: https://t.me/MakerAi_Delphi_Suite_English
-
 // - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
 // - Youtube: https://www.youtube.com/@cimamaker3945
 // - GitHub: https://github.com/gustavoeenriquez/
 
 //--------------------------------------------------------------------------------
 
-// Whisper mantiene la compatibilidad con la versi?n de Github de whisper opensource
-// el modelo estandar de OpenAi se mueva a uMakerAi.OpenAi.Audio con las nuevas
-// caracteristicas.
+// Whisper maintains compatibility with the GitHub version of whisper open source
+// the standard OpenAI model moved to uMakerAi.OpenAi.Audio with the new features.
 //
-// En la API de OpenAI, whisper-1 esta DEPRECADO (2026-08-26, apagado
-// 2027-02-26) y tts-1 / tts-1-hd tambien (2026-10-01, apagado 2027-01-06).
-// Contra api.openai.com usar Model := 'gpt-transcribe' (solo json, sin
-// timestamps ni srt/vtt). Contra un servidor whisper propio (Url) los
-// defaults siguen siendo validos y por eso no se cambian.
+// In the OpenAI API, whisper-1 is DEPRECATED (2026-08-26, shutdown
+// 2027-02-26) and tts-1 / tts-1-hd also (2026-10-01, shutdown 2027-01-06).
+// Against api.openai.com use Model := 'gpt-transcribe' (json only, without
+// timestamps or srt/vtt). Against a custom whisper server (Url) the
+// defaults remain valid and therefore are not changed.
 
 unit uMakerAi.Whisper;
 
@@ -59,11 +56,11 @@ uses
   uJSONHelper,
 {$ENDIF}
   uMakerAi.Core, uMakerAi.Chat.Tools, uMakerAi.Chat.Messages,
-  uMakerAi.Utils.System;  // TUtilsSystem.RunCommandLine — usado en bloque LINUX
+  uMakerAi.Utils.System;  // TUtilsSystem.RunCommandLine — used in LINUX block
 
 Type
 
-  { TODO : Falta implementar el Streaming mode }
+  { TODO : Streaming mode not implemented yet }
   TAIWhisper = Class(TAiSpeechToolBase)
   Private
     FApiKey: String;
@@ -93,7 +90,7 @@ Type
     Function IsValidExtension(FileExtension: String): Boolean;
     procedure ConvertAudioIfNeeded(var aStream: TMemoryStream; var aFileName: String);
 
-    { Implementaci?n de IAiSpeechTool }
+    { Implementation of IAiSpeechTool }
     procedure ExecuteTranscription(aMediaFile: TAiMediaFile; ResMsg, AskMsg: TAiChatMessage); override;
     procedure ExecuteSpeechGeneration(const AText: string; ResMsg, AskMsg: TAiChatMessage); override;
     function InternalTranscription(aStream: TMemoryStream; aFileName, aPrompt: String): String;
@@ -197,15 +194,15 @@ begin
   Inherited;
   FUrl := GlOpenAIUrl;
   FApiKey := '@OPENAI_API_KEY';
-  FModel := 'whisper-1'; // whisper-1 por defecto y tts para spech nada mas tts-1, tts-1-hd
+  FModel := 'whisper-1'; // whisper-1 default and tts for speech only tts-1, tts-1-hd
   FVoice := 'nova'; // alloy, echo, fable, onyx, nova, shimmer
   FFormat := 'mp3'; // "mp3", opus", "aac", "flac", and "pcm"
   FLanguaje := 'es'; // ISO-639-1
-  FSpeed := 1; // entre 0.25 u 5
-  FTemperature := 0; // entre 0 y 1
+  FSpeed := 1; // between 0.25 and 5
+  FTemperature := 0; // between 0 and 1
   FResponseFormat := 'text'; // json, text, srt, verbose_json, or vtt
   FQuality := 'tts-1'; // tts-1, tts-1-hd
-  Ftimestamp_granularities := ''; // Empty, word, or segment obligatorio ResponseFormat = verbose_json
+  Ftimestamp_granularities := ''; // Empty, word, or segment mandatory ResponseFormat = verbose_json
 end;
 
 destructor TAIWhisper.Destroy;
@@ -220,16 +217,16 @@ procedure TAIWhisper.ExecuteTranscription(aMediaFile: TAiMediaFile; ResMsg, AskM
     LText: string;
   begin
     try
-      ReportState(acsReasoning, 'Transcribiendo audio...');
+      ReportState(acsReasoning, 'Transcribing audio...');
       LText := InternalTranscription(aMediaFile.Content, aMediaFile.filename, '');
       aMediaFile.Transcription := LText;
       aMediaFile.Procesado := True;
-      ResMsg.Prompt := LText;  // asignación directa para modo sync (igual que Gemini)
+      ResMsg.Prompt := LText;  // direct assignment for sync mode (same as Gemini)
       ReportDataEnd(ResMsg, 'assistant', LText);
     except
       on E: Exception do
       begin
-        ReportError('Error en transcripci�n Whisper: ' + E.Message, E);
+        ReportError('Error in Whisper transcription: ' + E.Message, E);
       end;
     end;
   end;
@@ -246,18 +243,18 @@ procedure TAIWhisper.ExecuteSpeechGeneration(const AText: string; ResMsg, AskMsg
     LNewFile: TAiMediaFile;
   begin
     try
-      ReportState(acsWriting, 'Generando voz...');
+      ReportState(acsWriting, 'Generating voice...');
       LStream := Speech(AText);
       try
         LNewFile := TAiMediaFile.Create;
         LNewFile.LoadFromStream('speech.' + FFormat, LStream);
-        ReportDataEnd(ResMsg, 'assistant', '[Audio generado]');
+        ReportDataEnd(ResMsg, 'assistant', '[Audio generated]');
       finally
         LStream.Free;
       end;
     except
       on E: Exception do
-        ReportError('Error generando voz Whisper: ' + E.Message, E);
+        ReportError('Error generating Whisper voice: ' + E.Message, E);
     end;
   end;
 
@@ -265,7 +262,7 @@ begin
   DoSpeechGeneration;
 end;
 
-{ Encapsulamos la l?gica original en un m?todo interno para reutilizar }
+{ Encapsulate the original logic in an internal method for reuse }
 function TAIWhisper.InternalTranscription(aStream: TMemoryStream; aFileName, aPrompt: String): String;
 begin
   Result := Transcription(aStream, aFileName, aPrompt);
@@ -274,16 +271,16 @@ end;
 
 function TAIWhisper.GetApiKey: String;
 begin
-  // Si est? en modo de dise?o, simplemente retorna el valor tal cual
+  // If in design mode, simply return the value as is
   if (csDesigning in ComponentState) or (csDestroying in ComponentState) then
   begin
     Result := FApiKey;
     Exit;
   end;
 
-  // En modo de ejecuci?n
+  // In runtime mode
   if (FApiKey <> '') and (Copy(FApiKey, 1, 1) = '@') then
-    // Retorna el valor de la variable de entorno, quitando el '@'
+    // Return the environment variable value, removing the '@'
     Result := GetEnvironmentVariable(Copy(FApiKey, 2, Length(FApiKey)))
   else
     Result := FApiKey;
@@ -421,7 +418,7 @@ begin
   Finally
     Client.Free;
     St.Free;
-    // Response.Free;  //No se libera, se pasa al usuario
+    // Response.Free;  //Not freed, passed to user
     JObj.Free;
   End;
 end;
@@ -437,7 +434,7 @@ Var
 begin
 
 
-  // Valida que la extensi?n del audio sea compatible, sino utiliza ffmpeg para convertirla
+  // Validates that the audio extension is compatible, otherwise uses ffmpeg to convert it
   {
     var Destino: TMemoryStream;
     var FileNameDestino: String;
@@ -479,10 +476,10 @@ begin
     Body.AddField('temperature', FormatFloat('0.0', FTemperature));
     Body.AddField('language', FLanguaje);
 
-    If pos('word', Ftimestamp_granularities) > 0 then // response_format debe ser "verbose_json"
+    If pos('word', Ftimestamp_granularities) > 0 then // response_format must be "verbose_json"
       Body.AddField('timestamp_granularities[]', 'word');
 
-    If pos('segment', Ftimestamp_granularities) > 0 then // response_format debe ser "verbose_json"
+    If pos('segment', Ftimestamp_granularities) > 0 then // response_format must be "verbose_json"
       Body.AddField('timestamp_granularities[]', 'segment');
 
     Client.Accept := 'application/text';

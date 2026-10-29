@@ -1,55 +1,55 @@
-﻿// MakerAI Suite — Driver OpenAI GPT-Live (voz full-duplex)
+﻿// MakerAI Suite — Driver OpenAI GPT-Live (voice full-duplex)
 // wss://api.openai.com/v1/live/sessions  (Authorization: Bearer)
 //
-// GPT-Live escucha mientras habla: el audio del usuario se envia en flujo
-// continuo y el modelo decide cuando hablar (sin VAD, commits ni turnos).
-// El razonamiento pesado se DELEGA a otro modelo:
-//   - Delegation = ldResponses (default): OpenAI lo pasa a un modelo de la
-//     API Responses (DelegationModel) con las tools declaradas. Las funciones
-//     locales (AiFunctions / OnCallToolFunction) se ejecutan aqui y el
-//     resultado vuelve con response.item.create + response.create.
-//   - Delegation = ldClient, o DelegateChat asignado: la aplicacion resuelve
-//     la tarea. Con DelegateChat (TAiChatConnection: Claude, Ollama, un grafo
-//     de agentes...) el driver arma el pedido con la transcripcion, ejecuta el
-//     chat en un hilo y devuelve la respuesta con session.commentary.append.
-//     Sin DelegateChat se dispara OnDelegation y la aplicacion contesta con
+// GPT-Live listens while speaking: user audio is sent in a continuous stream
+// and the model decides when to speak (no VAD, commits or turns).
+// Heavy reasoning is DELEGATED to another model:
+//   - Delegation = ldResponses (default): OpenAI passes it to a model of the
+//     API Responses (DelegationModel) with declared tools. Local functions
+//     (AiFunctions / OnCallToolFunction) are executed here and the
+//     result returns with response.item.create + response.create.
+//   - Delegation = ldClient, or DelegateChat assigned: the application resolves
+//     the task. With DelegateChat (TAiChatConnection: Claude, Ollama, an agent
+//     graph...) the driver builds the request with the transcription, runs the
+//     chat in a thread and returns the response with session.commentary.append.
+//     Without DelegateChat it fires OnDelegation and the app responds with
 //     AppendCommentary / AppendThinking.
 //
-// Protocolo (tipos del SDK oficial openai-python, src/openai/types/live):
-//   cliente:  session.start (primero; esperar session.started),
+// Protocol (types from official openai-python SDK, src/openai/types/live):
+//   client:  session.start (first; wait for session.started),
 //             session.input_audio.append, session.input_audio.mute/unmute,
 //             session.commentary/thinking/instructions.append,
 //             response.item.create, response.create, session.close
-//   servidor: session.started, session.input_transcript.delta,
+//   server:  session.started, session.input_transcript.delta,
 //             session.output_transcript.delta, session.output_audio.delta,
-//             session.delegation.created, response.event (evento Responses
-//             anidado), session.usage.updated, session.closed, error, info
+//             session.delegation.created, response.event (nested Responses
+//             event), session.usage.updated, session.closed, error, info
 //
-// Diferencias con gpt-realtime que maneja el driver:
-//   - Los transcripts no marcan turnos ni tienen evento "done", y en una
-//     conversacion full-duplex las voces se superponen (el modelo puede
-//     empezar antes de que el usuario termine). Los deltas se emiten al
-//     llegar; los turnos completos (OnTranscriptCompleted / OnAssistantText)
-//     se arman con la linea de tiempo de cada fragmento (start_ms/end_ms),
-//     con la politica del agrupador del SDK oficial:
-//       * el turno cambia solo si el otro empieza 500 ms o mas despues del
-//         final del turno en curso; antes de eso su habla queda en espera y
-//         el turno en curso sigue sumando;
-//       * un fragmento que empezo antes que el turno actual es transcripcion
-//         atrasada del turno anterior (se espera hasta 1 s);
-//       * el turno del asistente se cierra tras 2 s sin texto nuevo NI voz
-//         en el audio de salida (los transcripts llegan a rafagas: una pausa
-//         de 1 s entre frases podia verse como 2 s y partir un cuento largo);
-//         si el modelo sigue hablando, el turno se retoma en vez de abrir otro.
-//     No se descartan "mhm"/"aja" (el SDK si): un acuse corto cuenta como turno.
-//   - El audio de salida es un flujo continuo (incluye silencio), sin marcas
-//     de tiempo ni evento de fin: OnAudioDone se dispara solo en session.closed.
-//   - Voz, formato de audio e instrucciones no cambian despues de arrancar.
-//   - El modelo va en session.start, no en la URL.
-// Audio: PCM16 mono a 24 kHz (default) o 16 kHz (AudioRate). G.711 (8 kHz)
-// no esta soportado por el driver.
+// Differences from gpt-realtime handled by the driver:
+//   - Transcripts do not mark turns or have a "done" event, and in a
+//     full-duplex conversation voices overlap (the model may start before
+//     the user finishes). Deltas are emitted as they arrive; complete turns
+//     (OnTranscriptCompleted / OnAssistantText) are assembled using the
+//     timeline of each fragment (start_ms/end_ms) with the official SDK
+//     aggregator policy:
+//       * the turn changes only if the other starts 500 ms or more after the
+//         end of the current turn; before that, speech is queued and the
+//         current turn continues accumulating;
+//       * a fragment that started before the current turn is a delayed
+//         transcription of the previous turn (wait up to 1 s);
+//       * the assistant's turn closes after 2 s without new text OR voice
+//         in the output audio (transcripts arrive in bursts: a 1 s pause
+//         between phrases could be seen as 2 s and split a long story);
+//         if the model continues speaking, the turn resumes instead of opening a new one.
+//     Short "mhm"/"uh-huh" are NOT discarded (the SDK does): a brief acknowledgment counts as a turn.
+//   - Output audio is a continuous stream (includes silence), without time
+//     stamps or end event: OnAudioDone fires only on session.closed.
+//   - Voice, audio format and instructions do not change after startup.
+//   - The model is in session.start, not in the URL.
+// Audio: PCM16 mono at 24 kHz (default) or 16 kHz (AudioRate). G.711 (8 kHz)
+// is not supported by the driver.
 //
-// Autor: Gustavo Enriquez
+// Author: Gustavo Enriquez
 // Email: gustavoeenriquez@gmail.com
 
 unit uMakerAi.Realtime.OpenAI.Live;
@@ -64,69 +64,69 @@ uses
   uMakerAi.Realtime, uMakerAi.Realtime.WebSocket, uMakerAi.WebSocket.Client;
 
 type
-  // Frecuencia del audio PCM16 de entrada y salida
+  // Input and output PCM16 audio frequency
   TAiLiveAudioRate = (lar24k, lar16k);
 
-  // Quien resuelve las tareas que delega el modelo de voz
+  // Who resolves the tasks delegated by the voice model
   TAiLiveDelegation = (
-    ldResponses, // un modelo de la API Responses gestionado por OpenAI
-    ldClient     // la aplicacion (DelegateChat u OnDelegation)
+    ldResponses, // a model from the OpenAI Responses API managed by OpenAI
+    ldClient     // the application (DelegateChat or OnDelegation)
   );
 
-  // Esfuerzo de razonamiento del modelo delegado (lreDefault = no se envia)
+  // Reasoning effort of the delegated model (lreDefault = not sent)
   TAiLiveReasoningEffort = (lreDefault, lreNone, lreMinimal, lreLow,
     lreMedium, lreHigh, lreXHigh);
 
-  // Fallback de function calling cuando AiFunctions no maneja la funcion.
-  // El handler debe asignar ToolCall.Response con el resultado.
+  // Fallback for function calling when AiFunctions does not handle the function.
+  // The handler must assign ToolCall.Response with the result.
   TAiLiveToolCallEvent = procedure(Sender: TObject;
     ToolCall: TAiToolsFunction) of object;
 
-  // Delegacion a la aplicacion. Context es la transcripcion desde la ultima
-  // delegacion (el evento del servidor no trae el texto de la tarea).
-  // Responder con AppendCommentary(Texto, DelegationId).
+  // Delegation to the application. Context is the transcription since the last
+  // delegation (the server event does not carry the task text).
+  // Respond with AppendCommentary(Text, DelegationId).
   TAiLiveDelegationEvent = procedure(Sender: TObject;
     const DelegationId, Context: string) of object;
 
-  // Consumo acumulado: segundos de audio de la sesion y uso del contexto
-  // (0..1; -1 si el servidor no lo informa)
+  // Accumulated usage: audio seconds of the session and context ratio
+  // (0..1; -1 if the server does not report it)
   TAiLiveUsageEvent = procedure(Sender: TObject;
     Seconds, ContextRatio: Double) of object;
 
-  // Fin de la sesion: close_requested, expired, content, remote_hangup o
+  // End of session: close_requested, expired, content, remote_hangup or
   // connection_lost
   TAiLiveClosedEvent = procedure(Sender: TObject; const Reason: string;
     Seconds: Double) of object;
 
-  // Evento crudo del modelo delegado (Responses), para UI o diagnostico
+  // Raw event from the delegated model (Responses), for UI or diagnostics
   TAiLiveResponseEvent = procedure(Sender: TObject;
     const DelegationId, EventType, EventJson: string) of object;
 
-  // Turno de conversacion armado con los fragmentos de transcripcion
+  // Conversation turn assembled from transcription fragments
   TAiLiveTurn = record
-    Speaker:  Integer; // 0 vacio, 1 usuario, 2 asistente
+    Speaker:  Integer; // 0 empty, 1 user, 2 assistant
     Text:     string;
-    SentText: string;  // texto ya enviado en una delegacion
-    StartMs:  Int64;   // linea de tiempo de la sesion
+    SentText: string;  // text already sent in a delegation
+    StartMs:  Int64;   // session timeline
     EndMs:    Int64;
-    Wall:     Int64;   // reloj local del ultimo fragmento (NowMs)
+    Wall:     Int64;   // local clock of last fragment (NowMs)
   end;
 
-  // Estado de las llamadas a funciones de una respuesta delegada
+  // State of function calls for a delegated response
   TAiLiveToolTurn = record
-    Pending:   Integer; // funciones en ejecucion
-    HadCalls:  Boolean; // la respuesta pidio funciones
-    Completed: Boolean; // llego response.completed
+    Pending:   Integer; // functions being executed
+    HadCalls:  Boolean; // the response requested functions
+    Completed: Boolean; // response.completed received
   end;
 
   TAiOpenAiLiveChat = class(TAiRealtimeVoiceBase)
   private
     FWebSocket:      TAiRealtimeWSClient;
     FConnectThread:  TThread;
-    FB64:            TBase64Encoding; // sin saltos de linea
+    FB64:            TBase64Encoding; // no line breaks
     FSessionStarted: Boolean;
-    FClosedEvent:    TEvent;          // session.closed recibido
-    // Configuracion
+    FClosedEvent:    TEvent;          // session.closed received
+    // Configuration
     FVoice:             string;
     FInstructions:      string;
     FAudioRate:         TAiLiveAudioRate;
@@ -141,34 +141,34 @@ type
     FStore:             Boolean;
     FCloseTimeoutMs:    Integer;
     FCustomToolsJson:   TStrings;
-    FAiFunctions:       TAiFunctions;      // referencia externa
-    FDelegateChat:      TAiChatConnection; // referencia externa
-    // Eventos propios
+    FAiFunctions:       TAiFunctions;      // external reference
+    FDelegateChat:      TAiChatConnection; // external reference
+    // Own events
     FOnCallToolFunction: TAiLiveToolCallEvent;
     FOnDelegation:       TAiLiveDelegationEvent;
     FOnUsage:            TAiLiveUsageEvent;
     FOnSessionClosed:    TAiLiveClosedEvent;
     FOnResponseEvent:    TAiLiveResponseEvent;
-    // Estado de la sesion
+    // Session state
     FSessionId:    string;
     FUsageSeconds: Double;
     FCloseReason:  string;
     FEventSeq:     Integer;
-    // Turnos de la conversacion (hilo principal: TAiWSClient entrega cada
-    // frame con TThread.Queue, asi que ProcessServerEvent corre ahi):
-    //   FPrev: turno anterior, esperando fragmentos atrasados antes de cerrar
-    //   FCur:  turno en curso
-    //   FBuf:  habla del otro superpuesta al turno en curso (en espera)
+    // Conversation turns (main thread: TAiWSClient delivers each
+    // frame via TThread.Queue, so ProcessServerEvent runs there):
+    //   FPrev: previous turn, waiting for delayed fragments before closing
+    //   FCur:  current turn
+    //   FBuf:  speech of the other overlapped with the current turn (queued)
     FClock:          TStopwatch;
     FPrev, FCur, FBuf: TAiLiveTurn;
-    FTimelineMax:    Int64;       // fin del ultimo fragmento (ms de sesion)
-    FVoiceWall:      Int64;       // ultimo audio de salida con voz (NowMs)
-    FTranscript:     TStringList; // turnos cerrados 'User: ...' / 'Assistant: ...'
-    FDelegatedLines: Integer;     // primera linea no revisada por DelegationContext
-    // Hilos de trabajo (funciones y DelegateChat)
+    FTimelineMax:    Int64;       // end of last fragment (session ms)
+    FVoiceWall:      Int64;       // last output audio with voice (NowMs)
+    FTranscript:     TStringList; // closed turns 'User: ...' / 'Assistant: ...'
+    FDelegatedLines: Integer;     // first line not yet checked by DelegationContext
+    // Worker threads (functions and DelegateChat)
     FToolLock:      TCriticalSection;
-    FToolTurns:     TDictionary<string, TAiLiveToolTurn>; // por delegation_id
-    FDelegateLock:  TCriticalSection; // DelegateChat atiende una tarea a la vez
+    FToolTurns:     TDictionary<string, TAiLiveToolTurn>; // keyed by delegation_id
+    FDelegateLock:  TCriticalSection; // DelegateChat handles one task at a time
     FActiveWorkers: Integer;
     FShuttingDown:  Boolean;
     procedure OnWSFrame(Sender: TObject; Opcode: TAiRealtimeWSOpcode;
@@ -182,7 +182,7 @@ type
     function  NextEventId: string;
     function  BuildToolsArray: TJSONArray;
     function  BuildDelegation: TJSONObject;
-    // Segmentos de transcripcion -> turnos
+    // Transcription segments -> turns
     procedure HandleFragment(ASpeaker: Integer; const ADelta: string;
       AStartMs, AEndMs: Int64);
     procedure AppendToTurn(var ATurn: TAiLiveTurn; ASpeaker: Integer;
@@ -193,7 +193,7 @@ type
     procedure CheckSegmentTimers;
     procedure FinishAllTurns;
     function  DelegationContext: string;
-    // Delegacion
+    // Delegation
     procedure HandleDelegationCreated(const JObj: TJSONObject);
     procedure RunDelegateChat(const ADelegationId, AContext: string);
     procedure HandleResponseEvent(const JObj: TJSONObject);
@@ -202,7 +202,7 @@ type
     procedure SendFunctionOutput(const ACallId, AOutput: string);
     procedure SendAppend(const AType, AContent, ADelegationId: string);
     procedure StartWorker(AProc: TProc);
-    // Dispatchers de los eventos propios (TThread.Queue al hilo principal)
+    // Dispatchers for own events (TThread.Queue to main thread)
     procedure DoDelegation(const ADelegationId, AContext: string);
     procedure DoUsage(ASeconds, ARatio: Double);
     procedure DoSessionClosed(const AReason: string; ASeconds: Double);
@@ -213,83 +213,83 @@ type
     procedure InternalSendAudio(const ResampledPCM16: TBytes); override;
     procedure InternalConnect;    override;
     procedure InternalDisconnect; override;
-    // Flujo continuo: el modelo decide cuando hablar, no hay turnos que cerrar
+    // Continuous stream: the model decides when to speak, no turns to close
     procedure InternalCommitAudio; override;
     procedure InternalClearAudio;  override;
-    // Procesa un evento JSON del servidor (protegido: la suite lo alimenta sin red)
+    // Processes a JSON event from the server (protected: the suite feeds it without network)
     procedure ProcessServerEvent(const JObj: TJSONObject); virtual;
-    // Reloj local en ms para cerrar turnos por inactividad (virtual: la suite
-    // lo controla)
+    // Local clock in ms to close turns on inactivity (virtual: the suite
+    // controls it)
     function  NowMs: Int64; virtual;
-    // Mensaje session.start completo (protegido: la suite lo inspecciona)
+    // Complete session.start message (protected: the suite inspects it)
     function  BuildSessionStart: TJSONObject;
-    // Envia un mensaje y lo libera (virtual: la suite captura lo enviado)
+    // Sends a message and frees it (virtual: the suite captures what was sent)
     procedure SendJson(AObj: TJSONObject); virtual;
-    // Delegacion efectiva: DelegateChat asignado fuerza ldClient
+    // Effective delegation: DelegateChat assigned forces ldClient
     function  EffectiveDelegation: TAiLiveDelegation;
-    // Parte un texto en fragmentos de hasta AMaxBytes en UTF-8 (las
-    // inyecciones admiten 500 tokens); corta en espacios cuando puede
+    // Splits a text into fragments of at most AMaxBytes UTF-8 (injections
+    // accept 500 tokens); breaks at spaces when possible
     class function SplitForAppend(const AText: string;
       AMaxBytes: Integer = 400): TArray<string>;
   public
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
-    // El callback de WaveIn no puede tocar sockets: el envio se encola al hilo principal
+    // WaveIn callback cannot touch sockets: sending is queued to main thread
     procedure SendAudioChunk(const PCM16Data: TBytes); override;
-    // Deja de pasar el audio del microfono al modelo (y lo reanuda)
+    // Stop passing microphone audio to the model (and resume)
     procedure Mute;
     procedure Unmute;
-    // Texto que el modelo puede decir al usuario (resultado de una tarea).
-    // ADelegationId: el de OnDelegation, o '' para contexto general. Con
-    // ldResponses solo se admite ''. Textos largos se parten en varios envios.
+    // Text the model can say to the user (result of a task).
+    // ADelegationId: the one from OnDelegation, or '' for general context. With
+    // ldResponses only '' is accepted. Long texts are split into several sends.
     procedure AppendCommentary(const AText: string; const ADelegationId: string = '');
-    // Contexto silencioso o progreso (no pide que el modelo hable)
+    // Silent context or progress (does not ask the model to speak)
     procedure AppendThinking(const AText: string; const ADelegationId: string = '');
-    // Instrucciones nuevas durante la conversacion (p.ej. cambiar de tema)
+    // New instructions during the conversation (e.g. change topic)
     procedure AppendInstructions(const AText: string; const ADelegationId: string = '');
     class function GetDriverName:   string; override;
     class function GetDefaultModel: string; override;
-    // Id de la sesion asignado por el servidor (session.started)
+    // Session id assigned by the server (session.started)
     property SessionId: string read FSessionId;
-    // Segundos de audio acumulados (session.usage.updated / session.closed)
+    // Accumulated audio seconds (session.usage.updated / session.closed)
     property UsageSeconds: Double read FUsageSeconds;
-    // Motivo del ultimo cierre de sesion
+    // Reason of the last session closure
     property CloseReason: string read FCloseReason;
   published
-    // Voz del modelo: marin (default del servidor), cedar, alloy, coral,
-    // sage, verse... o el id de una voz propia. No cambia tras conectar.
+    // Model voice: marin (default), cedar, alloy, coral,
+    // sage, verse... or a custom voice id. Does not change after connect.
     property Voice: string read FVoice write FVoice;
-    // Instrucciones de conversacion (tono, interrupciones, cuando delegar).
-    // Las reglas de negocio van en DelegationInstructions.
+    // Conversation instructions (tone, interruptions, when to delegate).
+    // Business rules go in DelegationInstructions.
     property Instructions: string read FInstructions write FInstructions;
     property AudioRate: TAiLiveAudioRate read FAudioRate write FAudioRate default lar24k;
     property Delegation: TAiLiveDelegation read FDelegation write FDelegation default ldResponses;
-    // Modelo de la API Responses que resuelve las tareas (ldResponses)
+    // Model of the Responses API that resolves tasks (ldResponses)
     property DelegationModel: string read FDelegationModel write FDelegationModel;
-    // Prompt del modelo delegado (ldResponses), separado de Instructions
+    // Prompt for the delegated model (ldResponses), separate from Instructions
     property DelegationInstructions: string read FDelegationInstructions
       write FDelegationInstructions;
     property ReasoningEffort: TAiLiveReasoningEffort read FReasoningEffort
       write FReasoningEffort default lreDefault;
-    // Tokens maximos por respuesta delegada (0 = no se envia)
+    // Maximum tokens per delegated response (0 = not sent)
     property MaxOutputTokens: Integer read FMaxOutputTokens write FMaxOutputTokens default 0;
     property ParallelToolCalls: Boolean read FParallelToolCalls
       write FParallelToolCalls default True;
-    // '' (no se envia), 'auto', 'none', 'required' o el nombre de una funcion
+    // '' (not sent), 'auto', 'none', 'required' or a function name
     property ToolChoice: string read FToolChoice write FToolChoice;
-    // Busqueda web del modelo delegado (la ejecuta OpenAI)
+    // Web search of the delegated model (performed by OpenAI)
     property EnableWebSearch: Boolean read FEnableWebSearch write FEnableWebSearch default False;
-    // Guardar la sesion en OpenAI (para forks y descarga de la grabacion)
+    // Save the session in OpenAI (for forks and recording download)
     property Store: Boolean read FStore write FStore default False;
-    // Espera maxima de session.closed al desconectar (la documentacion
-    // sugiere hasta 15 s; 0 = no esperar)
+    // Maximum wait for session.closed when disconnecting (documentation
+    // suggests up to 15 s; 0 = no wait)
     property CloseTimeoutMs: Integer read FCloseTimeoutMs write FCloseTimeoutMs default 5000;
-    // Funciones locales y MCP del modelo delegado (ldResponses)
+    // Local functions and MCP of the delegated model (ldResponses)
     property AiFunctions: TAiFunctions read FAiFunctions write SetAiFunctions;
-    // Tools extra en JSON crudo (objeto o array de tools 'function')
+    // Extra tools in raw JSON (object or array of 'function' tools)
     property CustomToolsJson: TStrings read FCustomToolsJson write SetCustomToolsJson;
-    // Chat que resuelve las tareas delegadas (cualquier proveedor). Asignado,
-    // la sesion usa ldClient. Se fuerza Asynchronous=False al conectar.
+    // Chat that resolves delegated tasks (any provider). When assigned,
+    // the session uses ldClient. Asynchronous=False is forced on connect.
     property DelegateChat: TAiChatConnection read FDelegateChat write SetDelegateChat;
     property OnCallToolFunction: TAiLiveToolCallEvent read FOnCallToolFunction
       write FOnCallToolFunction;
@@ -309,18 +309,18 @@ const
   CLIVE_DEFAULT_DELEGATION_MODEL = 'gpt-6-luna';
   CSPEAKER_USER      = 1;
   CSPEAKER_ASSISTANT = 2;
-  // Separacion minima para cambiar de turno (min_turn_separation_ms del SDK)
+  // Minimum separation to change turn (min_turn_separation_ms from SDK)
   CMIN_TURN_SEPARATION_MS = 500;
-  // Silencio del asistente que cierra su turno (assistant_silence_ms del SDK)
+  // Assistant silence that closes its turn (assistant_silence_ms from SDK)
   CASSISTANT_SILENCE_MS = 2000;
-  // Reloj local: espera de fragmentos atrasados del turno anterior, y de un
-  // turno en curso que dejo de recibir texto mientras el otro habla
+  // Local clock: wait for delayed fragments of the previous turn, and for a
+  // current turn that stopped receiving text while the other speaks
   CLATE_FRAGMENT_MS = 1000;
-  // Promedio absoluto PCM16 por encima del cual el audio de salida tiene voz
-  // (el servidor manda silencio digital entre frases)
+  // Absolute PCM16 average level above which output audio has voice
+  // (the server sends digital silence between phrases)
   COUTPUT_VOICE_LEVEL = 500;
-  // Pedido que recibe DelegateChat: la transcripcion es automatica y la
-  // respuesta se dira en voz alta
+  // Request that DelegateChat receives: transcription is automatic and the
+  // response will be spoken aloud
   CDELEGATE_PROMPT =
     'Voice conversation so far (automatic transcription, may contain errors):' +
     sLineBreak + '%s' + sLineBreak + sLineBreak +
@@ -373,8 +373,8 @@ begin
     FConnectThread.WaitFor;
     FreeAndNil(FConnectThread);
   end;
-  // Los hilos de funciones y de DelegateChat usan Self: esperarlos (hasta
-  // 30 s). Desde el hilo principal se drena la cola por si sincronizan.
+  // Function and DelegateChat threads use Self: wait for them (up to
+  // 30 s). From the main thread the queue is drained in case they synchronize.
   Waited := 0;
   while (TInterlocked.CompareExchange(FActiveWorkers, 0, 0) > 0) and (Waited < 30000) do
   begin
@@ -492,7 +492,7 @@ begin
     Result.Add(JTool);
   end;
 
-  // Formato plano de la API Responses: {type:function, name, description, parameters}
+  // Flat format of the Responses API: {type:function, name, description, parameters}
   if Assigned(FAiFunctions) then
   begin
     ToolsStr := FAiFunctions.GetTools(tfOpenAIResponses);
@@ -623,10 +623,10 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// Eventos del servidor
+// Server events
 // -----------------------------------------------------------------------------
 
-// Promedio del valor absoluto de las muestras PCM16
+// Average of absolute PCM16 sample values
 function AudioLevel(const AData: TBytes): Integer;
 var
   I, N: Integer;
@@ -655,7 +655,7 @@ var
   Audio: TBytes;
 begin
   if not JObj.TryGetValue<string>('type', EventType) then Exit;
-  // El audio de salida llega cada ~100 ms: sirve de reloj para cerrar turnos
+  // Output audio arrives every ~100 ms: serves as a clock to close turns
   CheckSegmentTimers;
 
   if EventType = 'session.started' then
@@ -671,8 +671,8 @@ begin
   begin
     S := '';
     JObj.TryGetValue<string>('delta', S);
-    // Sin marcas (-1) el fragmento se ubica despues del ultimo. TryGetValue
-    // deja el valor en 0 si el campo falta: hay que mirar el resultado
+    // Without timestamps (-1) the fragment is placed after the last. TryGetValue
+    // leaves value at 0 if field is missing: need to check the result
     if not JObj.TryGetValue<Int64>('start_ms', StartMs) then
       StartMs := -1;
     if not JObj.TryGetValue<Int64>('end_ms', EndMs) then
@@ -693,8 +693,8 @@ begin
     if S <> '' then
     begin
       Audio := TNetEncoding.Base64.DecodeStringToBytes(S);
-      // El audio llega a ritmo real (los transcripts, a rafagas): mientras
-      // tenga voz, el asistente sigue hablando
+      // Audio arrives at real-time rate (transcripts in bursts): while
+      // it has voice, the assistant continues speaking
       if AudioLevel(Audio) > COUTPUT_VOICE_LEVEL then
         FVoiceWall := NowMs;
       DoAudioChunk(Audio);
@@ -725,7 +725,7 @@ begin
     JObj.TryGetValue<string>('reason', FCloseReason);
     if JObj.TryGetValue<TJSONObject>('usage', JUsage) then
       JUsage.TryGetValue<Double>('seconds', FUsageSeconds);
-    // Los transcripts no tienen evento de fin: cerrar lo que quede abierto
+    // Transcripts have no end event: close whatever is still open
     FinishAllTurns;
     FSessionStarted := False;
     DoAudioDone;
@@ -735,7 +735,7 @@ begin
 
   else if EventType = 'error' then
   begin
-    S := 'Error desconocido';
+    S := 'Unknown error';
     Code := '';
     if JObj.TryGetValue<TJSONObject>('error', JError) then
     begin
@@ -744,8 +744,8 @@ begin
     end;
     DoError(S, Code);
   end;
-  // session.updated, info y los acuses (*.appended, input_audio.muted/unmuted)
-  // no requieren accion
+  // session.updated, info and acknowledgements (*.appended, input_audio.muted/unmuted)
+  // require no action
 end;
 
 procedure TAiOpenAiLiveChat.AppendToTurn(var ATurn: TAiLiveTurn; ASpeaker: Integer;
@@ -775,7 +775,7 @@ begin
       Idx := FTranscript.Add('User: ' + T)
     else
       Idx := FTranscript.Add('Assistant: ' + T);
-    // Ya viajo completo en una delegacion: no repetirlo en la siguiente
+    // Already sent completely in a delegation: do not repeat in the next one
     if ATurn.SentText = ATurn.Text then
       FTranscript.Objects[Idx] := TObject(1);
     if ATurn.Speaker = CSPEAKER_USER then
@@ -788,8 +788,8 @@ end;
 
 procedure TAiOpenAiLiveChat.PromoteBuffered;
 begin
-  // El turno en curso termino: pasa a esperar fragmentos atrasados y el habla
-  // en espera se vuelve el turno en curso
+  // Current turn ended: goes to wait for delayed fragments and the buffered
+  // speech becomes the current turn
   FinishTurn(FPrev);
   FPrev := FCur;
   FCur := FBuf;
@@ -812,7 +812,7 @@ end;
 procedure TAiOpenAiLiveChat.HandleFragment(ASpeaker: Integer; const ADelta: string;
   AStartMs, AEndMs: Int64);
 begin
-  // Sin marcas de tiempo: despues de todo lo anterior (cambio de turno por llegada)
+  // Without timestamps: after everything previous (turn change on arrival)
   if AStartMs < 0 then
     AStartMs := FTimelineMax + CMIN_TURN_SEPARATION_MS;
   if AEndMs < AStartMs then
@@ -820,7 +820,7 @@ begin
   if AEndMs > FTimelineMax then
     FTimelineMax := AEndMs;
 
-  // Los deltas se emiten al llegar; solo el cierre de turnos espera
+  // Deltas are emitted on arrival; only turn closure waits
   if ASpeaker = CSPEAKER_USER then
     DoTranscriptDelta(ADelta)
   else
@@ -828,8 +828,8 @@ begin
 
   AdvanceTimeline(AStartMs);
 
-  // El turno se cerro por inactividad pero el mismo hablante sigue sin una
-  // pausa real (segun la linea de tiempo): retomarlo en vez de abrir otro
+  // Turn was closed by inactivity but the same speaker continues without a
+  // real pause (according to timeline): resume it instead of opening a new one
   if (FCur.Speaker = 0) and (FPrev.Speaker = ASpeaker) and
      (AStartMs < FPrev.EndMs + CASSISTANT_SILENCE_MS) then
   begin
@@ -837,7 +837,7 @@ begin
     FPrev := Default(TAiLiveTurn);
   end;
 
-  // Transcripcion atrasada del turno anterior
+  // Delayed transcription of the previous turn
   if (FPrev.Speaker = ASpeaker) and (FCur.Speaker <> 0) and (AStartMs < FCur.StartMs) then
     AppendToTurn(FPrev, ASpeaker, ADelta, AStartMs, AEndMs)
   else if (FCur.Speaker = 0) or (FCur.Speaker = ASpeaker) then
@@ -850,14 +850,14 @@ begin
   end
   else if AStartMs >= FCur.EndMs + CMIN_TURN_SEPARATION_MS then
   begin
-    // Cambio de turno: el actual espera fragmentos atrasados
+    // Turn change: the current one waits for delayed fragments
     FinishTurn(FPrev);
     FPrev := FCur;
     FCur := Default(TAiLiveTurn);
     AppendToTurn(FCur, ASpeaker, ADelta, AStartMs, AEndMs);
   end
   else
-    // Habla superpuesta: queda en espera hasta que el turno en curso termine
+    // Overlapped speech: stays queued until the current turn ends
     AppendToTurn(FBuf, ASpeaker, ADelta, AStartMs, AEndMs);
 end;
 
@@ -874,8 +874,8 @@ begin
   else if (FCur.Speaker = CSPEAKER_ASSISTANT) and (FBuf.Speaker = 0) and
           (T - Max(FCur.Wall, FVoiceWall) >= CASSISTANT_SILENCE_MS) then
   begin
-    // Sin texto ni voz: el turno pasa a esperar fragmentos atrasados (o a que
-    // el modelo siga) y se cierra si no llegan
+    // No text or voice: the turn moves to wait for delayed fragments (or for
+    // the model to continue) and closes if none arrive
     FinishTurn(FPrev);
     FPrev := FCur;
     FPrev.Wall := T;
@@ -907,8 +907,8 @@ var
   end;
 
 begin
-  // Lo que DelegateChat todavia no vio (conserva su historial): turnos
-  // cerrados y abiertos, en el orden de la linea de tiempo
+  // What DelegateChat has not yet seen (it keeps its own history): closed
+  // and open turns, in timeline order
   SB := TStringBuilder.Create;
   try
     for I := FDelegatedLines to FTranscript.Count - 1 do
@@ -925,7 +925,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// Delegacion a la aplicacion (ldClient)
+// Delegation to the application (ldClient)
 // -----------------------------------------------------------------------------
 
 procedure TAiOpenAiLiveChat.HandleDelegationCreated(const JObj: TJSONObject);
@@ -938,7 +938,7 @@ begin
   Target := '';
   JDeleg.TryGetValue<string>('id', Id);
   JDeleg.TryGetValue<string>('target', Target);
-  // Las delegaciones a Responses las resuelve OpenAI (ver HandleResponseEvent)
+  // Delegations to Responses are resolved by OpenAI (see HandleResponseEvent)
   if (Id = '') or (Target <> 'client') then Exit;
 
   Context := DelegationContext;
@@ -948,8 +948,8 @@ begin
     RunDelegateChat(Id, Context)
   else if not Assigned(FOnDelegation) then
   begin
-    // Nadie va a contestar: avisar al modelo para que no espere en silencio
-    DoError('Delegacion sin DelegateChat ni OnDelegation', 'delegation_unhandled');
+    // Nobody will answer: notify the model so it does not wait in silence
+    DoError('Delegation without DelegateChat or OnDelegation', 'delegation_unhandled');
     AppendCommentary('This task cannot be completed: no handler is configured.', Id);
   end;
 end;
@@ -988,7 +988,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// Delegacion a Responses (ldResponses): function calling
+// Delegation to Responses (ldResponses): function calling
 // -----------------------------------------------------------------------------
 
 procedure TAiOpenAiLiveChat.HandleResponseEvent(const JObj: TJSONObject);
@@ -1034,7 +1034,7 @@ begin
 
   else if IType = 'response.failed' then
   begin
-    Msg := 'La respuesta delegada fallo';
+    Msg := 'The delegated response failed';
     if JInner.TryGetValue<TJSONObject>('response', JResp) and
        JResp.TryGetValue<TJSONObject>('error', JErr) then
       JErr.TryGetValue<string>('message', Msg);
@@ -1090,7 +1090,7 @@ begin
             Handled := FAiFunctions.DoCallFunction(ToolCall);
           if (not Handled) and Assigned(FOnCallToolFunction) then
           begin
-            // El fallback corre en el hilo principal (puede tocar la UI)
+            // The fallback runs on the main thread (it may touch the UI)
             TThread.Synchronize(nil,
               procedure
               begin
@@ -1129,8 +1129,8 @@ var
   Ready: Boolean;
   J: TJSONObject;
 begin
-  // Una sola continuacion por respuesta: cuando termino la respuesta que pidio
-  // las funciones y ya se enviaron todos los resultados
+  // Only one continuation per response: when the response that requested
+  // the functions finishes and all results have been sent
   FToolLock.Enter;
   try
     Ready := FToolTurns.TryGetValue(AKey, Turn) and Turn.HadCalls and
@@ -1177,7 +1177,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// Inyecciones de contexto
+// Context injections
 // -----------------------------------------------------------------------------
 
 class function TAiOpenAiLiveChat.SplitForAppend(const AText: string;
@@ -1192,7 +1192,7 @@ begin
     Rest := Trim(AText);
     while Rest <> '' do
     begin
-      // Avanzar caracter a caracter sin partir pares sustitutos
+      // Advance character by character without splitting surrogate pairs
       Bytes := 0;
       Cut := 0;
       LastSpace := 0;
@@ -1220,8 +1220,8 @@ begin
         Break;
       end;
       if Cut = 0 then
-        Cut := 1; // AMaxBytes menor que un caracter: avanzar igual
-      // Preferir cortar en un espacio de la segunda mitad del fragmento
+        Cut := 1; // AMaxBytes smaller than one character: advance anyway
+      // Prefer to break at a space in the second half of the fragment
       if LastSpace > Cut div 2 then
         Cut := LastSpace;
       Chunk := Trim(Copy(Rest, 1, Cut));
@@ -1246,8 +1246,8 @@ begin
     J.AddPair('type', AType);
     J.AddPair('event_id', NextEventId);
     J.AddPair('content', Part);
-    // Campo requerido aunque sea null (contexto general). Con delegacion a
-    // Responses el servidor solo acepta null
+    // Required field even if null (general context). With delegation to
+    // Responses the server only accepts null
     if (ADelegationId <> '') and (EffectiveDelegation = ldClient) then
       J.AddPair('delegation_id', ADelegationId)
     else
@@ -1294,7 +1294,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// Dispatchers de los eventos propios
+// Dispatchers for own events
 // -----------------------------------------------------------------------------
 
 procedure TAiOpenAiLiveChat.DoDelegation(const ADelegationId, AContext: string);
@@ -1347,14 +1347,14 @@ end;
 procedure TAiOpenAiLiveChat.OnWSConnected(Sender: TObject);
 begin
   DoConnected;
-  // session.start va antes que cualquier otro comando
+  // session.start goes before any other command
   SendJson(BuildSessionStart);
 end;
 
 procedure TAiOpenAiLiveChat.OnWSDisconnected(Sender: TObject);
 begin
   FSessionStarted := False;
-  FClosedEvent.SetEvent; // no esperar un session.closed que ya no llegara
+  FClosedEvent.SetEvent; // do not wait for a session.closed that will never arrive
   DoDisconnected;
 end;
 
@@ -1401,12 +1401,12 @@ end;
 
 procedure TAiOpenAiLiveChat.InternalConnect;
 begin
-  // TAiRealtimeConnection copia su ApiKey/Model aunque esten vacios
+  // TAiRealtimeConnection copies its ApiKey/Model even if empty
   if ApiKey = '' then
     ApiKey := '@OPENAI_API_KEY';
   if Model = '' then
     Model := GetDefaultModel;
-  // La delegacion se resuelve en un hilo con una llamada bloqueante
+  // Delegation is resolved in a thread with a blocking call
   if Assigned(FDelegateChat) then
     FDelegateChat.Params.Values['Asynchronous'] := 'False';
 
@@ -1434,7 +1434,7 @@ begin
     procedure
     begin
       if not FWebSocket.Connect(CLIVE_WSS) then
-        DoError('No se pudo conectar a GPT-Live', 'connection_failed');
+        DoError('Could not connect to GPT-Live', 'connection_failed');
     end);
   FConnectThread.FreeOnTerminate := False;
   FConnectThread.Start;
@@ -1445,7 +1445,7 @@ var
   J: TJSONObject;
   SW: TStopwatch;
 begin
-  // Cierre ordenado: session.closed trae el motivo y el consumo final
+  // Graceful shutdown: session.closed carries the reason and final usage
   if FSessionStarted and (FCloseTimeoutMs > 0) then
   begin
     FClosedEvent.ResetEvent;
@@ -1454,8 +1454,8 @@ begin
     J.AddPair('event_id', NextEventId);
     try
       SendJson(J);
-      // Los frames se procesan en el hilo principal (TThread.Queue): si se
-      // espera ahi sin drenar la cola, session.closed no llega nunca
+      // Frames are processed on the main thread (TThread.Queue): if you
+      // wait there without draining the queue, session.closed never arrives
       SW := TStopwatch.StartNew;
       while (FClosedEvent.WaitFor(0) <> wrSignaled) and
             (SW.ElapsedMilliseconds < FCloseTimeoutMs) do
@@ -1466,7 +1466,7 @@ begin
           FClosedEvent.WaitFor(10);
       end;
     except
-      // El socket ya no esta: cerrar igual
+      // Socket is gone: close anyway
     end;
   end;
   FWebSocket.SendClose(1000, '');
@@ -1484,7 +1484,7 @@ procedure TAiOpenAiLiveChat.InternalSendAudio(const ResampledPCM16: TBytes);
 var
   J: TJSONObject;
 begin
-  // Antes de session.started el servidor no acepta comandos
+  // Before session.started the server does not accept commands
   if (Length(ResampledPCM16) = 0) or (not FSessionStarted) then Exit;
   J := TJSONObject.Create;
   J.AddPair('type', 'session.input_audio.append');
@@ -1494,12 +1494,12 @@ end;
 
 procedure TAiOpenAiLiveChat.InternalCommitAudio;
 begin
-  // Flujo continuo: no aplica
+  // Continuous stream: not applicable
 end;
 
 procedure TAiOpenAiLiveChat.InternalClearAudio;
 begin
-  // Flujo continuo: no aplica
+  // Continuous stream: not applicable
 end;
 
 initialization

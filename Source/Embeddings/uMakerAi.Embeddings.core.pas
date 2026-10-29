@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr�quez
+// Name: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -66,14 +66,14 @@ TAiEmbeddingDataRec = record
   private
     FData: TAiEmbeddingData;
   public
-    // --- Constructores y conversiones ---
+    // --- Constructors and conversions ---
     class function FromArray(const A: TAiEmbeddingData): TAiEmbeddingDataRec; static;
     function ToArray: TAiEmbeddingData;
 
-    // --- Propiedades ---
+    // --- Properties ---
     property Data: TAiEmbeddingData read FData write FData;
 
-    // --- Operadores sobrecargados ---
+    // --- Overloaded operators ---
     class operator Add(const A, B: TAiEmbeddingDataRec): TAiEmbeddingDataRec;
     class operator Subtract(const A, B: TAiEmbeddingDataRec): TAiEmbeddingDataRec;
     class operator Multiply(const A: TAiEmbeddingDataRec; const Scalar: Double): TAiEmbeddingDataRec; overload;
@@ -84,7 +84,7 @@ TAiEmbeddingDataRec = record
     Class function StringToEmbedding(Const AVectorString: String): TAiEmbeddingData; static;
     Class Function EmbeddingToString(Const AEmbedding : TAiEmbeddingData) : String; static;
 
-    // --- M�todos �tiles ---
+    // --- Useful methods ---
     function Magnitude: Double;
     procedure Normalize;
   end;
@@ -246,16 +246,16 @@ begin
   bestScore := -2.0; // Start lower than any possible cosine similarity (-1 to 1).
   Result.Index := -1;
 
-  // OPTIMIZACI�N: Calcular la magnitud del Query UNA SOLA VEZ fuera del bucle.
+  // OPTIMIZATION: Calculate Query magnitude ONCE outside the loop.
   QueryMag := Magnitude(Query);
 
-  // Si el Query es un vector cero, no Can be buscar similitud.
+  // If the Query is a zero vector, cannot search for similarity.
   if QueryMag = 0 then Exit;
 
   for i := 0 to High(Candidates) do
   begin
-    // Calculamos los componentes manualmente para aprovechar el QueryMag pre-calculado
-    // en lugar de llamar a CosineSimilarity() que lo recalcular�a.
+    // We calculate the components manually to take advantage of the pre-calculated QueryMag
+    // instead of calling CosineSimilarity() which would recalculate it.
     Dot := DotProduct(Query, Candidates[i]);
 
     if IsZero(Dot) then
@@ -291,7 +291,7 @@ var
 begin
   AllResults := TList<TAiSimilarityResult>.Create;
   try
-    // OPTIMIZACI�N: Pre-calcular magnitud del Query
+    // OPTIMIZATION: Pre-calculate Query magnitude
     QueryMag := Magnitude(Query);
 
     for i := 0 to High(Candidates) do
@@ -299,7 +299,7 @@ begin
       aResult.Index := i;
       aResult.Vector := Candidates[i];
 
-      // L�gica de similitud optimizada inline
+      // Optimized similarity logic inline
       if QueryMag = 0 then
         aResult.Score := 0
       else
@@ -320,18 +320,17 @@ begin
       AllResults.Add(aResult);
     end;
 
-    // Ordenar resultados por Score descendente
+    // Sort results by Score descending
     AllResults.Sort(TComparer<TAiSimilarityResult>.Construct(
       function(const L, R: TAiSimilarityResult): Integer
       begin
         Result := CompareValue(R.Score, L.Score);
       end));
 
-    // OPTIMIZACI�N DE MEMORIA:
-    // En lugar de hacer Copy() sobre el array (que duplica memoria),
-    // recortamos la lista si it is necessary y devolvemos su array directo.
+    // MEMORY OPTIMIZATION: Instead of doing Copy() on the array (which duplicates memory),
+    // we trim the list if necessary and return its direct array.
     if K < AllResults.Count then
-      AllResults.Count := K; // Esto elimina el exceso de elementos internamente
+      AllResults.Count := K; // This removes excess elements internally
 
     Result := AllResults.ToArray;
 
@@ -374,15 +373,15 @@ class function TAiEmbeddingsCore.CosineSimilarity(const A, B: TAiEmbeddingData):
 var
   MagA, MagB, Dot: Double;
 begin
-  // 1. Calcular Producto Punto
+  // 1. Calculate Dot Product
   Dot := DotProduct(A, B);
 
-  // Optimizaci�n: Si los vectores son ortogonales (dot=0), la similitud es 0.
-  // Esto evita calcular ra�ces cuadradas costosas innecesariamente.
+  // OPTIMIZATION: If vectors are orthogonal (dot=0), similarity is 0.
+  // This avoids calculating expensive square roots unnecessarily.
   if IsZero(Dot) then
     Exit(0.0);
 
-  // 2. Calcular Magnitudes
+  // 2. Calculate Magnitudes
   MagA := Magnitude(A);
   MagB := Magnitude(B);
 
@@ -456,7 +455,7 @@ class operator TAiEmbeddingDataRec.Add(const A, B: TAiEmbeddingDataRec): TAiEmbe
 var
   I: Integer;
 begin
-  Assert(Length(A.FData) = Length(B.FData), 'Vectores de distinta dimensi�n');
+  Assert(Length(A.FData) = Length(B.FData), 'Vectors of different dimensions');
   SetLength(Result.FData, Length(A.FData));
   for I := 0 to High(A.FData) do
     Result.FData[I] := A.FData[I] + B.FData[I];
@@ -473,30 +472,30 @@ begin
   if AVectorString.IsEmpty or (AVectorString = '[]') then
     Exit;
 
-  // 1. Limpiar el string, quitando los corchetes
+  // 1. Clean the string, removing brackets
   CleanedString := AVectorString.Trim(['[', ']']);
   if CleanedString.IsEmpty then
     Exit;
 
-  // 2. Separar los valores por la coma
+  // 2. Separate values by comma
   ValueStrings := CleanedString.Split([',']);
 
-  // 3. Preparar for the conversi�n de float insensible a la localizaci�n
-  // Esto asegura que el '.' siempre se interprete como el separador decimal.
+  // 3. Prepare for locale-insensitive float conversion.
+  // This ensures '.' is always interpreted as the decimal separator.
   FormatSettings := TFormatSettings.Invariant;
 
-  // 4. Convertir cada valor y a�adirlo al resultado
+  // 4. Convert each value and add to result
   SetLength(Result, Length(ValueStrings));
   for I := 0 to High(ValueStrings) do
   begin
-    // Usamos TryStrToFloat para m�s seguridad contra datos mal formados
+    // Use TryStrToFloat for more safety against malformed data
     if TryStrToFloat(ValueStrings[I], Result[I], FormatSettings) then
     begin
-      // La conversi�n fue exitosa, continuar.
+      // Conversion successful, continue.
     end
     else
     begin
-      Result[I] := 0.0; // O manejar el error como se prefiera
+      Result[I] := 0.0; // Or handle error as preferred
     end;
   end;
 end;
@@ -508,25 +507,25 @@ var
   FormatSettings: TFormatSettings;
   StringBuilder: TStringBuilder;
 begin
-  // Si el array est� vac�o, devolver '[]'
+  // If the array is empty, return '[]'
   if Length(AEmbedding) = 0 then
   begin
     Result := '[]';
     Exit;
   end;
 
-  // Preparar FormatSettings para usar punto como separador decimal
+  // Prepare FormatSettings to use point as decimal separator
   FormatSettings := TFormatSettings.Invariant;
 
-  // Usar StringBuilder para mejor performance con strings largos
+  // Use StringBuilder for better performance with long strings
   StringBuilder := TStringBuilder.Create;
   try
     StringBuilder.Append('[');
 
-    // Agregar el primer elemento
+    // Add the first element
     StringBuilder.Append(FloatToStr(AEmbedding[0], FormatSettings));
 
-    // Agregar los elementos restantes con coma
+    // Add the remaining elements with comma
     for I := 1 to High(AEmbedding) do
     begin
       StringBuilder.Append(',');
@@ -545,7 +544,7 @@ class operator TAiEmbeddingDataRec.Subtract(const A, B: TAiEmbeddingDataRec): TA
 var
   I: Integer;
 begin
-  Assert(Length(A.FData) = Length(B.FData), 'Vectores de distinta dimensi�n');
+  Assert(Length(A.FData) = Length(B.FData), 'Vectors of different dimensions');
   SetLength(Result.FData, Length(A.FData));
   for I := 0 to High(A.FData) do
     Result.FData[I] := A.FData[I] - B.FData[I];
@@ -564,7 +563,7 @@ class operator TAiEmbeddingDataRec.Multiply(const A, B: TAiEmbeddingDataRec): Do
 var
   I: Integer;
 begin
-  Assert(Length(A.FData) = Length(B.FData), 'Vectores de distinta dimensi�n');
+  Assert(Length(A.FData) = Length(B.FData), 'Vectors of different dimensions');
   Result := 0;
   for I := 0 to High(A.FData) do
     Result := Result + (A.FData[I] * B.FData[I]);
@@ -574,7 +573,7 @@ class operator TAiEmbeddingDataRec.Divide(const A: TAiEmbeddingDataRec; const Sc
 var
   I: Integer;
 begin
-  Assert(Scalar <> 0, 'Divisi�n por cero');
+  Assert(Scalar <> 0, 'Division by zero');
   SetLength(Result.FData, Length(A.FData));
   for I := 0 to High(A.FData) do
     Result.FData[I] := A.FData[I] / Scalar;
@@ -599,7 +598,7 @@ end;
 
 function TAiEmbeddingDataRec.Magnitude: Double;
 begin
-  Result := Sqrt(Self * Self); // usa el dot product
+  Result := Sqrt(Self * Self); // uses the dot product
 end;
 
 procedure TAiEmbeddingDataRec.Normalize;
@@ -615,5 +614,3 @@ end;
 
 
 end.
-
-

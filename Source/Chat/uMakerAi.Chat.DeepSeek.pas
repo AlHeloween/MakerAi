@@ -22,8 +22,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enríquez
-// Redes Sociales:
+// Name: Gustavo Enríquez
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -53,7 +53,7 @@ Type
 
   TAiDeepSeekChat = Class(TAiChat)
   Private
-    FTmpReasoning: String; // Acumula reasoning_content durante streaming SSE (deepseek-reasoner)
+    FTmpReasoning: String; // Accumulates reasoning_content during SSE streaming (deepseek-reasoner)
   Protected
     Function InitChatCompletions: String; Override;
     Function InternalRunCompletions(ResMsg, AskMsg: TAiChatMessage): String; Override;
@@ -72,16 +72,16 @@ procedure Register;
 
 implementation
 
-// Modelos de la era V4 que aceptan el bloque 'thinking'. Se listan
-// explicitamente porque el API cambio de nombre en sep 2026: el canonico es
-// 'deepseek-flash' y 'deepseek-v4-flash' quedo como alias legacy. Los alias en
-// gracia (deepseek-chat / deepseek-reasoner) tambien enrutan a deepseek-flash
-// y aceptan el parametro (verificado runtime sep-2026). Si el modelo no esta
-// aqui no se envia 'thinking' y manda el default del API (thinking ON).
+// Models of the V4 era that accept the 'thinking' block. They are listed
+// explicitly because the API changed name in Sep 2026: the canonical name is
+// 'deepseek-flash' and 'deepseek-v4-flash' remains as a legacy alias. The
+// legacy aliases (deepseek-chat / deepseek-reasoner) also route to deepseek-flash
+// and accept the parameter (verified at runtime Sep-2026). If the model is not
+// here then 'thinking' is not sent and the API default (thinking ON) is used.
 function ModelSupportsThinking(const AModel: String): Boolean;
 begin
   Result := StartsText('deepseek-v4', AModel)      // deepseek-v4-pro / legacy v4-flash
-         or StartsText('deepseek-flash', AModel)   // canonico desde sep 2026
+         or StartsText('deepseek-flash', AModel)   // canonical since Sep 2026
          or SameText(AModel, 'deepseek-chat')
          or SameText(AModel, 'deepseek-reasoner');
 end;
@@ -120,9 +120,9 @@ begin
   inherited;
   ApiKey := '@DEEPSEEK_API_KEY';
 
-  // deepseek-chat/deepseek-reasoner retirados oficialmente el 24 jul 2026.
-  // sep 2026: el nombre canonico es 'deepseek-flash'; 'deepseek-v4-flash'
-  // sigue aceptado como alias legacy pero ese modelo fue retirado.
+  // deepseek-chat/deepseek-reasoner officially retired on Jul 24, 2026.
+  // Sep 2026: the canonical name is 'deepseek-flash'; 'deepseek-v4-flash'
+  // remains accepted as a legacy alias but that model has been retired.
   Model := 'deepseek-flash';
   Url := GlAIUrl;
 end;
@@ -171,7 +171,7 @@ begin
       JArr := TJSonArray(TJSonArray.ParseJSONValue(GetTools(TToolFormat.tfOpenAi).Text));
 {$ENDIF}
       If Not Assigned(JArr) then
-        Raise Exception.Create('La propiedad Tools están mal definido, debe ser un JsonArray');
+        Raise Exception.Create('The Tools property is malformed, it must be a JsonArray');
       AJSONObject.AddPair('tools', JArr);
 
       If (Trim(Tool_choice) <> '') then
@@ -191,11 +191,11 @@ begin
 
     AJSONObject.AddPair('model', LModel);
 
-    // V4 (abr 2026): el API trae thinking ACTIVADO por defecto con effort=high.
-    // El driver lo controla explicitamente: cap_Reasoning activa el modo thinking
-    // (reasoning_effort segun ThinkingLevel); sin el cap se envia disabled para
-    // conservar el comportamiento rapido/economico tipo deepseek-chat.
-    // En modo thinking el API ignora temperature/top_p/penalties (sin error).
+    // V4 (Apr 2026): the API has thinking ENABLED by default with effort=high.
+    // The driver controls it explicitly: cap_Reasoning enables thinking mode
+    // (reasoning_effort according to ThinkingLevel); without the cap it sends disabled
+    // to preserve the fast/cheap behavior like deepseek-chat.
+    // In thinking mode the API ignores temperature/top_p/penalties (no error).
     if ModelSupportsThinking(LModel) then
     begin
       var jThinking := TJSonObject.Create;
@@ -206,7 +206,7 @@ begin
           tlLow:    AJSONObject.AddPair('reasoning_effort', 'low');
           tlMedium: AJSONObject.AddPair('reasoning_effort', 'high');
           tlHigh:   AJSONObject.AddPair('reasoning_effort', 'max');
-          // tlDefault: no se envia, el API usa high
+          // tlDefault: not sent, API uses high
         end;
       end
       else
@@ -260,9 +260,9 @@ end;
 
 function TAiDeepSeekChat.InternalRunCompletions(ResMsg, AskMsg: TAiChatMessage): String;
 begin
-  FTmpReasoning := ''; // Resetear antes de cada nueva petición
-  // A cero en cada peticion: sin esto un turno sin usage en sus chunks
-  // heredaria los contadores del turno anterior e inflaria el consumo.
+  FTmpReasoning := ''; // Reset before each new request
+  // Reset to zero on each request: without this a turn without usage in its chunks
+  // would inherit counters from the previous turn and inflate consumption.
   FStreamPromptTokens := 0;
   FStreamCompletionTokens := 0;
   FStreamFinishReason := '';
@@ -276,8 +276,8 @@ var
   Msg: TAiChatMessage;
 begin
   Result := inherited GetMessages;
-  // Para deepseek-reasoner: el mensaje del asistente con tool_calls DEBE incluir
-  // reasoning_content en el historial. TAiChatMessages.ToJSon no lo serializa por defecto.
+  // For deepseek-reasoner: the assistant message with tool_calls MUST include
+  // reasoning_content in the history. TAiChatMessages.ToJSon does not serialize it by default.
   if Self.Messages.Count <> Result.Count then Exit;
   for I := 0 to Self.Messages.Count - 1 do
   begin
@@ -293,7 +293,7 @@ end;
 
 procedure TAiDeepSeekChat.OnInternalReceiveData(const Sender: TObject; AContentLength, AReadCount: Int64; var AAbort: Boolean);
 Var
-  // Variables compartidas entre el cuerpo principal y ProcessLine (closure)
+  // Shared variables between the main body and ProcessLine (closure)
   jObj, Delta: TJSonObject;
   JToolCalls: TJSonArray;
   sJson, Value, Role1: String;
@@ -310,8 +310,8 @@ Var
   TempMsg: TAiChatMessage;
   jArrChoices: TJSonArray;
 
-  // Copia exacta del ProcessLine del base class (TAiChat.OnInternalReceiveData).
-  // Maneja SSE delta y [DONE] con reconstrucción de tool_calls.
+  // Exact copy of ProcessLine from the base class (TAiChat.OnInternalReceiveData).
+  // Handles SSE delta and [DONE] with tool_calls reconstruction.
   Procedure ProcessLine(ALine: String);
   Begin
     if ALine = '' then Exit;
@@ -321,7 +321,7 @@ Var
     if ALine = '' then Exit;
 
     // -------------------------------------------------------------------
-    // CASO 1: [DONE] — fin de stream SSE
+    // CASE 1: [DONE] — end of SSE stream
     // -------------------------------------------------------------------
     if ALine = '[DONE]' then
     Begin
@@ -353,7 +353,7 @@ Var
         FakeResponseObj.AddPair('id', 'stream-' + IntToStr(TThread.GetTickCount));
         FakeResponseObj.AddPair('model', Model);
         FakeUsage := TJSonObject.Create;
-        // Los tokens vistos en el stream, no ceros: ver la captura en ProcessLine.
+        // The tokens seen in the stream, not zeros: see capture in ProcessLine.
         FakeUsage.AddPair('prompt_tokens', TJSONNumber.Create(FStreamPromptTokens));
         FakeUsage.AddPair('completion_tokens', TJSONNumber.Create(FStreamCompletionTokens));
         FakeUsage.AddPair('total_tokens', TJSONNumber.Create(FStreamPromptTokens + FStreamCompletionTokens));
@@ -367,7 +367,7 @@ Var
         if FLastContent <> '' then
           FakeMsg.AddPair('content', FLastContent);
         if FTmpReasoning <> '' then
-          FakeMsg.AddPair('reasoning_content', FTmpReasoning); // Requerido por deepseek-reasoner en tool_calls
+          FakeMsg.AddPair('reasoning_content', FTmpReasoning); // Required by deepseek-reasoner in tool_calls
         if sToolCallsStr <> '' then
           FakeMsg.AddPair('tool_calls', TJSonArray(TJSonObject.ParseJSONValue(sToolCallsStr)));
         FakeChoice.AddPair('message', FakeMsg);
@@ -380,24 +380,24 @@ Var
         FakeResponseObj.AddPair('choices', FakeChoicesArr);
         TempMsg := TAiChatMessage.Create('', FTmpRole);
         try
-          // Si hay tool_calls, forzamos Asynchronous=True antes de ParseChat.
-          // Esto evita que cambios externos (ParamsChanged, etc.) hayan
-          // puesto FAsynchronous=False y el segundo round salga con stream=false.
+          // If there are tool_calls, force Asynchronous=True before ParseChat.
+          // This prevents external changes (ParamsChanged, etc.) from having
+          // set FAsynchronous=False and causing the second round to come out with stream=false.
           if sToolCallsStr <> '' then
             Self.Asynchronous := True;
-          // Mismo fix que en TAiChat: ParseChat vuelve a sumar a FLastContent el
-          // content del mensaje sintetico (que ES FLastContent) y OnReceiveDataEnd
-          // recibia el texto duplicado. Sin content se conserva el fallback a reasoning.
+          // Same fix as in TAiChat: ParseChat again adds to FLastContent the
+          // content of the synthetic message (which IS FLastContent) and OnReceiveDataEnd
+          // received the duplicated text. Without content, the fallback to reasoning is kept.
           var LStreamedContent := FLastContent;
           ParseChat(FakeResponseObj, TempMsg);
           if LStreamedContent <> '' then
             FLastContent := LStreamedContent;
           if sToolCallsStr = '' then
           begin
-            // En async, ParseChat NO dispara FOnReceiveDataEnd/acsFinished (guard
-            // 'if not FClient.Asynchronous' del base, fix #99). El handler [DONE] es
-            // el responsable de emitir el evento final aquí (igual que el base y el
-            // path JSON stream=false de este mismo driver).
+            // In async, ParseChat does NOT trigger FOnReceiveDataEnd/acsFinished (guard
+            // 'if not FClient.Asynchronous' in base, fix #99). The [DONE] handler is
+            // responsible for emitting the final event here (same as the base and the
+            // JSON stream=false path of this same driver).
             if FMessages.IndexOf(TempMsg) = -1 then
             begin
               TempMsg.Id := FMessages.Count + 1;
@@ -406,15 +406,15 @@ Var
             DoStateChange(acsFinished, 'Done');
             if Assigned(FOnReceiveDataEnd) then
               FOnReceiveDataEnd(Self, TempMsg, Nil, FTmpRole, FLastContent);
-            TempMsg := nil; // propiedad de FMessages
+            TempMsg := nil; // owned by FMessages
           end
           else
           begin
-            // Tool calls: ParseChat (base) ejecutó las herramientas y dejó
-            // FPendingToolRun=True; la continuación (segundo round async) la difiere
-            // OnRequestCompletedEvent del base. El segundo round emitirá su propio
-            // evento final. No ponemos FBusy=False aquí: el turno sigue activo.
-            DoStateChange(acsToolCalling, 'Ejecutando tools, segundo round en proceso...');
+            // Tool calls: ParseChat (base) executed the tools and left
+            // FPendingToolRun=True; the continuation (second async round) is deferred
+            // by the base's OnRequestCompletedEvent. The second round will emit its own
+            // final event. We do not set FBusy=False here: the turn is still active.
+            DoStateChange(acsToolCalling, 'Executing tools, second round in progress...');
           end;
         finally
           if Assigned(TempMsg) then TempMsg.Free;
@@ -423,14 +423,14 @@ Var
         FakeResponseObj.Free;
       end;
       if sToolCallsStr = '' then
-        FBusy := False; // texto: todo terminó
-      // tool_calls: FBusy sigue True — lo cierra el segundo round
-      FTmpReasoning := ''; // Limpiar para el próximo round o próxima petición
+        FBusy := False; // text: everything finished
+      // tool_calls: FBusy remains True — closed by the second round
+      FTmpReasoning := ''; // Clear for the next round or next request
       Exit;
     End;
 
     // -------------------------------------------------------------------
-    // CASO 2: JSON estándar SSE con delta
+    // CASE 2: Standard SSE JSON with delta
     // -------------------------------------------------------------------
     var LParsedLine := TJSonObject.ParseJSONValue(ALine);
     if not (LParsedLine is TJSonObject) then
@@ -443,7 +443,7 @@ Var
       jArrChoices := jObj.GetValue<TJSonArray>('choices');
       if (jArrChoices <> nil) and (jArrChoices.Count > 0) then
       begin
-        // Se queda el finish_reason real del proveedor para el cierre sintetico.
+        // Keep the real finish_reason from the provider for the synthetic closure.
         var sChunkFinish: string := '';
         if jArrChoices.Items[0].TryGetValue<string>('finish_reason', sChunkFinish) and (sChunkFinish <> '') then
           FStreamFinishReason := sChunkFinish;
@@ -458,7 +458,7 @@ Var
           if Delta.TryGetValue<String>('reasoning', Value) or
              Delta.TryGetValue<String>('reasoning_content', Value) then
           begin
-            FTmpReasoning := FTmpReasoning + Value; // Acumular para incluir en historial
+            FTmpReasoning := FTmpReasoning + Value; // Accumulate to include in history
             if (Value <> '') and Assigned(OnReceiveThinking) then
             begin
               Value := StringReplace(Value, #$A, sLineBreak, [rfReplaceAll]);
@@ -531,10 +531,10 @@ Var
         end;
       end;
 
-      // Usage real del turno. Llega en un chunk con choices vacio, justo antes
-      // de [DONE], asi que se lee a nivel raiz y NO dentro del if de choices.
-      // Sin esto el cierre sintetico de abajo rellenaba ceros y todo el trafico
-      // DeepSeek en streaming se contabilizaba (y se facturaba) a cero.
+      // Real usage of the turn. It arrives in a chunk with empty choices, just before
+      // [DONE], so it is read at the root level and NOT inside the if of choices.
+      // Without this the synthetic closure below filled zeros and all DeepSeek
+      // traffic in streaming was counted (and billed) as zero.
       var JStreamUsage: TJSonObject;
       if jObj.TryGetValue<TJSonObject>('usage', JStreamUsage) and Assigned(JStreamUsage) then
       begin
@@ -550,17 +550,17 @@ Var
 
 begin
   LogDebug('--OnInternalReceiveData DeepSeek--');
-  // ISSUE #124: el log no debe abortar el stream si el chunk termina en un caracter
-  // UTF-8 incompleto; la acumulacion de abajo ya esta protegida por su try/except.
+  // ISSUE #124: the log must not abort the stream if the chunk ends with an incomplete
+  // UTF-8 character; the accumulation below is already protected by its try/except.
   try
     var LDbgBody := FResponse.DataString;
     if Length(LDbgBody) > 500 then
-      LogDebug(Copy(LDbgBody, 1, 500) + '...[truncado]')
+      LogDebug(Copy(LDbgBody, 1, 500) + '...[truncated]')
     else
       LogDebug(LDbgBody);
   except
     on EEncodingError do
-      LogDebug('[chunk UTF-8 parcial - log omitido]');
+      LogDebug('[partial UTF-8 chunk - log omitted]');
   end;
 
   If FClient.Asynchronous = False then Exit;
@@ -582,10 +582,10 @@ begin
     FResponse.Clear;
 
     // -------------------------------------------------------------------
-    // BLOQUE DEEPSEEK: JSON completo con choices[0].message
-    // Cuando DeepSeek usa stream=false con FClient.Asynchronous=True, la
-    // respuesta llega como un objeto JSON completo (no líneas SSE con delta).
-    // Lo detectamos al inicio para procesarlo directamente.
+    // DEEPSEEK BLOCK: Complete JSON with choices[0].message
+    // When DeepSeek uses stream=false with FClient.Asynchronous=True, the
+    // response arrives as a complete JSON object (not SSE lines with delta).
+    // We detect it at the beginning to process it directly.
     // -------------------------------------------------------------------
     sJson := Trim(FTmpResponseText);
     if StartsStr('{', sJson) then
@@ -617,7 +617,7 @@ begin
                 ParseChat(LJObj, TempMsg);
                 if LFinishReason <> 'tool_calls' then
                 begin
-                  // Respuesta de texto: agregar al historial
+                  // Text response: add to history
                   if FMessages.IndexOf(TempMsg) = -1 then
                   begin
                     TempMsg.Id := FMessages.Count + 1;
@@ -626,19 +626,19 @@ begin
                   DoStateChange(acsFinished, 'Done');
                   if Assigned(FOnReceiveDataEnd) then
                     FOnReceiveDataEnd(Self, TempMsg, Nil, FTmpRole, FLastContent);
-                  TempMsg := nil; // propiedad de FMessages
+                  TempMsg := nil; // owned by FMessages
                 end
                 else
                 begin
-                  // Tool calls: ParseChat (base) ejecutó herramientas y dejó
-                  // FPendingToolRun=True; el segundo round async lo difiere
-                  // OnRequestCompletedEvent del base. No disparar evento aquí.
-                  DoStateChange(acsToolCalling, 'Segundo round en proceso...');
+                  // Tool calls: ParseChat (base) executed the tools and left
+                  // FPendingToolRun=True; the second async round defers it to
+                  // OnRequestCompletedEvent of the base. Do not fire event here.
+                  DoStateChange(acsToolCalling, 'Second round in progress...');
                 end;
               finally
                 if Assigned(TempMsg) then TempMsg.Free;
               end;
-              Exit; // JSON DeepSeek procesado — no continuar con flujo SSE
+              Exit; // DeepSeek JSON processed — do not continue with SSE flow
             end;
           end;
         finally
@@ -650,10 +650,10 @@ begin
     end;
 
     // -------------------------------------------------------------------
-    // FLUJO SSE ESTÁNDAR (stream=true, delta por líneas)
+    // STANDARD SSE FLOW (stream=true, delta by lines)
     // -------------------------------------------------------------------
 
-    // 1. Bucle principal: procesa líneas completas terminadas en #10
+    // 1. Main loop: process complete lines terminated by #10
     while Pos(#10, FTmpResponseText) > 0 do
     begin
       P := Pos(#10, FTmpResponseText);
@@ -662,7 +662,7 @@ begin
       ProcessLine(sJson);
     end;
 
-    // 2. Borde de seguridad: [DONE] sin salto de línea final
+    // 2. Safety edge: [DONE] without final line break
     sJson := Trim(FTmpResponseText);
     if (sJson = '[DONE]') or (sJson = 'data: [DONE]') then
     begin
@@ -671,7 +671,7 @@ begin
     end;
 
   Except
-    // Manejo de errores silencioso para stream (igual que base class)
+    // Silent error handling for stream (same as base class)
   End;
 end;
 

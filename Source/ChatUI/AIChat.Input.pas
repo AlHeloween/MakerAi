@@ -219,7 +219,7 @@ type
     procedure UploadFile;
     procedure CaptureScreen;
 
-    // ── Drag & drop de archivos desde el explorador ─────────────────────────
+    // ── File drag & drop from explorer ─────────────────────────────────────
     function  DragHasValidFiles(const Data: TDragObject): Boolean;
     procedure HandleFilesDrop(const Data: TDragObject);
     procedure MemoDragOver(Sender: TObject; const Data: TDragObject;
@@ -588,12 +588,12 @@ procedure TAIChatInput.MemoStyleApplied(Sender: TObject);
 var
   Bg: TFmxObject;
 begin
-  // Hacer transparente el fondo rectangular del memo para que se vea el
-  // contenedor redondeado dibujado por Skia. Usamos Opacity:=0 y NO Visible:=False:
-  // un elemento de estilo con Visible=False queda excluido del layout de FMX, y el
-  // viewport de texto del memo (dimensionado respecto a 'background') deja de seguir
-  // la altura del control -> el texto se quedaba pegado arriba sin crecer. Con
-  // Opacity:=0 el fondo no se ve pero el layout del memo queda intacto.
+  // Make the memo’s rectangular background transparent so the rounded
+  // container drawn by Skia is visible. We use Opacity:=0 and NOT Visible:=False:
+  // a style element with Visible=False is excluded from FMX layout, and the
+  // memo’s text viewport (sized relative to 'background') no longer follows
+  // the control’s height -> the text would stay stuck at the top without growing.
+  // With Opacity:=0 the background is invisible but the memo’s layout remains intact.
   Bg := FMemo.FindStyleResource('background');
   if Bg is TActiveStyleObject then
     TActiveStyleObject(Bg).Opacity := 0;
@@ -611,18 +611,18 @@ begin
   FMemo.Parent                 := Self;
   FMemo.Stored                 := False;
   FMemo.DisableFocusEffect     := True;
-  // WordWrap: el texto se envuelve dentro del ancho del memo (sin scroll
-  // horizontal) y cada linea envuelta cuenta para ContentBounds.Height, que
-  // es lo que UpdateLayout usa para crecer el contenedor verticalmente.
+  // WordWrap: text wraps within the memo width (no horizontal scroll)
+  // and each wrapped line counts toward ContentBounds.Height, which is
+  // what UpdateLayout uses to grow the container vertically.
   FMemo.WordWrap               := True;
   FMemo.TextSettings.WordWrap  := True;
-  // Anclar a los 4 lados: cuando el contenedor crece (Align=Bottom) el realineo
-  // estira el memo en lugar de revertir la altura que pone UpdateMemoPos. Con
-  // solo [akLeft,akTop] el sistema de anclas dejaba el memo en su tamano original.
+  // Anchor to all four sides: when the container grows (Align=Bottom) the realignment
+  // stretches the memo instead of reverting the height set by UpdateMemoPos. With
+  // only [akLeft,akTop] the anchoring system left the memo at its original size.
   FMemo.Anchors                := [TAnchorKind.akLeft, TAnchorKind.akTop,
                                    TAnchorKind.akRight, TAnchorKind.akBottom];
-  // El memo tapa el centro del control; reenviamos su drag-drop al mismo manejo
-  // de archivos para que soltar sobre el area de texto tambien adjunte.
+  // The memo covers the center of the control; we forward its drag-drop to the same
+  // file handling so that dropping on the text area also attaches files.
   FMemo.OnDragOver             := MemoDragOver;
   FMemo.OnDragDrop             := MemoDragDrop;
   FMemo.OnChange               := MemoChange;
@@ -1194,13 +1194,13 @@ procedure TAIChatInput.MemoKeyDown(Sender: TObject; var Key: Word;
 begin
   if Key = vkReturn then
   begin
-    // Ctrl+Enter siempre envía
+    // Ctrl+Enter always sends
     if ssCtrl in Shift then
     begin
       Key := 0;
       DoSend;
     end
-    // Enter sin modificadores envía solo cuando EnterAsSend = True
+    // Enter without modifiers sends only when EnterAsSend = True
     else if FEnterAsSend and (Shift = []) then
     begin
       Key := 0;
@@ -1410,7 +1410,7 @@ begin
 end;
 {$ENDIF}
 
-// ── Drag & drop de archivos ─────────────────────────────────────────────────────
+// ── File drag & drop from explorer ─────────────────────────────────────────────
 
 function TAIChatInput.DragHasValidFiles(const Data: TDragObject): Boolean;
 var
@@ -1419,7 +1419,7 @@ var
 begin
   Result := False;
   if Length(Data.Files) = 0 then Exit;
-  // Sin lista de extensiones configurada se acepta cualquier archivo.
+  // Without a configured extension list, accept any file.
   if FValidExtensions = '' then Exit(True);
   for I := 0 to High(Data.Files) do
   begin
@@ -1432,7 +1432,7 @@ procedure TAIChatInput.HandleFilesDrop(const Data: TDragObject);
 var
   I: Integer;
 begin
-  // AddAttachment ya valida existencia y extension, y refresca el layout.
+  // AddAttachment already validates existence and extension, and refreshes layout.
   for I := 0 to High(Data.Files) do
     AddAttachment(Data.Files[I]);
 end;

@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -47,7 +47,7 @@ uses
   uMakerAi.Chat;
 
 const
-  // Claves de metadata para chunks de documento
+  // Metadata keys for document chunks
   DOCMETA_ORDER         = 'doc_order';
   DOCMETA_NAME          = 'doc_part_name';
   DOCMETA_LABEL         = 'doc_part_label';
@@ -58,16 +58,16 @@ const
   DOCMETA_DOCUMENT_NAME = 'doc_document_name';
   DOCMETA_ORIGINAL_TEXT = 'doc_original_text';
 
-  // Etiquetas de aristas
+  // Edge labels
   EDGE_EXTRACTED_FROM         = 'EXTRACTED_FROM';
   EDGEPROP_SOURCE_CHUNK_INDEX = 'source_chunk_index';
 
-  // Etiqueta By default para nodos de documento
+  // Default label for document nodes
   NODELABEL_DOCUMENT = 'Document';
 
 type
 
-  { TDocumentPart - Representa una parte/section de un documento }
+  { TDocumentPart - Represents a part/section of a document }
   TDocumentPart = record
     Name: string;
     PartLabel: string;
@@ -80,7 +80,7 @@ type
     Properties: TJSONObject;
   end;
 
-  { TDocumentContext - Contexto completo de un documento para LLM }
+  { TDocumentContext - Full context of a document for LLM }
   TDocumentContext = record
     DocumentNode: TAiRagGraphNode;
     MatchedParts: TArray<TDocumentPart>;
@@ -91,7 +91,7 @@ type
     function GetContextText: string;
   end;
 
-  { TDocumentSearchResult - Resultado de search agrupado por documento }
+  { TDocumentSearchResult - Search result grouped by document }
   TDocumentSearchResult = record
     DocumentNode: TAiRagGraphNode;
     MatchingChunks: TArray<TAiEmbeddingNode>;
@@ -142,7 +142,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    // --- Ingesta ---
+    // --- Ingestion ---
     function AddDocument(const AName, AText: string;
       const ADocLabel: string = '';
       AProperties: TJSONObject = nil): TAiRagGraphNode;
@@ -151,20 +151,20 @@ type
     function AddDocumentsFromJSONArray(const AJSON: string): Integer; overload;
     function AddDocumentsFromJSONArray(AArr: TJSONArray): Integer; overload;
 
-    // --- Extraction de relaciones (LLM) ---
+    // --- Relationship extraction (LLM) ---
     function ExtractRelationships(ADocNode: TAiRagGraphNode): Integer;
 
-    // --- Extraction de entidades (LLM) - Fase 1 ---
+    // --- Entity extraction (LLM) - Phase 1 ---
     function ExtractEntitiesOnly(ADocNode: TAiRagGraphNode): Integer;
 
-    // --- Extraction de relaciones con contexto (LLM) - Fase 2 ---
+    // --- Relationship extraction with context (LLM) - Phase 2 ---
     function ExtractRelationshipsWithContext(ADocNode: TAiRagGraphNode): Integer;
 
-    // --- management manual de relaciones ---
+    // --- Manual relationship management ---
     function AddEdge(AFromNode, AToNode: TAiRagGraphNode;
       const AEdgeLabel: string; const AEdgeName: string = ''): TAiRagGraphEdge;
 
-    // --- Consulta de entidades ---
+    // --- Entity query ---
     function GetDocumentEntities(ADocNode: TAiRagGraphNode): TArray<TAiRagGraphNode>;
 
     // --- retrieval ---
@@ -179,7 +179,7 @@ type
     function SearchDocumentsText(const APrompt: string; ALimit: Integer = 5;
       APrecision: Double = 0.5): string;
 
-    // --- search VQL (Vector Query Language sobre chunks de documentos) ---
+    // --- search VQL (Vector Query Language over document chunks) ---
     function ExecuteVQL(const AVgqlQuery: string): string; overload;
     function ExecuteVQL(const AVgqlQuery: string;
       out AResultVector: TAiRAGVector): string; overload;
@@ -191,13 +191,13 @@ type
     function SearchDocumentsByVQL(const AVgqlQuery: string;
       ALimit: Integer = 5): TArray<TDocumentSearchResult>;
 
-    // --- search GQL (Graph Query Language sobre grafo de documentos) ---
+    // --- search GQL (Graph Query Language over document graph) ---
     function ExecuteGQL(const AGqlQuery: string): string; overload;
     function ExecuteGQL(const AGqlQuery: string;
       out AResultObjects: TArray<TDictionary<string, TObject>>;
       ADepth: Integer = 0): string; overload;
 
-    // --- Utilidades ---
+    // --- Utilities ---
     function GetAllDocuments: TArray<TAiRagGraphNode>;
     procedure DeleteDocument(ADocNode: TAiRagGraphNode);
 
@@ -252,7 +252,7 @@ var
 begin
   SB := TStringBuilder.Create;
   try
-    // Encabezado del documento
+    // Document header
     if DocumentNode <> nil then
     begin
       SB.AppendFormat('### DOCUMENT: %s (%s) ###', [DocumentNode.Name, DocumentNode.NodeLabel]);
@@ -260,7 +260,7 @@ begin
       SB.AppendLine;
     end;
 
-    // Partes ordenadas
+    // Ordered parts
     if Length(AllParts) > 0 then
     begin
       SB.AppendLine('--- DOCUMENT PARTS ---');
@@ -273,7 +273,7 @@ begin
       SB.AppendLine;
     end;
 
-    // Entidades extracteds
+    // Extracted entities
     if Length(Entities) > 0 then
     begin
       SB.AppendLine('--- ENTITIES ---');
@@ -298,7 +298,7 @@ begin
       SB.AppendLine;
     end;
 
-    // Relaciones
+    // Relationships
     if Length(Relations) > 0 then
     begin
       SB.AppendLine('--- RELATIONSHIPS ---');
@@ -328,7 +328,7 @@ begin
   FDefaultDocumentLabel := NODELABEL_DOCUMENT;
   FExtractionPrompt := TStringList.Create;
 
-  // Prompt By default para extraction de relaciones
+  // Default prompt for relationship extraction
   FExtractionPrompt.Text :=
     'Analyze the following text and extract all entities and relationships.' + sLineBreak +
     'Return a JSON array of triplets with this format:' + sLineBreak +
@@ -401,8 +401,8 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// ChunkText - fragmentation inteligente de texto
-// Port del algoritmo de TAiRAGVector.AddItemsFromPlainText
+// ChunkText - intelligent text fragmentation
+// Port of the TAiRAGVector.AddItemsFromPlainText algorithm
 // ---------------------------------------------------------------------------
 function TAiRagDocumentManager.ChunkText(const AText: string;
   AChunkSize, AOverlapPct: Integer): TArray<string>;
@@ -432,18 +432,18 @@ var
 
       C := TextTrimmed[K];
 
-      // Prioridad 1: Salto de line
+      // Priority 1: Line break
       if (C = #10) or (C = #13) then
       begin
         Result := K;
         Exit;
       end;
 
-      // Prioridad 2: scoring de fin de frase
+      // Priority 2: sentence-end scoring
       if CharInSet(C, ['.', '?', '!', ';']) and (LastPeriod = -1) then
         LastPeriod := K;
 
-      // Prioridad 3: Espacio
+      // Priority 3: Space
       if (C = ' ') and (LastSpace = -1) then
         LastSpace := K;
     end;
@@ -483,7 +483,7 @@ begin
     begin
       IdealEnd := StartPos + AChunkSize;
 
-      // Si lo que queda es menor que el chunk, tomamos todo
+      // If the remainder is smaller than the chunk, take it all
       if IdealEnd > TotalLen then
       begin
         ChunkStr := Copy(TextTrimmed, StartPos, TotalLen - StartPos + 1).Trim;
@@ -492,7 +492,7 @@ begin
         Break;
       end;
 
-      // Rango de tolerancia
+      // Tolerance range
       MinEnd := IdealEnd - Round(AChunkSize * TOLERANCE_PCT);
       MaxEnd := IdealEnd + Round(AChunkSize * TOLERANCE_PCT);
 
@@ -511,13 +511,13 @@ begin
       if ChunkStr <> '' then
         ResultList.Add(ChunkStr);
 
-      // calculation del siguiente paso con solapamiento
+      // Calculation of the next step with overlap
       NextStartPos := (CutPos + 1) - OverlapChars;
 
       if NextStartPos <= StartPos then
         NextStartPos := StartPos + 1;
 
-      // Ajuste de limit de palabra
+      // Word boundary adjustment
       if (NextStartPos > 1) and (NextStartPos < TotalLen) then
       begin
         while (NextStartPos > StartPos + 1) and
@@ -553,7 +553,7 @@ var
 begin
   SB := TStringBuilder.Create;
   try
-    SB.AppendFormat('Entidad: %s. Categoria: %s.', [AName, ALabel]);
+    SB.AppendFormat('Entity: %s. Category: %s.', [AName, ALabel]);
 
     if Assigned(AProperties) then
     begin
@@ -563,7 +563,7 @@ begin
           PropValue := Pair.JsonValue.Value
         else
           PropValue := Pair.JsonValue.ToJSON;
-        SB.AppendFormat(' La propiedad %s tiene el valor %s.', [Pair.JsonString.Value, PropValue]);
+        SB.AppendFormat(' The property %s has the value %s.', [Pair.JsonString.Value, PropValue]);
       end;
     end;
 
@@ -596,16 +596,16 @@ var
 begin
   LEmbeddings := FGraph.Embeddings;
 
-  // Texto contextualizado para embedding (incluye path hierarchical)
+  // Contextualized text for embedding (includes hierarchical path)
   ContextualText := GenerateContextualText(APath, AOriginalText);
 
-  // Generar embedding
+  // Generate embedding
   EmbData := LEmbeddings.CreateEmbedding(ContextualText, 'user');
 
-  // Crear chunk en el nodo documento
+  // Create chunk in the document node
   Chunk := ADocNode.AddChunk(ContextualText, EmbData);
 
-  // Metadata del chunk
+  // Chunk metadata
   Chunk.MetaData[DOCMETA_ORDER] := AOrder;
   Chunk.MetaData[DOCMETA_NAME] := AName;
   Chunk.MetaData[DOCMETA_LABEL] := ALabel;
@@ -618,7 +618,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// AddDocument - Ingesta de documento desde texto plano
+// AddDocument - Document ingestion from plain text
 // ---------------------------------------------------------------------------
 function TAiRagDocumentManager.AddDocument(const AName, AText: string;
   const ADocLabel: string; AProperties: TJSONObject): TAiRagGraphNode;
@@ -642,24 +642,24 @@ begin
   // Crear nodo documento
   Result := FGraph.NewNode(TGUID.NewGuid.ToString, DocLabel, AName);
 
-  // Texto descriptivo para embedding del nodo
+  // Descriptive text for node embedding
   NodeText := GenerateNodeEmbeddingText(AName, DocLabel, AProperties);
   Result.Text := NodeText;
   Result.Model := LEmbeddings.Model;
   Result.Data := LEmbeddings.CreateEmbedding(NodeText, 'user');
 
-  // Aplicar propiedades opcionales
+  // Apply optional properties
   if Assigned(AProperties) then
     ApplyProperties(Result, AProperties);
 
-  // Guardar texto original completo en TagString para reconstruction
+  // Save full original text in TagString for reconstruction
   Result.MetaData.TagString := AText;
 
   FGraph.BeginUpdate;
   try
     FGraph.AddNode(Result);
 
-    // Fragmentar el texto
+    // Split the text
     Chunks := ChunkText(AText, FChunkSize, FChunkOverlapPct);
     Cancel := False;
 
@@ -681,7 +681,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// AddDocumentFromJSON - Ingesta desde JSON hierarchical
+// AddDocumentFromJSON - Ingestion from hierarchical JSON
 // ---------------------------------------------------------------------------
 function TAiRagDocumentManager.AddDocumentFromJSON(const AJSON: string): TAiRagGraphNode;
 var
@@ -729,17 +729,17 @@ begin
   // Crear nodo documento
   Result := FGraph.NewNode(TGUID.NewGuid.ToString, DocLabel, DocName);
 
-  // Texto para embedding del nodo
+  // Text for node embedding
   NodeText := GenerateNodeEmbeddingText(DocName, DocLabel, DocProps);
   Result.Text := NodeText;
   Result.Model := LEmbeddings.Model;
   Result.Data := LEmbeddings.CreateEmbedding(NodeText, 'user');
 
-  // Propiedades opcionales
+  // Optional properties
   if Assigned(DocProps) then
     ApplyProperties(Result, DocProps);
 
-  // Guardar texto completo original
+  // Save full original text
   if DocText <> '' then
     Result.MetaData.TagString := DocText;
 
@@ -752,12 +752,12 @@ begin
 
     if Assigned(DocParts) and (DocParts.Count > 0) then
     begin
-      // Procesar estructura hierarchical
+      // Process hierarchical structure
       ProcessParts(Result, DocParts, DocName, 1, Order, Cancel);
     end
     else if DocText <> '' then
     begin
-      // Documento sin partes: fragmentar texto plano
+      // Document without parts: split plain text
       if DocText.Length <= Round(FChunkSize * 1.5) then
       begin
         AddChunkToDocument(Result, DocText, DocName, DocName, DocLabel,
@@ -826,7 +826,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// ProcessParts - Procesamiento recursivo de partes hierarchicals
+// ProcessParts - Recursive processing of hierarchical parts
 // ---------------------------------------------------------------------------
 function TAiRagDocumentManager.ProcessParts(ADocNode: TAiRagGraphNode;
   APartsArray: TJSONArray; const AParentPath: string; ADepth: Integer;
@@ -863,7 +863,7 @@ begin
     if PartLabel.Trim.IsEmpty then
       PartLabel := 'Section';
 
-    // Construir path hierarchical
+    // Build hierarchical path
     if AParentPath <> '' then
       PartPath := AParentPath + ' > ' + PartName
     else
@@ -871,23 +871,23 @@ begin
 
     if Assigned(SubParts) and (SubParts.Count > 0) then
     begin
-      // Nodo intermedio con sub-partes
+      // Intermediate node with sub-parts
       if PartText <> '' then
       begin
-        // Texto descriptivo del nodo intermedio (no es hoja)
+        // Descriptive text for intermediate node (not a leaf)
         AddChunkToDocument(ADocNode, PartText, PartPath, PartName, PartLabel,
           ADepth, AOrder, False, PartProps);
         Inc(AOrder);
         Inc(Result);
       end;
 
-      // recursion en sub-partes
+      // Recursion into sub-parts
       Result := Result + ProcessParts(ADocNode, SubParts, PartPath,
         ADepth + 1, AOrder, ACancelled);
     end
     else if PartText <> '' then
     begin
-      // Nodo hoja: contiene texto final
+      // Leaf node: contains final text
       if PartText.Length <= Round(FChunkSize * 1.5) then
       begin
         // Chunk unique
@@ -898,7 +898,7 @@ begin
       end
       else
       begin
-        // Dividir en multiples chunks
+        // Split into multiple chunks
         Chunks := ChunkText(PartText, FChunkSize, FChunkOverlapPct);
         for I := 0 to High(Chunks) do
         begin
@@ -920,7 +920,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// ExtractRelationships - Extraction de relaciones via LLM
+// ExtractRelationships - Relationship extraction via LLM
 // ---------------------------------------------------------------------------
 function TAiRagDocumentManager.ExtractRelationships(ADocNode: TAiRagGraphNode): Integer;
 var
@@ -966,22 +966,22 @@ begin
             Break;
         end;
 
-        // Construir prompt con contexto
+        // Build prompt with context
         Prompt := FExtractionPrompt.Text + Chunk.MetaData.Get(DOCMETA_ORIGINAL_TEXT, Chunk.Text);
 
-        // Llamar al LLM sincruniquemente
+        // Call the LLM synchronously
         FChat.Asynchronous := False;
         Response := FChat.AddMessageAndRun(Prompt, 'user', nil);
 
         if Response.Trim.IsEmpty then
           Continue;
 
-        // Limpiar respuesta: extraer JSON del response
+        // Clean response: extract JSON from the response
         Response := Response.Trim;
-        // Buscar el inicio del array JSON
+        // Find the start of the JSON array
         var StartIdx := Pos('[', Response);
         var EndIdx := Length(Response);
-        // Buscar el last ']'
+        // Find the last ']'
         while (EndIdx > 0) and (Response[EndIdx] <> ']') do
           Dec(EndIdx);
 
@@ -1059,7 +1059,7 @@ begin
               EntitySet.Add(EntityKey, ObjectNode);
             end;
 
-            // Crear arista de relation entre entidades
+            // Create relationship edge between entities
             if FGraph.FindEdge(SubjectNode, ObjectNode, EdgeLabel) = nil then
             begin
               NewEdge := FGraph.NewEdge(SubjectNode, ObjectNode,
@@ -1073,7 +1073,7 @@ begin
               Inc(Result);
             end;
 
-            // Crear arista EXTRACTED_FROM (entidad -> documento) si does not exist
+            // Create EXTRACTED_FROM edge (entity -> document) if it does not exist
             if FGraph.FindEdge(SubjectNode, ADocNode, EDGE_EXTRACTED_FROM) = nil then
             begin
               ExtractedEdge := FGraph.NewEdge(SubjectNode, ADocNode,
@@ -1103,9 +1103,9 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// ExtractEntitiesOnly - Extraction de entidades (Fase 1)
-// Procesa cada chunk del documento y extrae solo entidades, sin relaciones.
-// designed para procesamiento por fases de documentos grandes.
+// ExtractEntitiesOnly - Entity extraction (Phase 1)
+// Processes each document chunk and extracts only entities, without relationships.
+// Designed for phased processing of large documents.
 // ---------------------------------------------------------------------------
 function TAiRagDocumentManager.ExtractEntitiesOnly(ADocNode: TAiRagGraphNode): Integer;
 var
@@ -1207,7 +1207,7 @@ begin
             if EntityName.Trim.IsEmpty then
               Continue;
 
-            // GetOrCreate entidad
+            // GetOrCreate entity
             EntityKey := UpperCase(EntityName + '|' + EntityLabel);
             if not EntitySet.TryGetValue(EntityKey, EntityNode) then
             begin
@@ -1227,7 +1227,7 @@ begin
               EntitySet.Add(EntityKey, EntityNode);
             end;
 
-            // Crear arista EXTRACTED_FROM si does not exist
+            // Create EXTRACTED_FROM edge if it does not exist
             if FGraph.FindEdge(EntityNode, ADocNode, EDGE_EXTRACTED_FROM) = nil then
             begin
               ExtractedEdge := FGraph.NewEdge(EntityNode, ADocNode,
@@ -1249,9 +1249,9 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// ExtractRelationshipsWithContext - Extraction de relaciones con contexto (Fase 2)
-// Incluye la lista de entidades conocidas en el prompt so that el LLM pueda
-// descubrir relaciones cross-chunk/cross-page.
+// ExtractRelationshipsWithContext - Relationship extraction with context (Phase 2)
+// Includes the list of known entities in the prompt so that the LLM can
+// discover cross-chunk/cross-page relationships.
 // ---------------------------------------------------------------------------
 function TAiRagDocumentManager.ExtractRelationshipsWithContext(
   ADocNode: TAiRagGraphNode): Integer;
@@ -1285,7 +1285,7 @@ begin
   CheckEmbeddingsAvailable;
   LEmbeddings := FGraph.Embeddings;
 
-  // Construir lista de todas las entidades conocidas en el grafo
+  // Build list of all known entities in the graph
   SB := TStringBuilder.Create;
   try
     for I := 0 to FGraph.Nodes.Items.Count - 1 do
@@ -1295,7 +1295,7 @@ begin
 
       Node := TAiRagGraphNode(FGraph.Nodes.Items[I]);
 
-      // Saltar nodos de documento
+      // Skip document nodes
       if SameText(Node.NodeLabel, FDefaultDocumentLabel) then
         Continue;
       if (Node.Chunks.Count > 0) and Node.Chunks[0].MetaData.Has(DOCMETA_DOCUMENT_ID) then
@@ -1311,7 +1311,7 @@ begin
 
   EntitySet := TDictionary<string, TAiRagGraphNode>.Create;
   try
-    // Pre-poblar EntitySet con entidades existentes
+    // Pre-populate EntitySet with existing entities
     for I := 0 to FGraph.Nodes.Items.Count - 1 do
     begin
       if not (FGraph.Nodes.Items[I] is TAiRagGraphNode) then
@@ -1343,7 +1343,7 @@ begin
 
         ChunkText := VarToStr(Chunk.MetaData.Get(DOCMETA_ORIGINAL_TEXT, Chunk.Text));
 
-        // Construir prompt con contexto de entidades
+        // Build prompt with entity context
         Prompt :=
           'Analyze the following text and extract all relationships between entities.' + sLineBreak +
           sLineBreak;
@@ -1461,7 +1461,7 @@ begin
               EntitySet.Add(EntityKey, ObjectNode);
             end;
 
-            // Crear arista de relation
+            // Create relationship edge
             if FGraph.FindEdge(SubjectNode, ObjectNode, EdgeLabel) = nil then
             begin
               NewEdge := FGraph.NewEdge(SubjectNode, ObjectNode,
@@ -1475,7 +1475,7 @@ begin
               Inc(Result);
             end;
 
-            // Aristas EXTRACTED_FROM
+            // EXTRACTED_FROM edges
             if FGraph.FindEdge(SubjectNode, ADocNode, EDGE_EXTRACTED_FROM) = nil then
             begin
               ExtractedEdge := FGraph.NewEdge(SubjectNode, ADocNode,
@@ -1505,7 +1505,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// AddEdge - Crea manualmente una arista entre dos nodos existentes
+// AddEdge - Manually creates an edge between two existing nodes
 // ---------------------------------------------------------------------------
 function TAiRagDocumentManager.AddEdge(AFromNode, AToNode: TAiRagGraphNode;
   const AEdgeLabel: string; const AEdgeName: string): TAiRagGraphEdge;
@@ -1516,7 +1516,7 @@ begin
   CheckEmbeddingsAvailable;
   LEmbeddings := FGraph.Embeddings;
 
-  // Verificar si la arista ya existe
+  // Check whether the edge already exists
   Result := FGraph.FindEdge(AFromNode, AToNode, AEdgeLabel);
   if Result <> nil then
     Exit;
@@ -1531,8 +1531,8 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// GetDocumentEntities - Retorna las entidades vinculadas a un documento
-// via aristas EXTRACTED_FROM
+// GetDocumentEntities - Returns entities linked to a document
+// via EXTRACTED_FROM edges
 // ---------------------------------------------------------------------------
 function TAiRagDocumentManager.GetDocumentEntities(
   ADocNode: TAiRagGraphNode): TArray<TAiRagGraphNode>;
@@ -1563,7 +1563,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// GetDocumentContext - Recupera contexto completo del documento
+// GetDocumentContext - Retrieves full document context
 // ---------------------------------------------------------------------------
 function TAiRagDocumentManager.GetDocumentContext(ADocNode: TAiRagGraphNode): TDocumentContext;
 var
@@ -1576,7 +1576,7 @@ var
 begin
   Result.DocumentNode := ADocNode;
 
-  // Obtener todas las partes ordenadas
+  // Get all ordered parts
   Parts := GetDocumentParts(ADocNode);
   Result.AllParts := Parts;
   Result.MatchedParts := [];
@@ -1586,7 +1586,7 @@ begin
   RelList := TList<TAiRagGraphEdge>.Create;
   EntitySet := TDictionary<string, Boolean>.Create;
   try
-    // Buscar aristas EXTRACTED_FROM que apuntan a este documento
+    // Find EXTRACTED_FROM edges pointing to this document
     for Edge in ADocNode.IncomingEdges do
     begin
       if SameText(Edge.EdgeLabel, EDGE_EXTRACTED_FROM) then
@@ -1602,7 +1602,7 @@ begin
 
     Result.Entities := EntList.ToArray;
 
-    // Recolectar relaciones entre las entidades encontradas
+    // Collect relationships between found entities
     for Entity in EntList do
     begin
       for Edge in Entity.OutgoingEdges do
@@ -1635,7 +1635,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// GetDocumentText - Reconstruye el texto completo del documento
+// GetDocumentText - Rebuilds the full document text
 // ---------------------------------------------------------------------------
 function TAiRagDocumentManager.GetDocumentText(ADocNode: TAiRagGraphNode): string;
 var
@@ -1643,14 +1643,14 @@ var
   Parts: TArray<TDocumentPart>;
   Part: TDocumentPart;
 begin
-  // Intentar devolver el texto original almacenado
+  // Try to return the stored original text
   if ADocNode.MetaData.TagString <> '' then
   begin
     Result := ADocNode.MetaData.TagString;
     Exit;
   end;
 
-  // Reconstruir desde chunks ordenados
+  // Rebuild from ordered chunks
   Parts := GetDocumentParts(ADocNode);
   SB := TStringBuilder.Create;
   try
@@ -1667,7 +1667,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// GetDocumentParts - Mapea chunks a TDocumentPart ordenados
+// GetDocumentParts - Maps chunks to ordered TDocumentPart
 // ---------------------------------------------------------------------------
 function TAiRagDocumentManager.GetDocumentParts(ADocNode: TAiRagGraphNode): TArray<TDocumentPart>;
 var
@@ -1693,7 +1693,7 @@ begin
       ResultList.Add(Part);
     end;
 
-    // Ordenar por DOCMETA_ORDER
+    // Sort by DOCMETA_ORDER
     ResultList.Sort(TComparer<TDocumentPart>.Construct(
       function(const Left, Right: TDocumentPart): Integer
       begin
@@ -1708,7 +1708,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// SearchDocuments - search semantic agrupada por documento
+// SearchDocuments - Semantic search grouped by document
 // ---------------------------------------------------------------------------
 function TAiRagDocumentManager.SearchDocuments(const APrompt: string;
   ALimit: Integer; APrecision: Double): TArray<TDocumentSearchResult>;
@@ -1728,7 +1728,7 @@ begin
   CheckEmbeddingsAvailable;
   LEmbeddings := FGraph.Embeddings;
 
-  // Generar embedding de la consulta
+  // Generate query embedding
   QueryEmb := LEmbeddings.CreateEmbedding(APrompt, 'user');
 
   QueryNode := TAiEmbeddingNode.Create(Length(QueryEmb));
@@ -1737,7 +1737,7 @@ begin
 
     DocResults := TDictionary<string, TDocumentSearchResult>.Create;
     try
-      // Iterar todos los nodos del grafo
+      // Iterate all graph nodes
       for I := 0 to FGraph.Nodes.Items.Count - 1 do
       begin
         if not (FGraph.Nodes.Items[I] is TAiRagGraphNode) then
@@ -1745,17 +1745,17 @@ begin
 
         Node := TAiRagGraphNode(FGraph.Nodes.Items[I]);
 
-        // Solo procesar nodos que tengan chunks de documento
+        // Process only nodes that have document chunks
         if Node.Chunks.Count = 0 then
           Continue;
 
-        // Verificar que es un nodo de documento (tiene chunks con DOCMETA_DOCUMENT_ID)
+        // Verify that it is a document node (has chunks with DOCMETA_DOCUMENT_ID)
         if not Node.Chunks[0].MetaData.Has(DOCMETA_DOCUMENT_ID) then
           Continue;
 
         DocID := Node.ID;
 
-        // Buscar el mejor score entre todos los chunks
+        // Find the best score among all chunks
         for Chunk in Node.Chunks do
         begin
           if Length(Chunk.Data) = 0 then
@@ -1767,14 +1767,14 @@ begin
           begin
             if DocResults.TryGetValue(DocID, SR) then
             begin
-              // Actualizar si este chunk tiene mejor score
+              // Update if this chunk has a better score
               if Similarity > SR.BestScore then
               begin
                 SR.BestScore := Similarity;
                 DocResults[DocID] := SR;
               end;
-              // Agregar chunk a la lista de matching chunks
-              // (necesitamos reconstruir el array)
+              // Add chunk to the matching chunks list
+              // (we need to rebuild the array)
             end
             else
             begin
@@ -1787,7 +1787,7 @@ begin
         end;
       end;
 
-      // Convertir a lista y ordenar por BestScore descendente
+      // Convert to list and sort by BestScore descending
       ResultList := TList<TDocumentSearchResult>.Create;
       try
         for SR in DocResults.Values do
@@ -1805,7 +1805,7 @@ begin
           end
         ));
 
-        // Limitar resultados
+        // Limit results
         if ResultList.Count > ALimit then
           ResultList.Count := ALimit;
 
@@ -1859,7 +1859,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// BuildChunkVector - Construye un TAiRAGVector temporal con todos los chunks
+// BuildChunkVector - Builds a temporary TAiRAGVector with all chunks
 // of all documents. The caller must free the returned vector.
 // ---------------------------------------------------------------------------
 function TAiRagDocumentManager.BuildChunkVector: TAiRAGVector;
@@ -1906,7 +1906,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// BuildChunkVectorForDocument - Construye vector solo con chunks de un documento
+// BuildChunkVectorForDocument - Builds vector only with chunks from a document
 // ---------------------------------------------------------------------------
 function TAiRagDocumentManager.BuildChunkVectorForDocument(
   ADocNode: TAiRagGraphNode): TAiRAGVector;
@@ -1937,7 +1937,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// ChunkResultsToDocumentResults - Agrupa resultados de chunks por documento
+// ChunkResultsToDocumentResults - Groups chunk results by document
 // ---------------------------------------------------------------------------
 function TAiRagDocumentManager.ChunkResultsToDocumentResults(
   AChunkVector: TAiRAGVector; ALimit: Integer): TArray<TDocumentSearchResult>;
@@ -2014,7 +2014,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// ExecuteVQL - Ejecuta una consulta VQL sobre todos los chunks de documentos
+// ExecuteVQL - Executes a VQL query over all document chunks
 // ---------------------------------------------------------------------------
 function TAiRagDocumentManager.ExecuteVQL(const AVgqlQuery: string): string;
 var
@@ -2042,7 +2042,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// ExecuteDocumentVQL - Ejecuta VQL sobre chunks de un documento specific
+// ExecuteDocumentVQL - Executes VQL over chunks of a specific document
 // ---------------------------------------------------------------------------
 function TAiRagDocumentManager.ExecuteDocumentVQL(const AVgqlQuery: string;
   ADocNode: TAiRagGraphNode): string;
@@ -2071,7 +2071,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// SearchDocumentsByVQL - VQL que retorna resultados agrupados por documento
+// SearchDocumentsByVQL - VQL that returns results grouped by document
 // ---------------------------------------------------------------------------
 function TAiRagDocumentManager.SearchDocumentsByVQL(const AVgqlQuery: string;
   ALimit: Integer): TArray<TDocumentSearchResult>;
@@ -2096,7 +2096,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// ExecuteGQL - Ejecuta una consulta MakerGQL sobre el grafo
+// ExecuteGQL - Executes a MakerGQL query on the graph
 // ---------------------------------------------------------------------------
 function TAiRagDocumentManager.ExecuteGQL(const AGqlQuery: string): string;
 begin
@@ -2113,7 +2113,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// GetAllDocuments - Lista todos los nodos de documento
+// GetAllDocuments - Lists all document nodes
 // ---------------------------------------------------------------------------
 function TAiRagDocumentManager.GetAllDocuments: TArray<TAiRagGraphNode>;
 begin
@@ -2122,7 +2122,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// DeleteDocument - Elimina un documento y sus entidades orphans
+// DeleteDocument - Deletes a document and its orphan entities
 // ---------------------------------------------------------------------------
 procedure TAiRagDocumentManager.DeleteDocument(ADocNode: TAiRagGraphNode);
 var
@@ -2150,7 +2150,7 @@ begin
         EntitiesToCheck.Add(Edge.FromNode);
     end;
 
-    // Evaluar cada entidad: si solo is vinculada a este documento, eliminarla
+    // Evaluate each entity: if it is linked only to this document, delete it
     for Entity in EntitiesToCheck do
     begin
       HasOtherDocLinks := False;
@@ -2167,7 +2167,7 @@ begin
 
       if HasOtherDocLinks then
       begin
-        // Solo eliminar la arista EXTRACTED_FROM hacia este documento
+        // Only delete the EXTRACTED_FROM edge to this document
         for EntEdge in Entity.OutgoingEdges do
         begin
           if SameText(EntEdge.EdgeLabel, EDGE_EXTRACTED_FROM) and
@@ -2180,19 +2180,19 @@ begin
       end
       else
       begin
-        // Entidad orphan: eliminar completamente
+        // Orphan entity: delete completely
         EntitiesToDelete.Add(Entity);
       end;
     end;
 
-    // Ejecutar eliminaciones
+    // Execute deletions
     for Edge in EdgesToRemove do
       FGraph.DeleteEdge(Edge);
 
     for Entity in EntitiesToDelete do
       FGraph.DeleteNode(Entity);
 
-    // Finalmente eliminar el nodo documento (y sus aristas restantes)
+    // Finally delete the document node (and its remaining edges)
     FGraph.DeleteNode(ADocNode);
   finally
     EntitiesToCheck.Free;

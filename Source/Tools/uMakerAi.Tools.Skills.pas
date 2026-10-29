@@ -4,34 +4,34 @@
 //
 // Copyright (c) 2026 Gustavo Enríquez - CimaMaker
 //
-// TAiSkills — skills bajo demanda para cualquier chat (estilo Agent Skills).
+// TAiSkills — on-demand skills for any chat (Agent Skills style).
 //
-// El modelo NO recibe las instrucciones de todos los skills en el system
-// prompt. Recibe solo un catálogo (nombre + cuándo usarlo) dentro de la
-// descripción de una función, y carga las instrucciones completas cuando las
-// necesita llamando a esa función:
+// The model does NOT receive instructions for all skills in the system
+// prompt. It only receives a catalog (name + when to use it) inside the
+// description of a function, and loads the full instructions when it
+// needs them by calling that function:
 //
-//   use_skill(name)              -> instrucciones del skill
-//   read_skill_file(name, path)  -> un archivo que acompaña al skill
-//                                   (solo skills de carpeta, confinado a ella)
+//   use_skill(name)              -> instructions of the skill
+//   read_skill_file(name, path)  -> a file that accompanies the skill
+//                                   (only folder skills, confined to it)
 //
-// Así se pueden tener decenas de skills disponibles sin pagar sus tokens en
-// cada turno. Funciona con cualquier driver con function calling, porque son
-// funciones normales de TAiFunctions (y pasan por TAiGuardrails si hay).
+// Thus dozens of skills can be available without paying their tokens in
+// every turn. It works with any driver with function calling, because they
+// are normal TAiFunctions (and go through TAiGuardrails if any).
 //
-// Uso:
-//   Skills.Functions := AiFunctions1;          // registra use_skill
-//   Skills.LoadFromFolder('Skills');           // <dir>/<nombre>/SKILL.md
+// Usage:
+//   Skills.Functions := AiFunctions1;          // registers use_skill
+//   Skills.LoadFromFolder('Skills');           // <dir>/<name>/SKILL.md
 //   Skills.LoadFromPPM('skill-code-review');   // registry PPM
-//   Skills.AddSkill('tono', 'Úsalo al redactar correos', 'Escribe formal...');
+//   Skills.AddSkill('tone', 'Use it when writing emails', 'Write formally...');
 //   AiConnection.AiFunctions := AiFunctions1;
 //
-// Seguridad: un skill es texto que el modelo va a obedecer. Un skill de
-// terceros (PPM, carpeta compartida) es una vía de prompt injection: cargar
-// solo de fuentes confiables. La respuesta de use_skill marca el origen, y
-// OnBeforeUseSkill permite vetar. read_skill_file nunca ejecuta nada, rechaza
-// rutas que salgan de la carpeta del skill (.., absolutas, enlaces
-// simbólicos) y archivos binarios o más grandes que MaxFileSize.
+// Security: a skill is text that the model will obey. A third-party skill
+// (PPM, shared folder) is a vector for prompt injection: load only from
+// trusted sources. The response of use_skill marks the origin, and
+// OnBeforeUseSkill allows veto. read_skill_file never executes anything, it
+// rejects paths that leave the skill folder (.., absolute, symlinks) and
+// binary files or files larger than MaxFileSize.
 
 interface
 
@@ -70,17 +70,17 @@ type
     procedure Assign(Source: TPersistent); override;
     procedure LoadFromSkillDoc(ADoc: TAiSkillDoc);
 
-    // Carpeta del skill (solo si se cargó de disco): raíz de read_skill_file
+    // Skill folder (only if loaded from disk): root of read_skill_file
     property Folder: string read FFolder write FFolder;
     property Source: TAiSkillSource read FSource write FSource;
     property SourcePath: string read FSourcePath;
     property Version: string read FVersion;
-    // 'model' del frontmatter (informativo: TAiSkills no cambia el modelo)
+    // 'model' from frontmatter (informative: TAiSkills does not change the model)
     property Model: string read FModel;
   published
     property Name: string read FName write SetName;
-    // Cuándo usar el skill. Es lo que ve el modelo en el catálogo: escribirla
-    // pensando en él ("Úsalo cuando el usuario pida...").
+    // When to use the skill. It is what the model sees in the catalog: write it
+    // thinking of the model ("Use it when the user asks...").
     property Description: string read FDescription write SetDescription;
     property Instructions: TStrings read FInstructions write SetInstructions;
     property Enabled: Boolean read FEnabled write SetEnabled default True;
@@ -139,48 +139,47 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    // Carga de skills. Un skill con el mismo nombre que uno existente lo
-    // reemplaza. Todas devuelven el item (o la cantidad) y lanzan
-    // EAiSkillError ante un fallo.
+    // Loading skills. A skill with the same name as an existing one replaces it.
+    // All return the item (or the count) and throw EAiSkillError on failure.
     function AddSkill(const AName, ADescription, AInstructions: string): TAiSkillItem;
-    function LoadFromFile(const APath: string): TAiSkillItem;      // SKILL.md o su carpeta
-    function LoadFromFolder(const AFolder: string): Integer;        // <dir>/<nombre>/SKILL.md
+    function LoadFromFile(const APath: string): TAiSkillItem;      // SKILL.md or its folder
+    function LoadFromFolder(const AFolder: string): Integer;        // <dir>/<name>/SKILL.md
     function LoadFromPPM(const AName: string; const ARegistryUrl: string = '';
                          const AVersion: string = ''): TAiSkillItem;
     function Find(const AName: string): TAiSkillItem;
 
-    // Agrupa cambios: el schema de las funciones se regenera una sola vez
+    // Groups changes: the function schema is regenerated only once.
     procedure BeginUpdate;
     procedure EndUpdate;
 
-    // Regenera las funciones en Functions (catálogo y enum de nombres).
-    // Se llama sola al cargar, agregar o cambiar skills.
+    // Regenerates the functions in Functions (catalog and name enum).
+    // Called automatically when loading, adding, or changing skills.
     procedure RegisterTools;
 
-    // Lo que devuelven las funciones, sin pasar por el LLM (pruebas, UIs que
-    // quieran mostrar el skill, o uso directo).
+    // What the functions return, without going through the LLM (tests, UIs that
+    // want to display the skill, or direct use).
     function ExecuteUseSkill(const AName: string): string;
     function ExecuteReadFile(const AName, APath: string): string;
 
-    // Catálogo tal como lo ve el modelo
+    // Catalog as seen by the model
     function Catalog: string;
   published
     property Skills: TAiSkillItems read FSkills write SetSkills;
-    // TAiFunctions donde se registran use_skill / read_skill_file
+    // TAiFunctions where use_skill / read_skill_file are registered
     property Functions: TAiFunctions read FFunctions write SetFunctions;
-    // Carpeta de skills que se carga al iniciar (solo en runtime)
+    // Skill folder loaded at startup (runtime only)
     property Folder: string read FFolder write SetFolder;
     property UseFunctionName: string read FUseFunctionName write SetUseFunctionName;
     property ReadFunctionName: string read FReadFunctionName write SetReadFunctionName;
-    // Registrar read_skill_file (solo aplica si hay skills de carpeta)
+    // Register read_skill_file (only applies if there are folder skills)
     property AllowFileAccess: Boolean read FAllowFileAccess write SetAllowFileAccess default True;
-    // Tamaño máximo de un archivo leído con read_skill_file (bytes)
+    // Maximum size of a file read with read_skill_file (bytes)
     property MaxFileSize: Integer read FMaxFileSize write FMaxFileSize default 262144;
-    // El modelo cargó un skill (auditoría, UI)
+    // The model loaded a skill (audit, UI)
     property OnSkillLoaded: TAiSkillEvent read FOnSkillLoaded write FOnSkillLoaded;
-    // Veto antes de entregar un skill
+    // Veto before delivering a skill
     property OnBeforeUseSkill: TAiSkillAllowEvent read FOnBeforeUseSkill write FOnBeforeUseSkill;
-    // Veto antes de entregar un archivo (APath ya resuelto y validado)
+    // Veto before delivering a file (APath already resolved and validated)
     property OnBeforeReadFile: TAiSkillFileEvent read FOnBeforeReadFile write FOnBeforeReadFile;
   end;
 
@@ -209,7 +208,7 @@ begin
   end;
 end;
 
-// Prefijo de ruta con la sensibilidad a mayúsculas del sistema de archivos
+// Path prefix with file system case sensitivity
 function PathStartsWith(const APath, APrefix: string): Boolean;
 begin
 {$IFDEF MSWINDOWS}
@@ -219,8 +218,8 @@ begin
 {$ENDIF}
 end;
 
-// TFileAttribute cambia de miembros entre Windows y POSIX: faSymLink existe en
-// ambos y faReparsePoint solo en Windows (de ahí el IFDEF)
+// TFileAttribute members differ between Windows and POSIX: faSymLink exists in
+// both and faReparsePoint only on Windows (hence the IFDEF)
 {$WARN SYMBOL_PLATFORM OFF}
 function IsLinkOrReparse(const APath: string): Boolean;
 var
@@ -290,7 +289,7 @@ begin
     FFolder := TPath.GetDirectoryName(ADoc.SourcePath)
   else
     FFolder := '';
-  FInstructions.Text := ADoc.Body; // dispara Changed
+  FInstructions.Text := ADoc.Body; // triggers Changed
 end;
 
 function TAiSkillItem.GetDisplayName: string;
@@ -370,7 +369,7 @@ end;
 
 destructor TAiSkills.Destroy;
 begin
-  // Las funciones apuntan a métodos de este objeto: sacarlas antes de morir
+  // Functions point to methods of this object: remove them before dying
   Inc(FUpdating);
   UnregisterTools;
   FSkills.Free;
@@ -392,7 +391,7 @@ begin
   if (Operation = opRemove) and (AComponent = FFunctions) then
   begin
     FFunctions := nil;
-    // Los items los destruye la colección de Functions
+    // The items are destroyed by the Functions collection
     FUseItem := nil;
     FReadItem := nil;
   end;
@@ -423,7 +422,7 @@ begin
   if FFolder = Value then
     Exit;
   FFolder := Value;
-  // En runtime, fuera de la carga del DFM, se aplica en el acto
+  // At runtime, outside DFM loading, it is applied immediately
   if (FFolder <> '') and not (csLoading in ComponentState) and
      not (csDesigning in ComponentState) and TDirectory.Exists(FFolder) then
     LoadFromFolder(FFolder);
@@ -481,7 +480,7 @@ end;
 function TAiSkills.AddSkill(const AName, ADescription, AInstructions: string): TAiSkillItem;
 begin
   if Trim(AName) = '' then
-    raise EAiSkillError.Create('TAiSkills.AddSkill: el skill necesita un nombre');
+    raise EAiSkillError.Create('TAiSkills.AddSkill: the skill needs a name');
   BeginUpdate;
   try
     Result := Find(AName);
@@ -576,7 +575,7 @@ begin
       S := FSkills[I];
       if not S.Enabled or (S.Name = '') then
         Continue;
-      // Una línea por skill: el catálogo viaja en cada turno
+      // One line per skill: the catalog travels in every turn
       Desc := S.Description.Replace(#13#10, ' ').Replace(#10, ' ').Trim;
       if Desc = '' then
         Desc := '(no description)';
@@ -657,8 +656,8 @@ var
   I: Integer;
   P: TFunctionParamsItem;
 begin
-  // En el IDE no se registran: las funciones se guardarían en el DFM del
-  // TAiFunctions con un OnAction que apunta a este componente, no al form.
+  // They are not registered in the IDE: the functions would be saved in
+  // TAiFunctions's DFM with an OnAction pointing to this component, not to the form.
   if (FUpdating > 0) or not Assigned(FFunctions) or (csLoading in ComponentState) or
      (csDestroying in ComponentState) or (csDesigning in ComponentState) then
     Exit;
@@ -668,7 +667,7 @@ begin
     if FSkills[I].Enabled and (FSkills[I].Name <> '') then
       Any := True;
 
-  // use_skill: se reutiliza el item si ya existe (con el mismo nombre)
+  // use_skill: reuse the item if it already exists (with the same name)
   if not Assigned(FUseItem) then
   begin
     FUseItem := FFunctions.Functions.GetFunction(FUseFunctionName);
@@ -678,7 +677,7 @@ begin
   FUseItem.OnAction := DoUseSkillAction;
   FUseItem.Description.Text := BuildUseDescription;
   FUseItem.RawSchemaJson := BuildUseSchema;
-  // Sin skills, la función no se ofrece (un enum vacío es un schema inválido)
+  // Without skills, the function is not offered (an empty enum is an invalid schema)
   FUseItem.Enabled := Any;
 
   if FAllowFileAccess and Any and HasFolderSkills then
@@ -832,14 +831,14 @@ begin
 
   Root := IncludeTrailingPathDelimiter(TPath.GetFullPath(S.Folder));
   Full := TPath.GetFullPath(TPath.Combine(Root, Rel));
-  // GetFullPath resuelve los '..': si el resultado salió de la carpeta, fuera
+  // GetFullPath resolves '..': if the result left the folder, reject
   if not PathStartsWith(Full, Root) or (Length(Full) <= Length(Root)) then
     Exit('Error: the path is outside the skill folder.');
   if not TFile.Exists(Full) then
     Exit(Format('Error: file "%s" not found in skill "%s".', [APath, S.Name]));
 
-  // Un enlace simbólico dentro de la carpeta podría apuntar a cualquier lado:
-  // se revisa el archivo y cada carpeta intermedia.
+  // A symbolic link inside the folder could point anywhere:
+  // check the file and every intermediate folder.
   Dir := Full;
   while (Length(Dir) > Length(Root)) do
   begin

@@ -1,32 +1,21 @@
-﻿// MIT License
-//
-// MakerAI - Telemetria OpenTelemetry (fase 1 de observabilidad)
-//
-// Nombre: Gustavo Enriquez
-// - Email: gustavoeenriquez@gmail.com
-// - Telegram: https://t.me/MakerAi_Suite_Delphi
-// - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
-// - Youtube: https://www.youtube.com/@cimamaker3945
-// - GitHub: https://github.com/gustavoeenriquez/
-
-unit uMakerAi.Telemetry;
+﻿unit uMakerAi.Telemetry;
 
 // -----------------------------------------------------------------------------
-// TAiTelemetry: exportador de trazas OpenTelemetry (OTLP/HTTP con JSON).
+// TAiTelemetry: OpenTelemetry trace exporter (OTLP/HTTP with JSON).
 //
-// Diseno:
-// - Componente opt-in: si no hay una instancia habilitada, TODA la
-//   instrumentacion del framework es no-op (AiSpanStart devuelve nil y los
-//   helpers toleran nil). Costo cero para quien no lo usa.
-// - Exporta a cualquier collector OTLP/HTTP (Jaeger, Grafana Tempo, Langfuse,
-//   Arize Phoenix, etc.) en el endpoint estandar http://localhost:4318/v1/traces.
-// - Codificacion JSON del protobuf OTLP (no requiere dependencia protobuf).
-// - Atributos segun las convenciones semanticas GenAI de OpenTelemetry
+// Design:
+// - Opt-in component: if there is no enabled instance, ALL instrumentation
+//   in the framework is no-op (AiSpanStart returns nil and helpers tolerate
+//   nil). Zero cost for those who don't use it.
+// - Exports to any OTLP/HTTP collector (Jaeger, Grafana Tempo, Langfuse,
+//   Arize Phoenix, etc.) at the standard endpoint http://localhost:4318/v1/traces.
+// - JSON encoding of OTLP protobuf (no protobuf dependency required).
+// - Attributes following OpenTelemetry GenAI semantic conventions
 //   (gen_ai.system, gen_ai.request.model, gen_ai.usage.input_tokens, ...).
-// - Los spans terminados se encolan y un hilo exportador los envia por lotes
-//   (FlushIntervalMs); Flush fuerza el envio sincrono (tests/shutdown).
-// - Anidamiento automatico por hilo: StartSpan toma como padre el span activo
-//   del hilo actual salvo que se pase un traceparent W3C explicito.
+// - Completed spans are queued and an exporter thread sends them in batches
+//   (FlushIntervalMs); Flush forces synchronous send (tests/shutdown).
+// - Automatic nesting per thread: StartSpan takes as parent the active span
+//   of the current thread unless an explicit W3C traceparent is passed.
 // -----------------------------------------------------------------------------
 
 interface
@@ -36,19 +25,19 @@ uses
   System.SyncObjs, System.DateUtils, System.Net.HttpClient, System.Net.URLClient;
 
 type
-  // Mapeo directo al enum SpanKind de OTLP (ver BuildOtlpKind)
+  // Direct mapping to OTLP SpanKind enum (see BuildOtlpKind)
   TAiSpanKind = (skInternal, skServer, skClient, skProducer, skConsumer);
 
   TAiSpan = class
   private
     FTraceId: string; // 32 hex
     FSpanId: string; // 16 hex
-    FParentSpanId: string; // 16 hex o ''
+    FParentSpanId: string; // 16 hex or ''
     FName: string;
     FKind: TAiSpanKind;
     FStartUnixNano: Int64;
     FEndUnixNano: Int64;
-    FAttributes: TJSONArray; // formato OTLP: [{key, value:{stringValue|...}}]
+    FAttributes: TJSONArray; // OTLP format: [{key, value:{stringValue|...}}]
     FErrorMessage: string;
     FHasError: Boolean;
     FOwnerThreadId: TThreadID;
@@ -61,7 +50,7 @@ type
     procedure SetAttribute(const AKey: string; AValue: Double); overload;
     procedure SetAttribute(const AKey: string; AValue: Boolean); overload;
     procedure SetError(const AMessage: string);
-    // Header W3C trace-context para propagar la traza (p.ej. en _meta MCP)
+    // W3C trace-context header to propagate the trace (e.g., in _meta MCP)
     function TraceParent: string;
     property TraceId: string read FTraceId;
     property SpanId: string read FSpanId;
@@ -72,19 +61,19 @@ type
 
   TAiTelemetry = class(TComponent)
   private
-    class var FActive: TAiTelemetry; // registro global opt-in (una instancia activa)
+    class var FActive: TAiTelemetry; // global opt-in (one active instance)
   private
     FEnabled: Boolean;
     FEndpoint: string;
     FServiceName: string;
-    FHeaders: TStrings; // headers extra Nombre=Valor (p.ej. Authorization=Bearer x)
+    FHeaders: TStrings; // extra headers Name=Value (e.g. Authorization=Bearer x)
     FFlushIntervalMs: Integer;
     FMaxBatchSize: Integer;
     FLock: TCriticalSection;
-    FPending: TObjectList<TAiSpan>; // spans terminados pendientes de exportar
+    FPending: TObjectList<TAiSpan>; // completed spans pending export
     FWorker: TThread;
     FStopEvent: TEvent;
-    FThreadStacks: TObjectDictionary<TThreadID, TStack<TAiSpan>>; // span activo por hilo
+    FThreadStacks: TObjectDictionary<TThreadID, TStack<TAiSpan>>; // active span per thread
     FOnLog: TAiTelemetryLogEvent;
     FDroppedSpans: Int64;
     procedure SetEnabled(const Value: Boolean);
@@ -101,22 +90,22 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    // Instancia activa (habilitada) o nil. Toda la instrumentacion del
-    // framework pasa por aqui: sin instancia activa no se crea nada.
+    // Active (enabled) instance or nil. All framework instrumentation goes
+    // through here: without an active instance nothing is created.
     class function Active: TAiTelemetry; static;
 
-    // Crea un span. Si ATraceParent viene vacio, el padre es el span activo
-    // del hilo actual (si existe). Con traceparent W3C ('00-<trace>-<span>-..')
-    // continua esa traza remota. El span queda como activo del hilo hasta
-    // que se cierre con EndSpan.
+    // Creates a span. If ATraceParent is empty, the parent is the active span
+    // of the current thread (if any). With a W3C traceparent
+    // ('00-<trace>-<span>-..') it continues that remote trace. The span
+    // remains active for the thread until closed with EndSpan.
     function StartSpan(const AName: string; AKind: TAiSpanKind = skInternal;
       const ATraceParent: string = ''): TAiSpan;
 
-    // Cierra el span y lo encola para exportar (la telemetria toma posesion).
-    // AErrorMsg <> '' marca el span con status ERROR.
+    // Ends the span and enqueues it for export (telemetry takes ownership).
+    // AErrorMsg <> '' marks the span with status ERROR.
     procedure EndSpan(ASpan: TAiSpan; const AErrorMsg: string = '');
 
-    // Exporta sincronicamente todo lo pendiente (tests / shutdown).
+    // Synchronously exports all pending (tests / shutdown).
     procedure Flush;
 
     property DroppedSpans: Int64 read FDroppedSpans;
@@ -130,15 +119,15 @@ type
     property OnLog: TAiTelemetryLogEvent read FOnLog write FOnLog;
   end;
 
-// --- Helpers no-op-safe para el codigo instrumentado del framework ---
-// Devuelve nil si no hay telemetria activa; todos toleran ASpan = nil.
+// --- No-op-safe helpers for instrumented framework code ---
+// Returns nil if no active telemetry; all tolerate ASpan = nil.
 function AiSpanStart(const AName: string; AKind: TAiSpanKind = skInternal;
   const ATraceParent: string = ''): TAiSpan;
 procedure AiSpanEnd(ASpan: TAiSpan; const AErrorMsg: string = '');
 procedure AiSpanAttr(ASpan: TAiSpan; const AKey, AValue: string); overload;
 procedure AiSpanAttr(ASpan: TAiSpan; const AKey: string; AValue: Int64); overload;
 procedure AiSpanAttr(ASpan: TAiSpan; const AKey: string; AValue: Boolean); overload;
-// Traceparent del span (o '' si nil) para propagacion (p.ej. _meta MCP)
+// Span's traceparent (or '' if nil) for propagation (e.g., _meta MCP)
 function AiSpanTraceParent(ASpan: TAiSpan): string;
 
 procedure Register;
@@ -150,9 +139,9 @@ implementation
 const
   DEF_ENDPOINT = 'http://localhost:4318/v1/traces';
   OTEL_SCOPE_NAME = 'makerai';
-  // Atada a la version real del framework: estaba clavada a '3.5' y seguia
-  // saliendo '3.5' en cada span con el framework ya en 3.7, asi que el visor
-  // mentia sobre que version genero la traza.
+  // Bound to the real framework version: it was hardcoded to '3.5' and kept
+  // appearing as '3.5' even when the framework was already at 3.7, so the
+  // viewer lied about which version generated the trace.
   OTEL_SCOPE_VERSION = MAKERAI_VERSION_SHORT;
 
 procedure Register;
@@ -161,7 +150,7 @@ begin
 end;
 
 // ----------------------------------------------------------------------------
-// Utilidades
+// Utilities
 // ----------------------------------------------------------------------------
 
 function NewHexId(ADigits: Integer): string;
@@ -169,7 +158,7 @@ var
   G: TGUID;
   S: string;
 begin
-  // Un GUID aporta 32 digitos hex de aleatoriedad suficiente para ids OTLP
+  // A GUID provides 32 hex digits of sufficient randomness for OTLP ids
   CreateGUID(G);
   S := GUIDToString(G).Replace('{', '').Replace('}', '').Replace('-', '').ToLower;
   Result := Copy(S, 1, ADigits);
@@ -180,11 +169,11 @@ var
   UtcNow: TDateTime;
 begin
   UtcNow := TTimeZone.Local.ToUniversalTime(Now);
-  // Precision de milisegundos expresada en nanosegundos (suficiente para trazas)
+  // Millisecond precision expressed in nanoseconds (sufficient for traces)
   Result := DateTimeToUnix(UtcNow, True) * 1000000000 + MilliSecondOf(UtcNow) * 1000000;
 end;
 
-// Parsea un traceparent W3C: '00-<32 hex traceId>-<16 hex spanId>-<flags>'
+// Parses a W3C traceparent: '00-<32 hex traceId>-<16 hex spanId>-<flags>'
 function ParseTraceParent(const AValue: string; out ATraceId, ASpanId: string): Boolean;
 var
   Parts: TArray<string>;
@@ -246,7 +235,7 @@ procedure TAiSpan.SetAttribute(const AKey: string; AValue: Int64);
 var
   V: TJSONObject;
 begin
-  // El mapeo JSON de proto3 serializa int64 como string decimal
+  // Proto3 JSON map serializes int64 as decimal string
   V := TJSONObject.Create;
   V.AddPair('intValue', IntToStr(AValue));
   AddAttr(AKey, V);
@@ -305,12 +294,12 @@ begin
   if FActive = Self then
     FActive := nil;
   StopWorker;
-  // Ultimo intento de no perder lo pendiente
+  // Last attempt not to lose pending data
   try
     if FEnabled then
       ExportPending;
   except
-    // el shutdown nunca debe fallar por telemetria
+    // shutdown must never fail due to telemetry
   end;
   FPending.Free;
   FThreadStacks.Free;
@@ -336,7 +325,7 @@ begin
     Exit;
   if FEnabled then
   begin
-    FActive := Self; // ultima instancia habilitada gana
+    FActive := Self; // last enabled instance wins
     StartWorker;
   end
   else
@@ -365,7 +354,7 @@ begin
         try
           ExportPending;
         except
-          // nunca tumbar el hilo exportador
+          // never kill the exporter thread
         end;
       end;
     end);
@@ -388,7 +377,7 @@ begin
     FOnLog(Self, AMsg);
 end;
 
-// --- pila de spans activos por hilo (anidamiento automatico) ---
+// --- stack of active spans per thread (automatic nesting) ---
 
 procedure TAiTelemetry.PushThreadSpan(ASpan: TAiSpan);
 var
@@ -416,8 +405,8 @@ begin
     if FThreadStacks.TryGetValue(ASpan.FOwnerThreadId, Stack) then
       if (Stack.Count > 0) and (Stack.Peek = ASpan) then
         Stack.Pop;
-    // Si el span cerrado no es el tope (cierres fuera de orden entre hilos),
-    // simplemente no tocamos la pila: el costo es un parentesco menos exacto.
+    // If the closed span is not the top (out-of-order closures across threads),
+    // we simply don't touch the stack: the cost is less accurate parentage.
   finally
     FLock.Leave;
   end;
@@ -447,7 +436,7 @@ begin
   Result := TAiSpan.Create(AName, AKind);
   if (ATraceParent <> '') and ParseTraceParent(ATraceParent, RemoteTrace, RemoteSpan) then
   begin
-    // Continuar una traza remota (p.ej. traceparent recibido via _meta MCP)
+    // Continue a remote trace (e.g., traceparent received via _meta MCP)
     Result.FTraceId := RemoteTrace;
     Result.FParentSpanId := RemoteSpan;
   end
@@ -474,10 +463,10 @@ begin
   FLock.Enter;
   try
     if FPending.Count < FMaxBatchSize * 10 then
-      FPending.Add(ASpan) // la lista toma posesion
+      FPending.Add(ASpan) // the list takes ownership
     else
     begin
-      Inc(FDroppedSpans); // backpressure: collector caido y cola llena
+      Inc(FDroppedSpans); // backpressure: collector down and queue full
       ASpan.Free;
     end;
   finally
@@ -497,7 +486,7 @@ var
   Span: TAiSpan;
   KindVal: Integer;
 begin
-  // Estructura OTLP/JSON: resourceSpans -> scopeSpans -> spans
+  // OTLP/JSON structure: resourceSpans -> scopeSpans -> spans
   Result := TJSONObject.Create;
   RsArray := TJSONArray.Create;
   Result.AddPair('resourceSpans', RsArray);
@@ -570,7 +559,7 @@ var
   i: Integer;
   LHeaders: TNetHeaders;
 begin
-  // Tomar el lote bajo lock y soltarlo rapido
+  // Take the batch under lock and release quickly
   FLock.Enter;
   try
     if FPending.Count = 0 then
@@ -597,7 +586,7 @@ begin
         try
           Resp := Http.Post(FEndpoint, Body, nil, LHeaders);
           if (Resp.StatusCode < 200) or (Resp.StatusCode >= 300) then
-            DoLog(Format('OTLP export fallo: HTTP %d %s', [Resp.StatusCode, Resp.StatusText]))
+            DoLog(Format('OTLP export failed: HTTP %d %s', [Resp.StatusCode, Resp.StatusText]))
           else
             DoLog(Format('OTLP export: %d spans', [Batch.Count]));
         finally
@@ -611,14 +600,14 @@ begin
     end;
   except
     on E: Exception do
-      // Collector caido: se descarta el lote (telemetria es best-effort)
-      DoLog('OTLP export excepcion: ' + E.Message);
+      // Collector down: batch is discarded (telemetry is best-effort)
+      DoLog('OTLP export exception: ' + E.Message);
   end;
   Batch.Free;
 end;
 
 // ----------------------------------------------------------------------------
-// Helpers no-op-safe
+// No-op-safe helpers
 // ----------------------------------------------------------------------------
 
 function AiSpanStart(const AName: string; AKind: TAiSpanKind; const ATraceParent: string): TAiSpan;
@@ -631,7 +620,7 @@ begin
     try
       Result := T.StartSpan(AName, AKind, ATraceParent);
     except
-      Result := nil; // la telemetria jamas debe romper el flujo instrumentado
+      Result := nil; // telemetry must never break the instrumented flow
     end;
 end;
 
@@ -649,7 +638,7 @@ begin
       // best-effort
     end
   else
-    ASpan.Free; // la instancia se deshabilito entre Start y End
+    ASpan.Free; // the instance was disabled between Start and End
 end;
 
 procedure AiSpanAttr(ASpan: TAiSpan; const AKey, AValue: string);

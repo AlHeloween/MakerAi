@@ -1,33 +1,4 @@
-﻿// MIT License
-//
-// Copyright (c) <year> <copyright holders>
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
-// Nombre: Gustavo Enr?quez
-// Redes Sociales:
-// - Email: gustavoeenriquez@gmail.com
-// - Telegram: https://t.me/MakerAi_Suite_Delphi
-// - Telegram: https://t.me/MakerAi_Delphi_Suite_English
-// - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
-
-unit uMakerAi.Chat.Messages;
+﻿unit uMakerAi.Chat.Messages;
 
 interface
 
@@ -37,7 +8,7 @@ uses
 {$IF CompilerVersion < 35}
   uJSONHelper,
 {$ENDIF}
-  uMakerAi.Core; // Asumiendo que TAiMediaFiles, TAiWebSearch y TAiMetadata est?n aqu?
+  uMakerAi.Core; // Assuming TAiMediaFiles, TAiWebSearch and TAiMetadata are here
 
 Type
 
@@ -45,13 +16,13 @@ Type
   TAiMsgCitations = class;
   TAiChatMessage = Class;
 
-  // Las citaciones relacionan el detalle de la respuesta con el texto origianl
-  // puede funcionar como detalles de b?squedas web,  dentro de un pdf, en RAG, etc.
-  // se utiliza especialmente como propiedad en TAiMessage.
+  // Citations relate the detail of the answer with the original text.
+  // They can work as details for web searches, within a PDF, in RAG, etc.
+  // They are especially used as a property in TAiMessage.
 
   TAiCitationSourceType = (cstUnknown, cstDocument, cstWeb, cstFile, cstDatabase);
 
-  // Clase que maneja las funciones de los tools
+  // Class that handles the functions of the tools
   TAiToolsFunction = class(TObject)
   private
     FParams: TStringList;
@@ -61,34 +32,34 @@ Type
     id: string;
     &Type: string;
     name: string;
-    Description: String; // Descripci?n de la funci?n
-    Arguments: string; // Par?metros en formato JSON (can?nico). Siempre usar este campo.
-    &Function: string; // Definici?n completa serializada de la funci?n (JFunc.Format)
-    Response: String; // Respuesta al LLM: texto plano o JSON string, ambos son v?lidos
-    Metadata: TAiMetadata; // Metadatos adicionales que se pueden enviar a la funci?n
-    AskMsg: TAiChatMessage; // TAiChatMessage que representa la pregunta
-    ResMsg: TAiChatMessage; // TAiChatMessage que representa la respuesta
-    MediaFiles: TAiMediaFiles; // Archivos extraídos por el tool (ej: imágenes devueltas por MCP)
-    // Si el handler lo pone en True, TAiChat NO contin?a el loop agentico tras
-    // ejecutar las tools de este turno: el tool_call debe retornar al llamador
-    // (caso passthrough: el tool lo ejecuta el cliente final, no este proceso).
-    // Evita que modelos insistentes (gpt-oss) reintenten el tool en bucle al
-    // recibir una respuesta sint?tica tipo 'OK'.
+    Description: String; // Function description
+    Arguments: string; // Parameters in JSON format (canonical). Always use this field.
+    &Function: string; // Complete serialized definition of the function (JFunc.Format)
+    Response: String; // Response to the LLM: plain text or JSON string, both are valid
+    Metadata: TAiMetadata; // Additional metadata that can be sent to the function
+    AskMsg: TAiChatMessage; // TAiChatMessage representing the question
+    ResMsg: TAiChatMessage; // TAiChatMessage representing the response
+    MediaFiles: TAiMediaFiles; // Files extracted by the tool (e.g., images returned by MCP)
+    // If the handler sets it to True, TAiChat does NOT continue the agentic loop after
+    // executing the tools of this turn: the tool_call must return to the caller
+    // (pass-through case: the tool is executed by the final client, not by this process).
+    // Prevents insistent models (gpt-oss) from retrying the tool in a loop when
+    // receiving a synthetic 'OK' response.
     StopAgenticLoop: Boolean;
-    // El item 'function_call' de la Responses API viene marcado con async:true
-    // cuando la tool se declaro asincrona. Se propaga para que el llamador
-    // sepa que NO tiene que bloquear el turno esperando este resultado: puede
-    // devolverlo mas tarde referenciando el mismo call_id.
+    // The 'function_call' item from the Responses API comes marked with async:true
+    // when the tool was declared asynchronous. It is propagated so that the caller
+    // knows that it does NOT have to block the turn waiting for this result: it can
+    // return it later referencing the same call_id.
     IsAsync: Boolean;
 
     Constructor Create;
     Destructor Destroy; Override;
-    Procedure ParseFunction(JObj: TJSONObject); // Esta funci?n se reemplazar? por estas dos seg?n la necesidad
+    Procedure ParseFunction(JObj: TJSONObject); // This function will be replaced by these two as needed
 
     Procedure Assign(aSource: TAiToolsFunction);
 
-    // Params: acceso f?cil a los argumentos del tool call como Name=Value.
-    // Se parsea desde Arguments (JSON) de forma lazy. Ejemplo: ToolCall.Params.Values['PDFFileName']
+    // Params: easy access to the tool call arguments as Name=Value.
+    // Parsed from Arguments (JSON) in a lazy way. Example: ToolCall.Params.Values['PDFFileName']
     property Params: TStringList read GetParams;
   end;
 
@@ -167,10 +138,10 @@ Type
     Procedure LoadMediaFromBase64(aFileName: String; aBase64: String);
 
     Function HasUnprocessedItems: Boolean;
-    Function GetMediaTranscription: String; // Retorna las transcripciones de todos los archivos de medios
+    Function GetMediaTranscription: String; // Returns the transcriptions of all media files
 
     Function StreamToBase64(Stream: TMemoryStream): String;
-    Function ToJSon: TJSonArray; // Convierte el Objeto en un json para enviar al api
+    Function ToJSon: TJSonArray; // Converts the object into a JSON to send to the API
 
     Property id: Integer Read FId Write SetFId;
     Property Role: String read FRole write SetRole;
@@ -188,18 +159,18 @@ Type
     Property Tool_calls: String read FTool_calls write SetTool_calls;
     Property MediaFiles: TAiMediaFiles Read FMediaFiles;
     Property WebSearchResponse: TAiWebSearch read FWebSearchResponse write SetWebSearchResponse;
-    Property PreviousResponseId: String read FPreviousResponseId Write SetFPreviousResponseId; // Nueva propiedad
+    Property PreviousResponseId: String read FPreviousResponseId Write SetFPreviousResponseId; // New property
     Property ReasoningContent: String read FReasoningContent write SetReasoningContent;
     Property IsToolCallResponse: Boolean read FIsToolCallResponse write SetIsToolCallResponse;
     property Citations: TAiMsgCitations read FCitations write SetCitations;
     Property StopReason: String read FStopReason write SetStopReason;
     Property IsRefusal: Boolean read FIsRefusal write SetIsRefusal;
-    Property ThinkingSignature: String read FThinkingSignature write FThinkingSignature; // Por ahora es solo para Claude
-    Property CacheControl: Boolean read FCacheControl write FCacheControl; // Por ahora se usa solo en Claude para indicar mensajes que se mantengan en Cache
+    Property ThinkingSignature: String read FThinkingSignature write FThinkingSignature; // For now only for Claude
+    Property CacheControl: Boolean read FCacheControl write FCacheControl; // For now only used in Claude to indicate messages that should be kept in Cache
     Property FinishReason: String read FFinishReason write SetFinishReason;
   End;
 
-  TAiChatMessages = Class(TList<TAiChatMessage>) // futura actualizaci?n cambiar tlist por TObjectList
+  TAiChatMessages = Class(TList<TAiChatMessage>) // future update: change TList to TObjectList
   Private
     FModelCaps: TAiCapabilities;
     function GetAsText: String;
@@ -217,21 +188,21 @@ Type
     Property ModelCaps: TAiCapabilities read FModelCaps write FModelCaps;
   End;
 
-  // Clase base para cualquier tipo de fuente de datos.
+  // Base class for any type of data source.
   TAiSourceData = class
   public
-    id: string; // ID interno (ej: 'doc-0', 'file-123')
-    Title: string; // T?tulo de la p?gina web, del documento, etc.
-    Content: string; // Snippet, contenido del archivo, etc.
-    Url: string; // URL si es una fuente web.
-    Metadata: TAiMetadata; // Para cualquier otro dato (autor, fecha, etc.)
+    id: string; // Internal ID (e.g., 'doc-0', 'file-123')
+    Title: string; // Title of the web page, document, etc.
+    Content: string; // Snippet, file content, etc.
+    Url: string; // URL if it's a web source.
+    Metadata: TAiMetadata; // For any other data (author, date, etc.)
 
     constructor Create;
     destructor Destroy; override;
     procedure Assign(Source: TAiSourceData);
   end;
 
-  // Representa una fuente espec?fica vinculada a una cita.
+  // Represents a specific source linked to a citation.
   TAiCitationSource = class
   public
     SourceType: TAiCitationSourceType;
@@ -242,20 +213,20 @@ Type
     procedure Assign(Source: TAiCitationSource);
   end;
 
-  // Representa una cita dentro del texto de respuesta del modelo.
+  // Represents a citation within the model's response text.
   TAiMsgCitation = class
   public
-    StartIndex: Integer; // Posici?n inicial del texto citado en la respuesta.
-    EndIndex: Integer; // Posici?n final.
-    Text: String; // El fragmento de texto exacto que fue citado.
-    Sources: TObjectList<TAiCitationSource>; // Lista de fuentes para este fragmento.
+    StartIndex: Integer; // Starting position of the cited text in the response.
+    EndIndex: Integer; // Ending position.
+    Text: String; // The exact text fragment that was cited.
+    Sources: TObjectList<TAiCitationSource>; // List of sources for this fragment.
 
     constructor Create;
     destructor Destroy; override;
     procedure Assign(Source: TAiMsgCitation);
   end;
 
-  // Una colecci?n de citas para un mensaje.
+  // A collection of citations for a message.
   TAiMsgCitations = class(TObjectList<TAiMsgCitation>)
   public
     procedure Assign(Source: TAiMsgCitations);
@@ -290,7 +261,7 @@ begin
   Self.FToolCallId := aToolCallId;
   FMediaFiles := TAiMediaFiles.Create;
   FWebSearchResponse := TAiWebSearch.Create;
-  FPreviousResponseId := ''; // Inicializar la nueva propiedad
+  FPreviousResponseId := ''; // Initialize the new property
   FCitations := TAiMsgCitations.Create(True);
   FCacheControl := False;
 end;
@@ -350,9 +321,9 @@ begin
   FLock.Enter;
   Try
     If Length(Trim(aBase64)) < 100 then
-      Raise Exception.Create('El Base64 est? vac?o, no se cargar?');
+      Raise Exception.Create('The Base64 is empty, it will not be loaded');
 
-    If aFileName = '' then // Ver como se asigna un nombre a partir del contenido del stream
+    If aFileName = '' then // See how to assign a name from the stream content
       aFileName := 'imagen.jpg';
 
     Media := TAiMediaFile.Create;
@@ -371,7 +342,7 @@ begin
   FLock.Enter;
   Try
     If Not FileExists(aFileName) then
-      Raise Exception.Create('El archivo "' + aFileName + '" no se encuentra');
+      Raise Exception.Create('The file "' + aFileName + '" was not found');
 
     Media := TAiMediaFile.Create;
     Media.LoadFromFile(aFileName);
@@ -388,9 +359,9 @@ begin
   FLock.Enter;
   Try
     If Stream.Size <= 100 then
-      Raise Exception.Create('El stream est? vac?o');
+      Raise Exception.Create('The stream is empty');
 
-    If aFileName = '' then // Ver como se asigna un nombre a partir del contenido del stream
+    If aFileName = '' then // See how to assign a name from the stream content
       aFileName := 'imagen.jpg';
 
     Media := TAiMediaFile.Create;
@@ -429,26 +400,26 @@ begin
   FLock.Enter;
   Try
 
-    // Siempre limpiar la lista de destino primero.
-    // Como la lista es due?a de sus objetos, esto los destruir? correctamente.
+    // Always clear the destination list first.
+    // Since the list owns its objects, this will destroy them correctly.
     FCitations.Clear;
 
-    // Si la lista de origen es nula o est? vac?a, ya hemos terminado.
+    // If the source list is nil or empty, we are done.
     if not Assigned(Value) or (Value.Count = 0) then
       Exit;
 
-    // Iterar sobre la lista de origen y crear clones de cada objeto.
+    // Iterate over the source list and create clones of each object.
     for SourceCitation in Value do
     begin
-      // 1. Crear una nueva instancia del objeto de cita.
+      // 1. Create a new instance of the citation object.
       NewCitation := TAiMsgCitation.Create;
       try
-        // 2. Usar el m?todo Assign que acabamos de crear para clonar el contenido.
+        // 2. Use the Assign method we just created to clone the content.
         NewCitation.Assign(SourceCitation);
-        // 3. A?adir el nuevo objeto clonado a nuestra lista.
+        // 3. Add the new cloned object to our list.
         FCitations.Add(NewCitation);
       except
-        // En caso de error durante la asignaci?n, asegurarse de liberar la memoria.
+        // In case of error during assignment, ensure memory is freed.
         NewCitation.Free;
         raise;
       end;
@@ -663,8 +634,8 @@ Var
   Base64, Mime: String;
   MediaArr: TAiMediaFilesArray;
 begin
-  // Esta funci?n solo toma el mensaje actual y una sola im?gen, la primera que encuentra en la lista
-  // Esto se hace especialmente para modelos que solo aceptan una im?gen por petici?n y no un chat completo
+  // This function only takes the current message and a single image, the first one found in the list
+  // This is especially done for models that only accept one image per request and not a full chat
 
   FLock.Enter;
   Try
@@ -681,9 +652,9 @@ begin
     If (Msg.FFunctionName <> '') then // and (Msg.FRole <> 'tool') then
       JObj.AddPair('name', Msg.FFunctionName);
 
-    // de todos los archivos de medios selecciona las im?genes que es lo que podemos manejar por ahora
-    // y las im?genes que no han sigo preprocesadas, por si el modelo no maneja imagenes, previamente
-    // se deben haber procesado en en el momendo de adicionar el mensaje al chat
+    // From all media files, select the images that we can handle for now
+    // and images that have not been preprocessed, in case the model does not handle images, previously
+    // they should have been processed at the moment of adding the message to the chat
     MediaArr := Msg.MediaFiles.GetMediaList([Tfc_Image], False);
 
     If (Length(MediaArr) > 0) then
@@ -695,7 +666,7 @@ begin
       JMsg.AddPair('text', Msg.FPrompt);
       JContent.Add(JMsg);
 
-      If Msg.MediaFiles.Count > 0 then // Solo toma la primera imagen
+      If Msg.MediaFiles.Count > 0 then // Only take the first image
       Begin
         Base64 := Msg.MediaFiles[0].Base64;
         Mime := Msg.MediaFiles[0].MimeType;
@@ -925,11 +896,11 @@ Var
   MediaArr: TAiMediaFilesArray;
   S: String;
   MediaFile: TAiMediaFile;
-  LPendingMedia: TList<TAiMediaFile>; // media nativa de tool results, pendiente de volcar
-  LPendingNames: TStringList; // nombres de las tools que la devolvieron
+  LPendingMedia: TList<TAiMediaFile>; // native media from tool results, pending to be dumped
+  LPendingNames: TStringList; // names of the tools that returned it
   LResult: TJSonArray;
 
-  // Devuelve el contenido de un adjunto de texto como string (UTF-8).
+  // Returns the content of a text attachment as a string (UTF-8).
   function MediaFileAsText(AMediaFile: TAiMediaFile): String;
   var
     LTextBytes: TBytes;
@@ -943,11 +914,11 @@ Var
     Result := TEncoding.UTF8.GetString(LTextBytes);
   end;
 
-  // Vuelca la media nativa acumulada de un grupo de tool results como un mensaje
-  // 'user' sintetico. El contrato de OpenAI exige que TODOS los mensajes 'tool'
-  // vayan pegados al assistant que los pidio (uno por tool_call_id) sin nada
-  // intercalado, asi que esto se llama justo antes del primer mensaje no-'tool'
-  // y al cerrar el bucle, nunca entre dos tool results.
+  // Dumps the accumulated native media from a group of tool results as a synthetic
+  // 'user' message. The OpenAI contract requires that ALL 'tool' messages
+  // are placed immediately after the assistant that requested them (one per tool_call_id)
+  // with nothing in between, so this is called just before the first non-'tool' message
+  // and when closing the loop, never between two tool results.
   procedure FlushToolMedia;
   var
     LObj, LPart, LUrlObj, LAudObj: TJSONObject;
@@ -961,8 +932,8 @@ Var
     LArr := TJSonArray.Create;
     LPart := TJSONObject.Create;
     LPart.AddPair('type', 'text');
-    LPart.AddPair('text', '[Adjuntos devueltos por la herramienta ' + LPendingNames.CommaText +
-      '. El resultado textual va en el mensaje tool anterior.]');
+    LPart.AddPair('text', '[Attachments returned by the tool ' + LPendingNames.CommaText +
+      '. The textual result goes in the previous tool message.]');
     LArr.Add(LPart);
 
     for K := 0 to LPendingMedia.Count - 1 do
@@ -1004,7 +975,7 @@ Var
 
 begin
   Result := TJSonArray.Create;
-  LResult := Result; // visible para FlushToolMedia
+  LResult := Result; // visible for FlushToolMedia
 
   LPendingMedia := TList<TAiMediaFile>.Create;
   LPendingNames := TStringList.Create;
@@ -1016,8 +987,8 @@ begin
   Begin
     Msg := Self.Items[I];
 
-    // Cierre del grupo de tool results: la media acumulada sale ANTES de este
-    // mensaje, que ya no es un 'tool'.
+    // Close the group of tool results: accumulated media is dumped BEFORE this
+    // message, which is no longer a 'tool'.
     if not SameText(Msg.FRole, 'tool') then
       FlushToolMedia;
 
@@ -1030,45 +1001,45 @@ begin
     If Msg.FFunctionName <> '' then
       JObj.AddPair('name', Msg.FFunctionName);
 
-    // Los mensajes role:'tool' llevan SIEMPRE content string: el contrato
-    // OpenAI/Groq rechaza arrays en tool results ("messages[N].content must
-    // be a string"), y Chat Completions no admite imagenes en role 'tool' de
-    // ninguna forma. Los drivers con serializador propio si lo resuelven nativo
-    // (Claude: content blocks dentro de tool_result; Gemini: parts extra en el
-    // mismo turno; Ollama: campo images), asi que esto es solo para la familia
-    // OpenAI-compatible:
-    //   - los adjuntos de texto se inlinean en el propio string del resultado;
-    //   - la media nativa (imagen/audio) se acumula y sale despues del grupo
-    //     como un mensaje 'user' sintetico (ver FlushToolMedia);
-    //   - si el modelo no declara la capacidad, se cae a la transcripcion que
-    //     dejo el bridge de vision/audio.
-    // OJO si esto crece: las imagenes de tool results se reenvian en cada turno
-    // siguiente. Si algun dia pesa en tokens, la solucion NO es un flag aqui
-    // sino una poda en TAiChat que honren los cuatro serializadores por igual;
-    // hoy Claude/Gemini/Ollama ya se comportan asi y nadie lo ha reportado.
+    // Messages with role:'tool' ALWAYS carry a content string: the OpenAI/Groq
+    // contract rejects arrays in tool results ("messages[N].content must
+    // be a string"), and Chat Completions does not accept images in role 'tool'
+    // in any way. Drivers with their own serializer handle it natively
+    // (Claude: content blocks inside tool_result; Gemini: extra parts in the
+    // same turn; Ollama: images field), so this is only for the OpenAI-compatible
+    // family:
+    //   - text attachments are inlined into the result string;
+    //   - native media (image/audio) is accumulated and dumped after the group
+    //     as a synthetic 'user' message (see FlushToolMedia);
+    //   - if the model does not declare the capability, it falls back to the
+    //     transcription left by the vision/audio bridge.
+    // NOTE: if this grows, tool result images are re-sent in every subsequent
+    // turn. If it ever becomes a token issue, the solution is NOT a flag here
+    // but a pruning in TAiChat that honors the four serializers equally;
+    // today Claude/Gemini/Ollama already behave this way and nobody has reported it.
     if SameText(Msg.FRole, 'tool') then
     begin
       var LToolText := Msg.FPrompt;
 
-      // Adjuntos de texto: inline, sin mensaje extra y sin perdida.
+      // Text attachments: inline, without extra message and without loss.
       for MediaFile in Msg.MediaFiles.GetMediaList([Tfc_Text], False) do
       begin
         var LFileText := MediaFileAsText(MediaFile);
         if LFileText <> '' then
-          LToolText := LToolText + sLineBreak + '[Archivo: ' + MediaFile.Filename + ']' + sLineBreak + LFileText;
+          LToolText := LToolText + sLineBreak + '[File: ' + MediaFile.Filename + ']' + sLineBreak + LFileText;
       end;
 
-      // Transcripcion del bridge. TAiChat.RunNew ya la inyecta en el Prompt del
-      // AskMsg, y en una continuacion el AskMsg ES este mensaje tool: sin el
-      // Pos() el texto saldria duplicado.
+      // Bridge transcription. TAiChat.RunNew already injects it into the Prompt of
+      // the AskMsg, and in a continuation the AskMsg IS this tool message: without the
+      // Pos() the text would appear duplicated.
       var LToolTrans := Msg.GetMediaTranscription;
       if (LToolTrans <> '') and (Pos(LToolTrans, LToolText) = 0) then
-        LToolText := LToolText + sLineBreak + '[Descripcion del adjunto]: ' + LToolTrans;
+        LToolText := LToolText + sLineBreak + '[Attachment description]: ' + LToolTrans;
 
       JObj.AddPair('content', LToolText);
       Result.Add(JObj);
 
-      // Media nativa -> buffer; la vuelca FlushToolMedia al cerrar el grupo.
+      // Native media -> buffer; FlushToolMedia dumps it when closing the group.
       var LToolNative: TAiFileCategories := [];
       if cap_Image in FModelCaps then Include(LToolNative, Tfc_Image);
       if cap_Audio in FModelCaps then Include(LToolNative, Tfc_Audio);
@@ -1083,7 +1054,7 @@ begin
       Continue;
     end;
 
-    // Filtra los archivos que el modelo acepta nativamente (derivado de FModelCaps)
+    // Filter files that the model accepts natively (derived from FModelCaps)
     var LNativeTypes: TAiFileCategories := [Tfc_Text];
     if cap_Image in FModelCaps then Include(LNativeTypes, Tfc_Image);
     if cap_Audio in FModelCaps then Include(LNativeTypes, Tfc_Audio);
@@ -1100,7 +1071,7 @@ begin
       JMsg.AddPair('text', Msg.FPrompt);
       JContent.Add(JMsg);
 
-      For J := 0 to Length(MediaArr) - 1 do // Open Ai permite subir el Base64 o el Url, siempre se sube el Base64, por estandar
+      For J := 0 to Length(MediaArr) - 1 do // OpenAI allows uploading Base64 or URL, always upload Base64 by standard
       Begin
         MediaFile := MediaArr[J];
 
@@ -1110,13 +1081,13 @@ begin
               Base64 := MediaFile.Base64;
               Mime := MediaFile.MimeType;
 
-              // Esta es otra forma de hacer lo mismo con json directamente
+              // This is another way to do the same with JSON directly
               S := 'data:' + Mime + ';base64,' + Base64;
 
               jImgUrl := TJSONObject.Create;
               jImgUrl.AddPair('url', S);
 
-              If MediaFile.Detail <> '' then // Si define high or low.
+              If MediaFile.Detail <> '' then // If it defines high or low.
                 jImgUrl.AddPair('detail', MediaFile.Detail);
 
               JObjImg := TJSONObject.Create;
@@ -1128,13 +1099,13 @@ begin
             End;
           TAiFileCategory.Tfc_Audio:
             Begin
-              If MediaFile.IdAudio <> '' then // Si es una respuesta del modelo va esto
+              If MediaFile.IdAudio <> '' then // If it is a model response, use this
               Begin
                 jAudio := TJSONObject.Create;
                 jAudio.AddPair('id', MediaFile.IdAudio);
                 JObj.AddPair('audio', jAudio);
               End
-              Else // Si es un audio del usuario va esto
+              Else // If it is user audio, use this
               Begin
                 jAudio := TJSONObject.Create;
                 jAudio.AddPair('data', MediaFile.Base64);
@@ -1150,7 +1121,7 @@ begin
           TAiFileCategory.Tfc_Video:
             Begin
             end;
-          TAiFileCategory.Tfc_Pdf: // El completions no maneja pdf todav?a hay que usar el Responses
+          TAiFileCategory.Tfc_Pdf: // Completions does not handle PDF yet, must use Responses
             Begin
             end;
           TAiFileCategory.Tfc_Document:
@@ -1167,7 +1138,7 @@ begin
                 var LFileText := TEncoding.UTF8.GetString(LTextBytes);
                 JMsg := TJSONObject.Create;
                 JMsg.AddPair('type', 'text');
-                JMsg.AddPair('text', '[Archivo: ' + MediaFile.Filename + ']' + sLineBreak + LFileText);
+                JMsg.AddPair('text', '[File: ' + MediaFile.Filename + ']' + sLineBreak + LFileText);
                 JContent.Add(JMsg);
               end;
             end;
@@ -1200,7 +1171,7 @@ begin
       JObj.AddPair('content', JContent);
 
     End
-    Else // Si no tiene archivos de medios simplemente env?a el prompt
+    Else // If it has no media files, simply send the prompt
     Begin
       JObj.AddPair('content', Msg.FPrompt);
     End;
@@ -1213,15 +1184,15 @@ begin
       JObj.AddPair('tool_calls', TJSonArray(TJSonArray.ParseJSONValue(Msg.FTool_calls)));
 {$ENDIF}
 
-    // reasoning_content se guarda en TAiChatMessage.ReasoningContent para display en UI
-    // (via OnReceiveThinking), pero NO se reenvía a la API en el historial.
-    // Los drivers que lo requieren (DeepSeek) lo agregan en su propio GetMessages override.
+    // reasoning_content is saved in TAiChatMessage.ReasoningContent for UI display
+    // (via OnReceiveThinking), but it is NOT re-sent to the API in the history.
+    // Drivers that require it (DeepSeek) add it in their own GetMessages override.
 
     Result.Add(JObj);
   end;
 
-    // El historial puede terminar en un grupo de tool results (continuacion):
-    // su media sale aqui.
+    // The history may end in a group of tool results (continuation):
+    // its media dumps here.
     FlushToolMedia;
   finally
     LPendingMedia.Free;
@@ -1241,11 +1212,11 @@ begin
   Self.Content := Source.Content;
   Self.Url := Source.Url;
 
-  // Limpiar el diccionario de metadatos de destino.
+  // Clear the destination metadata dictionary.
   Self.Metadata.Clear;
 
-  // Iterar sobre cada par clave-valor en el diccionario de origen
-  // y a?adirlo al diccionario de destino. Esta es la forma correcta.
+  // Iterate over each key-value pair in the source dictionary
+  // and add it to the destination dictionary. This is the correct way.
   for Pair in Source.Metadata do
   begin
     Self.Metadata.Add(Pair.Key, Pair.Value);
@@ -1259,13 +1230,13 @@ end;
 constructor TAiSourceData.Create;
 begin
   inherited Create;
-  // Es crucial instanciar el objeto Metadata para evitar errores de acceso a memoria.
+  // It is crucial to instantiate the Metadata object to avoid memory access errors.
   Metadata := TAiMetadata.Create;
 end;
 
 destructor TAiSourceData.Destroy;
 begin
-  // Liberamos el objeto que creamos en el constructor.
+  // Free the object we created in the constructor.
   Metadata.Free;
   inherited Destroy;
 end;
@@ -1284,15 +1255,15 @@ end;
 constructor TAiCitationSource.Create;
 begin
   inherited Create;
-  // Inicializamos el tipo de fuente a un valor por defecto seguro.
+  // Initialize the source type to a safe default value.
   SourceType := cstUnknown;
-  // Instanciamos el contenedor de datos para que est? listo para ser usado.
+  // Instantiate the data container so it is ready to be used.
   DataSource := TAiSourceData.Create;
 end;
 
 destructor TAiCitationSource.Destroy;
 begin
-  // Liberamos el objeto de datos que le pertenece.
+  // Free the data object that belongs to it.
   DataSource.Free;
   inherited Destroy;
 end;
@@ -1309,7 +1280,7 @@ begin
   Self.EndIndex := Source.EndIndex;
   Self.Text := Source.Text;
 
-  // Realizar una copia profunda de la lista de fuentes
+  // Perform a deep copy of the sources list
   Self.Sources.Clear;
   for SourceItem in Source.Sources do
   begin
@@ -1326,20 +1297,20 @@ end;
 constructor TAiMsgCitation.Create;
 begin
   inherited Create;
-  // Inicializamos los valores primitivos.
+  // Initialize primitive values.
   StartIndex := 0;
   EndIndex := 0;
   Text := '';
-  // Creamos la lista de fuentes y le indicamos que es due?a de los objetos
-  // que contiene (el par?metro 'True'). Esto simplifica la gesti?n de memoria,
-  // ya que al liberar la lista, se liberar?n autom?ticamente todas las fuentes.
+  // Create the list of sources and tell it that it owns the objects
+  // it contains (parameter 'True'). This simplifies memory management,
+  // because when the list is freed, all sources will be automatically freed.
   Sources := TObjectList<TAiCitationSource>.Create(True);
 end;
 
 destructor TAiMsgCitation.Destroy;
 begin
-  // Liberamos la lista de fuentes. Gracias a AOwnsObjects=True,
-  // todos los TAiCitationSource en la lista se destruir?n autom?ticamente.
+  // Free the list of sources. Thanks to AOwnsObjects=True,
+  // all TAiCitationSource objects in the list will be automatically destroyed.
   Sources.Free;
   inherited Destroy;
 end;
@@ -1351,30 +1322,30 @@ var
   SourceCitation: TAiMsgCitation;
   NewCitation: TAiMsgCitation;
 begin
-  // 1. Evitar la auto-asignaci?n
+  // 1. Avoid self-assignment
   if Source = Self then
     Exit;
 
-  // 2. Limpiar la lista de destino. Como TObjectList es el propietario,
-  // esto liberar? cualquier objeto TAiMsgCitation que ya exista.
+  // 2. Clear the destination list. Since TObjectList is the owner,
+  // this will free any TAiMsgCitation objects that already exist.
   Self.Clear;
 
-  // 3. Si la fuente es nula, no hay nada m?s que hacer.
+  // 3. If the source is nil, there is nothing to do.
   if not Assigned(Source) then
     Exit;
 
-  // 4. Recorrer la lista de origen (Source)
+  // 4. Iterate over the source list
   for SourceCitation in Source do
   begin
-    // 5. Crear una nueva instancia del objeto de destino
+    // 5. Create a new instance of the destination object
     NewCitation := TAiMsgCitation.Create;
     try
-      // 6. Usar el m?todo Assign del objeto individual para copiar los datos (copia profunda)
+      // 6. Use the Assign method of the individual object to copy the data (deep copy)
       NewCitation.Assign(SourceCitation);
-      // 7. A?adir el objeto reci?n clonado a nuestra lista (Self)
+      // 7. Add the newly cloned object to our list (Self)
       Self.Add(NewCitation);
     except
-      // En caso de un error, asegurarse de liberar el objeto que acabamos de crear
+      // In case of an error, ensure that the object we just created is freed
       NewCitation.Free;
       raise;
     end;
@@ -1513,7 +1484,7 @@ Var
 begin
   Result := TJSonArray.Create;
 
-  For Clave in Self.Keys do // La clave es el nombre de la funci?n
+  For Clave in Self.Keys do // The key is the function name
   Begin
     TObj := TJSONObject.Create;
     TObj.AddPair('tool_call_id', Self.Items[Clave].id);

@@ -1,43 +1,32 @@
-﻿// MIT License
-//
-// MakerAI - Jev: etiquetado masivo con el modelo Jev (TypeSafe AI)
-//
-// Nombre: Gustavo Enriquez
-// - Email: gustavoeenriquez@gmail.com
-// - Telegram: https://t.me/MakerAi_Suite_Delphi
-// - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
-// - Youtube: https://www.youtube.com/@cimamaker3945
-// - GitHub: https://github.com/gustavoeenriquez/
-
-unit uMakerAi.Jev.Batch;
+﻿unit uMakerAi.Jev.Batch;
 
 // -----------------------------------------------------------------------------
-// TAiJevBatchLabeler: aplica las mismas preguntas (Questions) a muchas filas,
-// una llamada a Jev por fila, en paralelo, y devuelve un reporte con la
-// etiqueta, la confianza y las alternativas de cada fila, el costo total y la
-// lista de filas dudosas para revision humana.
+// TAiJevBatchLabeler: applies the same questions (Questions) to many rows,
+// one call to Jev per row, in parallel, and returns a report with the
+// label, confidence and alternatives for each row, total cost and the
+// list of doubtful rows for human review.
 //
-//   Labeler.Questions.AddChoice('categoria', 'Que categoria tiene `item`?',
-//     ['spam=Publicidad no solicitada', 'urgente=Requiere accion hoy', 'archivo']);
-//   Report := Labeler.Run(Textos);            // el llamador libera el reporte
-//   for Item in Report.NeedsReview do ...      // lo que conviene revisar a mano
+//   Labeler.Questions.AddChoice('category', 'What category does `item` have?',
+//     ['spam=Unsolicited advertising', 'urgent=Requires action today', 'archive']);
+//   Report := Labeler.Run(Texts);            // the caller frees the report
+//   for Item in Report.NeedsReview do ...      // what is worth reviewing manually
 //
-// Entrada: textos (cada uno viaja como {ItemField: texto}) o estados JSON ya
-// armados, para filas con varios campos ({movimiento, tipo, ...}).
+// Input: texts (each travels as {ItemField: text}) or already built JSON
+// states, for rows with several fields ({movement, type, ...}).
 //
-// La etiqueta es la respuesta de LabelQuestion (vacio = la primera pregunta
-// Choice). Las demas preguntas se responden en la misma llamada y quedan en
-// Item.Result. Una fila con confianza < ReviewThreshold queda marcada para
-// revision; una fila con error guarda el mensaje y el lote sigue.
+// The label is the answer to LabelQuestion (empty = the first Choice
+// question). The other questions are answered in the same call and remain in
+// Item.Result. A row with confidence < ReviewThreshold is marked for
+// review; a row with error stores the message and the batch continues.
 //
-// Concurrencia: MaxParallel llamadas simultaneas, cada una con su propio
-// TAiJev. Con un Jev externo asignado va en serie (el componente compartido
-// no es seguro entre hilos). OnProgress se dispara desde los hilos del pool:
-// para tocar la UI, usar TThread.Queue en el handler. Cancel detiene el lote;
-// las filas no procesadas quedan con Error = 'cancelled'.
+// Concurrency: MaxParallel simultaneous calls, each with its own
+// TAiJev. With an external Jev assigned it runs serially (the shared component
+// is not thread-safe). OnProgress is fired from the pool threads:
+// to touch the UI, use TThread.Queue in the handler. Cancel stops the batch;
+// unprocessed rows remain with Error = 'cancelled'.
 //
-// Validado sep 28/2026 reproduciendo en Delphi el experimento de clasificar
-// 126 movimientos contra 225 cuentas del PUC (demo 087).
+// Validated sep 28/2026 reproducing in Delphi the experiment of classifying
+// 126 movements against 225 accounts of the PUC (demo 087).
 // -----------------------------------------------------------------------------
 
 interface
@@ -60,26 +49,26 @@ type
     FResult: TAiJevResult;
   public
     destructor Destroy; override;
-    // Posicion en la entrada (0..N-1)
+    // Position in the input (0..N-1)
     property Index: Integer read FIndex;
-    // Texto de la fila, o el state JSON serializado
+    // Row text, or the serialized JSON state
     property Input: string read FInput;
-    // Etiqueta: la eleccion de LabelQuestion
+    // Label: the choice of LabelQuestion
     property Choice: string read FChoice;
     property Confidence: Double read FConfidence;
-    // Las 3 etiquetas mas probables (sugerencias para quien revise)
+    // The 3 most probable labels (suggestions for the reviewer)
     property Top: TArray<string> read FTop;
     property NeedsReview: Boolean read FNeedsReview;
-    // '' si la fila se proceso bien
+    // '' if the row was processed correctly
     property Error: string read FError;
-    // Respuesta completa (todas las preguntas); nil si hubo error
+    // Full response (all questions); nil if there was an error
     property Result: TAiJevResult read FResult;
   end;
 
   TAiJevBatchReport = class
   private
     FItems: TObjectList<TAiJevBatchItem>;
-    FMeter: TAiJevUsageMeter; // consumo de este lote (para OnUsage)
+    FMeter: TAiJevUsageMeter; // consumption of this batch (for OnUsage)
     FInputTokens: Int64;
     FCostUSD: Double;
     FElapsedMs: Int64;
@@ -89,9 +78,9 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    // Filas con confianza baja (sin error), en orden de entrada
+    // Rows with low confidence (without error), in input order
     function NeedsReview: TArray<TAiJevBatchItem>;
-    // index;label;confidence;review;top;error;input (UTF-8, separador ';')
+    // index;label;confidence;review;top;error;input (UTF-8, separator ';')
     procedure SaveToCSV(const AFileName: string);
     property Items: TObjectList<TAiJevBatchItem> read FItems;
     property InputTokens: Int64 read FInputTokens;
@@ -102,7 +91,7 @@ type
     property ReviewCount: Integer read GetReviewCount;
   end;
 
-  // Se dispara desde los hilos del pool; usar TThread.Queue para la UI
+  // Fired from pool threads; use TThread.Queue for the UI
   TAiJevBatchProgressEvent = procedure(Sender: TObject; ADone, ATotal: Integer) of object;
 
   TAiJevBatchLabeler = class(TComponent)
@@ -136,40 +125,39 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    // Consumo de Jev acumulado desde Create o ResetUsage (seguro entre hilos)
+    // Jev consumption accumulated since Create or ResetUsage (thread-safe)
     property Usage: TAiJevUsage read GetUsage;
     procedure ResetUsage;
-    // Cada texto viaja como {ItemField: texto}. El llamador libera el reporte.
+    // Each text travels as {ItemField: text}. The caller frees the report.
     function Run(const ATexts: TArray<string>): TAiJevBatchReport; overload;
-    // Estados JSON ya armados (no toma posesion). El llamador libera el reporte.
+    // Already built JSON states (does not take ownership). The caller frees the report.
     function Run(const AStates: TArray<TJSONObject>): TAiJevBatchReport; overload;
-    // Detiene el lote en curso (seguro desde otro hilo)
+    // Stops the current batch (safe from another thread)
     procedure Cancel;
   published
-    // Opcional: TAiJev externo (compartido o doble de pruebas); si se asigna,
-    // ApiKey y Model se ignoran y las filas se procesan en serie
+    // Optional: external TAiJev (shared or test double); if assigned,
+    // ApiKey and Model are ignored and rows are processed serially
     property Jev: TAiJev read FJev write SetJev;
     property ApiKey: string read FApiKey write FApiKey;
     property Model: string read FModel write FModel;
-    // Servidor System One: '' = TypeSafe; 'http://localhost:11434/v1/' = Ollama
-    // (con Model := 'nimble', 'clef-flash'...). Ignorada si Jev esta asignado
+    // System One server: '' = TypeSafe; 'http://localhost:11434/v1/' = Ollama
+    // (with Model := 'nimble', 'clef-flash'...). Ignored if Jev is assigned
     property Url: string read FUrl write FUrl;
-    // Preguntas que se aplican a cada fila
+    // Questions applied to each row
     property Questions: TAiJevQuestions read FQuestions write SetQuestions;
-    // Nombre del campo con el que viaja cada texto (Run con textos)
+    // Name of the field that carries each text (Run with texts)
     property ItemField: string read FItemField write FItemField;
-    // Pregunta que da la etiqueta; vacio = la primera Choice
+    // Question that provides the label; empty = the first Choice
     property LabelQuestion: string read FLabelQuestion write FLabelQuestion;
     property ReviewThreshold: Double read FReviewThreshold write FReviewThreshold;
     property MaxParallel: Integer read FMaxParallel write FMaxParallel default 8;
-    // US$ por millon de tokens de entrada (para CostUSD)
+    // USD per million input tokens (for CostUSD)
     property PricePerMillion: Double read FPricePerMillion write FPricePerMillion;
     property OnProgress: TAiJevBatchProgressEvent read FOnProgress write FOnProgress;
-    // Precios para CostUSD de Usage/OnUsage (US$ por millon de tokens; hoy la
-    // salida no se cobra)
+    // Prices for CostUSD of Usage/OnUsage (USD per million tokens; today output is not charged)
     property PricePerMillionOutput: Double read FPricePerMillionOutput write FPricePerMillionOutput;
-    // Una vez por operacion con el consumo de esa operacion. Sincrono, en el hilo
-    // que la ejecuto (en un servidor: el de la peticion, para cobrarle al cliente)
+    // Once per operation with the consumption of that operation. Synchronous, in the thread
+    // that executed it (on a server: the request thread, to charge the client)
     property OnUsage: TAiJevUsageEvent read FOnUsage write FOnUsage;
   end;
 
@@ -262,7 +250,7 @@ begin
     for It in FItems do
       SL.Add(Format('%d;%s;%s;%s;%s;%s;%s', [It.FIndex, Q(It.FChoice),
         FormatFloat('0.00', It.FConfidence, TFormatSettings.Invariant),
-        IfThen(It.FNeedsReview, 'si', 'no'), Q(string.Join(',', It.FTop)), Q(It.FError),
+        IfThen(It.FNeedsReview, 'yes', 'no'), Q(string.Join(',', It.FTop)), Q(It.FError),
         Q(StringReplace(It.FInput, sLineBreak, ' ', [rfReplaceAll]))]));
     SL.SaveToFile(AFileName, TEncoding.UTF8);
   finally
@@ -335,13 +323,13 @@ begin
   if FLabelQuestion <> '' then
   begin
     if FQuestions.Find(FLabelQuestion) = nil then
-      raise EAiJevError.CreateFmt('JevBatch: LabelQuestion "%s" no esta en Questions', [FLabelQuestion]);
+      raise EAiJevError.CreateFmt('JevBatch: LabelQuestion "%s" is not in Questions', [FLabelQuestion]);
     Exit(FLabelQuestion);
   end;
   for i := 0 to FQuestions.Count - 1 do
     if FQuestions[i].Kind = jqChoice then
       Exit(FQuestions[i].Name);
-  Result := ''; // sin Choice: no hay etiqueta, solo Item.Result
+  Result := ''; // no Choice: no label, only Item.Result
 end;
 
 procedure TAiJevBatchLabeler.ProcessItem(AJev: TAiJev; AItem: TAiJevBatchItem; AState: TJSONValue;
@@ -367,7 +355,7 @@ begin
       end;
     except
       on E: Exception do
-        AItem.FError := E.Message; // la fila falla, el lote sigue
+        AItem.FError := E.Message; // row fails, batch continues
     end;
 
   Done := TInterlocked.Increment(FDone);
@@ -385,7 +373,7 @@ var
   i, Total: Integer;
   It: TAiJevBatchItem;
 begin
-  FQuestions.Validate; // errores de configuracion antes de gastar una llamada
+  FQuestions.Validate; // configuration errors before spending a call
   LabelQ := ResolveLabelQuestion;
   FCancelled := False;
   FDone := 0;
@@ -428,7 +416,7 @@ begin
           var
             J: TAiJev;
           begin
-            J := NewJev; // un TAiJev por fila: el componente no es seguro entre hilos
+            J := NewJev; // one TAiJev per row: component is not thread-safe
             try
               ProcessItem(J, Report.FItems[AIndex], AStates[AIndex], LabelQ, Report, Total);
             finally
@@ -444,7 +432,7 @@ begin
     Report.FElapsedMs := SW.ElapsedMilliseconds;
     Report.FCancelled := FCancelled;
     Report.FCostUSD := Report.FInputTokens * JevAdapterInputPrice(FJev, FUrl, FPricePerMillion) / 1E6;
-    // Un OnUsage por lote. PricePerMillion (historico) es el precio de entrada
+    // One OnUsage per batch. PricePerMillion (historical) is the input price
     JevReportOperation(Self, Report.FMeter, FUsage, JevAdapterInputPrice(FJev, FUrl, FPricePerMillion), FPricePerMillionOutput, FOnUsage);
   except
     Report.Free;

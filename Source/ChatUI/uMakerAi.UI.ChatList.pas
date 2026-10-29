@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr�quez
+// Name: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -44,7 +44,7 @@ uses
 
 {$WARN SYMBOL_DEPRECATED OFF}
 type
-  // Tipos de eventos definidos en la especificaci�n (req. 11)
+  // Event types defined in the specification (req. 11)
   TChatListBubbleEvent = procedure(Sender: TObject; ABubble: TChatBubble) of object;
   TChatListCalcEvent = procedure(Sender: TObject; ABubble: TChatBubble; var ASize: TSizeF; var Handled: Boolean) of object;
   TChatListMediaFileEvent = procedure(Sender: TObject; const ABubble: TChatBubble; const AMediaFile: TAiMediaFile) of object;
@@ -55,7 +55,7 @@ type
     FLastBubble: TChatBubble;
     FLastUserName: string;
 
-    // Campos para the properties publicadas
+    // Fields for published properties
     FInboundColor: TAlphaColor;
     FOutboundColor: TAlphaColor;
     FAutoScroll: Boolean;
@@ -65,7 +65,7 @@ type
     FDefaultWordWrap: Boolean;
     FGroupConsecutiveMessages: Boolean;
 
-    // Campos para los eventos
+    // Fields for events
     FOnBeforeAddBubble: TChatListBubbleEvent;
     FOnBubbleAdded: TChatListBubbleEvent;
     FOnCalculateBubbleContentSize: TChatListCalcEvent;
@@ -76,26 +76,26 @@ type
     FAttachmentPopupMenu: TPopupMenu;
     FActiveMediaFile: TAiMediaFile;
 
-    // Throttle para streaming: evita resize+scroll por cada chunk
+    // Throttle for streaming: avoid resize+scroll for each chunk
     FLastRecalcTick: Cardinal;
     FRecalcQueued: Boolean;
     FRecalcPendingBubble: TChatBubble;
 
-    // Setters para the properties
+    // Setters for properties
     procedure SetInboundColor(const Value: TAlphaColor);
     procedure SetOutboundColor(const Value: TAlphaColor);
     procedure SetMaxBubbleWidthPercent(const Value: Single);
     procedure SetBubblePadding(const Value: TRectF);
     procedure SetBubbleMargins(const Value: TRectF);
 
-    // M�todos internos
+    // Internal methods
     procedure UpdateContentLayoutHeight;
     function IsScrolledToBottom: Boolean;
     procedure InternalAddBubble(ABubble: TChatBubble; const AUserName: string; AInbound: Boolean);
     function TryAppendToLastBubble(ABubble: TChatBubble; const AUserName: string; AInbound: Boolean): Boolean;
     procedure CalculateAndSetBubbleSize(ABubble: TChatBubble);
 
-    // Manejadores de eventos para reenv�o (hooking)
+    // Event handlers for forwarding (hooking)
     procedure DoBubbleAvatarClick(Sender: TObject);
     procedure DoBubbleExpandCollapseClick(Sender: TObject);
     procedure DoBubbleMoreOptionsClick(Sender: TObject);
@@ -116,7 +116,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    // API P�blica (req. 2)
+    // Public API (req. 2)
     // function AddBubble(const AText, AUserName: string; AInbound: Boolean = True): TChatBubble;
     function AddBubble(const AText: string; const AUserName: string; AMediaFiles: TAiMediaFiles; AInbound: Boolean = True): TChatBubble;
     function AddBubbleWithControl(AControl: TControl; const AUserName: string; AInbound: Boolean = True): TChatBubble;
@@ -132,7 +132,7 @@ type
     property ActiveMediaFile: TAiMediaFile read FActiveMediaFile;
 
   published
-    // Propiedades importantes (req. 2)
+    // Important properties (req. 2)
     property InboundColor: TAlphaColor read FInboundColor write SetInboundColor default TAlphaColors.LightGray;
     property OutboundColor: TAlphaColor read FOutboundColor write SetOutboundColor default TAlphaColors.LightGreen;
     property AutoScroll: Boolean read FAutoScroll write FAutoScroll default True;
@@ -143,7 +143,7 @@ type
     property GroupConsecutiveMessages: Boolean read FGroupConsecutiveMessages write FGroupConsecutiveMessages default True;
     property AttachmentPopupMenu: TPopupMenu read FAttachmentPopupMenu write SetAttachmentPopupMenu;
 
-    // Eventos principales (req. 2 y 7)
+    // Main events (req. 2 and 7)
     property OnBeforeAddBubble: TChatListBubbleEvent read FOnBeforeAddBubble write FOnBeforeAddBubble;
     property OnBubbleAdded: TChatListBubbleEvent read FOnBubbleAdded write FOnBubbleAdded;
     property OnCalculateBubbleContentSize: TChatListCalcEvent read FOnCalculateBubbleContentSize write FOnCalculateBubbleContentSize;
@@ -152,7 +152,7 @@ type
     property OnBubbleMoreOptionsClick: TChatListBubbleEvent read FOnBubbleMoreOptionsClick write FOnBubbleMoreOptionsClick;
     property OnMediaFileDblClick: TChatListMediaFileEvent read FOnMediaFileDblClick write FOnMediaFileDblClick;
 
-    // Propiedades heredadas que queremos exponer
+    // Inherited properties we want to expose
     property Align;
     property Anchors;
     property Position;
@@ -167,7 +167,7 @@ procedure Register;
 
 implementation
 
-{$R ..\Resources\uMakerAiUIIcons.res}  // iconos de paleta del paquete
+{$R ..\Resources\uMakerAiUIIcons.res}  // package palette icons
 
 {$WARN SYMBOL_DEPRECATED OFF}
 
@@ -185,21 +185,21 @@ constructor TChatList.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  // 1. Arquitectura general: TVertScrollBox con un TFlowLayout interno
+  // 1. General architecture: TVertScrollBox with an internal TFlowLayout
   FContentLayout := TFlowLayout.Create(Self);
   FContentLayout.Parent := Self;
   FContentLayout.Stored := False;
   FContentLayout.Align := TAlignLayout.Top;
   FContentLayout.FlowDirection := TFlowDirection.LeftToRight;
-  // Aseguramos que el FlowLayout se ajuste en ancho al viewport
+  // Ensure the FlowLayout adjusts its width to the viewport
   // FContentLayout.Anchors := [TAnchorKind.akLeft, TAnchorKind.akTop, TAnchorKind.akRight];
   // FContentLayout.Width := Self.Width;
 
-  // Inicializaci�n de propiedades By default
+  // Property initialization by default
   FInboundColor := TAlphaColors.LightGray;
   FOutboundColor := TAlphaColors.LightGreen;
   FAutoScroll := True;
-  FMaxBubbleWidthPercent := 0.8; // 80% del ancho
+  FMaxBubbleWidthPercent := 0.8; // 80% of width
   FBubblePadding := TRectF.Create(8, 8, 8, 8);
   FBubbleMargins := TRectF.Create(5, 5, 5, 5);
   FDefaultWordWrap := True;
@@ -208,14 +208,14 @@ end;
 
 destructor TChatList.Destroy;
 begin
-  // FContentLayout se libera autom�ticamente al ser hijo de Self
+  // FContentLayout is freed automatically as it is a child of Self
   inherited Destroy;
 end;
 
 procedure TChatList.Loaded;
 begin
   inherited;
-  // Asegurarse de que el layout tiene el ancho correcto al cargar
+  // Make sure the layout has the correct width when loading
   FContentLayout.Width := ClientWidth;
   FContentLayout.Height := Self.Height;
 end;
@@ -274,8 +274,8 @@ begin
 
               LIsOutbound := (LNewBubble.TailPosition = tpRight);
 
-              // Volvemos a usar la l�gica existente para a�adir la burbuja,
-              // asegurando que se apliquen colores, m�rgenes, eventos, etc.
+              // We reuse the existing logic to add the bubble,
+              // ensuring colors, margins, events, etc. are applied.
               AddCustomBubble(LNewBubble, LNewBubble.UserName, not LIsOutbound);
 
             except
@@ -310,21 +310,21 @@ begin
   if not Assigned(FContentLayout) then
     Exit;
 
-  // 1. Actualizar el ancho del layout contenedor (esto ya lo ten�as).
+  // 1. Update the container layout width (you already had this).
   FContentLayout.Width := ClientWidth;
 
-  // 2. Iterar sobre todos los controles hijos (las burbujas) y forzar un rec�lculo de su tama�o.
-  // Usamos BeginUpdate/EndUpdate para mejorar el rendimiento y evitar repintados intermedios.
+  // 2. Iterate over all child controls (bubbles) and force a recalculation of their size.
+  // Use BeginUpdate/EndUpdate to improve performance and avoid intermediate repaints.
   FContentLayout.BeginUpdate;
   try
     for I := 0 to FContentLayout.ControlsCount - 1 do
     begin
       LControl := FContentLayout.Controls[I];
-      // Asegurarnos de que solo procesamos los TChatBubble
+      // Ensure we only process TChatBubble
       if LControl is TChatBubble then
       begin
-        // Llamamos al mismo m�todo que usamos al a�adir una burbuja nueva.
-        // Este m�todo usar� el NUEVO ancho del TChatList para calcular el tama�o.
+        // Call the same method we use when adding a new bubble.
+        // This method will use the NEW width of TChatList to calculate the size.
         CalculateAndSetBubbleSize(LControl as TChatBubble);
 
         LMemo := TChatBubble(LControl).FindFirstChild<TMemo>;
@@ -348,25 +348,25 @@ begin
     FContentLayout.EndUpdate;
   end;
 
-  // 3. Despu�s de que todas las burbujas tienen su nuevo tama�o (alto y ancho),
-  // recalculamos la altura total del FContentLayout so that el scrollbar sea correcto.
+  // 3. After all bubbles have their new size (height and width),
+  // we recalculate the total height of FContentLayout so that the scrollbar is correct.
   UpdateContentLayoutHeight;
 end;
 
 
-// --- M�TODOS P�BLICOS ---
+// --- PUBLIC METHODS ---
 
 function TChatList.AddBubble(const AText: string; const AUserName: string; AMediaFiles: TAiMediaFiles; AInbound: Boolean): TChatBubble;
 var
   LBubble: TChatBubble;
 begin
-  // 1. Crear una burbuja vac�a
+  // 1. Create an empty bubble
   LBubble := TChatBubble.Create(nil);
   try
-    // 2. Usar el nuevo m�todo de TChatBubble para poblarla con contenido
+    // 2. Use the new TChatBubble method to populate it with content
     LBubble.AddContent(AText, AMediaFiles);
 
-    // 3. Llamar al m�todo gen�rico para a�adirla a la lista
+    // 3. Call the generic method to add it to the list
     Result := AddCustomBubble(LBubble, AUserName, AInbound);
 
     Var
@@ -388,7 +388,7 @@ begin
 
     Self.Resize;
   except
-    LBubble.Free; // Liberar si algo falla
+    LBubble.Free; // Free if addition fails
     raise;
   end;
 end;
@@ -397,7 +397,7 @@ function TChatList.AddBubbleWithControl(AControl: TControl; const AUserName: str
 var
   LBubble: TChatBubble;
 begin
-  // Crea una burbuja, le asigna el control y llama al m�todo principal
+  // Creates a bubble, assigns the control, and calls the main method
   if (AControl = nil) or Assigned(AControl.Parent) then
     raise EArgumentException.Create('The control to add cannot be null or already have a parent assigned.');
 
@@ -406,7 +406,7 @@ begin
     AControl.Parent := LBubble;
     Result := AddCustomBubble(LBubble, AUserName, AInbound);
   except
-    LBubble.Free; // AControl se libera junto con LBubble
+    LBubble.Free; // AControl is freed together with LBubble
     raise;
   end;
 end;
@@ -425,14 +425,14 @@ function TChatList.AddMemoBubble(const AText: string; const AUserName: string; A
 var
   LMemo: TMemo;
 begin
-  // Creamos un TMemo en lugar de un TText
-  LMemo := TMemo.Create(nil); // Sin padre
+  // Create a TMemo instead of a TText
+  LMemo := TMemo.Create(nil); // No parent
   LMemo.Lines.Text := AText;
   LMemo.WordWrap := AWordWrap;
-  // Estilos recomendados para un memo en un chat:
+  // Recommended styles for a memo in a chat:
   LMemo.StyledSettings := LMemo.StyledSettings - [TStyledSetting.Style, TStyledSetting.Other];
   LMemo.ReadOnly := True;
-  LMemo.HitTest := True; // so that el clic pase a la burbuja
+  LMemo.HitTest := True; // so that click passes to the bubble
   LMemo.GoToTextBegin;
   LMemo.SelectionFill.Color := TAlphaColors.Null; // Hide selection color
   LMemo.HideSelectionOnExit := True;
@@ -440,7 +440,7 @@ begin
   try
     Result := AddBubbleWithControl(LMemo, AUserName, AInbound);
 
-    // Elimina el fondo del memo para hacerlo transparente
+    // Remove the memo's background to make it transparent
     LMemo.StyleLookup := 'memostyle';
     LMemo.ApplyStyleLookup;
 
@@ -470,7 +470,7 @@ begin
     begin
       FLastBubble := nil;
       FLastUserName := '';
-      // Opcional: buscar el nuevo "�ltimo" bubble
+      // Optional: find the new "last" bubble
       if FContentLayout.ControlsCount > 1 then
       begin
         var
@@ -511,7 +511,7 @@ begin
       end;
     end;
 
-    LWriter := TStreamWriter.Create(AStream, TEncoding.UTF8); // Siempre usa UTF8
+    LWriter := TStreamWriter.Create(AStream, TEncoding.UTF8); // Always use UTF8
     try
       LWriter.Write(LRoot.ToJSON); // ToJSON is more readable than ToString
     finally
@@ -525,8 +525,8 @@ end;
 
 procedure TChatList.ScrollToBottom;
 begin
-  // Usa ForceQueue para asegurar que el layout se ha actualizado antes del scroll
-  // L�gica extra�da del demo
+  // Use ForceQueue to ensure the layout has updated before scrolling
+  // Logic extracted from the demo
   TThread.ForceQueue(nil,
     procedure
     begin
@@ -541,7 +541,7 @@ begin
     end);
 end;
 
-// --- M�TODOS INTERNOS Y PRIVADOS ---
+// --- INTERNAL AND PRIVATE METHODS ---
 
 function TChatList.IsScrolledToBottom: Boolean;
 const
@@ -554,11 +554,11 @@ procedure TChatList.InternalAddBubble(ABubble: TChatBubble; const AUserName: str
 var
   LShouldScroll: Boolean;
 begin
-  // 5. Flujo al a�adir un bubble
-  // Determinar si hay que hacer scroll ANTES de a�adir el nuevo contenido
+  // 5. Flow when adding a bubble
+  // Determine if scroll is needed BEFORE adding new content
   LShouldScroll := FAutoScroll or IsScrolledToBottom;
 
-  // 6. Agrupamiento / Append
+  // 6. Grouping / Append
   if FGroupConsecutiveMessages and TryAppendToLastBubble(ABubble, AUserName, AInbound) then
   begin
     ABubble.Free; // The passed bubble was not used, its content was freed inside TryAppend
@@ -567,7 +567,7 @@ begin
     Exit;
   end;
 
-  // Configuraci�n del nuevo bubble
+  // Configuration of the new bubble
   ABubble.UserName := AUserName;
   ABubble.Title := AUserName; // By default the title is the username
   ABubble.Timestamp := FormatDateTime('hh:nn', Now);
@@ -586,10 +586,10 @@ begin
 
   CalculateAndSetBubbleSize(ABubble);
 
-  // Asignar padre y enganchar eventos
+  // Assign parent and hook events
   ABubble.Parent := FContentLayout;
 
-  // 7. Reenv�o de eventos
+  // 7. Event forwarding
   ABubble.OnAvatarClick := DoBubbleAvatarClick;
   ABubble.OnExpandCollapseClick := DoBubbleExpandCollapseClick;
   ABubble.OnMoreOptionsClick := DoBubbleMoreOptionsClick;
@@ -597,7 +597,7 @@ begin
   ABubble.OnAttachmentContextPopup := DoAttachmentContextPopup;
   ABubble.OnRecalculateRequired := DoBubbleRecalculateRequired;
 
-  // Redirigir el evento de c�lculo de tama�o del bubble a nuestro propio sistema
+  // Redirect the bubble's size calculation event to our own system
   // ABubble.OnCalculateContentSize := DoCalculateContentSize;
 
   FLastBubble := ABubble;
@@ -617,23 +617,23 @@ var
   LMaxWidthForBubble: Single;
   LBubbleHorzMargins: Single;
 begin
-  // 1. Calcular los m�rgenes horizontales que la propia burbuja va a a�adir.
-  // Estos est�n definidos por la propiedad FBubbleMargins del TChatList.
+  // 1. Calculate the horizontal margins that the bubble itself will add.
+  // These are defined by the TChatList's FBubbleMargins property.
   LBubbleHorzMargins := FBubbleMargins.Left + FBubbleMargins.Right;
 
-  // 2. Calcular el ancho m�ximo disponible for the burbuja,
-  // Y RESTARLE el espacio que ocupar�n sus propios m�rgenes.
+  // 2. Calculate the maximum available width for the bubble,
+  // AND SUBTRACT the space its own margins will occupy.
   if Self.ClientWidth > 0 then
     LMaxWidthForBubble := (Self.ClientWidth * FMaxBubbleWidthPercent) - LBubbleHorzMargins
   else
-    LMaxWidthForBubble := 200; // Un valor By default
+    LMaxWidthForBubble := 200; // A default value
 
-  // Asegurarnos de que el ancho no sea negativo si la ventana es muy peque�a.
+  // Make sure the width is not negative if the window is very small.
   if LMaxWidthForBubble < 0 then
     LMaxWidthForBubble := 0;
 
-  // 3. Delegar el c�lculo de tama�o a la propia burbuja, pas�ndole
-  // el ancho corregido que debe tener su propiedad .Width.
+  // 3. Delegate size calculation to the bubble itself, passing it
+  // the corrected width that its .Width property should have.
   ABubble.RecalculateSize(LMaxWidthForBubble);
 end;
 
@@ -641,39 +641,39 @@ end;
   function TChatList.TryAppendToLastBubble(ABubble: TChatBubble; const AUserName: string; AInbound: Boolean): Boolean;
   var
   LTargetText: TText;
-  LTargetMemo: TMemo; // <-- Nueva variable
+  LTargetMemo: TMemo; // <-- New variable
   LSourceText: TText;
-  LSourceMemo: TMemo; // <-- Nueva variable
+  LSourceMemo: TMemo; // <-- New variable
   LNewText: string;
   begin
   Result := False;
   if (FLastBubble = nil) or (FLastUserName <> AUserName) then
   Exit;
 
-  // Comprobaci�n adicional (ya la ten�as comentada, pero es buena idea tenerla)
-  // para asegurar que el mensaje entrante/saliente coincide con el anterior.
+  // Additional check (you already had it commented, but it's a good idea to have it)
+  // to ensure the inbound/outbound message matches the previous one.
   // if FLastBubble.TailPosition <> IfThen(AInbound, TChatBubbleTailPosition.tpLeft, TChatBubbleTailPosition.tpRight) then  Exit;
 
-  // --- L�GICA DE FUSI�N MODIFICADA ---
+  // --- MODIFIED MERGE LOGIC ---
 
-  // Primero, intentamos fusionar TMemo con TMemo.
+  // First, try to merge TMemo with TMemo.
   LTargetMemo := FLastBubble.FindFirstChild<TMemo>;
   LSourceMemo := ABubble.FindFirstChild<TMemo>;
   if (LTargetMemo <> nil) and (LSourceMemo <> nil) then
   begin
   LNewText := LSourceMemo.Lines.Text;
-  // A�adimos el nuevo texto con un salto de l�nea.
+  // Add the new text with a line break.
   LTargetMemo.Lines.Add(LNewText);
   FLastBubble.Timestamp := FormatDateTime('hh:nn', Now);
 
-  // Recalcular tama�o de la burbuja existente
+  // Recalculate size of existing bubble
   CalculateAndSetBubbleSize(FLastBubble);
   UpdateContentLayoutHeight;
   Result := True;
   Exit; // !Important! Exit if we have already merged.
   end;
 
-  // Si no se pudo fusionar TMemo, intentamos TText con TText (tu l�gica original).
+  // If TMemo merge failed, try TText with TText (your original logic).
   LTargetText := FLastBubble.FindFirstChild<TText>;
   LSourceText := ABubble.FindFirstChild<TText>;
   if (LTargetText <> nil) and (LSourceText <> nil) then
@@ -682,11 +682,11 @@ end;
   LTargetText.Text := LTargetText.Text + sLineBreak + LNewText;
   FLastBubble.Timestamp := FormatDateTime('hh:nn', Now);
 
-  // Recalcular tama�o de la burbuja existente
+  // Recalculate size of existing bubble
   CalculateAndSetBubbleSize(FLastBubble);
   UpdateContentLayoutHeight;
   Result := True;
-  // No it is necessary Exit aqu� porque es la �ltima comprobaci�n.
+  // No need to Exit here because it's the last check.
   end;
   end;
 }
@@ -697,50 +697,50 @@ var
 begin
   Result := False;
 
-  // --- Reglas de Salida Inmediata (las que ya ten�as est�n bien) ---
+  // --- IMMEDIATE EXIT RULES (the ones you already had are fine) ---
   if not FGroupConsecutiveMessages then
     Exit;
   if (FLastBubble = nil) or (FLastUserName <> AUserName) then
     Exit;
   // if FLastBubble.TailPosition <> IfThen(AInbound, TChatBubbleTailPosition.tpLeft, TChatBubbleTailPosition.tpRight) then Exit;
 
-  // --- NUEVAS REGLAS DE VALIDACI�N ESTRICTA ---
-  // Un mensaje con contenido mixto (im�genes, etc.) NUNCA debe ser fusionado.
-  // La forma m�s simple de saberlo es contando sus hijos. Un mensaje de solo texto tiene 1 hijo (el TMemo).
+  // --- NEW STRICT VALIDATION RULES ---
+  // A message with mixed content (images, etc.) should NEVER be merged.
+  // The simplest way to know is counting its children. A text-only message has 1 child (the TMemo).
 
-  // Regla 1: La burbuja de origen (la nueva) debe contener �nicamente un TMemo.
+  // Rule 1: The source bubble (new) must contain only one TMemo.
   if ABubble.ContentLayout.ChildrenCount <> 1 then
     Exit; // Has images, attachments, or is empty. Do not merge.
   LSourceMemo := ABubble.FindFirstChild<TMemo>;
   if not Assigned(LSourceMemo) then
     Exit; // Its only child is not a TMemo. Do not merge.
 
-  // Regla 2: La burbuja de destino (la �ltima en el chat) tambi�n debe contener �nicamente un TMemo.
+  // Rule 2: The target bubble (last in the chat) must also contain only one TMemo.
   if FLastBubble.ContentLayout.ChildrenCount <> 1 then
     Exit; // The previous bubble already has mixed content. Do not add more.
   LTargetMemo := FLastBubble.FindFirstChild<TMemo>;
   if not Assigned(LTargetMemo) then
-    Exit; // La burbuja anterior no es de solo texto. No fusionar.
+    Exit; // The previous bubble is not text-only. Do not merge.
 
 
-  // --- L�GICA DE FUSI�N (Solo se ejecuta si todas las reglas anteriores se cumplen) ---
-  // Si llegamos aqu�, sabemos que LSourceMemo y LTargetMemo son v�lidos.
+  // --- MERGE LOGIC (Only executed if all previous rules are met) ---
+  // If we get here, we know LSourceMemo and LTargetMemo are valid.
 
-  // A�adimos el nuevo texto con un salto de l�nea. Usamos Add para mayor seguridad.
+  // Add the new text with a line break. Use Add for safety.
   LTargetMemo.Lines.Add(LSourceMemo.Lines.Text);
   FLastBubble.Timestamp := FormatDateTime('hh:nn', Now);
 
-  // Recalcular tama�o de la burbuja existente
+  // Recalculate size of existing bubble
   FLastBubble.RecalculateSize(Self.Width);
-  // Si no tienes RecalculateBubble, usa estas dos l�neas:
+  // If you don't have RecalculateBubble, use these two lines:
   // CalculateAndSetBubbleSize(FLastBubble);
   // UpdateContentLayoutHeight;
 
   Result := True;
 
-  // Nota: Ya no necesitamos la secci�n para TText, ya que ahora todo el texto
-  // se maneja a trav�s de TMemo gracias a la refactorizaci�n.
-  // Puedes eliminar esa parte del c�digo de forma segura.
+  // Note: We no longer need the TText section since all text is now
+  // handled through TMemo thanks to refactoring.
+  // You can safely remove that part of code.
 end;
 
 procedure TChatList.UpdateContentLayoutHeight;
@@ -749,7 +749,7 @@ var
   I: Integer;
   Control: TControl;
 begin
-  // L�gica extra�da del demo para ajustar la altura del contenedor
+  // Logic extracted from the demo to adjust container height
   TotalHeight := 0;
   for I := 0 to FContentLayout.ControlsCount - 1 do
   begin
@@ -804,21 +804,21 @@ end;
 
 procedure TChatList.DoAttachmentContextPopup(Sender: TObject; const AMediaFile: TAiMediaFile; const MousePos: TPointF);
 begin
-  // 1. Guardamos el archivo sobre el que se hizo clic.
-  // Ahora est� disponible p�blicamente a trav�s de TChatList.ActiveMediaFile
+  // 1. Save the file that was clicked.
+  // It is now publicly available via TChatList.ActiveMediaFile
   FActiveMediaFile := AMediaFile;
 
-  // 2. Si el usuario ha asignado un men�, lo mostramos.
+  // 2. If the user has assigned a menu, show it.
   if Assigned(FAttachmentPopupMenu) then
   begin
-    // OPCIONAL pero RECOMENDADO: Dar al usuario la oportunidad de preparar el men�
-    // (for example, habilitar/deshabilitar items) a trav�s de un evento.
-    // FAttachmentPopupMenu.TagObject := AMediaFile; // Otra forma de pasar la info
+    // OPTIONAL but RECOMMENDED: Give the user the opportunity to prepare the menu
+    // (for example, enable/disable items) via an event.
+    // FAttachmentPopupMenu.TagObject := AMediaFile; // Another way to pass info
     FAttachmentPopupMenu.Popup(MousePos.X, MousePos.Y);
   end;
 
-  // 3. Importante: Limpiamos la referencia despu�s de que el men� se cierre.
-  // Lo hacemos con un TThread.ForceQueue so that se ejecute despu�s de la acci�n del men�.
+  // 3. Important: Clear the reference after the menu closes.
+  // We do it with TThread.ForceQueue so that it runs after the menu action.
   TThread.ForceQueue(nil,
     procedure
     begin
@@ -826,7 +826,7 @@ begin
     end);
 end;
 
-// --- MANEJADORES DE REENV�O DE EVENTOS ---
+// --- EVENT HANDLER FORWARDING ---
 
 procedure TChatList.DoBubbleAvatarClick(Sender: TObject);
 begin
@@ -849,58 +849,58 @@ var
   ViewportHeight: Single;
   BubbleTop: Single;
 begin
-  // Primero, disparamos el evento p�blico so that el usuario of the component
-  // pueda ejecutar su propia l�gica si lo necesita.
+  // First, fire the public event so that the component's user
+  // can execute their own logic if needed.
   if Assigned(FOnBubbleExpandCollapseClick) then
     FOnBubbleExpandCollapseClick(Self, Sender as TChatBubble);
 
-  // --- INICIO DE LA L�GICA DE AUTO-SCROLL ---
+  // --- START OF AUTO-SCROLL LOGIC ---
 
-  // El tama�o de la burbuja ha cambiado, as� que necesitamos recalcular
-  // la altura total del layout de contenido.
+  // The bubble size has changed, so we need to recalculate
+  // the total height of the content layout.
   UpdateContentLayoutHeight;
 
-  // Hacemos el casting del Sender a TChatBubble para trabajar con �l.
+  // Cast Sender to TChatBubble to work with it.
   ABubble := Sender as TChatBubble;
   if not Assigned(ABubble) then
     Exit;
 
-  // Usamos TThread.Queue so that la l�gica de c�lculo de posici�n se ejecute
-  // DESPU�S de que el motor de FMX haya actualizado visualmente el layout.
-  // Esto es crucial to obtain/get las coordenadas correctas de ABubble.Position.
+  // Use TThread.Queue so that the position calculation logic runs
+  // AFTER the FMX engine has visually updated the layout.
+  // This is crucial to obtain/get the correct coordinates of ABubble.Position.
   TThread.Queue(nil,
     procedure
     begin
-      // Doble chequeo de seguridad dentro del hilo
+      // Double safety check inside the thread
       if Self.IsUpdating or (ABubble = nil) then
         Exit;
 
-      // El scrollbox es el propio componente (Self)
+      // The scrollbox is the component itself (Self)
       ViewportHeight := Self.Height;
       BubbleTop := ABubble.Position.Y;
 
-      // Optimizaci�n: Si la burbuja ya est� completamente visible, no hacemos nada.
+      // Optimization: If the bubble is already completely visible, do nothing.
       if (BubbleTop >= Self.ViewportPosition.Y) and ((BubbleTop + ABubble.Height) <= (Self.ViewportPosition.Y + ViewportHeight)) then
       begin
-        Exit; // Ya es visible, no Is needed scroll.
+        Exit; // Already visible, no scroll needed.
       end;
 
-      // Calculamos la posici�n Y de destino para centrar la burbuja en el viewport.
+      // Calculate the target Y position to center the bubble in the viewport.
       TargetY := BubbleTop - (ViewportHeight / 2) + (ABubble.Height / 2);
 
-      // Nos aseguramos de no salirnos de los l�mites del scroll.
+      // Make sure we don't go beyond the scroll limits.
       if TargetY < 0 then
         TargetY := 0;
 
       if TargetY > FContentLayout.Height - ViewportHeight then
         TargetY := FContentLayout.Height - ViewportHeight;
 
-      // Caso especial: si el contenido total es m�s peque�o que el �rea visible,
-      // la posici�n del scroll siempre debe ser 0.
+      // Special case: if total content is smaller than visible area,
+      // the scroll position should always be 0.
       if FContentLayout.Height <= ViewportHeight then
         TargetY := 0;
 
-      // Animamos el cambio de ViewportPosition.Y para un desplazamiento suave.
+      // Animate the change of ViewportPosition.Y for smooth scrolling.
       TAnimator.AnimateFloat(Self, 'ViewportPosition.Y', TargetY, 0.3, TAnimationType.InOut, TInterpolationType.Quadratic);
     end);
 end;
@@ -930,7 +930,7 @@ begin
   LNow := TThread.GetTickCount;
 
   // Throttle: max ~15 recalcs/sec during streaming.
-  // Evita que cada chunk dispare un resize+scroll completo.
+  // Avoid resize+scroll for each chunk.
   if LNow - FLastRecalcTick < 66 then
   begin
     // Save pending bubble; enqueue deferred recalc if none already enqueued
@@ -975,8 +975,8 @@ var
 begin
   LHandled := False;
 
-  // Este es el evento original de TChatBubble. Lo reenviamos al evento
-  // m�s completo de TChatList que incluye el par�metro 'Handled'.
+  // This is the original TChatBubble event. We forward it to the more complete
+  // TChatList event that includes the 'Handled' parameter.
   if Assigned(FOnCalculateBubbleContentSize) then
   begin
     FOnCalculateBubbleContentSize(Self, Sender as TChatBubble, AContentSize, LHandled);

@@ -88,8 +88,15 @@ def has_spanish(comment_text):
     """Check if comment text contains Spanish indicators."""
     lower = comment_text.lower()
     for word in SPANISH_WORDS:
-        if re.search(word, lower):
-            return True
+        pat = word.strip()
+        if not pat:
+            continue
+        try:
+            if re.search(r'(?<![a-z\u00e1\u00e9\u00ed\u00f3\u00fa\u00f1])' + pat + r'(?![a-z\u00e1\u00e9\u00ed\u00f3\u00fa\u00f1])', lower):
+                return True
+        except re.error:
+            if pat in lower:
+                return True
     return False
 
 

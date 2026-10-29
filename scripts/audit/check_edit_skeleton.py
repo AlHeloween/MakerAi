@@ -75,7 +75,8 @@ def skeleton(path):
         return None
     body = strip_comments_strings(text)
     lines = [" ".join(ln.split()) for ln in body.split("\n")]
-    return [ln for ln in lines if ln]
+    # Delphi/Pascal is case-insensitive: keyword and identifier case changes are not code changes.
+    return [ln.lower() for ln in lines if ln]
 
 
 def main():

@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr�quez
+// Name: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -59,16 +59,16 @@ type
     class function CaptureScreenAndroid(const ARect: TRect = TRect.Empty): FMX.Graphics.TBitmap;
     {$ENDIF}
   public
-    // Captura toda la pantalla
+    // Captures the full screen
     class function CaptureFullScreen: FMX.Graphics.TBitmap;
 
-    // Captura un �rea espec�fica de la pantalla
+    // Captures a specific area of the screen
     class function CaptureArea(const ARect: TRect): FMX.Graphics.TBitmap;
 
-    // Obtiene las dimensiones de la pantalla
+    // Gets the screen dimensions
     class function GetScreenSize: TPoint;
 
-    // Guarda el bitmap en un archivo
+    // Saves the bitmap to a file
     class procedure SaveToFile(ABitmap: FMX.Graphics.TBitmap; const AFileName: string);
     class function SelectArea(out ASelectedRect: TRect): Boolean;
   end;
@@ -111,17 +111,17 @@ var
 begin
   Result := nil;
 
-  // Obtener dimensiones de la pantalla
+  // Get screen dimensions
   ScreenWidth := GetSystemMetrics(SM_CXSCREEN);
   ScreenHeight := GetSystemMetrics(SM_CYSCREEN);
 
-  // Determinar el �rea a capturar
+  // Determine the area to capture
   if ARect.IsEmpty then
     CaptureRect := TRect.Create(0, 0, ScreenWidth, ScreenHeight)
   else
     CaptureRect := ARect;
 
-  // Validar que el rect�ngulo est� dentro de los l�mites
+  // Validate that the rectangle is within bounds
   CaptureRect.Left := Max(0, CaptureRect.Left);
   CaptureRect.Top := Max(0, CaptureRect.Top);
   CaptureRect.Right := Min(ScreenWidth, CaptureRect.Right);
@@ -138,44 +138,44 @@ begin
       try
         OldBmp := SelectObject(MemDC, ScreenBmp);
         try
-          // Copiar la pantalla al bitmap
+          // Copy the screen to the bitmap
           BitBlt(MemDC, 0, 0, CaptureRect.Width, CaptureRect.Height,
                  ScreenDC, CaptureRect.Left, CaptureRect.Top, SRCCOPY);
 
-          // Preparar la estructura BitmapInfo
+          // Prepare the BitmapInfo structure
           FillChar(BmpInfo, SizeOf(BmpInfo), 0);
           BmpInfo.bmiHeader.biSize := SizeOf(TBitmapInfoHeader);
           BmpInfo.bmiHeader.biWidth := CaptureRect.Width;
-          BmpInfo.bmiHeader.biHeight := -CaptureRect.Height; // Negativo para top-down
+          BmpInfo.bmiHeader.biHeight := -CaptureRect.Height; // Negative for top-down
           BmpInfo.bmiHeader.biPlanes := 1;
           BmpInfo.bmiHeader.biBitCount := 32;
           BmpInfo.bmiHeader.biCompression := BI_RGB;
 
-          // Crear el bitmap FMX
+          // Create the FMX bitmap
           Result := FMX.Graphics.TBitmap.Create(CaptureRect.Width, CaptureRect.Height);
 
-          // Obtener los datos del bitmap de Windows
+          // Get the Windows bitmap data
           BytesPerPixel := 4;
           GetMem(BmpData, CaptureRect.Width * CaptureRect.Height * BytesPerPixel);
           try
             GetDIBits(MemDC, ScreenBmp, 0, CaptureRect.Height, BmpData, BmpInfo, DIB_RGB_COLORS);
 
-            // Mapear el bitmap FMX para escritura
+            // Map the FMX bitmap for writing
             if Result.Map(TMapAccess.Write, FMXBmpData) then
             try
               SrcPtr := PByte(BmpData);
               DstPtr := PByte(FMXBmpData.Data);
 
-              // Convertir de BGR a RGBA (FMX usa RGBA)
+              // Convert from BGR to RGBA (FMX uses RGBA)
               for y := 0 to CaptureRect.Height - 1 do
               begin
                 for x := 0 to CaptureRect.Width - 1 do
                 begin
-                  // Windows DIB es BGRA, FMX necesita RGBA
+                  // Windows DIB is BGRA, FMX needs RGBA
                   DstPtr[0] := SrcPtr[2]; // R
                   DstPtr[1] := SrcPtr[1]; // G
                   DstPtr[2] := SrcPtr[0]; // B
-                  DstPtr[3] := 255;       // A (opaco)
+                  DstPtr[3] := 255;       // A (opaque)
 
                   Inc(SrcPtr, 4);
                   Inc(DstPtr, 4);
@@ -220,7 +220,7 @@ var
 begin
   Result := nil;
 
-  // M�tricas de pantalla virtual (soporte multi-monitor)
+  // Virtual screen metrics (multi-monitor support)
   VirtualLeft := GetSystemMetrics(SM_XVIRTUALSCREEN);
   VirtualTop := GetSystemMetrics(SM_YVIRTUALSCREEN);
   VirtualWidth := GetSystemMetrics(SM_CXVIRTUALSCREEN);
@@ -231,7 +231,7 @@ begin
   else
     CaptureRect := ARect;
 
-  // Recortar al �rea virtual
+  // Clip to the virtual area
   CaptureRect.Left := Max(VirtualLeft, CaptureRect.Left);
   CaptureRect.Top := Max(VirtualTop, CaptureRect.Top);
   CaptureRect.Right := Min(VirtualLeft + VirtualWidth, CaptureRect.Right);
@@ -248,11 +248,11 @@ begin
       try
         OldBmp := SelectObject(MemDC, HBmp);
         try
-          // Copiar desde la pantalla virtual (puede tener coordenadas negativas)
+          // Copy from the virtual screen (may have negative coordinates)
           BitBlt(MemDC, 0, 0, CaptureRect.Width, CaptureRect.Height,
                  ScreenDC, CaptureRect.Left, CaptureRect.Top, SRCCOPY);
 
-          // Preparar BITMAPINFO para 32bpp top-down
+          // Prepare BITMAPINFO for 32bpp top-down
           FillChar(BmpInfo, SizeOf(BmpInfo), 0);
           BmpInfo.bmiHeader.biSize := SizeOf(TBitmapInfoHeader);
           BmpInfo.bmiHeader.biWidth := CaptureRect.Width;
@@ -270,7 +270,7 @@ begin
             if GetDIBits(MemDC, HBmp, 0, CaptureRect.Height, BmpData, BmpInfo, DIB_RGB_COLORS) = 0 then
               Exit; // GetDIBits failed
 
-            // Asegurar alfa opaco (GetDIBits suele dejar alfa = 0 o basura)
+            // Ensure opaque alpha (GetDIBits usually leaves alpha = 0 or garbage)
             pByte := System.PByte(BmpData);
             for i := 0 to PixelCount - 1 do
             begin
@@ -278,14 +278,14 @@ begin
               Inc(pByte, 4);
             end;
 
-            // Crear TBitmapSurface y copiar los bytes (formato BGRA)
+            // Create TBitmapSurface and copy the bytes (BGRA format)
             Surface := TBitmapSurface.Create;
             try
               Surface.SetSize(CaptureRect.Width, CaptureRect.Height, TPixelFormat.BGRA);
-              // Copia en bloque (Surface.Bits apunta al buffer interno)
+              // Block copy (Surface.Bits points to internal buffer)
               Move(BmpData^, Surface.Bits^, DataSize);
 
-              // Convertir a TBitmap FMX (Assign hace la conversi�n nativa)
+              // Convert to FMX TBitmap (Assign does the native conversion)
               Result := FMX.Graphics.TBitmap.Create;
               Result.Assign(Surface);
 
@@ -298,7 +298,7 @@ begin
           end;
 
         finally
-          // restaurar el bitmap original seleccionado
+          // restore the previously selected bitmap
           SelectObject(MemDC, OldBmp);
         end;
       finally
@@ -331,10 +331,10 @@ var
 begin
   Result := nil;
 
-  // Obtener las dimensiones de la pantalla principal
+  // Get the main screen dimensions
   ScreenBounds := CGDisplayBounds(CGMainDisplayID);
 
-  // Determinar el �rea a capturar
+  // Determine the area to capture
   if ARect.IsEmpty then
     CaptureRect := ScreenBounds
   else
@@ -345,7 +345,7 @@ begin
     CaptureRect.size.height := ARect.Height;
   end;
 
-  // Capturar la imagen
+  // Capture the image
   ImageRef := CGDisplayCreateImageForRect(CGMainDisplayID, CaptureRect);
   if ImageRef = nil then
     Exit;
@@ -367,7 +367,7 @@ begin
         SrcPtr := CFDataGetBytePtr(Data);
         DstPtr := BmpData.Data;
 
-        // Convertir de ARGB a RGBA (formato FMX)
+        // Convert from ARGB to RGBA (FMX format)
         for i := 0 to Result.Height - 1 do
         begin
           for j := 0 to Result.Width - 1 do
@@ -397,12 +397,12 @@ end;
 {$IFDEF ANDROID}
 class function TScreenCapture.CaptureScreenAndroid(const ARect: TRect): FMX.Graphics.TBitmap;
 begin
-  // En Android, la captura de pantalla requiere permisos especiales
-  // y generalmente se hace a trav�s de Media Projection API
-  // Esta es una implementaci�n b�sica que requiere permisos de root
-  // o implementaci�n nativa m�s compleja
+  // On Android, screen capture requires special permissions
+  // and is usually done through the Media Projection API
+  // This is a basic implementation that requires root permissions
+  // or a more complex native implementation
   Result := nil;
-  // TODO: Implementar captura para Android
+  // TODO: Implement capture for Android
   raise Exception.Create('Screen capture not implemented for Android platform');
 end;
 {$ENDIF}
@@ -419,7 +419,7 @@ begin
   Result := CaptureScreenAndroid;
   {$ENDIF}
   {$IFDEF IOS}
-  // iOS no permite captura de pantalla of the system por seguridad
+  // iOS does not allow system screen capture for security reasons
   Result := nil;
   {$ENDIF}
 end;
@@ -452,7 +452,7 @@ begin
   Result.Y := Round(Bounds.size.height);
   {$ENDIF}
   {$IFDEF ANDROID}
-  // Implementaci�n para Android requerir�a JNI
+  // Implementation for Android would require JNI
   Result := TPoint.Zero;
   {$ENDIF}
   {$IFDEF IOS}
@@ -553,9 +553,9 @@ constructor TSelectionForm.Create(AOwner: TComponent);
 Var
   R : TRectangle;
 begin
-  inherited CreateNew(AOwner); //  evita buscar .fmx/.dfm
+  inherited CreateNew(AOwner); //  avoids looking for .fmx/.dfm
 
-  // configuraci�n b�sica que antes hac�as en Execute
+  // basic configuration that was previously done in Execute
   BorderStyle := TFmxFormBorderStyle.None;
   FormStyle := TFormStyle.StayOnTop;
   Fill.Color := TAlphaColorRec.Black;
@@ -607,7 +607,6 @@ begin
   else
     Result := False;
 end;
-
 
 
 

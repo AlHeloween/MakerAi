@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
-// Redes Sociales:
+// Name: Gustavo Enriquez
+// Social Media:
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
@@ -32,38 +32,38 @@
   uMakerAi.Utils.AudioCapture
   ===========================
 
-  TAiAudioCapture: componente de captura de audio del SISTEMA (lo que se esta
-  reproduciendo por los altavoces/auriculares) usando WASAPI en modo loopback.
-  Tambien puede capturar el microfono via WASAPI (Source = asMicrophone).
+  TAiAudioCapture: SYSTEM audio capture component (what is being played through
+  speakers/headphones) using WASAPI in loopback mode.
+  It can also capture the microphone via WASAPI (Source = asMicrophone).
 
-  Caso de uso tipico: traducir/transcribir el audio de una videollamada
-  (Zoom, Meet, Teams, YouTube...) sin cables virtuales ni drivers adicionales.
+  Typical use case: translate/transcribe audio from a video call
+  (Zoom, Meet, Teams, YouTube...) without virtual cables or additional drivers.
 
-  Caracteristicas:
-  - WASAPI loopback nativo (Windows Vista+), sin dependencias externas.
-  - Entrega chunks PCM16 listos para STT: remuestreo (lineal, con continuidad
-    entre paquetes) y mezcla a mono integrados.
-  - InjectSilence: WASAPI loopback NO entrega paquetes cuando no suena nada;
-    el componente puede inyectar silencio para mantener un flujo continuo
-    (necesario para VAD / transcripcion en streaming).
-  - Integracion directa con el modulo Realtime STT via la propiedad
-    RealtimeSTT (igual que TAIVoiceMonitor).
+  Features:
+  - Native WASAPI loopback (Windows Vista+), no external dependencies.
+  - Delivers PCM16 chunks ready for STT: resampling (linear, with continuity
+    between packets) and mono mixing built-in.
+  - InjectSilence: WASAPI loopback does NOT deliver packets when nothing is playing;
+    the component can inject silence to maintain a continuous stream
+    (required for VAD / streaming transcription).
+  - Direct integration with the Realtime STT module via the
+    RealtimeSTT property (same as TAIVoiceMonitor).
 
-  Uso minimo (traductor):
+  Minimal usage (translator):
 
     Capture := TAiAudioCapture.Create(Self);
-    Capture.Source := asLoopback;          // audio de reproduccion
-    Capture.OutputSampleRate := 16000;     // optimo para Whisper / Realtime
+    Capture.Source := asLoopback;          // playback audio
+    Capture.OutputSampleRate := 16000;     // optimal for Whisper / Realtime
     Capture.OutputChannels := 1;           // mono
-    Capture.OnData := MiManejadorOnData;   // chunks PCM16 cada 100 ms
+    Capture.OnData := MiManejadorOnData;   // PCM16 chunks every 100 ms
     Capture.Active := True;
 
-  IMPORTANTE: el evento OnData entrega un TBytes (copia segura); los eventos
-  se despachan al hilo principal con TThread.Queue, igual que el resto de la
-  suite. En aplicaciones de consola hay que llamar CheckSynchronize.
+  IMPORTANT: the OnData event delivers a TBytes (safe copy); events
+  are dispatched to the main thread using TThread.Queue, same as the rest of the
+  suite. In console applications you must call CheckSynchronize.
 
-  Plataformas: solo Windows. En otras plataformas el componente compila pero
-  Active := True dispara OnError.
+  Platforms: Windows only. On other platforms the component compiles but
+  Active := True fires OnError.
 }
 
 unit uMakerAi.Utils.AudioCapture;
@@ -84,24 +84,24 @@ const
   DEFAULT_AC_OUTPUT_CHANNELS = 1;
 
 type
-  // Fuente de captura:
-  // asLoopback   = lo que el sistema esta reproduciendo (altavoces/auriculares)
-  // asMicrophone = dispositivo de grabacion (microfono) via WASAPI
+  // Capture source:
+  // asLoopback   = what the system is playing (speakers/headphones)
+  // asMicrophone = recording device (microphone) via WASAPI
   TAiAudioSource = (asLoopback, asMicrophone);
 
   TAiAudioDeviceInfo = record
-    EndpointId: string; // ID unico WASAPI del endpoint (usar en DeviceId)
-    DeviceName: string; // Nombre amigable del dispositivo
-    IsDefault: Boolean; // True si es el dispositivo predeterminado
+    EndpointId: string; // unique WASAPI endpoint ID (use in DeviceId)
+    DeviceName: string; // friendly device name
+    IsDefault: Boolean; // True if it is the default device
   end;
 
-  // aBuffer es PCM16 entrelazado en el formato indicado (copia segura,
-  // se puede retener sin problemas).
+  // aBuffer is interleaved PCM16 in the indicated format (safe copy,
+  // can be retained without issues).
   TAiAudioDataEvent = procedure(Sender: TObject; const aBuffer: TBytes; aSampleRate, aChannels: Integer) of object;
   TAiAudioLevelEvent = procedure(Sender: TObject; const aSoundLevel: Int64) of object;
   TAiAudioErrorEvent = procedure(Sender: TObject; const ErrorMessage: string) of object;
-  // Se dispara al iniciar la captura, cuando ya se conoce el formato nativo
-  // del dispositivo y el formato efectivo de salida.
+  // Fires when capture starts, once the native device format
+  // and the effective output format are known.
   TAiAudioFormatEvent = procedure(Sender: TObject; aNativeSampleRate, aNativeChannels, aOutSampleRate, aOutChannels: Integer) of object;
 
   TAiAudioCapture = class(TComponent)
@@ -140,7 +140,7 @@ type
     procedure Loaded; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure DoError(const aMessage: string);
-    // Llamados desde el hilo de captura:
+    // Called from the capture thread:
     procedure HandleFormatReady(aNativeRate, aNativeChannels, aOutRate, aOutChannels: Integer);
     procedure HandleChunk(const aChunk: TBytes; aSampleRate, aChannels: Integer);
     procedure HandleThreadError(const aMessage: string);
@@ -148,38 +148,38 @@ type
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
 
-    // Lista los dispositivos disponibles para la fuente indicada.
-    // Para asLoopback se listan los dispositivos de REPRODUCCION (render),
-    // ya que el loopback captura lo que sale por ellos.
+    // Lists the available devices for the indicated source.
+    // For asLoopback it lists PLAYBACK (render) devices,
+    // since loopback captures what is being played through them.
     class function GetAudioDevices(aSource: TAiAudioSource): TArray<TAiAudioDeviceInfo>;
 
     property SoundLevel: Int64 read FSoundLevel;
-    // Formato nativo del dispositivo (disponible tras activar la captura)
+    // Native device format (available after capture is activated)
     property NativeSampleRate: Integer read FNativeSampleRate;
     property NativeChannels: Integer read FNativeChannels;
-    // Formato real de los chunks entregados en OnData
+    // Actual format of chunks delivered in OnData
     property EffectiveSampleRate: Integer read FEffectiveSampleRate;
     property EffectiveChannels: Integer read FEffectiveChannels;
   published
     property Active: Boolean read FActive write SetActive default False;
     property Source: TAiAudioSource read FSource write SetSource default asLoopback;
-    // ID WASAPI del endpoint (ver GetAudioDevices). '' = predeterminado.
+    // WASAPI endpoint ID (see GetAudioDevices). '' = default.
     property DeviceId: string read FDeviceId write SetDeviceId;
-    // Sample rate de salida. 0 = nativo del dispositivo (tipicamente 48000).
+    // Output sample rate. 0 = native (typically 48000).
     property OutputSampleRate: Integer read FOutputSampleRate write SetOutputSampleRate default DEFAULT_AC_OUTPUT_SAMPLE_RATE;
-    // Canales de salida: 0 = nativo (max 2), 1 = mono, 2 = estereo.
+    // Output channels: 0 = native (max 2), 1 = mono, 2 = stereo.
     property OutputChannels: Integer read FOutputChannels write SetOutputChannels default DEFAULT_AC_OUTPUT_CHANNELS;
-    // Duracion de cada chunk entregado en OnData.
+    // Duration of each chunk delivered in OnData.
     property ChunkDurationMs: Integer read FChunkDurationMs write SetChunkDurationMs default DEFAULT_AC_CHUNK_DURATION_MS;
-    // En loopback WASAPI no entrega datos si no suena nada. Con True se
-    // inyectan chunks de silencio para mantener el flujo continuo.
+    // In WASAPI loopback no data is delivered if nothing is playing. With True
+    // silence chunks are injected to maintain continuous flow.
     property InjectSilence: Boolean read FInjectSilence write FInjectSilence default True;
-    // Con True los chunks se sustituyen por silencio SIN cortar el flujo.
-    // Util para que el STT no escuche el propio TTS del traductor mientras
-    // se reproduce (se puede cambiar con la captura activa).
+    // With True the chunks are replaced by silence WITHOUT cutting the flow.
+    // Useful so that the STT does not listen to the translator's own TTS while
+    // playing (can be changed while capture is active).
     property Muted: Boolean read FMuted write FMuted default False;
-    // Cuando esta asignado, cada chunk capturado se reenvia (en mono) al
-    // componente Realtime STT, que gestiona su propio VAD y transcripcion.
+    // When assigned, each captured chunk is forwarded (in mono) to the
+    // Realtime STT component, which manages its own VAD and transcription.
     property RealtimeSTT: TAiRealtimeBase read FRealtimeSTT write SetRealtimeSTT;
     property OnData: TAiAudioDataEvent read FOnData write FOnData;
     property OnUpdate: TAiAudioLevelEvent read FOnUpdate write FOnUpdate;
@@ -196,7 +196,7 @@ begin
   RegisterComponents('MakerAI', [TAiAudioCapture]);
 end;
 
-// Mezcla PCM16 entrelazado de N canales a mono (promedio).
+// Downmixes interleaved PCM16 from N channels to mono (average).
 function DownmixToMono16(const aBuffer: TBytes; aChannels: Integer): TBytes;
 var
   Frames, I, C: Integer;
@@ -218,8 +218,8 @@ end;
 {$IFDEF MSWINDOWS}
 
 // ---------------------------------------------------------------------------
-// Declaraciones WASAPI (Core Audio API) - no incluidas en la RTL de Delphi.
-// Se declaran con prefijo IAi* para no colisionar con MfPack u otras librerias.
+// WASAPI declarations (Core Audio API) - not included in Delphi RTL.
+// Declared with IAi* prefix to avoid collision with MfPack or other libraries.
 // ---------------------------------------------------------------------------
 
 const
@@ -238,7 +238,7 @@ const
   eConsole = 0;
   WF_EXTENSIBLE = $FFFE; // WAVE_FORMAT_EXTENSIBLE
   WF_IEEE_FLOAT = 3; // WAVE_FORMAT_IEEE_FLOAT
-  REFTIMES_PER_MS = 10000; // unidades de 100 ns por milisegundo
+  REFTIMES_PER_MS = 10000; // 100 ns units per millisecond
 
 type
   TAiPropertyKey = packed record
@@ -318,7 +318,7 @@ const
 
 type
   // ---------------------------------------------------------------------------
-  // Hilo de captura WASAPI (polling cada ~ChunkMs/4)
+  // WASAPI capture thread (polling every ~ChunkMs/4)
   // ---------------------------------------------------------------------------
   TAiWasapiCaptureThread = class(TThread)
   private
@@ -326,23 +326,23 @@ type
     FSource: TAiAudioSource;
     FDeviceId: string;
     FChunkMs: Integer;
-    FOutRateCfg: Integer; // 0 = nativo
-    FOutChCfg: Integer; // 0 = nativo
+    FOutRateCfg: Integer; // 0 = native
+    FOutChCfg: Integer; // 0 = native
     FInjectSilence: Boolean;
-    // Formato nativo (mix format) detectado
+    // Detected native (mix) format
     FMixRate: Integer;
     FMixCh: Integer;
     FMixBits: Integer;
     FMixFloat: Boolean;
-    // Formato efectivo de salida
+    // Effective output format
     FOutRate: Integer;
     FOutCh: Integer;
     FChunkBytes: Integer;
-    // Estado del resampler lineal (continuidad entre paquetes)
+    // Linear resampler state (continuity between packets)
     FResamplePos: Double;
     FLastSamples: array [0 .. 1] of Single;
     FHasLast: Boolean;
-    // Acumulador de PCM16 ya en formato de salida
+    // PCM16 accumulator already in output format
     FChunkData: TMemoryStream;
     FEmitWatch: TStopwatch;
     function ReadNativeSample(pData: PByte; aIndex: Integer): Single;
@@ -379,7 +379,7 @@ end;
 procedure TAiWasapiCaptureThread.RaiseIfFailed(hr: HResult; const aContext: string);
 begin
   if Failed(hr) then
-    raise Exception.CreateFmt('%s fallo (HRESULT=0x%.8x)', [aContext, Cardinal(hr)]);
+    raise Exception.CreateFmt('%s failed (HRESULT=0x%.8x)', [aContext, Cardinal(hr)]);
 end;
 
 function TAiWasapiCaptureThread.ReadNativeSample(pData: PByte; aIndex: Integer): Single;
@@ -388,7 +388,7 @@ begin
     Result := PSingle(pData + aIndex * 4)^
   else if FMixBits = 16 then
     Result := PSmallInt(pData + aIndex * 2)^ / 32768
-  else // PCM entero de 32 bits
+  else // PCM integer 32 bits
     Result := PInteger(pData + aIndex * 4)^ / 2147483648.0;
 end;
 
@@ -396,16 +396,16 @@ procedure TAiWasapiCaptureThread.ProcessPacket(pData: PByte; aFrames: Integer; a
 var
   I, C, K, Total, OutIdx, MaxOut: Integer;
   Sum: Single;
-  InBuf: TArray<Single>; // entrelazado, FOutCh canales, rate nativo
-  OutBuf: TArray<Single>; // entrelazado, FOutCh canales, rate de salida
+  InBuf: TArray<Single>; // interleaved, FOutCh channels, native rate
+  OutBuf: TArray<Single>; // interleaved, FOutCh channels, output rate
   Ratio: Double;
   Idx: Integer;
   Frac, S0, S1: Single;
   OutPCM: TBytes;
   V: Integer;
 
-  // Acceso al "stream extendido": la ultima muestra del paquete anterior
-  // (FLastSamples) seguida de las muestras del paquete actual.
+  // Access to the "extended stream": the last sample of the previous packet
+  // (FLastSamples) followed by the samples of the current packet.
   function ExtFrame(aFrame, aChan: Integer): Single;
   begin
     if FHasLast then
@@ -421,7 +421,7 @@ begin
   if aFrames <= 0 then
     Exit;
 
-  // 1) Convertir a float y mezclar al numero de canales de salida
+  // 1) Convert to float and mix to the number of output channels
   SetLength(InBuf, aFrames * FOutCh);
   if aSilent or (pData = nil) then
     FillChar(InBuf[0], Length(InBuf) * SizeOf(Single), 0)
@@ -431,7 +431,7 @@ begin
       begin
         if FOutCh = 1 then
         begin
-          // Promedio de todos los canales nativos
+          // Average of all native channels
           Sum := 0;
           for K := 0 to FMixCh - 1 do
             Sum := Sum + ReadNativeSample(pData, I * FMixCh + K);
@@ -439,19 +439,19 @@ begin
         end
         else
         begin
-          // Tomar el canal correspondiente (o duplicar si nativo es mono)
+          // Take the corresponding channel (or duplicate if native is mono)
           K := Min(C, FMixCh - 1);
           InBuf[I * FOutCh + C] := ReadNativeSample(pData, I * FMixCh + K);
         end;
       end;
 
-  // 2) Remuestreo lineal con continuidad entre paquetes
+  // 2) Linear resampling with continuity between packets
   if FOutRate = FMixRate then
     OutBuf := InBuf
   else
   begin
     if FHasLast then
-      Total := aFrames + 1 // el frame 0 es el remanente del paquete anterior
+      Total := aFrames + 1 // frame 0 is the remainder from the previous packet
     else
     begin
       Total := aFrames;
@@ -479,7 +479,7 @@ begin
       FResamplePos := FResamplePos + Ratio;
     end;
 
-    // Guardar la ultima muestra para interpolar con el proximo paquete
+    // Save the last sample to interpolate with the next packet
     for C := 0 to FOutCh - 1 do
       FLastSamples[C] := ExtFrame(Total - 1, C);
     FResamplePos := FResamplePos - (Total - 1);
@@ -490,7 +490,7 @@ begin
   if Length(OutBuf) = 0 then
     Exit;
 
-  // 3) Convertir a PCM16 y acumular
+  // 3) Convert to PCM16 and accumulate
   SetLength(OutPCM, Length(OutBuf) * 2);
   for I := 0 to High(OutBuf) do
   begin
@@ -518,7 +518,7 @@ begin
   begin
     if not aPad then
       Exit;
-    // Completar con silencio hasta el tamano del chunk
+    // Fill with silence up to the chunk size
     SetLength(Chunk, FChunkBytes);
     FillChar(Chunk[0], FChunkBytes, 0);
     if FChunkData.Size > 0 then
@@ -533,7 +533,7 @@ begin
     SetLength(Chunk, FChunkBytes);
     FChunkData.Position := 0;
     FChunkData.ReadBuffer(Chunk[0], FChunkBytes);
-    // Conservar el sobrante para el proximo chunk
+    // Keep remainder for the next chunk
     RemSize := FChunkData.Size - FChunkBytes;
     if RemSize > 0 then
     begin
@@ -603,29 +603,29 @@ begin
           else if IsEqualGUID(pExt.SubFormat, KSDATAFORMAT_SUBTYPE_PCM) then
             FMixFloat := False
           else
-            raise Exception.Create('Formato de mezcla no soportado (SubFormat desconocido)');
+            raise Exception.Create('Mix format not supported (unknown SubFormat)');
         end
         else
-          raise Exception.CreateFmt('Formato de mezcla no soportado (tag=%d)', [pwfx.wFormatTag]);
+          raise Exception.CreateFmt('Mix format not supported (tag=%d)', [pwfx.wFormatTag]);
 
         if FMixFloat and (FMixBits <> 32) then
-          raise Exception.CreateFmt('Formato float de %d bits no soportado', [FMixBits]);
+          raise Exception.CreateFmt('Float format of %d bits not supported', [FMixBits]);
         if (not FMixFloat) and (FMixBits <> 16) and (FMixBits <> 32) then
-          raise Exception.CreateFmt('Formato PCM entero de %d bits no soportado', [FMixBits]);
+          raise Exception.CreateFmt('Integer PCM format of %d bits not supported', [FMixBits]);
 
         if FSource = asLoopback then
           StreamFlags := AUDCLNT_STREAMFLAGS_LOOPBACK
         else
           StreamFlags := 0;
 
-        // Buffer interno de 500 ms: margen de sobra para el polling
+        // Internal buffer of 500 ms: generous margin for polling
         RaiseIfFailed(AudioClient.Initialize(AUDCLNT_SHAREMODE_SHARED, StreamFlags, 500 * REFTIMES_PER_MS, 0, pwfx, nil),
           'IAudioClient.Initialize');
       finally
         CoTaskMemFree(pwfx);
       end;
 
-      // Resolver formato efectivo de salida
+      // Resolve effective output format
       if FOutRateCfg > 0 then
         FOutRate := FOutRateCfg
       else
@@ -636,9 +636,9 @@ begin
         FOutCh := Min(FMixCh, 2);
 
       FChunkBytes := (FOutRate * FOutCh * 2 * FChunkMs) div 1000;
-      FChunkBytes := FChunkBytes - (FChunkBytes mod (FOutCh * 2)); // alinear a frame
+      FChunkBytes := FChunkBytes - (FChunkBytes mod (FOutCh * 2)); // align to frame
       if FChunkBytes <= 0 then
-        raise Exception.Create('Configuracion de chunk invalida');
+        raise Exception.Create('Invalid chunk configuration');
 
       RaiseIfFailed(AudioClient.GetService(IID_IAudioCaptureClient, CaptureClient), 'GetService(IAudioCaptureClient)');
       RaiseIfFailed(AudioClient.Start, 'IAudioClient.Start');
@@ -662,8 +662,8 @@ begin
             RaiseIfFailed(CaptureClient.GetNextPacketSize(PacketFrames), 'GetNextPacketSize');
           end;
 
-          // En loopback no llegan paquetes si no suena nada: inyectar silencio
-          // para mantener el flujo continuo hacia VAD/STT.
+          // In loopback no packets arrive if nothing is playing: inject silence
+          // to maintain a continuous flow towards VAD/STT.
           if FInjectSilence and (FEmitWatch.ElapsedMilliseconds >= 2 * FChunkMs) then
             EmitChunk(True);
         end;
@@ -676,7 +676,7 @@ begin
           FOwner.HandleThreadError(E.Message);
     end;
   finally
-    // Liberar las interfaces COM ANTES de CoUninitialize
+    // Release the COM interfaces BEFORE CoUninitialize
     CaptureClient := nil;
     AudioClient := nil;
     Device := nil;
@@ -770,7 +770,7 @@ begin
     Exit;
   CheckNotActive('OutputSampleRate');
 
-  IsValid := (Value = 0); // 0 = usar el rate nativo del dispositivo
+  IsValid := (Value = 0); // 0 = use the native device rate
   for I := Low(VALID_RATES) to High(VALID_RATES) do
     if Value = VALID_RATES[I] then
     begin
@@ -811,7 +811,7 @@ begin
   if Assigned(FRealtimeSTT) then
   begin
     FRealtimeSTT.FreeNotification(Self);
-    // Sincronizar el sample rate de entrada del resampler del Realtime
+    // Synchronize the input sample rate of the Realtime resampler
     if FEffectiveSampleRate > 0 then
       FRealtimeSTT.InputSampleRate := FEffectiveSampleRate
     else if FOutputSampleRate > 0 then
@@ -832,7 +832,7 @@ begin
   FCaptureThread := TAiWasapiCaptureThread.Create(Self);
 {$ELSE}
   FActive := False;
-  DoError('TAiAudioCapture solo esta disponible en Windows (WASAPI).');
+  DoError('TAiAudioCapture is only available on Windows (WASAPI).');
 {$ENDIF}
 end;
 
@@ -864,7 +864,7 @@ begin
       if csDestroying in ComponentState then
         Exit;
       FActive := False;
-      StopCapture; // el hilo ya termino: WaitFor retorna de inmediato
+      StopCapture; // the thread already terminated: WaitFor returns immediately
       if Assigned(FOnError) then
         FOnError(Self, aMessage);
     end);
@@ -877,7 +877,7 @@ begin
   FEffectiveSampleRate := aOutRate;
   FEffectiveChannels := aOutChannels;
 
-  // El resampler interno del Realtime STT necesita conocer el rate de entrada
+  // The internal resampler of the Realtime STT needs to know the input rate
   if Assigned(FRealtimeSTT) then
     FRealtimeSTT.InputSampleRate := aOutRate;
 
@@ -895,7 +895,7 @@ var
   I, NumSamples: Integer;
   Chunk, MonoChunk: TBytes;
 begin
-  // Si esta silenciado, sustituir por ceros manteniendo el flujo continuo
+  // If muted, replace with zeros while maintaining continuous flow
   if FMuted then
   begin
     SetLength(Chunk, Length(aChunk));
@@ -905,7 +905,7 @@ begin
   else
     Chunk := aChunk;
 
-  // Nivel promedio del chunk (PCM16)
+  // Average level of the chunk (PCM16)
   NumSamples := Length(Chunk) div 2;
   Level := 0;
   if NumSamples > 0 then
@@ -916,7 +916,7 @@ begin
   end;
   FSoundLevel := Level;
 
-  // Reenviar al componente Realtime STT (su resampler espera mono)
+  // Forward to the Realtime STT component (its resampler expects mono)
   if Assigned(FRealtimeSTT) and FRealtimeSTT.IsConnected then
   begin
     if aChannels > 1 then
@@ -982,7 +982,7 @@ begin
     for I := 0 to Integer(Count) - 1 do
     begin
       Result[I].EndpointId := '';
-      Result[I].DeviceName := '(desconocido)';
+      Result[I].DeviceName := '(unknown)';
       Result[I].IsDefault := False;
 
       if Failed(Collection.Item(I, Device)) then
@@ -1010,7 +1010,7 @@ begin
       Device := nil;
     end;
   finally
-    // Liberar las interfaces COM ANTES de CoUninitialize
+    // Release the COM interfaces BEFORE CoUninitialize
     Props := nil;
     Device := nil;
     DefaultDevice := nil;

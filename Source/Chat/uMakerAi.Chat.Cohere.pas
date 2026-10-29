@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr?quez
-// Redes Sociales:
+// Name: Gustavo Enr?quez
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -43,7 +43,7 @@ interface
 uses
   System.SysUtils, System.Classes, System.Generics.Collections, System.JSON,
   System.Net.HttpClientComponent, System.Threading, System.Net.Mime,
-  System.Net.HttpClient, System.Net.URLClient, // Necesario para IHTTPResponse en TAiErrorEvent
+  System.Net.HttpClient, System.Net.URLClient, // Needed for IHTTPResponse in TAiErrorEvent
 {$IF CompilerVersion < 35}
   uJSONHelper,
 {$ENDIF}
@@ -51,11 +51,11 @@ uses
   uMakerAi.Chat.Messages;
 
 type
-  // Forward declarations para claridad
+  // Forward declarations for clarity
   TCohereDocument = class;
   TCohereDocuments = class;
 
-  // --- Clases de Datos para Rerank ---
+  // --- Data Classes for Rerank ---
   TRerankResult = class
   private
     FIndex: Integer;
@@ -89,24 +89,24 @@ type
   private
     FStop_sequences: TStrings;
     FDocuments: TCohereDocuments;
-    FRerankModel: string; // Propiedad para el modelo de Rerank
+    FRerankModel: string; // Property for the Rerank model
 
-    FStreamBuffer: string; // Buffer para acumular datos del stream SSE
-    FStreamThinking: string; // Acumula deltas de thinking (a-plus/north/a-reasoning)
-    FStreamLastRole: string; // Para guardar el rol ('assistant') recibido en message-start
-    FStreamResponseMsg: TAiChatMessage; // Para acumular los datos finales (usage, etc.)
-    FStreamingToolCalls: TDictionary<string, TAiToolsFunction>; // Para construir tool calls en streaming
-    FStreamingToolCallsByIndex: TDictionary<Integer, string>;   // Mapeo index → id para streaming
-    FStreamingCitations: TAiMsgCitations; // Para construir citaciones
+    FStreamBuffer: string; // Buffer to accumulate data from the SSE stream
+    FStreamThinking: string; // Accumulates thinking deltas (a-plus/north/a-reasoning)
+    FStreamLastRole: string; // To store the role ('assistant') received in message-start
+    FStreamResponseMsg: TAiChatMessage; // To accumulate the final data (usage, etc.)
+    FStreamingToolCalls: TDictionary<string, TAiToolsFunction>; // To build tool calls in streaming
+    FStreamingToolCallsByIndex: TDictionary<Integer, string>;   // Mapping index → id for streaming
+    FStreamingCitations: TAiMsgCitations; // To build citations
     FToolResultsForNextCall: TJSONArray;
 
-    procedure ProcessStreamBuffer; // Nuevo m?todo helper para procesar el buffer
+    procedure ProcessStreamBuffer; // New helper method to process the buffer
 
     procedure SetStop_sequences(const Value: TStrings);
     procedure SetDocuments(const Value: TCohereDocuments);
     procedure ExecuteAndRespondToToolCalls(ToolCalls: TEnumerable<TAiToolsFunction>; ResMsg: TAiChatMessage);
   protected
-    // --- Sobrescribimos los m?todos clave ---
+    // --- We override the key methods ---
     function InitChatCompletions: String; override;
     procedure ParseChat(jObj: TJSonObject; ResMsg: TAiChatMessage); override;
     function InternalRunCompletions(ResMsg, AskMsg: TAiChatMessage): String; override;
@@ -117,21 +117,21 @@ type
     constructor Create(Sender: TComponent); override;
     destructor Destroy; override;
 
-    // --- Nuevo M?todo para Rerank ---
+    // --- New Method for Rerank ---
     function Rerank(const AQuery: string; ADocuments: TStrings; ATopN: Integer = -1): TRerankResponse;
 
-    // --- M?todos de F?brica ---
+    // --- Factory Methods ---
     class function GetDriverName: string; override;
     class procedure RegisterDefaultParams(Params: TStrings); override;
     class function CreateInstance(Sender: TComponent): TAiChat; override;
     class function GetModels(aApiKey: String; aUrl: String = ''): TStringList; override;
     function GetModels: TStringList; override;
   published
-    // Re-publicamos propiedades de TAiChat para que aparezcan en el inspector
+    // We republish TAiChat properties so they appear in the inspector
     property Temperature;
-    property Top_p; // Se mapear? a 'p'
+    property Top_p; // It will be mapped to 'p'
 
-    // --- Propiedades espec?ficas de Cohere ---
+    // --- Cohere-specific properties ---
     property Stop_sequences: TStrings read FStop_sequences write SetStop_sequences;
     property Documents: TCohereDocuments read FDocuments write SetDocuments;
     property RerankModel: string read FRerankModel write FRerankModel;
@@ -169,8 +169,8 @@ begin
   LowerRole := LowerCase(aRole);
   if LowerRole = 'user' then
     Result := 'user'
-  else if (LowerRole = 'assistant') or (LowerRole = 'model') then // Mantenemos 'model' por compatibilidad interna
-    Result := 'assistant' // <-- CAMBIO CLAVE
+  else if (LowerRole = 'assistant') or (LowerRole = 'model') then // We keep 'model' for internal compatibility
+    Result := 'assistant' // <-- KEY CHANGE
   else if LowerRole = 'system' then
     Result := 'system'
   else if LowerRole = 'tool' then
@@ -219,14 +219,14 @@ begin
   FStop_sequences := TStringList.Create;
   FDocuments := TCohereDocuments.Create(True);
 
-  // Valores por defecto para Chat
+  // Default values for Chat
   Self.ApiKey := '@COHERE_API_KEY';
   Self.Url := 'https://api.cohere.com/v2/';
   Self.Model := 'command-a-03-2025';
   Self.Temperature := 0.3;
   Self.Top_p := 0.75;
 
-  // Valores por defecto para Rerank
+  // Default values for Rerank
   Self.FRerankModel := 'rerank-english-v3.0';
   FStreamBuffer := '';
   FStreamResponseMsg := nil;
@@ -255,7 +255,7 @@ var
   I: Integer;
   ToolCallList: TList<TAiToolsFunction>;
 
-  // Subrutina local: garantiza captura independiente por valor en Delphi 10.4+
+  // Local subroutine: ensures independent capture by value in Delphi 10.4+
   procedure _CreateTask(TC: TAiToolsFunction; AIdx: Integer);
   begin
     TaskList[AIdx] := TTask.Create(
@@ -277,7 +277,7 @@ var
 begin
   AskMsg := GetLastMessage;
 
-  // 1. Ejecutar todas las funciones solicitadas
+  // 1. Execute all requested functions
   ToolCallList := TList<TAiToolsFunction>.Create(ToolCalls);
   try
     SetLength(TaskList, ToolCallList.Count);
@@ -287,21 +287,21 @@ begin
       ToolCall.ResMsg := ResMsg;
       ToolCall.AskMsg := AskMsg;
 
-      _CreateTask(ToolCall, I); // subrutina local garantiza captura por valor
+      _CreateTask(ToolCall, I); // local subroutine ensures capture by value
     end;
-    // Bombear Synchronize/Queue mientras se espera, para no colgar la app si un
-    // tool call accede a la VCL/FMX via TThread.Synchronize (issue #103).
-    // OJO: CheckSynchronize SOLO es valido en el hilo principal; en hilos
-    // secundarios (workers Indy de un servicio headless, TTask de agentes)
-    // LANZA excepcion "CheckSynchronize called from thread X". Fuera del main
-    // thread solo esperamos. Mismo criterio que TMCPClientSSE.WaitForInitialization.
+    // Pump Synchronize/Queue while waiting, so the app does not hang if a
+    // tool call accesses the VCL/FMX via TThread.Synchronize (issue #103).
+    // NOTE: CheckSynchronize is ONLY valid on the main thread; on
+    // secondary threads (Indy workers of a headless service, agent TTasks)
+    // THROWS an exception "CheckSynchronize called from thread X". Outside the main
+    // thread we only wait. Same criterion as TMCPClientSSE.WaitForInitialization.
     while not TTask.WaitForAll(TaskList, 10) do
       if TThread.CurrentThread.ThreadID = MainThreadID then
         CheckSynchronize(0)
       else
         TThread.Sleep(10);
 
-    // 2. Agregar un mensaje 'tool' por cada resultado (formato v2: tool_call_id + content)
+    // 2. Add a 'tool' message for each result (v2 format: tool_call_id + content)
     for ToolCall in ToolCallList do
     begin
       var LToolMsg := InternalAddMessage(ToolCall.Response, 'tool', ToolCall.Id, ToolCall.Name);
@@ -310,18 +310,18 @@ begin
       ToolCall.MediaFiles.OwnsObjects := False;
     end;
 
-    // 3. Volver a llamar a Run para obtener la respuesta final.
-    // ISSUE #100: en async este método se invoca desde el callback de recepción
-    // (OnInternalReceiveData -> ProcessStreamBuffer -> message-end). Reentrar con
-    // Self.Run inicia un POST nuevo cuyo finally libera el FCurrentPostStream de la
-    // petición en vuelo -> AV en THTTPClient.ExecuteHTTPInternal. Se difiere a
-    // OnRequestCompletedEvent (base), que corre cuando la petición ya liberó su stream.
+    // 3. Call Run again to get the final response.
+    // ISSUE #100: in async, this method is invoked from the receive callback
+    // (OnInternalReceiveData -> ProcessStreamBuffer -> message-end). Re-entering with
+    // Self.Run starts a new POST whose finally releases the FCurrentPostStream of the
+    // in-flight request -> AV in THTTPClient.ExecuteHTTPInternal. It is deferred to
+    // OnRequestCompletedEvent (base), which runs when the request has already released its stream.
     if FClient.Asynchronous then
       FPendingToolRun := True
     else
-      // Reutilizar el MISMO ResMsg del round 1 (patron de la base, linea Run(Nil,
-      // ResMsg)): el texto final del round 2 queda en ResMsg.Prompt, que es lo que
-      // RunNew retorna al llamador sincrono. Con nil el resultado llegaba vacio.
+      // Reuse the SAME ResMsg from round 1 (base pattern, line Run(Nil,
+      // ResMsg)): the final text from round 2 remains in ResMsg.Prompt, which is what
+      // RunNew returns to the synchronous caller. With nil the result arrived empty.
       Self.Run(nil, ResMsg);
 
   finally
@@ -359,11 +359,11 @@ var
   LUri: TURI;
 begin
   Result := TStringList.Create;
-  try // ISSUE #114: si el cuerpo lanza, liberar Result para no fugarlo
+  try // ISSUE #114: if the body throws, free Result so it is not leaked
   Client := TNetHTTPClient.Create(nil);
   ResponseStream := TStringStream.Create('', TEncoding.UTF8);
   try
-    // 1. Construir la URL correcta (usando v1)
+    // 1. Build the correct URL (using v1)
     if aUrl <> '' then
       BaseUrl := aUrl
     else
@@ -373,17 +373,17 @@ begin
     FullUrl := LUri.Scheme + '://' + LUri.Host + '/v1/models';
     FullUrl := FullUrl + '?endpoint=chat';
 
-    // 3. Preparar las cabeceras correctamente
-    Headers := [TNetHeader.Create('Authorization', 'Bearer ' + aApiKey), TNetHeader.Create('accept', 'application/json') // A?adido para ser como cURL
+    // 3. Prepare the headers correctly
+    Headers := [TNetHeader.Create('Authorization', 'Bearer ' + aApiKey), TNetHeader.Create('accept', 'application/json') // Added to be like cURL
       ];
 
-    // Se pasa el par?metro AHeaders a la llamada GET.
+    // The AHeaders parameter is passed to the GET call.
     HttpResponse := Client.Get(FullUrl, ResponseStream, Headers);
 
     if not Assigned(HttpResponse) then
       raise Exception.CreateFmt('Connection failed: no response from %s', [FullUrl]);
 
-    // 4. Procesar la respuesta (sin cambios)
+    // 4. Process the response (unchanged)
     if HttpResponse.StatusCode = 200 then
     begin
       ResponseStream.Position := 0;
@@ -410,19 +410,19 @@ begin
     end
     else
     begin
-      raise Exception.CreateFmt('Error al obtener la lista de modelos de Cohere: %d - %s', [HttpResponse.StatusCode, HttpResponse.ContentAsString]);
+      raise Exception.CreateFmt('Error retrieving the Cohere model list: %d - %s', [HttpResponse.StatusCode, HttpResponse.ContentAsString]);
     end;
   finally
     Client.Free;
     ResponseStream.Free;
   end;
-  except // ISSUE #114: el camino de error no debe dejar huerfano el Result
+  except // ISSUE #114: the error path must not leave Result orphaned
     Result.Free;
     raise;
   end;
 end;
 
-// Implementaci?n principal del m?todo
+// Main implementation of the method
 function TCohereChat.InitChatCompletions: String;
 var
   LJsonObject: TJSonObject;
@@ -442,9 +442,9 @@ var
 begin
   LJsonObject := TJSonObject.Create;
   LStopList := TStringList.Create;
-  HasToolResults := False; // Para saber si estamos en la fase 2 del tool-use
+  HasToolResults := False; // To know whether we are in phase 2 of tool-use
   try
-    // --- 1. CONFIGURACI?N DEL MODELO Y PAR?METROS DE GENERACI?N ---
+    // --- 1. MODEL CONFIGURATION AND GENERATION PARAMETERS ---
     LJsonObject.AddPair('model', Self.Model);
     if Self.Asynchronous then
       LJsonObject.AddPair('stream', TJSONBool.Create(True));
@@ -462,11 +462,11 @@ begin
     if Self.Seed > 0 then
       LJsonObject.AddPair('seed', TJSONNumber.Create(Self.Seed));
 
-    // --- Thinking (ago 2026) ---
-    // command-a-plus, north-mini-* y command-a-reasoning razonan POR DEFECTO
-    // (bloques content type='thinking'). cap_Reasoning lo activa explicitamente;
-    // sin el cap se envia disabled para modo rapido, EXCEPTO command-a-plus que
-    // siempre razona (con disabled el API falla con INVALID_TOOL_GENERATION).
+    // --- Thinking (Aug 2026) ---
+    // command-a-plus, north-mini-* and command-a-reasoning reason BY DEFAULT
+    // (content blocks type='thinking'). cap_Reasoning enables it explicitly;
+    // without the cap, disabled is sent for fast mode, EXCEPT command-a-plus which
+    // always reasons (with disabled the API fails with INVALID_TOOL_GENERATION).
     if ContainsText(Self.Model, '-reasoning-') or StartsText('command-a-plus', Self.Model) or
        StartsText('north-', Self.Model) then
     begin
@@ -485,7 +485,7 @@ begin
         jThinking.Free;
     end;
 
-    // --- 2. CONSTRUCCI?N DEL HISTORIAL DE MENSAJES ('messages') ---
+    // --- 2. MESSAGE HISTORY CONSTRUCTION ('messages') ---
     LMessagesArray := TJSONArray.Create;
     for LMessage in Self.Messages do
     begin
@@ -495,7 +495,7 @@ begin
 
       if (LRoleStr = 'assistant') and (not LMessage.Tool_calls.IsEmpty) then
       begin
-        // Mensaje del asistente que CONTIENE la petici?n de tool_calls.
+        // Assistant message that CONTAINS the tool_calls request.
         LToolCallsValue := TJSONObject.ParseJSONValue(LMessage.Tool_calls, True);
         if Assigned(LToolCallsValue) and (LToolCallsValue is TJSONArray) then
           LMsgObj.AddPair('tool_calls', LToolCallsValue)
@@ -505,17 +505,17 @@ begin
             LToolCallsValue.Free;
           LMsgObj.AddPair('tool_calls', TJSONArray.Create);
         end;
-        // La API v2 de Cohere RECHAZA content de tipo 'text' junto a 'tool_calls'
+        // Cohere's v2 API REJECTS 'text' content alongside 'tool_calls'
         // ("messages with non-empty 'tool_calls' cannot contain content items of type
-        // 'text'"). En streaming el modelo suele emitir un preámbulo de texto antes del
-        // tool_call que queda en LMessage.Prompt; ese texto NO debe enviarse en el
-        // mensaje assistant que porta los tool_calls. Se omite el content de texto.
-        // (Solo se admitiría content de tipo 'thinking', que aquí no emitimos.)
+        // 'text'"). In streaming the model usually emits a text preamble before the
+        // tool_call that remains in LMessage.Prompt; that text MUST NOT be sent in the
+        // assistant message that carries the tool_calls. The text content is omitted.
+        // (Only content of type 'thinking' would be allowed, which we do not emit here.)
 
       end
       else if (LRoleStr = 'tool') then
       begin
-        // Mensaje de resultado de herramienta (v2: tool_call_id + content)
+        // Tool result message (v2: tool_call_id + content)
         HasToolResults := True;
         if not LMessage.ToolCallId.IsEmpty then
           LMsgObj.AddPair('tool_call_id', LMessage.ToolCallId);
@@ -523,7 +523,7 @@ begin
       end
       else if (LMessage.MediaFiles.Count > 0) and (LRoleStr = 'user') then
       begin
-        // Mensaje multimodal (con im?genes).
+        // Multimodal message (with images).
         LContentArray := TJSONArray.Create;
         LTextPart := TJSonObject.Create;
         LTextPart.AddPair('type', 'text');
@@ -546,7 +546,7 @@ begin
       end
       else
       begin
-        // Mensaje normal (user, system, o chatbot sin tool_calls).
+        // Normal message (user, system, or chatbot without tool_calls).
         LMsgObj.AddPair('content', LMessage.Prompt);
       end;
 
@@ -554,8 +554,8 @@ begin
     end;
     LJsonObject.AddPair('messages', LMessagesArray);
 
-    // --- 3. INCLUSI?N DE HERRAMIENTAS ('tools' y 'tool_choice') ---
-    // No env?es la definici?n de herramientas si ya est?s enviando resultados.
+    // --- 3. INCLUSION OF TOOLS ('tools' and 'tool_choice') ---
+    // Do not send the tool definitions if you are already sending results.
     if not HasToolResults and Tool_Active and Assigned(AiFunctions) and (AiFunctions.Functions.Count > 0) then
     begin
       LToolsJsonString := AiFunctions.GetTools(tfOpenAI);
@@ -579,7 +579,7 @@ begin
       end;
     end;
 
-    // --- 4. INCLUSI?N DE DOCUMENTOS PARA RAG ('documents') ---
+    // --- 4. INCLUSION OF DOCUMENTS FOR RAG ('documents') ---
     if Assigned(Self.FDocuments) and (Self.FDocuments.Count > 0) then
     begin
       LDocsArray := TJSONArray.Create;
@@ -588,7 +588,7 @@ begin
       LJsonObject.AddPair('documents', LDocsArray);
     end;
 
-    // --- 5. SECUENCIAS DE PARADA ('stop_sequences') ---
+    // --- 5. STOP SEQUENCES ('stop_sequences') ---
     LStopList.CommaText := Self.Stop;
     if Assigned(FStop_sequences) then
       LStopList.AddStrings(FStop_sequences);
@@ -604,7 +604,7 @@ begin
     if FResponse_format = tiaChatRfJson then
       LJsonObject.AddPair('response_format', TJSonObject.Create.AddPair('type', 'json_object'));
 
-    // --- 7. GENERACI?N DEL STRING FINAL ---
+    // --- 7. FINAL STRING GENERATION ---
     ApplyExtraBodyParams(LJsonObject);
     Result := LJsonObject.ToJSon;
 
@@ -629,7 +629,7 @@ begin
   FLastContent := '';
   St := TStringStream.Create('', TEncoding.UTF8);
 
-  // Construir URL del endpoint chat
+  // Build the chat endpoint URL
   sUrl := Self.Url;
   if not sUrl.EndsWith('/') then
     sUrl := sUrl + '/';
@@ -681,7 +681,7 @@ begin
         end;
       end
       else
-        raise Exception.CreateFmt('Error en Cohere Chat API: %d, %s', [Res.StatusCode, Res.ContentAsString]);
+        raise Exception.CreateFmt('Cohere Chat API error: %d, %s', [Res.StatusCode, Res.ContentAsString]);
     end
     else
       Result := '';
@@ -705,7 +705,7 @@ begin
   if FClient.Asynchronous = False then
     Exit;
 
-  // Heredamos la l?gica de aborto de la clase base
+  // We inherit the abort logic from the base class
   AAbort := Self.FAbort;
   if AAbort then
   begin
@@ -716,11 +716,11 @@ begin
     Exit;
   end;
 
-  // 1. Acumular los datos recibidos en nuestro buffer.
-  // FResponse es el TStringStream de la clase base.
-  // ISSUE #124: decodificar ANTES de limpiar; si el chunk termina en un caracter
-  // UTF-8 incompleto, DataString lanza EEncodingError, se sale sin hacer Clear y
-  // el proximo chunk completa el caracter.
+  // 1. Accumulate the received data in our buffer.
+  // FResponse is the base class TStringStream.
+  // ISSUE #124: decode BEFORE clearing; if the chunk ends in a character
+  // UTF-8 incomplete, DataString throws EEncodingError, it exits without doing Clear and
+  // the next chunk completes the character.
   try
     FStreamBuffer := FStreamBuffer + FResponse.DataString;
   except
@@ -730,7 +730,7 @@ begin
   FResponse.Clear;
   FResponse.Position := 0;
 
-  // 2. Procesar el buffer en busca de mensajes completos.
+  // 2. Process the buffer looking for complete messages.
   ProcessStreamBuffer;
 end;
 
@@ -748,7 +748,7 @@ var
   LSource: TAiCitationSource;
   LContentType, LSourceType: string;
 begin
-  // --- 1. Datos globales ---
+  // --- 1. Global data ---
   LResponseText := '';
   LFinishReason := '';
   LRole := 'assistant';
@@ -778,11 +778,11 @@ begin
     end;
   end;
 
-  // --- Extraer message ---
+  // --- Extract message ---
   jMessage := nil;
   jObj.TryGetValue<TJSonObject>('message', jMessage);
 
-  // --- Extraer texto de message.content[] (v2: array de {type, text}) ---
+  // --- Extract text from message.content[] (v2: array of {type, text}) ---
   if Assigned(jMessage) then
   begin
     jMessage.TryGetValue<string>('role', LRole);
@@ -803,7 +803,7 @@ begin
         end
         else if LContentType = 'thinking' then
         begin
-          // a-plus/north/a-reasoning: razonamiento previo al texto
+          // a-plus/north/a-reasoning: reasoning before the text
           var LThink: string;
           if (jContentValue as TJSonObject).TryGetValue<string>('thinking', LThink) then
             ResMsg.ReasoningContent := ResMsg.ReasoningContent + LThink;
@@ -887,8 +887,8 @@ begin
         ResMsg.Tool_calls := jToolCalls.ToJSon;
 
         InternalAddMessage(ResMsg);
-        // Pasar ResMsg (no nil): el round 2 sincrono lo reutiliza y el texto
-        // final queda en ResMsg.Prompt (valor de retorno de AddMessageAndRun)
+        // Pass ResMsg (not nil): the synchronous round 2 reuses it and the text
+        // final remains in ResMsg.Prompt (return value of AddMessageAndRun)
         ExecuteAndRespondToToolCalls(LFuncionesList, ResMsg);
         Exit;
       end;
@@ -899,7 +899,7 @@ begin
     end;
   end;
 
-  // --- 4. Respuesta normal ---
+  // --- 4. Normal response ---
   Self.FLastContent := LResponseText;
   ResMsg.Prompt := LResponseText;
 
@@ -947,8 +947,8 @@ begin
         Continue;
 
       try
-        // Cohere v2 usa 'type' en el JSON, no 'event:' SSE header en todos los casos
-        // Pero el tipo viene en el campo 'type' del JSON data
+        // Cohere v2 uses 'type' in the JSON, not the 'event:' SSE header in all cases
+        // But the type comes in the 'type' field of the JSON data
         var LType: string;
         if not JsonData.TryGetValue<string>('type', LType) then
           LType := EventName; // Fallback al header SSE
@@ -976,7 +976,7 @@ begin
               if jDeltaMessage.TryGetValue<TJSonObject>('content', jContent) then
               begin
                 jContent.TryGetValue<string>('text', TextChunk);
-                // Deltas de thinking (a-plus/north/a-reasoning)
+                // Thinking deltas (a-plus/north/a-reasoning)
                 var ThinkChunk: string := '';
                 if jContent.TryGetValue<string>('thinking', ThinkChunk) and (ThinkChunk <> '') then
                 begin
@@ -996,7 +996,7 @@ begin
         end
         else if LType = 'tool-plan-delta' then
         begin
-          // Tool plan text (reasoning del modelo antes de tool calls)
+          // Tool plan text (model reasoning before tool calls)
           TextChunk := '';
           jDelta := nil;
           if JsonData.TryGetValue<TJSonObject>('delta', jDelta) then
@@ -1010,7 +1010,7 @@ begin
         end
         else if LType = 'tool-call-start' then
         begin
-          // v2: tool_calls es un objeto (no array); index en nivel raíz identifica la posición
+          // v2: tool_calls is an object (not an array); the root-level index identifies the position
           jDelta := nil;
           if JsonData.TryGetValue<TJSonObject>('delta', jDelta) then
           begin
@@ -1030,7 +1030,7 @@ begin
                 if not FStreamingToolCalls.ContainsKey(CurrentToolCall.Id) then
                 begin
                   FStreamingToolCalls.Add(CurrentToolCall.Id, CurrentToolCall);
-                  // Registrar mapeo index → id para poder acumular args en tool-call-delta
+                  // Register index → id mapping so args can be accumulated in tool-call-delta
                   var LIndex: Integer;
                   if JsonData.TryGetValue<Integer>('index', LIndex) then
                     FStreamingToolCallsByIndex.AddOrSetValue(LIndex, CurrentToolCall.Id);
@@ -1043,8 +1043,8 @@ begin
         end
         else if LType = 'tool-call-delta' then
         begin
-          // v2: tool_calls es un objeto (no array) con solo function.arguments; sin id
-          // Usamos index del nivel raíz para localizar el tool call iniciado previamente
+          // v2: tool_calls is an object (not an array) with only function.arguments; without id
+          // We use the root-level index to locate the previously started tool call
           jDelta := nil;
           if JsonData.TryGetValue<TJSonObject>('delta', jDelta) then
           begin
@@ -1074,7 +1074,7 @@ begin
         end
         else if LType = 'citation-start' then
         begin
-          // v2: citations es un objeto (no array); index en nivel raíz identifica la posición
+          // v2: citations is an object (not an array); the root-level index identifies the position
           CurrentCitation := TAiMsgCitation.Create;
           try
             jDelta := nil;
@@ -1119,7 +1119,7 @@ begin
               FStreamResponseMsg.ReasoningContent := FStreamThinking;
             FStreamResponseMsg.Citations.Assign(FStreamingCitations);
 
-            // Usage del evento final
+            // Usage from the final event
             jDelta := nil;
             if JsonData.TryGetValue<TJSonObject>('delta', jDelta) then
             begin
@@ -1147,7 +1147,7 @@ begin
 
               if (UpperCase(LFinishReason) = 'TOOL_CALL') and (FStreamingToolCalls.Count > 0) then
               begin
-                // Construir tool_calls JSON para el historial
+                // Build tool_calls JSON for the history
                 var jToolCallsArr := TJSONArray.Create;
                 try
                   for CurrentToolCall in FStreamingToolCalls.Values do
@@ -1184,8 +1184,8 @@ begin
               end;
             end;
 
-            // ISSUE #100: si hay continuación tool-calling diferida (FPendingToolRun),
-            // el turno sigue activo: no liberar FBusy (lo gestiona el siguiente Run).
+            // ISSUE #100: if there is a deferred tool-calling continuation (FPendingToolRun),
+            // the turn is still active: do not release FBusy (the next Run manages it).
             if not FPendingToolRun then
               FBusy := False;
           except
@@ -1227,9 +1227,9 @@ var
 begin
   Result := nil;
   if not Assigned(ADocuments) or (ADocuments.Count = 0) then
-    raise Exception.Create('La lista de documentos para Rerank no puede estar vac?a.');
+    raise Exception.Create('The document list for Rerank cannot be empty.');
 
-  // El endpoint de Rerank es diferente al de Chat
+  // The Rerank endpoint is different from the Chat one
   LUrl := TPath.Combine(System.SysUtils.ExcludeTrailingPathDelimiter(Self.Url), 'rerank');
 
   LJsonObject := TJSonObject.Create;
@@ -1286,7 +1286,7 @@ begin
     end
     else
     begin
-      LErrorMsg := Format('Error en la API de Rerank: %d - %s', [LHttpResponse.StatusCode, LHttpResponse.ContentAsString]);
+      LErrorMsg := Format('Rerank API error: %d - %s', [LHttpResponse.StatusCode, LHttpResponse.ContentAsString]);
       if Assigned(OnError) then
         OnError(Self, LHttpResponse.ContentAsString, nil, LHttpResponse)
       else
@@ -1339,7 +1339,7 @@ var
 begin
   Result := '';
   if not Assigned(aMediaFile) or (aMediaFile.Content.Size = 0) then
-    raise Exception.Create('Se necesita un archivo de audio con contenido para la transcripci?n.');
+    raise Exception.Create('An audio file with content is required for transcription.');
 
   sUrl := Url + 'audio/transcriptions';
   LModel := TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model);
@@ -1354,7 +1354,7 @@ begin
   try
     Headers := [TNetHeader.Create('Authorization', 'Bearer ' + ApiKey)];
 
-    // Cohere requiere que los campos de texto aparezcan ANTES del file en el multipart body
+    // Cohere requires that text fields appear BEFORE the file in the multipart body
     Body.AddField('model', LModel);
 
     if not TranscriptionParams.Language.IsEmpty then
@@ -1373,7 +1373,7 @@ begin
     Body.AddStream('file', LTempStream, aMediaFile.FileName, aMediaFile.MimeType);
 {$ENDIF}
 
-    // Cohere NO soporta: response_format, timestamp_granularities, prompt
+    // Cohere does NOT support: response_format, timestamp_granularities, prompt
 
     Res := Client.Post(sUrl, Body, LResponseStream, Headers);
 
@@ -1390,7 +1390,7 @@ begin
       Result := ResMsg.Prompt;
     end
     else
-      raise Exception.CreateFmt('Error en la transcripci?n: %d, %s', [Res.StatusCode, Res.ContentAsString]);
+      raise Exception.CreateFmt('Transcription error: %d, %s', [Res.StatusCode, Res.ContentAsString]);
 
   finally
     Body.Free;

@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enriquez
+// Name: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -49,13 +49,13 @@ Posix.String_, Posix.Unistd, Posix.Base, Posix.Errno, Posix.SysWait, Posix.Signa
 type
 {$IFDEF MSWINDOWS}
   TProcessHandle = THandle;
-  // TProcessHandle es ahora identical a THandle en Windows
-  TPipeHandle = THandle; // TPipeHandle es ahora identical a THandle en Windows
+  // TProcessHandle is now identical to THandle on Windows
+  TPipeHandle = THandle; // TPipeHandle is now identical to THandle on Windows
 {$ENDIF}
 {$IFDEF POSIX}
   TProcessHandle = pid_t;
-  // TProcessHandle es identical a pid_t (que es un Integer)
-  TPipeHandle = Integer; // TPipeHandle es identical a Integer (file descriptor)
+  // TProcessHandle is identical to pid_t (which is an Integer)
+  TPipeHandle = Integer; // TPipeHandle is identical to Integer (file descriptor)
 {$ENDIF}
 
   TPipeHandles = record
@@ -86,10 +86,10 @@ type
     destructor Destroy; override;
 
     function IsRunning: Boolean;
-    // En POSIX, el timeout es ignorado y la espera es indefinida
+    // On POSIX, the timeout is ignored and the wait is indefinite
     function WaitOnExit(ATimeoutMs: Cardinal = Cardinal(-1)): Boolean;
-    procedure Terminate; // Terminaci?n suave (SIGTERM en POSIX)
-    procedure Kill; // Terminaci?n forzada (SIGKILL en POSIX)
+    procedure Terminate; // Graceful termination (SIGTERM on POSIX)
+    procedure Kill; // Forced termination (SIGKILL on POSIX)
     function WriteInput(const Buffer; Count: Integer): Integer;
     function ReadOutput(var Buffer; Count: Integer): Integer;
     function ReadError(var Buffer; Count: Integer): Integer;
@@ -154,7 +154,7 @@ begin
     CloseHandle(ThreadHandle);
 {$ENDIF}
 {$IFDEF POSIX}
-  // En POSIX, el padre solo cierra los descriptores que usa.
+  // On POSIX, the parent only closes the descriptors it uses.
   if PipeHandles.InputWrite <> 0 then
     Posix.Unistd.__close(PipeHandles.InputWrite);
   if PipeHandles.OutputRead <> 0 then
@@ -435,7 +435,7 @@ begin
     CreationFlags := CREATE_NO_WINDOW;
     if Assigned(AEnvironment) and (AEnvironment.Count > 0) then
     begin
-      // Fusionar con el entorno of the system (consistente con POSIX que usa setenv)
+      // Merge with the system environment (consistent with POSIX which uses setenv)
       var SysEnv := GetSystemEnvironment;
       try
         for i := 0 to AEnvironment.Count - 1 do
@@ -599,11 +599,11 @@ end;
 {$IFDEF POSIX}
 
 {
-  Mejora a futuro:
-  No soporta comillas simples ('), ni escapar caracteres con barra invertida (\),
-  ni tuber?as (|) o redirecciones (>) propias de bash,
-  ya que usa execvp directamente y no una shell (/bin/sh).
-  Si intenta ejecutar ls -la | grep x fallar? porque | y grep ser?n tratados como argumentos de ls.
+  Future improvement:
+  Does not support single quotes ('), nor backslash escaping (\),
+  nor pipes (|) or redirections (>) native to bash,
+  because it uses execvp directly and not a shell (/bin/sh).
+  If you try to run ls -la | grep x it will fail because | and grep will be treated as arguments of ls.
 
 }
 
@@ -708,7 +708,7 @@ begin
       raise Exception.Create('Failed to fork process. Error: ' + strerror(Errno));
     end;
 
-    if PID = 0 then // --- HIJO ---
+    if PID = 0 then // --- CHILD ---
     begin
       Posix.Unistd.__close(PipeIn[1]);
       Posix.Unistd.__close(PipeOut[0]);
@@ -730,7 +730,7 @@ begin
       if ACurrentDirectory <> '' then
         Posix.Unistd.__chdir(PAnsiChar(AnsiString(ACurrentDirectory)));
 
-      // Aplicar variables de entorno antes de execvp
+      // Apply environment variables before execvp
       if Assigned(AEnvironment) then
       begin
         for i := 0 to AEnvironment.Count - 1 do
@@ -749,7 +749,7 @@ begin
       if ProgramName = '' then
         Posix.Unistd._exit(127);
 
-      // Retener las AnsiStrings para evitar dangling pointers
+      // Keep the AnsiStrings to avoid dangling pointers
       SetLength(AnsiArgs, Length(Args));
       for i := 0 to High(Args) do
         AnsiArgs[i] := AnsiString(Args[i]);
@@ -762,7 +762,7 @@ begin
       Posix.Unistd.execvp(PAnsiChar(AnsiString(ProgramName)), @PArgs[0]);
       Posix.Unistd._exit(127);
     end
-    else // --- PADRE ---
+    else // --- PARENT ---
     begin
       Posix.Unistd.__close(PipeIn[0]);
       Posix.Unistd.__close(PipeOut[1]);
@@ -816,7 +816,7 @@ begin
   Result := '';
   Output := TStringBuilder.Create;
   try
-    // correction: Usar .ToPointer to obtain/get el puntero crudo del wrapper.
+    // correction: Use .ToPointer to obtain the raw pointer of the wrapper.
     Handle := popen(M.AsAnsi(ACommand).ToPointer, 'r');
     if Handle = nil then
       raise Exception.CreateFmt('Failed to popen command: %s', [ACommand]);
@@ -825,8 +825,8 @@ begin
       begin
         Output.Append(Buffer);
       end;
-      // La salida de popen/fgets ya is en la encoding de la consola (a menudo UTF-8 en Linux).
-      // El paso UTF8ToString es correcto si el buffer es AnsiChar y contiene UTF-8.
+      // The output from popen/fgets is already in the console encoding (often UTF-8 on Linux).
+      // The UTF8ToString step is correct if the buffer is AnsiChar and contains UTF-8.
       Result := Trim(UTF8ToString(Output.ToString));
     finally
       pclose(Handle);

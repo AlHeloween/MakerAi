@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enríquez
+// Name: Gustavo Enríquez
 // - Email: gustavoeenriquez@gmail.com
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
 // - LinkedIn: https://www.linkedin.com/in/gustavo-enriquez-3937654a/
@@ -28,23 +28,23 @@
 
 unit uMakerAi.Memory;
 
-// TAiMemory — capa semántica de memoria persistente para agentes AI.
+// TAiMemory — semantic persistent memory layer for AI agents.
 //
-// API pública de 5 operaciones core (equivalente a engram-core en Python):
-//   Store   — persiste contenido con tipo, importancia, tags, TTL
-//   Search  — búsqueda FTS / semántica / híbrida
-//   Recall  — recupera memorias de alta importancia
-//   Delete  — elimina por ID
-//   Stats   — estadísticas del namespace
+// Public API of 5 core operations (equivalent to engram-core in Python):
+//   Store   — persists content with type, importance, tags, TTL
+//   Search  — FTS / semantic / hybrid search
+//   Recall  — retrieves high-importance memories
+//   Delete  — deletes by ID
+//   Stats   — namespace statistics
 //
-// Operaciones extendidas:
-//   Context — Smart Context Builder con token budget
-//   Update  — actualiza contenido / importancia de un entry existente
-//   Prune   — elimina entradas antiguas de baja importancia
-//   Link    — crea relación entre dos memorias (knowledge graph)
-//   Export / Import — portabilidad JSON
+// Extended operations:
+//   Context — Smart Context Builder with token budget
+//   Update  — updates content / importance of an existing entry
+//   Prune   — removes old low-importance entries
+//   Link    — creates a relation between two memories (knowledge graph)
+//   Export / Import — JSON portability
 //
-// La persistencia es autonoma: crea y gestiona su propio archivo SQLite en DbPath.
+// Persistence is autonomous: creates and manages its own SQLite file in DbPath.
 
 interface
 
@@ -77,7 +77,7 @@ type
     FOnStore:     TOnMemoryStore;
     FOnSearch:    TOnMemorySearch;
 
-    // Analisis automatico de conversacion (extraccion de hechos via LLM barato)
+    // Automatic conversation analysis (fact extraction via cheap LLM)
     FAnalyzer:            TAiChatConnection;
     FAnalysisInterval:    Integer;
     FExchangeBuffer:      TStringBuilder;
@@ -97,113 +97,113 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
 
-    // ── API core (5 operaciones) ──────────────────────────────────────────────
+    // ── Core API (5 operations) ──────────────────────────────────────────────
 
-    // Guarda una memoria. Retorna el Id asignado.
-    // Si el contenido ya existe en el namespace (mismo hash), actualiza en lugar de duplicar.
+    // Saves a memory. Returns the assigned Id.
+    // If the content already exists in the namespace (same hash), updates instead of duplicating.
     function Store(
       const AContent:  string;
       AType:           TMemoryType      = mt_Fact;
       AImportance:     Integer          = 5;
       const ATags:     string           = '';   // CSV
       AMetadata:       TJSONObject      = nil;
-      ATtlDays:        Integer          = 0     // 0 = sin expiración
+      ATtlDays:        Integer          = 0     // 0 = no expiration
     ): Integer;
 
-    // Búsqueda. AMode = ms_Hybrid usa FTS + semántica con fusión RRF.
+    // Search. AMode = ms_Hybrid uses FTS + semantic with RRF fusion.
     function Search(
       const AQuery: string;
       ALimit:       Integer          = 10;
       AMode:        TMemorySearchMode = ms_Hybrid
     ): TMemorySearchResults;
 
-    // Recupera memorias con importancia >= AMinImportance, ordenadas por imp desc.
+    // Retrieves memories with importance >= AMinImportance, sorted by imp descending.
     function Recall(
       AMinImportance: Integer = 7;
       ALimit:         Integer = 20
     ): TMemoryEntryList;
 
-    // Elimina la memoria con el Id dado. False si el Id no existe en el
-    // namespace activo (no se borra nada).
+    // Deletes the memory with the given Id. False if the Id does not exist in the
+    // active namespace (nothing is deleted).
     function Delete(AId: Integer): Boolean;
 
-    // Estadísticas del namespace actual.
+    // Statistics for the current namespace.
     function Stats: TMemoryStats;
 
-    // ── Operaciones extendidas ────────────────────────────────────────────────
+    // ── Extended operations ──────────────────────────────────────────────────
 
-    // Construye un bloque de texto con las memorias más relevantes para APrompt.
-    // Listo para inyectar como parte del system prompt.
+    // Builds a text block with the most relevant memories for APrompt.
+    // Ready to inject as part of the system prompt.
     function Context(
       const APrompt:  string;
       ATokenBudget:   Integer = 2000;
       AMinImportance: Integer = 1
     ): TMemoryContextResult;
 
-    // Recupera una entrada por Id.
+    // Retrieves an entry by Id.
     function Get(AId: Integer): TMemoryEntry;
 
-    // Actualiza contenido y/o importancia de un entry existente.
+    // Updates content and/or importance of an existing entry.
     procedure Update(
       AId:         Integer;
       const AContent: string  = '';
-      AImportance: Integer    = -1   // -1 = no cambiar
+      AImportance: Integer    = -1   // -1 = do not change
     );
 
-    // Elimina entradas con decay bajo y edad mayor a AMaxAgeDays.
+    // Removes entries with low decay and age greater than AMaxAgeDays.
     procedure Prune(AMinImportance: Integer = 3; AMaxAgeDays: Integer = 90);
 
-    // Elimina las memorias que superaron su TTL.
+    // Removes memories that have exceeded their TTL.
     procedure CleanupExpired;
 
-    // Regenera embeddings para entradas que no tienen embedding almacenado.
-    // Requiere Embedder asignado.
+    // Regenerates embeddings for entries that do not have an embedding stored.
+    // Requires Embedder assigned.
     procedure BackfillEmbeddings;
 
-    // Exporta todas las memorias del namespace actual a JSON.
+    // Exports all memories of the current namespace to JSON.
     function ExportToJSON: TJSONArray;
 
-    // Importa memorias desde un TJSONArray (generado por ExportToJSON).
+    // Imports memories from a TJSONArray (generated by ExportToJSON).
     procedure ImportFromJSON(AData: TJSONArray);
 
-    // Crea relación dirigida entre dos memorias. False si alguno de los dos
-    // Ids no existe en el namespace activo (no se toca nada).
+    // Creates a directed relation between two memories. False if either of the
+    // IDs does not exist in the active namespace (nothing is touched).
     function Link(AFromId, AToId: Integer; const ARelation: string = 'related'): Boolean;
     function Unlink(AFromId, AToId: Integer): Boolean;
     function  Links(AId: Integer): TMemoryEntryList;
 
-    // Recalcula decay_score de todas las memorias del namespace.
-    // Llamar periódicamente (e.g., al inicio de sesión).
+    // Recalculates decay_score of all memories in the namespace.
+    // Call periodically (e.g., at session start).
     procedure RefreshDecay;
 
-    // ── IAiPersistentMemory (override de TAiPersistentMemoryBase) ──────────────
+    // ── IAiPersistentMemory (override of TAiPersistentMemoryBase) ──────────────
     function  BuildContext(const APrompt: string; ATokenBudget: Integer): string; override;
     procedure AutoStore(const AContent: string; AImportance: Integer); override;
     procedure NotifyExchange(const AUserPrompt, AAssistantResponse: string); override;
 
-    // Fuerza el analisis del buffer acumulado ahora mismo, sin esperar a
-    // AnalysisInterval (uso manual: boton "recordar esto", cron, etc.).
-    // Requiere Analyzer asignado. Retorna cuantas memorias se guardaron.
+    // Forces analysis of the accumulated buffer right now, without waiting for
+    // AnalysisInterval (manual use: "remember this" button, cron, etc.).
+    // Requires Analyzer assigned. Returns how many memories were saved.
     function AnalyzeNow: Integer;
 
   published
-    // LLM barato usado para analizar la conversacion y extraer lo que valga la pena
-    // recordar (ver AnalysisInterval / AnalyzeNow). Sin asignar = funcion apagada.
+    // Cheap LLM used to analyze the conversation and extract what is worth
+    // remembering (see AnalysisInterval / AnalyzeNow). If not assigned, feature is off.
     property Analyzer: TAiChatConnection read FAnalyzer write SetAnalyzer;
 
-    // Cada cuantos intercambios usuario/asistente se dispara el analisis
-    // automatico. 0 = desactivado (solo queda el disparo manual via AnalyzeNow).
+    // Every how many user/assistant exchanges the automatic analysis is triggered.
+    // 0 = disabled (only manual trigger via AnalyzeNow).
     property AnalysisInterval: Integer read FAnalysisInterval write FAnalysisInterval default 10;
-    // Namespace activo — aísla memorias entre agentes/proyectos
+    // Active namespace — isolates memories between agents/projects
     property Namespace:  string           read FNamespace  write FNamespace;
 
-    // Ruta al archivo SQLite donde persisten las memorias.
+    // Path to the SQLite file where memories persist.
     property DbPath:     string           read FDbPath     write SetDbPath;
 
-    // Embedder para búsqueda semántica (opcional). Si nil = solo FTS.
+    // Embedder for semantic search (optional). If nil = FTS only.
     property Embedder:   TAiEmbeddingsCore read FEmbedder  write SetEmbedder;
 
-    // Si True, llama RefreshDecay en cada Recall (Store no lo dispara).
+    // If True, calls RefreshDecay on every Recall (Store does not trigger it).
     property AutoDecay:  Boolean          read FAutoDecay  write FAutoDecay default False;
 
     property OnStore:    TOnMemoryStore   read FOnStore    write FOnStore;
@@ -238,12 +238,12 @@ destructor TAiMemory.Destroy;
 begin
   FContext.Free;
   FExchangeBuffer.Free;
-  // FStorage é interface — se libera solo al salir del scope
+  // FStorage is an interface — it releases itself when leaving scope
   inherited;
 end;
 
 // ---------------------------------------------------------------------------
-// Setters que invalidan el storage/context si cambian configuración
+// Setters that invalidate storage/context if configuration changes
 // ---------------------------------------------------------------------------
 
 procedure TAiMemory.SetDbPath(const AValue: string);
@@ -285,7 +285,7 @@ begin
 
     if AComponent = FEmbedder then
     begin
-      // El contexto retiene el embedder: reconstruir sin el (queda solo FTS)
+      // Context retains the embedder: rebuild without it (only FTS remains)
       FEmbedder := nil;
       RebuildContext;
     end;
@@ -309,13 +309,13 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// FuseRRF — Reciprocal Rank Fusion para combinar FTS + semántica
+// FuseRRF — Reciprocal Rank Fusion to combine FTS + semantic
 // ---------------------------------------------------------------------------
 
 function TAiMemory.FuseRRF(AFTS, ASemantic: TMemoryEntryList;
   ALimit: Integer): TMemorySearchResults;
 const
-  K = 60; // constante RRF estándar
+  K = 60; // standard RRF constant
 var
   Scores: TDictionary<Integer, Double>;
   ById:   TDictionary<Integer, TMemoryEntry>;
@@ -340,10 +340,10 @@ var
     end;
   end;
 
-  // Dedup por Id: FTS y semántica devuelven OBJETOS distintos para la misma
-  // fila, así que comparar referencias (All.Contains) duplicaba resultados.
-  // El duplicado descartado se libera aquí: el caller pone OwnsObjects=False
-  // en las listas de entrada antes de liberarlas, nadie más lo posee.
+  // Dedup by Id: FTS and semantic return DIFFERENT objects for the same
+  // row, so comparing references (All.Contains) would duplicate results.
+  // The discarded duplicate is freed here: the caller sets OwnsObjects=False
+  // on the input lists before freeing them, no one else owns it.
   procedure Merge(AList: TMemoryEntryList);
   var
     Item: TMemoryEntry;
@@ -366,11 +366,11 @@ begin
     AddRank(AFTS);
     AddRank(ASemantic);
 
-    // Unir todos los entries únicos (por Id)
+    // Merge all unique entries (by Id)
     Merge(AFTS);
     Merge(ASemantic);
 
-    // Ordenar por score RRF descendente — selection sort
+    // Sort by descending RRF score — selection sort
     for Si := 0 to All.Count - 2 do
       for Sj := Si + 1 to All.Count - 1 do
       begin
@@ -391,8 +391,8 @@ begin
       Result[I].MatchType := 'hybrid';
       Scores.TryGetValue(All[I].Id, Result[I].Score);
     end;
-    // Los que quedaron fuera del límite no van en Result y nadie más los
-    // posee: liberarlos aquí evita la fuga.
+    // Those left out of the limit are not in Result and no one else owns them:
+    // free them here to avoid memory leak.
     for I := Length(Result) to All.Count - 1 do
       All[I].Free;
   finally
@@ -433,13 +433,13 @@ begin
     if ATtlDays > 0 then
       Entry.ExpiresAt := Now + ATtlDays;
 
-    // Generar embedding si hay embedder
+    // Generate embedding if embedder is present
     if Assigned(FEmbedder) then
     begin
       try
         Entry.Embedding := FEmbedder.CreateEmbedding(AContent, '');
       except
-        // Embedding falla → guarda sin embedding
+        // Embedding fails → save without embedding
       end;
     end;
 
@@ -523,13 +523,13 @@ begin
               Tmp.Free;
             end;
           except
-            // falla semántica → solo FTS
+            // semantic fails → only FTS
           end;
         end;
 
         if SemList.Count = 0 then
         begin
-          // Sin semántica, degradar a FTS puro
+          // Without semantic, degrade to pure FTS
           SetLength(Result, Min(ALimit, FTSList.Count));
           for I := 0 to High(Result) do
           begin
@@ -538,9 +538,9 @@ begin
             Result[I].MatchType := 'fts';
             FStorage.UpdateAccessStats(FTSList[I].Id, FNamespace);
           end;
-          // FTSList trae hasta ALimit*2 entradas; las que no pasaron a Result
-          // no las posee nadie más (el finally quita OwnsObjects antes de
-          // liberar la lista): liberarlas aquí evita la fuga.
+          // FTSList brings up to ALimit*2 entries; those that did not go to Result
+          // are not owned by anyone else (the finally removes OwnsObjects before
+          // freeing the list): free them here to avoid leak.
           for I := Length(Result) to FTSList.Count - 1 do
             FTSList[I].Free;
         end
@@ -619,21 +619,21 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Analisis automatico de conversacion (extraccion via LLM barato)
+// Automatic conversation analysis (fact extraction via cheap LLM)
 // ---------------------------------------------------------------------------
 
 procedure TAiMemory.NotifyExchange(const AUserPrompt, AAssistantResponse: string);
 begin
   if not Assigned(FAnalyzer) then
-    Exit; // funcion apagada por completo sin Analyzer configurado
+    Exit; // feature completely off without Analyzer configured
 
   FExchangeBuffer.Append('Usuario: ').Append(AUserPrompt).Append(sLineBreak);
   FExchangeBuffer.Append('Asistente: ').Append(AAssistantResponse).Append(sLineBreak).Append(sLineBreak);
   Inc(FTurnsSinceAnalysis);
 
-  // El buffer se acumula siempre que hay Analyzer, independientemente de
-  // AnalysisInterval: si el auto-disparo esta apagado (0), igual queda
-  // disponible para un AnalyzeNow manual.
+  // Buffer accumulates whenever Analyzer is present, regardless of
+  // AnalysisInterval: if auto-trigger is off (0), it is still available
+  // for a manual AnalyzeNow call.
   if (FAnalysisInterval > 0) and (FTurnsSinceAnalysis >= FAnalysisInterval) then
     AnalyzeNow;
 end;
@@ -646,8 +646,8 @@ begin
   if not Assigned(FAnalyzer) or (FExchangeBuffer.Length = 0) then
     Exit;
 
-  // Snapshot + reset inmediato: si el analisis falla mas abajo, no reintentamos
-  // la misma ventana para siempre (evita crecimiento sin limite del buffer).
+  // Snapshot + immediate reset: if analysis fails later, we don't retry
+  // the same window forever (avoids unbounded buffer growth).
   LConversationText   := FExchangeBuffer.ToString;
   FExchangeBuffer.Clear;
   FTurnsSinceAnalysis := 0;
@@ -667,42 +667,42 @@ var
 begin
   Result := 0;
 
-  // Extraccion via prompt (no via Response_format:=tiaChatRfJsonSchema): Analyzer
-  // puede ser cualquiera de los 12 providers, incluyendo modelos locales/baratos
-  // (Ollama, LM Studio) donde el modo JSON estricto no siempre esta soportado de
-  // forma confiable, y ademas puede chocar con Tool_Active en algunos providers
-  // (p.ej. Gemini). Se parsea el texto de forma defensiva mas abajo.
+  // Extraction via prompt (not via Response_format:=tiaChatRfJsonSchema): Analyzer
+  // can be any of the 12 providers, including cheap local models (Ollama, LM Studio)
+  // where strict JSON mode is not always reliably supported, and it could also
+  // clash with Tool_Active in some providers (e.g., Gemini). The text is parsed
+  // defensively below.
   LPrompt :=
-    'Analiza el siguiente fragmento de conversacion y decide si contiene informacion ' +
-    'que valga la pena recordar a largo plazo: hechos sobre el usuario, preferencias, ' +
-    'decisiones tomadas, soluciones a errores, patrones de trabajo. Ignora saludos, ' +
-    'charla trivial o preguntas puntuales sin informacion reutilizable.' + sLineBreak + sLineBreak +
-    'Responde UNICAMENTE con un objeto JSON (sin texto adicional, sin bloques de codigo ' +
-    'markdown) con esta forma exacta:' + sLineBreak +
+    'Analyze the following conversation fragment and decide if it contains information ' +
+    'worth remembering long-term: facts about the user, preferences, decisions made, ' +
+    'solutions to errors, work patterns. Ignore greetings, trivial chat, or one-off ' +
+    'questions without reusable information.' + sLineBreak + sLineBreak +
+    'Answer ONLY with a JSON object (no additional text, no markdown code blocks) ' +
+    'with this exact form:' + sLineBreak +
     '{"worth_saving": boolean, "memories": [{"content": string, "type": ' +
     '"fact"|"preference"|"decision"|"error_fix"|"pattern"|"workflow"|"summary"|"custom", ' +
     '"importance": 1-10, "tags": "csv"}]}' + sLineBreak +
-    'Si no hay nada memorable, responde {"worth_saving": false, "memories": []}.' +
+    'If there is nothing memorable, answer {"worth_saving": false, "memories": []}.' +
     sLineBreak + sLineBreak +
-    'Conversacion:' + sLineBreak + AConversationText;
+    'Conversation:' + sLineBreak + AConversationText;
 
   try
     LResponse := FAnalyzer.AddMessageAndRun(LPrompt, 'user', []);
   except
     on E: Exception do
     begin
-      LogDebug('TAiMemory.Analyzer fallo al analizar la conversacion: ' + E.Message);
+      LogDebug('TAiMemory.Analyzer failed to analyze the conversation: ' + E.Message);
       Exit;
     end;
   end;
 
-  // Tolerar que el modelo igual envuelva la respuesta en texto/markdown alrededor
-  // del JSON: nos quedamos con lo que hay entre la primera '{' y la ultima '}'.
+  // Tolerate that the model may wrap the response in text/markdown around
+  // the JSON: we take only what is between the first '{' and the last '}'.
   LStart := Pos('{', LResponse);
   LEnd   := LastDelimiter('}', LResponse);
   if (LStart = 0) or (LEnd < LStart) then
   begin
-    LogDebug('TAiMemory.Analyzer: respuesta sin JSON reconocible, se descarta.');
+    LogDebug('TAiMemory.Analyzer: response without recognizable JSON, discarded.');
     Exit;
   end;
   LJsonText := Copy(LResponse, LStart, LEnd - LStart + 1);
@@ -710,7 +710,7 @@ begin
   LJsonValue := TJSONObject.ParseJSONValue(LJsonText);
   if not Assigned(LJsonValue) then
   begin
-    LogDebug('TAiMemory.Analyzer: JSON invalido, se descarta.');
+    LogDebug('TAiMemory.Analyzer: invalid JSON, discarded.');
     Exit;
   end;
 
@@ -790,7 +790,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Prune — elimina entradas antiguas de baja importancia con decay bajo
+// Prune — removes old low-importance entries with low decay
 // ---------------------------------------------------------------------------
 
 procedure TAiMemory.Prune(AMinImportance: Integer; AMaxAgeDays: Integer);
@@ -846,7 +846,7 @@ begin
           var Emb := FEmbedder.CreateEmbedding(E.Content, '');
           if Length(Emb) > 0 then
           begin
-            // Re-store con embedding — el storage hace upsert por content_hash
+            // Re-store with embedding — storage does upsert by content_hash
             var NewEntry := TMemoryEntry.Create;
             try
               NewEntry.Assign(E);
@@ -857,7 +857,7 @@ begin
             end;
           end;
         except
-          // Continúa con el siguiente
+          // Continue with next
         end;
       end;
     end;
@@ -896,8 +896,8 @@ begin
   begin
     Entry := TMemoryEntry.FromJSON(AData.Items[I] as TJSONObject);
     try
-      // Se importa SIEMPRE al namespace activo: el "namespace" del JSON no
-      // puede usarse para escribir en el de otro agente (issue #127).
+      // Import ALWAYS to the active namespace: the "namespace" from JSON
+      // cannot be used to write into another agent's namespace (issue #127).
       Entry.Namespace := FNamespace;
       FStorage.StoreEntry(Entry);
     finally
@@ -926,10 +926,10 @@ begin
     FStorage.UnlinkEntries(AFromId, AToId, FNamespace);
 end;
 
-// True si el Id existe en el namespace activo. El storage ya filtra por
-// namespace; esto solo sirve para informar al llamador (las tools MCP
-// respondian "deleted"/"linked" aunque la operacion no hiciera nada).
-// No usa Get: no debe contar como acceso.
+// Returns True if the Id exists in the active namespace. The storage already filters by
+// namespace; this only serves to inform the caller (MCP tools used to respond
+// "deleted"/"linked" even when the operation did nothing).
+// Does not use Get: it should not count as an access.
 function TAiMemory.OwnsEntry(AId: Integer): Boolean;
 var
   Entry: TMemoryEntry;
@@ -946,7 +946,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// RefreshDecay — recalcula decay_score de todas las memorias del namespace
+// RefreshDecay — recalculates decay_score of all memories in the namespace
 // ---------------------------------------------------------------------------
 
 procedure TAiMemory.RefreshDecay;

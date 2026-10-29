@@ -4,29 +4,29 @@
 //
 // Copyright (c) 2026 Gustavo Enríquez - CimaMaker
 //
-// Formato SKILL.md: un skill es un archivo Markdown con un bloque de
-// frontmatter YAML al inicio (entre dos líneas '---') y las instrucciones en
-// el cuerpo. Es el formato de las Agent Skills de Claude y el que publica el
-// registry PPM (tipo 'skill').
+// SKILL.md format: a skill is a Markdown file with a YAML frontmatter block
+// at the beginning (between two '---' lines) and instructions in the body.
+// It is the format of Claude's Agent Skills and the one published by the
+// PPM registry (type 'skill').
 //
 //   ---
 //   name: code-review
-//   description: Revisa código en busca de errores. Úsalo cuando...
+//   description: Reviews code for errors. Use it when...
 //   allowed-tools:
 //     - Read
 //     - Grep
 //   model: claude-opus-4-6
 //   ---
-//   Eres un revisor de código experto...
+//   You are an expert code reviewer...
 //
-// Esta unidad es la ÚNICA que entiende el formato. La usan TAiPrompts
-// (Core), TAiSkill/TLLMNode (Agents) y TAiSkills (Tools), para que un mismo
-// skill sirva igual en un chat, en un nodo de agente o como plantilla, venga
-// de una carpeta local o del registry.
+// This unit is the ONLY one that understands the format. It is used by
+// TAiPrompts (Core), TAiSkill/TLLMNode (Agents) and TAiSkills (Tools), so
+// that the same skill works equally in a chat, in an agent node, or as a
+// template, whether it comes from a local folder or the registry.
 //
-// Del YAML se entiende lo que usan los skills reales: escalares (con o sin
-// comillas, con comentario '#' al final), listas '- x', listas inline
-// '[a, b]' o 'a, b' y bloques '|' / '>'. No es un parser YAML completo.
+// From YAML we understand what real skills use: scalars (with or without
+// quotes, with trailing '#' comment), lists '- x', inline lists '[a, b]'
+// or 'a, b', and blocks '|' / '>'. It is not a full YAML parser.
 
 interface
 
@@ -42,8 +42,8 @@ const
 type
   EAiSkillError = class(Exception);
 
-  // De dónde salió el skill. Importa para la seguridad: un skill de PPM es
-  // contenido de terceros (no se le aceptan credenciales, ver TAiSkill).
+  // Where the skill came from. Important for security: a PPM skill is
+  // third-party content (credentials are not accepted from it, see TAiSkill).
   TAiSkillSource = (ssText, ssFile, ssPPM);
 
   TAiSkillDoc = class
@@ -68,73 +68,73 @@ type
     procedure Clear;
     procedure Assign(ASource: TAiSkillDoc);
 
-    // Parsea el texto completo de un SKILL.md. Sin frontmatter, todo el texto
-    // es el cuerpo (un Markdown suelto también es un skill válido).
+    // Parses the full text of a SKILL.md. Without frontmatter, all text is
+    // the body (a loose Markdown is also a valid skill).
     procedure LoadFromText(const AText: string);
 
-    // APath puede ser el archivo .md o una carpeta que contenga SKILL.md.
-    // Si el frontmatter no trae 'name', se usa el nombre de la carpeta
-    // (o del archivo sin extensión).
+    // APath can be the .md file or a folder containing SKILL.md.
+    // If the frontmatter does not have 'name', the folder name (or the file
+    // name without extension) is used.
     procedure LoadFromFile(const APath: string);
 
-    // Descarga el skill del registry PPM. AVersion vacío = la última versión
-    // no retirada. Si AName no existe y no empieza con 'skill-', se reintenta
-    // con el prefijo ('code-review' -> 'skill-code-review').
+    // Downloads the skill from the PPM registry. AVersion empty = the latest
+    // unyanked version. If AName does not exist and does not start with
+    // 'skill-', it retries with the prefix ('code-review' -> 'skill-code-review').
     procedure LoadFromPPM(const AName: string; const AVersion: string = '';
                           const ARegistryUrl: string = '');
 
-    // Factorías: el llamador libera el objeto devuelto.
+    // Factories: the caller frees the returned object.
     class function Parse(const AText: string): TAiSkillDoc;
     class function FromFile(const APath: string): TAiSkillDoc;
     class function FromPPM(const AName: string; const AVersion: string = '';
                            const ARegistryUrl: string = ''): TAiSkillDoc;
 
-    // Rutas de los SKILL.md de una carpeta: el de la propia carpeta (si hay)
-    // y el de cada subcarpeta directa. Es la forma habitual de un directorio
-    // de skills: skills/<nombre>/SKILL.md. Orden alfabético.
+    // Paths to SKILL.md files in a folder: the one in the folder itself (if
+    // any) and the one in each direct subfolder. This is the usual layout of
+    // a skills directory: skills/<name>/SKILL.md. Alphabetical order.
     class function FindSkillFiles(const AFolder: string): TArray<string>;
 
-    // True si el texto parece una página HTML: un servidor web que responde
-    // 200 con su página en vez de un 404 no debe confundirse con un skill.
+    // True if the text looks like an HTML page: a web server that responds
+    // 200 with its page instead of a 404 should not be mistaken for a skill.
     class function LooksLikeHtml(const AText: string): Boolean;
 
     property Name          : string         read FName        write FName;
     property Description   : string         read FDescription write FDescription;
     property Model         : string         read FModel       write FModel;
-    // Instrucciones (Markdown sin el frontmatter)
+    // Instructions (Markdown without the frontmatter)
     property Body          : string         read FBody        write FBody;
-    // Nombres de herramientas declarados en 'allowed-tools'
+    // Tool names declared in 'allowed-tools'
     property AllowedTools  : TStringList    read FAllowedTools;
-    // Resto de claves escalares del frontmatter (Name=Value, claves en minúscula)
+    // Remaining scalar keys from the frontmatter (Name=Value, keys in lowercase)
     property Extra         : TStringList    read FExtra;
     property Source        : TAiSkillSource read FSource      write FSource;
-    // Archivo local o URL del registry de donde se cargó
+    // Local file or registry URL from which it was loaded
     property SourcePath    : string         read FSourcePath  write FSourcePath;
-    // Versión del paquete PPM (vacío en skills locales)
+    // PPM package version (empty for local skills)
     property Version       : string         read FVersion     write FVersion;
     property HasFrontmatter: Boolean        read FHasFrontmatter;
   end;
 
-  // Cliente mínimo del registry PPM (solo lectura).
+  // Minimal read-only client for the PPM registry.
   TAiPPMClient = class
   public
-    // GET a una URL del registry. Devuelve el cuerpo con status 200 y lanza
-    // EAiSkillError en cualquier otro caso, con el 'message' del registry si
-    // lo trae. AStatus recibe el código HTTP (0 si falló la conexión).
+    // GET to a registry URL. Returns the body with status 200 and raises
+    // EAiSkillError in any other case, with the registry's 'message' if it
+    // carries one. AStatus receives the HTTP code (0 if connection failed).
     class function Get(const AUrl: string; out AStatus: Integer): string;
 
-    // Metadatos del paquete (/v1/packages/<name>). El llamador libera.
+    // Package metadata (/v1/packages/<name>). The caller frees.
     class function GetPackage(const ARegistryUrl, AName: string): TJSONObject;
-    // Igual, pero devuelve nil si el paquete no existe (404) en vez de lanzar.
+    // Same, but returns nil if the package does not exist (404) instead of raising.
     class function TryGetPackage(const ARegistryUrl, AName: string): TJSONObject;
 
-    // Mayor versión (semver) no retirada del paquete; '' si no hay.
+    // Latest unyanked (semver) version of the package; '' if none.
     class function ResolveVersion(const ARegistryUrl, AName: string): string;
 
-    // Compara dos versiones semver 'x.y.z' (el sufijo -pre se ignora).
+    // Compares two semver versions 'x.y.z' (the -pre suffix is ignored).
     class function CompareVersions(const A, B: string): Integer;
 
-    // Registry efectivo: ARegistryUrl sin '/' final, o el default.
+    // Effective registry: ARegistryUrl without trailing '/', or the default.
     class function RegistryOrDefault(const ARegistryUrl: string): string;
   end;
 
@@ -148,7 +148,7 @@ const
 
 { helpers }
 
-// Quita comillas envolventes, o el comentario '#' final si no hay comillas.
+// Removes enclosing quotes, or the trailing '#' comment if there are no quotes.
 function CleanScalar(const AValue: string): string;
 var
   V: string;
@@ -160,7 +160,7 @@ begin
       ((V[1] = '''') and (V[Length(V)] = ''''))) then
     Exit(Copy(V, 2, Length(V) - 2));
 
-  // En YAML un comentario empieza con ' #' (el '#' pegado es parte del valor)
+  // In YAML a comment starts with ' #' (the '#' attached is part of the value)
   P := Pos(' #', V);
   if P > 0 then
     V := Trim(Copy(V, 1, P - 1));
@@ -174,7 +174,7 @@ begin
     Inc(Result);
 end;
 
-// 'a, b' o '[a, b]' -> lista
+// 'a, b' or '[a, b]' -> list
 procedure SplitInlineList(const AValue: string; AList: TStrings);
 var
   V, Item: string;
@@ -258,7 +258,7 @@ begin
   if (AKey = 'allowed-tools') or (AKey = 'allowed_tools') then
     FAllowedTools.Assign(AValues)
   else
-    // Las listas que no conocemos se guardan como 'a, b' para no perderlas
+    // The lists we don't know are stored as 'a, b' to avoid losing them
     FExtra.Values[AKey] := String.Join(', ', AValues.ToStringArray);
 end;
 
@@ -282,8 +282,8 @@ begin
       end;
 
       ColonPos := Line.IndexOf(':');
-      // Solo claves de nivel superior (sin sangría); lo demás se consume
-      // abajo como parte de la clave anterior
+      // Only top-level keys (no indentation); everything else is consumed
+      // below as part of the previous key
       if (ColonPos <= 0) or (IndentOf(Line) > 0) then
       begin
         Inc(I);
@@ -295,8 +295,8 @@ begin
 
       if (Value = '|') or (Value = '>') or (Value = '|-') or (Value = '>-') then
       begin
-        // Bloque: las líneas con sangría que siguen. '|' conserva los saltos,
-        // '>' los pliega en espacios.
+        // Block: the indented lines that follow. '|' preserves line breaks,
+        // '>' folds them into spaces.
         Style := Value;
         Block := TStringBuilder.Create;
         try
@@ -328,7 +328,7 @@ begin
 
       if Value = '' then
       begin
-        // Posible lista '- x' en las líneas siguientes
+        // Possible list '- x' in the following lines
         Items.Clear;
         J := I + 1;
         while (J < AEnd) and ((Trim(ALines[J]) = '') or Trim(ALines[J]).StartsWith('- ')
@@ -346,8 +346,8 @@ begin
         Continue;
       end;
 
-      // Escalar plano. En YAML puede continuar en líneas con sangría
-      // (descripciones largas partidas): se pliegan con espacios.
+      // Plain scalar. In YAML it can continue on indented lines (long broken
+      // descriptions): they are folded with spaces.
       J := I + 1;
       while (J < AEnd) and (Trim(ALines[J]) <> '') and (IndentOf(ALines[J]) > 0)
             and not Trim(ALines[J]).StartsWith('- ') do
@@ -372,7 +372,7 @@ var
 begin
   Clear;
   Text := AText;
-  // BOM que haya sobrevivido a la lectura
+  // BOM that survived reading
   if (Text <> '') and (Text[1] = #$FEFF) then
     Delete(Text, 1, 1);
 
@@ -389,7 +389,7 @@ begin
 
   if FmEnd < 0 then
   begin
-    // Sin frontmatter (o sin cierre): todo es cuerpo
+    // Without frontmatter (or without closing): everything is body
     FBody := Trim(Text.Replace(#13#10, #10));
     Exit;
   end;
@@ -421,7 +421,7 @@ begin
     LFile := APath;
 
   if not TFile.Exists(LFile) then
-    raise EAiSkillError.CreateFmt('Skill no encontrado: %s', [LFile]);
+    raise EAiSkillError.CreateFmt('Skill not found: %s', [LFile]);
 
   LoadFromText(TFile.ReadAllText(LFile, TEncoding.UTF8));
   FSource := ssFile;
@@ -443,31 +443,31 @@ var
   Status: Integer;
 begin
   if Trim(AName) = '' then
-    raise EAiSkillError.Create('LoadFromPPM: falta el nombre del skill');
+    raise EAiSkillError.Create('LoadFromPPM: missing skill name');
 
   Registry := TAiPPMClient.RegistryOrDefault(ARegistryUrl);
   PkgName := Trim(AName);
 
-  // Metadatos: confirman que existe, que es un skill y dan la versión.
-  // Solo un 404 dispara el reintento con prefijo; un fallo de red se informa
-  // tal cual en vez de disfrazarse de "no encontrado".
+  // Metadata: confirm it exists, it is a skill and give the version.
+  // Only a 404 triggers the retry with prefix; a network failure is reported
+  // as is instead of disguised as "not found".
   Pkg := TAiPPMClient.TryGetPackage(Registry, PkgName);
   if not Assigned(Pkg) and not StartsText(AI_PPM_SKILL_PREFIX, PkgName) then
   begin
-    // 'code-review' -> 'skill-code-review' (convención de nombres de PPM)
+    // 'code-review' -> 'skill-code-review' (PPM naming convention)
     Pkg := TAiPPMClient.TryGetPackage(Registry, AI_PPM_SKILL_PREFIX + PkgName);
     if Assigned(Pkg) then
       PkgName := AI_PPM_SKILL_PREFIX + PkgName;
   end;
   if not Assigned(Pkg) then
-    raise EAiSkillError.CreateFmt('Skill "%s" no encontrado en el registry PPM (%s)',
+    raise EAiSkillError.CreateFmt('Skill "%s" not found in the PPM registry (%s)',
       [AName, Registry]);
   try
     TypeStr := '';
     Pkg.TryGetValue<string>('package.type', TypeStr);
     if (TypeStr <> '') and not SameText(TypeStr, 'skill') then
       raise EAiSkillError.CreateFmt(
-        'El paquete PPM "%s" es de tipo "%s", no un skill', [PkgName, TypeStr]);
+        'The PPM package "%s" is of type "%s", not a skill', [PkgName, TypeStr]);
   finally
     Pkg.Free;
   end;
@@ -476,7 +476,7 @@ begin
   if LVersion = '' then
     LVersion := TAiPPMClient.ResolveVersion(Registry, PkgName);
   if LVersion = '' then
-    raise EAiSkillError.CreateFmt('El skill PPM "%s" no tiene versiones disponibles', [PkgName]);
+    raise EAiSkillError.CreateFmt('The PPM skill "%s" has no available versions', [PkgName]);
 
   Url := Format('%s/v1/packages/%s/%s/skill',
     [Registry, TNetEncoding.URL.Encode(PkgName), TNetEncoding.URL.Encode(LVersion)]);
@@ -584,7 +584,7 @@ begin
       Resp := Client.Get(AUrl);
     except
       on E: Exception do
-        raise EAiSkillError.CreateFmt('No se pudo conectar con el registry PPM (%s): %s',
+        raise EAiSkillError.CreateFmt('Could not connect to the PPM registry (%s): %s',
           [AUrl, E.Message]);
     end;
     AStatus := Resp.StatusCode;
@@ -603,15 +603,15 @@ begin
       end;
       if Msg = '' then
         Msg := 'HTTP ' + IntToStr(AStatus);
-      raise EAiSkillError.CreateFmt('Registry PPM: %s (%s)', [Msg, AUrl]);
+      raise EAiSkillError.CreateFmt('PPM registry: %s (%s)', [Msg, AUrl]);
     end;
 
-    // Un 200 con HTML es la página del sitio, no el recurso pedido (URL mal
-    // armada o host equivocado). Antes esto terminaba en "JSON inválido".
+    // A 200 with HTML is the site's page, not the requested resource (badly
+    // formed URL or wrong host). Previously this ended in "invalid JSON".
     if CType.Contains('text/html') or TAiSkillDoc.LooksLikeHtml(Result) then
       raise EAiSkillError.CreateFmt(
-        'La URL devolvió una página HTML, no un recurso del registry PPM: %s ' +
-        '(revisa la URL del registry)', [AUrl]);
+        'The URL returned an HTML page, not a PPM registry resource: %s ' +
+        '(check the registry URL)', [AUrl]);
   finally
     Client.Free;
   end;
@@ -629,7 +629,7 @@ begin
   if not (V is TJSONObject) then
   begin
     V.Free;
-    raise EAiSkillError.CreateFmt('Respuesta inesperada del registry PPM para "%s"', [AName]);
+    raise EAiSkillError.CreateFmt('Unexpected response from the PPM registry for "%s"', [AName]);
   end;
   Result := TJSONObject(V);
 end;
@@ -657,7 +657,7 @@ begin
   if not (V is TJSONObject) then
   begin
     V.Free;
-    raise EAiSkillError.CreateFmt('Respuesta inesperada del registry PPM para "%s"', [AName]);
+    raise EAiSkillError.CreateFmt('Unexpected response from the PPM registry for "%s"', [AName]);
   end;
   Result := TJSONObject(V);
 end;
@@ -710,7 +710,7 @@ begin
   try
     if not Pkg.TryGetValue<TJSONArray>('package.versions', Versions) then
       Exit;
-    // La mayor por semver: no se confía en el orden en que llegan
+    // The greatest semver: no trust in the order they arrive
     for I := 0 to Versions.Count - 1 do
     begin
       if not (Versions.Items[I] is TJSONObject) then

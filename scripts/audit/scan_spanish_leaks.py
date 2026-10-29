@@ -25,7 +25,17 @@ PROTOCOLISH = re.compile(r"^[a-z0-9_\-\./:@#%+~]*$")
 
 def has_spanish(text):
     lower = text.lower()
-    return any(re.search(w, lower) for w in SPANISH_WORDS)
+    for w in SPANISH_WORDS:
+        pat = w.strip()
+        if not pat:
+            continue
+        try:
+            if re.search(r'(?<![a-z\u00e1\u00e9\u00ed\u00f3\u00fa\u00f1])' + pat + r'(?![a-z\u00e1\u00e9\u00ed\u00f3\u00fa\u00f1])', lower):
+                return True
+        except re.error:
+            if pat in lower:
+                return True
+    return False
 
 
 def strip_strings(line):

@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enríquez
-// Redes Sociales:
+// Name: Gustavo Enríquez
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -31,7 +31,7 @@
 // - Youtube: https://www.youtube.com/@cimamaker3945
 // - GitHub: https://github.com/gustavoeenriquez/
 //
-// Actualización: Integración API Gemini 3 (Thinking Level, Signatures, Media Resolution)
+// Update: Gemini 3 API Integration (Thinking Level, Signatures, Media Resolution)
 
 unit uMakerAi.Chat.Gemini;
 
@@ -61,11 +61,11 @@ type
     FThinkingBudget: Integer;
     FIncludeThoughts: Boolean;
     FMediaResolution: TAiMediaResolution;
-    // Diccionario para almacenar las firmas de pensamiento asociadas a los mensajes del modelo
+    // Dictionary to store thought signatures associated with model messages
     FThoughtSignatures: TObjectDictionary<TAiChatMessage, TStringList>;
     FPendingScreenshots: TObjectDictionary<string, TAiMediaFile>;
 
-    // Nuevo helper para agregar firmas fácilmente
+    // New helper to add signatures easily
     procedure AddThoughtSignature(Msg: TAiChatMessage; const Signature: string);
 
     Function GetToolJSon: TJSonArray;
@@ -74,7 +74,7 @@ type
     procedure SetIncludeThoughts(const Value: Boolean);
     // [V3 UPDATE] Setters
 
-    // Helpers internos
+    // Internal helpers
     function MediaTypeToResolutionString(Res: TAiMediaResolution): string;
     // function ThinkingLevelToString(Level: TAiThinkingLevel): string;
     procedure InternalCompleteRequest;
@@ -131,8 +131,8 @@ type
 
   Published
 
-    // [V3 UPDATE] Propiedades actualizadas
-    // Gemini 3 prefiere ThinkingLevel. ThinkingBudget es legacy/alternativo.
+    // [V3 UPDATE] Updated properties
+    // Gemini 3 prefers ThinkingLevel. ThinkingBudget is legacy/alternative.
     Property ThinkingBudget: Integer read FThinkingBudget write SetThinkingBudget default 0;
     Property IncludeThoughts: Boolean read FIncludeThoughts write SetIncludeThoughts default False;
     Property MediaResolution: TAiMediaResolution read FMediaResolution write SetMediaResolution;
@@ -151,9 +151,9 @@ begin
   RegisterComponents('MakerAI', [TAiGeminiChat]);
 end;
 
-// Versión numérica de un id 'gemini-X[.Y]-...' ('gemini-3.8-flash' -> 3.8,
-// 'gemini-3-flash-preview' -> 3.0). 0 si el nombre no sigue ese patrón
-// (alias como 'gemini-flash-latest', modelos omni, etc.).
+// Numeric version of an id 'gemini-X[.Y]-...' ('gemini-3.8-flash' -> 3.8,
+// 'gemini-3-flash-preview' -> 3.0). 0 if the name does not follow that pattern
+// (alias such as 'gemini-flash-latest', omni models, etc.).
 function GeminiModelVersion(const AModel: string): Double;
 var
   S, Num: string;
@@ -194,15 +194,15 @@ class procedure TAiGeminiChat.RegisterDefaultParams(Params: TStrings);
 Begin
   Params.Clear;
   Params.Add('ApiKey=@GEMINI_API_KEY');
-  // Default: gemini-3.8-flash (estable, sep 2026). La familia 2.5 sigue viva
-  // pero Google la limita a cuentas que ya la usaban: para un usuario nuevo
-  // un default 2.5 fallaba. Registrado sin prueba runtime (sin API key).
+  // Default: gemini-3.8-flash (stable, Sep 2026). The 2.5 family is still alive
+  // but Google limits it to accounts that already used it: for a new user
+  // a 2.5 default failed. Registered without runtime testing (without an API key).
   Params.Add('Model=gemini-3.8-flash');
   Params.Add('Max_Tokens=8192');
   Params.Add('URL=' + GlAIUrl);
 End;
 
-// [V3 UPDATE] Helpers para conversión de enums
+// [V3 UPDATE] Helpers for enum conversion
 function TAiGeminiChat.MediaTypeToResolutionString(Res: TAiMediaResolution): string;
 begin
   case Res of
@@ -218,7 +218,7 @@ begin
 end;
 
 
-// Métodos de Cache existentes (RetrieveCache, DeleteCache, ListCaches)...
+// Existing Cache methods (RetrieveCache, DeleteCache, ListCaches)...
 
 function TAiGeminiChat.RetrieveCache(const CacheName: string): TJSONObject;
 var
@@ -285,7 +285,7 @@ begin
   Model := 'gemini-3.8-flash';
   Url := GlAIUrl;
 
-  // [V3 UPDATE] Gemini 3 recomienda Temperature 1.0 por defecto para razonamiento
+  // [V3 UPDATE] Gemini 3 recommends Temperature 1.0 by default for reasoning
   Top_p := 0.95;
   Temperature := 1.0;
 
@@ -295,8 +295,8 @@ begin
 
   FThoughtSignatures := TObjectDictionary<TAiChatMessage, TStringList>.Create([doOwnsValues]);
 
-  // Dictionary que es dueño de los MediaFiles (los libera automáticamente)
-  // OJO Revisar porque si los MediaFile se adicionan a los messages probablemnte los manje el componente de mensajes
+  // Dictionary that owns the MediaFiles (frees them automatically)
+  // NOTE: Review because if MediaFiles are added to the messages, the messages component probably manages them
   FPendingScreenshots := TObjectDictionary<string, TAiMediaFile>.Create([doOwnsValues]);
 
 end;
@@ -308,7 +308,7 @@ begin
   inherited;
 end;
 
-// Métodos Batch (CreateBatchJob, GetBatchJob)
+// Batch methods (CreateBatchJob, GetBatchJob)
 function TAiGeminiChat.CreateBatchJob(const SourceFileUri: string; const OutputUri: string = ''): string;
 var
   LHttpClient: TNetHTTPClient;
@@ -398,7 +398,7 @@ begin
   FThinkingBudget := Value;
 end;
 
-// --- SYSTEM INSTRUCTION HELPER --- [Igual]
+// --- SYSTEM INSTRUCTION HELPER --- [Same]
 function TAiGeminiChat.GetSystemInstructionJson: TJSONObject;
 var
   I: Integer;
@@ -456,17 +456,17 @@ begin
 
   SL := TStringList.Create;
   try
-    // 1. Separar por comas (esto suele funcionar bien para la lista principal)
-    // Ej: "Sol=Kore, Gustavo=Puck"
+    // 1. Split by commas (this usually works well for the main list)
+    // Ex: "Sol=Kore, Gustavo=Puck"
     SL.CommaText := TtsParams.Voice;
 
-    // Limpiar entradas vacías
+    // Remove empty entries
     for I := SL.Count - 1 downto 0 do
       if Trim(SL[I]) = '' then
         SL.Delete(I);
 
     // -------------------------------------------------------------------------
-    // CASO A: MÚLTIPLES VOCES (> 1 elemento) -> MULTI-SPEAKER
+    // CASE A: MULTIPLE VOICES (> 1 element) -> MULTI-SPEAKER
     // -------------------------------------------------------------------------
     if SL.Count > 1 then
     begin
@@ -476,23 +476,23 @@ begin
 
       for I := 0 to SL.Count - 1 do
       begin
-        RawVal := Trim(SL[I]); // Ej: "Sol=Kore" o "Puck"
+        RawVal := Trim(SL[I]); // Ex: "Sol=Kore" or "Puck"
 
-        // --- NUEVA LÓGICA DE PARSEO MANUAL (MÁS SEGURA) ---
+        // --- NEW MANUAL PARSING LOGIC (SAFER) ---
         EqPos := Pos('=', RawVal);
 
         if EqPos > 0 then
         begin
-          // Encontró el '=', separamos:
-          // Speaker: desde el inicio hasta antes del '='
+          // Found the '=', we split:
+          // Speaker: from the start up to before the '='
           SpeakerName := Trim(Copy(RawVal, 1, EqPos - 1));
-          // Voice: desde después del '=' hasta el final
+          // Voice: from after the '=' to the end
           VoiceName := Trim(Copy(RawVal, EqPos + 1, Length(RawVal)));
         end
         else
         begin
-          // No hay '=', es solo el nombre de la voz
-          SpeakerName := 'Speaker' + IntToStr(I + 1); // Generamos nombre
+          // There is no '=', it is only the voice name
+          SpeakerName := 'Speaker' + IntToStr(I + 1); // We generate a name
           VoiceName := RawVal;
         end;
         // ---------------------------------------------------
@@ -515,13 +515,13 @@ begin
     end
 
     // -------------------------------------------------------------------------
-    // CASO B: UNA SOLA VOZ (= 1 elemento) -> SINGLE SPEAKER
+    // CASE B: A SINGLE VOICE (= 1 element) -> SINGLE SPEAKER
     // -------------------------------------------------------------------------
     else if SL.Count = 1 then
     begin
       RawVal := Trim(SL[0]);
 
-      // Parseo manual también aquí para limpiar "Gustavo=Puck" -> "Puck"
+      // Manual parsing here too to clean "Gustavo=Puck" -> "Puck"
       EqPos := Pos('=', RawVal);
 
       if EqPos > 0 then
@@ -594,7 +594,7 @@ begin
 end;
 
 // --- GET MESSAGES ---
-// Convierte el historial interno al formato "parts" de Gemini
+// Converts internal history to Gemini "parts" format
 function TAiGeminiChat.GetMessages: TJSonArray;
 Var
   I: Integer;
@@ -608,7 +608,7 @@ Var
   ResArr: TJSonArray;
   WrapperObj: TJSONObject;
 
-  // Variables para gestión de firmas V3
+  // Variables for V3 signature management
   SignaturesList: TStringList;
   SigIndex: Integer;
   LResolutionStr: String;
@@ -639,7 +639,7 @@ begin
       jParts := TJSonArray.Create;
       jObj.AddPair('parts', jParts);
 
-      // Firmas V3
+      // V3 Signatures
       SignaturesList := nil;
       SigIndex := 0;
       if IsModelRole then
@@ -653,25 +653,25 @@ begin
         jFuncResponse := TJSONObject.Create;
         jFuncResponse.AddPair('name', Msg.FunctionName);
 
-        // --- CORRECCIÓN JSON RESPONSE ---
+        // --- JSON RESPONSE FIX ---
         var
           JValArgs: TJSONValue := TJSONObject.ParseJSONValue(Msg.Prompt);
         try
-          // Si el mensaje es un JSON válido (como el que devuelve ComputerUseTool)
-          // lo usamos directamente como la estructura de 'response'.
+          // If the message is valid JSON (like the one returned by ComputerUseTool)
+          // we use it directly as the 'response' structure.
           if Assigned(JValArgs) and (JValArgs is TJSONObject) then
           begin
             jFuncResponse.AddPair('response', JValArgs.Clone as TJSONObject);
           end
           else
           begin
-            // Si es texto plano o inválido, usamos la estructura legacy envolvente
+            // If it is plain text or invalid, we use the legacy wrapper structure
             jResponseContent := TJSONObject.Create;
             var
             SimpleContent := TJSONObject.Create;
 
-            // Usamos 'content' o 'result' según prefieras para texto plano,
-            // pero ComputerUse siempre entrará en el IF de arriba.
+            // We use 'content' or 'result' as you prefer for plain text,
+            // but ComputerUse will always enter the IF above.
             SimpleContent.AddPair('result', Msg.Prompt);
 
             jResponseContent.AddPair('content', SimpleContent);
@@ -686,8 +686,8 @@ begin
         jPartItem := TJSONObject.Create.AddPair('functionResponse', jFuncResponse);
         jParts.Add(jPartItem);
 
-        // [COMPUTER USE - IMÁGENES]
-        // (Tu código de adjuntar imágenes que hicimos antes va aquí, justo después)
+        // [COMPUTER USE - IMAGES]
+        // (Your code for attaching images that we made earlier goes here, right after)
         MediaArr := Msg.MediaFiles.GetMediaList([Tfc_Image], False);
         if Length(MediaArr) > 0 then
           begin
@@ -727,10 +727,10 @@ begin
           begin
             WrapperObj := jToolCallValue as TJSONObject;
 
-            // Caso A: Historial crudo de Gemini (gemini_parts)
+            // Case A: Raw Gemini history (gemini_parts)
             if WrapperObj.TryGetValue<TJSonArray>('gemini_parts', JGeminiParts) then
             begin
-              // Texto explicativo previo (si existe)
+              // Explanatory text before (if any)
               if not Msg.Prompt.IsEmpty then
               begin
                 jPartItem := TJSONObject.Create.AddPair('text', Msg.Prompt);
@@ -742,14 +742,14 @@ begin
                 jParts.Add(jPartItem);
               end;
 
-              // Procesar partes del historial (Code, Results, Files...)
+              // Process history parts (Code, Results, Files...)
               for jPartVal in JGeminiParts do
               begin
                 if jPartVal is TJSONObject then
                 begin
-                  // --- CORRECCIÓN CRÍTICA AQUÍ ---
-                  // Si esta parte es un archivo binario (inlineData), NO la agregamos al historial de envío.
-                  // El modelo ya sabe que generó el archivo, no necesitamos devolverle los bytes.
+                  // --- CRITICAL FIX HERE ---
+                  // If this part is a binary file (inlineData), we do NOT add it to the send history.
+                  // The model already knows it generated the file; we do not need to return the bytes to it.
                   if TJSONObject(jPartVal).GetValue('inlineData') <> nil then
                     Continue;
                   // -------------------------------
@@ -757,7 +757,7 @@ begin
                   var
                   ClonedPart := TJSONObject(jPartVal).Clone as TJSONObject;
 
-                  // Inyectar firma si falta
+                  // Inject signature if missing
                   if (ClonedPart.GetValue('thoughtSignature') = nil) and Assigned(SignaturesList) and (SigIndex < SignaturesList.Count) then
                   begin
                     ClonedPart.AddPair('thoughtSignature', SignaturesList[SigIndex]);
@@ -768,7 +768,7 @@ begin
                 end;
               end;
             end
-            // Caso B: Standard Function Call
+            // Case B: Standard Function Call
             else
             begin
               if WrapperObj.GetValue('functionCall') <> nil then
@@ -794,7 +794,7 @@ begin
       // -----------------------------------------------------------------------
       else
       begin
-        // Texto
+        // Text
         if not Msg.Prompt.IsEmpty then
         begin
           jPartItem := TJSONObject.Create.AddPair('text', Msg.Prompt);
@@ -805,7 +805,7 @@ begin
           jParts.Add(jPartItem);
         end;
 
-        // Media (Solo si es User)
+        // Media (Only if it is User)
         if not IsModelRole then
         begin
 
@@ -815,7 +815,7 @@ begin
           if (cap_CodeInterpreter in ModelConfig.ModelCaps) then
             TargetCategories := [Low(TAiFileCategory) .. High(TAiFileCategory)] // Permitir todo
           else
-            TargetCategories := GetModelInputFileTypes; // Filtro estricto estándar
+            TargetCategories := GetModelInputFileTypes; // Standard strict filter
 
           MediaArr := Msg.MediaFiles.GetMediaList(TargetCategories, False);
 
@@ -874,7 +874,7 @@ Var
   SupportedMethods: TJSonArray;
   IsGenerative: Boolean;
 
-  // Variables para extracción de parámetros
+  // Variables for parameter extraction
   LName, LVersion, LDisplayName, LDescription: string;
   LInputTokenLimit, LOutputTokenLimit: Int64;
   LTemperature, LTopP, LMaxTemperature: Double;
@@ -896,14 +896,14 @@ begin
     Client.ContentType := 'application/json';
     sNextPageToken := '';
 
-    // --- BUCLE DE PAGINACIÓN ---
+    // --- PAGINATION LOOP ---
     repeat
-      // 2. Construir URL con el token de página si existe
+      // 2. Build URL with the page token if it exists
       RequestUrl := BaseEndPoint + 'models?key=' + aApiKey;
       if sNextPageToken <> '' then
         RequestUrl := RequestUrl + '&pageToken=' + sNextPageToken;
 
-      // 3. Petición GET
+      // 3. GET request
       Res := Client.Get(RequestUrl);
 
       if Res.StatusCode = 200 then
@@ -912,7 +912,7 @@ begin
         try
           if Assigned(jRes) then
           begin
-            // A. Procesar Modelos de esta página
+            // A. Process Models from this page
             if jRes.TryGetValue<TJSonArray>('models', JArr) then
             Begin
               For JVal in JArr do
@@ -922,8 +922,8 @@ begin
                   var
                   jObj := TJSONObject(JVal);
 
-                  // --- EXTRACCIÓN DE VARIABLES ---
-                  // Reiniciar defaults
+                  // --- VARIABLE EXTRACTION ---
+                  // Reset defaults
                   LName := '';
                   LVersion := '';
                   LDisplayName := '';
@@ -937,7 +937,7 @@ begin
                   LThinking := False;
                   IsGenerative := False;
 
-                  // 1. Datos Básicos
+                  // 1. Basic Data
                   jObj.TryGetValue<string>('name', LName);
                   jObj.TryGetValue<string>('version', LVersion);
                   jObj.TryGetValue<string>('displayName', LDisplayName);
@@ -954,14 +954,14 @@ begin
                   jObj.TryGetValue<Integer>('topK', LTopK);
                   jObj.TryGetValue<Boolean>('thinking', LThinking);
 
-                  // --- FILTRADO DE MÉTODOS ---
+                  // --- METHOD FILTERING ---
                   if jObj.TryGetValue<TJSonArray>('supportedGenerationMethods', SupportedMethods) then
                   begin
                     for JMethod in SupportedMethods do
                     begin
-                      // ACEPTAMOS MÁS MÉTODOS AHORA:
-                      // - generateContent: Chat/Texto standard
-                      // - predict: Imagen (Imagen 3/4)
+                      // WE ACCEPT MORE METHODS NOW:
+                      // - generateContent: Chat/Text standard
+                      // - predict: Image (Imagen 3/4)
                       // - predictLongRunning: Video (Veo)
                       if SameText(JMethod.Value, 'generateContent') or SameText(JMethod.Value, 'predict') or SameText(JMethod.Value, 'predictLongRunning') then
                       begin
@@ -971,22 +971,22 @@ begin
                     end;
                   end;
 
-                  // B. Agregar si es válido
+                  // B. Add if valid
                   if IsGenerative and (LName <> '') then
                   begin
                     sModel := StringReplace(LName, 'models/', '', [rfIgnoreCase]);
                     Result.Add(sModel);
 
-                    // *AQUI* tienes todas las variables (LThinking, LInputTokenLimit, etc)
-                    // listas para guardar en una estructura si lo deseas.
+                    // *HERE* you have all the variables (LThinking, LInputTokenLimit, etc)
+                    // ready to save into a structure if you wish.
                   end;
                 end;
               End;
             End;
 
-            // C. Obtener el Token para la siguiente página (si hay)
+            // C. Get the token for the next page (if any)
             if not jRes.TryGetValue<string>('nextPageToken', sNextPageToken) then
-              sNextPageToken := ''; // Si no hay token, terminamos el bucle
+              sNextPageToken := ''; // If there is no token, we end the loop
           end;
         finally
           jRes.Free;
@@ -994,13 +994,13 @@ begin
       End
       else
       begin
-        // Error de conexión, rompemos el bucle
+        // Connection error, we break the loop
         sNextPageToken := '';
       end;
 
     until sNextPageToken = ''; // Repetir mientras haya más páginas
 
-    // 4. Agregar Modelos Custom del Factory
+    // 4. Add Custom Models from the Factory
     CustomModels := TAiChatFactory.Instance.GetCustomModels(Self.GetDriverName);
     for I := Low(CustomModels) to High(CustomModels) do
     begin
@@ -1030,7 +1030,7 @@ begin
 
   try
     // -------------------------------------------------------------------------
-    // 1. CONTEXTO Y CACHÉ
+    // 1. CONTEXT AND CACHE
     // -------------------------------------------------------------------------
     ActiveCacheName := '';
     for I := FMessages.Count - 1 downto 0 do
@@ -1064,11 +1064,11 @@ begin
       LRequest.AddPair('cachedContent', TJSONString.Create(ActiveCacheName));
 
     // -------------------------------------------------------------------------
-    // 4. TOOLS (Validación Estricta)
+    // 4. TOOLS (Strict Validation)
     // -------------------------------------------------------------------------
     JArrTools := TJSonArray.Create;
 
-    // A. Funciones de Usuario (Function Calling)
+    // A. User Functions (Function Calling)
     var LHasUserFunctions := False;
     if Tool_Active then
     begin
@@ -1076,16 +1076,16 @@ begin
       if Assigned(JUserTools) then
       begin
         LHasUserFunctions := True;
-        // Clonamos las funciones de usuario al array principal
+        // We clone the user functions into the main array
         for var JVal in JUserTools do
           JArrTools.Add(JVal.Clone as TJSONObject);
         JUserTools.Free;
       end;
     end;
 
-    // B. Code Execution (Solo si está explícitamente en el Set)
-    // Nota: codeExecution es incompatible con response_mime_type=application/json
-    // Nota: codeExecution no se puede combinar con function declarations de usuario
+    // B. Code Execution (Only if it is explicitly in the Set)
+    // Note: codeExecution is incompatible with response_mime_type=application/json
+    // Note: codeExecution cannot be combined with user function declarations
     if (cap_CodeInterpreter in ModelConfig.ModelCaps) and
        not (Response_format in [tiaChatRfJson, tiaChatRfJsonSchema]) and
        not LHasUserFunctions then
@@ -1095,9 +1095,9 @@ begin
       JArrTools.Add(LToolObj);
     end;
 
-    // C. Google Search (Solo si está explícitamente en el Set)
-    // Nota: googleSearch es incompatible con response_mime_type=application/json
-    // Nota: googleSearch no se puede combinar con function declarations de usuario
+    // C. Google Search (Only if it is explicitly in the Set)
+    // Note: googleSearch is incompatible with response_mime_type=application/json
+    // Note: googleSearch cannot be combined with user function declarations
     if (cap_WebSearch in ModelConfig.ModelCaps) and
        not (Response_format in [tiaChatRfJson, tiaChatRfJsonSchema]) and
        not LHasUserFunctions then
@@ -1110,19 +1110,19 @@ begin
     // D. Computer Use
     if (cap_ComputerUse in ModelConfig.ModelCaps) then
     Begin
-      // En Gemini, Computer Use es una herramienta de primer nivel,
-      // al igual que 'googleSearch' o 'codeExecution'. El campo va en camelCase
-      // ('computerUse') igual que el resto de tools nativos del REST de Gemini.
+      // In Gemini, Computer Use is a first-class tool,
+      // just like 'googleSearch' or 'codeExecution'. The field goes in camelCase
+      // ('computerUse') just like the rest of Gemini REST native tools.
       var
       JComputerTool := TJSONObject.Create;
       var
       JCompSettings := TJSONObject.Create;
 
-      // 'environment' es requerido. ENVIRONMENT_BROWSER es el entorno de
-      // automatización web (gemini-2.5-computer-use-preview / gemini-3-flash).
+      // 'environment' is required. ENVIRONMENT_BROWSER is the environment for
+      // web automation (gemini-2.5-computer-use-preview / gemini-3-flash).
       JCompSettings.AddPair('environment', 'ENVIRONMENT_BROWSER');
 
-      // Para excluir acciones (p.ej. drag_and_drop) se usaría aquí
+      // To exclude actions (e.g. drag_and_drop), it would be used here
       // 'excludedPredefinedFunctions': [...].
 
       JComputerTool.AddPair('computerUse', JCompSettings);
@@ -1130,7 +1130,7 @@ begin
       JArrTools.Add(JComputerTool);
     End;
 
-    // IMPORTANTE: Solo enviamos "tools" si hay algo dentro.
+    // IMPORTANT: We only send "tools" if there is something inside.
     if JArrTools.Count > 0 then
       LRequest.AddPair('tools', JArrTools)
     else
@@ -1142,12 +1142,12 @@ begin
     JConfig := TJSONObject.Create;
     LRequest.AddPair('generationConfig', JConfig);
 
-    // A. Parámetros Estándar (No perder funcionalidad básica)
-    // Sampling params (temperature/topP/topK) DEPRECADOS por Google para la
-    // familia 3.5 en adelante y omni (jul 21/2026): no se envían en esos modelos
-    // y el servidor gestiona el muestreo. En modelos previos se conservan.
-    // Se compara la versión (no una lista de nombres) para que 3.7, 3.8 y los
-    // que vengan queden cubiertos sin tocar el driver.
+    // A. Standard Parameters (Do not lose basic functionality)
+    // Sampling params (temperature/topP/topK) DEPRECATED by Google for the
+    // 3.5 family and later and omni (Jul 21/2026): they are not sent for those models
+    // and the server manages sampling. In previous models they are kept.
+    // The version is compared (not a list of names) so that 3.7, 3.8 and the
+    // ones that come later are covered without touching the driver.
     var LSamplingModel := TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model);
     var LSamplingOk := not ((GeminiModelVersion(LSamplingModel) >= 3.5) or
                             LSamplingModel.StartsWith('gemini-omni') or
@@ -1156,8 +1156,8 @@ begin
     if LSamplingOk and (Temperature >= 0) then
       JConfig.AddPair('temperature', TJSONNumber.Create(Temperature));
 
-    // 0 = no enviar topP (convención de SetTop_p en la base); topP:0 literal
-    // forzaría muestreo casi greedy en lugar del default del servidor.
+    // 0 = do not send topP (SetTop_p convention in the base); literal topP:0
+    // would force nearly greedy sampling instead of the server default.
     if LSamplingOk and (Top_p > 0) then
       JConfig.AddPair('topP', TJSONNumber.Create(Top_p));
 
@@ -1177,7 +1177,7 @@ begin
       end;
     end;
 
-    // B. Configuración de Imagen (Gemini 3 Image / Imagen 3)
+    // B. Image Configuration (Gemini 3 Image / Imagen 3)
     if ImageParams.Params.Count > 0 then
     begin
       var
@@ -1205,7 +1205,7 @@ begin
         var
         JSchema := TJSONObject.ParseJSONValue(sShema) as TJSONObject;
         if Assigned(JSchema) then
-          // v1beta usa 'responseJsonSchema'; v1 estable usa 'responseSchema'. Mantener para v1beta.
+          // v1beta uses 'responseJsonSchema'; stable v1 uses 'responseSchema'. Keep for v1beta.
           JConfig.AddPair('responseJsonSchema', JSchema);
       except
         on E: Exception do
@@ -1224,10 +1224,10 @@ begin
       var
         LModelName := TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model).ToLower;
 
-      // Gemini 3: usar thinkingLevel string nativo (LOW/MEDIUM/HIGH).
-      // El API no permite apagar el razonamiento y 'minimal' da error en
-      // 3.7/3.8, así que los niveles de la escalera ampliada (v3.8) se llevan
-      // al más cercano que el modelo acepta.
+      // Gemini 3: use native thinkingLevel string (LOW/MEDIUM/HIGH).
+      // The API does not allow turning off reasoning and 'minimal' errors in
+      // 3.7/3.8, so the extended ladder levels (v3.8) are mapped
+      // to the closest one the model accepts.
       if LModelName.Contains('gemini-3') then
       begin
         case ModelConfig.ThinkingLevel of
@@ -1235,34 +1235,34 @@ begin
           tlMedium:                 JThinking.AddPair('thinkingLevel', 'MEDIUM');
           tlHigh, tlXHigh, tlMax:   JThinking.AddPair('thinkingLevel', 'HIGH');
         else
-          JThinking.AddPair('thinkingLevel', 'HIGH'); // Default para Gemini 3
+          JThinking.AddPair('thinkingLevel', 'HIGH'); // Default for Gemini 3
         end;
       end
       else
       begin
-        // Gemini 2.5 y anteriores: usar thinkingBudget numérico
+        // Gemini 2.5 and earlier: use numeric thinkingBudget
         var
           LBudget: Integer := 0;
 
         if FThinkingBudget > 0 then
-          LBudget := FThinkingBudget // Prioridad al valor manual
+          LBudget := FThinkingBudget // Priority to the manual value
         else if Max_tokens > 0 then
         begin
-          // Mapeo proporcional si no se define presupuesto fijo
+          // Proportional mapping if no fixed budget is defined
           case ModelConfig.ThinkingLevel of
             tlLow:
-              LBudget := Trunc(Max_tokens * 0.25); // 25% del total
+              LBudget := Trunc(Max_tokens * 0.25); // 25% of total
             tlMedium:
-              LBudget := Trunc(Max_tokens * 0.50); // 50% del total
+              LBudget := Trunc(Max_tokens * 0.50); // 50% of total
             tlHigh:
-              LBudget := Trunc(Max_tokens * 0.80); // 80% del total
+              LBudget := Trunc(Max_tokens * 0.80); // 80% of total
           end;
-          // Safety: Gemini suele requerir un mínimo (ej. 1024) para pensar efectivamente
+          // Safety: Gemini usually requires a minimum (e.g. 1024) to actually think
           if LBudget < 1024 then
             LBudget := 1024;
         end;
 
-        // Solo añadimos budget si es mayor a 0 (0 deshabilita thinking en Flash 2.5)
+        // We only add budget if it is greater than 0 (0 disables thinking in Flash 2.5)
         if LBudget > 0 then
           JThinking.AddPair('thinkingBudget', TJSONNumber.Create(LBudget));
       end;
@@ -1280,7 +1280,7 @@ begin
   end;
 end;
 
-// --- EXECUTE REQUEST (InternalRunCompletions) --- [Igual]
+// --- EXECUTE REQUEST (InternalRunCompletions) --- [Same]
 function TAiGeminiChat.InternalRunCompletions(ResMsg, AskMsg: TAiChatMessage): String;
 Var
   ABody, sUrl, LModel, LMethod: String;
@@ -1296,21 +1296,21 @@ begin
   FLastPrompt := AskMsg.Prompt;
 
   // ---------------------------------------------------------------------------
-  // AUTO-UPLOAD PARA DOCUMENTOS (Code Interpreter / Multimodal)
-  // Gemini exige File API para Excel, PDF, CSV, etc. No admite Base64 (inline).
+  // AUTO-UPLOAD FOR DOCUMENTS (Code Interpreter / Multimodal)
+  // Gemini requires File API for Excel, PDF, CSV, etc. Does not support Base64 (inline).
   // ---------------------------------------------------------------------------
   if Assigned(AskMsg.MediaFiles) then
   begin
     for MF in AskMsg.MediaFiles do
     begin
-      // Si el archivo NO es imagen ni audio, y aún no tiene URL de nube...
+      // If the file is NOT an image or audio, and does not yet have a cloud URL...
       if (not(MF.FileCategory in [Tfc_Image, Tfc_Audio])) and (MF.UrlMedia = '') then
       begin
         try
-          UploadFile(MF); // Esto actualiza MF.UrlMedia con la uri 'https://generativelanguage...'
+          UploadFile(MF); // This updates MF.UrlMedia with the uri 'https://generativelanguage...'
         except
           on E: Exception do
-            // Opcional: Loguear error o dejar que falle, pero mejor intentamos seguir
+            // Optional: Log the error or let it fail, but it is better to try to continue
             DoError('Error Auto-Uploading file for Code Interpreter: ' + E.Message, E);
         end;
       end;
@@ -1354,7 +1354,7 @@ begin
     if FClient.Asynchronous = False then
     begin
       FResponse.Position := 0;
-      LogDebug('--Response Sincrono--');
+      LogDebug('--Synchronous Response--');
       LogDebug(Res.ContentAsString);
 
       if Res.StatusCode = 200 then
@@ -1412,12 +1412,12 @@ Var
 
   JPromptFeedback: TJSONObject;
 
-  // Variables auxiliares para partes
+  // Auxiliary variables for parts
   jValPart: TJSONValue;
   LPartObj, LExecCodeObj, LCodeResultObj, LInlineData: TJSONObject;
   LCode, LLang, LCodeOutput, LMimeType, LBase64Data: String;
 
-  // Subrutina local: garantiza captura independiente por valor en Delphi 10.4+
+  // Local subroutine: ensures independent capture by value in Delphi 10.4+
   procedure _CreateTask(TC: TAiToolsFunction; AIdx: Integer);
   begin
     TaskList[AIdx] := TTask.Create(
@@ -1445,25 +1445,25 @@ begin
   LRole := 'model';
   AskMsg := GetLastMessage;
 
-  // 1. Validaciones de Seguridad y Candidatos
+  // 1. Security Validations and Candidates
   if not jObj.TryGetValue<TJSonArray>('candidates', LCandidates) or (LCandidates.Count = 0) then
   begin
     if jObj.TryGetValue<TJSONObject>('promptFeedback', JPromptFeedback) then
     begin
-      DoError('Bloqueado por seguridad: ' + JPromptFeedback.ToJSON, nil);
+      DoError('Blocked by safety: ' + JPromptFeedback.ToJSON, nil);
       Exit;
     end;
     FBusy := False;
-    // Si no hay candidatos ni feedback, puede ser un error de estructura o un finishReason raro
-    DoError('La respuesta de Gemini no contiene candidatos válidos.', nil);
+    // If there are no candidates or feedback, it may be a structure error or an unusual finishReason
+    DoError('The Gemini response does not contain valid candidates.', nil);
     Exit;
   end;
 
-  // 2. Extracción de Metadatos Generales
+  // 2. General Metadata Extraction
   jObj.TryGetValue<String>('modelVersion', ModelVersion);
   jObj.TryGetValue<String>('responseId', ResponseId);
 
-  // 3. Conteo de Tokens (Standard + Thinking)
+  // 3. Token Count (Standard + Thinking)
   aPrompt_tokens := 0;
   aCompletion_tokens := 0;
   atotal_tokens := 0;
@@ -1475,7 +1475,7 @@ begin
     LUso.TryGetValue<Integer>('promptTokenCount', aPrompt_tokens);
     LUso.TryGetValue<Integer>('candidatesTokenCount', aCompletion_tokens);
     LUso.TryGetValue<Integer>('totalTokenCount', atotal_tokens);
-    // [V3] Token count específico para pensamientos
+    // [V3] Token count specific to thoughts
     LUso.TryGetValue<Integer>('thoughtsTokenCount', aThoughts_tokens);
     LUso.TryGetValue<Integer>('cachedContentTokenCount', aCached_tokens);
   end;
@@ -1483,10 +1483,10 @@ begin
   var
   LCandidate := LCandidates.Items[0] as TJSONObject;
 
-  // 4. Procesar Grounding (Búsqueda Web)
+  // 4. Process Grounding (Web Search)
   ParseGroundingMetadata(LCandidate, ResMsg);
 
-  // 5. Procesar Contenido (Partes del mensaje)
+  // 5. Process Content (Message Parts)
   if LCandidate.TryGetValue<TJSONObject>('content', LContent) then
   begin
     LContent.TryGetValue<string>('role', LRole);
@@ -1501,19 +1501,19 @@ begin
           Continue;
         LPartObj := jValPart as TJSONObject;
 
-        // [V3] CAPTURAR THOUGHT SIGNATURE (De cualquier parte)
-        // Se guarda temporalmente en ResMsg. Si luego resulta ser un ToolCall,
-        // transferiremos estas firmas al mensaje intermedio.
+        // [V3] CAPTURE THOUGHT SIGNATURE (From any part)
+        // Temporarily stored in ResMsg. If it later turns out to be a ToolCall,
+        // we will transfer these signatures to the intermediate message.
         if LPartObj.TryGetValue<string>('thoughtSignature', LPartSig) then
         begin
           AddThoughtSignature(ResMsg, LPartSig);
         end;
 
-        // A. Texto Normal
+        // A. Normal Text
         if LPartObj.TryGetValue<string>('text', sText) then
           LRespuesta := Trim(LRespuesta + sText);
 
-        // B. Code Execution: Código generado (Historial)
+        // B. Code Execution: Generated Code (History)
         if LPartObj.TryGetValue<TJSONObject>('executableCode', LExecCodeObj) then
         begin
           LExecCodeObj.TryGetValue<string>('language', LLang);
@@ -1521,14 +1521,14 @@ begin
             LRespuesta := LRespuesta + sLineBreak + '```' + LowerCase(LLang) + sLineBreak + Trim(LCode) + sLineBreak + '```';
         end;
 
-        // C. Code Execution: Resultado (Historial)
+        // C. Code Execution: Result (History)
         if LPartObj.TryGetValue<TJSONObject>('codeExecutionResult', LCodeResultObj) then
         begin
           if LCodeResultObj.TryGetValue<string>('output', LCodeOutput) then
             LRespuesta := LRespuesta + sLineBreak + '> **Output:**' + sLineBreak + '```' + sLineBreak + Trim(LCodeOutput) + sLineBreak + '```';
         end;
 
-        // D. Multimedia Inline (Imágenes/Audio generados)
+        // D. Inline Multimedia (Generated Images/Audio)
         if LPartObj.TryGetValue<TJSONObject>('inlineData', LInlineData) then
         begin
           LInlineData.TryGetValue<string>('mimeType', LMimeType);
@@ -1548,7 +1548,7 @@ begin
           end;
         end;
 
-        // E. File Data (Archivo generado por code_interpreter, descargable via URL)
+        // E. File Data (File generated by code_interpreter, downloadable via URL)
         if LPartObj.TryGetValue<TJSONObject>('fileData', LInlineData) then
         begin
           LInlineData.TryGetValue<string>('mimeType', LMimeType);
@@ -1572,13 +1572,13 @@ begin
   LRespuesta := Trim(LRespuesta);
   Self.FLastContent := LRespuesta;
 
-  // Actualizar acumuladores globales del Chat
+  // Update Chat Global Accumulators
   Self.Prompt_tokens := Self.Prompt_tokens + aPrompt_tokens;
   Self.Completion_tokens := Self.Completion_tokens + aCompletion_tokens;
   Self.Total_tokens := Self.Total_tokens + atotal_tokens;
   Self.Thinking_tokens := Self.Thinking_tokens + aThoughts_tokens;
 
-  // Si se solicitó extracción de archivos de texto (native output)
+  // If text file extraction was requested (native output)
   if cap_ExtractCode in ModelConfig.SessionCaps then
     InternalExtractCodeFiles(LRespuesta, ResMsg);
 
@@ -1586,34 +1586,34 @@ begin
   LFunciones := ExtractToolCallFromJson(LCandidates);
 
   // -------------------------------------------------------------------------
-  // CASO 1: NO HAY FUNCIONES (RESPUESTA FINAL)
+  // CASE 1: NO FUNCTIONS (FINAL RESPONSE)
   // -------------------------------------------------------------------------
   If (Not Assigned(LFunciones)) or (LFunciones.Count <= 0) then
   Begin
     FBusy := False;
 
-    // Asignar propiedades al mensaje de respuesta
+    // Assign properties to the response message
     ResMsg.Role := LRole;
     ResMsg.Tool_calls := '';
     ResMsg.Model := ModelVersion;
-    // Acumulamos el texto. Nota: Si ya traía algo (streaming), concatenamos o seteamos.
-    // En ParseChat normal (séncrono o final de async), Prompt suele estar vacío al inicio del parseo de este frame.
+    // We accumulate the text. Note: If it already had something (streaming), we concatenate or set it.
+    // In normal ParseChat (synchronous or end of async), Prompt is usually empty at the start of parsing this frame.
     ResMsg.Prompt := LRespuesta;
 
-    // Asignar Tokens al mensaje individual
+    // Assign Tokens to the individual message
     ResMsg.Prompt_tokens := aPrompt_tokens;
     ResMsg.Completion_tokens := aCompletion_tokens;
     ResMsg.Total_tokens := atotal_tokens;
     ResMsg.Thinking_tokens := aThoughts_tokens;
     ResMsg.Cached_tokens := aCached_tokens;
 
-    // Procesar audio, links, etc.
+    // Process audio, links, etc.
     DoProcessResponse(AskMsg, ResMsg, LRespuesta);
 
-    // Eventos Finales.
-    // ISSUE #99 (defensivo): en async el evento final lo dispara OnInternalReceiveData,
-    // no ParseChat (que en Gemini solo corre en modo síncrono). El guard evita un doble
-    // disparo si alguna ruta async llegara a invocar ParseChat.
+    // Final Events.
+    // ISSUE #99 (defensive): in async the final event is fired by OnInternalReceiveData,
+    // not ParseChat (which in Gemini only runs in synchronous mode). The guard prevents a double
+    // firing if some async route were to invoke ParseChat.
     if not FClient.Asynchronous then
     begin
       DoStateChange(acsFinished, 'Done');
@@ -1623,7 +1623,7 @@ begin
     end;
   End
   // -------------------------------------------------------------------------
-  // CASO 2: HAY FUNCIONES (EJECUCIÓN DE HERRAMIENTAS)
+  // CASE 2: THERE ARE FUNCTIONS (TOOL EXECUTION)
   // -------------------------------------------------------------------------
   Else
   Begin
@@ -1631,7 +1631,7 @@ begin
     var
     Msg := TAiChatMessage.Create(LRespuesta, LRole);
 
-    // Construir el JSON de tool_calls para el historial
+    // Build the tool_calls JSON for history
     var
     JToolsArr := TJSonArray.Create;
     for Clave in LFunciones.Keys do
@@ -1648,24 +1648,24 @@ begin
 
       jCall.AddPair('args', jArgs);
 
-      // Wrapper de Gemini para FunctionCall
+      // Gemini wrapper for FunctionCall
       var
       jWrapper := TJSONObject.Create;
       jWrapper.AddPair('functionCall', jCall);
       JToolsArr.Add(jWrapper);
     end;
 
-    // Guardar en Msg.Tool_calls
+    // Save in Msg.Tool_calls
     if JToolsArr.Count = 1 then
     begin
-      // Guardamos el objeto simple: {"functionCall": ...}
-      // GetMessages lo detectará y NO lo volverá a envolver gracias a la corrección.
+      // We store the simple object: {"functionCall": ...}
+      // GetMessages will detect it and will NOT wrap it again thanks to the fix.
       Msg.Tool_calls := JToolsArr.Items[0].ToJSON;
       JToolsArr.Free;
     end
     else
     begin
-      // Múltiples funciones: usamos gemini_parts
+      // Multiple functions: we use gemini_parts
       var
       JWrapperParts := TJSONObject.Create;
       JWrapperParts.AddPair('gemini_parts', JToolsArr);
@@ -1679,11 +1679,11 @@ begin
     Msg.Total_tokens := atotal_tokens;
     Msg.Thinking_tokens := aThoughts_tokens;
 
-    // [V3 CRITICAL] TRANSFERENCIA DE FIRMAS
-    // Las firmas capturadas arriba se guardaron en 'ResMsg' (el objeto pasado por referencia).
-    // Pero en el flujo de herramientas, 'ResMsg' se recicla para el resultado final de la recursión.
-    // El mensaje que contiene la llamada a la función (y por tanto la firma) es 'Msg'.
-    // Debemos mover las firmas de ResMsg a Msg.
+    // [V3 CRITICAL] SIGNATURE TRANSFER
+    // The signatures captured above were stored in 'ResMsg' (the object passed by reference).
+    // But in the tool flow, 'ResMsg' is recycled for the final recursion result.
+    // The message containing the function call (and thus the signature) is 'Msg'.
+    // We must move the signatures from ResMsg to Msg.
     var
       SrcList: TStringList;
     if FThoughtSignatures.TryGetValue(ResMsg, SrcList) then
@@ -1691,7 +1691,7 @@ begin
       for var Sig in SrcList do
         AddThoughtSignature(Msg, Sig);
 
-      // Limpiamos las firmas de ResMsg para que no se dupliquen cuando se llene con la respuesta final
+      // We clean ResMsg signatures to prevent duplication when filling with the final response
       FThoughtSignatures.Remove(ResMsg);
     end;
 
@@ -1700,7 +1700,7 @@ begin
     if Assigned(FOnAddMessage) then
       FOnAddMessage(Self, Msg, jObj, Msg.Role, '');
 
-    // Ejecutar las funciones en hilos paralelos
+    // Execute functions in parallel threads
     Try
       NumTasks := LFunciones.Count;
       SetLength(TaskList, NumTasks);
@@ -1708,7 +1708,7 @@ begin
       For Clave in LFunciones.Keys do
       Begin
         ToolCall := LFunciones[Clave];
-        ToolCall.ResMsg := ResMsg; // Pasamos referencias para que la tool pueda escribir si quiere
+        ToolCall.ResMsg := ResMsg; // We pass references so the tool can write if it wants
         ToolCall.AskMsg := AskMsg;
 
         _CreateTask(ToolCall, I); // subrutina local garantiza captura por valor
@@ -1726,7 +1726,7 @@ begin
         else
           TThread.Sleep(10);
 
-      // Crear los mensajes de respuesta de las herramientas
+      // Create tool response messages
       For Clave in LFunciones.Keys do
       Begin
         ToolCall := LFunciones[Clave];
@@ -1739,19 +1739,19 @@ begin
             LScreen: TAiMediaFile;
           if FPendingScreenshots.TryGetValue(ToolCall.Id, LScreen) then
           begin
-            // Transferimos la propiedad del objeto al mensaje (Extract)
+            // We transfer ownership of the object to the message (Extract)
             ToolMsg.AddMediaFile(LScreen);
 
-            // Lo quitamos del diccionario sin liberarlo (porque usamos ExtractPair implícito al reasignar propiedad o manual)
-            // Como el diccionario tiene doOwnsValues, debemos tener cuidado.
-            // Truco: ExtractPair devuelve el par y lo saca del diccionario SIN liberar el valor.
+            // We remove it from the dictionary without freeing it (because we use implicit ExtractPair when reassigning ownership, or manual)
+            // Since the dictionary has doOwnsValues, we must be careful.
+            // Trick: ExtractPair returns the pair and removes it from the dictionary WITHOUT freeing the value.
             FPendingScreenshots.ExtractPair(ToolCall.Id);
           end;
         finally
           TMonitor.Exit(FPendingScreenshots);
         end;
 
-        // Archivos devueltos por el tool MCP (imágenes, PDFs) → ToolMsg para que el LLM los vea
+        // Files returned by the MCP tool (images, PDFs) → ToolMsg so the LLM can see them
         for var LMF in ToolCall.MediaFiles do
           ToolMsg.AddMediaFile(LMF);
         ToolCall.MediaFiles.OwnsObjects := False;
@@ -1760,12 +1760,12 @@ begin
         FMessages.Add(ToolMsg);
       End;
 
-      // Llamada recursiva para obtener la respuesta final del modelo
-      // El resultado final llenará 'ResMsg' correctamente.
+      // Recursive call to get the model's final response
+      // The final result will fill 'ResMsg' correctly.
       Self.Run(Nil, ResMsg);
 
-      // Limpieza cosmética: A veces la recursión añade el texto al final,
-      // limpiamos si es necesario o dejamos que ParseChat recursivo maneje el Prompt.
+      // Cosmetic cleanup: Sometimes recursion adds text at the end,
+      // we clean if necessary or let recursive ParseChat handle the Prompt.
       // ResMsg.Content := '';
 
     Finally
@@ -1815,7 +1815,7 @@ begin
     end;
   end;
 
-  // Parsear groundingSupports (vínculos texto->fuente)
+  // Parse groundingSupports (text->source links)
   var jSupportsArr: TJSonArray;
   if jGroundingMeta.TryGetValue<TJSonArray>('groundingSupports', jSupportsArr) then
   begin
@@ -1824,7 +1824,7 @@ begin
       var jSupport := jSupportVal as TJSONObject;
       var LCitation := TAiMsgCitation.Create;
 
-      // Extraer segmento de texto citado
+      // Extract quoted text segment
       var jSegment: TJSONObject;
       if jSupport.TryGetValue<TJSONObject>('segment', jSegment) then
       begin
@@ -1833,7 +1833,7 @@ begin
         LCitation.Text := jSegment.GetValue<string>('text', '');
       end;
 
-      // Vincular con las fuentes (groundingChunks ya parseados arriba)
+      // Link with the sources (groundingChunks already parsed above)
       var jChunkIndices: TJSonArray;
       if jSupport.TryGetValue<TJSonArray>('groundingChunkIndices', jChunkIndices) then
       begin
@@ -1907,7 +1907,7 @@ begin
     FreeAndNil(Result);
 end;
 
-// [InternalAddMessage methods iguales, solo para contexto]
+// [InternalAddMessage methods are the same, only for context]
 Function TAiGeminiChat.InternalAddMessage(aPrompt, aRole: String; aToolCallId: String = ''; aFunctionName: String = ''): TAiChatMessage;
 Var
   Msg: TAiChatMessage;
@@ -1995,7 +1995,7 @@ begin
   End;
 end;
 
-// Añadir en la sección Private o Protected de la clase
+// Add in the Private or Protected section of the class
 procedure TAiGeminiChat.InternalCompleteRequest;
 Var
   ResMsg: TAiChatMessage;
@@ -2015,19 +2015,19 @@ Var
 
 begin
   if not FBusy then
-    Exit; // Ya se procesó
+    Exit; // Already processed
   FBusy := False;
 
-  // 1. Crear el mensaje final
+  // 1. Create the final message
   ResMsg := TAiChatMessage.Create(FLastContent, 'model');
 
-  // Recuperar tokens acumulados durante el stream
+  // Retrieve tokens accumulated during the stream
   ResMsg.Prompt_tokens := Self.Prompt_tokens;
   ResMsg.Completion_tokens := Self.Completion_tokens;
   ResMsg.Total_tokens := Self.Total_tokens;
   ResMsg.Thinking_tokens := Self.Thinking_tokens;
 
-  // 2. Procesar Buffer de Herramientas/Archivos/Firmas acumulados
+  // 2. Process Buffer of Accumulated Tools/Files/Signatures
   if FTmpToolCallBuffer.Count > 0 then
   begin
     JArrParts := TJSonArray.Create;
@@ -2038,11 +2038,11 @@ begin
     begin
       PartObj := FTmpToolCallBuffer[K];
 
-      // [Gemini 3] Recuperar firmas guardadas en el buffer
+      // [Gemini 3] Retrieve signatures saved in the buffer
       if PartObj.TryGetValue<string>('thoughtSignature', LSig) then
         AddThoughtSignature(ResMsg, LSig);
 
-      // Recuperar Archivos generados (inline)
+      // Retrieve Generated Files (inline)
       if PartObj.TryGetValue<TJSONObject>('inlineData', jInlineData) then
       begin
         jInlineData.TryGetValue<string>('mimeType', LMimeType);
@@ -2061,7 +2061,7 @@ begin
         end;
       end;
 
-      // Recuperar Archivos generados (referencia URL, descargable)
+      // Retrieve Generated Files (URL reference, downloadable)
       if PartObj.TryGetValue<TJSONObject>('fileData', jInlineData) then
       begin
         jInlineData.TryGetValue<string>('mimeType', LMimeType);
@@ -2082,7 +2082,7 @@ begin
       JArrParts.Add(PartObj.Clone as TJSONObject);
     end;
 
-    // Empaquetar historial
+    // Package history
     Wrapper := TJSONObject.Create;
     try
       Wrapper.AddPair('gemini_parts', JArrParts);
@@ -2094,7 +2094,7 @@ begin
     FTmpToolCallBuffer.Clear;
   end;
 
-  // 3. Finalizar
+  // 3. Finalize
   ResMsg.Id := FMessages.Count + 1;
   FMessages.Add(ResMsg);
 
@@ -2138,7 +2138,7 @@ var
   St: TStringStream;
   FileName: string;
 begin
-  // Solo procesar si el usuario lo configuró en NativeOutputFiles
+  // Only process if the user configured it in NativeOutputFiles
   if not(cap_ExtractCode in ModelConfig.SessionCaps) then
     Exit;
 
@@ -2155,7 +2155,7 @@ begin
         St.Position := 0;
         MF := TAiMediaFile.Create;
 
-        // Intentar dar un nombre lógico
+        // Try to give a logical name
         if CodeFile.FileName <> '' then
           FileName := CodeFile.FileName
         else
@@ -2163,7 +2163,7 @@ begin
 
         MF.LoadFromStream(FileName, St);
 
-        // Opcional: Marcar que es un archivo generado
+        // Optional: Mark that it is a generated file
         // MF.MimeType := 'text/plain';
 
         AMessage.MediaFiles.Add(MF);
@@ -2176,7 +2176,7 @@ begin
   end;
 end;
 
-// [Métodos de archivo (UploadFile, etc.) se mantienen igual]
+// [File methods (UploadFile, etc.) remain the same]
 function TAiGeminiChat.UploadFile(aMediaFile: TAiMediaFile): String;
 var
   LHttpClient: TNetHTTPClient;
@@ -2198,7 +2198,7 @@ begin
     LFileStream.Position := 0;
     LNumBytes := LFileStream.Size;
     if LNumBytes = 0 then
-      raise Exception.Create('No se pudo obtener el contenido del archivo para subir.');
+      raise Exception.Create('Could not get the file content to upload.');
     try
       LHeaders := [TNetHeader.Create('X-Goog-Upload-Protocol', 'resumable'), TNetHeader.Create('X-Goog-Upload-Command', 'start'), TNetHeader.Create('X-Goog-Upload-Header-Content-Length', LNumBytes.ToString),
         TNetHeader.Create('X-Goog-Upload-Header-Content-Type', aMediaFile.MimeType)];
@@ -2306,11 +2306,11 @@ var
 begin
   IsComputerAction := False;
 
-  // 1. Verificar si ComputerUse está activo y tenemos el componente enlazado
+  // 1. Verify if ComputerUse is active and we have the component linked
 
   if (cap_ComputerUse in ModelConfig.ModelCaps) and Assigned(ChatTools.ComputerUseTool) then
   begin
-    // Lista de acciones conocidas de Gemini 2.5
+    // List of known Gemini 2.5 actions
     if MatchStr(LowerCase(ToolCall.Name), ['click_at', 'left_click', 'right_click', 'middle_click', 'double_click', 'triple_click', 'type_text_at', 'type', 'key_combination', 'hold_key', 'scroll_at', 'scroll_document', 'drag_and_drop', 'hover_at', 'mouse_move',
       'cursor_position', 'zoom', 'navigate', 'search', 'open_web_browser', 'go_back', 'go_forward', 'screenshot', 'wait_5_seconds']) then
     begin
@@ -2320,30 +2320,30 @@ begin
 
   if IsComputerAction then
   begin
-    // 2. Oportunidad de interceptar ANTES de ejecutar en local. Es el mismo
-    //    contrato que Claude, OpenAI y el bridge generico de TAiChat: si el
-    //    handler llena Response, la accion se da por ejecutada en otro sitio
-    //    (p.ej. un broker que reenvia el tool_call a su cliente) y aqui no se
-    //    toca la pantalla ni se captura nada.
+    // 2. Opportunity to intercept BEFORE executing locally. It is the same
+    //    contract as Claude, OpenAI and the generic TAiChat bridge: if the
+    //    handler fills Response, the action is considered executed elsewhere
+    //    (e.g. a broker that forwards the tool_call to its client) and here it is not
+    //    touching the screen or capturing anything.
     if Assigned(FOnCallToolFunction) then
       FOnCallToolFunction(Self, ToolCall);
 
     if ToolCall.Response <> '' then
       Exit;
 
-    // 3. Delegar al componente ComputerTool
-    // Nota: ProcessToolCall es thread-safe siempre que tus eventos lo sean.
-    // Como estamos dentro de un TTask (hilo), el evento OnExecuteAction se disparará en un hilo secundario.
-    // Asegúrate de usar TThread.Synchronize en tu formulario si tocas la GUI.
+    // 3. Delegate to the ComputerTool component
+    // Note: ProcessToolCall is thread-safe as long as your events are.
+    // Since we are inside a TTask (thread), the OnExecuteAction event will fire on a secondary thread.
+    // Make sure to use TThread.Synchronize in your form if you touch the GUI.
 
     Screenshot := nil;
     try
       ResponseJson := ChatTools.ComputerUseTool.ProcessToolCall(ToolCall, Screenshot);
 
-      // Asignar la respuesta JSON
+      // Assign the JSON response
       ToolCall.Response := ResponseJson;
 
-      // 4. Guardar la captura en el buffer temporal (Thread-Safe Lock)
+      // 4. Save the screenshot in the temporary buffer (Thread-Safe Lock)
       if Assigned(Screenshot) then
       begin
         TMonitor.Enter(FPendingScreenshots);
@@ -2365,11 +2365,11 @@ begin
   end
   else
   begin
-    // 5. Si no es acción de computadora, usar el comportamiento estándar:
-    //    bridge generico de ComputerUse, AiFunctions y, en ultima instancia,
-    //    OnCallToolFunction. Antes se respondia 'Command X not found' sin
-    //    llamar a inherited, asi que NINGUNA funcion de usuario llegaba a
-    //    ejecutarse a traves de este driver.
+    // 5. If it is not a computer action, use the standard behavior:
+    //    generic ComputerUse bridge, AiFunctions and, as a last resort,
+    //    OnCallToolFunction. Previously it responded 'Command X not found' without
+    //    calling inherited, so NO user function reached
+    //    execution through this driver.
     inherited DoCallFunction(ToolCall);
   end;
 end;
@@ -2471,7 +2471,7 @@ begin
 end;
 
 // --- VIDEO GENERATION (VEO) ---
-// Implementación basada en predictLongRunning y Polling
+// Implementation based on predictLongRunning and Polling
 function TAiGeminiChat.InternalRunImageVideoGeneration(ResMsg, AskMsg: TAiChatMessage): String;
 var
   LUrl, LModelName, LOpName, PollingUrl: string;
@@ -2493,36 +2493,36 @@ begin
   FLastContent := '';
   FLastPrompt := AskMsg.Prompt;
 
-  // 1. Preparar el Modelo y la URL
-  // Veo usa el endpoint 'predictLongRunning'
+  // 1. Prepare the Model and URL
+  // Veo uses the 'predictLongRunning' endpoint
   LModelName := TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model);
   LUrl := Format('%smodels/%s:predictLongRunning?key=%s', [Self.Url, LModelName, ApiKey]);
 
   LRequest := TJSONObject.Create;
   try
-    // 2. Construir "instances" (Prompt + Imagen opcional)
+    // 2. Build "instances" (Prompt + optional Image)
     LInstances := TJSonArray.Create;
     LRequest.AddPair('instances', LInstances);
 
     LInstance := TJSONObject.Create;
     LInstances.Add(LInstance);
 
-    // Prompt de texto
+    // Text prompt
     LInstance.AddPair('prompt', TJSONString.Create(AskMsg.Prompt));
 
-    // Input de Imagen (Image-to-Video)
+    // Image Input (Image-to-Video)
     // HasImageInput := False;
     MediaArr := AskMsg.MediaFiles.GetMediaList([Tfc_Image], False);
     if Length(MediaArr) > 0 then
     begin
       LImagePart := TJSONObject.Create;
 
-      // Preferir URI si ya está subido (File API), si no, usar Base64 (para imágenes pequeñas)
+      // Prefer URI if it is already uploaded (File API); otherwise, use Base64 (for small images)
       if (MediaArr[0].UrlMedia <> '') and (MediaArr[0].UrlMedia.StartsWith('https://')) then
       begin
-        // Veo acepta 'uri' o 'gcsUri'. Para File API usamos 'uri'
+        // Veo accepts 'uri' or 'gcsUri'. For File API we use 'uri'
         LImagePart.AddPair('uri', MediaArr[0].UrlMedia);
-        // Opcional: mimeType ayuda al modelo
+        // Optional: mimeType helps the model
         LImagePart.AddPair('mimeType', MediaArr[0].MimeType);
       end
       else if MediaArr[0].Base64 <> '' then
@@ -2540,14 +2540,14 @@ begin
         LImagePart.Free;
     end;
 
-    // 3. Construir "parameters" (Configuración de Veo)
+    // 3. Build "parameters" (Veo Configuration)
     LParams := TJSONObject.Create;
 
-    // Valores por defecto si no existen en VideoParams
+    // Default values if they do not exist in VideoParams
     if VideoParams.Params.IndexOfName('aspectRatio') = -1 then
-      LParams.AddPair('aspectRatio', '16:9'); // Default seguro
+      LParams.AddPair('aspectRatio', '16:9'); // Safe default
 
-    // Iterar parámetros definidos por el usuario en el componente
+    // Iterate parameters defined by the user in the component
     for I := 0 to VideoParams.Params.Count - 1 do
     begin
       LKey := VideoParams.Params.Names[I];
@@ -2558,12 +2558,12 @@ begin
       var
         LNumFloat: Extended;
 
-        // Lógica específica para strings de Veo que NO deben ser números
+        // Specific logic for Veo strings that must NOT be numbers
       if SameText(LKey, 'aspectRatio') or SameText(LKey, 'resolution') or SameText(LKey, 'personGeneration') then
       begin
         LParams.AddPair(LKey, TJSONString.Create(LValueStr));
       end
-      // Detección de tipos para el resto (seed, durationSeconds, etc)
+      // Type detection for the rest (seed, durationSeconds, etc)
       else if TryStrToInt(LValueStr, LNumInt) then
         LParams.AddPair(LKey, TJSONNumber.Create(LNumInt))
       else if TryStrToFloat(LValueStr, LNumFloat) then
@@ -2578,11 +2578,11 @@ begin
 
     LRequest.AddPair('parameters', LParams);
 
-    // 4. Enviar Petición Inicial
+    // 4. Send Initial Request
     FClient.ContentType := 'application/json';
     LBodyStream := TStringStream.Create(LRequest.ToJSON, TEncoding.UTF8);
     try
-      // Logging para debug
+      // Logging for debug
       LogDebug('Veo Request URL: ' + LUrl);
       LogDebug('Veo Request Body: ' + LRequest.ToJSON);
 
@@ -2601,7 +2601,7 @@ begin
       Exit;
     end;
 
-    // 5. Obtener Operation Name (ID de la tarea de larga duración)
+    // 5. Get Operation Name (long-running task ID)
     LInitialResponse := TJSONObject.ParseJSONValue(LResponse.ContentAsString) as TJSONObject;
     try
       if not LInitialResponse.TryGetValue<string>('name', LOpName) then
@@ -2614,10 +2614,10 @@ begin
       LInitialResponse.Free;
     end;
 
-    // La URL de polling es base + nombre de operación
+    // The polling URL is base + operation name
     PollingUrl := Url + LOpName + '?key=' + ApiKey;
 
-    // 6. Iniciar Tarea Asíncrona de Polling
+    // 6. Start Asynchronous Polling Task
     VideoTask := TTask.Run(
       procedure
       var
@@ -2635,21 +2635,21 @@ begin
 
         try
           try
-            // Bucle de espera
+            // Wait loop
             while not TaskIsDone do
             begin
-              // Esperar 5 segundos entre consultas (Veo tarda ~1-2 min)
+              // Wait 5 seconds between queries (Veo takes ~1-2 min)
               Sleep(5000);
 
-              // Notificar progreso a la UI
+              // Notify progress to the UI
               TThread.Queue(nil,
                 procedure
                 begin
                   if Assigned(FOnReceiveDataEvent) then
-                    FOnReceiveDataEvent(Self, ResMsg, nil, 'model', 'Generando video (Veo)... por favor espere.');
+                    FOnReceiveDataEvent(Self, ResMsg, nil, 'model', 'Generating video (Veo)... please wait.');
                 end);
 
-              // Consultar estado
+              // Query status
               TaskResp := TaskClient.Get(PollingUrl);
 
               if TaskResp.StatusCode <> 200 then
@@ -2664,21 +2664,21 @@ begin
 
               TaskPollingResponse := TJSONObject.ParseJSONValue(TaskResp.ContentAsString) as TJSONObject;
               try
-                // Verificar si terminó ("done": true)
+                // Check if it finished ("done": true)
                 if TaskPollingResponse.TryGetValue<Boolean>('done', TaskIsDone) and TaskIsDone then
                 begin
-                  // Clonar respuesta final porque TaskPollingResponse se liberará
+                  // Clone final response because TaskPollingResponse will be freed
                   TaskFinalResponse := TaskPollingResponse.Clone as TJSONObject;
                 end;
               finally
                 TaskPollingResponse.Free;
               end;
-            end; // Fin While
+            end; // End While
 
-            // Procesar Resultado Final
+            // Process Final Result
             if Assigned(TaskFinalResponse) then
             begin
-              // Verificar errores devueltos por la operación
+              // Check errors returned by the operation
               if TaskFinalResponse.TryGetValue<TJSONObject>('error', TaskErrorObj) then
               begin
                 var
@@ -2686,8 +2686,8 @@ begin
                 raise Exception.Create('Veo Operation Failed: ' + ErrMsg);
               end;
 
-              // Extraer URI del video
-              // Ruta JSON: response.generateVideoResponse.generatedSamples[0].video.uri
+              // Extract video URI
+              // JSON path: response.generateVideoResponse.generatedSamples[0].video.uri
               var
               LVideoResponse := TaskFinalResponse.GetValue<TJSONObject>('response.generateVideoResponse');
               if Assigned(LVideoResponse) then
@@ -2704,16 +2704,16 @@ begin
 
               if LVideoUri <> '' then
               begin
-                // DESCARGAR EL VIDEO
+                // DOWNLOAD THE VIDEO
                 LFileStream := TMemoryStream.Create;
                 try
-                  // --- CORRECCIÓN AQUÍ ---
-                  // 1. Preparamos los headers con la API Key
+                  // --- FIX HERE ---
+                  // 1. We prepare the headers with the API Key
                   var
                     DownloadHeaders: TNetHeaders;
                   DownloadHeaders := [TNetHeader.Create('x-goog-api-key', Self.ApiKey)];
 
-                  // 2. Pasamos los headers en el GET
+                  // 2. We pass the headers in the GET
                   TaskResp := TaskClient.Get(LVideoUri, nil, DownloadHeaders);
 
                   if TaskResp.StatusCode = 200 then
@@ -2721,7 +2721,7 @@ begin
                     LFileStream.CopyFrom(TaskResp.ContentStream, 0);
                     LFileStream.Position := 0;
 
-                    // Actualizar UI en hilo principal
+                    // Update UI on the main thread
                     TThread.Synchronize(nil,
                       procedure
                       var
@@ -2730,18 +2730,18 @@ begin
                         NewVideoFile := TAiMediaFile.Create;
                         NewVideoFile.UrlMedia := LVideoUri;
 
-                        // Asignar Stream y MimeType es importante para que el componente visual sepa qué es
+                        // Assigning Stream and MimeType is important so the visual component knows what it is
                         NewVideoFile.LoadFromStream('veo_generated.mp4', LFileStream);
                         // NewVideoFile.MimeType := 'video/mp4';
 
                         ResMsg.MediaFiles.Add(NewVideoFile);
 
-                        ResMsg.Prompt := 'Video generado exitosamente.';
+                        ResMsg.Prompt := 'Video generated successfully.';
                         FLastContent := ResMsg.Prompt;
                       end);
                   end
                   else
-                    // Ahora verás el mensaje de error real si falla de nuevo
+                    // Now you will see the real error message if it fails again
                     raise Exception.CreateFmt('Error downloading generated video: %d %s', [TaskResp.StatusCode, TaskResp.StatusText]);
                 finally
                   LFileStream.Free;
@@ -2768,7 +2768,7 @@ begin
 
           FBusy := False;
 
-          // Notificación final
+          // Final notification
           TThread.Queue(nil,
             procedure
             begin
@@ -2777,10 +2777,10 @@ begin
                 FOnReceiveDataEnd(Self, ResMsg, nil, 'model', FLastContent);
             end);
         end;
-      end); // Fin TTask
+      end); // End TTask
 
-    // No hacemos VideoTask.Wait para no bloquear la UI principal.
-    // El TTask se ejecutará en segundo plano y notificará vía eventos.
+    // We do not do VideoTask.Wait so as not to block the main UI.
+    // The TTask will run in the background and notify via events.
 
   finally
     LRequest.Free;
@@ -2809,11 +2809,11 @@ begin
   FLastError := '';
   FLastContent := '';
 
-  // 1. Obtener Modelo
+  // 1. Get Model
   LModelName := TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model);
   LUrl := Format('%smodels/%s:generateContent?key=%s', [Self.Url, LModelName, ApiKey]);
 
-  // 2. Construir Payload (siempre en el hilo principal: accede a propiedades del componente)
+  // 2. Build Payload (always on the main thread: accesses component properties)
   LRequestJson := TJSONObject.Create;
   try
     LContentsArray := TJSonArray.Create;
@@ -2833,7 +2833,7 @@ begin
       LGenConfigJson.AddPair('speechConfig', LSpeechConfigObj)
     else
     begin
-      // Voz por defecto 'Puck' si no hay configuración
+      // Default voice 'Puck' if there is no configuration
       var LDefaultVoice := TJSONObject.Create;
       var LPre := TJSONObject.Create;
       LPre.AddPair('voiceName', 'Puck');
@@ -2848,31 +2848,31 @@ begin
     LGenConfigJson.AddPair('responseModalities', JResponseModalities);
     LRequestJson.AddPair('generationConfig', LGenConfigJson);
 
-    // 3. Serializar a string (ambas ramas lo usan)
+    // 3. Serialize to string (both branches use it)
     LBodyStr := LRequestJson.ToJSON;
 
-    LogDebug('--- Voice Peticion ---');
+    LogDebug('--- Voice Request ---');
     LogDebug(LRequestJson.Format);
   finally
     LRequestJson.Free;
   end;
 
   // =========================================================================
-  // RAMA ASÍNCRONA: lanza TTask y retorna inmediatamente
+  // ASYNCHRONOUS BRANCH: launches TTask and returns immediately
   // =========================================================================
   if Self.Asynchronous then
   begin
-    // Crear un ResMsg propio y añadirlo a FMessages ANTES de lanzar la tarea.
-    // Esto es imprescindible porque Run() liberará el ResMsg que nos pasí
-    // (LOwnsResMsg=True) justo después de que retornemos. Si uséramos ese
-    // mismo puntero en el TTask, accederíamos a memoria liberada.
-    // FMessages toma ownership del LocalResMsg y lo mantiene vivo hasta que
-    // el TTask termine (o el componente se destruya).
+    // Create an own ResMsg and add it to FMessages BEFORE launching the task.
+    // This is essential because Run() will free the ResMsg passed to us
+    // (LOwnsResMsg=True) right after we return. If we used that
+    // same pointer in the TTask, we would access freed memory.
+    // FMessages takes ownership of LocalResMsg and keeps it alive until
+    // the TTask finishes (or the component is destroyed).
     var LocalResMsg := TAiChatMessage.Create('', 'model');
     LocalResMsg.Id := FMessages.Count + 1;
     FMessages.Add(LocalResMsg);
 
-    DoStateChange(acsToolExecuting, 'Generando audio (TTS)...');
+    DoStateChange(acsToolExecuting, 'Generating audio (TTS)...');
 
     TTask.Run(
       procedure
@@ -2893,7 +2893,7 @@ begin
         TaskResponseStream := TMemoryStream.Create;
         try
           try
-            // HTTP en hilo de trabajo — TNetHTTPClient propio (thread-safe)
+            // HTTP on worker thread — own TNetHTTPClient (thread-safe)
             TaskClient.ContentType := 'application/json';
             TaskBodyStream := TStringStream.Create(LBodyStr, TEncoding.UTF8);
             TaskResponse := TaskClient.Post(LUrl, TaskBodyStream, TaskResponseStream, []);
@@ -2917,7 +2917,7 @@ begin
 
                   if not TaskBase64.IsEmpty then
                   begin
-                    // Procesar PCM->WAV en el hilo de trabajo (costoso en CPU)
+                    // Process PCM->WAV on the worker thread (CPU expensive)
                     TaskAudio := TAiMediaFile.Create;
                     try
                       TaskAudio.LoadFromBase64('generated_audio.pcm', TaskBase64);
@@ -2932,10 +2932,10 @@ begin
                           TaskWav.Free;
                         end;
                       end;
-                      // Usar LocalResMsg (propio), no el ResMsg del caller
+                      // Use LocalResMsg (own), not the caller's ResMsg
                       LocalResMsg.MediaFiles.Add(TaskAudio);
 
-                      // Notificar éxito en el hilo principal
+                      // Notify success on the main thread
                       TThread.Queue(nil,
                         procedure
                         begin
@@ -2966,7 +2966,7 @@ begin
             end
             else
             begin
-              // Error HTTP
+              // HTTP error
               var LErrMsg := Format('Error Audio Generation: %d - %s',
                 [TaskResponse.StatusCode, TaskRespStr]);
               TThread.Queue(nil,
@@ -3001,7 +3001,7 @@ begin
   end;
 
   // =========================================================================
-  // RAMA SÍNCRONA: comportamiento original (bloquea hasta tener el audio)
+  // SYNCHRONOUS BRANCH: original behavior (blocks until audio is available)
   // =========================================================================
   LBodyStream := nil;
   LResponseStream := TMemoryStream.Create;
@@ -3009,7 +3009,7 @@ begin
     LBodyStream := TStringStream.Create(LBodyStr, TEncoding.UTF8);
     FClient.ContentType := 'application/json';
 
-    // Forzar modo séncrono en FClient y restaurar después
+    // Force synchronous mode in FClient and restore afterwards
     OldAsync := FClient.Asynchronous;
     FClient.Asynchronous := False;
     try
@@ -3021,7 +3021,7 @@ begin
     LogDebug('--- Voice Response ---');
     LogDebug(LResponse.ContentAsString);
 
-    // 4. Procesar Respuesta
+    // 4. Process Response
     LResponseStream.Position := 0;
     LResponseReader := TStreamReader.Create(LResponseStream, TEncoding.UTF8);
     try
@@ -3043,10 +3043,10 @@ begin
           begin
             LNewAudioFile := TAiMediaFile.Create;
             try
-              // Cargar PCM crudo (Base64)
+              // Load raw PCM (Base64)
               LNewAudioFile.LoadFromBase64('generated_audio.pcm', LBase64AudioData);
 
-              // Convertir a WAV (24kHz, Mono, 16bit — estándar Gemini TTS)
+              // Convert to WAV (24kHz, Mono, 16bit — Gemini TTS standard)
               WavStream := nil;
               if ConvertPCMStreamToWAVStream(LNewAudioFile.Content, WavStream, 24000, 1, 16) then
               begin
@@ -3092,12 +3092,12 @@ begin
 end;
 
 
-// [V3 UPDATE] Implementación de Image Generation específica para V3 (si es diferente)
-// Gemini 3 Pro Image usa generateContent con imageConfig, a diferencia de Veo.
-// Como el método InternalRunImageGeneration actualmente deriva a Completions,
-// debemos asegurarnos de que InitChatCompletions soporte imageConfig.
-// Por ahora, InternalRunCompletions cubre Gemini 3 Image si se pasan los params correctos en CustomParams si fuese necesario,
-// pero aquí añadimos soporte básico si el modelo es gemini-3-pro-image-preview.
+// [V3 UPDATE] Implementation of Image Generation specific to V3 (if different)
+// Gemini 3 Pro Image uses generateContent with imageConfig, unlike Veo.
+// Since the InternalRunImageGeneration method currently delegates to Completions,
+// we must ensure that InitChatCompletions supports imageConfig.
+// For now, InternalRunCompletions covers Gemini 3 Image if the correct params are passed in CustomParams if necessary,
+// but here we add basic support if the model is gemini-3-pro-image-preview.
 
 function TAiGeminiChat.InternalRunNativeImageGeneration(ResMsg, AskMsg: TAiChatMessage): String;
 var
@@ -3113,14 +3113,14 @@ var
 begin
   LModelName := TAiChatFactory.Instance.GetBaseModel(GetDriverName, Model);
 
-  // Gemini image models (gemini-*-image-*) usan generateContent → delegar
+  // Gemini image models (gemini-*-image-*) use generateContent → delegate
   if not LModelName.StartsWith('imagen-', True) then
   begin
     Result := InternalRunCompletions(ResMsg, AskMsg);
     Exit;
   end;
 
-  // --- Imagen via :predict endpoint ---
+  // --- Image via :predict endpoint ---
   Result := '';
   FBusy := True;
   FLastError := '';
@@ -3163,12 +3163,12 @@ begin
     if LSampleCount > 4 then LSampleCount := 4;
     LParams.AddPair('sampleCount', TJSONNumber.Create(LSampleCount));
 
-    // aspectRatio desde ImageParams o default
+    // aspectRatio from ImageParams or default
     LAspect := ImageParams.Params.Values['aspectRatio'];
     if LAspect = '' then LAspect := '1:1';
     LParams.AddPair('aspectRatio', LAspect);
 
-    // imageSize opcional (Standard/Ultra: '1K','2K')
+    // optional imageSize (Standard/Ultra: '1K','2K')
     LSize := ImageParams.Params.Values['imageSize'];
     if LSize <> '' then
       LParams.AddPair('imageSize', LSize);
@@ -3193,7 +3193,7 @@ begin
     begin
       LResponseJson := TJSonObject.ParseJSONValue(LResponseStream.DataString) as TJSonObject;
       if LResponseJson = nil then
-        raise Exception.Create('Error parseando respuesta de Imagen.');
+        raise Exception.Create('Error parsing Image response.');
 
       if LResponseJson.TryGetValue<TJSonArray>('predictions', LPredictions) and (LPredictions.Count > 0) then
       begin
@@ -3231,13 +3231,13 @@ begin
       end
       else
       begin
-        FLastError := LModelName + ': respuesta OK pero sin imágenes en predictions.';
+        FLastError := LModelName + ': OK response but no images in predictions.';
         DoError(FLastError, nil);
       end;
     end
     else
     begin
-      FLastError := Format('Error %d en Imagen: %s', [LResponse.StatusCode, LResponseStream.DataString]);
+      FLastError := Format('Error %d in Image: %s', [LResponse.StatusCode, LResponseStream.DataString]);
       DoError(FLastError, nil);
     end;
   finally
@@ -3275,7 +3275,7 @@ Var
   LPartSig: String;
   InString, Escape: Boolean; // Para el parser inteligente
 
-  // Variables para la lógica de finalización
+  // Variables for finalization logic
   ResMsg, AskMsg: TAiChatMessage;
   JArrParts: TJSonArray;
   Wrapper: TJSONObject;
@@ -3290,7 +3290,7 @@ Var
   LName, LArgsStr: String;
   LModelVersion: String;
 
-  // Crea e inicia la task de una tool capturando TC por VALOR (param), seguro en D10.4+.
+  // Creates and starts a tool task capturing TC by VALUE (param), safe in D10.4+.
   function _GemMakeToolTask(TC: TAiToolsFunction): ITask;
   begin
     Result := TTask.Create(
@@ -3318,8 +3318,8 @@ begin
     Exit;
 
   LogDebug('--OnInternalReceiveData--');
-  // ISSUE #124: el log no debe abortar el stream si el chunk termina en un
-  // caracter UTF-8 incompleto (ver lectura protegida mas abajo).
+  // ISSUE #124: logging must not abort the stream if the chunk ends in an
+  // incomplete UTF-8 character (see protected read below).
   try
     LogDebug(FResponse.DataString);
   except
@@ -3327,14 +3327,14 @@ begin
       LogDebug('[chunk UTF-8 parcial - log omitido]');
   end;
 
-  // 1. LECTURA DEL STREAM Y ACUMULACIÓN EN BUFFER
+  // 1. STREAM READING AND BUFFER ACCUMULATION
   if FResponse.Size > 0 then
   begin
     FResponse.Position := 0;
     SetLength(BytesBuffer, FResponse.Size);
     FResponse.ReadBuffer(BytesBuffer[0], FResponse.Size);
-    // ISSUE #124: si el chunk termina en un caracter UTF-8 incompleto, GetString
-    // lanza EEncodingError: se sale sin vaciar FResponse y el proximo chunk lo completa.
+    // ISSUE #124: if the chunk ends in an incomplete UTF-8 character, GetString
+    // throws EEncodingError: it exits without emptying FResponse and the next chunk completes it.
     try
       S := TEncoding.UTF8.GetString(BytesBuffer);
     except
@@ -3346,22 +3346,22 @@ begin
     FResponse.Position := 0;
   end;
 
-  // 2. BUCLE DE PROCESAMIENTO
-  // Procesamos mientras haya datos suficientes en el buffer
+  // 2. PROCESSING LOOP
+  // Process while there is sufficient data in the buffer
   while True do
   begin
-    // A. Limpieza de basura inicial (comas, corchetes, espacios de chunks anteriores)
-    while (FTmpResponseText <> '') and (FTmpResponseText[1] <= ' ') do // Espacios, saltos de linea
+    // A. Initial garbage cleanup (commas, brackets, spaces from previous chunks)
+    while (FTmpResponseText <> '') and (FTmpResponseText[1] <= ' ') do // Spaces, line breaks
       Delete(FTmpResponseText, 1, 1);
 
     while (FTmpResponseText <> '') and ((FTmpResponseText[1] = ',') or (FTmpResponseText[1] = '[')) do
       Delete(FTmpResponseText, 1, 1);
 
     if (FTmpResponseText = '') or (FTmpResponseText[1] <> '{') then
-      Break; // Esperar más datos o buffer vacío
+      Break; // Wait for more data or empty buffer
 
-    // B. Buscar el final del objeto JSON (Parser Inteligente)
-    // Debemos ignorar llaves {} que están dentro de cadenas (Quotes)
+    // B. Find the end of the JSON object (Smart Parser)
+    // We must ignore braces {} that are inside strings (Quotes)
     Level := 0;
     P_End := 0;
     InString := False;
@@ -3369,21 +3369,21 @@ begin
 
     for I := 1 to Length(FTmpResponseText) do
     begin
-      // Manejo de cadenas para no contar llaves falsas
+      // String handling to avoid counting false braces
       if (FTmpResponseText[I] = '"') and (not Escape) then
         InString := not InString;
 
       if InString then
       begin
-        // Detectar escape para la siguiente iteración (ej: \")
+        // Detect escape for the next iteration (e.g: \")
         if FTmpResponseText[I] = '\' then
-          Escape := not Escape // Toggle por si es doble barra \\
+          Escape := not Escape // Toggle in case it is a double backslash \\
         else
           Escape := False;
       end
       else
       begin
-        // Fuera de cadena, contamos llaves
+        // Outside strings, we count braces
         Escape := False; // Reset
         if FTmpResponseText[I] = '{' then
           Inc(Level)
@@ -3393,34 +3393,34 @@ begin
           if Level = 0 then
           begin
             P_End := I;
-            Break; // Encontramos el cierre del objeto principal
+            Break; // We found the close of the main object
           end;
         end;
       end;
     end;
 
-    // Si no encontramos el final (Level > 0 o P_End = 0), salimos y esperamos el siguiente chunk
+    // If we don't find the end (Level > 0 or P_End = 0), we exit and wait for the next chunk
     if P_End = 0 then
       Break;
 
-    // C. Extracción y Parseo Seguro
+    // C. Safe Extraction and Parsing
     JsonStr := Copy(FTmpResponseText, 1, P_End);
 
-    // Intentamos parsear. Si falla, podría ser un JSON malformado, pero asumimos que Gemini envía bien.
-    // Lo importante es NO borrar del buffer hasta confirmar que parseó bien.
+    // We attempt to parse. If it fails, it might be malformed JSON, but we assume Gemini sends valid data.
+    // The important thing is NOT to delete from the buffer until we confirm it parsed correctly.
     jObj := TJSONObject.ParseJSONValue(JsonStr) as TJSONObject;
 
     if not Assigned(jObj) then
     begin
-      // Raro: Estructura parecía bien balanceada pero falló el parseo.
-      // Opcion: Borrar este bloque corrupto para no bloquear, o esperar.
-      // En este caso, asumimos corrupción y avanzamos para no colgar el bucle.
-      DoError('JSON Parse Error en chunk asíncrono', nil);
+      // Strange: Structure seemed balanced but parsing failed.
+      // Option: Delete this corrupt block to avoid blocking, or wait.
+      // In this case, we assume corruption and advance to avoid hanging the loop.
+      DoError('JSON Parse Error in async chunk', nil);
       Delete(FTmpResponseText, 1, P_End);
       Continue;
     end;
 
-    // PARSEO EXITOSO: Ahora sé borramos del buffer
+    // SUCCESSFUL PARSING: Now we delete from the buffer
     Delete(FTmpResponseText, 1, P_End);
 
     try
@@ -3429,20 +3429,20 @@ begin
 
       IsStreamFinished := False;
 
-      // D. Procesar Candidatos
+      // D. Process Candidates
       if jObj.TryGetValue<TJSonArray>('candidates', LCandidates) and (LCandidates.Count > 0) then
       begin
         var
         LCandidate := LCandidates.Items[0] as TJSONObject;
 
-        // 1. Detección de Finalización (FinishReason)
+        // 1. Finish Detection (FinishReason)
         if LCandidate.TryGetValue<string>('finishReason', sFinishReason) then
         begin
           if (sFinishReason <> '') and (sFinishReason <> 'null') then
             IsStreamFinished := True;
         end;
 
-        // 2. Procesar Contenido
+        // 2. Process Content
         if LCandidate.TryGetValue<TJSONObject>('content', LContent) and LContent.TryGetValue<TJSonArray>('parts', LParts) then
         begin
           for var jValPart in LParts do
@@ -3450,16 +3450,16 @@ begin
             var
             LPartObj := jValPart as TJSONObject;
 
-            // [BUFFER] Guardar partes estructurales (Tools, Code, Signatures, Files)
+            // [BUFFER] Save structural parts (Tools, Code, Signatures, Files)
             if (LPartObj.GetValue('functionCall') <> nil) or (LPartObj.GetValue('executableCode') <> nil) or (LPartObj.GetValue('codeExecutionResult') <> nil) or (LPartObj.GetValue('inlineData') <> nil) or
               (LPartObj.GetValue('fileData') <> nil) or
               (LPartObj.TryGetValue<string>('thoughtSignature', LPartSig)) then
             begin
-              // Clonamos para asegurar persistencia
+              // We clone to ensure persistence
               FTmpToolCallBuffer.Add(FTmpToolCallBuffer.Count, LPartObj.Clone as TJSONObject);
             end;
 
-            // [TEXTO/THINKING]
+            // [TEXT/THINKING]
             IsThought := False;
             sThoughtContent := '';
 
@@ -3481,7 +3481,7 @@ begin
                 if Assigned(OnReceiveThinking) then
                   OnReceiveThinking(Self, nil, jObj, 'model', IfThen(sThoughtContent <> '', sThoughtContent, sText));
 
-                // Fix visual: si trae texto real mezclado con flag de thought (raro pero posible)
+                // Visual fix: if it contains real text mixed with thought flag (rare but possible)
                 if (not IsThought) and (sText <> '') then
                 begin
                   FLastContent := FLastContent + sText;
@@ -3491,7 +3491,7 @@ begin
               end
               else
               begin
-                // Texto normal al usuario
+                // Normal text to user
                 if sText <> '' then
                 begin
                   FLastContent := FLastContent + sText;
@@ -3508,7 +3508,7 @@ begin
         end;
       end;
 
-      // E. Actualizar Tokens
+      // E. Update Tokens
       if jObj.TryGetValue<TJSONObject>('usageMetadata', LUso) then
       begin
         var
@@ -3526,15 +3526,15 @@ begin
       end;
 
       // -----------------------------------------------------------------------
-      // 3. FINALIZACIÓN IN-PLACE
-      // Aquí ejecutamos lo que antes hacía InternalCompleteRequest
+      // 3. IN-PLACE FINALIZATION
+      // Here we execute what InternalCompleteRequest used to do
       // -----------------------------------------------------------------------
       if IsStreamFinished then
       begin
         FBusy := False;
         AskMsg := GetLastMessage;
 
-        // Crear mensaje de respuesta final
+        // Create final response message
         ResMsg := TAiChatMessage.Create(FLastContent, 'model');
         ResMsg.Prompt_tokens := Self.Prompt_tokens;
         ResMsg.Completion_tokens := Self.Completion_tokens;
@@ -3547,7 +3547,7 @@ begin
         HasTools := False;
         LFunciones := nil;
 
-        // --- RECONSTRUCCIÓN DEL HISTORIAL (GEMINI PARTS / FIRMAS) ---
+        // --- HISTORY RECONSTRUCTION (GEMINI PARTS / SIGNATURES) ---
         if FTmpToolCallBuffer.Count > 0 then
         begin
           JArrParts := TJSonArray.Create;
@@ -3560,11 +3560,11 @@ begin
           begin
             PartObj := FTmpToolCallBuffer[K];
 
-            // Recuperar Firmas (V3)
+            // Retrieve Signatures (V3)
             if PartObj.TryGetValue<string>('thoughtSignature', LSig) then
               AddThoughtSignature(ResMsg, LSig);
 
-            // Detectar Function Call
+            // Detect Function Call
             if PartObj.TryGetValue<TJSONObject>('functionCall', jFuncCall) then
             begin
               HasTools := True;
@@ -3584,7 +3584,7 @@ begin
               LFunciones.Add(LFunction.Id, LFunction);
             end;
 
-            // Recuperar Inline Data (Archivos Generados)
+            // Retrieve Inline Data (Generated Files)
             if PartObj.TryGetValue<TJSONObject>('inlineData', jInlineData) then
             begin
               jInlineData.TryGetValue<string>('mimeType', LMimeType);
@@ -3603,7 +3603,7 @@ begin
               end;
             end;
 
-            // Recuperar File Data (Archivos generados por code_interpreter, descargables via URL)
+            // Retrieve File Data (Files generated by code_interpreter, downloadable via URL)
             if PartObj.TryGetValue<TJSONObject>('fileData', jInlineData) then
             begin
               jInlineData.TryGetValue<string>('mimeType', LMimeType);
@@ -3624,7 +3624,7 @@ begin
             JArrParts.Add(PartObj.Clone as TJSONObject);
           end;
 
-          // Empaquetar historial gemini_parts
+          // Package gemini_parts history
           Wrapper := TJSONObject.Create;
           try
             Wrapper.AddPair('gemini_parts', JArrParts);
@@ -3636,7 +3636,7 @@ begin
           FTmpToolCallBuffer.Clear;
         end;
 
-        // --- BRANCH: HERRAMIENTAS VS TEXTO FINAL ---
+        // --- BRANCH: TOOLS VS FINAL TEXT ---
         if HasTools then
         begin
           ResMsg.Id := FMessages.Count + 1;
@@ -3645,16 +3645,16 @@ begin
           if Assigned(FOnAddMessage) then
             FOnAddMessage(Self, ResMsg, nil, ResMsg.Role, '');
 
-          // ISSUE #100: ejecutar las tools de forma SÍNCRONA aquí (como Cohere/Ollama/base
-          // con WaitForAll) en vez del TTask.Run asíncrono previo. Ese TTask desacoplaba la
-          // ejecución de tools del ciclo HTTP y, junto con el AAbort temprano, obligaba a un
-          // rendezvous frágil + reentraba Self.Run liberando el FCurrentPostStream en vuelo
-          // (AV). Al ejecutarlas síncronas, terminan ANTES del cierre de la petición, así que
-          // basta marcar FPendingToolRun: la continuación la lanza OnRequestCompletedEvent
-          // (base) cuando el stream ya se liberó de forma segura. La doc oficial confirma que
-          // el stream cierra solo tras finishReason=STOP (sin [DONE]).
-          // D11 compat: inline var no acepta tipos anonimos "array of T" (E2029 en 11.x);
-          // TArray<ITask> es tipo nombrado y compila desde D11 en adelante.
+          // ISSUE #100: execute the tools SYNCHRONOUSLY here (like Cohere/Ollama/base
+          // with WaitForAll) instead of the previous asynchronous TTask.Run. That TTask decoupled the
+          // tool execution from the HTTP cycle and, together with the early AAbort, forced a
+          // fragile rendezvous + reentered Self.Run freeing the FCurrentPostStream in flight
+          // (AV). By executing them synchronously, they finish BEFORE the request closes, so
+          // it is enough to set FPendingToolRun: the continuation is launched by OnRequestCompletedEvent
+          // (base) when the stream has already been released safely. The official doc confirms that
+          // the stream closes only after finishReason=STOP (without [DONE]).
+          // D11 compat: inline var does not accept anonymous types "array of T" (E2029 in 11.x);
+          // TArray<ITask> is a named type and compiles from D11 onward.
           var LLocalTasks: TArray<ITask>;
           SetLength(LLocalTasks, LFunciones.Count);
           var LTaskIdx := 0;
@@ -3663,7 +3663,7 @@ begin
             LFunction := LFunciones[LLocalKey];
             LFunction.ResMsg := ResMsg;
             LFunction.AskMsg := AskMsg;
-            LLocalTasks[LTaskIdx] := _GemMakeToolTask(LFunction); // captura por valor
+            LLocalTasks[LTaskIdx] := _GemMakeToolTask(LFunction); // capture by value
             Inc(LTaskIdx);
           end;
 
@@ -3692,12 +3692,12 @@ begin
 
           LFunciones.Free;
 
-          // Continuación diferida (segundo round) — la lanza OnRequestCompletedEvent base.
+          // Deferred continuation (second round) — launched by base OnRequestCompletedEvent.
           FPendingToolRun := True;
         end
         else
         begin
-          // Flujo Normal (Texto/JSON Final)
+          // Normal Flow (Final Text/JSON)
           if Assigned(LFunciones) then
             LFunciones.Free;
 
@@ -3712,13 +3712,13 @@ begin
             FOnReceiveDataEnd(Self, ResMsg, nil, 'model', FLastContent);
         end;
 
-        // FINALIZAR.
-        // ISSUE #100: si hay continuación tool-calling diferida (FPendingToolRun), NO
-        // abortamos: dejamos que el stream cierre de forma natural tras finishReason=STOP
-        // (confirmado en la doc oficial de Gemini), para que dispare un OnRequestCompletedEvent
-        // LIMPIO (no un OnRequestError por abort) — es ese evento el que lanza el siguiente
-        // round y libera el FCurrentPostStream de forma segura. En el caso final (sin tools)
-        // sí cortamos la conexión.
+        // FINALIZE.
+        // ISSUE #100: if there is a deferred tool-calling continuation (FPendingToolRun), we do NOT
+        // abort: we let the stream close naturally after finishReason=STOP
+        // (confirmed in the official Gemini doc), so that it fires an OnRequestCompletedEvent
+        // CLEAN (not an OnRequestError due to abort) — it is that event that launches the next
+        // round and releases the FCurrentPostStream safely. In the final case (without tools)
+        // we do cut the connection.
         if not FPendingToolRun then
           AAbort := True;
         jObj.Free;
@@ -3733,16 +3733,16 @@ end;
 
 procedure TAiGeminiChat.OnRequestCompletedEvent(const Sender: TObject; const aResponse: IHTTPResponse);
 begin
-  // Si el stream terminó HTTP-wise pero NO detectamos finishReason antes (FBusy sigue True),
-  // forzamos el cierre/finalización aquí.
+  // If the stream ended HTTP-wise but we did NOT detect finishReason before (FBusy still True),
+  // we force close/finalization here.
   if FBusy then
     InternalCompleteRequest;
 
-  // ISSUE #100: SIEMPRE delegar al base. Su OnRequestCompletedEvent libera el
-  // FCurrentPostStream de forma segura y, si quedó FPendingToolRun=True (continuación
-  // tool-calling diferida), lanza el siguiente round vía ForceQueue/Queue. Antes este
-  // método hacía 'if not FBusy then Exit' y se saltaba el inherited, dejando la
-  // continuación sin disparar.
+  // ISSUE #100: ALWAYS delegate to the base. Its OnRequestCompletedEvent releases the
+  // FCurrentPostStream safely and, if FPendingToolRun=True remained (continuation
+  // deferred tool-calling), launches the next round via ForceQueue/Queue. Previously this
+  // method did 'if not FBusy then Exit' and skipped inherited, leaving the
+  // continuation without triggering.
   inherited OnRequestCompletedEvent(Sender, aResponse);
 end;
 

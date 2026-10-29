@@ -58,9 +58,9 @@ type
                 AStatus: TChatMessageStatus = TChatMessageStatus.msComplete
               ): TAIChatMessage;
     procedure AppendToken(AIndex: Integer; const AToken: string);
-    // Reemplaza por completo el texto de un mensaje y re-mide (a diferencia de
-    // AppendToken que concatena). Util para placeholders de progreso que luego
-    // se sustituyen por el contenido final.
+    // Replaces the message text entirely and re-measures (unlike
+    // AppendToken which concatenates). Useful for progress placeholders that are later
+    // replaced by the final content.
     procedure SetText(AIndex: Integer; const AText: string);
     procedure FinishMessage(AIndex: Integer);
     procedure DeleteMessage(AIndex: Integer);
@@ -111,8 +111,8 @@ type
                                               write FOnLayoutChanged;
     property PersistAttachments : Boolean      read FPersistAttachments
                                               write FPersistAttachments;
-    // Callback que provee los bytes de una imagen/archivo markdown (bkMedia).
-    // Se propaga a todos los renderers (presentes y futuros).
+    // Callback that provides bytes for a markdown image/file (bkMedia).
+    // Propagated to all renderers (present and future).
     property OnLoadMedia        : TAITextMDLoadMediaEvent read FOnLoadMedia
                                               write SetOnLoadMedia;
   end;
@@ -588,7 +588,7 @@ var
   Rdr: TAITextMDRenderer;
 begin
   FOnLoadMedia := AValue;
-  // Propagar a los renderers ya creados (mensajes previos al wireup)
+  // Propagate to already created renderers (messages prior to wireup)
   for Rdr in FRenderers.Values do
     Rdr.OnLoadMedia := AValue;
 end;

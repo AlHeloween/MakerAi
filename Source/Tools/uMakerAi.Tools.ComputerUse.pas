@@ -8,7 +8,7 @@ uses
   uMakerAi.Core, uMakerAi.Tools.Functions, uMakerAi.Chat.Messages;
 
 type
-  // Tipos de acciones soportadas por Gemini 2.5
+  // Action types supported by Gemini 2.5
   TAiComputerActionType = (catUnknown, catClick, // click_at, left_click
     catRightClick,    // right_click
     catMiddleClick,   // middle_click
@@ -16,51 +16,51 @@ type
     catTripleClick,   // triple_click (Claude computer_2025xxxx)
     catType,          // type_text_at
     catKeyCombination, // key_combination
-    catHoldKey,       // hold_key (mantener tecla N segundos)
+    catHoldKey,       // hold_key (hold key for N seconds)
     catScroll,        // scroll_at, scroll_document
     catDrag,          // drag_and_drop
     catHover,         // hover_at
-    catCursorPosition, // cursor_position (consultar posición actual)
-    catZoom,          // zoom (ampliar región del screenshot, computer_20251124)
+    catCursorPosition, // cursor_position (query current position)
+    catZoom,          // zoom (zoom in on a region of the screenshot, computer_20251124)
     catNavigate,      // navigate, search, open_web_browser
-    catScreenshot,    // screenshot (solicitud explícita del modelo)
+    catScreenshot,    // screenshot (explicit request from the model)
     catWait,          // wait_5_seconds
-    catTerminate,     // Para detener el bucle
+    catTerminate,     // To stop the loop
     catGoBack, catGoForward); // go_back, go_forward
 
-  // Estructura con los datos ya procesados (Coordenadas reales, no normalizadas)
+  // Structure with the already processed data (real coordinates, not normalized)
   TAiActionData = record
     ActionType: TAiComputerActionType;
     FunctionName: string;
 
-    // Coordenadas calculadas a píxeles reales de pantalla
+    // Coordinates calculated to real screen pixels
     X, Y: Integer;
-    DestX, DestY: Integer; // Para Drag & Drop
+    DestX, DestY: Integer; // For Drag & Drop
 
-    // Datos de texto y teclado
+    // Text and keyboard data
     TextToType: string;
-    KeyCombo: string; // Ej: 'Control+S' (key_combination / hold_key)
-    PressEnter: Boolean; // Para type_text_at
-    ClearBeforeTyping: Boolean; // Para type_text_at (default true)
-    Modifiers: string; // Teclas modificadoras en click/scroll: 'shift', 'ctrl+alt'...
-    HoldDuration: Double; // Segundos a mantener la tecla en hold_key (default 1.0)
+    KeyCombo: string; // Ex: 'Control+S' (key_combination / hold_key)
+    PressEnter: Boolean; // For type_text_at
+    ClearBeforeTyping: Boolean; // For type_text_at (default true)
+    Modifiers: string; // Modifier keys on click/scroll: 'shift', 'ctrl+alt'...
+    HoldDuration: Double; // Seconds to hold the key in hold_key (default 1.0)
 
-    // Datos de Scroll
+    // Scroll data
     ScrollDirection: string; // 'up', 'down', 'left', 'right'
-    ScrollAmount: Integer; // Default 800 (según docs)
+    ScrollAmount: Integer; // Default 800 (according to docs)
 
-    // Región a ampliar en zoom (píxeles reales de pantalla)
+    // Region to zoom in on (real screen pixels)
     ZoomRect: TRect;
 
-    // Datos de navegación
+    // Navigation data
     Url: string;
   end;
 
-  // Resultado devuelto por tu aplicación
+  // Result returned by your application
   TAiActionResult = record
     Success: Boolean;
     ErrorMessage: string;
-    CustomOutput: string; // Opcional, para devolver info extra
+    CustomOutput: string; // Optional, to return extra info
   end;
 
   // Eventos
@@ -92,18 +92,18 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    // Método principal llamado desde TAiGeminiChat
-    // Retorna el JSON string para la respuesta y el MediaFile (Screenshot) por referencia
+    // Main method called from TAiGeminiChat
+    // Returns the JSON string for the response and the MediaFile (Screenshot) by reference
     function ProcessToolCall(ToolCall: TAiToolsFunction; out ResponseMedia: TAiMediaFile): string;
 
-    // Convierte un punto X,Y de Gemini (0-1000) a píxeles reales de pantalla
+    // Converts an X,Y point from Gemini (0-1000) to real screen pixels
     function GetRealPoint(GeminiX, GeminiY: Integer): TPoint;
 
-    // Convierte dos puntos (TopLeft, BottomRight) de Gemini a un TRect de pantalla
+    // Converts two points (TopLeft, BottomRight) from Gemini to a screen TRect
     function GetRealRect(GemX1, GemY1, GemX2, GemY2: Integer): TRect;
 
-    // Retorna un JSON array string (formato OpenAI) con las definiciones de todas las funciones
-    // de Computer Use. Útil para modelos sin soporte nativo: pasar el resultado a TAiFunctions.
+    // Returns a JSON array string (OpenAI format) with the definitions of all functions
+    // of Computer Use. Useful for models without native support: pass the result to TAiFunctions.
     function GetFunctionDefinitions: string;
 
     // Translates a native Claude Computer Use tool_call (action + coordinate[px], etc.)
@@ -116,23 +116,23 @@ type
     // locally with identical behavior.
     procedure TranslateClaudeToolCall(ToolCall: TAiToolsFunction);
 
-    // Idem para el tool nativo 'computer' de OpenAI (Responses API, gpt-6-astra).
-    // ToolCall.Name debe traer el tipo de accion ('click', 'type', 'scroll'...) y
-    // ToolCall.Arguments el objeto de esa accion. OJO: un computer_call de OpenAI
-    // trae un ARRAY 'actions'; el driver lo recorre y llama aqui una vez por accion.
+    // Same for the native 'computer' tool from OpenAI (Responses API, gpt-6-astra).
+    // ToolCall.Name must contain the action type ('click', 'type', 'scroll'...) and
+    // ToolCall.Arguments the object for that action. NOTE: an OpenAI computer_call
+    // brings an ARRAY 'actions'; the driver iterates it and calls here once per action.
     procedure TranslateOpenAIToolCall(ToolCall: TAiToolsFunction);
 
-    // Última acción procesada (se actualiza antes de disparar OnExecuteAction).
-    // Útil en OnRequestScreenshot para conocer el contexto, p.ej. CurrentAction.ZoomRect
-    // cuando CurrentAction.ActionType = catZoom.
+    // Last processed action (updated before triggering OnExecuteAction).
+    // Useful in OnRequestScreenshot to know the context, e.g. CurrentAction.ZoomRect
+    // when CurrentAction.ActionType = catZoom.
     property CurrentAction: TAiActionData read FCurrentAction;
 
   published
-    // Configuración de tu pantalla física
+    // Configuration of your physical screen
     property ScreenWidth: Integer read FScreenWidth write FScreenWidth default 1920;
     property ScreenHeight: Integer read FScreenHeight write FScreenHeight default 1080;
 
-    // URL simulada para devolver a la API (Requisito de Gemini)
+    // Simulated URL to return to the API (Gemini requirement)
     // Default: 'app://desktop'
     property CurrentUrl: string read FCurrentUrl write FCurrentUrl;
 
@@ -140,14 +140,14 @@ type
     property OnExecuteAction: TOnExecuteAction read FOnExecuteAction write FOnExecuteAction;
     property OnRequestScreenshot: TOnRequestScreenshot read FOnRequestScreenshot write FOnRequestScreenshot;
     property OnSafetyConfirmation: TOnSafetyConfirmation read FOnSafetyConfirmation write FOnSafetyConfirmation;
-    // Si AreaWidth es 0, se asumirá pantalla completa en tiempo de ejecución
+    // If AreaWidth is 0, full screen will be assumed at runtime
     property AreaLeft: Integer read FAreaLeft write FAreaLeft default 0;
     property AreaTop: Integer read FAreaTop write FAreaTop default 0;
     property AreaWidth: Integer read FAreaWidth write FAreaWidth default 1920;
     property AreaHeight: Integer read FAreaHeight write FAreaHeight default 1080;
 
-    // Habilita la acción 'zoom' de Claude (solo computer_20251124). Permite al
-    // modelo ampliar una región del screenshot para leer texto pequeño.
+    // Enables Claude's 'zoom' action (computer_20251124 only). Allows the
+    // model to zoom in on a region of the screenshot to read small text.
     property EnableZoom: Boolean read FEnableZoom write FEnableZoom default False;
   end;
 
@@ -173,13 +173,13 @@ end;
 
 function TAiComputerUseTool.DenormalizeCoordinate(Coord, MaxPixels, Offset: Integer): Integer;
 begin
-  // Gemini devuelve 0-999. Convertimos a píxeles reales.
+  // Gemini returns 0-999. We convert to real pixels.
   if Coord < 0 then
     Coord := 0;
   if Coord > 999 then
     Coord := 999;
 
-  // Fórmula: (Normalizado % * Tamaño Imagen) + Desplazamiento Monitor
+  // Formula: (Normalized % * Image Size) + Monitor Offset
   Result := Round((Coord / 1000) * MaxPixels) + Offset;
 end;
 
@@ -206,17 +206,17 @@ var
   Action, MappedName, SText, SDir: string;
   ScrW, ScrH, PxX, PxY, NormX, NormY, Amount: Integer;
   DDur: Double;
-  // PxX/PxY se reutilizan como esquina superior izquierda en el caso 'zoom'.
+  // PxX/PxY are reused as the top-left corner in the 'zoom' case.
 
-  // Claude manda los arrays UNAS VECES como array JSON y OTRAS como cadena
-  // con el JSON dentro, dentro del MISMO turno:
-  //     "coordinate": [299, 282]     <- las primeras llamadas
-  //     "coordinate": "[299, 400]"   <- a partir de cierto punto
-  // Verificado en runtime contra computer_toolset_20260801 (sep 2026). Con
-  // TryGetValue<TJSONArray> a secas la segunda forma no casa, la coordenada se
-  // pierde y la accion acaba en (0,0): un clic en la esquina de la pantalla.
-  // El modelo entonces se pierde y entra en un bucle de reintentos.
-  // Afecta a 'coordinate', 'start_coordinate' y 'region'.
+  // Claude sends the arrays SOMETIMES as a JSON array and OTHER times as a string
+  // with the JSON inside, within the SAME turn:
+  //     "coordinate": [299, 282]     <- the first calls
+  //     "coordinate": "[299, 400]"   <- from a certain point on
+  // Verified at runtime against computer_toolset_20260801 (Sep 2026). With
+  // TryGetValue<TJSONArray> alone, the second form does not match, the coordinate is
+  // lost and the action ends up at (0,0): a click in the corner of the screen.
+  // The model then gets lost and enters a retry loop.
+  // Affects 'coordinate', 'start_coordinate' and 'region'.
   function AsArray(AObj: TJSONObject; const AName: string;
     out AArr: TJSONArray; out AOwned: Boolean): Boolean;
   var
@@ -246,7 +246,7 @@ var
     end;
   end;
 
-  // Item entero de un array, tolerando que venga como numero o como cadena.
+  // Integer item from an array, tolerating whether it comes as a number or as a string.
   function ItemInt(AArr: TJSONArray; AIdx: Integer; out AValue: Integer): Boolean;
   var
     V: TJSONValue;
@@ -265,7 +265,7 @@ var
       Result := TryStrToInt(Trim(V.Value), AValue);
   end;
 
-  // Punto en pixeles -> normalizado 0-999. True si venia y era legible.
+  // Point in pixels -> normalized 0-999. True if it was present and readable.
   function TryGetPointNorm(AObj: TJSONObject; const AName: string;
     out ANormX, ANormY: Integer): Boolean;
   var
@@ -290,7 +290,7 @@ var
     end;
   end;
 
-  // Region de zoom: [x1,y1,x2,y2] en pixeles -> dos puntos normalizados.
+  // Zoom region: [x1,y1,x2,y2] in pixels -> two normalized points.
   function TryGetRectNorm(AObj: TJSONObject; const AName: string;
     out AX1, AY1, AX2, AY2: Integer): Boolean;
   var
@@ -323,10 +323,10 @@ begin
   if not Assigned(JArgs) then
     Exit;
   try
-    // computer_toolset_20260801 (ago 2026): el toolset sirve 17 herramientas con
-    // nombre propio (left_click, key, scroll, zoom, screenshot...), de modo que la
-    // accion llega en ToolCall.Name y ya no en un campo 'action'. Se mantiene la
-    // lectura de 'action' para historiales grabados con el formato anterior.
+    // computer_toolset_20260801 (Aug 2026): the toolset serves 17 tools with
+    // their own name (left_click, key, scroll, zoom, screenshot...), so the
+    // action arrives in ToolCall.Name and no longer in an 'action' field. The
+    // reading of 'action' is kept for histories recorded with the previous format.
     if not JArgs.TryGetValue<string>('action', Action) then
       Action := ToolCall.Name;
     if Action = '' then
@@ -390,8 +390,8 @@ begin
           JNew.AddPair('modifiers', SText);
       end;
 
-      // hold_key duration (segundos). Igual que las coordenadas, puede llegar
-      // como numero o como cadena ("duration": "1"), asi que se aceptan ambas.
+      // hold_key duration (seconds). Like the coordinates, it can arrive
+      // as a number or as a string ("duration": "1"), so both are accepted.
       if (Action = 'hold_key') then
       begin
         if not JArgs.TryGetValue<Double>('duration', DDur) then
@@ -434,12 +434,12 @@ begin
 end;
 
 procedure TAiComputerUseTool.TranslateOpenAIToolCall(ToolCall: TAiToolsFunction);
-// Convierte una accion del tool nativo 'computer' de OpenAI al formato canonico
-// que espera ParseAction/ProcessToolCall (x,y normalizados 0-999).
-// OpenAI manda: name='click', args={"button":"left","x":12,"y":528,"keys":[...]}
-// Las coordenadas vienen en PIXELES de la imagen enviada (igual que Claude), no
-// normalizadas: el tool 'computer' ya no declara display_width/height y el modelo
-// las deduce del propio screenshot.
+// Converts an action from OpenAI's native 'computer' tool to the canonical format
+// expected by ParseAction/ProcessToolCall (x,y normalized 0-999).
+// OpenAI sends: name='click', args={"button":"left","x":12,"y":528,"keys":[...]}
+// The coordinates come in PIXELS of the sent image (same as Claude), not
+// normalized: the 'computer' tool no longer declares display_width/height and the model
+// deduces them from the screenshot itself.
 var
   JArgs, JNew, JPt: TJSONObject;
   JKeys, JPath: TJSONArray;
@@ -479,8 +479,8 @@ begin
     if ScrH <= 0 then
       ScrH := 1080;
 
-    // Mapeo de nombres OpenAI -> canonico. 'click' depende del boton: los botones
-    // laterales back/forward del raton son navegacion, no un click posicional.
+    // OpenAI name mapping -> canonical. 'click' depends on the button: the
+    // back/forward side mouse buttons are navigation, not a positional click.
     SBtn := '';
     JArgs.TryGetValue<string>('button', SBtn);
     SBtn := LowerCase(SBtn);
@@ -511,12 +511,12 @@ begin
 
     JNew := TJSONObject.Create;
     try
-      // Coordenadas simples (click, double_click, move, scroll)
+      // Simple coordinates (click, double_click, move, scroll)
       if JArgs.GetValue('x') <> nil then
         AddXY(JNew, 'x', 'y', JArgs.GetValue<Integer>('x'), JArgs.GetValue<Integer>('y'));
 
-      // drag: path = [{x,y}, ...]. El canonico solo tiene origen y destino, asi que
-      // se toman el primer y el ultimo punto; los intermedios se pierden.
+      // drag: path = [{x,y}, ...]. The canonical format only has origin and destination, so
+      // the first and last points are taken; the intermediate ones are lost.
       if (Action = 'drag') and JArgs.TryGetValue<TJSONArray>('path', JPath) and (JPath.Count > 0) then
       begin
         JPt := JPath.Items[0] as TJSONObject;
@@ -525,16 +525,16 @@ begin
         AddXY(JNew, 'destination_x', 'destination_y', JPt.GetValue<Integer>('x'), JPt.GetValue<Integer>('y'));
       end;
 
-      // type: escribe en el control con foco, sin Enter implicito ni coordenadas
-      // (mismo criterio que Claude; ParseAction pone press_enter=True por defecto).
+      // type: writes into the focused control, with no implicit Enter and no coordinates
+      // (same criterion as Claude; ParseAction sets press_enter=True by default).
       if (Action = 'type') and JArgs.TryGetValue<string>('text', SText) then
       begin
         JNew.AddPair('text', SText);
         JNew.AddPair('press_enter', TJSONBool.Create(False));
       end;
 
-      // keypress: keys es un array (["WIN","r"]) -> combo 'WIN+r'.
-      // En click, ese mismo array son los modificadores mantenidos.
+      // keypress: keys is an array (["WIN","r"]) -> combo 'WIN+r'.
+      // On click, that same array is the held modifiers.
       if JArgs.TryGetValue<TJSONArray>('keys', JKeys) and (JKeys.Count > 0) then
       begin
         SText := '';
@@ -550,8 +550,8 @@ begin
           JNew.AddPair('modifiers', SText);
       end;
 
-      // scroll: OpenAI da desplazamiento en pixeles por eje (scroll_x/scroll_y),
-      // el canonico quiere direccion + magnitud. Se toma el eje dominante.
+      // scroll: OpenAI gives displacement in pixels per axis (scroll_x/scroll_y),
+      // the canonical format wants direction + magnitude. The dominant axis is taken.
       if Action = 'scroll' then
       begin
         ScrollX := 0;
@@ -575,7 +575,7 @@ begin
             SDir := 'right';
         end;
         if Mag = 0 then
-          Mag := 800; // sin desplazamiento util: se usa el default de pagina
+          Mag := 800; // no useful displacement: the page default is used
         JNew.AddPair('direction', SDir);
         JNew.AddPair('magnitude', TJSONNumber.Create(Mag));
       end;
@@ -594,7 +594,7 @@ var
   JArgs, JSafety: TJSONObject;
   NormX, NormY: Integer;
 begin
-  // Inicializar record
+  // Initialize record
   Result.ActionType := catUnknown;
   Result.FunctionName := ToolCall.Name;
   Result.X := 0;
@@ -613,13 +613,13 @@ begin
   Result.Url := '';
   SafetyReason := '';
 
-  // Parsear Argumentos JSON
+  // Parse JSON Arguments
   JArgs := TJSONObject.ParseJSONValue(ToolCall.Arguments) as TJSONObject;
   try
     if not Assigned(JArgs) then
       Exit;
 
-    // 1. Detección de Safety Decision (Human-in-the-loop)
+    // 1. Safety Decision detection (Human-in-the-loop)
     // "safety_decision": { "decision": "require_confirmation", "explanation": "..." }
     if JArgs.TryGetValue<TJSONObject>('safety_decision', JSafety) then
     begin
@@ -631,7 +631,7 @@ begin
       end;
     end;
 
-    // 2. Mapeo de Función a Tipo de Acción
+    // 2. Mapping Function to Action Type
     var
     FName := LowerCase(Trim(ToolCall.Name));
 
@@ -672,27 +672,27 @@ begin
     else if (FName = 'go_forward') then
       Result.ActionType := catGoForward;
 
-    // 3. Extracción y Normalización de Parámetros
+    // 3. Extraction and Normalization of Parameters
 
-    // Coordenadas X, Y
+    // Coordinates X, Y
     if JArgs.TryGetValue<Integer>('x', NormX) then
       Result.X := DenormalizeCoordinate(NormX, FAreaWidth, FAreaLeft);
 
     if JArgs.TryGetValue<Integer>('y', NormY) then
       Result.Y := DenormalizeCoordinate(NormY, FAreaHeight, FAreaTop);
 
-    // Coordenadas Destino (Drag)
+    // Destination Coordinates (Drag)
     if JArgs.TryGetValue<Integer>('destination_x', NormX) then
       Result.DestX := DenormalizeCoordinate(NormX, FAreaWidth, FAreaLeft);
 
     if JArgs.TryGetValue<Integer>('destination_y', NormY) then
       Result.DestY := DenormalizeCoordinate(NormY, FAreaHeight, FAreaTop);
 
-    // Texto y Teclado
+    // Text and Keyboard
     JArgs.TryGetValue<string>('text', Result.TextToType);
     JArgs.TryGetValue<string>('keys', Result.KeyCombo);
 
-    // Flags booleanos (type_text_at)
+    // Boolean flags (type_text_at)
     if JArgs.GetValue('press_enter') is TJSONBool then
       Result.PressEnter := JArgs.GetValue<Boolean>('press_enter')
     else
@@ -708,18 +708,18 @@ begin
     if not JArgs.TryGetValue<Integer>('magnitude', Result.ScrollAmount) then
       Result.ScrollAmount := 800;
 
-    // Navegación
+    // Navigation
     JArgs.TryGetValue<string>('url', Result.Url);
 
-    // Modificadores en click/scroll (Claude los envía en 'text'; aquí ya normalizados a 'modifiers')
+    // Modifiers on click/scroll (Claude sends them in 'text'; here already normalized to 'modifiers')
     JArgs.TryGetValue<string>('modifiers', Result.Modifiers);
 
-    // Duración de hold_key (segundos). Default 1.0 si no se especifica.
+    // hold_key duration (seconds). Default 1.0 if not specified.
     if not JArgs.TryGetValue<Double>('duration', Result.HoldDuration) then
       Result.HoldDuration := 1.0;
 
-    // Región de zoom: se construye a partir de (x,y) y (destination_x, destination_y)
-    // ya denormalizados a píxeles reales.
+    // Zoom region: built from (x,y) and (destination_x, destination_y)
+    // already denormalized to real pixels.
     if Result.ActionType = catZoom then
       Result.ZoomRect := TRect.Create(Result.X, Result.Y, Result.DestX, Result.DestY);
 
@@ -741,18 +741,18 @@ begin
   ActionResult.ErrorMessage := 'Unknown error';
   ActionResult.CustomOutput := '';
 
-  // 1. Parsear datos y detectar seguridad
+  // 1. Parse data and detect safety
   ActionData := ParseAction(ToolCall, SafetyReason);
-  FCurrentAction := ActionData; // Expuesto vía CurrentAction (p.ej. ZoomRect en OnRequestScreenshot)
+  FCurrentAction := ActionData; // Exposed via CurrentAction (e.g. ZoomRect in OnRequestScreenshot)
 
-  // 2. Verificación de Seguridad (Human-in-the-loop)
+  // 2. Safety Verification (Human-in-the-loop)
   if SafetyReason <> '' then
   begin
     UserAllowed := False;
     if Assigned(FOnSafetyConfirmation) then
       FOnSafetyConfirmation(Self, SafetyReason, UserAllowed)
     else
-      UserAllowed := False; // Por seguridad, si no hay evento, denegar.
+      UserAllowed := False; // For safety, if there is no event, deny.
 
     if not UserAllowed then
     begin
@@ -769,7 +769,7 @@ begin
     end;
   end;
 
-  // 3. Ejecutar Acción (Eventos Externos)
+  // 3. Execute Action (External Events)
   if Assigned(FOnExecuteAction) then
   begin
     try
@@ -788,11 +788,11 @@ begin
     ActionResult.ErrorMessage := 'OnExecuteAction event not assigned.';
   end;
 
-  // Esperar a que la UI reaccione antes de tomar screenshot (500-1000ms)
+  // Wait for the UI to react before taking screenshot (500-1000ms)
   if ActionResult.Success then
     Sleep(1000);
 
-  // 4. Capturar Nuevo Estado (Si fue exitoso)
+  // 4. Capture New State (If successful)
   if ActionResult.Success then
   begin
     if Assigned(FOnRequestScreenshot) then
@@ -802,7 +802,7 @@ begin
       FCurrentUrl := ActionData.Url;
   end;
 
-  // 5. Construir JSON de Respuesta
+  // 5. Build Response JSON
   JResponse := TJSONObject.Create;
   try
     if ActionResult.Success then
@@ -849,8 +849,8 @@ function TAiComputerUseTool.GetFunctionDefinitions: string;
   var JP: TJSONObject;
   begin
     Result := TJSONObject.Create;
-    JP := TJSONObject.Create; JP.AddPair('type','integer'); JP.AddPair('description','Coordenada X normalizada 0-999 (horizontal)'); Result.AddPair('x', JP);
-    JP := TJSONObject.Create; JP.AddPair('type','integer'); JP.AddPair('description','Coordenada Y normalizada 0-999 (vertical)');   Result.AddPair('y', JP);
+    JP := TJSONObject.Create; JP.AddPair('type','integer'); JP.AddPair('description','Normalized X coordinate 0-999 (horizontal)'); Result.AddPair('x', JP);
+    JP := TJSONObject.Create; JP.AddPair('type','integer'); JP.AddPair('description','Normalized Y coordinate 0-999 (vertical)');   Result.AddPair('y', JP);
   end;
 
   function ReqXY: TJSONArray;
@@ -867,98 +867,98 @@ var
 begin
   JArray := TJSONArray.Create;
   try
-    // click_at (con modificadores opcionales: shift, ctrl, alt, super)
+    // click_at (with optional modifiers: shift, ctrl, alt, super)
     JProps := CoordProps;
-    JP := TJSONObject.Create; JP.AddPair('type','string'); JP.AddPair('description','Teclas modificadoras opcionales mientras se hace click: shift, ctrl, alt, super (combinables con +)'); JProps.AddPair('modifiers', JP);
-    JArray.AddElement(MakeFn('click_at', 'Click izquierdo en las coordenadas dadas.', JProps, ReqXY));
+    JP := TJSONObject.Create; JP.AddPair('type','string'); JP.AddPair('description','Optional modifier keys while clicking: shift, ctrl, alt, super (combinable with +)'); JProps.AddPair('modifiers', JP);
+    JArray.AddElement(MakeFn('click_at', 'Left click at the given coordinates.', JProps, ReqXY));
 
     // right_click
-    JArray.AddElement(MakeFn('right_click', 'Click derecho en las coordenadas dadas.', CoordProps, ReqXY));
+    JArray.AddElement(MakeFn('right_click', 'Right click at the given coordinates.', CoordProps, ReqXY));
 
     // middle_click
-    JArray.AddElement(MakeFn('middle_click', 'Click con botón central en las coordenadas dadas.', CoordProps, ReqXY));
+    JArray.AddElement(MakeFn('middle_click', 'Middle click at the given coordinates.', CoordProps, ReqXY));
 
     // double_click
-    JArray.AddElement(MakeFn('double_click', 'Doble click en las coordenadas dadas.', CoordProps, ReqXY));
+    JArray.AddElement(MakeFn('double_click', 'Double click at the given coordinates.', CoordProps, ReqXY));
 
     // triple_click
-    JArray.AddElement(MakeFn('triple_click', 'Triple click en las coordenadas dadas.', CoordProps, ReqXY));
+    JArray.AddElement(MakeFn('triple_click', 'Triple click at the given coordinates.', CoordProps, ReqXY));
 
     // drag_and_drop
     JProps := CoordProps;
-    JP := TJSONObject.Create; JP.AddPair('type','integer'); JP.AddPair('description','X destino del arrastre (normalizado 0-999)'); JProps.AddPair('destination_x', JP);
-    JP := TJSONObject.Create; JP.AddPair('type','integer'); JP.AddPair('description','Y destino del arrastre (normalizado 0-999)'); JProps.AddPair('destination_y', JP);
+    JP := TJSONObject.Create; JP.AddPair('type','integer'); JP.AddPair('description','Drag destination X (normalized 0-999)'); JProps.AddPair('destination_x', JP);
+    JP := TJSONObject.Create; JP.AddPair('type','integer'); JP.AddPair('description','Drag destination Y (normalized 0-999)'); JProps.AddPair('destination_y', JP);
     JReq := ReqXY; JReq.Add('destination_x'); JReq.Add('destination_y');
-    JArray.AddElement(MakeFn('drag_and_drop', 'Arrastra desde (x,y) hasta (destination_x, destination_y).', JProps, JReq));
+    JArray.AddElement(MakeFn('drag_and_drop', 'Drags from (x,y) to (destination_x, destination_y).', JProps, JReq));
 
     // hover_at
-    JArray.AddElement(MakeFn('hover_at', 'Mueve el cursor a las coordenadas sin hacer click.', CoordProps, ReqXY));
+    JArray.AddElement(MakeFn('hover_at', 'Moves the cursor to the coordinates without clicking.', CoordProps, ReqXY));
 
     // type_text_at
     JProps := CoordProps;
-    JP := TJSONObject.Create; JP.AddPair('type','string'); JP.AddPair('description','Texto a escribir'); JProps.AddPair('text', JP);
-    JP := TJSONObject.Create; JP.AddPair('type','boolean'); JP.AddPair('description','Presionar Enter al final (default true)'); JProps.AddPair('press_enter', JP);
+    JP := TJSONObject.Create; JP.AddPair('type','string'); JP.AddPair('description','Text to type'); JProps.AddPair('text', JP);
+    JP := TJSONObject.Create; JP.AddPair('type','boolean'); JP.AddPair('description','Press Enter at the end (default true)'); JProps.AddPair('press_enter', JP);
     JReq := ReqXY; JReq.Add('text');
-    JArray.AddElement(MakeFn('type_text_at', 'Hace click en (x,y) y escribe el texto indicado.', JProps, JReq));
+    JArray.AddElement(MakeFn('type_text_at', 'Clicks at (x,y) and types the indicated text.', JProps, JReq));
 
     // key_combination
     JProps := TJSONObject.Create;
-    JP := TJSONObject.Create; JP.AddPair('type','string'); JP.AddPair('description','Combinación de teclas, ej: "Control+S", "Alt+F4"'); JProps.AddPair('keys', JP);
+    JP := TJSONObject.Create; JP.AddPair('type','string'); JP.AddPair('description','Key combination, e.g. "Control+S", "Alt+F4"'); JProps.AddPair('keys', JP);
     JReq := TJSONArray.Create; JReq.Add('keys');
-    JArray.AddElement(MakeFn('key_combination', 'Ejecuta una combinación de teclas del sistema.', JProps, JReq));
+    JArray.AddElement(MakeFn('key_combination', 'Executes a system key combination.', JProps, JReq));
 
     // hold_key
     JProps := TJSONObject.Create;
-    JP := TJSONObject.Create; JP.AddPair('type','string'); JP.AddPair('description','Tecla(s) a mantener presionada(s), ej: "shift", "ctrl+alt"'); JProps.AddPair('keys', JP);
-    JP := TJSONObject.Create; JP.AddPair('type','number'); JP.AddPair('description','Duración en segundos (default 1.0)'); JProps.AddPair('duration', JP);
+    JP := TJSONObject.Create; JP.AddPair('type','string'); JP.AddPair('description','Key(s) to hold down, e.g. "shift", "ctrl+alt"'); JProps.AddPair('keys', JP);
+    JP := TJSONObject.Create; JP.AddPair('type','number'); JP.AddPair('description','Duration in seconds (default 1.0)'); JProps.AddPair('duration', JP);
     JReq := TJSONArray.Create; JReq.Add('keys');
-    JArray.AddElement(MakeFn('hold_key', 'Mantiene una tecla presionada durante los segundos indicados.', JProps, JReq));
+    JArray.AddElement(MakeFn('hold_key', 'Holds a key down for the indicated seconds.', JProps, JReq));
 
-    // scroll_at (con modificadores opcionales)
+    // scroll_at (with optional modifiers)
     JProps := CoordProps;
-    JP := TJSONObject.Create; JP.AddPair('type','string'); JP.AddPair('description','Dirección: up, down, left, right'); JProps.AddPair('direction', JP);
-    JP := TJSONObject.Create; JP.AddPair('type','integer'); JP.AddPair('description','Cantidad de scroll en píxeles (default 800)'); JProps.AddPair('magnitude', JP);
-    JP := TJSONObject.Create; JP.AddPair('type','string'); JP.AddPair('description','Teclas modificadoras opcionales durante el scroll: shift, ctrl, alt, super'); JProps.AddPair('modifiers', JP);
+    JP := TJSONObject.Create; JP.AddPair('type','string'); JP.AddPair('description','Direction: up, down, left, right'); JProps.AddPair('direction', JP);
+    JP := TJSONObject.Create; JP.AddPair('type','integer'); JP.AddPair('description','Scroll amount in pixels (default 800)'); JProps.AddPair('magnitude', JP);
+    JP := TJSONObject.Create; JP.AddPair('type','string'); JP.AddPair('description','Optional modifier keys during scroll: shift, ctrl, alt, super'); JProps.AddPair('modifiers', JP);
     JReq := ReqXY; JReq.Add('direction');
-    JArray.AddElement(MakeFn('scroll_at', 'Realiza scroll en la posición indicada.', JProps, JReq));
+    JArray.AddElement(MakeFn('scroll_at', 'Performs scroll at the indicated position.', JProps, JReq));
 
     // cursor_position
     JProps := TJSONObject.Create;
     JReq := TJSONArray.Create;
-    JArray.AddElement(MakeFn('cursor_position', 'Devuelve la posición actual del cursor (en data como {"x":..,"y":..}).', JProps, JReq));
+    JArray.AddElement(MakeFn('cursor_position', 'Returns the current cursor position (in data as {"x":..,"y":..}).', JProps, JReq));
 
-    // zoom (ampliar región: (x,y) esquina superior-izquierda, (destination_x,destination_y) inferior-derecha)
+    // zoom (zoom in on region: (x,y) top-left corner, (destination_x,destination_y) bottom-right)
     JProps := CoordProps;
-    JP := TJSONObject.Create; JP.AddPair('type','integer'); JP.AddPair('description','X esquina inferior-derecha de la región (normalizado 0-999)'); JProps.AddPair('destination_x', JP);
-    JP := TJSONObject.Create; JP.AddPair('type','integer'); JP.AddPair('description','Y esquina inferior-derecha de la región (normalizado 0-999)'); JProps.AddPair('destination_y', JP);
+    JP := TJSONObject.Create; JP.AddPair('type','integer'); JP.AddPair('description','X bottom-right corner of the region (normalized 0-999)'); JProps.AddPair('destination_x', JP);
+    JP := TJSONObject.Create; JP.AddPair('type','integer'); JP.AddPair('description','Y bottom-right corner of the region (normalized 0-999)'); JProps.AddPair('destination_y', JP);
     JReq := ReqXY; JReq.Add('destination_x'); JReq.Add('destination_y');
-    JArray.AddElement(MakeFn('zoom', 'Amplía una región de la pantalla para inspeccionarla en detalle.', JProps, JReq));
+    JArray.AddElement(MakeFn('zoom', 'Zooms in on a region of the screen to inspect it in detail.', JProps, JReq));
 
     // navigate
     JProps := TJSONObject.Create;
-    JP := TJSONObject.Create; JP.AddPair('type','string'); JP.AddPair('description','URL a la que navegar'); JProps.AddPair('url', JP);
+    JP := TJSONObject.Create; JP.AddPair('type','string'); JP.AddPair('description','URL to navigate to'); JProps.AddPair('url', JP);
     JReq := TJSONArray.Create; JReq.Add('url');
-    JArray.AddElement(MakeFn('navigate', 'Navega a la URL especificada.', JProps, JReq));
+    JArray.AddElement(MakeFn('navigate', 'Navigates to the specified URL.', JProps, JReq));
 
     // screenshot
     JProps := TJSONObject.Create;
     JReq := TJSONArray.Create;
-    JArray.AddElement(MakeFn('screenshot', 'Captura la pantalla actual y la retorna como imagen.', JProps, JReq));
+    JArray.AddElement(MakeFn('screenshot', 'Captures the current screen and returns it as an image.', JProps, JReq));
 
     // wait_5_seconds
     JProps := TJSONObject.Create;
     JReq := TJSONArray.Create;
-    JArray.AddElement(MakeFn('wait_5_seconds', 'Espera 5 segundos para que la UI reaccione.', JProps, JReq));
+    JArray.AddElement(MakeFn('wait_5_seconds', 'Waits 5 seconds for the UI to react.', JProps, JReq));
 
     // go_back
     JProps := TJSONObject.Create;
     JReq := TJSONArray.Create;
-    JArray.AddElement(MakeFn('go_back', 'Navega hacia atrás en el historial.', JProps, JReq));
+    JArray.AddElement(MakeFn('go_back', 'Navigates back in history.', JProps, JReq));
 
     // go_forward
     JProps := TJSONObject.Create;
     JReq := TJSONArray.Create;
-    JArray.AddElement(MakeFn('go_forward', 'Navega hacia adelante en el historial.', JProps, JReq));
+    JArray.AddElement(MakeFn('go_forward', 'Navigates forward in history.', JProps, JReq));
 
     Result := JArray.ToJSON;
   finally

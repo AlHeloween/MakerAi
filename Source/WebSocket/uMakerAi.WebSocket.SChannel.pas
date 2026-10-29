@@ -1,10 +1,10 @@
-﻿// MakerAI Suite — Transporte TLS Windows via SChannel (secur32.dll)
+﻿// MakerAI Suite — Windows TLS Transport via SChannel (secur32.dll)
 // TCP  : Winsock2 (ws2_32.dll) — socket/connect/send/recv/closesocket
 // TLS  : SChannel SSPI — AcquireCredentialsHandle / InitializeSecurityContext
 //                        EncryptMessage / DecryptMessage / QueryContextAttributes
-// NO usa WinHTTP. NO usa Indy. NO usa OpenSSL.
+// Does NOT use WinHTTP. Does NOT use Indy. Does NOT use OpenSSL.
 //
-// Autor: Gustavo Enriquez
+// Author: Gustavo Enriquez
 // Email: gustavoeenriquez@gmail.com
 
 unit uMakerAi.WebSocket.SChannel;
@@ -30,15 +30,15 @@ type
     end;
     FCredOK:    Boolean;
     FCtxOK:     Boolean;
-    // ---- Buffers de recepción ----
-    FRawBuf:    TBytes;   // bytes TCP cifrados recibidos pero no descifrados
+    // ---- Receive buffers ----
+    FRawBuf:    TBytes;   // encrypted TCP bytes received but not decrypted
     FRawBufLen: Integer;
-    FDecBuf:    TBytes;   // bytes descifrados pendientes de entregar
+    FDecBuf:    TBytes;   // decrypted bytes pending delivery
     FDecBufLen: Integer;
-    // ---- Estado ----
+    // ---- State ----
     FConnected: Boolean;
     FHost:      string;
-    // ---- Helpers internos ----
+    // ---- Internal helpers ----
     function  InitCredentials: Boolean;
     function  TcpConnect(const AHost: string; APort: Integer): Boolean;
     function  DoTlsHandshake: Boolean;
@@ -59,7 +59,7 @@ type
 implementation
 
 // ═══════════════════════════════════════════════════════════════════════
-// Declaraciones Winsock2 (ws2_32.dll) — patrón sin Winapi.Winsock2
+// Winsock2 declarations (ws2_32.dll) — pattern without Winapi.Winsock2
 // ═══════════════════════════════════════════════════════════════════════
 
 const
@@ -131,7 +131,7 @@ function WsSelect(nfds: Integer; rfds, wfds, efds: Pointer; tv: Pointer): Intege
   external 'ws2_32.dll' name 'select';
 
 // ═══════════════════════════════════════════════════════════════════════
-// Declaraciones SChannel / SSPI (secur32.dll)
+// SChannel / SSPI declarations (secur32.dll)
 // ═══════════════════════════════════════════════════════════════════════
 
 const
@@ -226,7 +226,7 @@ function ScFreeContextBuffer(pvContextBuffer: Pointer): Integer; stdcall;
   external 'secur32.dll' name 'FreeContextBuffer';
 
 // ═══════════════════════════════════════════════════════════════════════
-// TSChannelTransport — implementación
+// TSChannelTransport — implementation
 // ═══════════════════════════════════════════════════════════════════════
 
 constructor TSChannelTransport.Create;
@@ -300,7 +300,7 @@ begin
   end;
 end;
 
-// Envío TCP bloqueante de exactamente Len bytes
+// Blocking TCP send of exactly Len bytes
 function TSChannelTransport.SendRawAll(Buf: Pointer; Len: Integer): Boolean;
 var
   Sent, n: Integer;
@@ -319,7 +319,7 @@ begin
   Result := True;
 end;
 
-// Recepción TCP con timeout opcional (ms). Retorna: >0=bytes, 0=timeout, -1=error/cerrado
+// TCP receive with optional timeout (ms). Returns: >0=bytes, 0=timeout, -1=error/closed
 function TSChannelTransport.RecvRaw(Buf: Pointer; BufSize: Integer; TimeoutMs: Integer): Integer;
 var
   FdSet: TWsFdSet;
@@ -337,12 +337,12 @@ begin
     if n < 0 then begin Result := -1; Exit; end;
   end;
   Result := WsRecv(FSocket, Buf, BufSize, 0);
-  if Result = 0  then Result := -1; // conexión cerrada limpiamente
-  if Result < 0  then Result := -1; // error de socket
+  if Result = 0  then Result := -1; // connection closed cleanly
+  if Result < 0  then Result := -1; // socket error
 end;
 
 // -----------------------------------------------------------------------
-// SChannel — inicializar credenciales
+// SChannel — initialize credentials
 // -----------------------------------------------------------------------
 
 function TSChannelTransport.InitCredentials: Boolean;
@@ -365,7 +365,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------
-// Diagnóstico SChannel (solo con MAKERAI_SCHANNEL_DIAG; escribe a C:\Temp\schannel_diag.txt)
+// SChannel diagnostics (only with MAKERAI_SCHANNEL_DIAG; writes to C:\Temp\schannel_diag.txt)
 // -----------------------------------------------------------------------
 
 procedure ScDiag(const S: string);
@@ -381,7 +381,7 @@ end;
 {$ENDIF}
 
 // -----------------------------------------------------------------------
-// SChannel — handshake TLS
+// SChannel — TLS handshake
 // -----------------------------------------------------------------------
 
 function TSChannelTransport.DoTlsHandshake: Boolean;
@@ -405,12 +405,12 @@ begin
   InDataLen := 0;
   SetLength(ReadBuf, READ_CHUNK * 4);
 
-  // Descriptor de salida (SChannel aloca con ISC_REQ_ALLOCATE_MEMORY)
+  // Output descriptor (SChannel allocates with ISC_REQ_ALLOCATE_MEMORY)
   OutDesc.ulVersion := SECBUFFER_VERSION;
   OutDesc.cBuffers  := 1;
   OutDesc.pBuffers  := @OutBuf;
 
-  // Descriptor de entrada
+  // Input descriptor
   InDesc.ulVersion := SECBUFFER_VERSION;
   InDesc.cBuffers  := 2;
   InDesc.pBuffers  := @InBuf[0];
@@ -422,7 +422,7 @@ begin
 
     if FirstCall then
     begin
-      // Primera llamada: sin input → genera ClientHello
+      // First call: no input → generates ClientHello
       Status := ScInitializeSecurityContextW(
         PScHandle(@FhCred), nil, PWideChar(FHost),
         ISC_FLAGS, 0, 0, nil, 0,
@@ -445,7 +445,7 @@ begin
         nil, @OutDesc, @CtxAttr, nil);
     end;
 
-    // Enviar output al servidor si lo hay
+    // Send output to server if any
     if (OutBuf.pvBuffer <> nil) and (OutBuf.cbBuffer > 0) then
     begin
       if not SendRawAll(OutBuf.pvBuffer, OutBuf.cbBuffer) then
@@ -460,7 +460,7 @@ begin
 
       SEC_E_OK:
       begin
-        // Handshake completo — guardar bytes EXTRA (inicio de datos de aplicación)
+        // Handshake complete — save EXTRA bytes (start of application data)
         for j := 0 to 1 do
           if (not FirstCall) and (InBuf[j].BufferType = SECBUFFER_EXTRA) then
           begin
@@ -474,7 +474,7 @@ begin
             end;
             Break;
           end;
-        // Obtener tamaños de header/trailer para EncryptMessage
+        // Get header/trailer sizes for EncryptMessage
         ScQueryContextAttributesW(PScHandle(@FhCtx),
           SECPKG_ATTR_STREAM_SIZES, @FStreamSizes);
         Result := True;
@@ -483,7 +483,7 @@ begin
 
       SEC_I_CONTINUE_NEEDED:
       begin
-        // Gestionar EXTRA del input — bytes no consumidos por SChannel
+        // Handle input EXTRA — bytes not consumed by SChannel
         ExtraLen := 0;
         for j := 0 to 1 do
           if InBuf[j].BufferType = SECBUFFER_EXTRA then
@@ -499,7 +499,7 @@ begin
         else
           InDataLen := 0;
 
-        // Leer más datos del servidor
+        // Read more data from server
         if Length(ReadBuf) - InDataLen < READ_CHUNK then
           SetLength(ReadBuf, InDataLen + READ_CHUNK * 2);
         n := RecvRaw(@ReadBuf[InDataLen], Length(ReadBuf) - InDataLen, 15000);
@@ -513,7 +513,7 @@ begin
 
       SEC_E_INCOMPLETE_MESSAGE:
       begin
-        // Input incompleto — leer más TCP sin mover los bytes existentes
+        // Incomplete input — read more TCP without moving existing bytes
         if Length(ReadBuf) - InDataLen < READ_CHUNK then
           SetLength(ReadBuf, InDataLen + READ_CHUNK * 2);
         n := RecvRaw(@ReadBuf[InDataLen], Length(ReadBuf) - InDataLen, 15000);
@@ -527,14 +527,14 @@ begin
 
     else
       ScDiag('FAIL: ISC error 0x' + IntToHex(Cardinal(Status), 8));
-      Exit; // Error de handshake
+      Exit; // Handshake error
     end;
 
   until False;
 end;
 
 // -----------------------------------------------------------------------
-// EncryptMessage + send para un chunk (<= cbMaximumMessage)
+// EncryptMessage + send for a chunk (<= cbMaximumMessage)
 // -----------------------------------------------------------------------
 
 function TSChannelTransport.EncryptAndSendChunk(const Data: TBytes; Offset, Len: Integer): Boolean;
@@ -574,7 +574,7 @@ begin
   Status := ScEncryptMessage(PScHandle(@FhCtx), 0, @BufDesc, 0);
   if Status <> SEC_E_OK then Exit;
 
-  // Los cbBuffer pueden haber cambiado — enviar exactamente lo que SChannel cifró
+  // cbBuffer may have changed — send exactly what SChannel encrypted
   TotalSend := Integer(Buffers[0].cbBuffer) +
                Integer(Buffers[1].cbBuffer) +
                Integer(Buffers[2].cbBuffer);
@@ -582,7 +582,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------
-// ITlsTransport — implementación pública
+// ITlsTransport — public implementation
 // -----------------------------------------------------------------------
 
 function TSChannelTransport.Connect(const AHost: string; APort: Integer): Boolean;
@@ -645,8 +645,8 @@ begin
   end;
 end;
 
-// DecryptMessage sobre FRawBuf y retornar bytes descifrados
-// Returns: >0=bytes en ABuf, 0=timeout, -1=error/cerrado
+// DecryptMessage on FRawBuf and return decrypted bytes
+// Returns: >0=bytes in ABuf, 0=timeout, -1=error/closed
 function TSChannelTransport.RecvSome(var ABuf: TBytes; ATimeoutMs: Integer): Integer;
 var
   InBuf:    array[0..3] of TSecBuffer;
@@ -658,7 +658,7 @@ var
   ExtraPtr: Pointer;
   ExtraLen: Integer;
 begin
-  // Entregar datos ya descifrados si los hay
+  // Deliver already decrypted data if any
   if FDecBufLen > 0 then
   begin
     SetLength(ABuf, FDecBufLen);
@@ -670,7 +670,7 @@ begin
 
   while True do
   begin
-    // Intentar descifrar si tenemos datos suficientes (mínimo header TLS = 5 bytes)
+    // Try to decrypt if we have enough data (minimum TLS header = 5 bytes)
     if FRawBufLen >= 5 then
     begin
       InBuf[0].BufferType := SECBUFFER_DATA;
@@ -691,7 +691,7 @@ begin
       case Status of
         SEC_E_OK:
         begin
-          // Buscar SECBUFFER_DATA (plaintext) y SECBUFFER_EXTRA (siguiente record)
+          // Find SECBUFFER_DATA (plaintext) and SECBUFFER_EXTRA (next record)
           DataPtr  := nil; DataLen  := 0;
           ExtraPtr := nil; ExtraLen := 0;
           for j := 0 to 3 do
@@ -702,14 +702,14 @@ begin
             begin ExtraPtr := InBuf[j].pvBuffer; ExtraLen := InBuf[j].cbBuffer; end;
           end;
 
-          // Copiar plaintext al caller
+          // Copy plaintext to caller
           if DataLen > 0 then
           begin
             SetLength(ABuf, DataLen);
             Move(DataPtr^, ABuf[0], DataLen);
           end;
 
-          // Guardar bytes EXTRA (próximo record cifrado) en FRawBuf
+          // Save EXTRA bytes (next encrypted record) to FRawBuf
           if ExtraLen > 0 then
           begin
             if ExtraLen > Length(FRawBuf) then
@@ -725,20 +725,20 @@ begin
         end;
 
         SEC_E_INCOMPLETE_MESSAGE:
-          ; // Necesitamos más bytes TCP — caer al receive de abajo
+          ; // Need more TCP bytes — fall through to receive below
 
         SEC_I_CONTEXT_EXPIRED:
         begin Result := -1; Exit; end;
 
         SEC_I_RENEGOTIATE:
-        begin Result := -1; Exit; end; // Fase 2: implementar re-handshake si necesario
+        begin Result := -1; Exit; end; // Phase 2: implement re-handshake if needed
       else
         Result := -1;
         Exit;
       end;
     end;
 
-    // Leer más bytes TCP (con timeout)
+    // Read more TCP bytes (with timeout)
     if Length(FRawBuf) - FRawBufLen < 4096 then
       SetLength(FRawBuf, FRawBufLen + 65536);
 
@@ -750,7 +750,7 @@ begin
 end;
 
 // ═══════════════════════════════════════════════════════════════════════
-// Inicialización / Finalización de Winsock
+// Winsock initialization / Finalization
 // ═══════════════════════════════════════════════════════════════════════
 
 var

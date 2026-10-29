@@ -3,25 +3,25 @@
 {******************************************************************************
   UAudioPushStream - Push-Stream Audio Player for Delphi FMX (Cross-Platform)
   ============================================================================
-  Reproduce audio WAV en modo streaming sin archivos en disco.
+  Plays WAV audio in streaming mode without files on disk.
 
-  Windows  : API waveOut de Windows (MMSystem)
+  Windows  : Windows waveOut API (MMSystem)
   Android  : JAudioTrack via JNI
   macOS/iOS: AudioQueue (AudioToolbox)
 
-  Uso tipico con TTS:
+  Typical usage with TTS:
     FAudio := TAudioPushStream.Create;
-    FAudio.Start(44100, 2, 16);  // o dejarlo que auto-detecte del primer WAV
+    FAudio.Start(44100, 2, 16);  // or let it auto-detect from the first WAV
 
-    // Cada vez que llega un chunk WAV del TTS:
+    // Each time a WAV chunk arrives from TTS:
     FAudio.PushWavData(WavBytes, Length(WavBytes));
 
-    // Al terminar:
+    // When finished:
     FAudio.Stop;
     FAudio.Free;
 
-  Autor: Generado para uso con TTS de IA
-  Plataforma: Windows, Android, macOS, iOS
+  Author: Generated for use with AI TTS
+  Platform: Windows, Android, macOS, iOS
 ******************************************************************************}
 
 interface
@@ -51,7 +51,7 @@ uses
   ;
 
 type
-  { Descriptor de formato de audio independiente de plataforma }
+  { Platform-independent audio format descriptor }
   TAudioFormat = record
     SampleRate   : Cardinal;
     Channels     : Word;
@@ -97,7 +97,7 @@ type
     MAX_BUFFERS        = 8;
     BUFFER_DURATION_MS = 200;
   private
-    { Campos comunes a todas las plataformas }
+    { Fields common to all platforms }
     FFormat     : TAudioFormat;
     FIsPlaying  : Boolean;
     FIsStarted  : Boolean;
@@ -107,7 +107,7 @@ type
     FPendingSize: Integer;
     FBufferSize : Integer;
     FOnFinished   : TNotifyEvent;
-    FOutputDevice : Integer;   // -1 = dispositivo predeterminado of the system
+    FOutputDevice : Integer;   // -1 = default device of the system
 
 {$IFDEF MSWINDOWS}
     FDevice : HWAVEOUT;
@@ -137,53 +137,53 @@ type
     destructor Destroy; override;
 
     /// <summary>
-    /// Devuelve la lista de dispositivos de salida disponibles en la plataforma
-    /// actual. El indice de cada elemento corresponde al valor de OutputDevice.
+    /// Returns the list of output devices available on the platform
+    /// currently active. The index of each element corresponds to the OutputDevice value.
     /// </summary>
     class function EnumerateDevices: TArray<string>; static;
 
     /// <summary>
-    /// Inicia el dispositivo de audio con el formato especificado.
-    /// Llamar antes de PushWavData o PushPCMData.
+    /// Starts the audio device with the specified format.
+    /// Call before PushWavData or PushPCMData.
     /// </summary>
     procedure Start(SampleRate: Integer = 24000;
                     Channels: Word = 1;
                     BitsPerSample: Word = 16);
 
     /// <summary>
-    /// Empuja un bloque completo WAV (con header). El header se parsea
-    /// automaticamente. Si Start no fue llamado, se auto-inicia con el
-    /// formato del primer WAV recibido.
+    /// Pushes a complete WAV block (with header). The header is parsed
+    /// automatically. If Start was not called, it auto-starts with the
+    /// format of the first WAV received.
     /// </summary>
     procedure PushWavData(const WavData: Pointer; WavDataSize: Integer); overload;
     procedure PushWavData(const WavBytes: TBytes); overload;
     procedure PushWavData(const AStream: TStream); overload;
 
     /// <summary>
-    /// Empuja PCM raw directamente (sin header WAV).
-    /// Start debe haber sido llamado antes.
+    /// Pushes raw PCM directly (without WAV header).
+    /// Start must have been called before.
     /// </summary>
     procedure PushPCMData(const PCMData: Pointer; PCMSize: Integer); overload;
     procedure PushPCMData(const PCMBytes: TBytes); overload;
 
     /// <summary>
-    /// Pausa la reproduccion. Can be reanudar con Resume.
+    /// Pauses playback. Can be resumed with Resume.
     /// </summary>
     procedure Pause;
 
     /// <summary>
-    /// Reanuda la reproduccion despues de Pause.
+    /// Resumes playback after Pause.
     /// </summary>
     procedure Resume;
 
     /// <summary>
-    /// Descarta todo el audio pendiente sin cerrar el dispositivo.
-    /// Lo que ya esta sonando termina, pero no se encola mas.
+    /// Discards all pending audio without closing the device.
+    /// What is already playing finishes, but nothing more is queued.
     /// </summary>
     procedure Flush;
 
     /// <summary>
-    /// Detiene la reproduccion y libera el dispositivo.
+    /// Stops playback and releases the device.
     /// </summary>
     procedure Stop;
 
@@ -192,8 +192,8 @@ type
     property OnFinished   : TNotifyEvent read FOnFinished  write FOnFinished;
 
     /// <summary>
-    /// Indice del dispositivo de salida. -1 = predeterminado of the system.
-    /// Usar EnumerateDevices to obtain/get la lista. Asignar antes de Start.
+    /// Output device index. -1 = default of the system.
+    /// Use EnumerateDevices to obtain/get the list. Assign before Start.
     /// </summary>
     property OutputDevice : Integer      read FOutputDevice write FOutputDevice;
   end;
@@ -201,7 +201,7 @@ type
 implementation
 
 { ============================================================================
-  macOS: tipos auxiliares ? deben estar antes de InitAudioQueue
+  macOS: helper types ? must be before InitAudioQueue
   ============================================================================ }
 {$IFDEF MACOS}
 type
@@ -220,7 +220,7 @@ function GetMacOutputDevices: TArray<TMacAudioOutputDevice>; forward;
 {$ENDIF MACOS}
 
 { ============================================================================
-  Estructuras para parsear el header WAV
+  Structures for parsing the WAV header
   ============================================================================ }
 type
   TRiffHeader = packed record
@@ -244,8 +244,8 @@ type
   end;
 
 { ============================================================================
-  ParseWavHeader - extrae offset y tamano del chunk "data"
-  Devuelve TAudioFormat en lugar de TWaveFormatEx para ser multiplataforma.
+  ParseWavHeader - extracts offset and size of the "data" chunk
+  Returns TAudioFormat instead of TWaveFormatEx to be cross-platform.
   ============================================================================ }
 function ParseWavHeader(const Data: Pointer; DataSize: Integer;
   out Fmt: TAudioFormat; out PCMOffset, PCMSize: Integer): Boolean;
@@ -292,8 +292,8 @@ begin
     else if Chunk.ID = 'data' then
     begin
       PCMOffset := Offset;
-      // WAV streaming (OpenAI TTS): chunk size = 0xFFFFFFFF ? checar ANTES de asignar a Integer
-      // para evitar Range check error (UInt32 $FFFFFFFF no cabe en Integer con range check ON)
+      // WAV streaming (OpenAI TTS): chunk size = 0xFFFFFFFF ? check BEFORE assigning to Integer
+      // to avoid Range check error (UInt32 $FFFFFFFF does not fit in Integer with range check ON)
       if Chunk.Size = $FFFFFFFF then
         PCMSize := DataSize - PCMOffset
       else
@@ -311,7 +311,7 @@ begin
 end;
 
 { ============================================================================
-  Windows: callback de waveOut
+  Windows: waveOut callback
   ============================================================================ }
 {$IFDEF MSWINDOWS}
 procedure WaveOutCallback(hwo: HWAVEOUT; uMsg: UINT; dwInstance: DWORD_PTR;
@@ -323,7 +323,7 @@ end;
 {$ENDIF}
 
 { ============================================================================
-  macOS/iOS: callback de AudioQueue
+  macOS/iOS: AudioQueue callback
   ============================================================================ }
 {$IF DEFINED(IOS) OR DEFINED(MACOS)}
 procedure AudioQueueOutputCallback(inUserData: Pointer; inAQ: AudioQueueRef;
@@ -333,7 +333,7 @@ var
   I: Integer;
 begin
   Player := TAudioPushStream(inUserData);
-  { Marcar el buffer como libre }
+  { Mark the buffer as free }
   for I := 0 to TAudioPushStream.MAX_BUFFERS - 1 do
     if Player.FAQBuffers[I].AQBuf = inBuffer then
     begin
@@ -345,14 +345,14 @@ end;
 {$ENDIF}
 
 { ============================================================================
-  Android: hilo escritor de audio
+  Android: audio writer thread
   ============================================================================ }
 {$IFDEF ANDROID}
 
 constructor TAudioWriterThread.Create(AOwner: TAudioPushStream;
   ADataReady: TEvent; AStopFlag: PBoolean);
 begin
-  inherited Create(False); { arrancar inmediatamente }
+  inherited Create(False); { start immediately }
   FOwner         := AOwner;
   FDataReady     := ADataReady;
   FStopFlag      := AStopFlag;
@@ -374,7 +374,7 @@ begin
     FDataReady.WaitFor(50);
     FDataReady.ResetEvent;
 
-    { Vaciar todos los datos pendientes antes de volver a esperar }
+    { Drain all pending data before waiting again }
     repeat
       FOwner.FLock.Enter;
       try
@@ -465,7 +465,7 @@ begin
       end;
     end;
 
-    { Rellenar FFormat (independiente de plataforma) }
+    { Fill FFormat (platform-independent) }
     FFormat.SampleRate    := SampleRate;
     FFormat.Channels      := Channels;
     FFormat.BitsPerSample := BitsPerSample;
@@ -520,7 +520,7 @@ begin
 
     FAudioTrack.play;
 
-    { Seleccionar dispositivo de salida (requiere Android API 23 / Android 6.0+) }
+    { Select output device (requires Android API 23 / Android 6.0+) }
     if (FOutputDevice >= 0) and TOSVersion.Check(6) then
     begin
       var AM   := TJAudioManager.Wrap(
@@ -584,7 +584,7 @@ begin
     FStopWriter := True;
     if Assigned(FDataReady) then
       FDataReady.SetEvent;
-    { Liberar lock mientras esperamos el hilo para evitar deadlock }
+    { Release lock while waiting for the thread to avoid deadlock }
     FLock.Leave;
     try
       if Assigned(FWriterThread) then
@@ -688,7 +688,7 @@ begin
     FLock.Leave;
   end;
 
-  { Realimentar buffers in case llegaron datos durante la pausa }
+  { Feed buffers again in case data arrived during the pause }
   InternalFeedBuffers;
 end;
 
@@ -744,7 +744,7 @@ begin
   end;
 end;
 
-{ --- Windows: gestion de buffers --- }
+{ --- Windows: buffer management --- }
 
 {$IFDEF MSWINDOWS}
 procedure TAudioPushStream.AllocateBuffers;
@@ -770,7 +770,7 @@ begin
 end;
 {$ENDIF}
 
-{ --- macOS/iOS: inicializacion de AudioQueue --- }
+{ --- macOS/iOS: AudioQueue initialization --- }
 
 {$IF DEFINED(IOS) OR DEFINED(MACOS)}
 procedure TAudioPushStream.InitAudioQueue;
@@ -809,7 +809,7 @@ begin
   AudioQueueStart(FAudioQueue, nil);
 
 {$IFDEF MACOS}
-  { Seleccionar dispositivo de salida especifico mediante su UID }
+  { Select a specific output device by its UID }
   if FOutputDevice >= 0 then
   begin
     MacDevs := GetMacOutputDevices;
@@ -836,7 +836,7 @@ begin
 end;
 {$ENDIF}
 
-{ --- AppendPCM / ConsumePCM (independientes de plataforma) --- }
+{ --- AppendPCM / ConsumePCM (platform-independent) --- }
 
 procedure TAudioPushStream.AppendPCM(const Data: Pointer; Size: Integer);
 var
@@ -936,7 +936,7 @@ begin
 {$ENDIF MSWINDOWS}
 
 {$IFDEF ANDROID}
-  { Solo senal al hilo escritor; el consume/write ocurre alli }
+  { Only signal the writer thread; consume/write happens there }
   if FIsStarted and (not FIsPaused) and Assigned(FDataReady) then
     FDataReady.SetEvent;
 {$ENDIF ANDROID}
@@ -1058,7 +1058,7 @@ begin
 end;
 
 { ============================================================================
-  macOS: declaraciones de CoreAudio para enumeracion de dispositivos fisicos
+  macOS: CoreAudio declarations for physical device enumeration
   ============================================================================ }
 {$IFDEF MACOS}
 const
@@ -1086,7 +1086,7 @@ function _AO_GetPropertyData(inObjectID: UInt32; inAddress: Pointer;
   external '/System/Library/Frameworks/CoreAudio.framework/CoreAudio'
   name 'AudioObjectGetPropertyData';
 
-{ Convierte un CFStringRef a string Delphi via UTF-8 }
+{ Converts a CFStringRef to a Delphi string via UTF-8 }
 function CFStringRefToStr(S: CFStringRef): string;
 var
   Buf: array[0..1023] of Byte;
@@ -1098,7 +1098,7 @@ begin
     Result := UTF8ToString(PAnsiChar(@Buf[0]));
 end;
 
-{ Enumera todos los dispositivos macOS que tienen streams de salida }
+{ Enumerates all macOS devices that have output streams }
 function GetMacOutputDevices: TArray<TMacAudioOutputDevice>;
 var
   Addr    : TAudioObjectPropertyAddress_Helper;
@@ -1127,14 +1127,14 @@ begin
 
   for I := 0 to High(DevIDs) do
   begin
-    { Verificar que el dispositivo tenga streams de salida }
+    { Verify that the device has output streams }
     Addr.mSelector := kMAI_AudioDevicePropertyStreams;
     Addr.mScope    := kMAI_AudioObjectScopeOutput;
     HasOut := 0;
     if _AO_GetPropertyDataSize(DevIDs[I], @Addr, 0, nil, HasOut) <> 0 then Continue;
     if HasOut = 0 then Continue;
 
-    { UID del dispositivo }
+    { Device UID }
     Addr.mSelector := kMAI_AudioDevicePropertyUID;
     Addr.mScope    := kMAI_AudioObjectScopeGlobal;
     DataSize := SizeOf(CFStringRef);
@@ -1146,7 +1146,7 @@ begin
     end else
       Dev.UID := '';
 
-    { Nombre del dispositivo }
+    { Device name }
     Addr.mSelector := kMAI_AudioObjectPropertyName;
     Addr.mScope    := kMAI_AudioObjectScopeGlobal;
     DataSize := SizeOf(CFStringRef);
@@ -1166,7 +1166,7 @@ end;
 {$ENDIF MACOS}
 
 { ============================================================================
-  EnumerateDevices ? lista de dispositivos de salida por plataforma
+  EnumerateDevices ? list of output devices by platform
   ============================================================================ }
 class function TAudioPushStream.EnumerateDevices: TArray<string>;
 var
@@ -1200,7 +1200,7 @@ begin
 {$ENDIF}
 
 {$IFDEF ANDROID}
-  if not TOSVersion.Check(6) then Exit;  { getDevices requiere API 23 }
+  if not TOSVersion.Check(6) then Exit;  { getDevices requires API 23 }
   AM   := TJAudioManager.Wrap(
     TAndroidHelper.Activity.getSystemService(TJContext.JavaClass.AUDIO_SERVICE));
   Devs := AM.getDevices(TJAudioManager.JavaClass.GET_DEVICES_OUTPUTS);
@@ -1233,7 +1233,7 @@ begin
     Result[I] := Format('[%d] %s', [I, MacDevs[I].Name]);
 {$ENDIF}
 
-{ iOS: el routing es gestionado por AVAudioSession; retorna lista vacia }
+{ iOS: routing is managed by AVAudioSession; returns an empty list }
 end;
 
 end.

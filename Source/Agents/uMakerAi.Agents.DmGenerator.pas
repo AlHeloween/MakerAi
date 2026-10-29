@@ -6,7 +6,7 @@ uses
   System.SysUtils, System.Classes, System.Generics.Collections, System.JSON, System.AnsiStrings, System.RegularExpressions, System.Math;
 
 type
-  // Estructura interna para mantener la informaci�n de cada componente a generar.
+  // Internal structure to hold the information of each component to generate.
   TComponentInfo = record
   private
     FProperties: TStringList;
@@ -32,7 +32,7 @@ type
     FCalculatedWidth: Integer;
     FCalculatedHeight: Integer;
 
-    // M�todos de parseo y construcci�n del modelo interno
+    // Parsing and internal model construction methods
     procedure ParseNodes;
     procedure ParseEdges;
     procedure GenerateToolProperties(const AToolClassName: string; AParamsJson: TJSONObject; var AToolInfo: TComponentInfo);
@@ -40,7 +40,7 @@ type
     procedure Clear;
     procedure CalculateOptimalSize;
 
-    // M�todos de utilidad (adaptados de tu TGraphBuilder)
+    // Utility methods (adapted from your TGraphBuilder)
     function SanitizeName(const ALabel: string): string;
     function FindPortJsonByTerminalId(ANodeJson: TJSONObject; const APortTerminalId: string): TJSONObject;
     function FindEngineObject(JsonObj: TJSONObject): TJSONObject;
@@ -91,8 +91,8 @@ end;
 
 procedure TDataModuleGenerator.CalculateOptimalSize;
 const
-  // Asumimos un tama�o m�ximo para cualquier componente (nodo, link, tool)
-  // for the c�lculo. Es mejor que sobre un poco de espacio.
+  // Assume a maximum size for any component (node, link, tool)
+  // for the calculation. It is better to have a little extra space.
   ComponentMaxWidth = 100;
   ComponentMaxHeight = 150; // Tools can be taller
   Margin = 50; // Extra space around the last component
@@ -105,16 +105,16 @@ begin
   maxY := 0;
 
   if FComponentList.Count = 0 then
-    Exit; // No hay componentes, usar the values By default
+    Exit; // No components, use the default values
 
   for var CompInfo in FComponentList do
   begin
-    // Leemos the properties Left y Top, convirti�ndolas a Integer
-    // Usamos StrToIntDef to avoid errores si la propiedad does not exist (devuelve 0)
+    // We read the Left and Top properties, converting them to Integer
+    // Use StrToIntDef to avoid errors if the property does not exist (returns 0)
     LLeft := StrToIntDef(CompInfo.Properties.Values['Left'], 0);
     LTop := StrToIntDef(CompInfo.Properties.Values['Top'], 0);
 
-    // Actualizamos las coordenadas m�ximas encontradas hasta ahora
+    // We update the maximum coordinates found so far
     if LLeft > maxX then
       maxX := LLeft;
 
@@ -122,11 +122,11 @@ begin
       maxY := LTop;
   end;
 
-  // Calculamos el tama�o final a�adiendo el tama�o of the component y un margen
+  // We calculate the final size by adding the component size and a margin
   FCalculatedWidth := maxX + ComponentMaxWidth + Margin;
   FCalculatedHeight := maxY + ComponentMaxHeight + Margin;
 
-  // Asegurarnos de que el tama�o no sea menor que un m�nimo razonable
+  // Ensure the size is not less than a reasonable minimum
   FCalculatedWidth := Max(FCalculatedWidth, 640);
   FCalculatedHeight := Max(FCalculatedHeight, 480);
 end;
@@ -164,7 +164,7 @@ begin
     ParseEdges;
     CalculateOptimalSize;
   except
-    // En caso de error, limpiar para no dejar un estado inconsistente.
+    // In case of error, clean up to avoid leaving an inconsistent state.
     Clear;
     raise;
   end;
@@ -174,7 +174,7 @@ procedure TDataModuleGenerator.AddComponent(const AName, AType: string; out ACom
 begin
   AComponentInfo := TComponentInfo.New(AName, AType);
   FComponentList.Add(AComponentInfo);
-  // A�adir la unidad del tipo de componente a la lista de 'uses'
+  // Add the unit of the component type to the 'uses' list
   var
   LUnitName := FindUnitName(AType);
   if not LUnitName.IsEmpty then
@@ -197,7 +197,7 @@ begin
   if not Assigned(LNodesArray) then
     raise Exception.Create('JSON graph must contain a "nodes" array.');
 
-  // --- PASO 1: Encontrar las coordenadas m�nimas for the normalizaci�n ---
+  // --- STEP 1: Find the minimum coordinates for normalization ---
   minX := MaxSingle;
   minY := MaxSingle;
   for var LJsonValue in LNodesArray do
@@ -213,7 +213,7 @@ begin
   offsetX := ifthen(minX < 0, -minX, 0);
   offsetY := ifthen(minY < 0, -minY, 0);
 
-  // --- PASO 2: Generar componentes ---
+  // --- STEP 2: Generate components ---
   FAgentsComponentName := 'AIAgents1';
   AddComponent(FAgentsComponentName, 'TAIAgents', LAgentsInfo);
   LAgentsInfo.Properties.Values['Left'] := Margin.ToString;
@@ -266,7 +266,7 @@ begin
       if not LDescription.IsEmpty then
         LNodeInfo.Properties.Values['Description'] := QuotedStr(LDescription);
 
-      // B�squeda original de JoinMode (se mantiene por retrocompatibilidad)
+      // Original search for JoinMode (kept for backward compatibility)
       LEngineJson := FindEngineObject(LPropertiesJson);
       if Assigned(LEngineJson) then
       begin
@@ -276,24 +276,24 @@ begin
           LNodeInfo.Properties.Values['JoinMode'] := LJoinModeStr;
       end;
 
-      // --- INICIO DE LA MODIFICACI�N ---
-      // Nueva b�squeda de JoinMode anidado dentro del array 'ports'.
-      // Esto sobreescribir� el valor anterior si se encuentra una definici�n m�s espec�fica.
+      // --- START OF MODIFICATION ---
+      // New search for JoinMode nested inside the 'ports' array.
+      // This will overwrite the previous value if a more specific definition is found.
       if LNodeJson.TryGetValue<TJSONArray>('ports', LPortsArray) then
       begin
         for var LPortValue in LPortsArray do
         begin
           LPortJson := LPortValue as TJSONObject;
-          // Nos interesa solo si el puerto es de entrada y tiene un objeto 'engine'
+          // We are only interested if the port is an input and has an 'engine' object
           if (LPortJson.GetValue<string>('direction') = 'input') and LPortJson.TryGetValue<TJSONObject>('engine', LPortEngineJson) then
           begin
-            // Si encontramos un 'joinMode' aqu�, lo usamos y salimos del bucle
+            // If we find a 'joinMode' here, we use it and exit the loop
             if LPortEngineJson.TryGetValue<string>('joinMode', LJoinModeStr) then
             begin
               LJoinModeOrdinal := GetEnumValue(TypeInfo(TJoinMode), LJoinModeStr);
               if (LJoinModeOrdinal <> -1) and (LJoinModeStr <> 'jmAny') then
                 LNodeInfo.Properties.Values['JoinMode'] := LJoinModeStr;
-              Break; // Salimos del bucle de puertos, ya hemos encontrado el joinMode.
+              Break; // Exit the port loop, we have already found the joinMode.
             end;
           end;
         end;
@@ -345,9 +345,9 @@ begin
 
   LEdgeGroup := TDictionary < string, TList < TJSONObject >>.Create;
   try
-    // --- PASO 1: FASE DE AGRUPACI�N ---
-    // Recorremos todas las aristas del JSON y las agrupamos en un diccionario
-    // usando el ID del nodo de origen como clave.
+    // --- STEP 1: GROUPING PHASE ---
+    // We iterate through all edges in the JSON and group them into a dictionary
+    // using the source node ID as the key.
     for var LJsonValue in LEdgesArray do
     begin
       var
@@ -362,8 +362,8 @@ begin
       LEdgeList.Add(LEdgeJson);
     end;
 
-    // --- PASO 2: FASE DE PROCESAMIENTO POR GRUPO ---
-    // Iteramos sobre cada grupo de aristas. Cada grupo corresponde a un �nico TAIAgentsLink.
+    // --- STEP 2: GROUP PROCESSING PHASE ---
+    // We iterate over each group of edges. Each group corresponds to a single TAIAgentsLink.
     for var LPair in LEdgeGroup do
     begin
       var
@@ -372,7 +372,7 @@ begin
       if LEdgeList.Count = 0 then
         Continue;
 
-      // Encontrar el Link que ya creamos en ParseNodes
+      // Find the Link we already created in ParseNodes
       if not FLinkIdToNameMap.TryGetValue(LSourceNodeId, LLinkName) then
         Continue; // Link not found for this node, something weird happened.
 
@@ -394,8 +394,8 @@ begin
       var
       LSourceNodeJson := FNodeJsonMap[LSourceNodeId];
 
-      // --- PASO 3: PROCESAR CADA ARISTA DENTRO DEL GRUPO ---
-      // Iteramos sobre cada arista para configurar el Link compartido.
+      // --- STEP 3: PROCESS EACH EDGE WITHIN THE GROUP ---
+      // We iterate over each edge to configure the shared Link.
       for var LEdgeJson in LEdgeList do
       begin
         var
@@ -405,12 +405,12 @@ begin
         if not Assigned(LSourcePortJson) then
           Continue;
 
-        // Intentar obtener el objeto 'engine' desde el puerto
+        // Try to get the 'engine' object from the port
         Var
           LEngineJson: TJSONObject;
         if LSourcePortJson.TryGetValue<TJSONObject>('engine', LEngineJson) then
         begin
-          // A) Procesar Propiedades Compartidas (solo la primera vez que se encuentren)
+          // A) Process Shared Properties (only the first time they are found)
           if not SharedPropertiesSet then
           begin
             var
@@ -440,14 +440,14 @@ begin
 
             var
             LMaxCycles := LEngineJson.GetValue<Integer>('linkMaxCycles', -1);
-            if LMaxCycles <> -1 then // Usar -1 para detectar si la propiedad existe
+            if LMaxCycles <> -1 then // Use -1 to detect if the property exists
               if LMaxCycles <> 1 then // Only add if not the default value
                 FComponentList[LLinkInfoIndex].Properties.Values['MaxCycles'] := LMaxCycles.ToString;
 
             SharedPropertiesSet := True;
           end;
 
-          // B) Procesar Propiedades Espec�ficas del Puerto (siempre se procesan)
+          // B) Process Port-Specific Properties (always processed)
           if LEngineJson.TryGetValue<string>('linkExpressionA', LExpr) then
             FComponentList[LLinkInfoIndex].Properties.Values['ExpressionA'] := LExpr;
           if LEngineJson.TryGetValue<string>('linkExpressionB', LExpr) then
@@ -458,7 +458,7 @@ begin
             FComponentList[LLinkInfoIndex].Properties.Values['ExpressionD'] := LExpr;
         end;
 
-        // C) Asignar el Destino (Target) de la arista
+        // C) Assign the destination (Target) of the edge
         if FNodeIdToNameMap.TryGetValue(LEdgeJson.GetValue<string>('targetNodeId'), LTargetNodeName) then
         begin
           var
@@ -470,7 +470,7 @@ begin
       end;
     end;
   finally
-    // Limpiar la memoria del diccionario y de todas las listas que contiene.
+    // Free the memory of the dictionary and all the lists it contains.
     for var LPair in LEdgeGroup do
       LPair.Value.Free;
     LEdgeGroup.Free;
@@ -513,7 +513,7 @@ begin
             if LRttiProp.PropertyType.Handle = TypeInfo(Boolean) then
               LPropValueStr := LParamValue.Value
             else
-              LPropValueStr := LParamValue.Value; // Asume que el nombre del enum ya viene en el JSON
+              LPropValueStr := LParamValue.Value; // Assumes the enum name already comes in the JSON
         end;
 
         if not LPropValueStr.IsEmpty then
@@ -527,8 +527,8 @@ end;
 
 function TDataModuleGenerator.FindEngineObject(JsonObj: TJSONObject): TJSONObject;
 begin
-  // Esta funci�n es id�ntica a la de tu TGraphBuilder, Can be copiar y pegar aqu�.
-  // ... implementaci�n completa ...
+  // This function is identical to the one in your TGraphBuilder, can be copied and pasted here.
+  // ... full implementation ...
   Result := nil;
   if JsonObj = nil then
     Exit;
@@ -542,8 +542,8 @@ end;
 
 function TDataModuleGenerator.FindPortJsonByTerminalId(ANodeJson: TJSONObject; const APortTerminalId: string): TJSONObject;
 begin
-  // Esta funci�n es id�ntica a la de tu TGraphBuilder, Can be copiar y pegar aqu�.
-  // ... implementaci�n completa ...
+  // This function is identical to the one in your TGraphBuilder, can be copied and pasted here.
+  // ... full implementation ...
   Result := nil;
   var
     LPortsArray: TJSONArray;
@@ -575,24 +575,24 @@ begin
   { Result := '';
     LContext := TRttiContext.Create;
     try
-    // 1. Busca el tipo RTTI por su nombre de clase
+    // 1. Look up the RTTI type by its class name
     LType := LContext.FindType(ATypeName);
 
     if Assigned(LType) then
     begin
-    // 2. Itera a trav�s de todos los paquetes cargados en tiempo de dise�o
+    // 2. Iterate through all packages loaded at design time
     for LPackage in TPackage.Packages do
     begin
-    // 3. Verifica si el tipo est� contenido en el paquete actual
+    // 3. Check if the type is contained in the current package
     if LPackage.ContainsType(LType) then
     begin
-    // 4. Si lo encuentra, itera sobre las unidades de ese paquete
+    // 4. If found, iterate over the units of that package
     for I := 0 to LPackage.UnitCount - 1 do
     begin
     if LPackage.UnitNames[I].Contains(LType.UnitName) then
     begin
     Result := LType.UnitName;
-    Exit; // Encontramos la unidad, salimos.
+    Exit; // Found the unit, exit.
     end;
     end;
     end;
@@ -602,8 +602,7 @@ begin
     LContext.Free;
     end;
 
-    // Fallback: Si no se encontr� en ning�n paquete (ej. clases de System o SysUtils),
-    // puede que el nombre de la unidad sea parte del nombre completo del tipo.
+    // Fallback: If not found in any package (e.g., System or SysUtils classes), the unit name might be part of the fully qualified type name.
     if Result.IsEmpty and Assigned(LType) and (LType.QualifiedName.Contains('.')) then
     begin
     Result := LType.UnitName;
@@ -617,7 +616,7 @@ var
 begin
   SB := TStringBuilder.Create;
   try
-    // CORREGIDO:
+    // CORRECTED:
     SB.Append(Format('object %s: T%s', [FBaseClassName, FBaseClassName]));
     SB.AppendLine;
     SB.AppendLine(Format('  Height = %d', [FCalculatedHeight]));
@@ -625,7 +624,7 @@ begin
 
     for var CompInfo in FComponentList do
     begin
-      // CORREGIDO:
+      // CORRECTED:
       SB.Append(Format('  object %s: %s', [CompInfo.ComponentName, CompInfo.ComponentType]));
       SB.AppendLine;
       for var Prop in CompInfo.Properties do
@@ -646,7 +645,7 @@ var
 begin
   SB := TStringBuilder.Create;
   try
-    // CORREGIDO:
+    // CORRECTED:
     SB.Append(Format('unit %s;', [FBaseClassName]));
     SB.AppendLine;
     SB.AppendLine;
@@ -657,7 +656,8 @@ begin
     FUsedUnits.Add('System.SysUtils');
     FUsedUnits.Add('System.Classes');
     FUsedUnits.Add('uMakerAi.Agents');
-    // FUsedUnits.Add('uMakerAi.Agents.Tools'); // Aseg�rate que esta unidad exista o ad�ptala
+    // Make sure this unit exists or adapt it
+    // FUsedUnits.Add('uMakerAi.Agents.Tools');
 
     SB.AppendLine('uses');
     SB.Append('  ').Append(FUsedUnits.CommaText);
@@ -668,7 +668,7 @@ begin
     SB.AppendLine;
     for var CompInfo in FComponentList do
     begin
-      // CORREGIDO:
+      // CORRECTED:
       SB.Append(Format('    %s: %s;', [CompInfo.ComponentName, CompInfo.ComponentType]));
       SB.AppendLine;
     end;
@@ -680,16 +680,16 @@ begin
     SB.AppendLine;
 
     SB.AppendLine('var');
-    // CORREGIDO:
+    // CORRECTED:
     SB.Append(Format('  Dm%s: T%s;', [FBaseClassName, FBaseClassName]));
     SB.AppendLine;
     SB.AppendLine;
 
     SB.AppendLine('implementation');
     SB.AppendLine;
-    SB.AppendLine('{%CLASSGROUP FMX.Controls.TControl}'); // o Vcl.Controls.TControl
+    SB.AppendLine('{%CLASSGROUP FMX.Controls.TControl}'); // or Vcl.Controls.TControl
     SB.AppendLine;
-    // CORREGIDO:
+    // CORRECTED:
     SB.Append(Format('{$R *.dfm}', [])); // No format needed, but leaving it here for consistency
     SB.AppendLine;
     SB.AppendLine;
@@ -713,7 +713,7 @@ begin
     Result := 'NextNo'
   else
   begin
-    // Busca el primer 'NextX' que no est� usado en este Link.
+    // Find the first 'NextX' that is not used in this Link.
     for i := Low(NextProps) to High(NextProps) do
     begin
 
@@ -723,7 +723,7 @@ begin
         Exit;
       end;
     end;
-    // Si todos est�n usados, devuelve el primero como fallback (puede causar sobreescritura)
+    // If all are used, return the first one as fallback (may cause overwriting)
     Result := 'NextA';
   end;
 end;
@@ -738,7 +738,7 @@ begin
     SL.SaveToFile(ABaseFileName + '.pas');
 
     SL.Text := GetDfmFileContent;
-    SL.SaveToFile(ABaseFileName + '.dfm'); // o .fmx
+    SL.SaveToFile(ABaseFileName + '.dfm'); // or .fmx
   finally
     SL.Free;
   end;
@@ -747,12 +747,12 @@ end;
 function TDataModuleGenerator.SanitizeName(const ALabel: string): string;
 begin
   Result := ALabel;
-  // Elimina espacios y caracteres no v�lidos.
+  // Remove spaces and invalid characters.
   Result := TRegEx.Replace(Result, '[^a-zA-Z0-9_]', '');
-  // Si est� vac�o despu�s de limpiar, genera un nombre By default.
+  // If empty after cleaning, generate a default name.
   if Result.IsEmpty then
     Result := 'Component' + TGuid.NewGuid.ToString.Substring(1, 8);
-  // Asegurarse de que no empiece con un n�mero.
+  // Ensure it does not start with a number.
   if (Result[1] >= '0') and (Result[1] <= '9') then
     Result := '_' + Result;
 end;
@@ -764,7 +764,7 @@ begin
   Result.ComponentName := AName;
   Result.ComponentType := AType;
   Result.FProperties := TStringList.Create;
-  // TStringList usado para propiedades es case-insensitive By default, lo cual es bueno para .dfm
+  // TStringList used for properties is case-insensitive by default, which is good for .dfm
   Result.FProperties.CaseSensitive := False;
 end;
 
