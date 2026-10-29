@@ -72,6 +72,10 @@
 - 29 U+FFFD characters turned up in 15 source files. `.temp/enc_damage.py` proved they were **already there** before this work (no file gained one, none flipped encoding), so they came from an earlier conversion, not from the applier. They sat in Spanish comments, so each line was translated and repaired in one edit: **0 left**, 15/15 files text-only.
 - `.pyc` files under `scripts/audit/__pycache__` had been tracked since an earlier session; they are untracked now and `__pycache__/` is ignored.
 - Seven demo files remain cp1252 and were skipped rather than silently re-encoded — named as residual.
+- **The IDE itself, not just a headless process**: the 64-bit IDE loads `Known Packages x64` in list order, and the four MakerAI entries sit at indices 86–89 while the first failing package (`JclBaseExpert370.bpl`) is index 90. The first error dialog therefore proves everything before it loaded — MakerAI included, with `MakerAiDsg.bpl` running its `Register` and filling the palette.
+- The 32-bit IDE (`bin\bds.exe`) carries no MakerAI entries at all — different registry list — which is why it showed nothing; the packages are installed for the 64-bit IDE.
+- The JCL dialogs are the owner's install, left untouched: 34 JCL/JV design packages in the x64 list, and `JclBase370.bpl` is absent from both `Bpl\` and `Bpl\Win64\`.
+- One instrument was built and then discarded: probing whether a BPL is loaded by opening it exclusively reported «free» for `bds.exe` and `kernel32.dll` too, so it measured nothing; the registry-order argument replaced it.
 
 ## 2026-10-29 — Upstream Sync v3.3 → v3.9.0 + Full English Pass
 
