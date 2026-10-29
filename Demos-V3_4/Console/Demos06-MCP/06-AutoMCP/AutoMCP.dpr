@@ -77,7 +77,7 @@ begin
   FFunctions.OnLog          := OnLog;
   FFunctions.OnStatusUpdate := OnStatus;
 
-  // Activar AutoMCP con el registro PPM
+  // Activate AutoMCP with the PPM registry
   FFunctions.AutoMCPConfig.Active      := True;
   FFunctions.AutoMCPConfig.RegistryUrl := REGISTRY;
 
@@ -124,8 +124,8 @@ procedure TAutoMCPDemo.OnState(Sender: TObject; State: TAiChatState;
   const Desc: String);
 begin
   case State of
-    acsToolCalling  : Writeln('  [LLM] Llamando herramienta...');
-    acsToolExecuting: Writeln('  [LLM] Ejecutando...');
+    acsToolCalling  : Writeln('  [LLM] Calling tool...');
+    acsToolExecuting: Writeln('  [LLM] Executing...');
   end;
 end;
 
@@ -224,10 +224,10 @@ begin
   FAiConn.SystemPrompt.Text := FFunctions.GetAutoMCPSystemPrompt;
 
   Pregunta := 'What is 1234 times 5678?';
-  Writeln('Pregunta: ', Pregunta);
+  Writeln('Question: ', Pregunta);
   try
     Resp := FAiConn.AddMessageAndRun(Pregunta, 'user', []);
-    Writeln('Respuesta: ', Resp);
+    Writeln('Answer: ', Resp);
   except
     on E: Exception do
       Writeln('ERROR: ', E.Message);
@@ -235,10 +235,10 @@ begin
   Writeln;
 
   Pregunta := 'What is the square root of 144?';
-  Writeln('Pregunta: ', Pregunta);
+  Writeln('Question: ', Pregunta);
   try
     Resp := FAiConn.AddMessageAndRun(Pregunta, 'user', []);
-    Writeln('Respuesta: ', Resp);
+    Writeln('Answer: ', Resp);
   except
     on E: Exception do
       Writeln('ERROR: ', E.Message);
@@ -275,6 +275,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

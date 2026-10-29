@@ -78,7 +78,7 @@ begin
     if Trim(Res) <> '' then
       Writeln('  => PASS')
     else
-      Writeln('  => FAIL: respuesta vacia');
+      Writeln('  => FAIL: empty response');
   finally
     Conn.Free;
   end;
@@ -173,7 +173,7 @@ begin
     if Trim(Res) <> '' then
       Writeln('  => PASS  (max_completion_tokens accepted by Groq)')
     else
-      Writeln('  => FAIL: respuesta vacia');
+      Writeln('  => FAIL: empty response');
   finally
     Conn.Free;
   end;
@@ -216,7 +216,7 @@ begin
     MediaList[0] := Media;
     Writeln('  Turn 1 (image attached): general description');
     Res1 := Conn.AddMessageAndRun(
-      'Describe brevemente lo que ves en esta imagen.', 'user', MediaList);
+      'Briefly describe what you see in this image.', 'user', MediaList);
     Writeln('  R1: ', Res1);
 
     // Turn 2: follow-up WITHOUT a new image
@@ -225,7 +225,7 @@ begin
     Writeln;
     Writeln('  Turn 2 (without a new image, but history includes the one from turn 1):');
     Res2 := Conn.AddMessageAndRun(
-      'Cual es el color predominante en lo que acabas de describir?', 'user', []);
+      'What is the predominant color in what you just described?', 'user', []);
     Writeln('  R2: ', Res2);
 
     if (Trim(Res1) <> '') and (Trim(Res2) <> '') then
@@ -256,7 +256,7 @@ begin
   begin
     Writeln('ERROR: Define GROQ_API_KEY before running.');
     Writeln;
-    Writeln('Presiona Enter para salir...');
+    Writeln('Press Enter to exit...');
     Readln;
     Halt(1);
   end;
@@ -268,7 +268,7 @@ begin
     TestVisionMultiTurn;
   except
     on E: Exception do
-      Writeln('ERROR FATAL: ', E.ClassName, ' — ', E.Message);
+      Writeln('FATAL ERROR: ', E.ClassName, ' — ', E.Message);
   end;
 
   Writeln;
@@ -276,6 +276,6 @@ begin
   Writeln('  Demo complete.');
   Writeln(StringOfChar('=', 62));
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

@@ -9,9 +9,9 @@ program W01_SimpleCalculator;
 //
 //   [Parser:TLLMNode] -> [Calculator:TAIAgentsNode] -> [Formatter:TLLMNode]
 //
-// El Parser (LLM) extrae la expresion matematica del lenguaje natural.
-// El Calculator (OnExecute) evalua la expresion aritmeticamente.
-// El Formatter (LLM) redacta la respuesta final en lenguaje natural.
+// The Parser (LLM) extracts the mathematical expression from natural language.
+// The Calculator (OnExecute) evaluates the expression arithmetically.
+// The Formatter (LLM) writes the final response in natural language.
 //
 // All components, properties and events are in the DataModule (DFM).
 // =============================================================================
@@ -35,6 +35,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir.');
+  Writeln('Press Enter to exit.');
   Readln;
 end.

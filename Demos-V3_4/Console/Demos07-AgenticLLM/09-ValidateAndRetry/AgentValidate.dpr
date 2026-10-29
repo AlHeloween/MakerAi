@@ -9,15 +9,15 @@ program AgentValidate;
 //
 //   [DraftWriter] -> [Critic (check_quality tool)] -> [Rewriter]
 //
-// El Critic usa check_quality para evaluar el borrador con criterios
-// objetivos (longitud, palabras de contraste, preguntas retorica).
-// El Rewriter incorpora el feedback para mejorar el texto.
+// The Critic uses check_quality to evaluate the draft with criteria
+// objectives (length, contrast words, rhetorical questions).
+// The Rewriter incorporates the feedback to improve the text.
 //
 // Concepts it covers:
-//   - Registry privado por nodo (CriticNode.Registry)
-//   - Herramienta de validacion local (sin LLM, logica de negocio pura)
-//   - Paso de contexto: el output del Critic incluye DRAFT + FEEDBACK
-//   - Lectura del blackboard intermedio para ver el borrador original
+//   - Private registry per node (CriticNode.Registry)
+//   - Local validation tool (without LLM, pure business logic)
+//   - Context passing: the Critic's output includes DRAFT + FEEDBACK
+//   - Reading the intermediate blackboard to see the original draft
 // =============================================================================
 
 uses
@@ -159,12 +159,12 @@ begin
 
     CriticRegistry.Register(TQualityCheckerTool.Create, 'local', 'quality');
 
-    // Nodo 1: Escritor de borrador
+    // Node 1: Draft writer
     DraftNode := MakeLLMNode(Manager, 'DraftWriter',
       'You are a content writer. Write a draft paragraph (80-150 words) about the given topic. ' +
       'Use at least one contrast word (however/but/although) and one rhetorical question.');
 
-    // Nodo 2: Critico — valida con check_quality y genera feedback estructurado
+    // Node 2: Critic — validates with check_quality and generates structured feedback
     CriticNode := MakeLLMNode(Manager, 'Critic',
       'You are a strict editor. Evaluate the draft using check_quality tool. ' +
       'Then provide specific improvement suggestions in this exact format: ' +
@@ -172,7 +172,7 @@ begin
       True);
     CriticNode.Registry := CriticRegistry;
 
-    // Nodo 3: Reescritor — incorpora el feedback
+    // Node 3: Rewriter — incorporates the feedback
     RewriteNode := MakeLLMNode(Manager, 'Rewriter',
       'You are an expert writer. You receive a draft and detailed feedback. ' +
       'Rewrite the draft incorporating ALL the improvement instructions. ' +

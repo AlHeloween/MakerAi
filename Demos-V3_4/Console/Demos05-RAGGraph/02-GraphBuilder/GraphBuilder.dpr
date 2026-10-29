@@ -164,7 +164,7 @@ begin
   Camino := RAG.GetShortestPath(NodeA, NodeB);
   if Length(Camino) = 0 then
   begin
-    Writeln('  (no hay camino)');
+    Writeln('  (no path)');
     Exit;
   end;
 
@@ -230,7 +230,7 @@ begin
 
     // Semantic search with depth=1 (expands neighbors)
     Writeln(StringOfChar('-', 60));
-    Writeln('Busqueda semantica con expansion (depth=1):');
+    Writeln('Semantic search with expansion (depth=1):');
     Writeln('"generacion de texto con transformers"');
     Writeln(RAG.SearchText('generacion de texto con transformers', 1, False, 3, 0.2));
 

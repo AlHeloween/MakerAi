@@ -52,7 +52,7 @@ begin
   //AiMCPServer1.Start;
   AiMCPHttpServer1.Start;
 
-  // Mostrar información según el protocolo que quedó activo
+  // Show information according to the active protocol
   if AiMCPHttpServer1.IsActive then
   begin
     WriteLn(ErrOutput, 'Protocol : HTTP');
@@ -117,27 +117,27 @@ begin
   // --- FUNCTION 1: System Information ---
   Func := AiFunctions1.Functions.Add;
   Func.FunctionName := 'get_system_info';
-  Func.Description.Text := 'Retorna información básica del servidor Delphi.';
+  Func.Description.Text := 'Returns basic information about the Delphi server.';
   Func.OnAction := OnGetSystemInfo;
 
   // --- FUNCTION 2: Write Note ---
   Func := AiFunctions1.Functions.Add;
   Func.FunctionName := 'write_note';
-  Func.Description.Text := 'Guarda una nota de texto en el servidor.';
+  Func.Description.Text := 'Saves a text note on the server.';
   Func.OnAction := OnWriteNote;
 
   // Parameter: Title
   Param := Func.Parameters.Add;
   Param.Name := 'title';
   Param.ParamType := ptString;
-  Param.Description.Text := 'Título del archivo';
+  Param.Description.Text := 'File title';
   Param.Required := True;
 
   // Parameter: Content
   Param := Func.Parameters.Add;
   Param.Name := 'content';
   Param.ParamType := ptString;
-  Param.Description.Text := 'Contenido de la nota';
+  Param.Description.Text := 'Note content';
   Param.Required := True;
 
 }

@@ -49,7 +49,7 @@ begin
   SetLength(Parts, Min(8, Length(V)));
   for I := 0 to High(Parts) do
     Parts[I] := Format('%.4f', [V[I]]);
-  Writeln(Format('  Primeros 8 valores: [%s...]', [String.Join(', ', Parts)]));
+  Writeln(Format('  First 8 values: [%s...]', [String.Join(', ', Parts)]));
 end;
 
 // =============================================================================
@@ -103,7 +103,7 @@ begin
     if Sim12 > Sim13 then
       Writeln('  Correct: A is more similar to B than to C.')
     else
-      Writeln('  Nota: resultado inesperado — verifica el modelo/driver.');
+      Writeln('  Note: unexpected result — check the model/driver.');
 
     // ── Demo 3: vector magnitude ───────────────────────────────────────
     Writeln;

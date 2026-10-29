@@ -1,42 +1,42 @@
 program RagPostgresConsoleDemo;
 
 // =============================================================================
-// DEMO 077 - RAG vectorial sobre PostgreSQL + pgvector, desde consola
+// DEMO 077 - Vector RAG over PostgreSQL + pgvector, from the console
 // =============================================================================
-// Los demos de RAG con Postgres (021, 023, 025) son todos graficos, asi que no
-// habia forma de ejercitar el stack sin abrir el IDE. Este lo hace headless, y
-// con embeddings LOCALES via Ollama: no necesita ninguna API key.
+// The RAG demos with Postgres (021, 023, 025) are all graphical, so there
+// was no way to exercise the stack without opening the IDE. This does it
+// headless, with LOCAL embeddings via Ollama: it needs no API key.
 //
-// Recorrido:
-//   1. Conecta a PostgreSQL y comprueba la extension pgvector.
-//   2. Comprueba que Ollama responde y que el modelo de embeddings existe.
-//   3. Crea el esquema vectorial si falta (CreateSchema es idempotente:
-//      CREATE TABLE/INDEX IF NOT EXISTS, incluido el indice HNSW).
-//   4. Siembra peliculas de ejemplo en la tabla 'pelicula' (solo las que
-//      falten, comparando por titulo).
-//   5. Indexa las peliculas que aun no tienen vector, generando el embedding
-//      con Ollama y persistiendo via TAiRAGVectorPostgresDriver.
-//   6. Busquedas semanticas, y una con filtro de metadatos (TAiFilterCriteria).
+// Walkthrough:
+//   1. Connects to PostgreSQL and checks the pgvector extension.
+//   2. Checks that Ollama responds and that the embeddings model exists.
+//   3. Creates the vector schema if missing (CreateSchema is idempotent:
+//      CREATE TABLE/INDEX IF NOT EXISTS, including the HNSW index).
+//   4. Seeds example movies into the 'pelicula' table (only missing ones,
+//      comparing by title).
+//   5. Indexes movies that still have no vector, generating the embedding
+//      with Ollama and persisting via TAiRAGVectorPostgresDriver.
+//   6. Semantic searches, and one with a metadata filter (TAiFilterCriteria).
 //
-// IMPORTANTE sobre dimensiones: la tabla 'pelicula_vector' de esta base usa
-// vector(1536) porque se indexo con text-embedding-3-small de OpenAI. Los
-// modelos de Ollama producen otra dimension (mxbai-embed-large = 1024,
-// nomic-embed-text = 768) y ademas viven en OTRO espacio vectorial, asi que
-// mezclarlos en la misma tabla daria resultados sin sentido. Por eso este demo
-// usa su propia tabla, con la dimension del modelo que se le indique.
+// IMPORTANT about dimensions: the 'pelicula_vector' table in this database uses
+// vector(1536) because it was indexed with OpenAI's text-embedding-3-small. Ollama
+// models produce a different dimension (mxbai-embed-large = 1024,
+// nomic-embed-text = 768) and also live in ANOTHER vector space, so
+// mixing them in the same table would give meaningless results. That is why this
+// demo uses its own table, with the dimension of the model it is given.
 //
-// Configuracion por variables de entorno (con valores por defecto):
+// Configuration via environment variables (with default values):
 //   PGHOST      localhost      PGPORT      5432
 //   PGDATABASE  peliculasdb    PGUSER      postgres
-//   PGPASSWORD  (obligatoria)  PGLIBPQ     ruta a libpq.dll (autodeteccion)
+//   PGPASSWORD  (required)     PGLIBPQ     path to libpq.dll (autodetection)
 //   OLLAMA_URL  http://localhost:11434/
 //
-// Modos de uso:
+// Usage modes:
 //   RagPostgresConsoleDemo.exe
 //   RagPostgresConsoleDemo.exe --model nomic-embed-text --dim 768
-//   RagPostgresConsoleDemo.exe --no-seed      (no inserta peliculas nuevas)
-//   RagPostgresConsoleDemo.exe --reindex      (borra los vectores y reindexa)
-//   RagPostgresConsoleDemo.exe --otel         (trazas OTLP a localhost:4318)
+//   RagPostgresConsoleDemo.exe --no-seed      (does not insert new movies)
+//   RagPostgresConsoleDemo.exe --reindex      (deletes vectors and reindexes)
+//   RagPostgresConsoleDemo.exe --otel         (OTLP traces to localhost:4318)
 // =============================================================================
 
 {$APPTYPE CONSOLE}
@@ -84,40 +84,40 @@ type
     Sinopsis: string;
   end;
 
-  // Peliculas de ejemplo. Se eligieron sinopsis con vocabulario variado para
-  // que la busqueda semantica tenga algo que distinguir: hay pares que
-  // comparten genero pero no palabras, y viceversa.
+  // Example movies. Synopses were chosen with varied vocabulary so
+  // semantic search has something to distinguish: there are pairs that
+  // share a genre but not words, and vice versa.
 const
   SEMILLAS: array [0 .. 14] of TPeliSeed = (
-    (Titulo: 'El Ultimo Tren a Ninguna Parte'; Anio: 2013; Director: 'Irene Vasquez'; GeneroId: 2;
-     Sinopsis: 'Una mujer viaja durante tres dias en ferrocarril para despedirse de su padre moribundo.'),
-    (Titulo: 'Protocolo Fenix'; Anio: 2021; Director: 'Diego Salazar'; GeneroId: 1;
-     Sinopsis: 'Un equipo de operaciones especiales debe recuperar un arma robada antes del amanecer.'),
-    (Titulo: 'La Casa de los Relojes'; Anio: 2019; Director: 'Carla Mendez'; GeneroId: 5;
-     Sinopsis: 'Una restauradora descubre que cada reloj de la mansion marca la hora de una muerte.'),
-    (Titulo: 'Orbita Cero'; Anio: 2024; Director: 'Marco Velez'; GeneroId: 4;
-     Sinopsis: 'La tripulacion de una estacion espacial pierde contacto con la Tierra y racionan el oxigeno.'),
-    (Titulo: 'Mi Suegra Astronauta'; Anio: 2022; Director: 'Pablo Ortiz'; GeneroId: 3;
-     Sinopsis: 'Un yerno torpe debe convivir una semana con la primera mujer que piso Marte.'),
-    (Titulo: 'Pequenos Gigantes de Papel'; Anio: 2023; Director: 'Estudio Pixelia'; GeneroId: 6;
-     Sinopsis: 'Origamis que cobran vida defienden una biblioteca infantil de la humedad y el olvido.'),
-    (Titulo: 'Cicatrices de Sal'; Anio: 2011; Director: 'Sofia Duarte'; GeneroId: 2;
-     Sinopsis: 'Dos hermanas pescadoras se reencuentran tras veinte anos en un pueblo costero en ruinas.'),
-    (Titulo: 'Codigo Escarlata'; Anio: 2020; Director: 'Diego Salazar'; GeneroId: 1;
-     Sinopsis: 'Una analista descubre que el atentado que investiga lo planeo su propio departamento.'),
-    (Titulo: 'El Susurro del Pozo'; Anio: 2016; Director: 'Carla Mendez'; GeneroId: 5;
-     Sinopsis: 'Un pueblo entero enmudece cada vez que alguien se asoma al pozo del cementerio.'),
-    (Titulo: 'Las Lunas de Ithaca'; Anio: 2018; Director: 'Marco Velez'; GeneroId: 4;
-     Sinopsis: 'Colonos de una luna helada deciden si regresan a casa o cortan el vinculo para siempre.'),
-    (Titulo: 'Divorcio en Tres Actos'; Anio: 2017; Director: 'Pablo Ortiz'; GeneroId: 3;
-     Sinopsis: 'Una pareja de actores ensaya su separacion frente al publico cada noche.'),
-    (Titulo: 'El Jardin de Engranajes'; Anio: 2025; Director: 'Estudio Pixelia'; GeneroId: 6;
-     Sinopsis: 'Una nina construye flores mecanicas para devolverle la primavera a una ciudad gris.'),
-    (Titulo: 'Nadie Duerme en Agosto'; Anio: 2012; Director: 'Irene Vasquez'; GeneroId: 2;
-     Sinopsis: 'Durante una ola de calor, los vecinos de un edificio descubren los secretos de todos.'),
-    (Titulo: 'Frontera Rota'; Anio: 2015; Director: 'Lucia Fernandez'; GeneroId: 1;
-     Sinopsis: 'Un guardabosques se enfrenta solo a una banda que cruza mercancia por la sierra.'),
-    (Titulo: 'La Vigilia'; Anio: 2014; Director: 'Sofia Duarte'; GeneroId: 5;
+    (Titulo: 'The Last Train to Nowhere'; Anio: 2013; Director: 'Irene Vasquez'; GeneroId: 2;
+     Sinopsis: 'A woman travels for three days by rail to say goodbye to her dying father.'),
+    (Titulo: 'Phoenix Protocol'; Anio: 2021; Director: 'Diego Salazar'; GeneroId: 1;
+     Sinopsis: 'A special operations team must recover a stolen weapon before dawn.'),
+    (Titulo: 'The House of Clocks'; Anio: 2019; Director: 'Carla Mendez'; GeneroId: 5;
+     Sinopsis: 'A restorer discovers that every clock in the mansion marks the time of a death.'),
+    (Titulo: 'Orbit Zero'; Anio: 2024; Director: 'Marco Velez'; GeneroId: 4;
+     Sinopsis: 'The crew of a space station loses contact with Earth and rations oxygen.'),
+    (Titulo: 'My Astronaut Mother-in-Law'; Anio: 2022; Director: 'Pablo Ortiz'; GeneroId: 3;
+     Sinopsis: 'A clumsy son-in-law must live for a week with the first woman to set foot on Mars.'),
+    (Titulo: 'Little Paper Giants'; Anio: 2023; Director: 'Estudio Pixelia'; GeneroId: 6;
+     Sinopsis: 'Origami that comes to life defends a children''s library from humidity and oblivion.'),
+    (Titulo: 'Salt Scars'; Anio: 2011; Director: 'Sofia Duarte'; GeneroId: 2;
+     Sinopsis: 'Two fisherwomen sisters reunite after twenty years in a ruined coastal town.'),
+    (Titulo: 'Scarlet Code'; Anio: 2020; Director: 'Diego Salazar'; GeneroId: 1;
+     Sinopsis: 'An analyst discovers that the attack she is investigating was planned by her own department.'),
+    (Titulo: 'The Whisper of the Well'; Anio: 2016; Director: 'Carla Mendez'; GeneroId: 5;
+     Sinopsis: 'An entire town falls silent every time someone peers into the cemetery well.'),
+    (Titulo: 'The Moons of Ithaca'; Anio: 2018; Director: 'Marco Velez'; GeneroId: 4;
+     Sinopsis: 'Colonists on a frozen moon decide whether to return home or sever the bond forever.'),
+    (Titulo: 'Divorce in Three Acts'; Anio: 2017; Director: 'Pablo Ortiz'; GeneroId: 3;
+     Sinopsis: 'An acting couple rehearses their separation in front of the audience every night.'),
+    (Titulo: 'The Gear Garden'; Anio: 2025; Director: 'Estudio Pixelia'; GeneroId: 6;
+     Sinopsis: 'A girl builds mechanical flowers to bring spring back to a gray city.'),
+    (Titulo: 'Nobody Sleeps in August'; Anio: 2012; Director: 'Irene Vasquez'; GeneroId: 2;
+     Sinopsis: 'During a heat wave, the residents of a building discover everyone''s secrets.'),
+    (Titulo: 'Broken Border'; Anio: 2015; Director: 'Lucia Fernandez'; GeneroId: 1;
+     Sinopsis: 'A forest ranger faces alone a gang that smuggles goods through the mountains.'),
+    (Titulo: 'The Vigil'; Anio: 2014; Director: 'Sofia Duarte'; GeneroId: 5;
      Sinopsis: 'Una enfermera de turno nocturno jura que los pacientes hablan mientras duermen.'));
 
 var
@@ -195,7 +195,7 @@ begin
     Writeln('   libpq: ' + LibPq);
   end
   else
-    Writeln('   libpq: no localizada, se buscara en el PATH');
+    Writeln('   libpq: not found, it will be searched in PATH');
 
   Conn := TFDConnection.Create(nil);
   Conn.DriverName := 'PG';
@@ -212,13 +212,13 @@ begin
 
   Conn.Connected := True;
   Ver := Conn.ExecSQLScalar('select version()');
-  Writeln('   conectado a ' + Conn.Params.Values['Database'] + '@' + Conn.Params.Values['Server'] + ':' +
+  Writeln('   connected to ' + Conn.Params.Values['Database'] + '@' + Conn.Params.Values['Server'] + ':' +
     Conn.Params.Values['Port']);
   Writeln('   ' + Copy(Ver, 1, 60));
 
   if Conn.ExecSQLScalar('select count(*) from pg_extension where extname = ''vector''') = 0 then
-    raise Exception.Create('La extension pgvector no esta instalada en esta base');
-  Writeln('   pgvector: presente (' + VarToStr(Conn.ExecSQLScalar('select extversion from pg_extension where extname=''vector''')) + ')');
+    raise Exception.Create('The pgvector extension is not installed in this database');
+  Writeln('   pgvector: present (' + VarToStr(Conn.ExecSQLScalar('select extversion from pg_extension where extname=''vector''')) + ')');
 end;
 
 // ---------------------------------------------------------------------------
@@ -245,10 +245,10 @@ begin
       Resp := Http.Get(AUrl.TrimRight(['/']) + '/api/tags');
     except
       on E: Exception do
-        raise Exception.Create('Ollama no responde en ' + AUrl + '. Arrancalo con "ollama serve". Detalle: ' + E.Message);
+        raise Exception.Create('Ollama does not respond at ' + AUrl + '. Start it with "ollama serve". Detail: ' + E.Message);
     end;
     if Resp.StatusCode <> 200 then
-      raise Exception.CreateFmt('Ollama devolvio HTTP %d', [Resp.StatusCode]);
+      raise Exception.CreateFmt('Ollama returned HTTP %d', [Resp.StatusCode]);
 
     Root := TJSONObject.ParseJSONValue(Resp.ContentAsString(TEncoding.UTF8)) as TJSONObject;
     try
@@ -265,9 +265,9 @@ begin
               Lista := Lista + '  ' + Nombre;
           end;
       if not Encontrado then
-        raise Exception.CreateFmt('El modelo "%s" no esta en Ollama. Modelos de embeddings disponibles:%s' + sLineBreak +
+        raise Exception.CreateFmt('The model "%s" is not in Ollama. Available embedding models:%s' + sLineBreak +
           'Descargalo con: ollama pull %s', [ModeloEmb, Lista, ModeloEmb]);
-      Writeln('   modelo de embeddings: ' + ModeloEmb + '  (dim ' + IntToStr(DimEmb) + ')');
+      Writeln('   embeddings model: ' + ModeloEmb + '  (dim ' + IntToStr(DimEmb) + ')');
     finally
       Root.Free;
     end;
@@ -282,12 +282,12 @@ end;
 procedure CrearEsquema;
 begin
   Writeln('');
-  Writeln('== 3. Esquema vectorial ==');
+  Writeln('== 3. Vector schema ==');
 
-  // Catalogo base. El demo se anuncia como autocontenido, pero daba por hecho
-  // que 'pelicula' y 'genero' ya existian de los demos 021/023: en una base
-  // recien creada moria en la siembra con 'relation "pelicula" does not exist'.
-  // Se crean aqui si faltan, para que arranque contra una base vacia.
+  // Base catalog. The demo claims to be self-contained, but it assumed
+  // that 'pelicula' and 'genero' already existed from demos 021/023: on a
+  // newly created database seeding died with 'relation "pelicula" does not exist'.
+  // They are created here if missing, so it starts against an empty database.
   Conn.ExecSQL(
     'create table if not exists genero (' +
     '  id serial primary key,' +
@@ -313,11 +313,11 @@ begin
   Conn.ExecSQL(
     'do $$ begin perform setval(pg_get_serial_sequence(''genero'',''id''), ' +
     'greatest((select max(id) from genero), 1)); end $$');
-  Writeln('   catalogo base: tablas genero y pelicula listas');
+  Writeln('   base catalog: genero and pelicula tables ready');
 
   Driver.CreateSchema(TablaVec, DimEmb);
-  Writeln('   tabla ' + TablaVec + ' lista (vector(' + IntToStr(DimEmb) + '), indice HNSW coseno, GIN sobre properties y FTS)');
-  Writeln('   nota: no se toca pelicula_vector, que es vector(1536) de OpenAI');
+  Writeln('   table ' + TablaVec + ' ready (vector(' + IntToStr(DimEmb) + '), cosine HNSW index, GIN over properties and FTS)');
+  Writeln('   note: pelicula_vector is not touched, it is vector(1536) from OpenAI');
 end;
 
 function SembrarPeliculas: Integer;
@@ -328,11 +328,11 @@ var
 begin
   Result := 0;
   Writeln('');
-  Writeln('== 4. Siembra de peliculas ==');
+  Writeln('== 4. Movie seeding ==');
 
   if HasFlag('--no-seed') then
   begin
-    Writeln('   --no-seed: no se inserta nada');
+    Writeln('   --no-seed: nothing is inserted');
     Exit;
   end;
 
@@ -367,9 +367,9 @@ begin
     Q.Free;
   end;
 
-  Writeln(Format('   insertadas %d peliculas nuevas (las repetidas se omiten por titulo)', [Result]));
+  Writeln(Format('   inserted %d new movies (duplicates are skipped by title)', [Result]));
   // ExecSQLScalar devuelve Variant: hay que convertirlo, %d no lo acepta
-  Writeln('   total en el catalogo: ' + VarToStr(Conn.ExecSQLScalar('select count(*) from pelicula')));
+  Writeln('   total in catalog: ' + VarToStr(Conn.ExecSQLScalar('select count(*) from pelicula')));
 end;
 
 // ---------------------------------------------------------------------------
@@ -385,12 +385,12 @@ var
 begin
   Result := 0;
   Writeln('');
-  Writeln('== 5. Indexado con Ollama ==');
+  Writeln('== 5. Indexing with Ollama ==');
 
   if HasFlag('--reindex') then
   begin
     Driver.Clear(ENTIDAD);
-    Writeln('   --reindex: vectores previos borrados');
+    Writeln('   --reindex: previous vectors deleted');
   end;
 
   Yaestan := TDictionary<string, Boolean>.Create;
@@ -409,7 +409,7 @@ begin
       Q.Next;
     end;
     Q.Close;
-    Writeln(Format('   ya indexadas: %d', [Yaestan.Count]));
+    Writeln(Format('   already indexed: %d', [Yaestan.Count]));
 
     Q.SQL.Text := 'select p.id, p.titulo, p.anio, p.director, coalesce(g.nombre, ''?'') as genero, ' +
       'coalesce(p.sinopsis, '''') as sinopsis from pelicula p left join genero g on g.id = p.genero_id order by p.id';
@@ -423,16 +423,16 @@ begin
         Continue;
       end;
 
-      // QUE se vectoriza importa tanto como el modelo. La primera version de
-      // este demo indexaba "Titulo (anio). Director: X. Genero: Y. Sinopsis",
-      // y la recuperacion era pobre: todos los documentos empezaban con la
-      // misma plantilla, asi que el embedding quedaba dominado por el
-      // boilerplate y los scores se apinaban en una franja estrecha (0.57-0.66).
-      // Poniendo el contenido con carga semantica primero -titulo y sinopsis- y
-      // dejando la ficha al final, la separacion mejora notablemente.
-      // La ficha igual conviene incluirla: permite preguntar por director o
-      // genero en lenguaje natural. Y para filtrar con exactitud estan los
-      // metadatos, que no dependen del embedding.
+      // WHAT is vectorized matters as much as the model. The first version of
+      // this demo indexed "Title (year). Director: X. Genre: Y. Synopsis",
+      // and retrieval was poor: all documents started with the
+      // same template, so the embedding was dominated by
+      // boilerplate and scores clustered in a narrow band (0.57-0.66).
+      // Putting the semantically loaded content first -title and synopsis- and
+      // leaving the record at the end noticeably improves separation.
+      // The record is still worth including: it allows asking about director or
+      // genre in natural language. And for exact filtering there are the
+      // metadata, which do not depend on the embedding.
       Texto := Format('%s. %s (%s, %d, dirigida por %s)', [Q.FieldByName('titulo').AsString,
         Q.FieldByName('sinopsis').AsString, Q.FieldByName('genero').AsString, Q.FieldByName('anio').AsInteger,
         Q.FieldByName('director').AsString]);
@@ -463,7 +463,7 @@ begin
 
   Writeln('');
   Writeln(Format('   indexadas ahora: %d', [Result]));
-  Writeln(Format('   total de vectores en %s: %s', [TablaVec,
+  Writeln(Format('   total vectors in %s: %s', [TablaVec,
     VarToStr(Conn.ExecSQLScalar(Format('select count(*) from %s where entidad = %s', [TablaVec, QuotedStr(ENTIDAD)])))]));
 end;
 
@@ -487,7 +487,7 @@ begin
     Res := Driver.Search(Target, ENTIDAD, ALimit, 0.0, AFilter, Rag.SearchOptions);
     try
       if (Res = nil) or (Res.Count = 0) then
-        Writeln('     (sin resultados)')
+        Writeln('     (no results)')
       else
         for Nodo in Res.Items do
           Writeln(Format('     [%.4f] %-28s %s %s', [Nodo.Idx, VarToStr(Nodo.MetaData['titulo']),
@@ -505,23 +505,23 @@ var
   Filtro: TAiFilterCriteria;
 begin
   Writeln('');
-  Writeln('== 6. Busqueda semantica ==');
+  Writeln('== 6. Semantic search ==');
 
-  // Ninguna de estas consultas comparte las palabras exactas con la sinopsis:
-  // si devuelve lo esperado, es el embedding haciendo su trabajo.
-  Buscar('naves espaciales y viajes fuera del sistema solar', 3, nil);
-  Buscar('algo que da miedo en una casa vieja', 3, nil);
-  Buscar('una historia para reirse con la familia politica', 3, nil);
-  Buscar('reencuentro entre familiares despues de muchos anos', 3, nil);
+  // None of these queries shares the exact words with the synopsis:
+  // if it returns what is expected, the embedding is doing its job.
+  Buscar('spacecraft and travel outside the solar system', 3, nil);
+  Buscar('something scary in an old house', 3, nil);
+  Buscar('a story to laugh with the in-laws', 3, nil);
+  Buscar('reunion between relatives after many years', 3, nil);
 
   Writeln('');
-  Writeln('== 7. Busqueda con filtro de metadatos ==');
-  Writeln('   (el filtro se aplica en SQL sobre properties, sin recalcular vectores)');
+  Writeln('== 7. Search with metadata filter ==');
+  Writeln('   (the filter is applied in SQL over properties, without recomputing vectors)');
 
   Filtro := TAiFilterCriteria.Create;
   try
     Filtro.AddGreater('anio', 2019);
-    Buscar('ciencia ficcion espacial', 5, Filtro);
+    Buscar('space science fiction', 5, Filtro);
   finally
     Filtro.Free;
   end;
@@ -529,30 +529,30 @@ begin
   // -------------------------------------------------------------------------
   // Solo-embeddings vs hibrido
   // -------------------------------------------------------------------------
-  // Los embeddings entienden el sentido pero se pierden con terminos raros y
-  // nombres propios; BM25 hace justo lo contrario. El driver de Postgres
-  // resuelve el lexico con ts_rank_cd sobre la columna search_vector (indice
-  // GIN, configuracion 'spanish') y fusiona ambos rankings con RRF.
+  // Embeddings understand meaning but lose rare terms and
+  // proper names; BM25 does exactly the opposite. The Postgres driver
+  // resolves lexical matching with ts_rank_cd over the search_vector column (GIN
+  // index, 'spanish' configuration) and fuses both rankings with RRF.
   Writeln('');
   Writeln('== 8. Solo-embeddings vs hibrido (BM25 + RRF) ==');
 
   Rag.SearchOptions.UseEmbeddings := True;
   Rag.SearchOptions.UseBM25 := False;
   Rag.SearchOptions.UseRRF := False;
-  Buscar('origamis que defienden una biblioteca', 3, nil, 'solo embeddings  -> "origamis que defienden una biblioteca"');
+  Buscar('origami that defends a library', 3, nil, 'embeddings only  -> "origami that defends a library"');
 
   Rag.SearchOptions.UseBM25 := True;
   Rag.SearchOptions.UseRRF := True;
-  Buscar('origamis que defienden una biblioteca', 3, nil, 'hibrido BM25+RRF  -> la misma consulta');
+  Buscar('origami that defends a library', 3, nil, 'hybrid BM25+RRF  -> the same query');
 
   // Un nombre propio es el caso donde mas se nota
   Rag.SearchOptions.UseBM25 := False;
   Rag.SearchOptions.UseRRF := False;
-  Buscar('peliculas de Estudio Pixelia', 3, nil, 'solo embeddings  -> "peliculas de Estudio Pixelia"');
+  Buscar('movies by Estudio Pixelia', 3, nil, 'embeddings only  -> "movies by Estudio Pixelia"');
 
   Rag.SearchOptions.UseBM25 := True;
   Rag.SearchOptions.UseRRF := True;
-  Buscar('peliculas de Estudio Pixelia', 3, nil, 'hibrido BM25+RRF  -> la misma consulta');
+  Buscar('movies by Estudio Pixelia', 3, nil, 'hybrid BM25+RRF  -> the same query');
 end;
 
 // ---------------------------------------------------------------------------
@@ -584,10 +584,10 @@ begin
         Telemetry := TAiTelemetry.Create(nil);
         Telemetry.ServiceName := 'RagPostgresConsoleDemo';
         Telemetry.Enabled := True;
-        Writeln('[otel] Exportando trazas a ' + Telemetry.Endpoint);
+        Writeln('[otel] Exporting traces to ' + Telemetry.Endpoint);
       end;
 
-      Writeln('=== DEMO 077: RAG vectorial sobre PostgreSQL + pgvector (embeddings locales) ===');
+      Writeln('=== DEMO 077: vector RAG over PostgreSQL + pgvector (local embeddings) ===');
       Writeln('');
 
       ConectarPostgres;
@@ -614,7 +614,7 @@ begin
       Busquedas;
 
       Writeln('');
-      Writeln('OK: el ciclo completo de RAG sobre pgvector funciono con embeddings locales.');
+      Writeln('OK: the full RAG cycle over pgvector worked with local embeddings.');
       ExitCode := 0;
     except
       on E: Exception do

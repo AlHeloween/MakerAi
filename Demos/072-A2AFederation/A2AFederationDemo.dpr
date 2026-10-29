@@ -1,22 +1,22 @@
 ﻿program A2AFederationDemo;
 
 // =============================================================================
-// DEMO 072 - Federacion de agentes con el protocolo A2A (spec 1.0)
+// DEMO 072 - Agent federation with the A2A protocol (spec 1.0)
 // =============================================================================
-// Muestra los tres roles del stack A2A de MakerAI, sin necesidad de LLM ni
-// API keys (los nodos son transformaciones de texto deterministas):
+// Shows the three roles of MakerAI's A2A stack, without needing an LLM or
+// API keys (nodes are deterministic text transformations):
 //
-//   1. SERVIDOR : un grafo TAIAgentManager ("Agente Editor") expuesto como
-//                 agente A2A via TAiA2AServer (Agent Card + JSON-RPC).
-//   2. CLIENTE  : TAiA2AClient descubre la Agent Card y envia un mensaje.
-//   3. FEDERACION: un grafo local ("Agente Redactor") delega uno de sus nodos
-//                 en el agente remoto usando TAiA2ARemoteAgentTool.
+//   1. SERVER   : a TAIAgentManager graph ("Editor Agent") exposed as an
+//                 A2A agent via TAiA2AServer (Agent Card + JSON-RPC).
+//   2. CLIENT   : TAiA2AClient discovers the Agent Card and sends a message.
+//   3. FEDERATION: a local graph ("Writer Agent") delegates one of its nodes
+//                 to the remote agent using TAiA2ARemoteAgentTool.
 //
-// Modos de uso:
-//   A2AFederationDemo.exe                        -> demo completo en un proceso
-//   A2AFederationDemo.exe --serve [--port 8280]  -> solo el servidor (Ctrl+C)
-//   A2AFederationDemo.exe --client --url http://host:8280 [texto...]
-//   A2AFederationDemo.exe --otel                 -> exporta trazas OTLP a :4318
+// Usage modes:
+//   A2AFederationDemo.exe                        -> full demo in one process
+//   A2AFederationDemo.exe --serve [--port 8280]  -> server only (Ctrl+C)
+//   A2AFederationDemo.exe --client --url http://host:8280 [text...]
+//   A2AFederationDemo.exe --otel                 -> exports OTLP traces to :4318
 // =============================================================================
 
 {$APPTYPE CONSOLE}
@@ -33,7 +33,7 @@ uses
 
 type
   // ---------------------------------------------------------------------------
-  // Nodos del agente REMOTO ("Agente Editor"): limpia y firma un texto
+  // Nodes of the REMOTE agent ("Editor Agent"): cleans and signs text
   // ---------------------------------------------------------------------------
   TEditorHandlers = class
   public
@@ -42,7 +42,7 @@ type
   end;
 
   // ---------------------------------------------------------------------------
-  // Nodos del agente LOCAL ("Agente Redactor"): prepara, delega y publica
+  // Nodes of the LOCAL agent ("Writer Agent"): prepares, delegates and publishes
   // ---------------------------------------------------------------------------
   TRedactorHandlers = class
   public
@@ -52,7 +52,7 @@ type
 
 procedure TEditorHandlers.LimpiarExec(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
 begin
-  // Normaliza espacios multiples y recorta extremos
+  // Normalizes multiple spaces and trims ends
   Output := Input.Trim;
   while Output.Contains('  ') do
     Output := Output.Replace('  ', ' ');
@@ -60,17 +60,17 @@ end;
 
 procedure TEditorHandlers.FirmarExec(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
 begin
-  Output := Input + ' [revisado por el Agente Editor]';
+  Output := Input + ' [reviewed by the Editor Agent]';
 end;
 
 procedure TRedactorHandlers.PrepararExec(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
 begin
-  Output := 'BORRADOR: ' + Input;
+  Output := 'DRAFT: ' + Input;
 end;
 
 procedure TRedactorHandlers.PublicarExec(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
 begin
-  Output := '>>> PUBLICADO: ' + Input;
+  Output := '>>> PUBLISHED: ' + Input;
 end;
 
 // -----------------------------------------------------------------------------
@@ -109,9 +109,9 @@ begin
     Server.AgentDescription := 'Limpia y firma textos (demo A2A de MakerAI)';
     Server.Port := APort;
     Server.Active := True;
-    Writeln(Format('Agente A2A escuchando en http://localhost:%d', [APort]));
+    Writeln(Format('A2A agent listening on http://localhost:%d', [APort]));
     Writeln('  Agent Card: http://localhost:' + IntToStr(APort) + '/.well-known/agent-card.json');
-    Writeln('Ctrl+C para detener.');
+    Writeln('Ctrl+C to stop.');
     while True do
     begin
       CheckSynchronize;
@@ -133,20 +133,20 @@ begin
   Client := TAiA2AClient.Create(nil);
   try
     Client.Url := AUrl;
-    Writeln('1) Descargando Agent Card de ' + AUrl + ' ...');
+    Writeln('1) Downloading Agent Card from ' + AUrl + ' ...');
     Card := Client.FetchAgentCard;
     try
-      Writeln('   Agente: ' + Card.GetValue<string>('name', '?') + ' — ' +
+      Writeln('   Agent: ' + Card.GetValue<string>('name', '?') + ' — ' +
         Card.GetValue<string>('description', ''));
     finally
       Card.Free;
     end;
 
-    Writeln('2) Enviando mensaje: "' + AText + '"');
+    Writeln('2) Sending message: "' + AText + '"');
     Task := Client.SendText(AText, OutText);
     try
       Writeln('   Task ' + Client.LastTaskId + ' -> ' + Client.LastState);
-      Writeln('   Respuesta: ' + OutText);
+      Writeln('   Response: ' + OutText);
     finally
       Task.Free;
     end;
@@ -163,7 +163,7 @@ var
   Server: TAiA2AServer;
   Tool: TAiA2ARemoteAgentTool;
 begin
-  Writeln('=== DEMO A2A: federacion de agentes en un solo proceso ===');
+  Writeln('=== DEMO A2A: agent federation in a single process ===');
   Writeln;
 
   EditorHandlers := TEditorHandlers.Create;
@@ -172,22 +172,22 @@ begin
   Redactor := TAIAgentManager.Create(nil);
   Server := TAiA2AServer.Create(nil);
   try
-    // 1) Exponer el Agente Editor via A2A
+    // 1) Expose the Editor Agent via A2A
     Server.AgentManager := Editor;
     Server.AgentName := 'Agente Editor';
     Server.AgentDescription := 'Limpia y firma textos (demo A2A de MakerAI)';
     Server.Port := APort;
     Server.Active := True;
-    Writeln(Format('[servidor] Agente Editor publicado en http://localhost:%d', [APort]));
+    Writeln(Format('[server] Editor Agent published at http://localhost:%d', [APort]));
 
-    // 2) Probar el cliente puro contra el servidor
+    // 2) Test the pure client against the server
     Writeln;
-    Writeln('[cliente] Consumiendo el agente remoto directamente:');
+    Writeln('[client] Consuming the remote agent directly:');
     RunClientMode('http://localhost:' + IntToStr(APort), AText);
 
-    // 3) Federacion: el Agente Redactor delega su nodo 'Editar' en el remoto
+    // 3) Federation: the Writer Agent delegates its 'Edit' node to the remote
     Writeln;
-    Writeln('[federacion] Grafo local: Preparar -> Editar(A2A remoto) -> Publicar');
+    Writeln('[federation] Local graph: Prepare -> Edit(A2A remote) -> Publish');
     Redactor.Name := 'AgenteRedactor';
     Redactor.AddNode('Preparar', RedactorHandlers.PrepararExec);
     Redactor.AddNode('Editar', nil);
@@ -202,12 +202,12 @@ begin
     Redactor.Run(AText);
     WaitForGraph(Redactor);
 
-    Writeln('  Status final: ' + GetEnumName(TypeInfo(TAgentExecutionStatus),
+    Writeln('  Final status: ' + GetEnumName(TypeInfo(TAgentExecutionStatus),
       Ord(Redactor.Blackboard.GetStatus)));
-    Writeln('  Resultado   : ' + Redactor.EndNode.Output);
+    Writeln('  Result      : ' + Redactor.EndNode.Output);
     Writeln;
     if Redactor.Blackboard.GetStatus = esCompleted then
-      Writeln('OK: la federacion A2A funciono de extremo a extremo.')
+      Writeln('OK: A2A federation worked end to end.')
     else
       Writeln('ERROR: el grafo local no completo.');
 
@@ -266,14 +266,14 @@ begin
     end;
 
     if InputText = '' then
-      InputText := 'hola   mundo  federado';
+      InputText := 'hello   world  federated';
 
     if OtelMode then
     begin
       Telemetry := TAiTelemetry.Create(nil);
       Telemetry.ServiceName := 'A2AFederationDemo';
       Telemetry.Enabled := True;
-      Writeln('[otel] Exportando trazas a ' + Telemetry.Endpoint);
+      Writeln('[otel] Exporting traces to ' + Telemetry.Endpoint);
     end;
 
     try

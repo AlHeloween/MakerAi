@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enríquez
-// Redes Sociales:
+// Name: Gustavo Enríquez
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -49,7 +49,7 @@ uses
 var
   MCPServer: TAiMCPServer;
 
-  // --- Muestra la información de ayuda ---
+  // --- Show help information ---
 procedure ShowHelp;
 begin
   WriteLn('');
@@ -109,7 +109,7 @@ begin
   WriteLn('==============================================================================');
 end;
 
-// --- Registro centralizado de herramientas ---
+// --- Centralized tool registration ---
 procedure RegisterAllToolsAndResources(ALogicServer: TAiMCPServer);
 begin
   if not Assigned(ALogicServer) then
@@ -124,7 +124,7 @@ begin
   WriteLn('Registration complete.');
 end;
 
-// --- Programa Principal ---
+// --- Main program ---
 var
   Protocol: string;
   Port: Integer;
@@ -138,7 +138,7 @@ begin
 
   ShowHelp;
 
-  // 1. Valores por defecto
+  // 1. Default values
   Protocol := 'sse'; // Por defecto SSE en este demo
   Port := 8080; // SSE suele usar 8080 u 8000
   CorsOrigins := '*';
@@ -147,7 +147,7 @@ begin
 
   MCPServer := nil;
 
-  // 2. Parsear parámetros
+  // 2. Parse parameters
   if ParamCount >= 1 then
   begin
     i := 1;
@@ -201,10 +201,10 @@ begin
     try
       WriteLn(Format('Starting server with protocol: %s', [Protocol]));
 
-      // 3. Crear instancia según protocolo
+      // 3. Create instance according to protocol
       if SameText(Protocol, 'sse') then
       begin
-        // --- AQUÍ INSTANCIAMOS EL SERVIDOR SSE ---
+        // --- HERE WE INSTANTIATE THE SSE SERVER ---
         MCPServer := TAiMCPSSEHttpServer.Create(nil);
       end
       else if SameText(Protocol, 'http') then
@@ -221,7 +221,7 @@ begin
         Halt(1);
       end;
 
-      // 4. Configuración
+      // 4. Configuration
       if LoadSettings then
       begin
         MCPServer.SettingsFile := FileSettings;
@@ -237,10 +237,10 @@ begin
         end;
       end;
 
-      // 5. Registrar herramientas
+      // 5. Register tools
       RegisterAllToolsAndResources(MCPServer);
 
-      // 6. Iniciar
+      // 6. Start
       if Assigned(MCPServer) then
       begin
         MCPServer.Start;
@@ -258,7 +258,7 @@ begin
 
       WriteLn('Press Ctrl+C to stop.');
 
-      // Bucle infinito
+      // Infinite loop
       while True do
         Sleep(1000);
 

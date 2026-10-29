@@ -9,7 +9,7 @@
 // The simplest possible demo: configure a connection, send a message,
 // print the response.
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - Create and configure TAiChatConnection
 //   - Import the desired provider driver
 //   - Synchronous call with AddMessageAndRun()
@@ -46,7 +46,7 @@ const
   API_KEY = '@CLAUDE_API_KEY';   // '@VAR' → GetEnvironmentVariable('VAR')
   // ────────────────────────────────────────────────────────────────────────
 
-  SYSTEM_PROMPT = 'Eres un asistente útil y conciso. Responde siempre en español.';
+  SYSTEM_PROMPT = 'You are a helpful and concise assistant. Always respond in Spanish.';
 
 // =============================================================================
 //  DEMO
@@ -76,21 +76,21 @@ begin
     Conn.SystemPrompt.Text := SYSTEM_PROMPT;
 
     // ── Question 1: simple text ─────────────────────────────────────────
-    Prompt := '¿Cuál es la capital de Francia? Responde en una sola oración.';
-    Writeln('Pregunta: ', Prompt);
+    Prompt := 'What is the capital of France? Answer in a single sentence.';
+    Writeln('Question: ', Prompt);
 
     Response := Conn.AddMessageAndRun(Prompt, 'user', []);
-    Writeln('Respuesta: ', Response);
+    Writeln('Response: ', Response);
     Writeln;
 
     // ── Question 2: more elaborate ────────────────────────────────────────
     // Note: AddMessageAndRun() accumulates history. The second question
     // can refer to the first one. See demo 04-ChatHistory for details.
-    Prompt := 'Dame ahora 3 datos curiosos sobre esa ciudad.';
-    Writeln('Pregunta: ', Prompt);
+    Prompt := 'Now give me 3 curious facts about that city.';
+    Writeln('Question: ', Prompt);
 
     Response := Conn.AddMessageAndRun(Prompt, 'user', []);
-    Writeln('Respuesta: ', Response);
+    Writeln('Response: ', Response);
 
   finally
     Conn.Free;

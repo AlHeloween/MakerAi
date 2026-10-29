@@ -46,7 +46,7 @@ uses
   uMakerAi.MCPServer.Core;
 
 // =============================================================================
-// Configuración global de conexión
+// Global connection configuration
 // =============================================================================
 
 type
@@ -54,7 +54,7 @@ type
     Driver     : string;  // FireDAC DriverID
     Database   : string;  // file (SQLite) or database name
     Host       : string;
-    Port       : Integer; // 0 = default del driver
+    Port       : Integer; // 0 = driver default
     Username   : string;
     Password   : string;
     Charset    : string;
@@ -65,7 +65,7 @@ type
 var
   GDbConfig: TDbConfig;
 
-// Inicializar y conectar (llamar desde .dpr antes de Server.Start)
+// Initialize and connect (call from .dpr before Server.Start)
 procedure DbConnect;
 procedure DbDisconnect;
 function  DbConnection: TFDConnection;
@@ -185,7 +185,7 @@ type
 implementation
 
 // =============================================================================
-// Gestión de conexión global
+// Global connection management
 // =============================================================================
 
 var
@@ -259,7 +259,7 @@ begin
 end;
 
 // =============================================================================
-// Formateo de resultados
+// Result formatting
 // =============================================================================
 
 // Returns a field value as a readable string
@@ -336,7 +336,7 @@ begin
     for I := 0 to AQuery.FieldCount - 1 do
       Sep := Sep + StringOfChar('-', ColWidths[I] + 2) + '+';
 
-    // Encabezado
+    // Header
     SB.AppendLine(Sep);
     var HeaderLine: string := '|';
     for I := 0 to AQuery.FieldCount - 1 do
@@ -347,7 +347,7 @@ begin
     SB.AppendLine(HeaderLine);
     SB.AppendLine(Sep);
 
-    // Filas
+    // Rows
     AQuery.First;
     Row := 0;
     while not AQuery.Eof and (Row < AMaxRows) do
@@ -437,7 +437,7 @@ var
 begin
   SB := TStringBuilder.Create;
   try
-    // Encabezado
+    // Header
     for I := 0 to AQuery.FieldCount - 1 do
     begin
       if I > 0 then SB.Append(',');
@@ -445,7 +445,7 @@ begin
     end;
     SB.AppendLine;
 
-    // Filas
+    // Rows
     AQuery.First;
     Row := 0;
     while not AQuery.Eof and (Row < AMaxRows) do

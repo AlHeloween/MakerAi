@@ -4,22 +4,22 @@
 {$R *.res}
 
 // =============================================================================
-// MakerAI — Capitulo 14: Generacion de Imagenes y Video
+// MakerAI — Chapter 14: Image and Video Generation
 // =============================================================================
 //
-// Demuestra las dos rutas de generacion de imagenes en MakerAI:
+// Demonstrates the two image generation routes in MakerAI:
 //
-//   Demo 1 — TAiDalle.Generate() directo           gpt-image-2
+//   Demo 1 — Direct TAiDalle.Generate()           gpt-image-2
 //   Demo 2 — Bridge: TAiChatConnection+ImageTool   gpt-image-1
-//   Demo 3 — Gemini nativo (sin bridge)            gemini-2.5-flash-image
+//   Demo 3 — Native Gemini (without bridge)            gemini-2.5-flash-image
 //   Demo 4 — Google Imagen 4 (endpoint :predict)   imagen-4.0-generate-001
-//   Demo 5 — Video con TAiVeoGenerator             veo-3.1-generate-preview
+//   Demo 5 — Video with TAiVeoGenerator             veo-3.1-generate-preview
 //
-// Variables de entorno requeridas:
-//   OPENAI_API_KEY   — Demos 1 y 2
-//   GEMINI_API_KEY   — Demos 3, 4 y 5
+// Required environment variables:
+//   OPENAI_API_KEY   — Demos 1 and 2
+//   GEMINI_API_KEY   — Demos 3, 4 and 5
 //
-// Las imagenes y videos se guardan en la carpeta temporal del sistema.
+// Images and videos are saved in the system temporary folder.
 // =============================================================================
 
 uses
@@ -60,8 +60,8 @@ begin
   Writeln('    -> ', AFilename, ' (', AStream.Size div 1024, ' KB)');
 end;
 
-// Extrae "error.message" de un JSON de error de API.
-// Soporta: objeto puro, array, y prefijo-texto + JSON (ej. "Error 400: {...}").
+// Extracts "error.message" from an API error JSON.
+// Supports: pure object, array, and text-prefix + JSON (e.g. "Error 400: {...}").
 function ExtraerMensajeError(const AJson: string): string;
 var
   JVal: TJSONValue;
@@ -101,7 +101,7 @@ end;
 
 // =============================================================================
 // Demo 1 — TAiDalle.Generate() directo
-// Ruta mas simple: instancia TAiDalle, llama Generate(), obtiene la imagen.
+// Simplest route: instantiate TAiDalle, call Generate(), get the image.
 // =============================================================================
 
 procedure Demo1_GeneracionDirecta;
@@ -117,15 +117,15 @@ begin
   try
     Dalle.ApiKey       := OPENAI_KEY;
     Dalle.Model        := imGptImage2;
-    Dalle.Quality      := iqLow; // iqMedium/High supera los 60s de timeout de TNetHTTPClient
+    Dalle.Quality      := iqLow; // iqMedium/High exceeds the 60s timeout of TNetHTTPClient
     Dalle.Background   := ibOpaque;
     Dalle.OutputFormat := ifPng;
 
-    Write('  Generando... ');
+    Write('  Generating... ');
     SW  := TStopwatch.StartNew;
     Img := Dalle.Generate(
-      'Un gato naranja leyendo un libro de Delphi en una biblioteca vintage, ' +
-      'iluminacion calida, estilo ilustracion profesional',
+      'An orange cat reading a Delphi book in a vintage library, ' +
+      'warm lighting, professional illustration style',
       '', is1024x1024);
     SW.Stop;
 
@@ -133,11 +133,11 @@ begin
     begin
       Writeln(Format('OK [%d ms]', [SW.ElapsedMilliseconds]));
       if Img.RevisedPrompt <> '' then
-        Writeln('  Prompt revisado: ', Copy(Img.RevisedPrompt, 1, 80), '...');
+        Writeln('  Revised prompt: ', Copy(Img.RevisedPrompt, 1, 80), '...');
       GuardarStream(OutFile('demo1-gato-delphi.png'), Img.Image);
     end
     else
-      Writeln('ERROR: sin resultado');
+      Writeln('ERROR: no result');
   finally
     Dalle.Free;
   end;
@@ -149,10 +149,10 @@ end;
 // Gap analysis: ModelCaps=[] / SessionCaps=[cap_GenImage]
 //              → Gap=[cap_GenImage] → InternalRunImageGeneration → ImageTool
 //
-// La imagen llega via OnReceiveDataEnd en aMsg.MediaFiles.
-// En apps de consola sin message pump, el callback puede llegar via
-// TThread.Queue despues de que AddMessageAndRun retorna: el bucle con
-// CheckSynchronize procesa la cola hasta recibir la imagen.
+// The image arrives via OnReceiveDataEnd in aMsg.MediaFiles.
+// In console apps without a message pump, the callback may arrive via
+// TThread.Queue after AddMessageAndRun returns: the loop with
+// CheckSynchronize processes the queue until the image is received.
 // =============================================================================
 
 type
@@ -212,13 +212,13 @@ begin
 
     FConn.OnReceiveDataEnd := OnDataEnd;
 
-    Write('  Generando via bridge (~20 s)...');
+    Write('  Generating via bridge (~20 s)...');
     SW := TStopwatch.StartNew;
     FConn.AddMessageAndRun(
-      'Logo minimalista: nota musical geometrica en degradado azul, fondo blanco',
+      'Minimalist logo: geometric musical note in blue gradient, white background',
       'user', []);
 
-    // Procesar callbacks TThread.Queue pendientes (por si llegan post-retorno)
+    // Process pending TThread.Queue callbacks (in case they arrive after return)
     while (FDone.WaitFor(0) = wrTimeout) and (SW.ElapsedMilliseconds < 90000) do
       CheckSynchronize(200);
     SW.Stop;
@@ -234,8 +234,8 @@ end;
 // =============================================================================
 // Demo 3 — Gemini nativo: sin bridge, completions con responseModalities
 //
-// ModelCaps=[cap_Image,cap_GenImage] → Gap=[] → driver envía
-// responseModalities=["TEXT","IMAGE"] → la imagen llega en la respuesta.
+// ModelCaps=[cap_Image,cap_GenImage] → Gap=[] → driver sends
+// responseModalities=["TEXT","IMAGE"] → the image arrives in the response.
 // =============================================================================
 
 type
@@ -283,8 +283,8 @@ var
   SW: TStopwatch;
 begin
   Writeln;
-  Writeln('=== Demo 3: Gemini nativo — gemini-2.5-flash-image ===');
-  Writeln('  ModelCaps=[cap_Image,cap_GenImage] → Gap=[] → completions directo');
+  Writeln('=== Demo 3: Native Gemini — gemini-2.5-flash-image ===');
+  Writeln('  ModelCaps=[cap_Image,cap_GenImage] → Gap=[] → direct completions');
 
   FDone := TEvent.Create(nil, True, False, '');
   FConn := TAiChatConnection.Create(nil);
@@ -297,11 +297,11 @@ begin
     FConn.OnReceiveDataEnd := OnDataEnd;
     FConn.OnError          := OnError;
 
-    Write('  Generando (Gemini nativo)...');
+    Write('  Generating (native Gemini)...');
     SW := TStopwatch.StartNew;
     FConn.AddMessageAndRun(
-      'Ilustracion en acuarela de una ciudad futurista al anochecer, ' +
-      'tonos purpura y dorado, detalles arquitectonicos finos',
+      'Watercolor illustration of a futuristic city at dusk, ' +
+      'purple and gold tones, fine architectural details',
       'user', []);
 
     while (FDone.WaitFor(0) = wrTimeout) and (SW.ElapsedMilliseconds < 90000) do
@@ -319,7 +319,7 @@ end;
 // Demo 4 — Google Imagen 4 (endpoint :predict)
 //
 // ModelCaps=[] / SessionCaps=[cap_GenImage] → Gap=[cap_GenImage]
-// → InternalRunNativeImageGeneration → endpoint :predict de Gemini
+// → InternalRunNativeImageGeneration → Gemini :predict endpoint
 // =============================================================================
 
 type
@@ -363,7 +363,7 @@ end;
 procedure TImagen4Demo.OnError(Sender: TObject; const ErrorMsg: string;
   AException: Exception; const AResponse: IHTTPResponse);
 begin
-  // El endpoint :predict puede disparar OnError dos veces; mostrar solo la primera
+  // The :predict endpoint may trigger OnError twice; show only the first
   if not FErrorShown then
   begin
     FErrorShown := True;
@@ -378,7 +378,7 @@ var
 begin
   Writeln;
   Writeln('=== Demo 4: Google Imagen 4 — imagen-4.0-generate-001 ===');
-  Writeln('  Bridge interno via endpoint :predict (aspect 16:9)');
+  Writeln('  Internal bridge via endpoint :predict (aspect 16:9)');
 
   FDone := TEvent.Create(nil, True, False, '');
   FConn := TAiChatConnection.Create(nil);
@@ -392,11 +392,11 @@ begin
     FConn.OnReceiveDataEnd := OnDataEnd;
     FConn.OnError          := OnError;
 
-    Write('  Generando Imagen 4 (~30 s)...');
+    Write('  Generating Image 4 (~30 s)...');
     SW := TStopwatch.StartNew;
     FConn.AddMessageAndRun(
-      'Fotografia realista de un volcan nevado al amanecer con reflejo en el lago, ' +
-      'cielo rosado, ultra detalle 4K',
+      'Realistic photograph of a snow-capped volcano at dawn with reflection in the lake, ' +
+      'pink sky, ultra detail 4K',
       'user', []);
 
     while (FDone.WaitFor(0) = wrTimeout) and (SW.ElapsedMilliseconds < 120000) do
@@ -413,10 +413,10 @@ end;
 // =============================================================================
 // Demo 5 — Video con TAiVeoGenerator
 //
-// GenerateFromText() devuelve ITask (asincrono real).
-// Task.Wait bloquea hasta que el polling termina y el video esta listo.
-// Los callbacks OnProgress / OnSuccess / OnError disparan desde el hilo
-// de la tarea, antes de que Task.Wait retorne.
+// GenerateFromText() returns ITask (real asynchronous).
+// Task.Wait blocks until polling finishes and the video is ready.
+// The OnProgress / OnSuccess / OnError callbacks fire from the thread
+// of the task, before Task.Wait returns.
 // =============================================================================
 
 type
@@ -459,7 +459,7 @@ var
 begin
   Writeln;
   Writeln('=== Demo 5: TAiVeoGenerator — veo-3.1-generate-preview ===');
-  Writeln('  Video 5 s, 720p, 16:9. Puede tardar hasta 2 minutos.');
+  Writeln('  Video 5 s, 720p, 16:9. May take up to 2 minutes.');
 
   FTieneError := False;
   Veo := TAiVeoGenerator.Create(nil);
@@ -474,22 +474,22 @@ begin
     Veo.OnSuccess  := OnSuccess;
     Veo.OnError    := OnError;
 
-    Writeln('  Iniciando generacion de video...');
+    Writeln('  Starting video generation...');
     SW   := TStopwatch.StartNew;
     Task := Veo.GenerateFromText(
-      'Un arrecife de coral con peces tropicales de colores en camara lenta, ' +
-      'luz submarina suave y cristalina');
+      'A coral reef with colorful tropical fish in slow motion, ' +
+      'soft and crystal-clear underwater light');
 
-    // Task.Wait bloquea hasta que el polling y la descarga terminan.
+    // Task.Wait blocks until polling and download finish.
     Task.Wait;
-    // Procesar callbacks pendientes en TThread.Queue (console sin message pump)
+    // Process pending callbacks in TThread.Queue (console without message pump)
     CheckSynchronize(0);
     SW.Stop;
 
     if not FTieneError then
-      Writeln(Format('  Completado en %d s.', [SW.ElapsedMilliseconds div 1000]))
+      Writeln(Format('  Completed in %d s.', [SW.ElapsedMilliseconds div 1000]))
     else
-      Writeln('  Finalizado con error (ver arriba).');
+      Writeln('  Finished with error (see above).');
   finally
     Veo.Free;
   end;
@@ -502,19 +502,19 @@ end;
 begin
   SetConsoleOutputCP(65001);
   Writeln('======================================================');
-  Writeln(' MakerAI — Cap 14: Generacion de Imagenes y Video');
+  Writeln(' MakerAI — Cap 14: Image and Video Generation');
   Writeln(' Demo 1: gpt-image-2  | Demo 2: gpt-image-1 (bridge)');
   Writeln(' Demo 3: Gemini flash | Demo 4: Imagen 4 | Demo 5: Veo');
   Writeln('======================================================');
-  Writeln('Salida: ', TPath.GetTempPath);
+  Writeln('Output: ', TPath.GetTempPath);
   Writeln;
 
   var TieneOpenAI := GetEnvironmentVariable('OPENAI_API_KEY') <> '';
   var TieneGemini := GetEnvironmentVariable('GEMINI_API_KEY') <> '';
 
-  Writeln('  Estado del entorno:');
-  if TieneOpenAI then Writeln('  [OK] OPENAI_API_KEY') else Writeln('  [--] OPENAI_API_KEY no configurada');
-  if TieneGemini then Writeln('  [OK] GEMINI_API_KEY') else Writeln('  [--] GEMINI_API_KEY no configurada');
+  Writeln('  Environment status:');
+  if TieneOpenAI then Writeln('  [OK] OPENAI_API_KEY') else Writeln('  [--] OPENAI_API_KEY not configured');
+  if TieneGemini then Writeln('  [OK] GEMINI_API_KEY') else Writeln('  [--] GEMINI_API_KEY not configured');
   Writeln;
 
   if TieneOpenAI then
@@ -522,7 +522,7 @@ begin
     try Demo1_GeneracionDirecta;
     except on E: Exception do Writeln('  [Demo 1 ERROR] ', E.ClassName, ': ', E.Message); end;
   end
-  else Writeln('--- Demo 1 omitido (OPENAI_API_KEY no configurada) ---');
+  else Writeln('--- Demo 1 skipped (OPENAI_API_KEY not configured) ---');
 
   if TieneOpenAI then
   begin
@@ -530,7 +530,7 @@ begin
       with TBridgeDemo.Create do try Run; finally Free; end;
     except on E: Exception do Writeln('  [Demo 2 ERROR] ', E.ClassName, ': ', E.Message); end;
   end
-  else Writeln('--- Demo 2 omitido (OPENAI_API_KEY no configurada) ---');
+  else Writeln('--- Demo 2 skipped (OPENAI_API_KEY not configured) ---');
 
   if TieneGemini then
   begin
@@ -538,7 +538,7 @@ begin
       with TGeminiImgDemo.Create do try Run; finally Free; end;
     except on E: Exception do Writeln('  [Demo 3 ERROR] ', E.ClassName, ': ', E.Message); end;
   end
-  else Writeln('--- Demo 3 omitido (GEMINI_API_KEY no configurada) ---');
+  else Writeln('--- Demo 3 skipped (GEMINI_API_KEY not configured) ---');
 
   if TieneGemini then
   begin
@@ -546,7 +546,7 @@ begin
       with TImagen4Demo.Create do try Run; finally Free; end;
     except on E: Exception do Writeln('  [Demo 4 ERROR] ', E.ClassName, ': ', E.Message); end;
   end
-  else Writeln('--- Demo 4 omitido (GEMINI_API_KEY no configurada) ---');
+  else Writeln('--- Demo 4 skipped (GEMINI_API_KEY not configured) ---');
 
   if TieneGemini then
   begin
@@ -554,10 +554,10 @@ begin
       with TVeoDemo.Create do try Run; finally Free; end;
     except on E: Exception do Writeln('  [Demo 5 ERROR] ', E.ClassName, ': ', E.Message); end;
   end
-  else Writeln('--- Demo 5 omitido (GEMINI_API_KEY no configurada) ---');
+  else Writeln('--- Demo 5 skipped (GEMINI_API_KEY not configured) ---');
 
   Writeln;
   Writeln('======================================================');
-  Writeln('Demos finalizados. Presiona Enter para salir...');
+  Writeln('Demos finished. Press Enter to exit...');
   Readln;
 end.

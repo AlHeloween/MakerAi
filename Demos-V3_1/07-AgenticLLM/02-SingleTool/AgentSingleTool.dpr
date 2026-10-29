@@ -6,16 +6,16 @@ program AgentSingleTool;
 // =============================================================================
 // MakerAI — 07-AgenticLLM / 02-SingleTool
 // =============================================================================
-// El agente usa una herramienta personalizada vía TAiToolRegistry.
-// El LLM decide automáticamente cuándo llamarla (ciclo ReAct automático).
+// The agent uses a custom tool via TAiToolRegistry.
+// The LLM automatically decides when to call it (automatic ReAct cycle).
 //
 // Concepts covered:
-//   - IAiTool: interfaz de herramienta para agentes
-//   - TAiToolRegistry.Instance.Register: registrar herramientas globalmente
-//   - TLLMNode.UseAllTools=True: exponer todas las herramientas registradas
-//   - GetSchema: JSON Schema de parámetros de la herramienta
-//   - Execute: implementación de la herramienta
-//   - Ciclo ReAct: LLM decide → llama tool → LLM interpreta resultado
+//   - IAiTool: tool interface for agents
+//   - TAiToolRegistry.Instance.Register: register tools globally
+//   - TLLMNode.UseAllTools=True: expose all registered tools
+//   - GetSchema: JSON Schema of tool parameters
+//   - Execute: tool implementation
+//   - ReAct cycle: LLM decides → calls tool → LLM interprets result
 //
 // Tool: calculator (add, subtract, multiply, divide)
 // Structure: [Start] --> [CalculatorAgent] --> [End]
@@ -222,6 +222,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

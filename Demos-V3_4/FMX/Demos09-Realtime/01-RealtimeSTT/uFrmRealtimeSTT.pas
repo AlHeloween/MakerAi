@@ -4,13 +4,13 @@
 // MakerAI — Demo FMX Realtime STT
 // Real-time voice transcription using OpenAI Realtime API.
 //
-// Componentes: TAiOpenAiRealtimeSTT + TAIVoiceMonitor
+// Components: TAiOpenAiRealtimeSTT + TAIVoiceMonitor
 //
-// Flujo:
-//   1. TAIVoiceMonitor captura audio del microfono (PCM16 44100 Hz)
-//   2. RealtimeSTT resamplea a 24 kHz y envia por WebSocket
-//   3. VAD del servidor detecta inicio/fin de habla
-//   4. Transcripcion llega en tiempo real (delta) y como texto final
+// Flow:
+//   1. TAIVoiceMonitor captures audio from the microphone (PCM16 44100 Hz)
+//   2. RealtimeSTT resamples to 24 kHz and sends over WebSocket
+//   3. Server VAD detects speech start/end
+//   4. Transcription arrives in real time (delta) and as final text
 //
 // Requires: OPENAI_API_KEY environment variable configured.
 // =============================================================================
@@ -156,7 +156,7 @@ begin
   begin
     FMic.Active := False;
     FSTT.Disconnect;
-    BtnConnect.Text := 'Conectar';
+    BtnConnect.Text := 'Connect';
   end
   else
   begin
@@ -187,7 +187,7 @@ begin
   FMic.Active := False;
   SetStatus('Disconnected. Press Connect to start.');
   SetStateColor(CLR_GRAY);
-  BtnConnect.Text := 'Conectar';
+  BtnConnect.Text := 'Connect';
 end;
 
 procedure TFrmRealtimeSTT.OnSttSessionReady(Sender: TObject);
@@ -200,7 +200,7 @@ end;
 procedure TFrmRealtimeSTT.OnMicCalibrated(Sender: TObject;
   const NoiseLevel, Sensitivity, StopSensitivity: Integer);
 begin
-  SetStatus(Format('Listo — habla en el microfono  [ruido=%d  umbral=%d]',
+  SetStatus(Format('Ready — speak into the microphone  [noise=%d  threshold=%d]',
     [NoiseLevel, Sensitivity]));
   SetStateColor(CLR_GREEN);
 end;
@@ -240,7 +240,7 @@ procedure TFrmRealtimeSTT.OnSttError(Sender: TObject;
 begin
   SetStatus(Format('[ERROR] (%s) %s', [ErrorCode, ErrorMsg]));
   SetStateColor(CLR_RED);
-  BtnConnect.Text := 'Conectar';
+  BtnConnect.Text := 'Connect';
 end;
 
 end.

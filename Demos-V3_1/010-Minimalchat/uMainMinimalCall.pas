@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr�quez
-// Redes Sociales:
+// Name: Gustavo Enr�quez
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -76,12 +76,12 @@ begin
     AiModel.Model := 'gemma3:4b';
     AiModel.OnError := AiChat1Error;
 
-    //--------- Ejemplo de parámetros adicionales ---------
+    //--------- Example of additional parameters ---------
     // AiModel.ApiKey := 'miapikey';
     // AiModel.Url := 'http://localhost:11434/';
     AiModel.Asynchronous := False;
 
-    Prompt := 'saluda a la audiencia de nuestro podcast de MakerAi Delphi Suite';
+    Prompt := 'greet the audience of our MakerAi Delphi Suite podcast';
     Role := 'user';
 
     Res := AiModel.AddMessageAndRun(Prompt, Role, []);
@@ -105,12 +105,12 @@ begin
     AiModel.Model := 'gemma3:4b';
     AiModel.OnError := AiChat1Error;
 
-    //--------- Ejemplo de parámetros adicionales ---------
+    //--------- Example of additional parameters ---------
     //AiModel.Params.Values['ApiKey'] := 'miapikey';
     //AiModel.Params.Values['Url'] := 'http://localhost:11434/';
     AiModel.Params.Values['Asynchronous'] := 'False';
 
-    Prompt := 'saluda a la audiencia de nuestro podcast de MakerAi Delphi Suite';
+    Prompt := 'greet the audience of our MakerAi Delphi Suite podcast';
     Role := 'user';
 
     Res := AiModel.AddMessageAndRun(Prompt, Role, []);

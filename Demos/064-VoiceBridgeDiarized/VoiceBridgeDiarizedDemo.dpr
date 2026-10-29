@@ -1,27 +1,27 @@
-﻿// PUENTE DE VOZ BIDIRECCIONAL CON DIARIZACION (consola)
+﻿// BIDIRECTIONAL VOICE BRIDGE WITH DIARIZATION (console)
 // =======================================================
 //
-// Evolucion del demo 063: el canal [ELLOS] identifica QUIEN habla en la
-// reunion (diarizacion con gpt-4o-transcribe-diarize) y cada hablante se
-// traduce y se lee con una VOZ TTS DISTINTA.
+// Evolution of demo 063: the [THEM] channel identifies WHO speaks in the
+// meeting (diarization with gpt-4o-transcribe-diarize) and each speaker is
+// translated and read with a DISTINCT TTS VOICE.
 //
-//   [ELLOS] loopback -> VAD local (segmentos de habla)
-//                    -> Transcribe diarizado (gpt-4o-transcribe-diarize)
-//                    -> auto-registro de hablantes (known_speakers, max 4)
-//                    -> traducir(es) por hablante -> TTS (voz por hablante)
-//                    -> auriculares
+//   [THEM] loopback -> local VAD (speech segments)
+//                    -> diarized transcription (gpt-4o-transcribe-diarize)
+//                    -> speaker auto-registration (known_speakers, max 4)
+//                    -> translate(es) per speaker -> TTS (voice per speaker)
+//                    -> headphones
 //
-//   [YO]    microfono -> Realtime STT (baja latencia, un solo hablante)
-//                     -> traducir(en) -> TTS -> CABLE Input (la reunion escucha)
+//   [ME]    microphone -> Realtime STT (low latency, single speaker)
+//                     -> translate(en) -> TTS -> CABLE Input (the meeting hears it)
 //
-// AUTO-REGISTRO DE HABLANTES: las etiquetas A/B/C de la diarizacion solo son
-// consistentes dentro de una misma peticion. La primera vez que aparece una
-// voz nueva, se recorta su audio del segmento (>= 2 s) y se registra con
-// AddKnownSpeaker como 'Hablante N'; a partir de ahi la API devuelve ese
-// nombre de forma estable en todos los segmentos siguientes.
+// SPEAKER AUTO-REGISTRATION: the A/B/C diarization labels are only
+// consistent within the same request. The first time a new
+// voice appears, its audio is clipped from the segment (>= 2 s) and registered with
+// AddKnownSpeaker as 'Speaker N'; from then on the API returns that
+// name stably in all following segments.
 //
-// Requisitos: OPENAI_API_KEY, VB-CABLE (opcional, ver demo 063), auriculares.
-// Documentacion: Docs/Version 3/uMakerAi-AudioBridge.md
+// Requirements: OPENAI_API_KEY, VB-CABLE (optional, see demo 063), headphones.
+// Documentation: Docs/Version 3/uMakerAi-AudioBridge.md
 
 program VoiceBridgeDiarizedDemo;
 
@@ -243,7 +243,7 @@ type
 constructor TDiarizedRemoteSide.Create;
 begin
   inherited Create;
-  FTag := '[ELLOS]';
+  FTag := '[THEM]';
   FLock := TCriticalSection.Create;
 
   FChat := TAiChatConnection.Create(nil);
@@ -322,18 +322,18 @@ end;
 
 procedure TDiarizedRemoteSide.CaptureError(Sender: TObject; const ErrorMessage: string);
 begin
-  SafeWriteLn(FTag + ' ERROR captura: ' + ErrorMessage);
+  SafeWriteLn(FTag + ' ERROR capture: ' + ErrorMessage);
 end;
 
 procedure TDiarizedRemoteSide.PlayerError(Sender: TObject; const ErrorMessage: string);
 begin
-  SafeWriteLn(FTag + ' ERROR reproduccion: ' + ErrorMessage);
+  SafeWriteLn(FTag + ' ERROR playback: ' + ErrorMessage);
 end;
 
 procedure TDiarizedRemoteSide.PlayerStateChange(Sender: TObject; aIsPlaying: Boolean);
 begin
-  // Anti-realimentacion: nuestro TTS suena por el dispositivo que captura el
-  // loopback; al terminar la cola se reactiva la captura.
+  // Anti-feedback: our TTS plays through the device captured by
+  // loopback; when the queue finishes the capture is reactivated.
   if not aIsPlaying then
     FCapture.Muted := False;
 end;
@@ -458,7 +458,7 @@ begin
         ProcessSegmentWork(Data);
       except
         on E: Exception do
-          SafeWriteLn(Format('%s ERROR diarizando/traduciendo: %s', [FTag, E.Message]));
+          SafeWriteLn(Format('%s ERROR diarizing/translating: %s', [FTag, E.Message]));
       end;
     end);
 end;
@@ -536,8 +536,8 @@ begin
       except
         on E: Exception do
         begin
-          // Si la API rechaza las muestras de hablantes registradas, limpiar
-          // el registro y reintentar sin ellas (se re-registraran mas adelante).
+          // If the API rejects the registered speaker samples, clear
+          // the registry and retry without them (they will be re-registered later).
           if Pos('known_speaker', LowerCase(E.Message)) > 0 then
           begin
             SafeWriteLn(FTag + ' (speaker samples rejected by the API: restarting registration)');
@@ -641,7 +641,7 @@ type
 constructor TLocalSide.Create(const aPlayerDeviceId: string);
 begin
   inherited Create;
-  FTag := '[YO]   ';
+  FTag := '[ME]   ';
   FChatLock := TCriticalSection.Create;
 
   FChat := TAiChatConnection.Create(nil);
@@ -665,9 +665,9 @@ begin
   FSTT := TAiOpenAiRealtimeSTT.Create(nil);
   FSTT.ApiKey := STT_APIKEY;
   FSTT.Model := STT_MODEL;
-  // Canal [YO] (un solo hablante): gpt-live-transcribe (ago 2026).
-  // El canal remoto sigue con gpt-4o-transcribe-diarize porque los modelos
-  // nuevos NO soportan diarizacion.
+  // [ME] channel (single speaker): gpt-live-transcribe (Aug 2026).
+  // The remote channel still uses gpt-4o-transcribe-diarize because the new
+  // models do NOT support diarization.
   FSTT.TranscriptionModel := otmGptLiveTranscribe;
   FSTT.TranscriptionPrompt := 'Mi voz en una reunion de trabajo traducida';
   FSTT.Language := STT_LANG_LOCAL;
@@ -731,12 +731,12 @@ end;
 
 procedure TLocalSide.CaptureError(Sender: TObject; const ErrorMessage: string);
 begin
-  SafeWriteLn(FTag + ' ERROR captura: ' + ErrorMessage);
+  SafeWriteLn(FTag + ' ERROR capture: ' + ErrorMessage);
 end;
 
 procedure TLocalSide.PlayerError(Sender: TObject; const ErrorMessage: string);
 begin
-  SafeWriteLn(FTag + ' ERROR reproduccion: ' + ErrorMessage);
+  SafeWriteLn(FTag + ' ERROR playback: ' + ErrorMessage);
 end;
 
 procedure TLocalSide.PlayerStateChange(Sender: TObject; aIsPlaying: Boolean);
@@ -833,9 +833,9 @@ begin
     try
       WriteLn('=== Voice bridge with DIARIZATION (MakerAI) ===');
       WriteLn;
-      WriteLn('  [ELLOS] loopback -> diarizacion -> traduccion por hablante -> TTS');
-      WriteLn('          (cada hablante de la reunion con una voz distinta)');
-      WriteLn('  [YO]    microfono -> Realtime -> traduccion -> TTS al cable');
+      WriteLn('  [THEM] loopback -> diarization -> per-speaker translation -> TTS');
+      WriteLn('          (each meeting speaker with a distinct voice)');
+      WriteLn('  [ME]    microphone -> Realtime -> translation -> TTS to cable');
       WriteLn;
 
       if GetEnvironmentVariable('OPENAI_API_KEY') = '' then
@@ -852,15 +852,15 @@ begin
           if D.IsDefault and SameText(D.EndpointId, MeetingDeviceId) then
           begin
             WriteLn;
-            WriteLn('*** ATENCION: "CABLE Input" es la salida PREDETERMINADA de Windows.   ***');
-            WriteLn('*** Pon tus AURICULARES como salida predeterminada o no oiras nada.   ***');
+            WriteLn('*** WARNING: "CABLE Input" is the DEFAULT output of Windows.          ***');
+            WriteLn('*** Set your HEADPHONES as the default output or you will hear nothing.***');
             Break;
           end;
       end
       else
       begin
-        WriteLn('AVISO: sin cable virtual ("' + MEETING_DEVICE_HINT + '"): MODO PRUEBA,');
-        WriteLn('  el TTS en ingles sonara por el dispositivo predeterminado.');
+        WriteLn('WARNING: no virtual cable ("' + MEETING_DEVICE_HINT + '"): TEST MODE,');
+        WriteLn('  English TTS will play through the default device.');
         MeetingDeviceId := '';
       end;
       WriteLn;

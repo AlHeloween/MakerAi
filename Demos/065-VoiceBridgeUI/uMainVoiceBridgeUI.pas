@@ -453,7 +453,7 @@ begin
   FSttMic.ApiKey                := STT_APIKEY;
   // Microfono (un solo hablante): gpt-live-transcribe (ago 2026). El canal
   // remoto sigue diarizado con gpt-4o-transcribe-diarize (los modelos nuevos
-  // no soportan diarizacion).
+  // do not support diarization).
   FSttMic.TranscriptionModel    := otmGptLiveTranscribe;
   FSttMic.TranscriptionPrompt   := 'Mi voz en una reunion de trabajo traducida';
   FSttMic.Language              := EdtLangSrc.Text;
@@ -476,7 +476,7 @@ begin
   FCaptLoop.Active := True;
 
   FRunning := True;
-  BtnStart.Text := 'DETENER';
+  BtnStart.Text := 'STOP';
   SetStatus('Bridge active. STT connecting...');
 end;
 
@@ -506,7 +506,7 @@ begin
   FillChar(FSpeakerSamples, SizeOf(FSpeakerSamples), 0);
 
   FClosing := False;
-  BtnStart.Text := 'INICIAR';
+  BtnStart.Text := 'START';
   SetStatus('Bridge stopped.');
 end;
 
@@ -864,7 +864,7 @@ begin
       if Length(LRes.Segments) = 0 then
       begin
         if Trim(LRes.Text) <> '' then
-          TThread.Queue(nil, procedure begin LogEllos('(sin hablantes) ' + Trim(LRes.Text)); end);
+          TThread.Queue(nil, procedure begin LogEllos('(no speakers) ' + Trim(LRes.Text)); end);
         Exit;
       end;
 

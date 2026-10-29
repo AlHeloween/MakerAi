@@ -103,7 +103,7 @@ begin
     Writeln('[Extractor] Extracting concepts...');
     FinalOut := Manager.Run(ATopic);
 
-    // Mostrar salidas intermedias via blackboard
+    // Show intermediate outputs via blackboard
     Writeln;
     Writeln('--- Extracted concepts (Extractor.output) ---');
     Writeln(Manager.Blackboard.GetString('Extractor.output'));

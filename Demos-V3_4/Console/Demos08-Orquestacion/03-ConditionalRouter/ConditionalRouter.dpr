@@ -6,19 +6,19 @@ program ConditionalRouter;
 // =============================================================================
 // MakerAI — 08-Orquestacion / 03-ConditionalRouter
 // =============================================================================
-// Un clasificador LLM determina la ruta en tiempo de ejecucion.
-// Un nodo router (plain node con OnExecute) lee la clasificacion del
-// blackboard y escribe la clave 'ruta'. Un link condicional despacha
-// al especialista correcto.
+// An LLM classifier determines the route at runtime.
+// A router node (plain node with OnExecute) reads the classification from
+// the blackboard and writes the 'ruta' key. A conditional link dispatches
+// to the correct specialist.
 //
 // Concepts it covers:
 //   - TAIAgentsLink.Mode := lmConditional
-//   - TAIAgentsLink.ConditionalKey: clave en el blackboard que decide la ruta
+//   - TAIAgentsLink.ConditionalKey: key in the blackboard that decides the route
 //   - TAIAgentsLink.AddConditionalTarget(key, node)
-//   - TAIAgentsNode.OnExecute: logica de enrutamiento sin LLM
-//   - TLLMNode.JoinMode := jmAny: el formatter solo recibe un especialista
+//   - TAIAgentsNode.OnExecute: routing logic without LLM
+//   - TLLMNode.JoinMode := jmAny: the formatter receives only one specialist
 //
-// Estructura:
+// Structure:
 //   [Clasificador] -> [Router (OnExecute)] --lmConditional-->
 //     math    -> [EspecialistaMath]     \
 //     science -> [EspecialistaCiencia]  --> [Formatter (jmAny)]
@@ -55,7 +55,7 @@ var
 begin
   Clasificacion := Trim(LowerCase(Node.Graph.Blackboard.GetString('Clasificador.output')));
 
-  // Tomar la primera palabra de la clasificacion
+  // Take the first word of the classification
   Ruta := 'history'; // default
   PrimeraP := '';
   if Length(Clasificacion) > 0 then
@@ -78,7 +78,7 @@ begin
   Node.Graph.Blackboard.SetString('ruta', Ruta);
   Writeln(Format('  [Router] Classification="%s" -> Route="%s"', [Clasificacion, Ruta]));
 
-  // Pasar la pregunta original (no la clasificacion)
+  // Pass the original question (not the classification)
   if Assigned(BeforeNode) then
     Output := BeforeNode.Input
   else
@@ -144,8 +144,8 @@ begin
 
     // Classifier: returns ONE word
     Clasificador := MakeLLM(Manager, 'Clasificador',
-      'Eres un CLASIFICADOR. Tu trabajo es devolver UNA sola palabra.' + #10 +
-      'Dada una pregunta, responde SOLO con una de estas palabras exactas: math  science  history' + #10 +
+      'You are a CLASSIFIER. Your job is to return a SINGLE word.' + #10 +
+      'Given a question, respond ONLY with one of these exact words: math  science  history' + #10 +
       'Sin explicaciones. Sin puntuacion. Solo una palabra.');
     Clasificador.MaxTokens := 3;
 
@@ -157,21 +157,21 @@ begin
 
     // Specialists
     EspMath := MakeLLM(Manager, 'EspecialistaMath',
-      'Eres un experto en matematicas. Responde la pregunta claramente ' +
+      'You are an expert in mathematics. Answer the question clearly ' +
       'mostrando todos los pasos si hay calculos. Responde en espanol.');
 
     EspCiencia := MakeLLM(Manager, 'EspecialistaCiencia',
-      'Eres un experto en ciencias. Responde con precision cientifica ' +
+      'You are an expert in science. Answer with scientific precision ' +
       'usando lenguaje claro. Responde en espanol.');
 
     EspHistoria := MakeLLM(Manager, 'EspecialistaHistoria',
-      'Eres un experto en historia. Responde con contexto historico ' +
+      'You are an expert in history. Answer with historical context ' +
       'y datos clave. Responde en espanol.');
 
     // Final formatter: jmAny (only one specialist arrives)
     Formatter := MakeLLM(Manager, 'Formatter',
-      'Recibes la respuesta de un experto. ' +
-      'Formatéala: agrega un titulo breve, luego la respuesta estructurada. ' +
+      'You receive an expert''s response. ' +
+      'Format it: add a brief title, then the structured response. ' +
       'Mantén la concision. Responde en espanol.');
     Formatter.JoinMode := jmAny;
 
@@ -215,7 +215,7 @@ begin
     Manager.EndNode   := Formatter;
     Manager.Compile;
 
-    // Consultas de diferentes categorias
+    // Queries of different categories
     RunQuery(Manager, 'Cuanto es la raiz cuadrada de 225?');
     RunQuery(Manager, 'Como funciona la fotosintesis?');
     RunQuery(Manager, 'Cuando termino la Segunda Guerra Mundial?');

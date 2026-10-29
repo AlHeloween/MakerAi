@@ -1,36 +1,36 @@
 program A2ASutAgentDemo;
 
 // =============================================================================
-// DEMO 079 - Agente SUT conforme al TCK oficial de A2A
+// DEMO 079 - SUT agent conforming to the official A2A TCK
 // =============================================================================
-// El TCK (a2aproject/a2a-tck) no solo valida el protocolo: para poder probar
-// ciertas cosas necesita que el agente bajo prueba implemente un contrato de
-// escenarios. Despacha por el PREFIJO DEL messageId, no por el texto:
+// The TCK (a2aproject/a2a-tck) does not only validate the protocol: to be
+// able to test certain things it needs the agent under test to implement a
+// scenario contract. It dispatches by the messageId PREFIX, not by the text:
 //
-//   tck-artifact-text      -> artifact con un TextPart "Generated text content"
-//   tck-artifact-data      -> artifact con un DataPart {"key":"value","count":42}
-//   tck-artifact-file      -> artifact con un FilePart de bytes (raw + filename)
-//   tck-artifact-file-url  -> artifact con un FilePart por URL
-//   tck-message-response   -> responde con un Message, no con un Task
-//   tck-input-required     -> deja el task en input-required
-//   tck-complete-task      -> completa con un mensaje de agente
+//   tck-artifact-text      -> artifact with a TextPart "Generated text content"
+//   tck-artifact-data      -> artifact with a DataPart {"key":"value","count":42}
+//   tck-artifact-file      -> artifact with a FilePart of bytes (raw + filename)
+//   tck-artifact-file-url  -> artifact with a FilePart by URL
+//   tck-message-response   -> responds with a Message, not a Task
+//   tck-input-required     -> leaves the task in input-required
+//   tck-complete-task      -> completes with an agent message
 //
-// Este demo sirve para dos cosas a la vez:
-//   1. Es el System Under Test con el que se corre el TCK completo.
-//   2. Es el ejemplo de como emitir artifacts ESTRUCTURADOS desde un grafo,
-//      que es la capacidad que hacia falta: hasta ahora un agente MakerAI solo
-//      podia devolver texto plano.
+// This demo serves two purposes at once:
+//   1. It is the System Under Test used to run the full TCK.
+//   2. It is the example of how to emit STRUCTURED artifacts from a graph,
+//      which is the capability that was missing: until now a MakerAI agent could
+//      only return plain text.
 //
-// El canal es el blackboard. El servidor siembra A2A.MessageId / A2A.TaskId /
-// A2A.ContextId antes de correr el grafo, y al terminar lee:
-//   A2A.Artifacts -> array JSON de artifacts, se emite tal cual
-//   A2A.Message   -> objeto Message; si esta, SendMessage responde con el brazo
-//                    {"message": ...} del oneof en vez de {"task": ...}
+// The channel is the blackboard. The server seeds A2A.MessageId / A2A.TaskId /
+// A2A.ContextId before running the graph, and when it finishes reads:
+//   A2A.Artifacts -> JSON array of artifacts, emitted as is
+//   A2A.Message   -> Message object; if present, SendMessage responds with the
+//                    {"message": ...} arm of the oneof instead of {"task": ...}
 //
-// Uso:
+// Usage:
 //   A2ASutAgentDemo.exe [--port 9999]
 //
-// Y en otra consola, el TCK:
+// And in another console, the TCK:
 //   python run_tck.py --sut-host http://localhost:9999 --level must
 // =============================================================================
 
@@ -49,17 +49,17 @@ type
   TSutHandlers = class
   public
     procedure Escenario(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
-    // Fabrica del pool. Sin esto el TCK falla: lanza peticiones concurrentes y
-    // un unico TAIAgentManager no ejecuta dos grafos a la vez, asi que la
-    // segunda recibe AgentBusy (-32000) y rompe la validacion del envelope.
+    // Pool factory. Without this the TCK fails: it sends concurrent requests and
+    // a single TAIAgentManager does not run two graphs at once, so the
+    // second receives AgentBusy (-32000) and breaks envelope validation.
     procedure FabricaManager(Sender: TObject; var AManager: TAIAgentManager);
   end;
 
   // ---------------------------------------------------------------------------
   // Helpers para construir artifacts conformes con la spec 1.0.
-  // En v1.0 no hay TextPart/DataPart/FilePart como tipos distintos: hay un unico
-  // Part y el contenido lo determina QUE campo esta presente (text, data, raw,
-  // url), con mediaType y filename opcionales.
+  // In v1.0 there are no TextPart/DataPart/FilePart as distinct types: there is a
+  // single Part and the content is determined by WHICH field is present (text, data, raw,
+  // url), with optional mediaType and filename.
   // ---------------------------------------------------------------------------
 
 function NuevoArtifact(const AId, ANombre: string; APart: TJSONObject): string;
@@ -98,7 +98,7 @@ end;
 function PartArchivoBytes(const ABytes, AMediaType, ANombre: string): TJSONObject;
 begin
   Result := TJSONObject.Create;
-  // 'raw' viaja en base64 por ProtoJSON (los bytes de proto se serializan asi)
+  // 'raw' travels in base64 through ProtoJSON (proto bytes are serialized this way)
   Result.AddPair('raw', TNetEncoding.Base64.Encode(ABytes));
   Result.AddPair('mediaType', AMediaType);
   Result.AddPair('filename', ANombre);
@@ -143,7 +143,7 @@ var
   MsgId, TaskId, CtxId: string;
 begin
   B := Node.Graph.Blackboard;
-  // El TCK despacha por el prefijo del messageId, no por el contenido
+  // The TCK dispatches by the messageId prefix, not by the content
   MsgId := B.GetString(A2A_BB_MESSAGE_ID);
   TaskId := B.GetString(A2A_BB_TASK_ID);
   CtxId := B.GetString(A2A_BB_CONTEXT_ID);
@@ -151,8 +151,8 @@ begin
 
   Writeln(Format('  [SUT] messageId=%s', [MsgId]));
 
-  // OJO al orden: 'tck-artifact-file-url' empieza por 'tck-artifact-file',
-  // asi que la variante mas especifica va primero.
+  // NOTE the order: 'tck-artifact-file-url' starts with 'tck-artifact-file',
+  // so the more specific variant goes first.
   if MsgId.StartsWith('tck-artifact-file-url') then
     B.SetString(A2A_BB_ARTIFACTS, NuevoArtifact(TaskId + '-a', 'output',
       PartArchivoUrl('https://example.com/output.txt', 'text/plain', 'output.txt')))
@@ -231,15 +231,15 @@ begin
       Server.MaxConcurrentTasks := 64;
       Server.Active := True;
 
-      Writeln('=== DEMO 079: agente SUT conforme al TCK de A2A ===');
+      Writeln('=== DEMO 079: SUT agent conforming to the A2A TCK ===');
       Writeln('');
       Writeln(Format('Escuchando en http://localhost:%d/', [Port]));
       Writeln(Format('Agent Card:    http://localhost:%d/.well-known/agent-card.json', [Port]));
       Writeln('');
-      Writeln('Ahora, desde el TCK:');
+      Writeln('Now, from the TCK:');
       Writeln(Format('  python run_tck.py --sut-host http://localhost:%d --level must', [Port]));
       Writeln('');
-      Writeln('Ctrl+C para terminar.');
+      Writeln('Ctrl+C to stop.');
       Writeln('');
 
       while True do

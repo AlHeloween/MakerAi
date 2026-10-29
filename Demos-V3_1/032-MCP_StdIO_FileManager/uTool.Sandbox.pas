@@ -20,7 +20,7 @@ type
   private
     FPath: string;
   public
-    [AiMCPSchemaDescription('Relative path of the file or folder (e.g.: "notas/lista.txt" or "." for the root)')]
+    [AiMCPSchemaDescription('Relative path of the file or folder (e.g.: "notes/list.txt" or "." for the root)')]
     property Path: string read FPath write FPath;
   end;
 
@@ -119,7 +119,7 @@ begin
 
   // Security check (Avoid Path Traversal: "..\..\windows")
   if not LFullPath.StartsWith(SANDBOX_ROOT, True) then
-    raise Exception.CreateFmt('SEGURIDAD: Acceso denegado. La ruta "%s" está fuera del sandbox.', [ARelativePath]);
+    raise Exception.CreateFmt('SECURITY: Access denied. The path "%s" is outside the sandbox.', [ARelativePath]);
 
   Result := LFullPath;
 end;
@@ -204,7 +204,7 @@ begin
   try
     LPath := ResolvePath(AParams.Path);
     if not TFile.Exists(LPath) then
-      raise Exception.Create('Archivo no encontrado.');
+      raise Exception.Create('File not found.');
 
     // We use the Core Helper that already handles streams or text
     Result := TAiMCPResponseBuilder.New.AddFile(LPath).Build;
@@ -301,7 +301,7 @@ begin
     if not TFile.Exists(LSrc) then
       raise Exception.Create('Source file not found.');
 
-    // Asegurar directorio destino
+    // Ensure destination directory
     TDirectory.CreateDirectory(TPath.GetDirectoryName(LDst));
 
     TFile.Copy(LSrc, LDst, True); // True = Overwrite

@@ -65,7 +65,7 @@ begin
 
     except
       on E: Exception do
-        WriteLn('Error Fatal al iniciar: ' + E.Message);
+        WriteLn('Fatal error on startup: ' + E.Message);
     end;
   finally
     // Cleanup

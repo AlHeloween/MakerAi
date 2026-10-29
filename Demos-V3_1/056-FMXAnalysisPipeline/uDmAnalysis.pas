@@ -7,8 +7,8 @@
 // Pipeline:
 //   [Analyzer] -> [Extractor] -> [Summarizer]
 //
-// Cada nodo es un TLLMNode con su propio SystemPrompt.
-// El historial se acumula via Blackboard (OnEnterNode/OnExitNode).
+// Each node is a TLLMNode with its own SystemPrompt.
+// History accumulates via Blackboard (OnEnterNode/OnExitNode).
 // =============================================================================
 
 interface

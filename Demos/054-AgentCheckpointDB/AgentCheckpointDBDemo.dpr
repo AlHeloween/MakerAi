@@ -26,19 +26,19 @@ uses
   uMakerAi.Agents.Checkpoint.DB;
 
 // ---------------------------------------------------------------------------
-// Demo 054 — TAiDatabaseCheckpointer con SQLite
+// Demo 054 — TAiDatabaseCheckpointer with SQLite
 //
-// Flujo del agente:
+// Agent flow:
 //   Inicio -> Procesar -> Aprobar (SUSPEND) -> Finalizar
 //
-// Fase 1: El agente se ejecuta y se suspende en el nodo "Aprobar".
-//         El checkpoint se guarda automaticamente en la BD SQLite.
+// Phase 1: The agent runs and suspends at the "Approve" node.
+//         The checkpoint is saved automatically in the SQLite DB.
 //
-// Fase 2: El usuario presiona ENTER (simula aprobacion del operador).
-//         Se llama a ResumeThread para reanudar desde "Finalizar".
-//         El checkpoint se elimina al completar.
+// Phase 2: The user presses ENTER (simulates operator approval).
+//         ResumeThread is called to resume from "Finish".
+//         The checkpoint is deleted on completion.
 //
-// Si hay checkpoints previos en la BD, el demo ofrece reanudarlos.
+// If there are previous checkpoints in the DB, the demo offers to resume them.
 // ---------------------------------------------------------------------------
 
 type
@@ -184,11 +184,11 @@ procedure TDemo.DoSuspend(Sender: TObject;
 begin
   TThread.Synchronize(nil, procedure begin
     Writeln;
-    Println('*** AGENTE SUSPENDIDO — Accion humana requerida ***');
+    Println('*** AGENT SUSPENDED — Human action required ***');
     Println('  Thread ID  : ' + AThreadID);
-    Println('  Nodo       : ' + ANodeName);
-    Println('  Razon      : ' + AReason);
-    Println('  Contexto   : ' + AContext);
+    Println('  Node       : ' + ANodeName);
+    Println('  Reason     : ' + AReason);
+    Println('  Context    : ' + AContext);
     FSuspendedThreadID := AThreadID;
   end);
 end;
@@ -254,7 +254,7 @@ begin
   ActiveThreads := FCheckpointer.GetActiveThreadIDs;
   if Length(ActiveThreads) > 0 then
   begin
-    Println(Format('Se encontraron %d thread(s) suspendido(s) en BD:',
+    Println(Format('Found %d suspended thread(s) in DB:',
       [Length(ActiveThreads)]));
     for I := 0 to High(ActiveThreads) do
       Println(Format('  [%d] %s', [I + 1, ActiveThreads[I]]));
@@ -269,7 +269,7 @@ begin
       FAgents.ResumeThread(ActiveThreads[0], 'Finalizar', 'Aprobado desde BD');
       WaitForCompletion;
       FCheckpointer.DeleteCheckpoint(ActiveThreads[0]);
-      Println('Checkpoint eliminado de la BD.');
+      Println('Checkpoint deleted from DB.');
     end
     else
       Println('Operation cancelled.');
@@ -300,8 +300,8 @@ begin
   Println('=== CHECKPOINT SAVED IN SQLITE DB ===');
   Println('Thread ID : ' + FSuspendedThreadID);
   Println('DB file   : ' + ChangeFileExt(ParamStr(0), '.db'));
-  Println('El estado persiste. Puedes reiniciar la app y el thread');
-  Println('aparecera como suspendido al volver a ejecutar el demo.');
+  Println('The state persists. You can restart the app and the thread');
+  Println('will appear as suspended when running the demo again.');
   Writeln;
 
   // =========================================================================
@@ -321,7 +321,7 @@ begin
   // Cleanup
   FCheckpointer.DeleteCheckpoint(FSuspendedThreadID);
   Writeln;
-  Println('Checkpoint eliminado de la BD.');
+  Println('Checkpoint deleted from DB.');
   Println('Demo finished successfully.');
 end;
 

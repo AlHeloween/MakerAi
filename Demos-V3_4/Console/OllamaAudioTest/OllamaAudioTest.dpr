@@ -5,23 +5,23 @@ program OllamaAudioTest;
 // =============================================================================
 // OllamaAudioTest — bridge STT + TTS: gemma3:4b (Ollama) + TAiGeminiSpeechTool
 // =============================================================================
-// Demuestra cómo usar un modelo Ollama sin capacidad de audio nativa
-// (gemma3:4b) combinado con TAiGeminiSpeechTool como bridge automático.
+// Demonstrates how to use an Ollama model without native audio capability
+// (gemma3:4b) combined with TAiGeminiSpeechTool as an automatic bridge.
 //
-// ESCENARIO A — STT bridge (Fase 1 del orquestador):
+// SCENARIO A — STT bridge (Phase 1 of the orchestrator):
 //   ModelCaps=[] / SessionCaps=[cap_Audio]  →  Gap=[cap_Audio]
-//   El orquestador detecta el gap y llama TAiGeminiSpeechTool.ExecuteTranscription
-//   antes de enviar el mensaje al modelo. La transcripción se inyecta en el
-//   prompt y gemma3:4b responde como si hubiera recibido texto plano.
+//   The orchestrator detects the gap and calls TAiGeminiSpeechTool.ExecuteTranscription
+//   before sending the message to the model. The transcription is injected into the
+//   prompt and gemma3:4b responds as if it had received plain text.
 //
-// ESCENARIO B — TTS (generación de audio de la respuesta):
-//   Toma el texto de respuesta del escenario A y usa TAiGeminiSpeechTool
-//   para generar un archivo WAV de salida (respuesta_audio.wav).
+// SCENARIO B — TTS (audio generation for the response):
+//   Takes the response text from scenario A and uses TAiGeminiSpeechTool
+//   to generate an output WAV file (respuesta_audio.wav).
 //
-// Uso:
-//   OllamaAudioTest.exe [ruta_audio] [pregunta]
+// Usage:
+//   OllamaAudioTest.exe [audio_path] [question]
 //
-//   Si no se pasan argumentos, los pide de forma interactiva.
+//   If no arguments are passed, it asks for them interactively.
 // =============================================================================
 
 uses
@@ -90,8 +90,8 @@ const
 // ---------------------------------------------------------------------------
 procedure PrintError(const ErrCap: TErrorCapture);
 begin
-  Writeln('[ERROR DEL LLM]');
-  Writeln('  Mensaje : ', ErrCap.ErrorMsg);
+  Writeln('[LLM ERROR]');
+  Writeln('  Message : ', ErrCap.ErrorMsg);
   if ErrCap.HttpStatus > 0 then
   begin
     Writeln('  HTTP    : ', ErrCap.HttpStatus);
@@ -114,7 +114,7 @@ begin
   Writeln;
   Writeln('=== SCENARIO A — STT bridge ===');
   Writeln('  Audio   : ', AAudioFile);
-  Writeln('  Pregunta: ', AQuestion);
+  Writeln('  Question: ', AQuestion);
   Writeln(DIV_LINE);
 
   ErrCap     := TErrorCapture.Create;
@@ -130,9 +130,9 @@ begin
     Conn.DriverName := 'Ollama';
     Conn.Params.Values['URL']          := OLLAMA_URL;
     Conn.Params.Values['Model']        := MODEL;
-    // ModelCaps=[] → gemma3:4b no tiene audio nativo
-    // SessionCaps=[cap_Audio] → queremos audio en la sesión
-    // Gap=[cap_Audio] → orquestador activa bridge STT (FASE 1)
+    // ModelCaps=[] → gemma3:4b has no native audio
+    // SessionCaps=[cap_Audio] → we want audio in the session
+    // Gap=[cap_Audio] → orchestrator activates STT bridge (PHASE 1)
     Conn.Params.Values['ModelCaps']    := '[]';
     Conn.Params.Values['SessionCaps']  := '[cap_Audio]';
     Conn.Params.Values['Asynchronous'] := 'False';
@@ -143,9 +143,9 @@ begin
     // -- Assign the SpeechTool to the bridge --
     Conn.SpeechTool := SpeechTool;
 
-    // -- Cargar audio --
-    // IMPORTANTE: AddMessageAndRun asume ownership del TAiMediaFile.
-    // NO liberar AudioFile; la lista FMessages lo libera al destruir la conexión.
+    // -- Load audio --
+    // IMPORTANT: AddMessageAndRun assumes ownership of TAiMediaFile.
+    // DO NOT free AudioFile; the FMessages list frees it when the connection is destroyed.
     AudioFile := TAiMediaFile.Create;
     AudioFile.LoadFromFile(AAudioFile);
     Writeln('  Loaded : ', AudioFile.Content.Size, ' bytes',
@@ -153,11 +153,11 @@ begin
             ' | Cat: ', GetEnumName(TypeInfo(TAiFileCategory), Ord(AudioFile.FileCategory)));
     Writeln('  Transcribing with Gemini + sending to ', MODEL, ' (please wait...)');
 
-    // El orquestador detecta Gap=[cap_Audio]:
-    //   FASE 1 → TAiGeminiSpeechTool.ExecuteTranscription(audioFile, ...)
-    //          → MF.Transcription = texto
-    //          → AskMsg.Prompt += '[Transcripción de audio]:...'
-    //   FASE 3 → InternalRunCompletions → gemma3:4b recibe prompt aumentado
+    // The orchestrator detects Gap=[cap_Audio]:
+    //   PHASE 1 → TAiGeminiSpeechTool.ExecuteTranscription(audioFile, ...)
+    //          → MF.Transcription = text
+    //          → AskMsg.Prompt += '[Audio transcription]:...'
+    //   PHASE 3 → InternalRunCompletions → gemma3:4b receives augmented prompt
     Result := Conn.AddMessageAndRun(AQuestion, 'user', [AudioFile]);
 
     Writeln;
@@ -247,7 +247,7 @@ begin
     if ParamCount >= 2 then
       Question := ParamStr(2)
     else
-      Question := 'Resume brevemente qué dice el audio.';
+      Question := 'Briefly summarize what the audio says.';
 
     // -- Scenario A: STT bridge --
     ModelResponse := RunSTTBridge(AudioPath, Question);

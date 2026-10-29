@@ -6,17 +6,17 @@ program ReActBasic;
 // =============================================================================
 // MakerAI — 07-AgenticLLM / 01-ReAct-Basic
 // =============================================================================
-// El patrón ReAct (Reasoning + Acting) es la base de todos los agentes LLM.
-// En MakerAI se implementa con TAIAgentManager + TLLMNode.
+// The ReAct pattern (Reasoning + Acting) is the basis of all LLM agents.
+// In MakerAI it is implemented with TAIAgentManager + TLLMNode.
 //
 // Concepts covered:
-//   - TAIAgentManager: orquestador del grafo de agentes
-//   - TLLMNode: nodo que contiene el loop ReAct con el proveedor LLM
-//   - TAIAgentsNode: nodo genérico (pasante o con OnExecute)
-//   - TAIAgentsLink: arista que conecta nodos
+//   - TAIAgentManager: agent graph orchestrator
+//   - TLLMNode: node that contains the ReAct loop with the LLM provider
+//   - TAIAgentsNode: generic node (pass-through or with OnExecute)
+//   - TAIAgentsLink: edge that connects nodes
 //   - Manager.StartNode / EndNode / Compile / Run
-//   - Manager.Blackboard: estado compartido entre nodos
-//   - Manager.Asynchronous=False: ejecución síncrona
+//   - Manager.Blackboard: shared state between nodes
+//   - Manager.Asynchronous=False: synchronous execution
 //
 // Graph structure:
 //   [Start] --> [LLMAgent] --> [End]
@@ -128,6 +128,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

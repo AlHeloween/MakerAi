@@ -1,22 +1,22 @@
 ﻿program JevBatchLabelingDemo;
 
 // =============================================================================
-// DEMO 087 - Etiquetado masivo con Jev: movimientos contables contra el PUC
+// DEMO 087 - Massive labeling with Jev: accounting movements against the PUC
 // =============================================================================
-// Reproduce en Delphi el experimento del prototipo en Python: clasificar 126
-// movimientos (casos.csv) en una de 225 cuentas del PUC colombiano (puc.csv)
-// con TAiJevBatchLabeler, en paralelo, y medir:
+// Reproduces in Delphi the experiment from the Python prototype: classify 126
+// movements (casos.csv) into one of 225 accounts of the Colombian PUC (puc.csv)
+// with TAiJevBatchLabeler, in parallel, and measure:
 //
-//   - acierto contra la cuenta esperada (o una alternativa aceptable)
-//   - acierto de lo que se automatizaria (confianza >= ReviewThreshold)
-//   - filas que quedan para revision humana, con sus 3 sugerencias
-//   - tokens, costo y tiempo
+//   - accuracy against the expected account (or an acceptable alternative)
+//   - accuracy of what would be automated (confidence >= ReviewThreshold)
+//   - rows left for human review, with their 3 suggestions
+//   - tokens, cost and time
 //
-// La pregunta y los textos son los mismos del prototipo en Python (que dio 94%
-// de acierto), para que la comparacion sea directa. El resultado por fila
-// queda en resultados.csv.
+// The question and texts are the same as in the Python prototype (which gave 94%
+// accuracy), so the comparison is direct. The per-row result
+// is saved in resultados.csv.
 //
-// Requiere TYPESAFE_API_KEY. Costo: ~1.2M tokens de entrada, ~US$0.05.
+// Requires TYPESAFE_API_KEY. Cost: ~1.2M input tokens, ~US$0.05.
 // =============================================================================
 
 {$APPTYPE CONSOLE}
@@ -51,7 +51,7 @@ begin
     Result := 'Causación de una factura de proveedor (aún no se paga).';
 end;
 
-// Busca los CSV junto al .dpr (el .exe queda en Win64\Release)
+// Looks for the CSVs next to the .dpr (the .exe ends up in Win64\Release)
 function DataFile(const AName: string): string;
 begin
   Result := TPath.Combine(ExtractFilePath(ParamStr(0)), '..\..\' + AName);
@@ -71,7 +71,7 @@ begin
   Lista := TList<TCaso>.Create;
   try
     L.LoadFromFile(DataFile('casos.csv'), TEncoding.UTF8);
-    for i := 1 to L.Count - 1 do // la primera linea es el encabezado
+    for i := 1 to L.Count - 1 do // the first line is the header
     begin
       if Trim(L[i]) = '' then
         Continue;
@@ -106,7 +106,7 @@ begin
     Q.Name := 'cuenta';
     Q.Kind := jqChoice;
     Q.Instructions := PREGUNTA;
-    // 'codigo;ruta' -> 'codigo=ruta' (la ruta da contexto: ACTIVO > DISPONIBLE > ...)
+    // 'codigo;ruta' -> 'codigo=ruta' (the path gives context: ACTIVO > DISPONIBLE > ...)
     for i := 1 to L.Count - 1 do
       if Trim(L[i]) <> '' then
         Q.Criteria.Add(StringReplace(L[i], ';', '=', []));
@@ -136,7 +136,7 @@ begin
   try
     if GetEnvironmentVariable('TYPESAFE_API_KEY') = '' then
     begin
-      Writeln('Falta la variable de entorno TYPESAFE_API_KEY (https://console.typesafe.ai/keys).');
+      Writeln('The TYPESAFE_API_KEY environment variable is missing (https://console.typesafe.ai/keys).');
       ExitCode := 2;
       Exit;
     end;
@@ -147,7 +147,7 @@ begin
       CargarCuentas(Labeler);
       Labeler.ReviewThreshold := 0.8;
       Labeler.MaxParallel := 16;
-      Writeln(Format('%d movimientos contra %d cuentas del PUC, %d en paralelo...',
+      Writeln(Format('%d movements against %d PUC accounts, %d in parallel...',
         [Length(Casos), Labeler.Questions[0].Criteria.Count, Labeler.MaxParallel]));
 
       SetLength(States, Length(Casos));
@@ -180,26 +180,26 @@ begin
           end;
 
         Writeln;
-        Writeln(Format('Acierto total:          %d/%d  (%.1f%%)', [Ok, Rep.Items.Count, 100 * Ok / Rep.Items.Count]));
-        Writeln(Format('Automatico (conf>=%.1f): %d filas (%.0f%%), acierto %d/%d (%.1f%%)',
+        Writeln(Format('Total accuracy:          %d/%d  (%.1f%%)', [Ok, Rep.Items.Count, 100 * Ok / Rep.Items.Count]));
+        Writeln(Format('Automatic (conf>=%.1f): %d rows (%.0f%%), accuracy %d/%d (%.1f%%)',
           [Labeler.ReviewThreshold, Auto, 100 * Auto / Rep.Items.Count, AutoOk, Auto,
            100 * AutoOk / Auto]));
-        Writeln(Format('Para revision humana:   %d filas', [Rep.ReviewCount]));
-        Writeln(Format('Errores:                %d', [Rep.ErrorCount]));
-        Writeln(Format('Tokens: %d  Costo: US$%.4f  Tiempo: %.1f s',
+        Writeln(Format('For human review:   %d rows', [Rep.ReviewCount]));
+        Writeln(Format('Errors:                %d', [Rep.ErrorCount]));
+        Writeln(Format('Tokens: %d  Cost: US$%.4f  Time: %.1f s',
           [Rep.InputTokens, Rep.CostUSD, Rep.ElapsedMs / 1000]));
 
         Writeln;
-        Writeln('Errores del modelo (etiqueta no aceptable):');
+        Writeln('Model errors (unacceptable label):');
         for It in Rep.Items do
           if (It.Error = '') and not Aceptable(It.Choice, Casos[It.Index]) then
-            Writeln(Format('  %s  esperado %s -> %s (conf %.2f, sugerencias %s)  %s',
+            Writeln(Format('  %s  expected %s -> %s (conf %.2f, suggestions %s)  %s',
               [Casos[It.Index].Id, Casos[It.Index].Gold, It.Choice, It.Confidence,
                string.Join(',', It.Top), Copy(Casos[It.Index].Texto, 1, 50)]));
 
         Rep.SaveToCSV(DataFile('resultados.csv'));
         Writeln;
-        Writeln('Detalle por fila: ', ExpandFileName(DataFile('resultados.csv')));
+        Writeln('Per-row detail: ', ExpandFileName(DataFile('resultados.csv')));
       finally
         Rep.Free;
       end;

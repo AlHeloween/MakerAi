@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enríquez
-// Redes Sociales:
+// Name: Gustavo Enríquez
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -47,7 +47,7 @@ uses
 
 type
   // =============================================================================
-  // HERRAMIENTA PARA LISTAR ARCHIVOS
+  // TOOL FOR LISTING FILES
   // =============================================================================
   TListFilesParams = class
   private
@@ -56,16 +56,16 @@ type
     FIncludeSubdirs: Boolean;
     FShowDetails: Boolean;
   public
-    [AiMCPSchemaDescription('Ruta de la carpeta a listar')]
+    [AiMCPSchemaDescription('Path of the folder to list')]
     property Path: string read FPath write FPath;
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Patrón de búsqueda (ej: "*.pas", "*.txt") - default: "*.*"')]
+    [AiMCPSchemaDescription('Search pattern (e.g.: "*.pas", "*.txt") - default: "*.*"')]
     property Pattern: string read FPattern write FPattern;
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Incluir subdirectorios (default: false)')]
+    [AiMCPSchemaDescription('Include subdirectories (default: false)')]
     property IncludeSubdirs: Boolean read FIncludeSubdirs write FIncludeSubdirs;
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Mostrar detalles (tamaño, fecha) - default: false)')]
+    [AiMCPSchemaDescription('Show details (size, date) - default: false)')]
     property ShowDetails: Boolean read FShowDetails write FShowDetails;
   end;
 
@@ -77,7 +77,7 @@ type
     class function IsExtensionAllowed(const AFilePath: string): Boolean;
     class function NormalizePath(const APath: string): string;
   protected
-    // CAMBIO: La función ahora devuelve TJSONObject
+    // CHANGE: The function now returns TJSONObject
     function ExecuteWithParams(const AParams: TListFilesParams; const AuthContext: TAiAuthContext): TJSONObject; override;
   public
     constructor Create; Override;
@@ -90,14 +90,14 @@ type
   end;
 
   // =============================================================================
-  // HERRAMIENTA PARA LEER ARCHIVOS
+  // TOOL FOR READING FILES
   // =============================================================================
   TReadFileParams = class
-    // ... (sin cambios)
+    // ... (no changes)
   private
     FFilePath: string;
   public
-    [AiMCPSchemaDescription('Ruta completa del archivo a leer')]
+    [AiMCPSchemaDescription('Full path of the file to read')]
     property FilePath: string read FFilePath write FFilePath;
   end;
 
@@ -105,38 +105,38 @@ type
   private const
     MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
   protected
-    // CAMBIO: La función ahora devuelve TJSONObject
+    // CHANGE: The function now returns TJSONObject
     function ExecuteWithParams(const AParams: TReadFileParams; const AuthContext: TAiAuthContext): TJSONObject; override;
   public
     constructor Create; Override;
   end;
 
   // =============================================================================
-  // HERRAMIENTA PARA ESCRIBIR ARCHIVOS
+  // TOOL FOR WRITING FILES
   // =============================================================================
   TWriteFileParams = class
-    // ... (sin cambios)
+    // ... (no changes)
   private
     FFilePath: string;
     FContent: string;
     FAppend: Boolean;
     FCreateDirs: Boolean;
   public
-    [AiMCPSchemaDescription('Ruta completa del archivo a escribir')]
+    [AiMCPSchemaDescription('Full path of the file to write')]
     property FilePath: string read FFilePath write FFilePath;
-    [AiMCPSchemaDescription('Contenido a escribir en el archivo')]
+    [AiMCPSchemaDescription('Content to write in the file')]
     property Content: string read FContent write FContent;
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Agregar al final del archivo (default: false = sobrescribir)')]
+    [AiMCPSchemaDescription('Append to the end of the file (default: false = overwrite)')]
     property Append: Boolean read FAppend write FAppend;
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Crear directorios si no existen (default: true)')]
+    [AiMCPSchemaDescription('Create directories if they do not exist (default: true)')]
     property CreateDirs: Boolean read FCreateDirs write FCreateDirs;
   end;
 
   TWriteFileTool = class(TAiMCPToolBase<TWriteFileParams>)
   protected
-    // CAMBIO: La función ahora devuelve TJSONObject
+    // CHANGE: The function now returns TJSONObject
     function ExecuteWithParams(const AParams: TWriteFileParams; const AuthContext: TAiAuthContext): TJSONObject; override;
   public
     constructor Create; Override;
@@ -151,7 +151,7 @@ uses
 
 { TListFilesTool }
 
-// ... (RegisterTools y los métodos de configuración de TListFilesTool no cambian)
+// ... (RegisterTools and the configuration methods of TListFilesTool do not change)
 procedure RegisterTools(ALogicServer: TAiMCPServer);
 begin
   if not Assigned(ALogicServer) then
@@ -193,8 +193,8 @@ begin
   AddAllowedExtension('.csv');
   AddAllowedExtension('.log');
   AddAllowedExtension('.md');
-  // Por seguridad, no añadimos extensiones ejecutables o de sistema.
-  // También añadimos las comunes de imágenes, documentos y audio para que `read_file` pueda devolverlas.
+  // For security, we do not add executable or system extensions.
+  // We also add common image, document and audio extensions so that `read_file` can return them.
   AddAllowedExtension('.png');
   AddAllowedExtension('.jpg');
   AddAllowedExtension('.jpeg');
@@ -267,7 +267,7 @@ begin
 end;
 
 
-// La función devuelve un TJSONObject estructurado.
+// The function returns a structured TJSONObject.
 function TListFilesTool.ExecuteWithParams(const AParams: TListFilesParams; const AuthContext: TAiAuthContext): TJSONObject;
 var
   SearchPattern: string;
@@ -280,10 +280,10 @@ var
 begin
   try
     if not TDirectory.Exists(AParams.Path) then
-      raise Exception.Create('La carpeta no existe: ' + AParams.Path);
+      raise Exception.Create('The folder does not exist: ' + AParams.Path);
 
     if not IsPathAllowed(AParams.Path) then
-      raise Exception.Create('Acceso denegado a la carpeta: ' + AParams.Path);
+      raise Exception.Create('Access denied to the folder: ' + AParams.Path);
 
     SearchPattern := AParams.Pattern;
     if SearchPattern.IsEmpty then
@@ -323,13 +323,13 @@ begin
     ResultObject.AddPair('count', TJSONNumber.Create(Int64(FilesArray.Count)));
     ResultObject.AddPair('message', Format('%d archivos encontrados en "%s".', [FilesArray.Count, AParams.Path]));
 
-    // Devolvemos el JSON de la lista de archivos dentro del formato de respuesta "content"
+    // We return the JSON of the file list inside the "content" response format
     Result := TAiMCPResponseBuilder.New.AddText(ResultObject.ToJSON).Build;
     ResultObject.Free;
 
   except
     on E: Exception do
-      Result := TAiMCPResponseBuilder.New.AddText('❌ Error listando archivos: ' + E.Message).Build;
+      Result := TAiMCPResponseBuilder.New.AddText('❌ Error listing files: ' + E.Message).Build;
   end;
 end;
 
@@ -342,7 +342,7 @@ begin
   FDescription := 'Lee y devuelve el contenido de un archivo (texto o binario) con restricciones de seguridad.';
 end;
 
-// CAMBIO: La función ahora devuelve el archivo usando el builder.
+// CHANGE: The function now returns the file using the builder.
 function TReadFileTool.ExecuteWithParams(const AParams: TReadFileParams; const AuthContext: TAiAuthContext): TJSONObject;
 var
   FileSize: Int64;
@@ -350,13 +350,13 @@ var
 begin
   try
     if not TFile.Exists(AParams.FilePath) then
-      raise Exception.Create('El archivo no existe: ' + AParams.FilePath);
+      raise Exception.Create('The file does not exist: ' + AParams.FilePath);
 
     if not TListFilesTool.IsPathAllowed(ExtractFileDir(AParams.FilePath)) then
-      raise Exception.Create('Acceso denegado a la ruta del archivo.');
+      raise Exception.Create('Access denied to the file path.');
 
     if not TListFilesTool.IsExtensionAllowed(AParams.FilePath) then
-      raise Exception.Create('Tipo de archivo no permitido para lectura: ' + TPath.GetExtension(AParams.FilePath));
+      raise Exception.Create('File type not allowed for reading: ' + TPath.GetExtension(AParams.FilePath));
 
     FS := TFileStream.Create(AParams.FilePath, fmOpenRead or fmShareDenyNone);
     try
@@ -365,15 +365,15 @@ begin
       FS.Free;
     end;
     if FileSize > MAX_FILE_SIZE then
-      raise Exception.CreateFmt('Archivo demasiado grande: %d bytes (máximo permitido: %d bytes)', [FileSize, MAX_FILE_SIZE]);
+      raise Exception.CreateFmt('File too large: %d bytes (maximum allowed: %d bytes)', [FileSize, MAX_FILE_SIZE]);
 
-    // Usamos el builder para devolver el archivo. Él se encarga de todo.
+    // We use the builder to return the file. It handles everything.
     Result := TAiMCPResponseBuilder.New
       .AddFile(AParams.FilePath)
       .Build;
   except
     on E: Exception do
-      Result := TAiMCPResponseBuilder.New.AddText('❌ Error leyendo archivo: ' + E.Message).Build;
+      Result := TAiMCPResponseBuilder.New.AddText('❌ Error reading file: ' + E.Message).Build;
   end;
 end;
 
@@ -386,7 +386,7 @@ begin
   FDescription := 'Escribe o agrega contenido a archivos de texto con restricciones de seguridad.';
 end;
 
-// CAMBIO: La función ahora devuelve un JSON simple de confirmación.
+// CHANGE: The function now returns a simple confirmation JSON.
 function TWriteFileTool.ExecuteWithParams(const AParams: TWriteFileParams; const AuthContext: TAiAuthContext): TJSONObject;
 var
   FileDir: string;
@@ -396,10 +396,10 @@ begin
     FileDir := ExtractFileDir(AParams.FilePath);
 
     if not TListFilesTool.IsPathAllowed(FileDir) then
-      raise Exception.Create('Acceso denegado para escribir en: ' + FileDir);
+      raise Exception.Create('Access denied for writing to: ' + FileDir);
 
     if not TListFilesTool.IsExtensionAllowed(AParams.FilePath) then
-      raise Exception.Create('Tipo de archivo no permitido para escritura: ' + TPath.GetExtension(AParams.FilePath));
+      raise Exception.Create('File type not allowed for writing: ' + TPath.GetExtension(AParams.FilePath));
 
     CreateDirs := AParams.CreateDirs;
     if CreateDirs and not TDirectory.Exists(FileDir) then
@@ -411,11 +411,11 @@ begin
       TFile.WriteAllText(AParams.FilePath, AParams.Content, TEncoding.UTF8);
 
     Result := TAiMCPResponseBuilder.New
-      .AddText(Format('✅ Archivo guardado correctamente en: %s', [AParams.FilePath]))
+      .AddText(Format('✅ File saved successfully at: %s', [AParams.FilePath]))
       .Build;
   except
     on E: Exception do
-      Result := TAiMCPResponseBuilder.New.AddText('❌ Error escribiendo archivo: ' + E.Message).Build;
+      Result := TAiMCPResponseBuilder.New.AddText('❌ Error writing file: ' + E.Message).Build;
   end;
 end;
 

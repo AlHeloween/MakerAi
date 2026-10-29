@@ -4,11 +4,11 @@
 // MakerAI — Demo FMX Chat UI
 // Shows TAIChatView + TAIChatInput on an FMX form.
 //
-// Componentes declarados en uFrmAIChat.fmx (diseñador de formularios):
-//   TAIChatView  — renderizado Skia de burbujas con Markdown
-//   TAIChatInput — barra de entrada con adjuntos, captura de pantalla y micrófono
+// Components declared in uFrmAIChat.fmx (form designer):
+//   TAIChatView  — Skia rendering of bubbles with Markdown
+//   TAIChatInput — input bar with attachments, screenshot capture, and microphone
 //
-// Flujo de streaming simulado:
+// Simulated streaming flow:
 //   BtnStream → BeginAssistantMessage → TTimer (30 ms) → AppendToken → FinishMessage
 // =============================================================================
 
@@ -67,16 +67,16 @@ implementation
 
 const
   STREAM_SAMPLE =
-    '## Respuesta generada por IA' + #10 +
+    '## AI-generated response' + #10 +
     '' + #10 +
-    'Este es un ejemplo de **respuesta en streaming** del asistente.' + #10 +
+    'This is an example of an assistant **streaming response**.' + #10 +
     '' + #10 +
-    'Las características incluyen:' + #10 +
+    'Features include:' + #10 +
     '' + #10 +
-    '- Renderizado **Markdown** completo' + #10 +
-    '- Burbujas diferenciadas por rol' + #10 +
-    '- Scroll virtualizado para conversaciones largas' + #10 +
-    '- Soporte multiplataforma (Windows, macOS, Android, iOS)' + #10 +
+    '- Complete **Markdown** rendering' + #10 +
+    '- Role-differentiated bubbles' + #10 +
+    '- Virtualized scrolling for long conversations' + #10 +
+    '- Cross-platform support (Windows, macOS, Android, iOS)' + #10 +
     '' + #10 +
     '```pascal' + #10 +
     'var Msg := ChatView.BeginAssistantMessage;' + #10 +
@@ -84,7 +84,7 @@ const
     'ChatView.FinishMessage(Msg.Index);' + #10 +
     '```' + #10 +
     '' + #10 +
-    '> **Nota**: el componente renderiza Markdown con Skia sin controles hijos.' + #10;
+    '> **Note**: the component renders Markdown with Skia without child controls.' + #10;
 
 { TFrmAIChat }
 
@@ -233,20 +233,20 @@ begin
   ChatView.AddUserMessage('Hello, what is TAIChatView?');
 
   ChatView.AddMessage(TChatRole.crAssistant,
-    '**TAIChatView** es un componente FMX que renderiza conversaciones de chat con IA ' +
-    'usando Skia como motor de pintado.' + #10 +
+    '**TAIChatView** is an FMX component that renders AI chat conversations ' +
+    'using Skia as the painting engine.' + #10 +
     '' + #10 +
-    'Características principales:' + #10 +
-    '- Burbujas de usuario y asistente diferenciadas' + #10 +
-    '- Markdown completo en respuestas del asistente' + #10 +
-    '- Streaming de tokens en tiempo real' + #10 +
-    '- Virtualización para conversaciones largas' + #10 +
-    '- Multiplataforma: Windows, Android, macOS, iOS');
+    'Main features:' + #10 +
+    '- Differentiated user and assistant bubbles' + #10 +
+    '- Full Markdown in assistant responses' + #10 +
+    '- Real-time token streaming' + #10 +
+    '- Virtualization for long conversations' + #10 +
+    '- Cross-platform: Windows, Android, macOS, iOS');
 
   ChatView.AddUserMessage('How do I use it in streaming?');
 
   ChatView.AddMessage(TChatRole.crAssistant,
-    'El flujo es sencillo:' + #10 +
+    'The flow is simple:' + #10 +
     '' + #10 +
     '```pascal' + #10 +
     '// 1. Iniciar mensaje de asistente' + #10 +
@@ -260,7 +260,7 @@ begin
     'ChatView.FinishMessage(MsgIdx);' + #10 +
     '```' + #10 +
     '' + #10 +
-    'Pulsa **Stream AI** para verlo en acción.');
+    'Press **Stream AI** to see it in action.');
 
   ChatView.ScrollToBottom;
 end;

@@ -1,13 +1,13 @@
 ﻿unit uMainChatToolsOllamaDemo;
 
 // Demo 013 - Ollama ChatTools (gemma3:4b)
-// Demuestra las principales capacidades de ChatTools con Ollama:
-// Modo 0: Chat + Funciones (TAiFunctions: get_datetime, calculate, get_weather)
-// Modo 1: Visión nativa (gemma3:4b analiza imágenes)
-// Modo 2: Web Search (bridge vía AiGeminiWebSearchTool)
-// Modo 3: PDF (bridge vía AiOllamaPdfTool / OCR)
-// Modo 4: Generar Imagen (bridge vía AiDalleImageTool / DALL-E)
-// Modo 5: TTS - Texto a Voz (bridge vía AiGeminiSpeechTool)
+// Demonstrates the main capabilities of ChatTools with Ollama:
+// Mode 0: Chat + Functions (TAiFunctions: get_datetime, calculate, get_weather)
+// Mode 1: Native vision (gemma3:4b analyzes images)
+// Mode 2: Web Search (bridge via AiGeminiWebSearchTool)
+// Mode 3: PDF (bridge via AiOllamaPdfTool / OCR)
+// Mode 4: Generate Image (bridge via AiDalleImageTool / DALL-E)
+// Mode 5: TTS - Text to Speech (bridge via AiGeminiSpeechTool)
 
 interface
 
@@ -101,7 +101,7 @@ implementation
 
 {$R *.fmx}
 // -----------------------------------------------------------------------------
-// Helpers privados
+// Private helpers
 // -----------------------------------------------------------------------------
 
 procedure TForm26.AgregarAlChat(const aRol, aTexto: string);
@@ -113,7 +113,7 @@ begin
   MemoChatList.GoToTextEnd;
 end;
 
-// Evaluador de expresiones de dos operandos: A op B  (+, -, *, /)
+// Evaluator of two-operand expressions: A op B  (+, -, *, /)
 function TForm26.SimpleCalc(const aExpr: string): string;
 var
   LExpr: string;
@@ -121,12 +121,12 @@ var
   LLeft, LRight, LResult: Double;
   LOp: Char;
 begin
-  Result := 'No se pudo evaluar: ' + aExpr;
+  Result := 'Could not evaluate: ' + aExpr;
   LExpr := Trim(aExpr);
   LOp := #0;
   LPos := 0;
 
-  // Buscar + o - (prioridad baja) de derecha a izquierda
+  // Search for + or - (low priority) from right to left
   for I := Length(LExpr) downto 2 do
     if CharInSet(LExpr[I], ['+', '-']) then
     begin
@@ -135,7 +135,7 @@ begin
       Break;
     end;
 
-  // Si no encontró, buscar * o /
+  // If not found, search for * or /
   if LPos = 0 then
     for I := Length(LExpr) downto 2 do
       if CharInSet(LExpr[I], ['*', '/']) then
@@ -164,7 +164,7 @@ begin
         LResult := LLeft / LRight
       else
       begin
-        Result := 'Error: division por cero';
+        Result := 'Error: division by zero';
         Exit;
       end;
   else
@@ -174,7 +174,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// Handlers de TAiFunctions
+// TAiFunctions handlers
 // -----------------------------------------------------------------------------
 
 procedure TForm26.OnFnGetDateTime(Sender: TObject; FunctionAction: TFunctionActionItem; FunctionName: string; ToolCall: TAiToolsFunction; var Handled: Boolean);
@@ -244,7 +244,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// Inicialización de TAiFunctions con 3 herramientas
+// Initialization of TAiFunctions with 3 tools
 // -----------------------------------------------------------------------------
 
 procedure TForm26.InicializarFunciones;
@@ -254,38 +254,38 @@ var
 begin
   FAiFunctions := TAiFunctions.Create(Self);
 
-  // Herramienta 1: get_datetime
+  // Tool 1: get_datetime
   LFn := FAiFunctions.Functions.AddFunction('get_datetime', True, OnFnGetDateTime);
-  LFn.Description.Text := 'Obtiene la fecha y hora actual del sistema.';
+  LFn.Description.Text := 'Gets the current date and time of the system.';
   LParam := LFn.Parameters.Add;
   LParam.Name := 'format';
   LParam.ParamType := ptString;
   LParam.Required := False;
-  LParam.Description.Text := 'Formato de salida. Default: yyyy-mm-dd hh:nn:ss';
+  LParam.Description.Text := 'Output format. Default: yyyy-mm-dd hh:nn:ss';
 
-  // Herramienta 2: calculate
+  // Tool 2: calculate
   LFn := FAiFunctions.Functions.AddFunction('calculate', True, OnFnCalculate);
-  LFn.Description.Text := 'Calcula una expresion matematica basica con dos operandos (+, -, *, /).';
+  LFn.Description.Text := 'Calculates a basic mathematical expression with two operands (+, -, *, /).';
   LParam := LFn.Parameters.Add;
   LParam.Name := 'expression';
   LParam.ParamType := ptString;
   LParam.Required := True;
-  LParam.Description.Text := 'Expresion a calcular. Ejemplos: 256 * 7, 100 / 4, 1500 + 200';
+  LParam.Description.Text := 'Expression to calculate. Examples: 256 * 7, 100 / 4, 1500 + 200';
 
-  // Herramienta 3: get_weather
+  // Tool 3: get_weather
   LFn := FAiFunctions.Functions.AddFunction('get_weather', True, OnFnGetWeather);
-  LFn.Description.Text := 'Obtiene el clima actual de una ciudad (datos simulados para demo).';
+  LFn.Description.Text := 'Gets the current weather of a city (simulated data for demo).';
   LParam := LFn.Parameters.Add;
   LParam.Name := 'city';
   LParam.ParamType := ptString;
   LParam.Required := True;
-  LParam.Description.Text := 'Nombre de la ciudad. Ejemplos: Buenos Aires, Madrid, Ciudad de Mexico';
+  LParam.Description.Text := 'Name of the city. Examples: Buenos Aires, Madrid, Mexico City';
 
   AiOllamaChat1.AiFunctions := FAiFunctions;
 end;
 
 // -----------------------------------------------------------------------------
-// Configuración de modo
+// Mode configuration
 // -----------------------------------------------------------------------------
 
 procedure TForm26.ConfigurarModo(aModo: Integer);
@@ -306,9 +306,9 @@ begin
     0: // Chat + Funciones
       begin
         AiOllamaChat1.Tool_Active := True;
-        LblEstado.Text := 'Modo 0: Chat + Funciones';
-        Label2.Text := 'Prueba: "Que hora es?" / "Calcula 256 * 7" / "Clima en Buenos Aires?"';
-        AgregarAlChat('', '=== Chat + Funciones (get_datetime, calculate, get_weather) ===');
+        LblEstado.Text := 'Mode 0: Chat + Functions';
+        Label2.Text := 'Test: "What time is it?" / "Calculate 256 * 7" / "Weather in Buenos Aires?"';
+        AgregarAlChat('', '=== Chat + Functions (get_datetime, calculate, get_weather) ===');
       end;
 
     1: // Vision nativa
@@ -316,48 +316,48 @@ begin
         AiOllamaChat1.ModelConfig.ModelCaps := [cap_Image];
         AiOllamaChat1.ModelConfig.SessionCaps := [cap_Image];
         BtnAdjuntar.Enabled := True;
-        LblEstado.Text := 'Modo 1: Vision (gemma3:4b)';
-        Label2.Text := 'Adjunta una imagen (JPG/PNG/WebP) y haz una pregunta sobre ella.';
-        AgregarAlChat('', '=== Vision: gemma3:4b analiza imagenes nativamente ===');
+        LblEstado.Text := 'Mode 1: Vision (gemma3:4b)';
+        Label2.Text := 'Attach an image (JPG/PNG/WebP) and ask a question about it.';
+        AgregarAlChat('', '=== Vision: gemma3:4b analyzes images natively ===');
       end;
 
     2: // Web Search (bridge Gemini)
       begin
         AiOllamaChat1.ModelConfig.SessionCaps := [cap_WebSearch];
-        LblEstado.Text := 'Modo 2: Web Search (Gemini bridge)';
-        Label2.Text := 'Pregunta sobre eventos actuales o informacion reciente.';
-        AgregarAlChat('', '=== Web Search: grounding via Gemini + respuesta con gemma3:4b ===');
+        LblEstado.Text := 'Mode 2: Web Search (Gemini bridge)';
+        Label2.Text := 'Ask about current events or recent information.';
+        AgregarAlChat('', '=== Web Search: grounding via Gemini + response with gemma3:4b ===');
       end;
 
     3: // PDF (bridge Ollama OCR)
       begin
         AiOllamaChat1.ModelConfig.SessionCaps := [cap_Pdf];
         BtnAdjuntar.Enabled := True;
-        LblEstado.Text := 'Modo 3: PDF (Ollama OCR bridge)';
-        Label2.Text := 'Adjunta un PDF y haz preguntas sobre su contenido.';
-        AgregarAlChat('', '=== PDF: OCR via Ollama + analisis con gemma3:4b ===');
+        LblEstado.Text := 'Mode 3: PDF (Ollama OCR bridge)';
+        Label2.Text := 'Attach a PDF and ask questions about its content.';
+        AgregarAlChat('', '=== PDF: OCR via Ollama + analysis with gemma3:4b ===');
       end;
 
     4: // Generar Imagen (bridge DALL-E)
       begin
         AiOllamaChat1.ModelConfig.SessionCaps := [cap_GenImage];
-        LblEstado.Text := 'Modo 4: Generar Imagen (DALL-E bridge)';
-        Label2.Text := 'Describe la imagen a generar. Requiere OPENAI_API_KEY.';
-        AgregarAlChat('', '=== Generacion de Imagen: gemma3:4b refina prompt + DALL-E genera ===');
+        LblEstado.Text := 'Mode 4: Generate Image (DALL-E bridge)';
+        Label2.Text := 'Describe the image to generate. Requires OPENAI_API_KEY.';
+        AgregarAlChat('', '=== Image Generation: gemma3:4b refines prompt + DALL-E generates ===');
       end;
 
     5: // TTS (bridge Gemini Speech)
       begin
         AiOllamaChat1.ModelConfig.SessionCaps := [cap_GenAudio];
-        LblEstado.Text := 'Modo 5: Texto a Voz (Gemini Speech bridge)';
-        Label2.Text := 'Escribe el texto que deseas escuchar. Requiere GEMINI_API_KEY.';
-        AgregarAlChat('', '=== TTS: gemma3:4b prepara el texto + Gemini Speech lo convierte a voz ===');
+        LblEstado.Text := 'Mode 5: Text to Speech (Gemini Speech bridge)';
+        Label2.Text := 'Write the text you want to hear. Requires GEMINI_API_KEY.';
+        AgregarAlChat('', '=== TTS: gemma3:4b prepares text + Gemini Speech converts it to voice ===');
       end;
   end;
 end;
 
 // -----------------------------------------------------------------------------
-// Eventos de formulario
+// Form events
 // -----------------------------------------------------------------------------
 
 procedure TForm26.FormCreate(Sender: TObject);
@@ -406,7 +406,7 @@ begin
 
   AiOllamaChat1.AddMessageAndRun(LPrompt, 'user', LMedia);
 
-  // La sesión toma posesión del media file, limpiar referencia local
+  // The session takes ownership of the media file, clear local reference
   FArchivoAdjunto := nil;
 end;
 
@@ -428,8 +428,8 @@ begin
   FreeAndNil(FArchivoAdjunto);
   FArchivoAdjunto := TAiMediaFile.Create;
   FArchivoAdjunto.LoadFromFile(OpenDialog1.FileName);
-  AgregarAlChat('Sistema', 'Adjunto: ' + System.IOUtils.TPath.GetFileName(OpenDialog1.FileName));
-  LblEstado.Text := 'Archivo listo: ' + System.IOUtils.TPath.GetFileName(OpenDialog1.FileName);
+  AgregarAlChat('Sistema', 'Attachment: ' + System.IOUtils.TPath.GetFileName(OpenDialog1.FileName));
+  LblEstado.Text := 'File ready: ' + System.IOUtils.TPath.GetFileName(OpenDialog1.FileName);
 end;
 
 procedure TForm26.BtnLimpiarClick(Sender: TObject);
@@ -453,7 +453,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// Eventos de TAiOllamaChat
+// TAiOllamaChat events
 // -----------------------------------------------------------------------------
 
 procedure TForm26.AiOllamaChat1StateChange(Sender: TObject; State: TAiChatState; const Description: string);
@@ -468,21 +468,21 @@ begin
 
   case State of
     acsConnecting:
-      LblEstado.Text := 'Conectando...';
+      LblEstado.Text := 'Connecting...';
     acsReasoning:
-      LblEstado.Text := 'Razonando...';
+      LblEstado.Text := 'Reasoning...';
     acsWriting:
-      LblEstado.Text := 'Generando respuesta...';
+      LblEstado.Text := 'Generating response...';
     acsToolCalling:
-      LblEstado.Text := 'Llamando herramienta: ' + Description;
+      LblEstado.Text := 'Calling tool: ' + Description;
     acsToolExecuting:
-      LblEstado.Text := 'Ejecutando: ' + Description;
+      LblEstado.Text := 'Executing: ' + Description;
     acsFinished:
-      LblEstado.Text := 'Listo';
+      LblEstado.Text := 'Ready';
     acsError:
       LblEstado.Text := 'Error';
     acsAborted:
-      LblEstado.Text := 'Abortado';
+      LblEstado.Text := 'Aborted';
   end;
 end;
 
@@ -510,29 +510,29 @@ begin
   MemoTexto.Lines.Clear;
   FStreamBuffer := '';
 
-  // Decidir cómo mostrar el texto de respuesta
+  // Decide how to show the response text
   if LTexto <> '' then
   begin
     if EsHtml(LTexto) then
     begin
-      // HTML puro → renderizar en WebBrowser
+      // Pure HTML → render in WebBrowser
       MostrarEnWebBrowser(LTexto, True);
       AgregarAlChat('IA', '[HTML generado - ver pestana Web]');
     end
     else if EsMarkdown(LTexto) then
     begin
-      // Markdown → convertir a HTML y renderizar en WebBrowser
+      // Markdown → convert to HTML and render in WebBrowser
       MostrarEnWebBrowser(MarkdownParaHtml(LTexto), True);
       AgregarAlChat('IA', '[Markdown generado - ver pestana Web]');
     end
     else
     begin
-      // Texto plano → historial normal
+      // Plain text → normal history
       AgregarAlChat('IA', LTexto);
     end;
   end;
 
-  // Procesar archivos de media en la respuesta
+  // Process media files in the response
   for MF in aMsg.MediaFiles do
   begin
     case MF.FileCategory of
@@ -555,23 +555,23 @@ begin
             LStream.Free;
           end;
           TabControl1.ActiveTab := TImageItem;
-          AgregarAlChat('Sistema', '[Imagen generada - ver pestana Imagen]');
+          AgregarAlChat('Sistema', '[Generated image - see Image tab]');
         end;
 
       Tfc_Audio:
         begin
           MF.Content.Position := 0;
           FAudio.PushWavData(MF.Content);
-          AgregarAlChat('Sistema', '[Audio TTS reproduciendo...]');
+          AgregarAlChat('Sistema', '[TTS audio playing...]');
         end;
 
       Tfc_Video:
         begin
-          // Guardar en disco temporal y renderizar con WebBrowser
+          // Save to temporary disk and render with WebBrowser
           LExt := ExtVideoDeFileType(MF.MimeType, MF.filename);
           LTmpFile := System.IOUtils.TPath.Combine(System.IOUtils.TPath.GetTempPath,
             'mkrai_video_' + IntToStr(DateTimeToUnix(Now)) + LExt);
-          // Eliminar anterior si existe
+          // Delete previous if it exists
           if (FUltimoTmpVideo <> '') and TFile.Exists(FUltimoTmpVideo) then
             TFile.Delete(FUltimoTmpVideo);
           FUltimoTmpVideo := LTmpFile;
@@ -579,17 +579,17 @@ begin
           MF.Content.SaveToFile(LTmpFile);
           WebBrowser1.Navigate(LTmpFile);
           TabControl1.ActiveTab := TabWebItem;
-          AgregarAlChat('Sistema', '[Video guardado: ' + System.IOUtils.TPath.GetFileName(LTmpFile) + ']');
+          AgregarAlChat('Sistema', '[Video saved: ' + System.IOUtils.TPath.GetFileName(LTmpFile) + ']');
         end;
 
       Tfc_Web:
         begin
-          // Archivo HTML/web: navegar o guardar en temp y abrir
+          // HTML/web file: navigate or save to temp and open
           if MF.FullFileName <> '' then
             WebBrowser1.Navigate(MF.FullFileName)
           else if (MF.Content <> nil) and (MF.Content.Size > 0) then
           begin
-            // Guardar en temp y navegar
+            // Save to temp and navigate
             LTmpFile := System.IOUtils.TPath.Combine(System.IOUtils.TPath.GetTempPath,
               'mkrai_web_' + IntToStr(DateTimeToUnix(Now)) + '.html');
             MF.Content.Position := 0;
@@ -597,7 +597,7 @@ begin
             WebBrowser1.Navigate('file:///' + LTmpFile.Replace('\', '/'));
           end;
           TabControl1.ActiveTab := TabWebItem;
-          AgregarAlChat('Sistema', '[Contenido web - ver pestana Web]');
+          AgregarAlChat('Sistema', '[Web content - see Web tab]');
         end;
 
     end;
@@ -622,13 +622,13 @@ end;
 
 procedure TForm26.AiOllamaChat1CallToolFunction(Sender: TObject; AiToolCall: TAiToolsFunction);
 begin
-  // Fallback: función no encontrada en FAiFunctions
-  AgregarAlChat('Herramienta', 'Funcion no implementada: ' + AiToolCall.Name);
-  AiToolCall.Response := '{"error":"Funcion no implementada: ' + AiToolCall.Name + '"}';
+  // Fallback: function not found in FAiFunctions
+  AgregarAlChat('Herramienta', 'Function not implemented: ' + AiToolCall.Name);
+  AiToolCall.Response := '{"error":"Function not implemented: ' + AiToolCall.Name + '"}';
 end;
 
 // -----------------------------------------------------------------------------
-// Helpers de renderizado web
+// Web rendering helpers
 // -----------------------------------------------------------------------------
 
 function TForm26.EsHtml(const aTexto: string): Boolean;
@@ -643,7 +643,7 @@ end;
 
 function TForm26.EsMarkdown(const aTexto: string): Boolean;
 begin
-  // Detecta markdown por presencia de patrones comunes
+  // Detects markdown by presence of common patterns
   Result := aTexto.Contains('```') or
             aTexto.Contains('**') or
             aTexto.Contains('## ') or
@@ -653,10 +653,10 @@ end;
 
 function TForm26.ExtVideoDeFileType(const aMimeType, aFilename: string): string;
 begin
-  // Intentar por nombre de archivo primero
+  // Try by file name first
   Result := LowerCase(ExtractFileExt(aFilename));
   if Result <> '' then Exit;
-  // Determinar extensión por MIME type
+  // Determine extension by MIME type
   if aMimeType.Contains('mp4') then Result := '.mp4'
   else if aMimeType.Contains('webm') then Result := '.webm'
   else if aMimeType.Contains('ogg') then Result := '.ogv'
@@ -664,7 +664,7 @@ begin
   else Result := '.mp4'; // fallback
 end;
 
-// Guarda el contenido en un archivo HTML temporal y navega con WebBrowser
+// Saves the content in a temporary HTML file and navigates with WebBrowser
 procedure TForm26.MostrarEnWebBrowser(const aContenido: string; aEsHtml: Boolean);
 var
   LFile: string;
@@ -676,7 +676,7 @@ begin
   TabControl1.ActiveTab := TabWebItem;
 end;
 
-// Convierte Markdown básico a HTML con estilos mínimos
+// Converts basic Markdown to HTML with minimal styles
 function TForm26.MarkdownParaHtml(const aMd: string): string;
 var
   LLineas: TStringList;
@@ -728,7 +728,7 @@ begin
 
       if LEnBloque then
       begin
-        // Escapar HTML dentro del bloque
+        // Escape HTML inside the block
         LLinea := LLinea.Replace('&', '&amp;').Replace('<', '&lt;').Replace('>', '&gt;');
         LSB.Append(LLinea + sLineBreak);
         Continue;
@@ -755,8 +755,8 @@ begin
         LSB.Append('<br>')
       else
       begin
-        // Línea de párrafo: mostrar como <p>
-        // Nota: conversión inline (bold/italic) requeriría regex; se muestra el texto plano
+        // Paragraph line: show as <p>
+        // Note: inline conversion (bold/italic) would require regex; plain text is shown
         LSB.Append('<p>' + LTrim + '</p>');
       end;
     end;

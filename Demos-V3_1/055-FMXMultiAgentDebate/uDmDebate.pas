@@ -4,16 +4,16 @@
 // MakerAI - Demo 055: FMX Multi-Agent Debate
 // DataModule with the agent graph components.
 //
-// Grafo:
+// Graph:
 //   [Moderador] -> [Propositor] -> [Critico] -> [Rebatidor] -> [Juez]
 //
-// Cada nodo es un TLLMNode con su propio SystemPrompt.
-// El AgentManager ejecuta el grafo de forma asincrona.
+// Each node is a TLLMNode with its own SystemPrompt.
+// The AgentManager executes the graph asynchronously.
 //
-// Historial acumulado:
-//   - OnEnterNode (Synchronize): inyecta FDebateHistory en Node.Input para que
-//     cada agente vea toda la conversacion previa, no solo la salida anterior.
-//   - OnExitNode  (Synchronize): agrega la salida del nodo al FDebateHistory.
+// Accumulated history:
+//   - OnEnterNode (Synchronize): injects FDebateHistory into Node.Input so that
+//     each agent sees the entire previous conversation, not just the previous output.
+//   - OnExitNode  (Synchronize): adds the node's output to FDebateHistory.
 // =============================================================================
 
 interface
@@ -134,15 +134,15 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// OnEnterNode — se llama via TThread.Synchronize desde TLLMNode.DoExecute,
-// ANTES de la llamada al LLM. Inyectamos el historial acumulado en Node.Input
-// para que el agente vea toda la conversacion previa.
+// OnEnterNode — called via TThread.Synchronize from TLLMNode.DoExecute,
+// BEFORE the LLM call. We inject the accumulated history into Node.Input
+// so the agent sees the entire previous conversation.
 // ---------------------------------------------------------------------------
 procedure TDmDebate.AgentManagerEnterNode(Sender: TObject; Node: TAIAgentsNode);
 var
   Sep, Hdr: string;
 begin
-  // Inyectar historial acumulado (solo si ya hay algo — Moderador no necesita)
+  // Inject accumulated history (only if there is something — Moderator does not need it)
   if FDebateHistory <> '' then
     Node.Input := FDebateHistory;
 
@@ -154,8 +154,8 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// OnExitNode — se llama via TThread.Synchronize desde DoTraverseLinks,
-// TRAS la ejecucion del nodo. Acumulamos la salida en FDebateHistory.
+// OnExitNode — called via TThread.Synchronize from DoTraverseLinks,
+// AFTER the node executes. We accumulate the output in FDebateHistory.
 // ---------------------------------------------------------------------------
 procedure TDmDebate.AgentManagerExitNode(Sender: TObject; Node: TAIAgentsNode);
 var

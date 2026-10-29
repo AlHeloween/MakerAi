@@ -8,7 +8,7 @@ program GraphSearch;
 // =============================================================================
 // Demonstrates the different search strategies in a Knowledge Graph.
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - Search() → TArray<TAiRagGraphNode>: result as objects
 //   - SearchText() → String: result formatted as text
 //   - depth=0: anchor nodes only; depth=1: nodes + direct neighbors
@@ -44,59 +44,59 @@ var
   D70, D80, D90, D00, D10, D20: TAiRagGraphNode;
 begin
   // Historical technology events
-  N := RAG.AddNode('ev001', 'EVENTO', 'Creacion de UNIX');
-  N.Text := 'UNIX fue creado en Bell Labs en 1969, base de Linux y macOS.';
+  N := RAG.AddNode('ev001', 'EVENT', 'Creation of UNIX');
+  N.Text := 'UNIX was created at Bell Labs in 1969, basis of Linux and macOS.';
   N.Properties['año'] := 1969;
 
-  N := RAG.AddNode('ev002', 'EVENTO', 'Lanzamiento de Apple II');
-  N.Text := 'Apple II en 1977, primer computador personal de éxito masivo.';
+  N := RAG.AddNode('ev002', 'EVENT', 'Launch of Apple II');
+  N.Text := 'Apple II in 1977, first massively successful personal computer.';
   N.Properties['año'] := 1977;
 
-  N := RAG.AddNode('ev003', 'EVENTO', 'Creacion de Internet TCP/IP');
-  N.Text := 'TCP/IP en 1983 estandarizó las comunicaciones de Internet.';
+  N := RAG.AddNode('ev003', 'EVENT', 'Creation of Internet TCP/IP');
+  N.Text := 'TCP/IP in 1983 standardized Internet communications.';
   N.Properties['año'] := 1983;
 
-  N := RAG.AddNode('ev004', 'EVENTO', 'Lanzamiento de Windows');
-  N.Text := 'Windows 1.0 en 1985, interfaz gráfica de Microsoft.';
+  N := RAG.AddNode('ev004', 'EVENT', 'Launch of Windows');
+  N.Text := 'Windows 1.0 in 1985, Microsoft graphical interface.';
   N.Properties['año'] := 1985;
 
-  N := RAG.AddNode('ev005', 'EVENTO', 'Creacion de World Wide Web');
-  N.Text := 'Tim Berners-Lee creó la WWW en 1991 en el CERN.';
+  N := RAG.AddNode('ev005', 'EVENT', 'Creation of World Wide Web');
+  N.Text := 'Tim Berners-Lee created the WWW in 1991 at CERN.';
   N.Properties['año'] := 1991;
 
-  N := RAG.AddNode('ev006', 'EVENTO', 'Lanzamiento de Linux');
-  N.Text := 'Linux kernel creado por Linus Torvalds en 1991, OS de codigo abierto.';
+  N := RAG.AddNode('ev006', 'EVENT', 'Launch of Linux');
+  N.Text := 'Linux kernel created by Linus Torvalds in 1991, open source OS.';
   N.Properties['año'] := 1991;
 
-  N := RAG.AddNode('ev007', 'EVENTO', 'Fundacion de Google');
-  N.Text := 'Google fundado en 1998 por Page y Brin, revolucionó la búsqueda web.';
+  N := RAG.AddNode('ev007', 'EVENT', 'Foundation of Google');
+  N.Text := 'Google founded in 1998 by Page and Brin, revolutionized web search.';
   N.Properties['año'] := 1998;
 
-  N := RAG.AddNode('ev008', 'EVENTO', 'Creacion de Wikipedia');
-  N.Text := 'Wikipedia fundada en 2001, enciclopedia colaborativa en internet.';
+  N := RAG.AddNode('ev008', 'EVENT', 'Creation of Wikipedia');
+  N.Text := 'Wikipedia founded in 2001, collaborative encyclopedia on the internet.';
   N.Properties['año'] := 2001;
 
-  N := RAG.AddNode('ev009', 'EVENTO', 'Lanzamiento de iPhone');
-  N.Text := 'iPhone de Apple en 2007 revolucionó los smartphones y la movilidad.';
+  N := RAG.AddNode('ev009', 'EVENT', 'Launch of iPhone');
+  N.Text := 'Apple iPhone in 2007 revolutionized smartphones and mobility.';
   N.Properties['año'] := 2007;
 
-  N := RAG.AddNode('ev010', 'EVENTO', 'Lanzamiento de ChatGPT');
-  N.Text := 'ChatGPT lanzado en noviembre 2022, popularizó los LLMs masivamente.';
+  N := RAG.AddNode('ev010', 'EVENT', 'Launch of ChatGPT');
+  N.Text := 'ChatGPT launched in November 2022, massively popularized LLMs.';
   N.Properties['año'] := 2022;
 
   // Decades as temporal nodes
-  D70 := RAG.AddNode('dec70', 'DECADA', '1970s');
-  D70.Text := 'Década de 1970: inicio de la computación personal y UNIX.';
-  D80 := RAG.AddNode('dec80', 'DECADA', '1980s');
-  D80.Text := 'Década de 1980: PC, GUIs y el inicio de la red global.';
-  D90 := RAG.AddNode('dec90', 'DECADA', '1990s');
-  D90.Text := 'Década de 1990: Internet, web, Linux y software open source.';
-  D00 := RAG.AddNode('dec00', 'DECADA', '2000s');
-  D00.Text := 'Década de 2000: web 2.0, redes sociales y cloud computing.';
-  D10 := RAG.AddNode('dec10', 'DECADA', '2010s');
-  D10.Text := 'Década de 2010: móviles, big data, deep learning y smartphones.';
-  D20 := RAG.AddNode('dec20', 'DECADA', '2020s');
-  D20.Text := 'Década de 2020: IA generativa, LLMs y transformers.';
+  D70 := RAG.AddNode('dec70', 'DECADE', '1970s');
+  D70.Text := '1970s: beginning of personal computing and UNIX.';
+  D80 := RAG.AddNode('dec80', 'DECADE', '1980s');
+  D80.Text := '1980s: PC, GUIs and the beginning of the global network.';
+  D90 := RAG.AddNode('dec90', 'DECADE', '1990s');
+  D90.Text := '1990s: Internet, web, Linux and open source software.';
+  D00 := RAG.AddNode('dec00', 'DECADE', '2000s');
+  D00.Text := '2000s: web 2.0, social networks and cloud computing.';
+  D10 := RAG.AddNode('dec10', 'DECADE', '2010s');
+  D10.Text := '2010s: mobile, big data, deep learning and smartphones.';
+  D20 := RAG.AddNode('dec20', 'DECADE', '2020s');
+  D20.Text := '2020s: generative AI, LLMs and transformers.';
 
   // Relationships event → decades
   var Ev001 := RAG.FindNodeByID('ev001');
@@ -110,18 +110,18 @@ begin
   var Ev009 := RAG.FindNodeByID('ev009');
   var Ev010 := RAG.FindNodeByID('ev010');
 
-  RAG.AddEdge(Ev001, D70, 're001', 'OCURRIO_EN', 'ocurrió en');
-  RAG.AddEdge(Ev002, D70, 're002', 'OCURRIO_EN', 'ocurrió en');
-  RAG.AddEdge(Ev003, D80, 're003', 'OCURRIO_EN', 'ocurrió en');
-  RAG.AddEdge(Ev004, D80, 're004', 'OCURRIO_EN', 'ocurrió en');
-  RAG.AddEdge(Ev005, D90, 're005', 'OCURRIO_EN', 'ocurrió en');
-  RAG.AddEdge(Ev006, D90, 're006', 'OCURRIO_EN', 'ocurrió en');
-  RAG.AddEdge(Ev007, D90, 're007', 'OCURRIO_EN', 'ocurrió en');
-  RAG.AddEdge(Ev008, D00, 're008', 'OCURRIO_EN', 'ocurrió en');
-  RAG.AddEdge(Ev009, D00, 're009', 'OCURRIO_EN', 'ocurrió en');
-  RAG.AddEdge(Ev010, D20, 're010', 'OCURRIO_EN', 'ocurrió en');
+  RAG.AddEdge(Ev001, D70, 're001', 'OCCURRED_IN', 'occurred in');
+  RAG.AddEdge(Ev002, D70, 're002', 'OCCURRED_IN', 'occurred in');
+  RAG.AddEdge(Ev003, D80, 're003', 'OCCURRED_IN', 'occurred in');
+  RAG.AddEdge(Ev004, D80, 're004', 'OCCURRED_IN', 'occurred in');
+  RAG.AddEdge(Ev005, D90, 're005', 'OCCURRED_IN', 'occurred in');
+  RAG.AddEdge(Ev006, D90, 're006', 'OCCURRED_IN', 'occurred in');
+  RAG.AddEdge(Ev007, D90, 're007', 'OCCURRED_IN', 'occurred in');
+  RAG.AddEdge(Ev008, D00, 're008', 'OCCURRED_IN', 'occurred in');
+  RAG.AddEdge(Ev009, D00, 're009', 'OCCURRED_IN', 'occurred in');
+  RAG.AddEdge(Ev010, D20, 're010', 'OCCURRED_IN', 'occurred in');
 
-  Writeln(Format('Grafo: %d nodos, %d aristas.', [RAG.NodeCount, RAG.EdgeCount]));
+  Writeln(Format('Graph: %d nodes, %d edges.', [RAG.NodeCount, RAG.EdgeCount]));
 end;
 
 // =============================================================================
@@ -133,11 +133,11 @@ begin
   Writeln('Query: "', Query, '"');
   Writeln;
 
-  Writeln('  depth=0 (solo nodos ancla):');
+  Writeln('  depth=0 (anchor nodes only):');
   var R0 := RAG.SearchText(Query, 0, False, 2, 0.2);
   Writeln(R0);
 
-  Writeln('  depth=1 (nodos + vecinos):');
+  Writeln('  depth=1 (nodes + neighbors):');
   var R1 := RAG.SearchText(Query, 1, False, 2, 0.2);
   Writeln(R1);
 end;
@@ -174,27 +174,27 @@ begin
     // Statistics by type
     Writeln(StringOfChar('=', 60));
     Writeln('Statistics:');
-    Writeln('  Events: ',   RAG.CountNodesByLabel('EVENTO'));
-    Writeln('  Decades: ',   RAG.CountNodesByLabel('DECADA'));
+    Writeln('  Events: ',   RAG.CountNodesByLabel('EVENT'));
+    Writeln('  Decades: ',   RAG.CountNodesByLabel('DECADE'));
     Writeln('  Relationships: ', RAG.EdgeCount);
     Writeln;
 
     // List nodes by label
     Writeln(StringOfChar('-', 60));
-    Writeln('All DECADA nodes:');
-    Nodes := RAG.FindNodesByLabel('DECADA');
+    Writeln('All DECADE nodes:');
+    Nodes := RAG.FindNodesByLabel('DECADE');
     for Node in Nodes do
       Writeln('  - ', Node.Name);
     Writeln;
 
     // Search at different depths
-    CompararProfundidad(RAG, 'sistemas operativos de codigo abierto');
-    CompararProfundidad(RAG, 'inteligencia artificial y chatbots');
+    CompararProfundidad(RAG, 'open source operating systems');
+    CompararProfundidad(RAG, 'artificial intelligence and chatbots');
 
     // Search as node array
     Writeln(StringOfChar('-', 60));
     Writeln('Result as node array:');
-    var ResultNodes := RAG.Search('busqueda en internet', 0, 3, 0.2);
+    var ResultNodes := RAG.Search('internet search', 0, 3, 0.2);
     for var N in ResultNodes do
       Writeln(Format('  [%s] %s', [N.NodeLabel, N.Name]));
     Writeln;
@@ -220,6 +220,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

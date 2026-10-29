@@ -8,7 +8,7 @@ program AdvancedParams;
 // =============================================================================
 // Exploration of all advanced parameters of TAiChatConnection.
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - Temperature     : controls randomness (0=deterministic, 1=creative)
 //   - MaxTokens       : token limit in the response
 //   - SystemPrompt    : system instructions (personality, constraints)
@@ -49,7 +49,7 @@ end;
 // =============================================================================
 procedure DemoTemperature(Conn: TAiChatConnection);
 const
-  PROMPT = 'Dame una metáfora creativa para describir la programación.';
+  PROMPT = 'Give me a creative metaphor to describe programming.';
   TEMPS  : array[0..2] of String = ('0.0', '0.7', '1.5');
 var
   T   : String;
@@ -76,7 +76,7 @@ end;
 // =============================================================================
 procedure DemoMaxTokens(Conn: TAiChatConnection);
 const
-  PROMPT = 'Explica qué es machine learning.';
+  PROMPT = 'Explain what machine learning is.';
 var
   Tokens : String;
   Res    : String;
@@ -104,9 +104,9 @@ procedure DemoSystemPrompt(Conn: TAiChatConnection);
 const
   PREGUNTA = '¿Cómo aprender a programar?';
   SISTEMAS : array[0..2] of String = (
-    'Eres un profesor universitario formal. Usa terminología técnica.',
-    'Eres un amigo de 14 años. Habla como adolescente, con emojis.',
-    'Eres un pirata del Caribe del siglo XVII. Solo hablas como pirata.'
+    'You are a formal university professor. Use technical terminology.',
+    'You are a 14-year-old friend. Speak like a teenager, with emojis.',
+    'You are a 17th-century Caribbean pirate. You only speak like a pirate.'
   );
 var
   S   : String;
@@ -130,7 +130,7 @@ begin
   end;
 
   // Restaurar
-  Conn.SystemPrompt.Text := 'Responde siempre en español.';
+  Conn.SystemPrompt.Text := 'Always respond in Spanish.';
 end;
 
 // =============================================================================
@@ -145,14 +145,14 @@ begin
 
   Conn.Messages.Clear;
   Conn.SystemPrompt.Text :=
-    'Responde SIEMPRE en JSON válido, sin texto adicional. ' +
-    'El JSON debe tener exactamente estos campos: ' +
+    'Always respond in valid JSON, with no additional text. ' +
+    'The JSON must have exactly these fields: ' +
     '"nombre", "capital", "poblacion_millones", "idioma_oficial".';
 
   Conn.Params.Values['Response_format'] := 'json';
   Conn.Params.Values['Max_Tokens']      := '256';
 
-  Res := Conn.AddMessageAndRun('Dame info sobre México.', 'user', []);
+  Res := Conn.AddMessageAndRun('Give me info about Mexico.', 'user', []);
   Writeln('  Raw response:');
   Writeln('  ', Res);
 
@@ -196,11 +196,11 @@ begin
   Conn.Params.Values['Max_Tokens']    := '2048';
 
   Res := Conn.AddMessageAndRun(
-    'Resuelve paso a paso: Si tengo 3 cajas con 4 pelotas cada una, ' +
-    'y regalo la mitad de todas las pelotas, ¿cuántas me quedan?',
+    'Solve step by step: If I have 3 boxes with 4 balls each, ' +
+    'and I give away half of all the balls, how many do I have left?',
     'user', []);
 
-  Writeln('  Respuesta (con razonamiento):');
+  Writeln('  Response (with reasoning):');
   Writeln('  ', Res);
 
   // Restaurar
@@ -229,7 +229,7 @@ begin
     Conn.Params.Values['Temperature']       := '0.7';
     Conn.Params.Values['ResponseTimeOut']   := '120000';  // 2 min
 
-    Conn.SystemPrompt.Text := 'Responde siempre en español.';
+    Conn.SystemPrompt.Text := 'Always respond in Spanish.';
 
     DemoTemperature(Conn);
     DemoMaxTokens(Conn);

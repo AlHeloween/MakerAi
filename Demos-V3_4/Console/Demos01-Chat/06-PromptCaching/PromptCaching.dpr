@@ -8,12 +8,12 @@ program PromptCaching;
 // =============================================================================
 // Verifies Prompt Caching support in Claude, OpenAI and DeepSeek.
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - Claude: CacheSystemPrompt + CacheTTL  → cache_read/write_input_tokens
 //   - OpenAI: automatic (≥1024 tokens)     → cached_tokens in usage
 //   - DeepSeek: automatic by prefix      → prompt_cache_hit_tokens in usage
 //
-// Observar en la salida:
+// Observe in the output:
 //   Call 1: cached_read=0, cache_write>0   (MISS: written to cache)
 //   Call 2: cached_read>0, cache_write=0   (HIT:  read from cache)
 // =============================================================================
@@ -37,15 +37,15 @@ uses
 function BuildLongSystemPrompt: String;
 const
   BLOQUE =
-    'Eres un asistente experto en inteligencia artificial especializado en ayudar ' +
-    'a desarrolladores Delphi a integrar LLMs en sus aplicaciones con MakerAI Suite. ' +
-    'Conoces a fondo los modelos de OpenAI (GPT-4.1, o3, o4-mini, gpt-image-1), ' +
+    'You are an expert assistant in artificial intelligence specialized in helping ' +
+    'Delphi developers integrate LLMs into their applications with MakerAI Suite. ' +
+    'You know in depth the models of OpenAI (GPT-4.1, o3, o4-mini, gpt-image-1), ' +
     'Anthropic Claude (Opus 4.7, Sonnet 4.6, Haiku 4.5), Google Gemini (2.5 Flash/Pro), ' +
     'DeepSeek (V3.2 chat, R1 reasoner), Groq (Llama-4, Kimi-K2, Qwen3), ' +
     'Mistral (Large, Magistral, devstral), Cohere (Command-A), xAI Grok (grok-3, grok-4). ' +
-    'Cuando explicas conceptos usas ejemplos en código Delphi usando TAiChatConnection. ' +
-    'Recomiendas el modelo adecuado según: velocidad, costo, razonamiento, multimodalidad, ' +
-    'soporte de imágenes/audio/video/PDF, o agentes autónomos con function calling. ';
+    'When you explain concepts you use examples in Delphi code using TAiChatConnection. ' +
+    'You recommend the appropriate model according to: speed, cost, reasoning, multimodality, ' +
+    'support for images/audio/video/PDF, or autonomous agents with function calling. ';
 var
   I: Integer;
 begin
@@ -55,7 +55,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// Imprime las estadísticas de tokens de la última respuesta
+// Prints the token statistics of the last response
 // -----------------------------------------------------------------------------
 procedure PrintTokenStats(const Prefijo: String; Msgs: TAiChatMessages);
 var
@@ -109,16 +109,16 @@ begin
     Writeln('  Call 1 (expecting MISS + cache_write):');
     Conn.Messages.Clear;
     Resp := Conn.AddMessageAndRun(PREGUNTA, 'user', []);
-    Writeln('  Respuesta: ', Copy(Resp, 1, 80), '...');
+    Writeln('  Response: ', Copy(Resp, 1, 80), '...');
     PrintTokenStats('  Tokens:', Conn.Messages);
 
     Writeln;
 
     // Call 2 — expect HIT: the system prompt is already in cache
-    Writeln('  Llamada 2 (esperando HIT):');
+    Writeln('  Call 2 (expecting HIT):');
     Conn.Messages.Clear;
     Resp := Conn.AddMessageAndRun(PREGUNTA, 'user', []);
-    Writeln('  Respuesta: ', Copy(Resp, 1, 80), '...');
+    Writeln('  Response: ', Copy(Resp, 1, 80), '...');
     PrintTokenStats('  Tokens:', Conn.Messages);
 
   finally
@@ -140,7 +140,7 @@ var
   Conn : TAiChatConnection;
   Resp : String;
 begin
-  Writeln('━━━ OPENAI — Caching automático ━━━');
+  Writeln('━━━ OPENAI — Automatic caching ━━━');
   Conn := TAiChatConnection.Create(nil);
   try
     Conn.DriverName := DRIVER;
@@ -152,18 +152,18 @@ begin
 
     // No additional configuration: OpenAI automatically caches prefixes ≥1024 tokens
 
-    Writeln('  Llamada 1 (esperando MISS):');
+    Writeln('  Call 1 (expecting MISS):');
     Conn.Messages.Clear;
     Resp := Conn.AddMessageAndRun(PREGUNTA, 'user', []);
-    Writeln('  Respuesta: ', Copy(Resp, 1, 80), '...');
+    Writeln('  Response: ', Copy(Resp, 1, 80), '...');
     PrintTokenStats('  Tokens:', Conn.Messages);
 
     Writeln;
 
-    Writeln('  Llamada 2 (esperando HIT):');
+    Writeln('  Call 2 (expecting HIT):');
     Conn.Messages.Clear;
     Resp := Conn.AddMessageAndRun(PREGUNTA, 'user', []);
-    Writeln('  Respuesta: ', Copy(Resp, 1, 80), '...');
+    Writeln('  Response: ', Copy(Resp, 1, 80), '...');
     PrintTokenStats('  Tokens:', Conn.Messages);
 
   finally
@@ -185,7 +185,7 @@ var
   Conn : TAiChatConnection;
   Resp : String;
 begin
-  Writeln('━━━ DEEPSEEK — Caching automático por prefijo ━━━');
+  Writeln('━━━ DEEPSEEK — Automatic caching by prefix ━━━');
   Conn := TAiChatConnection.Create(nil);
   try
     Conn.DriverName := DRIVER;
@@ -197,18 +197,18 @@ begin
 
     // No configuration: DeepSeek automatically caches repeated prefixes
 
-    Writeln('  Llamada 1 (esperando MISS):');
+    Writeln('  Call 1 (expecting MISS):');
     Conn.Messages.Clear;
     Resp := Conn.AddMessageAndRun(PREGUNTA, 'user', []);
-    Writeln('  Respuesta: ', Copy(Resp, 1, 80), '...');
+    Writeln('  Response: ', Copy(Resp, 1, 80), '...');
     PrintTokenStats('  Tokens:', Conn.Messages);
 
     Writeln;
 
-    Writeln('  Llamada 2 (esperando HIT):');
+    Writeln('  Call 2 (expecting HIT):');
     Conn.Messages.Clear;
     Resp := Conn.AddMessageAndRun(PREGUNTA, 'user', []);
-    Writeln('  Respuesta: ', Copy(Resp, 1, 80), '...');
+    Writeln('  Response: ', Copy(Resp, 1, 80), '...');
     PrintTokenStats('  Tokens:', Conn.Messages);
 
   finally

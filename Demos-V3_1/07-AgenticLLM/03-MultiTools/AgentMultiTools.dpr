@@ -6,14 +6,14 @@ program AgentMultiTools;
 // =============================================================================
 // MakerAI — 07-AgenticLLM / 03-MultiTools
 // =============================================================================
-// Un agente con múltiples herramientas disponibles.
-// El LLM elige qué herramienta(s) usar según la consulta.
+// An agent with multiple available tools.
+// The LLM chooses which tool(s) to use based on the query.
 //
 // Concepts covered:
-//   - Múltiples herramientas en el mismo TLLMNode
-//   - GetCategory: organizar herramientas por dominio
-//   - Llamadas encadenadas: LLM puede usar varias tools en secuencia
-//   - Tool result → LLM integra los resultados → respuesta final
+//   - Multiple tools in the same TLLMNode
+//   - GetCategory: organize tools by domain
+//   - Chained calls: LLM can use several tools in sequence
+//   - Tool result → LLM integrates the results → final response
 //
 // Tools: calculator, date/time, temperature, URL encode
 // Structure: [Start] --> [MultiAgent] --> [End]
@@ -248,7 +248,7 @@ begin
   Writeln('4 tools: calculator, datetime, temperature, url_encode');
   Writeln;
 
-  // Registrar herramientas en el registry global
+  // Register tools in the global registry
   TAiToolRegistry.Instance.Register(TCalculatorTool.Create,   'local', 'math');
   TAiToolRegistry.Instance.Register(TDateTimeTool.Create,     'local', 'utility');
   TAiToolRegistry.Instance.Register(TTemperatureTool.Create,  'local', 'utility');
@@ -310,6 +310,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

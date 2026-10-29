@@ -41,12 +41,12 @@ const
   D1_QUERY = 'Como se programa una aplicacion en Delphi';
 
   D1_CORPUS: array[0..5] of string = (
-    'Delphi es un lenguaje de programacion orientado a objetos',
-    'RAD Studio permite compilar aplicaciones para Windows y Android',
-    'Los componentes FMX facilitan el diseno de interfaces multiplataforma',
-    'La inteligencia artificial transforma la forma de desarrollar software',
-    'El cafe es la bebida favorita de los programadores',
-    'La temperatura media en la superficie de Marte es de menos 60 grados'
+    'Delphi is an object-oriented programming language',
+    'RAD Studio allows compiling applications for Windows and Android',
+    'FMX components facilitate the design of cross-platform interfaces',
+    'Artificial intelligence transforms the way software is developed',
+    'Coffee is the favorite drink of programmers',
+    'The average temperature on the surface of Mars is minus 60 degrees'
   );
 
 // ---------------------------------------------------------------------------
@@ -54,44 +54,44 @@ const
 // ---------------------------------------------------------------------------
 const
   D2_QUERIES: array[0..2] of string = (
-    'componentes visuales para interfaces de usuario',
-    'modelos locales sin necesidad de internet ni API key',
-    'busqueda y recuperacion de informacion semantica'
+    'visual components for user interfaces',
+    'local models without needing internet or API key',
+    'search and retrieval of semantic information'
   );
 
   D2_CORPUS: array[0..14] of string = (
-    'FireMonkey permite disennar interfaces multiplataforma en Delphi',  // 0
-    'TChatList y TChatInput son componentes FMX de MakerAI',             // 1
-    'Delphi compila codigo nativo para Windows, Android e iOS',          // 2
-    'Ollama ejecuta modelos de lenguaje de forma local sin conexion',    // 3
-    'gemma, llama y mistral son modelos open-source que corren en CPU',  // 4
-    'Los embeddings convierten texto en vectores numericos',             // 5
-    'La similitud coseno mide el angulo entre dos vectores',             // 6
-    'RAG combina busqueda semantica con generacion de texto',            // 7
-    'TAiChat es la clase base abstracta de todos los drivers en MakerAI', // 8
-    'Los agentes de IA ejecutan herramientas y toman decisiones autonomas', // 9
-    'La base de datos vectorial almacena embeddings para busqueda eficiente', // 10
-    'MakerAI soporta OpenAI, Claude, Gemini, Ollama y mas providers',   // 11
-    'El protocolo MCP conecta servidores de herramientas a modelos LLM', // 12
-    'Python es ampliamente usado en ciencia de datos e inteligencia artificial', // 13
-    'La cocina italiana es famosa por su pasta y sus pizzas artesanales' // 14
+    'FireMonkey allows designing cross-platform interfaces in Delphi',  // 0
+    'TChatList and TChatInput are FMX components of MakerAI',             // 1
+    'Delphi compiles native code for Windows, Android and iOS',          // 2
+    'Ollama runs language models locally without connection',    // 3
+    'gemma, llama and mistral are open-source models that run on CPU',  // 4
+    'Embeddings convert text into numeric vectors',             // 5
+    'Cosine similarity measures the angle between two vectors',             // 6
+    'RAG combines semantic search with text generation',            // 7
+    'TAiChat is the abstract base class of all drivers in MakerAI', // 8
+    'AI agents execute tools and make autonomous decisions', // 9
+    'The vector database stores embeddings for efficient search', // 10
+    'MakerAI supports OpenAI, Claude, Gemini, Ollama and more providers',   // 11
+    'The MCP protocol connects tool servers to LLM models', // 12
+    'Python is widely used in data science and artificial intelligence', // 13
+    'Italian cuisine is famous for its pasta and artisanal pizzas' // 14
   );
 
 // ---------------------------------------------------------------------------
 //  Demo 3 corpus: 8 sentences, comparison of three models
 // ---------------------------------------------------------------------------
 const
-  D3_QUERY = 'procesamiento de lenguaje natural con redes neuronales';
+  D3_QUERY = 'natural language processing with neural networks';
 
   D3_CORPUS: array[0..7] of string = (
-    'Los transformers son la arquitectura base de los LLMs modernos',
-    'GPT, Claude y Gemini son modelos de lenguaje de gran escala',
-    'El procesamiento de lenguaje natural analiza y comprende texto humano',
-    'Las redes neuronales aprenden patrones a partir de grandes datasets',
-    'Delphi compila codigo nativo altamente eficiente para multiples plataformas',
-    'FireDAC es el framework de acceso a datos de RAD Studio',
-    'El sistema solar tiene ocho planetas orbitando alrededor del Sol',
-    'La receta del gazpacho lleva tomate, pepino, ajo y aceite de oliva'
+    'Transformers are the base architecture of modern LLMs',
+    'GPT, Claude and Gemini are large-scale language models',
+    'Natural language processing analyzes and understands human text',
+    'Neural networks learn patterns from large datasets',
+    'Delphi compiles highly efficient native code for multiple platforms',
+    'FireDAC is the data access framework of RAD Studio',
+    'The solar system has eight planets orbiting around the Sun',
+    'Gazpacho recipe includes tomato, cucumber, garlic and olive oil'
   );
 
 // ---------------------------------------------------------------------------
@@ -140,8 +140,8 @@ var
   Results: TAiSimilarityList;
   I:       Integer;
 begin
-  Separador('Demo 1 -- Similitud coseno: frases cercanas y lejanas');
-  WriteLn('  Modelo : ', MDL_SNOWFLAKE, '  [1024 dims]');
+  Separador('Demo 1 -- Cosine similarity: close and distant sentences');
+  WriteLn('  Model : ', MDL_SNOWFLAKE, '  [1024 dims]');
   WriteLn('  Query  : "', D1_QUERY, '"');
   WriteLn('');
 
@@ -155,7 +155,7 @@ begin
     QVec   := Conn.CreateEmbedding(D1_QUERY, '');
     WriteLn(Format(' OK  (%d dims x %d sentences)', [Length(QVec), Length(D1_CORPUS)]));
 
-    // FindTopK con K = total: devuelve todo el corpus ordenado por similitud
+    // FindTopK with K = total: returns the whole corpus sorted by similarity
     Results := TAiEmbeddingsCore.FindTopK(QVec, Corpus, Length(D1_CORPUS));
 
     WriteLn('');
@@ -190,8 +190,8 @@ var
   Results: TAiSimilarityList;
   Q, K:    Integer;
 begin
-  Separador('Demo 2 -- Busqueda semantica con FindTopK');
-  WriteLn('  Modelo : ', MDL_SNOWFLAKE, '  [1024 dims]');
+  Separador('Demo 2 -- Semantic search with FindTopK');
+  WriteLn('  Model : ', MDL_SNOWFLAKE, '  [1024 dims]');
   WriteLn('  Corpus : ', Length(D2_CORPUS), ' sentences  |  Top-K = 3');
   WriteLn('');
 
@@ -244,7 +244,7 @@ var
   Results: TAiSimilarityList;
   M, K:    Integer;
 begin
-  Separador('Demo 3 -- Los tres modelos cara a cara');
+  Separador('Demo 3 -- The three models head to head');
   WriteLn('  Query : "', D3_QUERY, '"');
   WriteLn('  Corpus: ', Length(D3_CORPUS), ' sentences  |  Top-3 per model');
   WriteLn('');

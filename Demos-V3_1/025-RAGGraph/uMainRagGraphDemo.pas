@@ -241,7 +241,7 @@ begin
   Ent := Trim(MemoToProcess.Lines.Text);
 
   If Ent = '' then
-    Raise Exception.Create('Primero adicione el texto a procesar en el memo y luego presione el bot�n para crear el grafo');
+    Raise Exception.Create('First add the text to process in the memo and then press the button to create the graph');
 
   Prompt := AiPrompts1.GetTemplate('CreaJSonFromTexto', ['texto=' + Ent]);
   // Memo1.Lines.Text := Prompt;
@@ -272,10 +272,10 @@ begin
     RAGBuilder1.Process(MF.ToString);
     RAG.RebuildIndexes;
     End;
-    ShowMessage('Se almacen� correctamente el json- Nodos:' + RAG.NodeCount.ToString);
+    ShowMessage('The json was stored correctly - Nodes:' + RAG.NodeCount.ToString);
     End
     Else
-    ShowMessage('Error al almacenar el Json');
+    ShowMessage('Error storing the Json');
   }
 end;
 
@@ -344,28 +344,28 @@ begin
   Limit := StrToIntDef(EditLimit.Text, 5);
   Precision := StrToFloatDef(EditPrecision.Text, 0.5);
 
-  // --- opcional se puede filtrar primero para reducir el n�mero de registros ----
+  // --- optional: you can filter first to reduce the number of records ----
   AFilter := TAiFilterCriteria.Create;
   AFilter.AddEqual('empresa','APPLE');
 
-  // no pasamos filtros por a hora
+  // we are not passing filters for now
   AFilter := Nil;
 
   //RAG.Search(Prompt, Depth, Limit, Precision, AFilter);
 
   Res := RAG.SearchText(Prompt, Depth, Detailed, Limit, Precision, AFilter);
-  // -- Filtra primero antes de b�scar
-  // -- Busca por embedding
-  // -- Busca l�xica = Similitud de palabras
-  // -- Mezcla los dos resultados y los categoriza
-  // -- Reordena para evitar el sezgo posicional
+  // -- Filter first before searching
+  // -- Search by embedding
+  // -- Lexical search = Word similarity
+  // -- Mix the two results and categorize them
+  // -- Reorder to avoid positional bias
 
   MemoResultados.Lines.Add(Res);
 end;
 
 procedure TMainRagGraphDemo.BtnClearClick(Sender: TObject);
 Begin
-  // Liberar la consulta actual y crear una nueva
+  // Free the current query and create a new one
   FCurrentQuery.Free;
   FCurrentQuery := TGraphMatchQuery.Create;
   FNodeVarCounter := 0;
@@ -397,23 +397,23 @@ begin
   Log := TStringList.Create;
   try
     Try
-      Self.Cursor := crHourGlass; // Cambiar el cursor para indicar que se est� trabajando
+      Self.Cursor := crHourGlass; // Change the cursor to indicate that work is in progress
 
       // --- Step 1: Get the user query and build the prompt for the LLM ---
       Ent := MemoPrompt.Lines.Text;
       if Trim(Ent) = '' then
       begin
-        ShowMessage('Por favor, ingrese una consulta.');
+        ShowMessage('Please enter a query.');
         Exit;
       end;
 
-      Log.Add('Consulta del usuario: "' + Ent + '"');
+      Log.Add('User query: "' + Ent + '"');
       Log.Add('');
 
       Prompt := AiPrompts1.GetTemplate('CreaJSonQueryPlan', ['texto=' + Ent]);
 
-      // --- Paso 2: Llamar al LLM para generar el plan de consulta JSON ---
-      // Tu configuraci�n para forzar la salida de un archivo de texto es excelente.
+      // --- Step 2: Call the LLM to generate the JSON query plan ---
+      // Your configuration to force the output of a text file is excellent.
       AiConn.ModelConfig.SessionCaps := AiConn.ModelConfig.SessionCaps + [cap_ExtractCode];
       Res := AiConn.AddMessageAndRun(Prompt, 'user', []);
       Msg := AiConn.GetLastMessage;
@@ -421,41 +421,41 @@ begin
       // --- Step 3: Parse the JSON and execute the query ---
       if (Msg.MediaFiles = nil) or (Msg.MediaFiles.Count = 0) then
       begin
-        ShowMessage('El LLM no devolvi� un plan de consulta estructurado.');
+        ShowMessage('The LLM did not return a structured query plan.');
         Exit;
       end;
 
       // We assume the LLM returns a single file with the plan
       JSonPlanStr := Msg.MediaFiles[0].ToString;
-      Log.Add('Plan JSON recibido del LLM:');
+      Log.Add('JSON plan received from the LLM:');
       Log.Add(JSonPlanStr);
       Log.Add('');
 
       Plan := ParseJsonToQueryPlan(JSonPlanStr);
 
-      // Verificaci�n b�sica de que el plan es v�lido
+      // Basic verification that the plan is valid
       if (Plan.AnchorPrompt <> '') and (Plan.AnchorVariable <> '') then
       begin
         // ---- START OF COMPLETED BLOCK ----
 
-        Log.Add('Ejecutando el plan de consulta...');
+        Log.Add('Executing the query plan...');
 
-        // Ejecutar la consulta en el componente RAG usando el plan
-        // Usamos valores por defecto para profundidad, l�mite y precisi�n por ahora.
+        // Execute the query in the RAG component using the plan
+        // We use default values for depth, limit and precision for now.
         Results := RAG.Query(Plan, Depth, Limit, Precision);
 
         // Format and display the results
         Log.Add('');
-        Log.Add('--- Resultados de la Consulta ---');
+        Log.Add('--- Query Results ---');
         if Length(Results) > 0 then
         begin
           for Node in Results do
           begin
-            Log.Add('  - ' + Node.Name + ' (Tipo: ' + Node.NodeLabel + ')');
+            Log.Add('  - ' + Node.Name + ' (Type: ' + Node.NodeLabel + ')');
 
             if Detailed and (Node.Properties <> nil) and (Length(Node.Properties) > 0) then
             begin
-              Log.Add('  Propiedades de la entidad:');
+              Log.Add('  Entity properties:');
               for PropPair in Node.Properties do
               begin
                 Log.Add('    � ');
@@ -464,7 +464,7 @@ begin
                 try
                   Log.Add(VarToStr(PropPair.Value));
                 except
-                  Log.Add('<valor no legible>');
+                  Log.Add('<unreadable value>');
                 end;
               end;
             end;
@@ -472,23 +472,23 @@ begin
         end
         else
         begin
-          Log.Add('(No se encontraron resultados que coincidan con el plan de consulta)');
+          Log.Add('(No results were found matching the query plan)');
         end;
       end
       else
       begin
-        Log.Add('El plan de consulta recibido del LLM es inv�lido o est� incompleto.');
+        Log.Add('The query plan received from the LLM is invalid or incomplete.');
       end;
 
       MemoResultados.Lines.Assign(Log);
 
     except
       on E: Exception do
-        ShowMessage('Ocurri� un error durante el proceso: ' + E.Message);
+        ShowMessage('An error occurred during the process: ' + E.Message);
     end;
   finally
     Log.Free;
-    Self.Cursor := crDefault; // Restaurar el cursor
+    Self.Cursor := crDefault; // Restore the cursor
   end;
 }
 End;
@@ -498,7 +498,7 @@ begin
   RAGPgDriver.TableName := 'graph_';
   RAGPgDriver.CurrentEntidad := 'DEFAULT';
   RAGPgDriver.CreateSchema('graph_', 1024);
-  ShowMessage('Se cre� la tabla de rag');
+  ShowMessage('The rag table was created');
 end;
 
 procedure TMainRagGraphDemo.BtnExecuteMakerGQLClick(Sender: TObject);
@@ -506,18 +506,18 @@ var
   Results: TArray<TDictionary<string, TObject>>;
   Depth: Integer;
 begin
-  // 1. Configuración de la interfaz
+  // 1. Interface configuration
   Depth := Round(numDepth.Value);
   MemoResults.Lines.Clear;
-  MemoResults.Lines.Add('Ejecutando consulta MakerGQL...');
+  MemoResults.Lines.Add('Executing MakerGQL query...');
   Application.ProcessMessages;
 
   try
-    // 2. Ejecuci�n directa a trav�s del componente RAG
+    // 2. Direct execution through the RAG component
     RAG.ExecuteMakerGQL(MemoMakerGQL.Lines.Text, Results, Depth);
 
-    // 3. Visualización de Resultados
-    MemoResults.Lines.Add(Format('Se encontraron %d coincidencias.', [Length(Results)]));
+    // 3. Results visualization
+    MemoResults.Lines.Add(Format('Found %d matches.', [Length(Results)]));
     MemoResults.Lines.Add('----------------------------------');
 
     if Length(Results) > 0 then
@@ -528,13 +528,13 @@ begin
         MatchBuilder_DisplaySubgraphResults(Results, chMatchShowProperties.IsChecked);
     end
     else
-      MemoResults.Lines.Add('La consulta no devolvi� resultados.');
+      MemoResults.Lines.Add('The query returned no results.');
 
   except
     on E: Exception do
     begin
-      // Capturamos cualquier error (de sintaxis o de ejecuci�n) que ocurra dentro de ExecuteMakerGQL
-      MemoResults.Lines.Add('*** ERROR EN CONSULTA ***');
+      // We capture any error (syntax or execution) that occurs inside ExecuteMakerGQL
+      MemoResults.Lines.Add('*** QUERY ERROR ***');
       MemoResults.Lines.Add(E.Message);
     end;
   end;
@@ -545,7 +545,7 @@ begin
   FCurrentQuery := TGraphMatchQuery.Create;
   FNodeVarCounter := 0;
 
-  // Poblar los ComboBox con datos del grafo
+  // Populate the ComboBoxes with graph data
   MatchBuilder_PopulateComboBoxes;
 end;
 
@@ -561,7 +561,7 @@ begin
   Graph := RAG;
   if not Assigned(Graph) then
   begin
-    ShowMessage('El componente del grafo (RAG) no est� asignado.');
+    ShowMessage('The graph component (RAG) is not assigned.');
     Exit;
   end;
 
@@ -592,7 +592,7 @@ begin
 
     // 6. Display the results in the TMemo
     MemoResults.Lines.Clear;
-    MemoResults.Lines.Add(Format('--- Se encontraron %d tripletas en el grafo ---', [TripletList.Count]));
+    MemoResults.Lines.Add(Format('--- %d triplets found in the graph ---', [TripletList.Count]));
     MemoResults.Lines.Add('');
     MemoResults.Lines.AddStrings(TripletList);
 
@@ -661,14 +661,14 @@ begin
       // RAG.SaveToFile(SaveDialog1.FileName, True);
 
       // Inform the user (optional but recommended)
-      ShowMessage('Grafo guardado exitosamente en: ' + SaveDialog1.FileName);
+      ShowMessage('Graph saved successfully at: ' + SaveDialog1.FileName);
 
       // Update the open dialog for convenience
       OpenDialog1.FileName := SaveDialog1.FileName;
     except
       on E: Exception do
       begin
-        ShowMessage('Error al guardar el grafo: ' + E.Message);
+        ShowMessage('Error saving the graph: ' + E.Message);
       end;
     end;
   end;
@@ -681,29 +681,29 @@ var
 begin
   if FCurrentQuery.MatchClauses.Count = 0 then
   begin
-    ShowMessage('Por favor, a�ada al menos un paso a la consulta.');
+    ShowMessage('Please add at least one step to the query.');
     Exit;
   end;
 
-  Depth := Round(numDepth.Value); // Obtener el valor del control de profundidad
+  Depth := Round(numDepth.Value); // Get the value from the depth control
 
   MemoResults.Lines.Clear;
-  MemoResults.Lines.Add('Ejecutando consulta...');
+  MemoResults.Lines.Add('Executing query...');
   Application.ProcessMessages;
 
   Results := RAG.Match(FCurrentQuery, Depth);
 
   MemoResults.Lines.Clear;
-  MemoResults.Lines.Add(Format('Se encontraron %d coincidencias.', [Length(Results)]));
+  MemoResults.Lines.Add(Format('Found %d matches.', [Length(Results)]));
   MemoResults.Lines.Add('----------------------------------');
 
   if Length(Results) > 0 then
   begin
-    // El c�digo para mostrar ahora debe diferenciar entre el resultado del Match y el del subgrafo
+    // The display code must now differentiate between the Match result and the subgraph
     if Depth = 0 then
-      MatchBuilder_DisplayMatchResults(Results, chMatchShowProperties.IsChecked) // Un nuevo m�todo para mostrar resultados de Match
+      MatchBuilder_DisplayMatchResults(Results, chMatchShowProperties.IsChecked) // A new method to display Match results
     else
-      MatchBuilder_DisplaySubgraphResults(Results, chMatchShowProperties.IsChecked); // Un nuevo m�todo para mostrar el subgrafo
+      MatchBuilder_DisplaySubgraphResults(Results, chMatchShowProperties.IsChecked); // A new method to display the subgraph
   end;
 end;
 
@@ -741,7 +741,7 @@ begin
   OpenDialog1.Filter := 'Archivos de Texto (*.txt)|*.txt|' + 'Archivos Text (*.text)|*.text|' + 'Archivos JSON (*.json)|*.json|' + 'Archivos CSV (*.csv)|*.csv|' +
     'Todos los archivos de texto (*.txt;*.text;*.json;*.csv)|*.txt;*.text;*.json;*.csv|' + 'Todos los archivos (*.*)|*.*';
   OpenDialog1.DefaultExt := '.txt';
-  OpenDialog1.FilterIndex := 5; // Selecciona "Todos los archivos de texto" por defecto
+  OpenDialog1.FilterIndex := 5; // Selects "All text files" by default
   OpenDialog1.InitialDir := 'c:\temp\';
 
   if OpenDialog1.Execute then
@@ -1008,7 +1008,7 @@ begin
   Query := NewQuery;
   NodeIDs := TStringList.Create;
   try
-    // 1. Obtener solo los IDs de los nodos que coinciden.
+    // 1. Get only the IDs of the matching nodes.
     Query.SQL.Text := 'SELECT id FROM graph_nodes WHERE entidad = :entidad AND node_label = :node_label';
     Query.ParamByName('entidad').AsString := FCurrentEntidad;
     Query.ParamByName('node_label').AsString := ALabel;
@@ -1020,13 +1020,13 @@ begin
       Query.Next;
     end;
 
-    // 2. Pedirle al grafo que "hidrate" o devuelva cada nodo desde su cach�.
+    // 2. Ask the graph to "hydrate" or return each node from its cache.
     SetLength(ResultNodes, NodeIDs.Count);
     for i := 0 to NodeIDs.Count - 1 do
     begin
-      // FindNodeByID es ahora nuestro �nico punto de entrada para obtener nodos.
-      // Se encargar� de crear el objeto si no existe, o devolver el
-      // existente si ya fue cargado.
+      // FindNodeByID is now our only entry point to get nodes.
+      // It will take care of creating the object if it does not exist, or returning the
+      // existing one if it has already been loaded.
       ResultNodes[i] := Graph.FindNodeByID(NodeIDs[i]);
     end;
 
@@ -1043,7 +1043,7 @@ var
   NodeList: TObjectList<TAiRagGraphNode>;
 begin
   Query := NewQuery;
-  NodeList := TObjectList<TAiRagGraphNode>.Create(True); // <-- L�NEA A�ADIDA
+  NodeList := TObjectList<TAiRagGraphNode>.Create(True); // <-- ADDED LINE
   try
     if SameText(AKey, 'name') then
     begin
@@ -1088,8 +1088,8 @@ end;
   Graph := Sender as TAiRagGraph;
   Query := NewQuery;
   try
-  // 1. Buscamos los IDs de todas las aristas conectadas a este nodo.
-  // Solo necesitamos los IDs, el resto del trabajo lo har� el grafo.
+  // 1. We search for the IDs of all edges connected to this node.
+  // We only need the IDs, the rest of the work will be done by the graph.
   Query.SQL.Text := 'SELECT id FROM graph_edges ' +
   'WHERE entidad = :entidad AND ' +
   '(source_node_id = :node_id OR target_node_id = :node_id)';
@@ -1097,13 +1097,13 @@ end;
   Query.ParamByName('node_id').AsString := ANode.ID;
   Query.Open;
 
-  // 2. Iteramos sobre los IDs y le pedimos al grafo que cargue cada arista.
+  // 2. We iterate over the IDs and ask the graph to load each edge.
   while not Query.Eof do
   begin
   EdgeID := Query.FieldByName('id').AsString;
-  // Esta es la llamada clave.
-  // FindEdgeByID es ahora un "get-or-create-from-db".
-  // Se encargar� de todo el proceso de carga y conexi�n.
+  // This is the key call.
+  // FindEdgeByID is now a "get-or-create-from-db".
+  // It will handle the entire loading and connection process.
   Graph.FindEdgeByID(EdgeID);
   Query.Next;
   end;
@@ -1128,13 +1128,13 @@ begin
   Graph := Sender as TAiRagGraph;
   Query := NewQuery;
   try
-    // 1. Traemos TODOS los datos de las aristas en UNA SOLA consulta.
+    // 1. We bring ALL edge data in a SINGLE query.
     Query.SQL.Text := 'SELECT id, edge_label, name, source_node_id, target_node_id, ' + 'weight, properties, embedding ' + 'FROM graph_edges ' + 'WHERE entidad = :entidad AND ' + '(source_node_id = :node_id OR target_node_id = :node_id)';
     Query.ParamByName('entidad').AsString := FCurrentEntidad;
     Query.ParamByName('node_id').AsString := ANode.ID;
     Query.Open;
 
-    // 2. Iteramos sobre los resultados y le pedimos al grafo que hidrate cada arista.
+    // 2. We iterate over the results and ask the graph to hydrate each edge.
     while not Query.Eof do
     begin
       EdgeID := Query.FieldByName('id').AsString;
@@ -1183,24 +1183,24 @@ begin
   Query := NewQuery;
   LabelList := TStringList.Create;
   try
-    // 1. Definir la consulta SQL
+    // 1. Define the SQL query
     Query.SQL.Text := 'SELECT DISTINCT edge_label FROM graph_edges WHERE entidad = :entidad ORDER BY edge_label';
     Query.ParamByName('entidad').AsString := FCurrentEntidad;
 
-    // 2. Ejecutar la consulta
+    // 2. Execute the query
     Query.Open;
 
-    // 3. Recorrer los resultados
+    // 3. Iterate over the results
     while not Query.Eof do
     begin
       LabelList.Add(Query.Fields[0].AsString);
       Query.Next;
     end;
 
-    // 4. Poblar el array de resultado
+    // 4. Populate the result array
     ResultLabels := LabelList.ToStringArray;
 
-    // 5. Marcar como manejado
+    // 5. Mark as handled
     Handled := True;
 
   finally
@@ -1214,30 +1214,30 @@ var
   Query: TFDQuery;
   LabelList: TStringList;
 begin
-  // Asumimos que la conexi�n a la base de datos ya est� activa.
-  // Si no es as�, puedes a�adir una comprobaci�n aqu�.
+  // We assume that the database connection is already active.
+  // If not, you can add a check here.
 
   Query := NewQuery; // Usando tu funci�n helper
   LabelList := TStringList.Create;
   try
-    // 1. Definir la consulta SQL
+    // 1. Define the SQL query
     Query.SQL.Text := 'SELECT DISTINCT node_label FROM graph_nodes WHERE entidad = :entidad ORDER BY node_label';
     Query.ParamByName('entidad').AsString := FCurrentEntidad;
 
-    // 2. Ejecutar la consulta
+    // 2. Execute the query
     Query.Open;
 
-    // 3. Recorrer los resultados y a�adirlos a la lista
+    // 3. Iterate over the results and add them to the list
     while not Query.Eof do
     begin
       LabelList.Add(Query.Fields[0].AsString);
       Query.Next;
     end;
 
-    // 4. Convertir la TStringList a un TArray<string> para el resultado
+    // 4. Convert the TStringList to a TArray<string> for the result
     ResultLabels := LabelList.ToStringArray;
 
-    // 5. Indicar que la solicitud ha sido manejada por la base de datos
+    // 5. Indicate that the request has been handled by the database
     Handled := True;
 
   finally
@@ -1265,7 +1265,7 @@ begin
       Query.SQL.Add('VALUES (:entidad, :id, :edge_label, :name, :source_node_id, :target_node_id, :weight, :properties::JsonB)');
     End;
 
-    // Asignar valores a los par�metros
+    // Assign values to the parameters
     Query.ParamByName('entidad').AsString := FCurrentEntidad;
     Query.ParamByName('id').AsString := AEdge.ID;
     Query.ParamByName('edge_label').AsString := AEdge.EdgeLabel;
@@ -1300,7 +1300,7 @@ begin
       Query.SQL.Add('VALUES (:entidad, :id, :node_label, :name, :properties::jsonb)');
     End;
 
-    // Asignar valores a los par�metros
+    // Assign values to the parameters
     Query.ParamByName('entidad').AsString := FCurrentEntidad;
     Query.ParamByName('id').AsString := ANode.ID;
     Query.ParamByName('node_label').AsString := ANode.NodeLabel;
@@ -1420,8 +1420,8 @@ begin
       Found := True; // Indicamos que encontramos los datos.
     end;
 
-    // Ya no hay un `Handled` en la nueva firma, `Found` cumple ese rol.
-    // Ya no creamos ning�n TAiRagGraphNode aqu�.
+    // There is no longer a `Handled` in the new signature, `Found` fulfills that role.
+    // We no longer create any TAiRagGraphNode here.
 
   finally
     Query.Free;
@@ -1447,8 +1447,8 @@ begin
     Exit;
   Graph := Sender as TAiRagGraph;
 
-  // Solo manejaremos planes con un ancla y un solo paso, como antes.
-  // Podr�as extender esto con un generador de SQL din�mico en el futuro.
+  // We will only handle plans with an anchor and a single step, as before.
+  // You could extend this with a dynamic SQL generator in the future.
   if Length(APlan.Steps) <> 1 then
   begin
     Handled := False;
@@ -1459,14 +1459,14 @@ begin
   NodeIDs := TStringList.Create;
   Step := APlan.Steps[0];
   try
-    // Paso 1: Obtener embedding (sin cambios)
+    // Step 1: Get embedding (no changes)
     QueryEmbedding := Graph.Embeddings.CreateEmbedding(APlan.AnchorPrompt, 'user');
     EmbeddingStr := EmbeddingToString(QueryEmbedding);
 
-    // Paso 2: Construir y ejecutar la consulta SQL. Seleccionamos solo los IDs del resultado final.
+    // Step 2: Build and execute the SQL query. We select only the IDs of the final result.
     Query.SQL.Text := 'WITH AnchorNodes AS (' + '  SELECT id' + '  FROM graph_nodes' + '  WHERE entidad = :entidad AND (embedding <-> ''' + EmbeddingStr + ''') < :distance_threshold' + '  ORDER BY embedding <-> ''' + EmbeddingStr +
       ''' LIMIT :limit' + ')' +
-    // Consulta final: Obtener los IDs de los nodos de destino.
+    // Final query: Get the IDs of the destination nodes.
       'SELECT final_node.id ' + 'FROM AnchorNodes an ' + 'JOIN graph_edges e ON an.id = e.source_node_id AND e.entidad = :entidad AND e.edge_label = :edge_label ' +
       'JOIN graph_nodes final_node ON e.target_node_id = final_node.id AND final_node.entidad = :entidad ' + 'WHERE final_node.node_label = :target_label';
 
@@ -1483,12 +1483,12 @@ begin
       Query.Next;
     end;
 
-    // Paso 3: Hidrataci�n delegada y construcci�n del resultado
+    // Step 3: Delegated hydration and result construction
     SetLength(ResultNodes, NodeIDs.Count);
     for var i := 0 to NodeIDs.Count - 1 do
     begin
-      // FindNodeByID se asegura de que el nodo exista en memoria,
-      // carg�ndolo si es necesario.
+      // FindNodeByID ensures that the node exists in memory,
+      // loading it if necessary.
       ResultNodes[i] := Graph.FindNodeByID(NodeIDs[i]);
     end;
 
@@ -1515,9 +1515,9 @@ begin
     Exit;
   Graph := Sender as TAiRagGraph;
 
-  // Paso 1: Obtener el embedding (sin cambios)
+  // Step 1: Get the embedding (no changes)
   if not Assigned(Graph.Embeddings) then
-    raise Exception.Create('El motor de Embeddings no est� asignado al grafo.');
+    raise Exception.Create('The Embeddings engine is not assigned to the graph.');
   QueryEmbedding := Graph.Embeddings.CreateEmbedding(APrompt, 'user');
   EmbeddingStr := EmbeddingToString(QueryEmbedding);
 
@@ -1525,22 +1525,22 @@ begin
   NodeIDs := TStringList.Create;
   InitialNodeIDs := TStringList.Create;
   try
-    // Paso 2: Ejecutar la consulta SQL (la consulta en s� casi no cambia)
+    // Step 2: Execute the SQL query (the query itself hardly changes)
     if ADepth = 0 then
     begin
-      // CASO SIMPLE: B�squeda sem�ntica. Solo necesitamos los IDs.
+      // SIMPLE CASE: Semantic search. We only need the IDs.
       Query.SQL.Text := 'SELECT id FROM graph_nodes ' + 'WHERE entidad = :entidad AND (embedding <-> ''' + EmbeddingStr + ''') < :distance_threshold ' + 'ORDER BY embedding <-> ''' + EmbeddingStr + ''' LIMIT :limit';
       Query.ParamByName('distance_threshold').AsFloat := 1 - APrecision;
     end
     else
     begin
-      // CASO COMPLEJO: Expansi�n. La CTE es perfecta. Solo seleccionamos los IDs al final.
+      // COMPLEX CASE: Expansion. The CTE is perfect. We only select the IDs at the end.
       Query.SQL.Text := 'WITH RECURSIVE traversal AS (' + '  SELECT id, 1 AS depth, ARRAY[id] AS path' + '  FROM (' + '    SELECT id' + '    FROM graph_nodes' + '    WHERE entidad = :entidad AND (embedding <-> ''' + EmbeddingStr +
         ''') < :distance_threshold' + '    ORDER BY embedding <-> ''' + EmbeddingStr + '''' + '    LIMIT :limit' + '  ) AS initial' + '  UNION ALL' + '  SELECT' +
         '    CASE WHEN e.source_node_id = t.id THEN e.target_node_id ELSE e.source_node_id END AS id,' + '    t.depth + 1,' + '    t.path || CASE WHEN e.source_node_id = t.id THEN e.target_node_id ELSE e.source_node_id END' +
         '  FROM traversal t' + '  JOIN graph_edges e ON (e.source_node_id = t.id OR e.target_node_id = t.id) AND e.entidad = :entidad' + '  WHERE t.depth <= :depth' + // <= para incluir el nivel de profundidad final
         '    AND NOT (CASE WHEN e.source_node_id = t.id THEN e.target_node_id ELSE e.source_node_id END = ANY(t.path))' + ')' +
-      // Consulta final: solo queremos los IDs �nicos de todos los nodos del subgrafo
+      // Final query: we only want the unique IDs of all nodes in the subgraph
         'SELECT DISTINCT id FROM traversal';
 
       Query.ParamByName('distance_threshold').AsFloat := 1 - APrecision;
@@ -1551,8 +1551,8 @@ begin
     Query.ParamByName('limit').AsInteger := ALimit;
     Query.Open;
 
-    // Guardamos los IDs de los nodos semilla (los primeros resultados)
-    // para saber qu� devolver al final.
+    // We save the IDs of the seed nodes (the first results)
+    // to know what to return at the end.
     while not Query.Eof do
     begin
       NodeIDs.Add(Query.Fields[0].AsString);
@@ -1573,29 +1573,29 @@ begin
       end;
     end;
 
-    // Paso 3: "Hidrataci�n" delegada. Le pedimos al grafo que se asegure
-    // de que todos los nodos del subgrafo existan en memoria.
+    // Step 3: Delegated "hydration". We ask the graph to ensure
+    // that all nodes in the subgraph exist in memory.
     for var NodeID in NodeIDs do
     begin
-      // FindNodeByID se encargar� de cargar el nodo desde la BD si no est�
-      // ya en memoria. �Esto es mucho m�s limpio!
+      // FindNodeByID will take care of loading the node from the DB if it is not
+      // already in memory. This is much cleaner!
       Graph.FindNodeByID(NodeID);
     end;
 
-    // Si hubo expansi�n, tambi�n debemos asegurarnos de que todas las aristas
-    // entre los nodos del subgrafo est�n cargadas.
+    // If there was expansion, we must also ensure that all edges
+    // between the nodes in the subgraph are loaded.
     if ADepth > 0 then
     begin
       for var NodeID in NodeIDs do
       begin
         Node := Graph.FindNodeByID(NodeID);
         if Node <> nil then
-          Node.EnsureEdgesAreLoaded; // Esto disparar� OnGetNodeEdges
+          Node.EnsureEdgesAreLoaded; // This will trigger OnGetNodeEdges
       end;
     end;
 
-    // Paso 4: Construir el resultado final a partir de los nodos semilla.
-    // Los objetos ya est�n en la cach� del grafo.
+    // Step 4: Build the final result from the seed nodes.
+    // The objects are already in the graph cache.
     SetLength(ResultNodes, InitialNodeIDs.Count);
     for var i := 0 to InitialNodeIDs.Count - 1 do
     begin
@@ -1636,7 +1636,7 @@ begin
   for Match in AResults do
     try
       Inc(MatchIndex);
-      MemoResults.Lines.Add(Format('*** Coincidencia #%d ***', [MatchIndex]));
+      MemoResults.Lines.Add(Format('*** Match #%d ***', [MatchIndex]));
       for VarName in Match do
       begin
         if VarName.Value is TAiRagGraphNode then
@@ -1646,7 +1646,7 @@ begin
 
           // --- NEW LOGIC: Show Descriptive Text ---
           if not Node.Text.IsEmpty then
-            MemoResults.Lines.Add(Format('    [Contexto]: %s', [Node.Text]));
+            MemoResults.Lines.Add(Format('    [Context]: %s', [Node.Text]));
 
           if AShowProperties then
             MatchBuilder_DisplayProperties(Node.Properties, MemoResults.Lines, '    ');
@@ -1658,7 +1658,7 @@ begin
 
           // --- NEW LOGIC: Show Relationship Text ---
           if not Edge.Text.IsEmpty then
-            MemoResults.Lines.Add(Format('    [Relaci�n]: %s', [Edge.Text]));
+            MemoResults.Lines.Add(Format('    [Relationship]: %s', [Edge.Text]));
 
           if AShowProperties then
             MatchBuilder_DisplayProperties(Edge.MetaData, MemoResults.Lines, '    ');
@@ -1697,7 +1697,7 @@ var
   NodeList: TStringList;
   EdgeList: TStringList;
 begin
-  // Creamos listas temporales para separar y ordenar los resultados
+  // We create temporary lists to separate and sort the results
   NodeList := TStringList.Create;
   EdgeList := TStringList.Create;
   try
@@ -1705,11 +1705,11 @@ begin
     begin
       try
         ElementTypeStr := '';
-        // 1. Extraer el tipo de elemento (enviado por el Core como TStringWrapper)
+        // 1. Extract the element type (sent by the Core as TStringWrapper)
         if Item.TryGetValue('type', ElementTypeObj) and (ElementTypeObj is TStringWrapper) then
           ElementTypeStr := TStringWrapper(ElementTypeObj).Value;
 
-        // 2. Extraer el objeto real (Nodo o Arista)
+        // 2. Extract the real object (Node or Edge)
         if Item.TryGetValue('element', ElementObj) then
         begin
           // --- PROCESS NODE ---
@@ -1720,9 +1720,9 @@ begin
 
             // Show descriptive text (RAG Context)
             if not Node.Text.IsEmpty then
-              NodeList.Add(Format('    [Contexto]: %s', [Node.Text]));
+              NodeList.Add(Format('    [Context]: %s', [Node.Text]));
 
-            // Mostrar propiedades si se solicita
+            // Show properties if requested
             if AShowProperties then
               MatchBuilder_DisplayProperties(Node.Properties, NodeList, '    ');
           end
@@ -1735,16 +1735,16 @@ begin
 
             // Show descriptive text of the relationship
             if not Edge.Text.IsEmpty then
-              EdgeList.Add(Format('    [Relaci�n]: %s', [Edge.Text]));
+              EdgeList.Add(Format('    [Relationship]: %s', [Edge.Text]));
 
-            // Mostrar propiedades si se solicita
+            // Show properties if requested
             if AShowProperties then
               MatchBuilder_DisplayProperties(Edge.MetaData, EdgeList, '    ');
           end;
         end;
       finally
-        // IMPORTANTE: Liberar el TStringWrapper 'type' ya que es un objeto temporal
-        // creado por ExecuteMakerGQL para cada fila de resultado.
+        // IMPORTANT: Free the TStringWrapper 'type' since it is a temporary object
+        // created by ExecuteMakerGQL for each result row.
         if Item.TryGetValue('type', ElementTypeObj) then
           ElementTypeObj.Free;
 
@@ -1757,35 +1757,35 @@ begin
     MemoResults.Lines.BeginUpdate;
     try
       MemoResults.Lines.Clear;
-      MemoResults.Lines.Add(Format('--- Subgrafo Expandido: %d Nodos y %d Aristas ---', [NodeList.Count, EdgeList.Count]));
+      MemoResults.Lines.Add(Format('--- Expanded Subgraph: %d Nodes and %d Edges ---', [NodeList.Count, EdgeList.Count]));
       MemoResults.Lines.Add(StringOfChar('-', 40));
       MemoResults.Lines.Add('');
 
       // Show sorted nodes
-      MemoResults.Lines.Add('--- ENTIDADES (NODOS) ---');
+      MemoResults.Lines.Add('--- ENTITIES (NODES) ---');
       if NodeList.Count > 0 then
       begin
         NodeList.Sort;
         MemoResults.Lines.AddStrings(NodeList);
       end
       else
-        MemoResults.Lines.Add('(No se encontraron nodos)');
+        MemoResults.Lines.Add('(No nodes found)');
 
       MemoResults.Lines.Add('');
 
       // Show sorted edges
-      MemoResults.Lines.Add('--- RELACIONES (ARISTAS) ---');
+      MemoResults.Lines.Add('--- RELATIONSHIPS (EDGES) ---');
       if EdgeList.Count > 0 then
       begin
         EdgeList.Sort;
         MemoResults.Lines.AddStrings(EdgeList);
       end
       else
-        MemoResults.Lines.Add('(No se encontraron aristas internas en el subgrafo)');
+        MemoResults.Lines.Add('(No internal edges found in the subgraph)');
 
       MemoResults.Lines.Add('');
       MemoResults.Lines.Add(StringOfChar('-', 40));
-      MemoResults.Lines.Add('Fin del informe de subgrafo.');
+      MemoResults.Lines.Add('End of subgraph report.');
     finally
       MemoResults.Lines.EndUpdate;
     end;
@@ -1813,7 +1813,7 @@ begin
   List := TStringList.Create;
   Try
 
-    // Limpiar y llenar ComboBoxes de etiquetas de nodos
+    // Clear and populate ComboBoxes with node labels
     cbStartNodeLabel.Items.Clear;
     cbTargetNodeLabel.Items.Clear;
     for ALabel in RAG.GetUniqueNodeLabels do
@@ -1833,7 +1833,7 @@ begin
     if cbTargetNodeLabel.Items.Count > 0 then
       cbTargetNodeLabel.ItemIndex := 0;
 
-    // Limpiar y llenar ComboBox de etiquetas de aristas
+    // Clear and populate ComboBox with edge labels
     cbEdgeLabel.Items.Clear;
     List.Clear;
     for ALabel in RAG.GetUniqueEdgeLabels do
@@ -1883,7 +1883,7 @@ begin
 
   // --- KEY LINE CORRECTED ---
   // We call the new graph function, which will delegate to our SQL query.
-  SuggestedNames := RAG.FindNodeNamesByLabel(SelectedLabel, SearchText, 15); // L�mite de 15 sugerencias
+  SuggestedNames := RAG.FindNodeNamesByLabel(SelectedLabel, SearchText, 15); // Limit of 15 suggestions
 
   // We populate the ListBox with the results
   for AName in SuggestedNames do

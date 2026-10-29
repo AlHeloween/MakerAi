@@ -6,19 +6,19 @@ program SingleFunction;
 // =============================================================================
 // MakerAI — 02-ChatTools / 01-SingleFunction
 // =============================================================================
-// Demuestra cómo exponer UNA función Delphi al LLM para que la invoque
-// cuando lo necesite (Tool Use / Function Calling).
+// Demonstrates how to expose ONE Delphi function to the LLM so it can invoke
+// it when needed (Tool Use / Function Calling).
 //
 // Concepts covered:
-//   - Crear TAiFunctions y registrar una función con AddFunction()
-//   - Asignar TAiFunctions a TAiChatConnection.AiFunctions
-//   - Implementar el handler como método de clase (TFunctionEvent)
-//   - El LLM decide CUÁNDO llamar la función según el contexto
-//   - La función devuelve un resultado en ToolCall.Response
+//   - Create TAiFunctions and register a function with AddFunction()
+//   - Assign TAiFunctions to TAiChatConnection.AiFunctions
+//   - Implement the handler as a class method (TFunctionEvent)
+//   - The LLM decides WHEN to call the function based on context
+//   - The function returns a result in ToolCall.Response
 //
 // Flow:
-//   Usuario → LLM detecta que necesita la función → llama get_weather →
-//   handler Delphi produce JSON → LLM redacta respuesta final
+//   User → LLM detects it needs the function → calls get_weather →
+//   Delphi handler produces JSON → LLM drafts final response
 // =============================================================================
 
 uses
@@ -143,20 +143,20 @@ begin
       Conn.AiFunctions := FAiFunctions;
 
       Conn.SystemPrompt.Text :=
-        'Eres un asistente de clima. Cuando el usuario pregunte por el clima, ' +
+        'You are a weather assistant. When the user asks about the weather, ' +
         'usa la función get_weather para obtener datos reales. Responde en español.';
 
       // ── Question 1: needs the function ────────────────────────────────────
       Writeln('── Question 1 (needs the function) ──');
       Res := Conn.AddMessageAndRun('¿Cómo está el clima en Monterrey hoy?', 'user', []);
-      Writeln('Respuesta: ', Res);
+      Writeln('Response: ', Res);
       Writeln;
       Conn.Messages.Clear;
 
       // ── Question 2: does NOT need the function ─────────────────────────────────
       Writeln('── Question 2 (does not need the function) ──');
       Res := Conn.AddMessageAndRun('¿Cuál es la capital de México?', 'user', []);
-      Writeln('Respuesta: ', Res);
+      Writeln('Response: ', Res);
       Writeln;
       Conn.Messages.Clear;
 
@@ -164,7 +164,7 @@ begin
       Writeln('── Question 3 (invokes function with another city) ──');
       Res := Conn.AddMessageAndRun(
         '¿Necesito llevar paraguas si salgo en CDMX?', 'user', []);
-      Writeln('Respuesta: ', Res);
+      Writeln('Response: ', Res);
 
     finally
       Conn.Free;

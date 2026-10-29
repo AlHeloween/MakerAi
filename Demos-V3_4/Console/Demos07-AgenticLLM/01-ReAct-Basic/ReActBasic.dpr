@@ -84,8 +84,8 @@ begin
     LLMAgent.ApiKey       := API_KEY;
     LLMAgent.UseAllTools  := False;
     LLMAgent.SystemPrompt :=
-      'Eres un asistente conciso que responde en espanol. ' +
-      'Responde siempre en una o dos frases directas y al grano.';
+      'You are a concise assistant that answers in Spanish. ' +
+      'Always answer in one or two direct, to-the-point sentences.';
 
     // Output node (pass-through)
     Finish       := TAIAgentsNode.Create(Manager);
@@ -128,6 +128,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

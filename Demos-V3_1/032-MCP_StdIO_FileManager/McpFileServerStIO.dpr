@@ -21,7 +21,7 @@ begin
       MCPServer.ServerName := 'Delphi-FileManager-MCP';
 
       // 3. Register the Sandbox tools
-      WriteLn(ErrOutput, 'Registrando herramientas de archivo...'); // ErrOutput para no ensuciar Stdin/Stdout
+      WriteLn(ErrOutput, 'Registering file tools...'); // ErrOutput to avoid polluting Stdin/Stdout
       uTool.Sandbox.RegisterSandboxTools(MCPServer);
       uTool.WorldTime.RegisterWorldTimeTool(MCPServer);
 

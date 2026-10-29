@@ -6,25 +6,25 @@ program DriverRegistration;
 // =============================================================================
 // MakerAI — 01-Chat / 08-DriverRegistration
 // =============================================================================
-// Demuestra por qué GetDriversNames() retorna TODOS los providers aunque
-// el uses solo mencione uMakerAi.Chat.Ollama explícitamente.
+// Demonstrates why GetDriversNames() returns ALL providers even though
+// uses only explicitly mentions uMakerAi.Chat.Ollama.
 //
 // Root cause:
 //   uMakerAi.Chat.AiConnection  (interface uses)
 //     └─ uMakerAi.Chat.Initializations
 //          └─ implementation uses all drivers:
 //               OpenAI, Claude, Gemini, Ollama, Groq, DeepSeek, ...
-//          Cada uno ejecuta su bloque initialization que llama
+//          Each one executes its initialization block that calls
 //          TAiChatFactory.Instance.RegisterDriver(...)
 //
-// El import de uMakerAi.Chat.Ollama en el uses del programa es redundante
-// (no hace daño, pero no es necesario — Initializations ya lo registra).
+// The import of uMakerAi.Chat.Ollama in the program's uses clause is redundant
+// (it does no harm, but it is not necessary — Initializations already registers it).
 //
 // Concepts covered:
-//   - Cómo funciona el auto-registro de drivers por initialization sections
-//   - Por qué TAiChatConnection siempre tiene todos los drivers disponibles
-//   - Diferencia entre "qué importé" y "qué quedó registrado"
-//   - Cómo usar solo Ollama en runtime aunque todos estén registrados
+//   - How driver auto-registration works through initialization sections
+//   - Why TAiChatConnection always has all drivers available
+//   - Difference between "what I imported" and "what ended up registered"
+//   - How to use only Ollama at runtime even when all are registered
 // =============================================================================
 
 uses
@@ -125,9 +125,9 @@ begin
     Writeln('  Active driver: ', Conn.DriverName);
     Writeln('  Active model: ', Conn.Model);
     Writeln;
-    Writeln('  (Nota: este demo no hace la llamada real a Ollama para no');
-    Writeln('  requerir que el servidor este corriendo. La configuracion');
-    Writeln('  es correcta — solo falta un Ollama local activo.)');
+    Writeln('  (Note: this demo does not make the real call to Ollama so as not');
+    Writeln('  to require the server to be running. The configuration');
+    Writeln('  is correct — only a local active Ollama is missing.)');
   finally
     Conn.Free;
   end;

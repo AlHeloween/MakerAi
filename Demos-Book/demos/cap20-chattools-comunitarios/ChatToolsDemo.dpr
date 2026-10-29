@@ -51,10 +51,10 @@ begin
     Search.ApiKey     := '@TAVILY_API_KEY';
     Search.MaxResults := 3;
 
-    WriteLn('Searching: "últimas novedades Delphi 2025"');
+    WriteLn('Searching: "latest Delphi 2025 news"');
     // ExecuteSearch es protected → se invoca via interfaz
     (Search as IAiWebSearchTool).ExecuteSearch(
-      'últimas novedades Delphi 2025', ResMsg, AskMsg);
+      'latest Delphi 2025 news', ResMsg, AskMsg);
 
     Resultado := ResMsg.Prompt;
 
@@ -208,7 +208,7 @@ end;
 // =============================================================================
 begin
   WriteLn('=================================================');
-  WriteLn('  Cap. 20 — ChatTools Comunitarios: Demos');
+  WriteLn('  Ch. 20 — Community ChatTools: Demos');
   WriteLn('=================================================');
   WriteLn;
 
@@ -258,6 +258,6 @@ begin
 
   WriteLn;
   WriteLn('=================================================');
-  WriteLn('  Presiona Enter para salir...');
+  WriteLn('  Press Enter to exit...');
   ReadLn;
 end.

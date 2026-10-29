@@ -55,7 +55,7 @@ begin
     Manager.Asynchronous := False;
     Manager.TimeoutMs    := 120000;
 
-    // Nodo de preparacion: formula una pregunta de investigacion sobre el tema
+    // Preparation node: formulates a research question about the topic
     InputPrep := TLLMNode.Create(Manager);
     InputPrep.Name         := 'InputPrep';
     InputPrep.Graph        := Manager;
@@ -67,7 +67,7 @@ begin
       'You are a research coordinator. Given a topic, write a single clear ' +
       'research question about it. Output ONLY the question, nothing else.';
 
-    // Rama A: analisis de ventajas
+    // Branch A: advantages analysis
     ProsNode := TLLMNode.Create(Manager);
     ProsNode.Name         := 'ProsAnalyst';
     ProsNode.Graph        := Manager;
@@ -84,7 +84,7 @@ begin
       '3. [one sentence advantage]' + #10 +
       'Nothing else.';
 
-    // Rama B: analisis de desventajas
+    // Branch B: disadvantages analysis
     ConsNode := TLLMNode.Create(Manager);
     ConsNode.Name         := 'ConsAnalyst';
     ConsNode.Graph        := Manager;
@@ -101,7 +101,7 @@ begin
       '3. [one sentence disadvantage]' + #10 +
       'Nothing else.';
 
-    // Sintetizador: espera AMBAS ramas (jmAll)
+    // Synthesizer: waits for BOTH branches (jmAll)
     SynthNode := TLLMNode.Create(Manager);
     SynthNode.Name         := 'Synthesizer';
     SynthNode.Graph        := Manager;
@@ -116,7 +116,7 @@ begin
       'Synthesize them into a balanced verdict paragraph of 4-5 sentences. ' +
       'Start with "VERDICT:" and end with a clear recommendation.';
 
-    // Fork: InputPrep -> ProsNode y ConsNode en paralelo
+    // Fork: InputPrep -> ProsNode and ConsNode in parallel
     ForkLink := TAIAgentsLink.Create(Manager);
     ForkLink.Name  := 'ForkLink';
     ForkLink.Graph := Manager;

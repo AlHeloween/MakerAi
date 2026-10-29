@@ -9,7 +9,7 @@ program RAGSQLite;
 // Persistent vector store using SQLite as backend via FireDAC.
 // Embeddings are saved to disk and can be reloaded between sessions.
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - TAiRAGVectorSQLiteDriver as persistence driver (FireDAC + SQLite)
 //   - TFDConnection: FireDAC connection to SQLite
 //   - Driver.CreateSchema(tableName): creates vector tables + FTS5
@@ -19,7 +19,7 @@ program RAGSQLite;
 //
 // Requirements:
 //   - MakerAI.RAG.Drivers package installed
-//   - Unidad: uMakerAi.RAG.Vector.Driver.SQLite
+//   - Unit: uMakerAi.RAG.Vector.Driver.SQLite
 //   - FireDAC.Phys.SQLite (FireDAC SQLite driver)
 // =============================================================================
 
@@ -56,12 +56,12 @@ const
 
 const
   DOCS: array[0..5] of String = (
-    'Delphi es un lenguaje de programacion orientado a objetos basado en Pascal.',
-    'FireDAC es el framework de acceso a datos de Embarcadero para Delphi.',
-    'FMX (FireMonkey) permite crear interfaces graficas multiplataforma con Delphi.',
-    'RTL (Runtime Library) contiene las clases y funciones basicas de Delphi.',
-    'VCL (Visual Component Library) es el framework GUI original de Delphi para Windows.',
-    'El IDE de Delphi incluye depurador integrado, editor de codigo y disenador visual.'
+    'Delphi is an object-oriented programming language based on Pascal.',
+    'FireDAC is the data access framework from Embarcadero for Delphi.',
+    'FMX (FireMonkey) allows creating cross-platform graphical interfaces with Delphi.',
+    'RTL (Runtime Library) contains the basic classes and functions of Delphi.',
+    'VCL (Visual Component Library) is the original GUI framework of Delphi for Windows.',
+    'The Delphi IDE includes an integrated debugger, code editor and visual designer.'
   );
 
 // =============================================================================
@@ -134,12 +134,12 @@ begin
 
     // ── Search ──────────────────────────────────────────────────────────
     Writeln('--- Semantic search ---');
-    Results := RAG.SearchText('frameworks GUI para interfaces graficas', 3, 0.4);
-    Writeln('Query: "frameworks GUI para interfaces graficas"');
+    Results := RAG.SearchText('GUI frameworks for graphical interfaces', 3, 0.4);
+    Writeln('Query: "GUI frameworks for graphical interfaces"');
     Writeln(Results);
 
-    Results := RAG.SearchText('acceso a base de datos', 3, 0.4);
-    Writeln('Query: "acceso a base de datos"');
+    Results := RAG.SearchText('database access', 3, 0.4);
+    Writeln('Query: "database access"');
     Writeln(Results);
 
     Writeln('(To restart the demo, delete: ', DB_PATH, ')');
@@ -160,6 +160,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

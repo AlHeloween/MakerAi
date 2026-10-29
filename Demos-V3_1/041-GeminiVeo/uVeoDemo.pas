@@ -121,7 +121,7 @@ implementation
 
 function TForm11.GetSelectedVeoMode: TVeoGenerationMode;
 begin
-  // El ItemIndex del TRadioGroup se corresponde directamente con el orden de nuestro enum
+  // The ItemIndex of the TRadioGroup corresponds directly to the order of our enum
 
   Result := gmAuto;
 
@@ -145,7 +145,7 @@ begin
     if CopyToClipBoard(LMediaFile) then
     begin
       // Optional: Notify the user that the copy was successful
-      // ShowMessage('Contenido copiado al portapapeles.');
+      // ShowMessage('Content copied to clipboard.');
     end
     else
     begin
@@ -168,14 +168,14 @@ begin
 
   if LMediaFile = nil then
   begin
-    showMessage('Error: No se ha seleccionado ning�n archivo.');
+    showMessage('Error: No file has been selected.');
     Exit;
   end;
 
   // 2. Verify that the file has content to save
   if (LMediaFile.Content = nil) or (LMediaFile.Content.size = 0) then
   begin
-    showMessage('El archivo seleccionado est� vac�o.');
+    showMessage('The selected file is empty.');
     Exit;
   end;
 
@@ -184,33 +184,33 @@ begin
     LTempPath := System.IOUtils.TPath.Combine(System.IOUtils.TPath.GetTempPath, LMediaFile.FileName);
 
     // 4. Save the stream content to the temporary file
-    LMediaFile.Content.Position := 0; // Siempre rebobinar antes de leer
+    LMediaFile.Content.Position := 0; // Always rewind before reading
     LFileStream := TFileStream.Create(LTempPath, fmCreate);
     try
       LFileStream.CopyFrom(LMediaFile.Content, LMediaFile.Content.size);
     finally
       LFileStream.Free;
     end;
-    LMediaFile.Content.Position := 0; // Dejarlo listo para futuras lecturas
+    LMediaFile.Content.Position := 0; // Leave it ready for future reads
 
     // 5. Use the platform service to open the file
     if TPlatformServices.Current.SupportsPlatformService(IFMXApplicationService, IInterface(AppService)) then
     begin
       if not TUtilsSystem.ShellOpenFile(LTempPath) then
       begin
-        showMessage('No se pudo abrir el archivo. Verifique si tiene una aplicaci�n instalada para este tipo de archivo (' + System.IOUtils.TPath.GetExtension(LMediaFile.FileName) + ').');
+        showMessage('Could not open the file. Check whether you have an application installed for this type of file (' + System.IOUtils.TPath.GetExtension(LMediaFile.FileName) + ').');
       end;
     end
     else
     begin
-      showMessage('El servicio para abrir archivos no est� disponible en esta plataforma.');
+      showMessage('The service to open files is not available on this platform.');
     end;
 
   except
     on E: Exception do
     begin
       // Capture any error during file creation
-      showMessage('Ocurri� un error al intentar abrir el archivo: ' + E.Message);
+      showMessage('An error occurred while trying to open the file: ' + E.Message);
     end;
   end;
 
@@ -319,7 +319,7 @@ begin
     begin
       LBaseFileName := LSaveDialog.FileName;
 
-      // Guardar el archivo de video (.mp4)
+      // Save the video file (.mp4)
       try
         ResultVideo.SaveToFile(LBaseFileName);
         memoLog.Lines.Add('Video file saved to: ' + LBaseFileName);
@@ -331,7 +331,7 @@ begin
         end;
       end;
 
-      // Crear el nombre del archivo de metadatos
+      // Create the metadata file name
       LMetaDataFileName := TPath.ChangeExtension(LBaseFileName, '.veometa');
 
       // --- START OF NEW LOGIC ---
@@ -346,7 +346,7 @@ begin
         TFile.WriteAllText(LMetaDataFileName, LJson.ToJSON);
         memoLog.Lines.Add('Metadata saved to: ' + LMetaDataFileName);
       finally
-        LJson.Free; // Liberar el objeto JSON
+        LJson.Free; // Free the JSON object
       end;
       // --- END OF NEW LOGIC ---
     end
@@ -410,11 +410,11 @@ var
 begin
   Result := True;
   if aMediaFiles.Count = 0 then
-    Exit(False); // No hay archivos, por lo que no "todos son im�genes"
+    Exit(False); // No files, so not "all are images"
   for MF in aMediaFiles do
   begin
     if MF.FileCategory <> TAiFileCategory.Tfc_Image then
-      Exit(False); // Encontramos uno que no es imagen, fallamos
+      Exit(False); // Found one that is not an image, fail
   end;
 end;
 
@@ -433,7 +433,7 @@ begin
   begin
     memoLog.Lines.Add('Detected 1 video. Checking for metadata to extend...');
 
-    // 1. Determine the expected metadata file path (e.g. 'mi_video.veometa')
+    // 1. Determine the expected metadata file path (e.g. 'my_video.veometa')
     LMetaDataFileName := TPath.ChangeExtension(aMediaFiles[0].FullFileName, '.veometa');
 
     // 2. Verify whether the metadata file exists.
@@ -443,7 +443,7 @@ begin
         'Only videos previously generated and saved by this application can be extended.';
       memoLog.Lines.Add(LErrorMsg);
       showMessage(LErrorMsg);
-      Exit; // Salir de la funci�n, no se puede continuar.
+      Exit; // Exit the function, cannot continue.
     end;
 
     // 3. If it exists, proceed to load and use it.
@@ -476,7 +476,7 @@ begin
           LErrorMsg := 'Error processing metadata file: ' + E.Message;
           memoLog.Lines.Add(LErrorMsg);
           showMessage(LErrorMsg);
-          Exit; // Salir si hay un error con los metadatos.
+          Exit; // Exit if there is an error with the metadata.
         end;
       end;
 
@@ -657,7 +657,7 @@ begin
         LReader := TStreamReader.Create(AMediaFile.Content, TEncoding.UTF8);
         try
           LText := LReader.ReadToEnd;
-          // Usamos TValue.From<string> para pasarlo al portapapeles como texto plano
+          // We use TValue.From<string> to pass it to the clipboard as plain text
           ClipboardSvc.SetClipboard(TValue.From<string>(LText));
           Result := True;
         finally
@@ -675,7 +675,7 @@ begin
     Result := False;
   end;
 
-  // Volvemos a rebobinar el stream por si se necesita reutilizar despu�s.
+  // We rewind the stream in case it needs to be reused later.
   if Assigned(AMediaFile.Content) then
     AMediaFile.Content.Position := 0;
 

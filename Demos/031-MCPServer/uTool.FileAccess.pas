@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enríquez
-// Redes Sociales:
+// Name: Gustavo Enríquez
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -47,7 +47,7 @@ uses
 
 type
   // =============================================================================
-  // HERRAMIENTA PARA LISTAR ARCHIVOS
+  // TOOL FOR LISTING FILES
   // =============================================================================
   TListFilesParams = class
   private
@@ -77,7 +77,7 @@ type
     class function IsExtensionAllowed(const AFilePath: string): Boolean;
     class function NormalizePath(const APath: string): string;
   protected
-    // CAMBIO: La función ahora devuelve TJSONObject
+    // CHANGE: The function now returns TJSONObject
     function ExecuteWithParams(const AParams: TListFilesParams; const AuthContext: TAiAuthContext): TJSONObject; override;
   public
     constructor Create; Override;
@@ -90,10 +90,10 @@ type
   end;
 
   // =============================================================================
-  // HERRAMIENTA PARA LEER ARCHIVOS
+  // TOOL FOR READING FILES
   // =============================================================================
   TReadFileParams = class
-    // ... (sin cambios)
+    // ... (unchanged)
   private
     FFilePath: string;
   public
@@ -105,17 +105,17 @@ type
   private const
     MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
   protected
-    // CAMBIO: La función ahora devuelve TJSONObject
+    // CHANGE: The function now returns TJSONObject
     function ExecuteWithParams(const AParams: TReadFileParams; const AuthContext: TAiAuthContext): TJSONObject; override;
   public
     constructor Create; Override;
   end;
 
   // =============================================================================
-  // HERRAMIENTA PARA ESCRIBIR ARCHIVOS
+  // TOOL FOR WRITING FILES
   // =============================================================================
   TWriteFileParams = class
-    // ... (sin cambios)
+    // ... (unchanged)
   private
     FFilePath: string;
     FContent: string;
@@ -136,7 +136,7 @@ type
 
   TWriteFileTool = class(TAiMCPToolBase<TWriteFileParams>)
   protected
-    // CAMBIO: La función ahora devuelve TJSONObject
+    // CHANGE: The function now returns TJSONObject
     function ExecuteWithParams(const AParams: TWriteFileParams; const AuthContext: TAiAuthContext): TJSONObject; override;
   public
     constructor Create; Override;
@@ -193,8 +193,8 @@ begin
   AddAllowedExtension('.csv');
   AddAllowedExtension('.log');
   AddAllowedExtension('.md');
-  // Por seguridad, no añadimos extensiones ejecutables o de sistema.
-  // También añadimos las comunes de imágenes, documentos y audio para que `read_file` pueda devolverlas.
+  // For security, we do not add executable or system extensions.
+  // We also add common image, document, and audio extensions so `read_file` can return them.
   AddAllowedExtension('.png');
   AddAllowedExtension('.jpg');
   AddAllowedExtension('.jpeg');
@@ -267,7 +267,7 @@ begin
 end;
 
 
-// La función devuelve un TJSONObject estructurado.
+// The function returns a structured TJSONObject.
 function TListFilesTool.ExecuteWithParams(const AParams: TListFilesParams; const AuthContext: TAiAuthContext): TJSONObject;
 var
   SearchPattern: string;
@@ -342,7 +342,7 @@ begin
   FDescription := 'Reads and returns the content of a file (text or binary) with security restrictions.';
 end;
 
-// CAMBIO: La función ahora devuelve el archivo usando el builder.
+// CHANGE: The function now returns the file using the builder.
 function TReadFileTool.ExecuteWithParams(const AParams: TReadFileParams; const AuthContext: TAiAuthContext): TJSONObject;
 var
   FileSize: Int64;
@@ -380,7 +380,7 @@ begin
   FDescription := 'Writes or appends content to text files with security restrictions.';
 end;
 
-// CAMBIO: La función ahora devuelve un JSON simple de confirmación.
+// CHANGE: The function now returns a simple confirmation JSON.
 function TWriteFileTool.ExecuteWithParams(const AParams: TWriteFileParams; const AuthContext: TAiAuthContext): TJSONObject;
 var
   FileDir: string;

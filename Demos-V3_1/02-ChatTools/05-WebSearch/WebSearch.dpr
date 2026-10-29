@@ -6,16 +6,16 @@ program WebSearch;
 // =============================================================================
 // MakerAI — 02-ChatTools / 05-WebSearch
 // =============================================================================
-// El LLM busca en internet para responder preguntas con información reciente,
+// The LLM searches the internet to answer questions with recent information,
 // superando la limitación del "knowledge cutoff".
 //
-// Conceptos que cubre:
-//   - cap_WebSearch en ModelCaps activa la búsqueda automáticamente
-//   - Gemini (Google Search) tiene cap_WebSearch nativo — siempre activo
-//   - Claude usa solo su conocimiento interno (sin búsqueda web nativa)
-//   - Diferencia entre respuestas con y sin búsqueda web
+// Concepts it covers:
+//   - cap_WebSearch in ModelCaps activates search automatically
+//   - Gemini (Google Search) has native cap_WebSearch — always active
+//   - Claude uses only its internal knowledge (without native web search)
+//   - Difference between responses with and without web search
 //
-// Comparación: Claude (sin web) vs Gemini (con web integrado)
+// Comparison: Claude (without web) vs Gemini (with integrated web)
 // =============================================================================
 
 uses
@@ -37,13 +37,13 @@ const
   MODEL_CON   = 'gemini-3-flash-preview';
   API_KEY_CON = '@GEMINI_API_KEY';
 
-// Preguntas que requieren información actual
+// Questions that require current information
 const
   PREGUNTAS: array[0..3] of String = (
     '¿Cuáles son las últimas noticias de inteligencia artificial de esta semana?',
     '¿Cuál es el precio actual del dólar respecto al peso mexicano?',
     '¿Cuál es el último modelo de LLM lanzado por Anthropic?',
-    '¿Qué eventos tecnológicos importantes ocurrieron este mes?'
+    'What important technological events occurred this month?'
   );
 
 // =============================================================================
@@ -55,20 +55,20 @@ var
   Res: String;
 begin
   Writeln(StringOfChar('-', 60));
-  Writeln('Pregunta: ', Question);
+  Writeln('Question: ', Question);
   Writeln;
 
   // ── SIN búsqueda web (Claude) ─────────────────────────────────────────
   ConnSin.Messages.Clear;
   Res := ConnSin.AddMessageAndRun(Question, 'user', []);
-  Writeln('SIN búsqueda web (Claude — solo conocimiento interno):');
+  Writeln('WITHOUT web search (Claude — internal knowledge only):');
   Writeln('  ', Copy(Res, 1, 200), '...');
   Writeln;
 
   // ── CON búsqueda web (Gemini) ─────────────────────────────────────────
   ConnCon.Messages.Clear;
   Res := ConnCon.AddMessageAndRun(Question, 'user', []);
-  Writeln('CON búsqueda web (Gemini — Google Search integrado):');
+  Writeln('WITH web search (Gemini — integrated Google Search):');
   Writeln('  ', Copy(Res, 1, 400));
   Writeln;
 end;
@@ -84,11 +84,11 @@ var
   I       : Integer;
 begin
   Writeln('=== WebSearch ===');
-  Writeln('SIN búsqueda: ', DRIVER_SIN, ' (', MODEL_SIN, ')');
-  Writeln('CON búsqueda: ', DRIVER_CON, ' (', MODEL_CON, ')');
+  Writeln('WITHOUT search: ', DRIVER_SIN, ' (', MODEL_SIN, ')');
+  Writeln('WITH search: ', DRIVER_CON, ' (', MODEL_CON, ')');
   Writeln;
-  Writeln('Gemini tiene cap_WebSearch en ModelCaps: Google Search siempre activo.');
-  Writeln('Claude usa solo su conocimiento interno (sin búsqueda web nativa).');
+  Writeln('Gemini has cap_WebSearch in ModelCaps: Google Search always active.');
+  Writeln('Claude uses only its internal knowledge (without native web search).');
   Writeln;
 
   ConnSin := TAiChatConnection.Create(nil);
@@ -115,7 +115,7 @@ begin
       'Responde en español.';
 
     // ── Demo 1: Comparación con/sin búsqueda ─────────────────────────────
-    Writeln('=== COMPARACIÓN: con vs. sin búsqueda web ===');
+    Writeln('=== COMPARISON: with vs. without web search ===');
     CompararConSinBusqueda(ConnSin, ConnCon,
       '¿Cuál es el LLM más potente disponible hoy?');
 
@@ -125,16 +125,16 @@ begin
     begin
       ConnCon.Messages.Clear;
       Writeln(StringOfChar('-', 60));
-      Writeln(Format('Pregunta %d: %s', [I+1, PREGUNTAS[I]]));
+      Writeln(Format('Question %d: %s', [I+1, PREGUNTAS[I]]));
       Res := ConnCon.AddMessageAndRun(PREGUNTAS[I], 'user', []);
-      Writeln('Respuesta: ');
+      Writeln('Response: ');
       Writeln(Copy(Res, 1, 500));
       Writeln;
     end;
 
     // ── Demo 3: Citar fuentes ─────────────────────────────────────────────
     Writeln(StringOfChar('-', 60));
-    Writeln('Demo 3: Respuesta con fuentes citadas (Gemini)');
+    Writeln('Demo 3: Response with cited sources (Gemini)');
     ConnCon.Messages.Clear;
     ConnCon.SystemPrompt.Text :=
       'Responde con fuentes. Al final incluye una sección "Fuentes:" con ' +
@@ -159,6 +159,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

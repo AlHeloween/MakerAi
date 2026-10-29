@@ -6,16 +6,16 @@ program ForkJoin;
 // =============================================================================
 // MakerAI — 08-Orquestacion / 02-Fork-Join
 // =============================================================================
-// Patron Fork/Join: una entrada se bifurca en dos ramas paralelas que se
-// reunen en un nodo de sintesis que espera ambos resultados (jmAll).
+// Fork/Join pattern: an input splits into two parallel branches that
+// join at a synthesis node that waits for both results (jmAll).
 //
 // Concepts it covers:
-//   - TAIAgentsLink con NextA + NextB: bifurcacion (fork)
-//   - TLLMNode.JoinMode := jmAll: espera TODOS los inputs entrantes
-//   - Ejecucion paralela de dos ramas independientes
-//   - Blackboard para inspeccionar cada rama por separado
+//   - TAIAgentsLink with NextA + NextB: fork (bifurcation)
+//   - TLLMNode.JoinMode := jmAll: waits for ALL incoming inputs
+//   - Parallel execution of two independent branches
+//   - Blackboard to inspect each branch separately
 //
-// Estructura:
+// Structure:
 //   [Preparador] --fork--> [AnalistaPros]  --join--\
 //                      \-> [AnalistaCons] --join--> [Sintetizador (jmAll)]
 // =============================================================================
@@ -63,8 +63,8 @@ begin
     Preparador.ApiKey       := API_KEY;
     Preparador.UseAllTools  := False;
     Preparador.SystemPrompt :=
-      'Eres un coordinador de investigacion. Dado un tema, formula una ' +
-      'pregunta de investigacion clara y concisa. Escribe SOLO la pregunta, nada mas.';
+      'You are a research coordinator. Given a topic, formulate a ' +
+      'clear and concise research question. Write ONLY the question, nothing else.';
 
     // Branch A: advantages analyst
     AnalistaPros := TLLMNode.Create(Manager);
@@ -75,12 +75,12 @@ begin
     AnalistaPros.ApiKey       := API_KEY;
     AnalistaPros.UseAllTools  := False;
     AnalistaPros.SystemPrompt :=
-      'Eres un analista de ventajas. Dada una pregunta, responde EXACTAMENTE con:' + #10 +
-      'VENTAJAS:' + #10 +
-      '1. [ventaja en una frase]' + #10 +
-      '2. [ventaja en una frase]' + #10 +
-      '3. [ventaja en una frase]' + #10 +
-      'Solo eso. Sin texto adicional.';
+      'You are an advantages analyst. Given a question, respond EXACTLY with:' + #10 +
+      'ADVANTAGES:' + #10 +
+      '1. [advantage in one sentence]' + #10 +
+      '2. [advantage in one sentence]' + #10 +
+      '3. [advantage in one sentence]' + #10 +
+      'Only that. No additional text.';
 
     // Branch B: disadvantages analyst
     AnalistaCons := TLLMNode.Create(Manager);
@@ -91,12 +91,12 @@ begin
     AnalistaCons.ApiKey       := API_KEY;
     AnalistaCons.UseAllTools  := False;
     AnalistaCons.SystemPrompt :=
-      'Eres un analista de desventajas. Dada una pregunta, responde EXACTAMENTE con:' + #10 +
-      'DESVENTAJAS:' + #10 +
-      '1. [desventaja en una frase]' + #10 +
-      '2. [desventaja en una frase]' + #10 +
-      '3. [desventaja en una frase]' + #10 +
-      'Solo eso. Sin texto adicional.';
+      'You are a disadvantages analyst. Given a question, respond EXACTLY with:' + #10 +
+      'DISADVANTAGES:' + #10 +
+      '1. [disadvantage in one sentence]' + #10 +
+      '2. [disadvantage in one sentence]' + #10 +
+      '3. [disadvantage in one sentence]' + #10 +
+      'Only that. No additional text.';
 
     // Join node: Sintetizador (jmAll — waits for both branches)
     Sintetizador := TLLMNode.Create(Manager);
@@ -108,10 +108,10 @@ begin
     Sintetizador.UseAllTools  := False;
     Sintetizador.JoinMode     := jmAll;
     Sintetizador.SystemPrompt :=
-      'Eres un analista equilibrado. Recibes la salida combinada de dos investigadores: ' +
-      'uno listo VENTAJAS y otro listo DESVENTAJAS. ' +
-      'Sintetiza ambas en un veredicto balanceado de 3-4 oraciones en espanol. ' +
-      'Termina con una recomendacion clara.';
+      'You are a balanced analyst. You receive the combined output of two researchers: ' +
+      'one listed ADVANTAGES and the other listed DISADVANTAGES. ' +
+      'Synthesize both into a balanced verdict of 3-4 sentences in English. ' +
+      'End with a clear recommendation.';
 
     // Fork: Preparador -> (AnalistaPros, AnalistaCons) in parallel
     ForkLink := TAIAgentsLink.Create(Manager);

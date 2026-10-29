@@ -10,7 +10,7 @@ program MultiAgent;
 // Each agent receives the full debate history up to that point
 // thanks to the OnEnterNode callback that injects the accumulated context.
 //
-// Conceptos que cubre:
+// Concepts it covers:
 //   - Manager.OnEnterNode: callback before executing each node
 //   - Injection of history from the blackboard
 //   - Accumulative context between nodes
@@ -107,32 +107,32 @@ begin
 
     // Node 1: Moderator
     Moderador := MakeLLM(Manager, 'Moderador',
-      'Eres el moderador del debate. Dado un tema, formula una proposicion ' +
-      'clara (afirmacion) e introduce el debate en 2 oraciones. ' +
+      'You are the debate moderator. Given a topic, formulate a clear ' +
+      'proposition (statement) and introduce the debate in 2 sentences. ' +
       'Formato: "PROPOSICION: [enunciado]\nINTRODUCCION: [contexto breve]"');
 
     // Node 2: Speaker (IN FAVOR)
     Ponente := MakeLLM(Manager, 'Ponente',
-      'Eres un debatiente experto A FAVOR de la proposicion. ' +
-      'Argumenta con 2 razones solidas. Cada argumento en 2-3 oraciones. ' +
+      'You are an expert debater IN FAVOR of the proposition. ' +
+      'Argue with 2 solid reasons. Each argument in 2-3 sentences. ' +
       'Formato: "ARGUMENTOS A FAVOR:\n1. [argumento]\n2. [argumento]"');
 
     // Node 3: Critic (AGAINST)
     Critico := MakeLLM(Manager, 'Critico',
-      'Eres un debatiente experto EN CONTRA de la proposicion. ' +
-      'Refuta cada argumento del ponente y agrega una objecion nueva. ' +
+      'You are an expert debater AGAINST the proposition. ' +
+      'Refute each of the speaker''s arguments and add a new objection. ' +
       'Formato: "ARGUMENTOS EN CONTRA:\n1. [refutacion 1]\n2. [refutacion 2]\n3. [nueva objecion]"');
 
     // Node 4: Rebuttal
     Replica := MakeLLM(Manager, 'Replica',
-      'Eres el ponente original. Responde a la objecion mas fuerte del critico. ' +
+      'You are the original speaker. Respond to the critic''s strongest objection. ' +
       '2-3 oraciones. Formato: "REPLICA: [tu respuesta]"');
 
     // Node 5: Judge
     Juez := MakeLLM(Manager, 'Juez',
-      'Eres un juez imparcial. Evalua ambos lados del debate en: ' +
-      'solidez de argumentos, evidencia y persuasion. ' +
-      'Da puntuaciones sobre 10 y declara un ganador con justificacion. ' +
+      'You are an impartial judge. Evaluate both sides of the debate on: ' +
+      'argument solidity, evidence, and persuasion. ' +
+      'Give scores out of 10 and declare a winner with justification. ' +
       'Formato: "PUNTAJES:\n- Lado A favor: X/10\n- Lado En contra: X/10\nVEREDICTO: [ganador y razon]"');
 
     // Chain linearly
@@ -178,7 +178,7 @@ begin
   Writeln('5 agents: Moderador -> Ponente -> Critico -> Replica -> Juez');
   Writeln;
 
-  RunDebate('La inteligencia artificial eliminara mas empleos de los que creara');
+  RunDebate('Artificial intelligence will eliminate more jobs than it creates');
 end;
 
 begin

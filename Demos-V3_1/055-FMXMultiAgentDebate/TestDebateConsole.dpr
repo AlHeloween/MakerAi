@@ -3,9 +3,9 @@ program TestDebateConsole;
 {$APPTYPE CONSOLE}
 
 // =============================================================================
-// Test de consola para diagnosticar uDmDebate.
-// Crea el DataModule, conecta los callbacks e imprime todo en stdout.
-// Usa CheckSynchronize para procesar los TThread.Queue pendientes.
+// Console test to diagnose uDmDebate.
+// Creates the DataModule, connects the callbacks, and prints everything to stdout.
+// Uses CheckSynchronize to process pending TThread.Queue items.
 // =============================================================================
 
 uses
@@ -65,7 +65,7 @@ begin
       Writeln('[INFO] Starting debate...');
       Dm.RunDebate(Topic);
 
-      // Esperar resultado procesando TThread.Queue pendientes
+      // Wait for result processing pending TThread.Queue items
       Writeln('[INFO] Waiting for result (max 5 min)...');
       var TimeoutMs := 5 * 60 * 1000;  // 5 minutos
       var Elapsed   := 0;

@@ -9,7 +9,7 @@ program RAGPostgres;
 // Persistent vector store with PostgreSQL pgvector extension.
 // Ideal for production with large document volumes.
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - TAiRAGVectorPostgresDriver as vector driver in PostgreSQL
 //   - TFDConnection: FireDAC connection to PostgreSQL
 //   - Driver.CreateSchema(tableName, dim): creates table with vector column
@@ -49,7 +49,7 @@ const
   EMB_MODEL   = 'text-embedding-3-small';
   EMB_API_KEY = '@OPENAI_API_KEY';
 
-  // ── Ajustar según tu instalación de PostgreSQL ───────────────────────────
+  // ── Adjust according to your PostgreSQL installation ───────────────────────────
   PG_SERVER   = 'localhost';
   PG_PORT     = '5432';
   PG_DATABASE = 'makerai_demo';
@@ -61,11 +61,11 @@ const
 
 const
   DOCS: array[0..4] of String = (
-    'PostgreSQL es un sistema gestor de base de datos relacional avanzado.',
-    'pgvector anade soporte de vectores y busqueda por similitud a PostgreSQL.',
-    'Los indices IVFFlat y HNSW aceleran la busqueda vectorial en grandes datasets.',
-    'Vector embeddings permiten busqueda semantica sobre texto en PostgreSQL.',
-    'La extension vector de PostgreSQL es compatible con distancia coseno y euclidiana.'
+    'PostgreSQL is an advanced relational database management system.',
+    'pgvector adds vector support and similarity search to PostgreSQL.',
+    'IVFFlat and HNSW indexes accelerate vector search in large datasets.',
+    'Vector embeddings enable semantic search over text in PostgreSQL.',
+    'The PostgreSQL vector extension is compatible with cosine and Euclidean distance.'
   );
 
 // =============================================================================
@@ -130,14 +130,14 @@ begin
     RAG.Driver     := Driver;
     RAG.Entidad    := TABLE_NAME;
 
-    // Crear schema con dimensión correcta para el modelo
+    // Create schema with correct dimension for the model
     Writeln('Creating schema in PostgreSQL...');
     Driver.CreateSchema(TABLE_NAME, EMB_DIM);
     Writeln('Schema ready.');
     Writeln;
 
-    // Indexar documentos
-    Writeln('Indexando ', Length(DOCS), ' documentos...');
+    // Index documents
+    Writeln('Indexing ', Length(DOCS), ' documents...');
     for I := 0 to High(DOCS) do
     begin
       RAG.AddItem(DOCS[I]);
@@ -145,14 +145,14 @@ begin
     end;
     Writeln;
 
-    // Búsqueda
+    // Search
     Writeln('--- Semantic search ---');
-    Results := RAG.SearchText('extensiones de bases de datos vectoriales', 3, 0.4);
-    Writeln('Query: "extensiones de bases de datos vectoriales"');
+    Results := RAG.SearchText('vector database extensions', 3, 0.4);
+    Writeln('Query: "vector database extensions"');
     Writeln(Results);
 
-    Results := RAG.SearchText('rendimiento en busquedas de vectores', 3, 0.4);
-    Writeln('Query: "rendimiento en busquedas de vectores"');
+    Results := RAG.SearchText('vector search performance', 3, 0.4);
+    Writeln('Query: "vector search performance"');
     Writeln(Results);
 
   finally
@@ -171,6 +171,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

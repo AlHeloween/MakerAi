@@ -124,8 +124,8 @@ procedure TAutoMCPDemo.OnState(Sender: TObject; State: TAiChatState;
   const Desc: String);
 begin
   case State of
-    acsToolCalling  : Writeln('  [LLM] Llamando herramienta...');
-    acsToolExecuting: Writeln('  [LLM] Ejecutando...');
+    acsToolCalling  : Writeln('  [LLM] Calling tool...');
+    acsToolExecuting: Writeln('  [LLM] Executing...');
   end;
 end;
 
@@ -137,7 +137,7 @@ begin
   Writeln('STEP 1 — Install ', MCP_PACKAGE, ' from PPM');
   Writeln(StringOfChar('-', 60));
 
-  // Verificar si ya esta instalado
+  // Check if already installed
   LItem := FFunctions.MCPClients.GetClientByName(MCP_PACKAGE);
   if Assigned(LItem) then
   begin
@@ -148,7 +148,7 @@ begin
     Exit;
   end;
 
-  // Instalar desde PPM
+  // Install from PPM
   Writeln('  Downloading and installing ', MCP_PACKAGE, '...');
   try
     LItem := FFunctions.InstallMCPFromPPM(MCP_PACKAGE, '', '', REGISTRY);
@@ -161,14 +161,14 @@ begin
 
     Writeln('  Installed at: ', LItem.Params.Values['Command']);
 
-    // Inicializar el proceso
+    // Initialize the process
     if not LItem.MCPClient.Initialized then
       LItem.MCPClient.Initialize;
 
     if LItem.MCPClient.Available then
       Writeln('  MCP server active and available.')
     else
-      Writeln('  AVISO: El servidor MCP no quedo disponible.');
+      Writeln('  WARNING: The MCP server is not available.');
   except
     on E: Exception do
       Writeln('  ERROR installing: ', E.Message);
@@ -220,7 +220,7 @@ begin
   Writeln('STEP 3 — LLM chat + AutoMCP tools');
   Writeln(StringOfChar('-', 60));
 
-  // Actualizar el system prompt con las herramientas disponibles
+  // Update the system prompt with the available tools
   FAiConn.SystemPrompt.Text := FFunctions.GetAutoMCPSystemPrompt;
 
   Pregunta := 'Cuanto es 1234 por 5678?';

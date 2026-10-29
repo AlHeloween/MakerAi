@@ -9,13 +9,13 @@
 // Shows the LLM response token by token as it arrives (streaming),
 // without waiting for generation to finish.
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - OnReceiveData event    (fires for each fragment received)
 //   - OnReceiveDataEnd event (fires when the stream ends)
 //   - Visual difference between waiting for the full response vs. streaming
 //   - Measurement of time to first token (TTFT) and total time
 //
-// Nota: Asynchronous = False sigue siendo síncrono en cuanto a que
+// Note: Asynchronous = False is still synchronous in that
 // AddMessageAndRun() does not return until it finishes, but the events
 // OnReceiveData fire on the main thread as they arrive
 // the fragments → they can be printed progressively.
@@ -135,13 +135,13 @@ begin
 
   SW := TStopwatch.StartNew;
   Response := FConn.AddMessageAndRun(
-    'Escribe un párrafo de 5 oraciones describiendo el ciclo del agua.',
+    'Write a paragraph of 5 sentences describing the water cycle.',
     'user', []);
   SW.Stop;
 
   Writeln(Response);
   Writeln;
-  Writeln(Format('Tiempo total: %d ms', [SW.ElapsedMilliseconds]));
+  Writeln(Format('Total time: %d ms', [SW.ElapsedMilliseconds]));
   Writeln;
 end;
 
@@ -166,7 +166,7 @@ begin
 
   SW := TStopwatch.StartNew;
   FConn.AddMessageAndRun(
-    'Escribe un párrafo de 5 oraciones describiendo el ciclo del agua.',
+    'Write a paragraph of 5 sentences describing the water cycle.',
     'user', []);
   SW.Stop;
 
@@ -195,7 +195,7 @@ begin
   FConn.OnReceiveDataEnd := OnProgressDone;
 
   FConn.AddMessageAndRun(
-    '¿Cuáles son los 5 planetas más grandes del sistema solar? Lista solo sus nombres.',
+    'What are the 5 largest planets in the solar system? List only their names.',
     'user', []);
   Writeln;
 end;
@@ -218,7 +218,7 @@ begin
     FConn.Params.Values['Asynchronous'] := 'False';
     FConn.Params.Values['Max_Tokens']   := '512';
 
-    FConn.SystemPrompt.Text := 'Responde siempre en español.';
+    FConn.SystemPrompt.Text := 'Always respond in Spanish.';
 
     DemoSinStreaming;
 

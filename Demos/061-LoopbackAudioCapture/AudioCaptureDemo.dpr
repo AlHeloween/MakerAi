@@ -1,9 +1,9 @@
-﻿// Demo de TAiAudioCapture: captura el audio que el sistema esta REPRODUCIENDO
-// (WASAPI loopback) y lo guarda como WAV de 16 kHz mono, listo para Whisper
-// o un Realtime STT.
+﻿// Demo of TAiAudioCapture: captures the audio the system is PLAYING
+// (WASAPI loopback) and saves it as a 16 kHz mono WAV, ready for Whisper
+// or a Realtime STT.
 //
-// Uso: ejecutar, reproducir algo (YouTube, Zoom, musica...) y esperar.
-// El resultado queda en loopback.wav junto al ejecutable.
+// Usage: run it, play something (YouTube, Zoom, music...) and wait.
+// The result is saved as loopback.wav next to the executable.
 
 program AudioCaptureDemo;
 
@@ -44,7 +44,7 @@ begin
     Pcm.WriteBuffer(aBuffer[0], Length(aBuffer));
   SampleRate := aSampleRate;
   Channels := aChannels;
-  Write(Format(#13'Capturando... %7d bytes  (nivel: %5d)   ', [Pcm.Size, TAiAudioCapture(Sender).SoundLevel]));
+  Write(Format(#13'Capturing... %7d bytes  (level: %5d)   ', [Pcm.Size, TAiAudioCapture(Sender).SoundLevel]));
 end;
 
 procedure TCaptureHandler.HandleError(Sender: TObject; const ErrorMessage: string);

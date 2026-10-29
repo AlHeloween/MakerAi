@@ -46,7 +46,7 @@ begin
 
     except
       on E: Exception do
-        WriteLn('Error Fatal: ' + E.Message);
+        WriteLn('Fatal Error: ' + E.Message);
     end;
   finally
     MCPServer.Stop;

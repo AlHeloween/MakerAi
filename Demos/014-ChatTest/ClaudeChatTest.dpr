@@ -298,7 +298,7 @@ begin
     Chat.OnError          := H.OnError;
     Chat.OnProgress       := OnMakerAiProgress;
 
-    // Turno 1: con PDF
+    // Turn 1: with PDF
     WriteLn('--- Turn 1 (with PDF) ---');
     H.Reset;
     Chat.AddMessageAndRun('Qué es TAIBlackboard y para qué se usa?',
@@ -307,7 +307,7 @@ begin
     WriteLn;
     if Res.StartsWith('ERROR:') then begin WriteLn(Res); Exit; end;
 
-    // Turno 2: sin PDF (misma sesión → session_id preservado)
+    // Turn 2: without PDF (same session → session_id preserved)
     WriteLn;
     WriteLn('--- Turn 2 (without PDF, follow-up) ---');
     H.Reset;
@@ -325,10 +325,10 @@ end;
 // ─── SECTION 3: Groq gpt-oss-20b + code_interpreter ─────────────────────────
 
 const
-  // gpt-oss-20b ejecuta el codigo con la herramienta code_interpreter y el stdout
-  // llega en executed_tools[].output. Antes se usaba groq/compound, que Groq ya no
-  // ofrece (model_not_found, sep 2026). gpt-oss-20b necesita que se le pida la
-  // herramienta explicitamente y que no reescriba el codigo.
+  // gpt-oss-20b runs the code with the code_interpreter tool and stdout
+  // arrives in executed_tools[].output. Previously groq/compound was used, which Groq no longer
+  // offers (model_not_found, Sep 2026). gpt-oss-20b needs to be asked for the
+  // tool explicitly and not to rewrite the code.
   CPromptWav = 'Use the code_interpreter tool to run the following Python code exactly as written. '
     + 'Do not modify the code. After it runs, reply with only the word: Done'
     + #10'```python'
@@ -349,11 +349,11 @@ const
     + #10'```';
 
   // gpt-oss-20b: code_interpreter via tool call.
-  // El base64 cae en executed_tools[].output (stdout del sandbox).
-  // El modelo DEBE ejecutar el código sin modificarlo; decirle "Done" evita que
-  // duplique el base64 en su respuesta de texto (ahorra tokens de content).
-  // dur=1 → ~29K tokens output, cabe en Max_Tokens=65536 de gpt-oss-20b.
-  // dur=3 → ~88K tokens output, excede el límite → context_length_exceeded.
+  // The base64 ends up in executed_tools[].output (sandbox stdout).
+  // The model MUST execute the code without modifying it; telling it "Done" prevents
+  // it from duplicating the base64 in its text response (saves content tokens).
+  // dur=1 → ~29K tokens output, fits in Max_Tokens=65536 of gpt-oss-20b.
+  // dur=3 → ~88K tokens output, exceeds the limit → context_length_exceeded.
   CPromptWav3s =
     'Use the code_interpreter tool to run the following Python code exactly as written. '
     + 'Do not modify the code in any way — it must execute the print statements as provided. '
@@ -498,7 +498,7 @@ begin
 end;
 
 // gpt-oss-20b: scatter plot 200x200 JPG via matplotlib.
-// Usa FILE_B64_BEGIN:nombre.jpg / FILE_B64_END para que ProcessExecutedTools lo detecte.
+// Uses FILE_B64_BEGIN:nombre.jpg / FILE_B64_END so ProcessExecutedTools detects it.
 const
   CPromptScatterPlot =
     'Use the code_interpreter tool to run the following Python code exactly as written. '
@@ -526,8 +526,8 @@ const
     + #10'plt.close()'
     + #10'```';
 
-// Groq code_interpreter con openai/gpt-oss-20b (groq/compound ya no esta
-// disponible, sep 2026). El stdout del sandbox llega en executed_tools[].output.
+// Groq code_interpreter with openai/gpt-oss-20b (groq/compound is no longer
+// available, Sep 2026). Sandbox stdout arrives in executed_tools[].output.
 procedure ConfigureGroqCodeInterpreter(A: TAiChatConnection);
 begin
   A.DriverName := 'Groq';
@@ -551,10 +551,10 @@ begin
     Ai.OnReceiveDataEnd := H.OnDataEnd;
     Ai.OnError          := H.OnError;
     H.Reset;
-    WriteLn('Enviando (sync)...');
+    WriteLn('Sending (sync)...');
     Res := Ai.AddMessageAndRun(CPromptWav, 'user', []);
     WriteLn;
-    WriteLn('Texto del modelo:');
+    WriteLn('Model text:');
     if Res <> '' then WriteLn(Res);
     WriteLn;
     H.PrintResults;
@@ -592,7 +592,7 @@ begin
 end;
 
 // gpt-oss-20b: reasoning + code_interpreter via tool call (Tool_Active=True)
-// executed_tools[].code_interpreter.outputs[].text contiene el stdout del codigo.
+// executed_tools[].code_interpreter.outputs[].text contains the code stdout.
 procedure ConfigureGroqGptOss20b(A: TAiChatConnection);
 begin
   A.DriverName := 'Groq';
@@ -619,7 +619,7 @@ begin
     WriteLn('Sending (sync, dur=3s)...');
     Res := Ai.AddMessageAndRun(CPromptWav3s, 'user', []);
     WriteLn;
-    WriteLn('Texto del modelo:');
+    WriteLn('Model text:');
     if Res <> '' then WriteLn(Copy(Res, 1, 500));
     WriteLn;
     H.PrintResults;
@@ -644,10 +644,10 @@ begin
     Ai.OnReceiveDataEnd := H.OnDataEnd;
     Ai.OnError          := H.OnError;
     H.Reset;
-    WriteLn('Enviando (sync)...');
+    WriteLn('Sending (sync)...');
     Res := Ai.AddMessageAndRun(CPromptScatterPlot, 'user', []);
     WriteLn;
-    WriteLn('Texto del modelo:');
+    WriteLn('Model text:');
     if Res <> '' then WriteLn(Copy(Res, 1, 200));
     WriteLn;
     H.PrintResults;
@@ -661,8 +661,8 @@ end;
 
 const
   CPromptPng =
-    'Usa code execution para generar una imagen PNG 400x400 con un scatter plot de ' +
-    '25 puntos aleatorios con colores del arcoiris sobre fondo blanco usando matplotlib. ' +
+    'Use code execution to generate a 400x400 PNG image with a scatter plot of ' +
+    '25 random points with rainbow colors on a white background using matplotlib. ' +
     'Devuelve SOLO la imagen generada, sin texto adicional.';
 
 procedure Test_MakerAi_CodeExec_Png(const AModel, AOutFile: string);

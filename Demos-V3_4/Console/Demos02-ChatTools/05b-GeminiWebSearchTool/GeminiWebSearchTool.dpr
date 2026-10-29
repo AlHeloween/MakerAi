@@ -6,12 +6,12 @@ program GeminiWebSearchTool;
 // =============================================================================
 // MakerAI - 02-ChatTools / 05b-GeminiWebSearchTool
 // =============================================================================
-// Prueba directa de TAiGeminiWebSearchTool como ChatTools.WebSearchTool.
-// Usa el metodo estatico Search() y tambien integrado en TAiChatConnection
-// con cmSmartDispatch.
+// Direct test of TAiGeminiWebSearchTool as ChatTools.WebSearchTool.
+// Uses the static Search() method and also integrated in TAiChatConnection
+// with cmSmartDispatch.
 //
-// Requiere:
-//   - Variable de entorno GEMINI_API_KEY configurada
+// Requires:
+//   - GEMINI_API_KEY environment variable configured
 // =============================================================================
 
 uses
@@ -110,7 +110,7 @@ begin
     // CHAT — should not search
     Writeln(StringOfChar('-', 65));
     Write('[CHAT] What is 25 times 4? => ');
-    Resp := Conn.AddMessageAndRun('Cuanto es 25 por 4?', 'user', []);
+    Resp := Conn.AddMessageAndRun('What is 25 times 4?', 'user', []);
     Writeln(Copy(Resp, 1, 150));
 
     // WEBSEARCH — should search

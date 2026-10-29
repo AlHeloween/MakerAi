@@ -5,12 +5,12 @@
 // =============================================================================
 // MakerAI - AutoAgents Demo 09: MultiAgentDebate
 // =============================================================================
-// Cinco TLLMNodes simulan un debate estructurado:
+// Five TLLMNodes simulate a structured debate:
 //   [Moderator] -> [Proposer] -> [Critic] -> [Rebuttal] -> [Judge]
 //
-// Cada nodo construye sobre el output del anterior.
-// El Blackboard preserva el historial completo del debate.
-// El Judge evalua ambos argumentos y emite un veredicto.
+// Each node builds on the previous node's output.
+// The Blackboard preserves the full debate history.
+// The Judge evaluates both arguments and issues a verdict.
 // =============================================================================
 
 uses
@@ -27,8 +27,8 @@ const
   API_KEY = '@CLAUDE_API_KEY';
 
 // -----------------------------------------------------------------------------
-// TDebateContext — inyecta el historial acumulado del debate en cada nodo
-// antes de que ejecute, para que tenga contexto completo del intercambio.
+// TDebateContext — injects the accumulated debate history into each node
+// before it executes, so it has full context of the exchange.
 // -----------------------------------------------------------------------------
 type
   TDebateContext = class
@@ -58,8 +58,8 @@ begin
     if PrevOutput <> '' then
       History := History + '=== ' + NodeName + ' ===' + #10 + PrevOutput + #10#10;
   end;
-  // Reemplazar el input completo: transcript acumulado + directiva clara.
-  // No repetimos el output del nodo anterior (que ya esta en el historial).
+  // Replace the full input: accumulated transcript + clear directive.
+  // We do not repeat the previous node's output (already in history).
   if History <> '' then
     Node.Input := '--- FULL DEBATE TRANSCRIPT ---' + #10 + History +
                   '--- PERFORM YOUR ASSIGNED ROLE NOW ---';
@@ -173,7 +173,7 @@ end;
 procedure RunDemo;
 begin
   Writeln('=== Demo 09 - MultiAgentDebate ===');
-  Writeln('5 nodos: Moderator -> Proposer -> Critic -> Rebuttal -> Judge');
+  Writeln('5 nodes: Moderator -> Proposer -> Critic -> Rebuttal -> Judge');
   Writeln;
 
   RunDebate('Artificial intelligence will eliminate more jobs than it creates');

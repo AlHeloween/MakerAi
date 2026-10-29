@@ -3,33 +3,33 @@
 (*
   uTool.RAG  -  Demo 037-MCPServerRAG
 
-  Herramienta MCP que expone un sistema RAG real respaldado por una base de
-  datos (Driver del .ini):
+  MCP tool that exposes a real RAG system backed by a
+  database (Driver from the .ini):
 
-    - TAiRAGVector               : orquestador; con Driver asignado delega la
-                                   busqueda 100% a la base de datos
-    - TAiRAGVectorMSSQLDriver    : Driver=mssql. SQL Server 2025+ (tipo VECTOR
-                                   nativo, VECTOR_DISTANCE coseno + FREETEXTTABLE BM25)
+    - TAiRAGVector               : orchestrator; with an assigned Driver it delegates
+                                   search 100% to the database
+    - TAiRAGVectorMSSQLDriver    : Driver=mssql. SQL Server 2025+ (VECTOR type
+                                   native, VECTOR_DISTANCE cosine + FREETEXTTABLE BM25)
     - TAiRAGVectorPostgresDriver : Driver=postgres. PostgreSQL + pgvector (HNSW
-                                   coseno + tsvector); libpq.dll autodetectada
-    - TAiOpenAiEmbeddings      : generacion de embeddings client-side
-    - Configuracion            : archivo .ini (ver TRagServerConfig / LoadServerConfig)
-    - Autenticacion            : login/password QUEMADOS (RAG_LOGIN / RAG_PASSWORD);
-                                 se valida via OnValidateRequest del servidor MCP.
-                                 Formatos aceptados en el header Authorization:
-                                   Basic  base64(usuario:password)   (estandar HTTP)
-                                   Bearer usuario:password           (compat MCPClient MakerAI)
-                                   X-API-Key: usuario:password
+                                   cosine + tsvector); libpq.dll auto-detected
+    - TAiOpenAiEmbeddings      : generation of embeddings client-side
+    - Configuration            : .ini file (see TRagServerConfig / LoadServerConfig)
+    - Authentication            : hardcoded login/password (RAG_LOGIN / RAG_PASSWORD);
+                                 validated via OnValidateRequest of the MCP server.
+                                 Accepted formats in the Authorization header:
+                                   Basic  base64(user:password)   (standard HTTP)
+                                   Bearer user:password           (MakerAI MCPClient compat)
+                                   X-API-Key: user:password
 
-  Operaciones del tool 'rag_vector':
+  Operations of the 'rag_vector' tool:
     index_text, index_file, search, list_docs, delete_doc, clear, stats
 
-  La conexion a la base de datos es perezosa (EnsureDb): el servidor arranca
-  aunque la base no este disponible y reporta el error por operacion.
-  Los valores de [Database] que empiezan con '@' se leen del entorno
-  (p.ej. Password=@PGPASSWORD), igual que la ApiKey.
-  Todas las operaciones se serializan con un TCriticalSection global
-  (FireDAC TFDConnection no es thread-safe entre hilos del servidor).
+  The database connection is lazy (EnsureDb): the server starts
+  even if the database is unavailable and reports the error per operation.
+  Values in [Database] starting with '@' are read from the environment
+  (e.g. Password=@PGPASSWORD), just like the ApiKey.
+  All operations are serialized with a global TCriticalSection
+  (FireDAC TFDConnection is not thread-safe across server threads).
 *)
 
 interface
@@ -228,7 +228,7 @@ begin
   try
     if not TFile.Exists(AFileName) then
     begin
-      // Primera ejecucion: generar plantilla editable
+      // First run: generate editable template
       Ini.WriteString('Server', 'Protocol', 'sse');
       Ini.WriteInteger('Server', 'Port', 8080);
       Ini.WriteString('Database', 'Driver', 'mssql');
@@ -414,8 +414,8 @@ begin
   FreeAndNil(GLock);
 end;
 
-// Conexion y esquema perezosos: el servidor arranca aunque la DB no este
-// disponible; cada operacion reporta el error real si sigue caida.
+// Lazy connection and schema: the server starts even if the DB is not
+// available; each operation reports the real error if it is still down.
 // Real table (the PostgreSQL driver lowercases it)
 function RagTable: string;
 begin
@@ -457,8 +457,8 @@ begin
   end;
 end;
 
-// Borra en la DB todos los chunks de un documento (via metadato JSON 'doc')
-// y limpia la copia cache en memoria de la sesion actual.
+// Deletes all chunks of a document from the DB (via JSON metadata 'doc')
+// and clears the in-memory cache copy of the current session.
 function RemoveDocChunks(const ADoc: string): Integer;
 var
   Q: TFDQuery;
@@ -517,16 +517,16 @@ begin
   FName := 'rag_vector';
   FDescription :=
     'Sistema RAG (Retrieval-Augmented Generation) sobre base de datos ' +
-    '(SQL Server 2025 o PostgreSQL + pgvector): embeddings de OpenAI + BM25 hibrido. ' +
-    'Operaciones: ' +
-    'index_text (indexa un texto; params: textContent, docName, chunkSize, overlapPct), ' +
-    'index_file (indexa un archivo de texto; params: filePath, docName opcional), ' +
-    'search (busqueda semantica; params: query, topK, minScore), ' +
-    'list_docs (documentos indexados), ' +
-    'delete_doc (elimina un documento; param: docName), ' +
-    'clear (vacia el indice de la entidad), ' +
-    'stats (estadisticas). ' +
-    'Los datos persisten en la base de datos configurada en el archivo .ini.';
+    '(SQL Server 2025 or PostgreSQL + pgvector): OpenAI embeddings + hybrid BM25. ' +
+    'Operations: ' +
+    'index_text (indexes a text; params: textContent, docName, chunkSize, overlapPct), ' +
+    'index_file (indexes a text file; params: filePath, optional docName), ' +
+    'search (semantic search; params: query, topK, minScore), ' +
+    'list_docs (indexed documents), ' +
+    'delete_doc (deletes a document; param: docName), ' +
+    'clear (empties the entity index), ' +
+    'stats (statistics). ' +
+    'Data persists in the database configured in the .ini file.';
 end;
 
 function TRagTool.IndexText(const AText, ADocName: string; AChunkSize, AOverlapPct: Integer): Integer;
@@ -611,8 +611,8 @@ begin
 
   ResultsArr := TJSONArray.Create;
 
-  // Con Driver asignado, Search delega al motor T-SQL y devuelve un vector
-  // PROPIETARIO de sus nodos: ResVec.Free libera contenedor y nodos.
+  // With an assigned Driver, Search delegates to the T-SQL engine and returns a vector
+  // OWNING its nodes: ResVec.Free frees the container and nodes.
   ResVec := GRag.Search(P.Query, TopK, MinScore, nil);
   try
     for i := 0 to ResVec.Count - 1 do
@@ -703,7 +703,7 @@ begin
     Q.Free;
   end;
 
-  GRag.Clear; // cache en memoria de la sesion
+  GRag.Clear; // in-memory cache of the session
 
   Result := TJSONObject.Create;
   Result.AddPair('ok', TJSONTrue.Create);
@@ -758,7 +758,7 @@ begin
     try
       Op := LowerCase(Trim(AParams.Operation));
       if Op = '' then
-        raise Exception.Create('"operation" es requerido');
+        raise Exception.Create('"operation" is required');
 
       EnsureDb;
 

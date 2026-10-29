@@ -97,7 +97,7 @@ begin
     Conn.Model      := MODEL;
     Conn.ApiKey     := API_KEY;
 
-    // ── Paso 1: generar embeddings del corpus ─────────────────────────────
+    // ── Step 1: generate corpus embeddings ─────────────────────────────
     Writeln('Generating corpus embeddings (', Length(CORPUS), ' texts)...');
     for I := 0 to High(CORPUS) do
     begin
@@ -107,14 +107,14 @@ begin
     end;
     Writeln;
 
-    // ── Paso 2: búsqueda por similitud ────────────────────────────────────
-    Writeln('--- Búsqueda por similitud ---');
+    // ── Step 2: similarity search ────────────────────────────────────
+    Writeln('--- Similarity search ---');
 
-    // Consulta 1: tema de IA/ML → debe encontrar frases de ML
+    // Query 1: AI/ML topic → should find ML phrases
     QueryEmb := Conn.CreateEmbedding('How do neural networks learn?', 'user');
     PrintTopK('How do neural networks learn?', CORPUS, Embeddings, QueryEmb, 3);
 
-    // Consulta 2: tema de naturaleza → debe encontrar frases de biología/naturaleza
+    // Query 2: nature topic → should find biology/nature phrases
     QueryEmb := Conn.CreateEmbedding('Plants and nature', 'user');
     PrintTopK('Plants and nature', CORPUS, Embeddings, QueryEmb, 3);
 

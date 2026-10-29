@@ -118,7 +118,7 @@ begin
       Writeln('  Verify it exists: ', MCP_SERVER_EXE);
       Exit;
     end;
-    Writeln('Inicializacion OK.');
+    Writeln('Initialization OK.');
 
     // ── 3. List tools ───────────────────────────────────────────────
     PrintSep('STEP 2: tools/list');
@@ -166,7 +166,7 @@ begin
       else if Assigned(Result_) then
         Writeln(Result_.Format(2))
       else
-        Writeln('ERROR: resultado nil');
+        Writeln('ERROR: result nil');
     finally
       Result_.Free;
     end;
@@ -187,7 +187,7 @@ begin
       else if Assigned(Result_) then
         Writeln(Result_.Format(2))
       else
-        Writeln('ERROR: resultado nil');
+        Writeln('ERROR: result nil');
     finally
       Result_.Free;
     end;
@@ -197,7 +197,7 @@ begin
     if System.SysUtils.DirectoryExists(TEST_NEW_DIR) then
       Writeln('OK - Directory created successfully: ', TEST_NEW_DIR)
     else
-      Writeln('AVISO - El directorio no existe (puede ser restriccion de permisos)');
+      Writeln('WARNING - The directory does not exist (may be a permissions restriction)');
 
     // ── 7. Disconnect ───────────────────────────────────────────────────────
     Client.Disconnect;

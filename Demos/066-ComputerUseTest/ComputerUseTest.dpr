@@ -10,9 +10,9 @@ uses
 
 begin
   {$IFDEF MSWINDOWS}
-  // Render por software (WARP). Necesario en Escritorio Remoto (RDP), maquinas
-  // virtuales o GPUs cuyo Direct2D no compone la ventana (se ve la miniatura en
-  // la barra de tareas pero no la ventana). Sin efecto visible en hardware normal.
+  // Software rendering (WARP). Needed on Remote Desktop (RDP), virtual
+  // machines or GPUs whose Direct2D does not compose the window (the thumbnail shows in
+  // the taskbar but not the window). No visible effect on normal hardware.
   GlobalUseDXSoftware := True;
   {$ENDIF}
   Application.Initialize;

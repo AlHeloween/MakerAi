@@ -6,8 +6,8 @@
 // =============================================================================
 // MakerAI — Chapter 3: Your First Chat with MakerAI
 // =============================================================================
-// El demo más simple posible con TAiChatConnection: configurar el proveedor,
-// enviar mensajes en un bucle y recibir respuestas.
+// The simplest possible demo with TAiChatConnection: configure the provider,
+// send messages in a loop and receive responses.
 //
 // Concepts it covers:
 //   - Create and configure TAiChatConnection
@@ -69,7 +69,7 @@ begin
     WriteLn('=== MakerAI — Chapter 3: First Chat ===');
     WriteLn('Provider : ', DRIVER);
     WriteLn('Model   : ', MODEL);
-    WriteLn('Commands : "salir", "limpiar", "mensajes"');
+    WriteLn('Commands : "exit", "clear", "messages"');
     WriteLn('');
 
     repeat
@@ -80,18 +80,18 @@ begin
       if Prompt = '' then
         Continue;
 
-      if SameText(Prompt, 'salir') then
+      if SameText(Prompt, 'exit') then
         Break;
 
-      if SameText(Prompt, 'limpiar') then
+      if SameText(Prompt, 'clear') then
       begin
-        Conn.NewChat;   // Libera los objetos correctamente y limpia el historial
+        Conn.NewChat;   // Properly frees objects and clears history
         WriteLn('   [History cleared]');
         WriteLn('');
         Continue;
       end;
 
-      if SameText(Prompt, 'mensajes') then
+      if SameText(Prompt, 'messages') then
       begin
         WriteLn('   [Messages in history: ', Conn.Messages.Count, ']');
         WriteLn('');

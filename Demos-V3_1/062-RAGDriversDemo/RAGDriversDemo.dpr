@@ -12,14 +12,14 @@ program RAGDriversDemo;
 //     - Own .mkvec binary file, without external dependencies
 //     - Vector search by cosine in Delphi (linear scan)
 //     - Lexical BM25 search in memory (TAIBm25Index)
-//     - Busqueda hibrida con fusion RRF o ponderada
+//     - Hybrid search with RRF or weighted fusion
 //     - Compact() to defragment the file
 //
 //   TAiRAGVectorSQLiteDriver  (uMakerAi.RAG.Vector.Driver.SQLite)
 //     - SQLite via FireDAC, .db file
 //     - Vector search in Delphi (brute-force cosine)
 //     - Lexical BM25 search via SQLite native FTS5
-//     - Busqueda hibrida con fusion RRF o ponderada
+//     - Hybrid search with RRF or weighted fusion
 //     - No external dependencies beyond FireDAC (included in Delphi)
 //
 // This demo uses synthetic embeddings of 8 dimensions to avoid requiring
@@ -218,7 +218,7 @@ begin
   try
     QueryNode.Tag  := 'query-ia';
     QueryNode.Text := 'aprendizaje automatico redes neuronales';
-    // Vector similar a doc-01 y doc-02 (zona de IA)
+    // Vector similar to doc-01 and doc-02 (AI area)
     QueryNode.Data := MakeEmbeddingData([0.85, 0.80, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]);
 
     Options := TAiSearchOptions.Create;
@@ -246,7 +246,7 @@ begin
   try
     QueryNode.Tag  := 'query-bm25';
     QueryNode.Text := 'python lenguajes programacion';
-    // Sin embedding relevante para BM25
+    // No relevant embedding for BM25
     QueryNode.Data := MakeEmbeddingData([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
 
     Options := TAiSearchOptions.Create;
@@ -341,7 +341,7 @@ begin
   ADriver.Delete('doc-02', ENT_TECH);
   Writeln('    doc-02 deleted.');
 
-  // Verificar que ya no aparece
+  // Verify that it no longer appears
   QueryNode := TAiEmbeddingNode.Create(DIM);
   Options   := TAiSearchOptions.Create;
   try
@@ -387,11 +387,11 @@ begin
     Driver.Language := alSpanish;
     Driver.AutoOpen := True;   // se abre solo al primer Add/Search
 
-    // --- Carga ---
+    // --- Load ---
     CargarDocumentos(Driver);
     Writeln(Format('  NodeCount total: %d', [Driver.NodeCount]));
 
-    // --- Consultas ---
+    // --- Queries ---
     TestConsultas(Driver, 'BinFile');
 
     // --- Delete ---
@@ -453,10 +453,10 @@ begin
       Driver.CreateSchema(TABLE_NAME);
       Writeln('  Schema created: ', TABLE_NAME, ' + ', TABLE_NAME, '_fts');
 
-      // --- Carga ---
+      // --- Load ---
       CargarDocumentos(Driver);
 
-      // --- Consultas ---
+      // --- Queries ---
       TestConsultas(Driver, 'SQLite');
 
       // --- Delete ---

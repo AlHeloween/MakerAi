@@ -1,7 +1,7 @@
 ﻿program ComputerUseServer;
 
-// Computer Use contra el servidor cimamaker (loop manual, formato OpenAI).
-// El form se construye 100% en codigo (sin .fmx) -> CreateNew + MainForm manual.
+// Computer Use against the cimamaker server (manual loop, OpenAI format).
+// The form is built 100% in code (no .fmx) -> CreateNew + manual MainForm.
 
 uses
   System.StartUpCopy,

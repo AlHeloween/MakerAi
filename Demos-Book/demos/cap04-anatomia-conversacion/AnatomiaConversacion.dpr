@@ -6,17 +6,17 @@
 // =============================================================================
 // MakerAI — Chapter 4: Anatomy of a Conversation
 // =============================================================================
-// Ilustra los mecanismos fundamentales de la gestión de conversaciones con LLMs.
-// Un modelo no tiene memoria propia: "recuerda" porque recibe el historial
-// completo en cada llamada. El desarrollador controla ese historial.
+// Illustrates the fundamental mechanisms of conversation management with LLMs.
+// A model has no memory of its own: it "remembers" because it receives the
+// full history on every call. The developer controls that history.
 //
 // Demonstrates:
-//   - Demo 1: Conversación multi-turno — 3 turnos donde cada pregunta de
-//             seguimiento aprovecha el contexto de los turnos anteriores.
-//   - Demo 2: Pre-siembra con AddMessage — inyectar ejemplos (few-shot) al
-//             historial SIN llamar al modelo. Luego una sola llamada clasifica.
-//   - Demo 3: Persistencia del historial — guardar a JSON, limpiar memoria
-//             y recargar para continuar la conversación donde se dejó.
+//   - Demo 1: Multi-turn conversation — 3 turns where each follow-up question
+//             leverages the context of previous turns.
+//   - Demo 2: Pre-seeding with AddMessage — inject examples (few-shot) into
+//             history WITHOUT calling the model. Then a single call classifies.
+//   - Demo 3: History persistence — save to JSON, clear memory
+//             and reload to continue the conversation where it left off.
 //
 // API used:
 //   Conn.AddMessageAndRun(text, role, [])  → adds a message and calls the model
@@ -51,14 +51,14 @@ begin
 end;
 
 // =============================================================================
-//  Demo 1 — Conversación multi-turno con contexto
+//  Demo 1 — Multi-turn conversation with context
 //
-//  En cada turno el modelo recibe el historial completo:
+//  On each turn the model receives the full history:
 //    Turn 1: [system] + [user T1]
 //    Turn 2: [system] + [user T1] + [assistant T1] + [user T2]
 //    Turn 3: [system] + [user T1] + [assistant T1] + ... + [user T3]
 //
-//  That is why it can answer "¿Cómo lo depuro?" without repeating the context.
+//  That is why it can answer "How do I debug it?" without repeating the context.
 // =============================================================================
 procedure Demo1_MultiTurno(Conn: TAiChatConnection);
 var
@@ -67,36 +67,36 @@ begin
   Separador('Demo 1 — Multi-turn conversation');
 
   Conn.SystemPrompt.Text :=
-    'Eres un asistente de soporte técnico Delphi. Responde en español, conciso.';
-  Conn.NewChat;   // NewChat libera correctamente los objetos anteriores
+    'You are a Delphi technical support assistant. Respond in Spanish, concisely.';
+  Conn.NewChat;   // NewChat properly frees previous objects
 
-  WriteLn('[Turn 1] "Mi aplicación se cuelga al iniciar"');
-  R := Conn.AddMessageAndRun('Mi aplicación se cuelga al iniciar', 'user', []);
-  WriteLn('          Asistente: ', R);
-  WriteLn('          [Historial: ', Conn.Messages.Count, ' mensajes]');
-
-  WriteLn('');
-  WriteLn('[Turn 2] "Es Delphi 12, error EAccessViolation"');
-  R := Conn.AddMessageAndRun('Es Delphi 12, error EAccessViolation', 'user', []);
-  WriteLn('          Asistente: ', R);
-  WriteLn('          [Historial: ', Conn.Messages.Count, ' mensajes]');
+  WriteLn('[Turn 1] "My application hangs on startup"');
+  R := Conn.AddMessageAndRun('My application hangs on startup', 'user', []);
+  WriteLn('          Assistant: ', R);
+  WriteLn('          [History: ', Conn.Messages.Count, ' messages]');
 
   WriteLn('');
-  WriteLn('[Turn 3] "¿Cómo lo depuro?" — without repeating the context');
-  R := Conn.AddMessageAndRun('¿Cómo lo depuro?', 'user', []);
-  WriteLn('          Asistente: ', R);
-  WriteLn('          [Historial: ', Conn.Messages.Count, ' mensajes |',
-          ' Tokens entrada: ', Conn.Prompt_tokens,
-          ', salida: ', Conn.Completion_tokens,
+  WriteLn('[Turn 2] "It''s Delphi 12, error EAccessViolation"');
+  R := Conn.AddMessageAndRun('It''s Delphi 12, error EAccessViolation', 'user', []);
+  WriteLn('          Assistant: ', R);
+  WriteLn('          [History: ', Conn.Messages.Count, ' messages]');
+
+  WriteLn('');
+  WriteLn('[Turn 3] "How do I debug it?" — without repeating the context');
+  R := Conn.AddMessageAndRun('How do I debug it?', 'user', []);
+  WriteLn('          Assistant: ', R);
+  WriteLn('          [History: ', Conn.Messages.Count, ' messages |',
+          ' Input tokens: ', Conn.Prompt_tokens,
+          ', output: ', Conn.Completion_tokens,
           ', total: ', Conn.Total_tokens, ']');
 end;
 
 // =============================================================================
-//  Demo 2 — Pre-siembra con AddMessage (few-shot conversacional)
+//  Demo 2 — Pre-seeding with AddMessage (conversational few-shot)
 //
-//  AddMessage agrega mensajes al historial SIN llamar al modelo.
-//  Patrón: inyectar 2-3 pares ejemplo/respuesta → luego preguntar real.
-//  El modelo ya "conoce" el formato sin necesidad de explicárselo.
+//  AddMessage adds messages to history WITHOUT calling the model.
+//  Pattern: inject 2-3 example/response pairs → then ask the real question.
+//  The model already "knows" the format without needing it explained.
 // =============================================================================
 procedure Demo2_FewShot(Conn: TAiChatConnection);
 var
@@ -105,32 +105,32 @@ begin
   Separador('Demo 2 — Pre-seeding with AddMessage (few-shot)');
 
   Conn.SystemPrompt.Text :=
-    'Eres un clasificador de tickets de soporte. ' +
-    'Responde ÚNICAMENTE con JSON válido: {"categoria":"...","urgencia":"ALTA|MEDIA|BAJA"}.';
+    'You are a support ticket classifier. ' +
+    'Respond ONLY with valid JSON: {"categoria":"...","urgencia":"ALTA|MEDIA|BAJA"}.';
   Conn.NewChat;
 
   // AddMessage: adds to history WITHOUT inference cost
   WriteLn('Injecting 2 classification examples (without calling the model)...');
-  Conn.AddMessage('Mi impresora no imprime', 'user');
+  Conn.AddMessage('My printer does not print', 'user');
   Conn.AddMessage('{"categoria":"HARDWARE","urgencia":"MEDIA"}', 'assistant');
-  Conn.AddMessage('No puedo acceder a mi cuenta', 'user');
+  Conn.AddMessage('I cannot access my account', 'user');
   Conn.AddMessage('{"categoria":"ACCESO","urgencia":"ALTA"}', 'assistant');
   WriteLn('[History: ', Conn.Messages.Count, ' messages — these are the examples]');
 
   // First and only real call to the model: it already knows the expected format
   WriteLn('');
-  WriteLn('Classifying: "La aplicación se cierra al generar reportes PDF"');
+  WriteLn('Classifying: "The application closes when generating PDF reports"');
   R := Conn.AddMessageAndRun(
-    'La aplicación se cierra sola al generar reportes PDF', 'user', []);
+    'The application closes by itself when generating PDF reports', 'user', []);
   WriteLn('Response   : ', R);
   WriteLn('[History  : ', Conn.Messages.Count, ' messages in total]');
 end;
 
 // =============================================================================
-//  Demo 3 — Persistencia del historial (save / load)
+//  Demo 3 — History persistence (save / load)
 //
-//  Guarda la conversación en JSON, limpia la memoria y la recarga para
-//  continuar el hilo exactamente donde se dejó — como si no hubiera parado.
+//  Saves the conversation to JSON, clears memory and reloads it to
+//  continue the thread exactly where it left off — as if it never stopped.
 // =============================================================================
 procedure Demo3_Persistencia(Conn: TAiChatConnection);
 const
@@ -141,12 +141,12 @@ begin
   Separador('Demo 3 — History persistence (save / load)');
 
   Conn.SystemPrompt.Text :=
-    'Eres un asistente amable. Responde en español, una sola oración.';
+    'You are a friendly assistant. Respond in Spanish, one sentence.';
   Conn.NewChat;
 
-  // Construir historial con 2 turnos
-  Conn.AddMessageAndRun('¿Cuál es la capital de Francia?', 'user', []);
-  Conn.AddMessageAndRun('¿Y cuántos habitantes tiene?', 'user', []);
+  // Build history with 2 turns
+  Conn.AddMessageAndRun('What is the capital of France?', 'user', []);
+  Conn.AddMessageAndRun('And how many inhabitants does it have?', 'user', []);
   WriteLn('History created with ', Conn.Messages.Count, ' messages.');
 
   // Save to disk
@@ -163,8 +163,8 @@ begin
 
   // Continue the conversation with full context
   WriteLn('');
-  WriteLn('Continuing with restored context: "¿Y el río que la cruza?"');
-  R := Conn.AddMessageAndRun('¿Y el río que la cruza?', 'user', []);
+  WriteLn('Continuing with restored context: "And the river that crosses it?"');
+  R := Conn.AddMessageAndRun('And the river that crosses it?', 'user', []);
   WriteLn('Response: ', R);
   WriteLn('[The model answered with the context of the 2 previous turns]');
 end;

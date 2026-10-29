@@ -85,7 +85,7 @@ begin
   else if Op = 'subtract' then Res := A - B
   else if Op = 'multiply' then Res := A * B
   else if Op = 'divide' then begin
-    if B = 0 then begin Result := TJSONObject.Create; Result.AddPair('error', 'Division por cero'); Exit; end;
+    if B = 0 then begin Result := TJSONObject.Create; Result.AddPair('error', 'Division by zero'); Exit; end;
     Res := A / B;
   end;
   Writeln(Format('  [calculator] => %g', [Res]));
@@ -196,7 +196,7 @@ var Props, Txt: TJSONObject; Req: TJSONArray;
 begin
   inherited; FSchema := TJSONObject.Create; FSchema.AddPair('type', 'object');
   Props := TJSONObject.Create;
-  Txt := TJSONObject.Create; Txt.AddPair('type', 'string'); Txt.AddPair('description', 'Texto a codificar como URL'); Props.AddPair('text', Txt);
+  Txt := TJSONObject.Create; Txt.AddPair('type', 'string'); Txt.AddPair('description', 'Text to encode as URL'); Props.AddPair('text', Txt);
   FSchema.AddPair('properties', Props);
   Req := TJSONArray.Create; Req.Add('text'); FSchema.AddPair('required', Req);
 end;
@@ -273,10 +273,10 @@ begin
     LLMAgent.ApiKey       := API_KEY;
     LLMAgent.UseAllTools  := True;
     LLMAgent.SystemPrompt :=
-      'Eres un asistente util con herramientas. Usaias cuando sea apropiado. ' +
-      'Para matematicas usa calculator. Para fechas usa get_datetime. ' +
-      'Para temperaturas usa convert_temperature. Para URLs usa url_encode. ' +
-      'Responde en espanol.';
+      'You are a helpful assistant with tools. Use them when appropriate. ' +
+      'For math use calculator. For dates use get_datetime. ' +
+      'For temperatures use convert_temperature. For URLs use url_encode. ' +
+      'Answer in Spanish.';
 
     Finish       := TAIAgentsNode.Create(Manager);
     Finish.Name  := 'End';
@@ -310,6 +310,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

@@ -16,8 +16,8 @@ program RAGVQL;
 //   - Combination of semantic search + structured filters
 //
 // Basic VQL syntax:
-//   SEARCH "<query>" NEAR <campo>
-//   WHERE metadata.<campo> = <valor>
+//   SEARCH "<query>" NEAR <field>
+//   WHERE metadata.<field> = <value>
 //   ORDER BY score DESC
 //   LIMIT N
 // =============================================================================
@@ -136,19 +136,19 @@ begin
 
     // Progressive VQL queries
     EjecutarVQL(RAG,
-      'Busqueda semantica simple',
+      'Simple semantic search',
       'SEARCH "inteligencia artificial y redes neuronales" LIMIT 3');
 
     EjecutarVQL(RAG,
-      'Busqueda filtrada por categoria',
+      'Search filtered by category',
       'SEARCH "aprendizaje automatico" WHERE metadata.categoria = "IA" LIMIT 3');
 
     EjecutarVQL(RAG,
-      'Busqueda filtrada por año',
+      'Search filtered by year',
       'SEARCH "lenguajes de programacion" WHERE metadata.año >= 2023 LIMIT 3');
 
     EjecutarVQL(RAG,
-      'Busqueda con multiples filtros',
+      'Search with multiple filters',
       'SEARCH "machine learning" WHERE metadata.categoria = "IA" AND metadata.año = 2024 LIMIT 3');
 
   finally

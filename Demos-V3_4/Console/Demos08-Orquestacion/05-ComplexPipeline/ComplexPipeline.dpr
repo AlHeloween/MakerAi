@@ -6,9 +6,9 @@ program ComplexPipeline;
 // =============================================================================
 // MakerAI — 08-Orquestacion / 05-ComplexPipeline
 // =============================================================================
-// Pipeline complejo que combina todos los patrones:
+// Complex pipeline that combines all patterns:
 //   1. Sequential: Clasificador -> Contextualizador
-//   2. Fork/Join: dos ramas paralelas (Pros + Cons) -> Sintetizador
+//   2. Fork/Join: two parallel branches (Pros + Cons) -> Sintetizador
 //   3. Sequential final: Sintetizador -> Redactor
 //
 // Given a topic:
@@ -16,9 +16,9 @@ program ComplexPipeline;
 //                             \-> [AnalistaCons] --> [Sintetizador (jmAll)] -> [Redactor]
 //
 // Concepts it covers:
-//   - Combinacion de patrones Sequential + Fork/Join en un solo grafo
-//   - Pipeline con 5 nodos LLM en topologia mixta
-//   - Inspección completa del blackboard
+//   - Combination of Sequential + Fork/Join patterns in a single graph
+//   - Pipeline with 5 LLM nodes in a mixed topology
+//   - Complete inspection of the blackboard
 // =============================================================================
 
 uses
@@ -70,33 +70,33 @@ begin
 
     // Node 1 (sequential): Contextualizador — prepares the topic context
     Contextualizador := MakeLLM(Manager, 'Contextualizador',
-      'Eres un analista de contexto. Dado un tema, escribe una ' +
-      'descripcion breve (2 oraciones) que establezca el contexto para ' +
+      'You are a context analyst. Given a topic, write a ' +
+      'brief description (2 sentences) that establishes the context for ' +
       'un analisis de pros y contras. Responde en espanol.');
 
     // Branch A (fork): advantages analyst
     AnalistaPros := MakeLLM(Manager, 'AnalistaPros',
-      'Eres un analista de ventajas. Recibes contexto sobre un tema. ' +
-      'Lista 3 ventajas principales, una por linea. ' +
+      'You are an advantages analyst. You receive context about a topic. ' +
+      'List the 3 main advantages, one per line. ' +
       'Formato: "PROS:\n+ [ventaja 1]\n+ [ventaja 2]\n+ [ventaja 3]"');
 
     // Branch B (fork): disadvantages analyst
     AnalistaCons := MakeLLM(Manager, 'AnalistaCons',
-      'Eres un analista de desventajas. Recibes contexto sobre un tema. ' +
-      'Lista 3 desventajas principales, una por linea. ' +
+      'You are a disadvantages analyst. You receive context about a topic. ' +
+      'List the 3 main disadvantages, one per line. ' +
       'Formato: "CONS:\n- [desventaja 1]\n- [desventaja 2]\n- [desventaja 3]"');
 
     // Join node (jmAll): Sintetizador — combines pros and cons
     Sintetizador := MakeLLM(Manager, 'Sintetizador',
-      'Eres un sintetizador. Recibes la salida combinada de dos analistas: ' +
-      'uno con PROS y otro con CONS. Sintetiza en 2 parrafos en espanol: ' +
+      'You are a synthesizer. You receive the combined output of two analysts: ' +
+      'one with PROS and the other with CONS. Synthesize into 2 paragraphs in English: ' +
       'el primero resume las ventajas, el segundo las desventajas.');
     Sintetizador.JoinMode := jmAll;
 
     // Final node (sequential): Redactor — generates the final article
     Redactor := MakeLLM(Manager, 'Redactor',
-      'Eres un redactor. Recibes un analisis de pros y cons sintetizado. ' +
-      'Escribe un articulo de opinion de 3 parrafos en espanol que ' +
+      'You are a writer. You receive a synthesized pros and cons analysis. ' +
+      'Write a 3-paragraph opinion article in English that ' +
       'presente el tema de forma equilibrada y concluya con una recomendacion.');
 
     // Sequential link: Contextualizador -> Fork
@@ -130,7 +130,7 @@ begin
     Writeln('Running complex pipeline...');
     Resultado := Manager.Run(ATema);
 
-    // Inspeccionar todos los checkpoints
+    // Inspect all checkpoints
     Writeln;
     Writeln('--- Context (Contextualizador) ---');
     Writeln(Manager.Blackboard.GetString('Contextualizador.output'));

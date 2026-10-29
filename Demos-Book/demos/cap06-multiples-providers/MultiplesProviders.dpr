@@ -6,15 +6,15 @@
 // =============================================================================
 // MakerAI — Chapter 6: Working with Multiple Providers
 // =============================================================================
-// Demuestra el principio central de portabilidad de MakerAI: el código de
-// aplicación NO cambia al cambiar de provider. Solo cambia DriverName.
+// Demonstrates MakerAI's core portability principle: application code
+// does NOT change when changing provider. Only DriverName changes.
 //
 // Demonstrates:
-//   - Demo 1: La misma pregunta a múltiples providers — código idéntico,
-//             resultados comparables, tiempos y estilos distintos.
-//   - Demo 2: Patrón Fallback — si el provider primario falla (timeout, API key
-//             inválida, rate limit), el código intenta automáticamente con el
-//             secundario. La lógica de aplicación no sabe qué provider respondió.
+//   - Demo 1: The same question to multiple providers — identical code,
+//             comparable results, different times and styles.
+//   - Demo 2: Fallback pattern — if the primary provider fails (timeout, API key
+//             invalid, rate limit), the code automatically tries the
+//             secondary. Application logic does not know which provider answered.
 //
 // Configure providers:
 //   GROQ_API_KEY   → free, recommended to get started (Enabled: True)
@@ -39,7 +39,7 @@ uses
   uMakerAi.Chat.Ollama;   // DriverName = 'Ollama' (local, no API key)
 
 // =============================================================================
-//  Configuración de providers
+//  Provider configuration
 // =============================================================================
 type
   TProviderCfg = record
@@ -50,8 +50,8 @@ type
   end;
 
 const
-  // Habilita/deshabilita según las API keys que tengas disponibles.
-  // Groq está habilitado por defecto — es gratuito.
+  // Enable/disable according to the API keys you have available.
+  // Groq is enabled by default — it is free.
   PROVIDERS: array[0..4] of TProviderCfg = (
     (Driver: 'Groq';   Model: 'llama-3.3-70b-versatile';   ApiKey: '@GROQ_API_KEY';   Enabled: True),
     (Driver: 'Claude'; Model: 'claude-haiku-4-5-20251001'; ApiKey: '@CLAUDE_API_KEY'; Enabled: False),
@@ -60,7 +60,7 @@ const
     (Driver: 'Ollama'; Model: 'gemma3:4b';                 ApiKey: '';                Enabled: False)
   );
 
-  PREGUNTA = 'En exactamente 2 oraciones: ¿Qué es la inteligencia artificial?';
+  PREGUNTA = 'In exactly 2 sentences: What is artificial intelligence?';
 
 procedure Separador(const Titulo: string);
 begin
@@ -71,8 +71,8 @@ begin
 end;
 
 // =============================================================================
-//  Utilidad: crea y configura una conexión con los parámetros estándar.
-//  El llamador es responsable de liberar el objeto con Free.
+//  Utility: creates and configures a connection with standard parameters.
+//  The caller is responsible for freeing the object with Free.
 // =============================================================================
 function CrearConexion(const Cfg: TProviderCfg): TAiChatConnection;
 begin
@@ -88,10 +88,10 @@ begin
 end;
 
 // =============================================================================
-//  Demo 1 — La misma pregunta a múltiples providers
+//  Demo 1 — The same question to multiple providers
 //
-//  El código que envía la pregunta es idéntico para cada provider.
-//  La única diferencia es DriverName — el conector universal se encarga del resto.
+//  The code that sends the question is identical for each provider.
+//  The only difference is DriverName — the universal connector handles the rest.
 // =============================================================================
 procedure Demo1_MultiProvider;
 var
@@ -100,8 +100,8 @@ var
   SW  : TStopwatch;
   R   : string;
 begin
-  Separador('Demo 1 — Misma pregunta, múltiples providers');
-  WriteLn('Pregunta: "', PREGUNTA, '"');
+  Separador('Demo 1 — Same question, multiple providers');
+  WriteLn('Question: "', PREGUNTA, '"');
 
   for Cfg in PROVIDERS do
   begin
@@ -141,11 +141,11 @@ begin
 end;
 
 // =============================================================================
-//  Demo 2 — Patrón Fallback
+//  Demo 2 — Fallback pattern
 //
-//  Arquitectura de resiliencia: si el provider primario falla, usar el secundario.
-//  El código de aplicación que llama a PreguntarConFallback() no sabe —ni le
-//  importa— qué provider respondió al final.
+//  Resilience architecture: if the primary provider fails, use the secondary.
+//  The application code that calls PreguntarConFallback() does not know — nor does it
+//  care— which provider answered in the end.
 // =============================================================================
 function PreguntarConFallback(const Pregunta: string): string;
 const
@@ -163,7 +163,7 @@ var
 begin
   Result := '';
 
-  // Intentar con el provider primario
+  // Try with the primary provider
   Write('  Trying with ', PRIMARY.Driver, ' (primary)...');
   Conn := CrearConexion(PRIMARY);
   try
@@ -179,7 +179,7 @@ begin
     Conn.Free;
   end;
 
-  // El primario falló — intentar con el fallback
+  // The primary failed — try with the fallback
   Write('  Trying with ', FALLBACK.Driver, ' (fallback)...');
   Conn := CrearConexion(FALLBACK);
   try
@@ -190,7 +190,7 @@ begin
       on E: Exception do
       begin
         WriteLn(' ALSO FAILED: ', E.Message);
-        Result := '[Error: ningún provider disponible]';
+        Result := '[Error: no provider available]';
       end;
     end;
   finally
@@ -203,7 +203,7 @@ var
   R: string;
 begin
   Separador('Demo 2 — Fallback pattern');
-  WriteLn('Pregunta: "', PREGUNTA, '"');
+  WriteLn('Question: "', PREGUNTA, '"');
   WriteLn('');
 
   R := PreguntarConFallback(PREGUNTA);
@@ -220,7 +220,7 @@ end;
 // =============================================================================
 procedure RunDemo;
 begin
-  WriteLn('=== MakerAI — Capítulo 6: Múltiples Providers ===');
+  WriteLn('=== MakerAI — Chapter 6: Multiple Providers ===');
   WriteLn('Modify the PROVIDERS array to enable more providers.');
 
   Demo1_MultiProvider;

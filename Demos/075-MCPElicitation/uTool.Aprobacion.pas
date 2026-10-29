@@ -1,24 +1,24 @@
 unit uTool.Aprobacion;
 
 // =============================================================================
-// Tool MCP con patron MRTR (Multi-Round Tool Request, spec 2026-07-28)
+// MCP tool with MRTR pattern (Multi-Round Tool Request, spec 2026-07-28)
 // =============================================================================
-// Lado SERVIDOR de la elicitation. El flujo tiene dos vueltas:
+// SERVER side of elicitation. The flow has two rounds:
 //
-//   Vuelta 1: el tool NO ejecuta nada. Devuelve un InputRequiredResult
-//             (resultType='input_required') con un ElicitRequest describiendo
-//             que necesita del usuario, mas un requestState opaco.
-//   Vuelta 2: el cliente repite tools/call agregando inputResponses (con la
-//             respuesta del usuario) y el eco de requestState. Recien ahi el
-//             tool valida y ejecuta.
+//   Round 1: the tool does NOT execute anything. It returns an InputRequiredResult
+//             (resultType='input_required') with an ElicitRequest describing
+//             what it needs from the user, plus an opaque requestState.
+//   Round 2: the client repeats tools/call adding inputResponses (with the
+//             user's response) and the echo of requestState. Only then does the
+//             tool validate and execute.
 //
-// Es el mecanismo que permite que un tool pida confirmacion sin que el servidor
-// tenga que mantener sesion: todo el estado viaja en el requestState.
+// It is the mechanism that lets a tool ask for confirmation without the
+// server having to keep a session: all state travels in requestState.
 //
-// SEGURIDAD: requestState pasa por el cliente, asi que es entrada NO CONFIABLE.
-// Aqui solo lleva el monto en Base64 con fines demostrativos. En produccion,
-// si influye en autorizacion o en logica de negocio, debe ir firmado con
-// HMAC/AEAD; de lo contrario el cliente puede alterarlo a voluntad.
+// SECURITY: requestState goes through the client, so it is UNTRUSTED input.
+// Here it only carries the amount in Base64 for demonstration purposes. In
+// production, if it affects authorization or business logic, it must be signed
+// with HMAC/AEAD; otherwise the client can alter it at will.
 // =============================================================================
 
 interface
@@ -32,7 +32,7 @@ type
   private
     FMonto: string;
   public
-    [AiMCPSchemaDescription('Monto de la transferencia a autorizar (ej: "1500 EUR")')]
+    [AiMCPSchemaDescription('Amount of the transfer to authorize (e.g.: "1500 EUR")')]
     property Monto: string read FMonto write FMonto;
   end;
 
@@ -51,7 +51,7 @@ constructor TAprobacionTool.Create;
 begin
   inherited;
   FName := 'autorizar_transferencia';
-  FDescription := 'Ejecuta una transferencia solo despues de que el usuario la autorice via elicitation (MRTR)';
+  FDescription := 'Executes a transfer only after the user authorizes it via elicitation (MRTR)';
 end;
 
 function TAprobacionTool.ConstruirInputRequired(const AMonto: string): TJSONObject;
@@ -65,8 +65,8 @@ begin
   Reqs := TJSONObject.Create;
   Result.AddPair('inputRequests', Reqs);
 
-  // La clave ('autorizacion') es el identificador con el que el cliente debe
-  // devolver su respuesta en inputResponses.
+  // The key ('autorizacion') is the identifier with which the client must
+  // return its response in inputResponses.
   Elicit := TJSONObject.Create;
   Reqs.AddPair('autorizacion', Elicit);
   Elicit.AddPair('method', 'elicitation/create');
@@ -76,7 +76,7 @@ begin
   ElicitParams.AddPair('mode', 'form');
   ElicitParams.AddPair('message', 'Autoriza la transferencia de ' + AMonto + '?');
 
-  // El schema le dice al cliente que forma tiene la respuesta esperada
+  // The schema tells the client what shape the expected response has
   Schema := TJSONObject.Create;
   ElicitParams.AddPair('requestedSchema', Schema);
   Schema.AddPair('type', 'object');
@@ -100,21 +100,21 @@ var
   Accion, EstadoDecodificado: string;
 begin
   if AParams.Monto.IsEmpty then
-    Exit(TAiMCPResponseBuilder.New.AddText('Error: el parametro "Monto" es obligatorio').Build);
+    Exit(TAiMCPResponseBuilder.New.AddText('Error: the "Monto" parameter is required').Build);
 
-  // Es el reintento con la respuesta del usuario?
+  // Is this the retry with the user's response?
   if Assigned(AuthContext.InputResponses) then
   begin
     V := AuthContext.InputResponses.GetValue('autorizacion');
     if not(V is TJSONObject) then
-      // Falta lo que se pidio: la spec dice volver a pedirlo, no fallar.
+      // What was requested is missing: the spec says to ask again, not to fail.
       Exit(ConstruirInputRequired(AParams.Monto));
 
     Respuesta := TJSONObject(V);
     Accion := Respuesta.GetValue<string>('action', '');
 
-    // Verificar el eco del requestState. Es entrada no confiable: un valor
-    // corrupto debe producir un rechazo limpio, nunca una excepcion interna.
+    // Verify the requestState echo. It is untrusted input: a corrupt value
+    // must produce a clean rejection, never an internal exception.
     EstadoDecodificado := '';
     if AuthContext.RequestState <> '' then
       try
@@ -126,12 +126,12 @@ begin
       Exit(TAiMCPResponseBuilder.New.AddText('Error: requestState invalido o ausente en el reintento').Build);
 
     if SameText(Accion, 'accept') then
-      Exit(TAiMCPResponseBuilder.New.AddText('AUTORIZADA y ejecutada la transferencia de ' + AParams.Monto).Build)
+      Exit(TAiMCPResponseBuilder.New.AddText('AUTHORIZED and executed transfer of ' + AParams.Monto).Build)
     else
-      Exit(TAiMCPResponseBuilder.New.AddText('RECHAZADA por el usuario: ' + AParams.Monto).Build);
+      Exit(TAiMCPResponseBuilder.New.AddText('REJECTED by the user: ' + AParams.Monto).Build);
   end;
 
-  // Primera llamada: pedir autorizacion.
+  // First call: request authorization.
   Result := ConstruirInputRequired(AParams.Monto);
 end;
 

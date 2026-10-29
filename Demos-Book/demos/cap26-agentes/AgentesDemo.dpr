@@ -42,11 +42,11 @@ const
 // Test text for the editorial pipeline
 const
   TEXTO_PRUEBA =
-    'Los modelos de lenguaje grande estan transformando el desarrollo de ' +
-    'software empresarial. Frameworks como MakerAI permiten a los equipos ' +
-    'de Delphi integrar inteligencia artificial sin abandonar su stack ' +
-    'tecnologico existente. La combinacion de componentes FMX con agentes ' +
-    'autonomos abre posibilidades nuevas para la automatizacion de procesos.';
+    'Large language models are transforming enterprise ' +
+    'software development. Frameworks like MakerAI allow Delphi teams ' +
+    'to integrate artificial intelligence without abandoning their existing ' +
+    'technology stack. The combination of FMX components with autonomous ' +
+    'agents opens new possibilities for process automation.';
 
 // ---------------------------------------------------------------------------
 //  Helpers de presentacion
@@ -125,10 +125,10 @@ procedure TDemoA.OnAnalizar(Node, Before: TAIAgentsNode; Link: TAIAgentsLink;
 begin
   WriteLn('    [Analyze] identifying topic and tone...');
   Output := LlmCall(
-    'Analiza el siguiente texto. Identifica en 3 lineas: ' +
-    '1) Tema principal, 2) Tono (formal o informal), 3) Audiencia objetivo.' +
-    #13#10 + 'Texto: ' + Input,
-    'Eres un analista editorial experto. Responde en espanol, maximo 3 lineas.');
+    'Analyze the following text. Identify in 3 lines: ' +
+    '1) Main topic, 2) Tone (formal or informal), 3) Target audience.' +
+    #13#10 + 'Text: ' + Input,
+    'You are an expert editorial analyst. Respond in Spanish, maximum 3 lines.');
 end;
 
 procedure TDemoA.OnResumir(Node, Before: TAIAgentsNode; Link: TAIAgentsLink;
@@ -136,20 +136,20 @@ procedure TDemoA.OnResumir(Node, Before: TAIAgentsNode; Link: TAIAgentsLink;
 begin
   WriteLn('    [Summarize] generating executive summary...');
   Output := LlmCall(
-    'A partir del siguiente analisis editorial, escribe un resumen ejecutivo ' +
-    'de exactamente 2 oraciones que capture la esencia del contenido.' +
-    #13#10 + 'Analisis: ' + Input,
-    'Eres un redactor experto. Sé preciso. Responde en espanol.');
+    'Based on the following editorial analysis, write an executive summary ' +
+    'of exactly 2 sentences that capture the essence of the content.' +
+    #13#10 + 'Analysis: ' + Input,
+    'You are an expert writer. Be precise. Respond in Spanish.');
 end;
 
 procedure TDemoA.OnFormatear(Node, Before: TAIAgentsNode; Link: TAIAgentsLink;
   Input: String; var Output: String);
 begin
   WriteLn('    [Format] applying final structure (without LLM)...');
-  // Este nodo usa logica local -- muestra que los nodos pueden mezclar LLM y codigo
+  // This node uses local logic -- shows that nodes can mix LLM and code
   Output :=
     StringOfChar('=', 50) + sLineBreak +
-    '  RESUMEN EDITORIAL' + sLineBreak +
+    '  EDITORIAL SUMMARY' + sLineBreak +
     StringOfChar('=', 50) + sLineBreak +
     Input + sLineBreak +
     StringOfChar('-', 50);
@@ -230,12 +230,12 @@ end;
 
 function TFechaHoraTool.GetDescription: String;
 begin
-  Result := 'Obtiene la fecha y hora actuales del sistema';
+  Result := 'Gets the current system date and time';
 end;
 
 function TFechaHoraTool.GetCategory: String;
 begin
-  Result := 'Sistema';
+  Result := 'System';
 end;
 
 function TFechaHoraTool.GetSchema: TJSONObject;
@@ -275,12 +275,12 @@ end;
 
 function TCalculadoraTool.GetDescription: String;
 begin
-  Result := 'Calcula operaciones aritmeticas basicas entre dos numeros';
+  Result := 'Performs basic arithmetic operations between two numbers';
 end;
 
 function TCalculadoraTool.GetCategory: String;
 begin
-  Result := 'Matematica';
+  Result := 'Mathematics';
 end;
 
 function TCalculadoraTool.GetSchema: TJSONObject;
@@ -297,12 +297,12 @@ begin
 
     AProp := TJSONObject.Create;
     AProp.AddPair('type', 'number');
-    AProp.AddPair('description', 'Primer operando');
+    AProp.AddPair('description', 'First operand');
     Props.AddPair('a', AProp);
 
     BProp := TJSONObject.Create;
     BProp.AddPair('type', 'number');
-    BProp.AddPair('description', 'Segundo operando');
+    BProp.AddPair('description', 'Second operand');
     Props.AddPair('b', BProp);
 
     EnumArr := TJSONArray.Create;
@@ -313,7 +313,7 @@ begin
 
     OpProp := TJSONObject.Create;
     OpProp.AddPair('type', 'string');
-    OpProp.AddPair('description', 'Operacion aritmetica a realizar');
+    OpProp.AddPair('description', 'Arithmetic operation to perform');
     OpProp.AddPair('enum', EnumArr);
     Props.AddPair('operacion', OpProp);
 
@@ -336,7 +336,7 @@ begin
   Result := TJSONObject.Create;
   if not Assigned(AArgs) then
   begin
-    Result.AddPair('error', 'Argumentos requeridos');
+    Result.AddPair('error', 'Required arguments');
     Exit;
   end;
   try
@@ -344,7 +344,7 @@ begin
     B  := AArgs.GetValue<Double>('b');
     Op := AArgs.GetValue<String>('operacion').ToLower.Trim;
   except
-    Result.AddPair('error', 'Parametros invalidos');
+    Result.AddPair('error', 'Invalid parameters');
     Exit;
   end;
 
@@ -355,14 +355,14 @@ begin
   begin
     if B = 0 then
     begin
-      Result.AddPair('error', 'Division por cero');
+      Result.AddPair('error', 'Division by zero');
       Exit;
     end;
     Res := A / B;
   end
   else
   begin
-    Result.AddPair('error', 'Operacion desconocida: ' + Op);
+    Result.AddPair('error', 'Unknown operation: ' + Op);
     Exit;
   end;
 
@@ -431,10 +431,10 @@ begin
     Node.ApiKey       := APIKEY;
     Node.Model        := MDL;
     Node.SystemPrompt :=
-      'Eres un asistente con acceso a herramientas. ' +
-      'Para la fecha/hora actual usa FechaHoraActual. ' +
-      'Para calculos aritmeticos usa Calculadora. ' +
-      'Muestra el resultado de forma clara y concisa.';
+      'You are an assistant with access to tools. ' +
+      'For the current date/time use FechaHoraActual. ' +
+      'For arithmetic calculations use Calculadora. ' +
+      'Show the result clearly and concisely.';
     Node.UseAllTools  := True;   // inyecta todo el TAiToolRegistry.Instance
 
     Manager
@@ -443,8 +443,8 @@ begin
       .Compile;
 
     // 3. Queries that require tool use
-    Preguntas[0] := 'Cual es la fecha y hora actual del sistema?';
-    Preguntas[1] := 'Cuanto es 1247 multiplicado por 38? Y ese resultado dividido entre 7?';
+    Preguntas[0] := 'What is the current system date and time?';
+    Preguntas[1] := 'What is 1247 multiplied by 38? And that result divided by 7?';
 
     for P in Preguntas do
     begin
@@ -490,6 +490,6 @@ begin
   end;
 
   WriteLn;
-  Write('Presiona Enter para salir...');
+  Write('Press Enter to exit...');
   ReadLn;
 end.

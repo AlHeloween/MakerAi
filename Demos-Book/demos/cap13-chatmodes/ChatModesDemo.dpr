@@ -4,20 +4,20 @@
 {$R *.res}
 
 // =============================================================================
-// MakerAI -- Capitulo 13: Modos de Chat -- El Orquestador en Detalle
+// MakerAI -- Chapter 13: Chat Modes -- The Orchestrator in Detail
 // =============================================================================
 //
-// Demuestra los distintos TAiChatMode de TAiChatConnection:
+// Demonstrates the different TAiChatMode values of TAiChatConnection:
 //
-//   Demo 1 -- cmConversation  (default)    Chat de texto con OpenAI
-//   Demo 2 -- cmWebSearch     (forzado)    Busqueda web con citas (OpenAI Search)
-//   Demo 3 -- cmSpeechGeneration (forzado) Texto a voz (OpenAI TTS)
-//   Demo 4 -- cmTranscription  (forzado)   Transcripcion de audio (Whisper)
-//   Demo 5 -- Cambio de modo en runtime    Una conexion, tres modos
+//   Demo 1 -- cmConversation  (default)    Text chat with OpenAI
+//   Demo 2 -- cmWebSearch     (forced)    Web search with citations (OpenAI Search)
+//   Demo 3 -- cmSpeechGeneration (forced) Text to speech (OpenAI TTS)
+//   Demo 4 -- cmTranscription  (forced)   Audio transcription (Whisper)
+//   Demo 5 -- Runtime mode change    One connection, three modes
 //
-// Variables de entorno requeridas:
-//   OPENAI_API_KEY   -- Todos los demos
-//   Demo 4:    requiere un archivo de audio en AUDIO_PATH.
+// Required environment variables:
+//   OPENAI_API_KEY   -- All demos
+//   Demo 4:    requires an audio file at AUDIO_PATH.
 // =============================================================================
 
 uses
@@ -82,18 +82,18 @@ end;
 // =============================================================================
 //  Demo 1 -- cmConversation (modo inteligente por defecto)
 //
-//  El ChatMode por defecto. El framework aplica gap analysis automaticamente
-//  segun ModelCaps vs SessionCaps. Sin capacidades especiales configuradas,
-//  usa InternalRunCompletions como salida (chat de texto normal).
+//  The default ChatMode. The framework applies gap analysis automatically
+//  based on ModelCaps vs SessionCaps. With no special capabilities configured,
+//  it uses InternalRunCompletions as output (normal text chat).
 //
-//  Clave: AddMessageAndRun devuelve el texto directamente en modo sincrono.
+//  Key: AddMessageAndRun returns the text directly in synchronous mode.
 // =============================================================================
 procedure Demo1_Conversation;
 var
   Conn: TAiChatConnection;
   Resp: string;
 begin
-  Separador('Demo 1 -- cmConversation (modo inteligente por defecto)');
+  Separador('Demo 1 -- cmConversation (intelligent mode by default)');
 
   Conn := TAiChatConnection.Create(nil);
   try
@@ -108,37 +108,37 @@ begin
       'Eres un asistente tecnico especializado en Delphi. ' +
       'Responde de forma concisa, en una o dos frases.';
 
-    WriteLn('  Prompt: Cual es la principal ventaja de Delphi frente a otras IDEs?');
+    WriteLn('  Prompt: What is the main advantage of Delphi over other IDEs?');
     WriteLn('');
 
-    Write('  Esperando respuesta... ');
+    Write('  Waiting for response... ');
     Resp := Conn.AddMessageAndRun(
       'Cual es la principal ventaja de Delphi frente a otras IDEs?', 'user', []);
     WriteLn('OK');
     WriteLn('');
-    WriteLn('  Respuesta:');
+    WriteLn('  Response:');
     WriteLn('  ', Resp);
   finally
     Conn.Free;
   end;
 
   WriteLn('');
-  WriteLn('-> cmConversation aplica gap analysis: ModelCaps vs SessionCaps.');
-  WriteLn('   Sin gaps configurados, siempre llama a InternalRunCompletions.');
-  WriteLn('   Agrega SessionCaps=[cap_GenImage] + ImageTool para activar imagenes.');
+  WriteLn('-> cmConversation applies gap analysis: ModelCaps vs SessionCaps.');
+  WriteLn('   With no gaps configured, it always calls InternalRunCompletions.');
+  WriteLn('   Add SessionCaps=[cap_GenImage] + ImageTool to enable images.');
 end;
 
 // =============================================================================
 //  Demo 2 -- cmWebSearch (busqueda web forzada con citas)
 //
-//  Modo forzado: InternalRunWebSearch directo, sin gap analysis.
-//  TAiOpenAiWebSearchTool usa gpt-4o-mini-search-preview, que tiene busqueda
-//  web integrada. El resultado llega en Resp y las citas en
+//  Forced mode: direct InternalRunWebSearch, without gap analysis.
+//  TAiOpenAiWebSearchTool uses gpt-4o-mini-search-preview, which has web search
+//  built in. The result arrives in Resp and the citations in
 //  Conn.Messages.Last.Citations.
 //
-//  Diferencia con cmConversation + cap_WebSearch:
-//    cmWebSearch     -> resultado crudo del tool (sin sintesis del LLM)
-//    cmConversation  -> LLM sintetiza el resultado antes de responder
+//  Difference from cmConversation + cap_WebSearch:
+//    cmWebSearch     -> raw tool result (without LLM synthesis)
+//    cmConversation  -> LLM synthesizes the result before responding
 // =============================================================================
 procedure Demo2_WebSearch;
 var
@@ -150,7 +150,7 @@ var
   Src:       TAiCitationSource;
   nCitas:    Integer;
 begin
-  Separador('Demo 2 -- cmWebSearch (busqueda directa con citas)');
+  Separador('Demo 2 -- cmWebSearch (direct search with citations)');
 
   SearchTool := TAiOpenAiWebSearchTool.Create(nil);
   Conn       := TAiChatConnection.Create(nil);
@@ -163,25 +163,25 @@ begin
 
     SearchTool.ApiKey := '@OPENAI_API_KEY';
 
-    WriteLn('  Consulta: "Delphi 13 Florence novedades 2026"');
-    WriteLn('  Modelo de busqueda: gpt-4o-mini-search-preview');
+    WriteLn('  Query: "Delphi 13 Florence new features 2026"');
+    WriteLn('  Search model: gpt-4o-mini-search-preview');
     WriteLn('');
 
-    Write('  Buscando... ');
+    Write('  Searching... ');
     Resp := Conn.AddMessageAndRun('Delphi 13 Florence novedades 2026', 'user', []);
     WriteLn('OK');
     WriteLn('');
 
     if Resp = '' then
     begin
-      WriteLn('  ADVERTENCIA: la busqueda retorno resultado vacio.');
-      WriteLn('  Causas posibles:');
-      WriteLn('    - OPENAI_API_KEY no configurado o sin acceso a los modelos search.');
-      WriteLn('    - Cuota de API agotada o error de red.');
+      WriteLn('  WARNING: the search returned an empty result.');
+      WriteLn('  Possible causes:');
+      WriteLn('    - OPENAI_API_KEY not configured or no access to search models.');
+      WriteLn('    - API quota exhausted or network error.');
     end
     else
     begin
-      WriteLn('  Resultado (primeros 300 chars):');
+      WriteLn('  Result (first 300 chars):');
       WriteLn('  ', Copy(Resp, 1, 300));
     end;
 
@@ -192,7 +192,7 @@ begin
       if Msg.Citations.Count > 0 then
       begin
         WriteLn('');
-        WriteLn('  Fuentes encontradas:');
+        WriteLn('  Sources found:');
         for Cit in Msg.Citations do
           for Src in Cit.Sources do
           begin
@@ -205,24 +205,24 @@ begin
       end;
     end;
     if nCitas = 0 then
-      WriteLn('  (sin citas en la respuesta)');
+      WriteLn('  (no citations in the response)');
   finally
     Conn.Free;
     SearchTool.Free;
   end;
 
   WriteLn('');
-  WriteLn('-> TAiOpenAiWebSearchTool usa gpt-4o-mini-search-preview.');
-  WriteLn('   Las citas estan en Conn.Messages.Last.Citations.');
-  WriteLn('   Solo requiere OPENAI_API_KEY con acceso a modelos de busqueda.');
+  WriteLn('-> TAiOpenAiWebSearchTool uses gpt-4o-mini-search-preview.');
+  WriteLn('   Citations are in Conn.Messages.Last.Citations.');
+  WriteLn('   Only requires OPENAI_API_KEY with access to search models.');
 end;
 
 // =============================================================================
 //  Demo 3 -- cmSpeechGeneration (texto a voz directo)
 //
-//  Modo forzado: InternalRunSpeechGeneration directo, sin completions.
-//  El texto del usuario se convierte a audio SIN pasar por el LLM.
-//  El audio queda en Conn.Messages.Last.MediaFiles[0].
+//  Forced mode: direct InternalRunSpeechGeneration, without completions.
+//  The user text is converted to audio WITHOUT going through the LLM.
+//  The audio remains in Conn.Messages.Last.MediaFiles[0].
 // =============================================================================
 procedure Demo3_SpeechGeneration;
 var
@@ -234,7 +234,7 @@ var
   AudioPath: string;
   i:         Integer;
 begin
-  Separador('Demo 3 -- cmSpeechGeneration (texto a voz)');
+  Separador('Demo 3 -- cmSpeechGeneration (text to speech)');
 
   SpeechTool := TAiOpenAiSpeechTool.Create(nil);
   Conn       := TAiChatConnection.Create(nil);
@@ -249,13 +249,13 @@ begin
     SpeechTool.TTSVoice := tvAlloy;
     SpeechTool.TTSModel := tts_1;
 
-    WriteLn('  Texto: "Bienvenido a MakerAI, la plataforma de IA para Delphi."');
-    WriteLn('  Voz: Alloy | Modelo: TTS-1');
+    WriteLn('  Text: "Welcome to MakerAI, the AI platform for Delphi."');
+    WriteLn('  Voice: Alloy | Model: TTS-1');
     WriteLn('');
 
-    Write('  Generando audio... ');
+    Write('  Generating audio... ');
     Resp := Conn.AddMessageAndRun(
-      'Bienvenido a MakerAI, la plataforma de inteligencia artificial para Delphi.',
+      'Welcome to MakerAI, the artificial intelligence platform for Delphi.',
       'user', []);
     WriteLn('OK  [', Resp, ']');
 
@@ -269,13 +269,13 @@ begin
         begin
           AudioPath := OutFile('cap13_demo3_tts.mp3');
           MF.SaveToFile(AudioPath);
-          WriteLn('  Audio guardado: ', AudioPath,
+          WriteLn('  Audio saved: ', AudioPath,
                   ' (', MF.Bytes div 1024, ' KB)');
           Break;
         end;
       end;
       if Msg.MediaFiles.Count = 0 then
-        WriteLn('  (sin archivo de audio en respuesta)');
+        WriteLn('  (no audio file in response)');
     end;
   finally
     Conn.Free;
@@ -283,18 +283,18 @@ begin
   end;
 
   WriteLn('');
-  WriteLn('-> cmSpeechGeneration: el texto del usuario se convierte directamente.');
-  WriteLn('   Sin LLM intermedio. El audio queda en Conn.Messages.Last.MediaFiles.');
+  WriteLn('-> cmSpeechGeneration: the user text is converted directly.');
+  WriteLn('   No intermediate LLM. The audio remains in Conn.Messages.Last.MediaFiles.');
 end;
 
 // =============================================================================
 //  Demo 4 -- cmTranscription (transcripcion de audio con Whisper)
 //
-//  Modo forzado: InternalRunTranscription sobre el primer archivo de audio
-//  de los adjuntos. El texto transcrito llega directamente como retorno de
-//  AddMessageAndRun (modo sincrono).
+//  Forced mode: InternalRunTranscription on the first audio file
+//  among the attachments. The transcribed text arrives directly as the return value of
+//  AddMessageAndRun (synchronous mode).
 //
-//  TAiOpenAiSpeechTool implementa TTS y STT en un solo componente.
+//  TAiOpenAiSpeechTool implements TTS and STT in a single component.
 // =============================================================================
 procedure Demo4_Transcription(const AudioPath: string);
 var
@@ -303,7 +303,7 @@ var
   AudioMF:   TAiMediaFile;
   Resp:      string;
 begin
-  Separador('Demo 4 -- cmTranscription (transcripcion de audio)');
+  Separador('Demo 4 -- cmTranscription (audio transcription)');
 
   SpeechTool := TAiOpenAiSpeechTool.Create(nil);
   Conn       := TAiChatConnection.Create(nil);
@@ -318,21 +318,21 @@ begin
     SpeechTool.TranscriptionModel    := tmWhisper1;
     SpeechTool.TranscriptionLanguage := 'es';
 
-    // AudioMF se crea sin free explicito: AddMessageAndRun lo agrega a
-    // AskMsg.MediaFiles (TObjectList con OwnsObjects=True) y Conn.Free
-    // libera esa cadena completa. Free manual aqui causaria double-free.
+    // AudioMF is created without an explicit free: AddMessageAndRun adds it to
+    // AskMsg.MediaFiles (TObjectList with OwnsObjects=True) and Conn.Free
+    // frees that whole chain. Manual free here would cause a double-free.
     AudioMF := TAiMediaFile.Create;
     AudioMF.LoadFromFile(AudioPath);
 
-    WriteLn('  Archivo : ', ExtractFileName(AudioPath));
-    WriteLn('  Modelo  : whisper-1');
+    WriteLn('  File    : ', ExtractFileName(AudioPath));
+    WriteLn('  Model   : whisper-1');
     WriteLn('');
 
-    Write('  Transcribiendo... ');
+    Write('  Transcribing... ');
     Resp := Conn.AddMessageAndRun('', 'user', [AudioMF]);
     WriteLn('OK');
     WriteLn('');
-    WriteLn('  Transcripcion:');
+    WriteLn('  Transcription:');
     WriteLn('  ', Resp);
   finally
     Conn.Free;
@@ -341,20 +341,20 @@ begin
   end;
 
   WriteLn('');
-  WriteLn('-> cmTranscription procesa el PRIMER archivo de audio de los adjuntos.');
-  WriteLn('   El texto transcrito llega como retorno de AddMessageAndRun (modo sync).');
-  WriteLn('   TAiOpenAiSpeechTool implementa TTS + STT en un solo componente.');
+  WriteLn('-> cmTranscription processes the FIRST audio file among attachments.');
+  WriteLn('   The transcribed text is returned by AddMessageAndRun (sync mode).');
+  WriteLn('   TAiOpenAiSpeechTool implements TTS + STT in a single component.');
 end;
 
 // =============================================================================
 //  Demo 5 -- Cambio de modo en tiempo de ejecucion
 //
-//  Demuestra que ChatMode es solo una propiedad: cambiarla entre llamadas
-//  cambia el comportamiento sin recrear la conexion.
+//  Demonstrates that ChatMode is just a property: changing it between calls
+//  changes the behavior without recreating the connection.
 //
-//    Ronda 1 -- cmConversation  -> texto del LLM (OpenAI)
-//    Ronda 2 -- cmWebSearch     -> resultado de busqueda (OpenAI search tool)
-//    Ronda 3 -- cmConversation  -> de vuelta a texto (OpenAI)
+//    Round 1 -- cmConversation  -> LLM text (OpenAI)
+//    Round 2 -- cmWebSearch     -> search result (OpenAI search tool)
+//    Round 3 -- cmConversation  -> back to text (OpenAI)
 // =============================================================================
 procedure Demo5_CambioModo;
 var
@@ -366,7 +366,7 @@ var
   Cit:       TAiMsgCitation;
   Src:       TAiCitationSource;
 begin
-  Separador('Demo 5 -- Cambio de ChatMode en runtime');
+  Separador('Demo 5 -- ChatMode change at runtime');
 
   SearchTool := TAiOpenAiWebSearchTool.Create(nil);
   SearchTool.ApiKey := '@OPENAI_API_KEY';
@@ -382,12 +382,12 @@ begin
     Conn.ChatMode                     := cmConversation;
 
     WriteLn('  [1] ChatMode = cmConversation  (OpenAI)');
-    Write('      Pregunta: "Explica en una frase que es TAiChatMode." ... ');
+    Write('      Question: "Explain in one sentence what TAiChatMode is." ... ');
     Resp := Conn.AddMessageAndRun(
-      'Explica en una frase que es TAiChatMode en MakerAI para Delphi.',
+      'Explain in one sentence what TAiChatMode is in MakerAI for Delphi.',
       'user', []);
     WriteLn('OK');
-    WriteLn('      Resp: ', Copy(Resp, 1, 120));
+    WriteLn('      Response: ', Copy(Resp, 1, 120));
     WriteLn('');
 
     // --- Ronda 2: cambio a busqueda web (OpenAI search tool) ---
@@ -398,11 +398,11 @@ begin
     Conn.WebSearchTool                := SearchTool;  // asignar AQUI, solo para esta ronda
     Conn.ChatMode                     := cmWebSearch;
 
-    WriteLn('  [2] ChatMode = cmWebSearch  (mismo objeto Conn, distinto modo)');
-    Write('      Consulta: "RAD Studio Delphi novedades 2026" ... ');
-    Resp := Conn.AddMessageAndRun('RAD Studio Delphi novedades 2026', 'user', []);
+    WriteLn('  [2] ChatMode = cmWebSearch  (same Conn object, different mode)');
+    Write('      Query: "RAD Studio Delphi new features 2026" ... ');
+    Resp := Conn.AddMessageAndRun('RAD Studio Delphi new features 2026', 'user', []);
     WriteLn('OK');
-    WriteLn('      Resp: ', Copy(Resp, 1, 120));
+    WriteLn('      Response: ', Copy(Resp, 1, 120));
 
     nCitas := 0;
     if Conn.Messages.Count > 0 then
@@ -412,7 +412,7 @@ begin
         for Src in Cit.Sources do
           Inc(nCitas);
     end;
-    WriteLn(Format('      Citas: %d', [nCitas]));
+    WriteLn(Format('      Citations: %d', [nCitas]));
     WriteLn('');
 
     // --- Ronda 3: de vuelta a conversacion (OpenAI) ---
@@ -423,24 +423,24 @@ begin
     Conn.Params.Values['Asynchronous']:= 'False';
     Conn.ChatMode                     := cmConversation;
 
-    WriteLn('  [3] ChatMode = cmConversation  (de vuelta al modo inicial)');
-    Write('      Pregunta: "Cual es la diferencia entre OOP y procedural?" ... ');
+    WriteLn('  [3] ChatMode = cmConversation  (back to initial mode)');
+    Write('      Question: "What is the difference between OOP and procedural?" ... ');
     Resp := Conn.AddMessageAndRun(
-      'En una frase, cual es la principal diferencia entre programacion orientada a objetos y programacion procedural?',
+      'In one sentence, what is the main difference between object-oriented programming and procedural programming?',
       'user', []);
     WriteLn('OK');
-    WriteLn('      Resp: ', Copy(Resp, 1, 120));
+    WriteLn('      Response: ', Copy(Resp, 1, 120));
   finally
     Conn.Free;
     SearchTool.Free;
   end;
 
   WriteLn('');
-  WriteLn('-> ChatMode es solo una propiedad: cambiarla entre llamadas cambia');
-  WriteLn('   el comportamiento sin recrear la conexion.');
-  WriteLn('   Regla: asignar/limpiar ChatTools por ronda segun el modo.');
-  WriteLn('   WebSearchTool solo debe estar asignado en la ronda cmWebSearch.');
-  WriteLn('   Messages.Clear evita que contexto de distintos modos se mezcle.');
+  WriteLn('-> ChatMode is just a property: changing it between calls changes');
+  WriteLn('   the behavior without recreating the connection.');
+  WriteLn('   Rule: assign/clear ChatTools per round according to the mode.');
+  WriteLn('   WebSearchTool should only be assigned in the cmWebSearch round.');
+  WriteLn('   Messages.Clear prevents context from different modes from mixing.');
 end;
 
 // =============================================================================
@@ -452,14 +452,14 @@ var
   AudioPath:   string;
 begin
   SetConsoleOutputCP(65001);
-  WriteLn('=== MakerAI -- Capitulo 13: Modos de Chat ===');
-  WriteLn('Demos: 5 modos de TAiChatConnection.ChatMode');
+  WriteLn('=== MakerAI -- Chapter 13: Chat Modes ===');
+  WriteLn('Demos: 5 modes of TAiChatConnection.ChatMode');
   WriteLn('');
 
   TieneOpenAI := GetEnvironmentVariable('OPENAI_API_KEY') <> '';
   AudioPath   := EncontrarAudio;
 
-  WriteLn('  Estado del entorno:');
+  WriteLn('  Environment status:');
   if TieneOpenAI then WriteLn('  [OK] OPENAI_API_KEY detectado')
   else            WriteLn('  [--] OPENAI_API_KEY no configurado -- todos los demos omitidos');
   if AudioPath <> '' then
@@ -472,21 +472,21 @@ begin
     try Demo1_Conversation;
     except on E: Exception do WriteLn('  [Demo 1 ERROR] ', E.ClassName, ': ', E.Message); end;
   end
-  else WriteLn(#13#10'--- Demo 1 omitido (OPENAI_API_KEY no configurado) ---');
+  else WriteLn(#13#10'--- Demo 1 skipped (OPENAI_API_KEY not configured) ---');
 
   if TieneOpenAI then
   begin
     try Demo2_WebSearch;
     except on E: Exception do WriteLn('  [Demo 2 ERROR] ', E.ClassName, ': ', E.Message); end;
   end
-  else WriteLn(#13#10'--- Demo 2 omitido (OPENAI_API_KEY no configurado) ---');
+  else WriteLn(#13#10'--- Demo 2 skipped (OPENAI_API_KEY not configured) ---');
 
   if TieneOpenAI then
   begin
     try Demo3_SpeechGeneration;
     except on E: Exception do WriteLn('  [Demo 3 ERROR] ', E.ClassName, ': ', E.Message); end;
   end
-  else WriteLn(#13#10'--- Demo 3 omitido (OPENAI_API_KEY no configurado) ---');
+  else WriteLn(#13#10'--- Demo 3 skipped (OPENAI_API_KEY not configured) ---');
 
   if TieneOpenAI and (AudioPath <> '') then
   begin
@@ -496,12 +496,12 @@ begin
   else
   begin
     WriteLn('');
-    WriteLn('--- Demo 4 omitido ---');
-    if not TieneOpenAI then WriteLn('    OPENAI_API_KEY no configurado');
+    WriteLn('--- Demo 4 skipped ---');
+    if not TieneOpenAI then WriteLn('    OPENAI_API_KEY not configured');
     if AudioPath = '' then
     begin
-      WriteLn('    Audio no encontrado. Copia un MP3/WAV a: ', AUDIO_PATH);
-      WriteLn('    O ejecuta Demo 3 (genera un MP3) y copialo a esa ruta.');
+      WriteLn('    Audio not found. Copy an MP3/WAV to: ', AUDIO_PATH);
+      WriteLn('    Or run Demo 3 (generates an MP3) and copy it to that path.');
     end;
   end;
 
@@ -510,12 +510,12 @@ begin
     try Demo5_CambioModo;
     except on E: Exception do WriteLn('  [Demo 5 ERROR] ', E.ClassName, ': ', E.Message); end;
   end
-  else WriteLn(#13#10'--- Demo 5 omitido (OPENAI_API_KEY no configurado) ---');
+  else WriteLn(#13#10'--- Demo 5 skipped (OPENAI_API_KEY not configured) ---');
 
   WriteLn('');
   WriteLn(StringOfChar('=', 62));
-  WriteLn('  Demos completados.');
-  WriteLn('  Ver cap13-chatmodes.md para la documentacion completa.');
+  WriteLn('  Demos completed.');
+  WriteLn('  See cap13-chatmodes.md for the complete documentation.');
   WriteLn(StringOfChar('=', 62));
 end;
 
@@ -524,9 +524,9 @@ begin
     RunDemo;
   except
     on E: Exception do
-      WriteLn('ERROR FATAL: ', E.ClassName, ' -- ', E.Message);
+      WriteLn('FATAL ERROR: ', E.ClassName, ' -- ', E.Message);
   end;
   WriteLn('');
-  WriteLn('Presiona Enter para salir...');
+  WriteLn('Press Enter to exit...');
   ReadLn;
 end.

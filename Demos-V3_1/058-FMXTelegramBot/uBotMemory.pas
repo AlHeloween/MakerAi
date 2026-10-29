@@ -3,15 +3,15 @@
 // =============================================================================
 // TBotMemory — Semantic memory module for Demo 058 FMX Telegram Bot
 //
-// Combina dos capas de almacenamiento:
-//   1. KV store JSON  → acceso exacto rápido (save/get/delete/list)
-//   2. TAiRAGVector   → búsqueda semántica híbrida (BM25 + embeddings)
+// Combines two storage layers:
+//   1. JSON KV store  → fast exact access (save/get/delete/list)
+//   2. TAiRAGVector   → hybrid semantic search (BM25 + embeddings)
 //
-// Archivos de datos en ADataDir:
-//   bot_memory.json      — KV store persistido
-//   bot_memory.mkvec     — índice vectorial binario (TAiMkVecDriver)
+// Data files in ADataDir:
+//   bot_memory.json      — persisted KV store
+//   bot_memory.mkvec     — binary vector index (TAiMkVecDriver)
 //
-// Uso:
+// Usage:
 //   FMemory := TBotMemory.Create(FDataDir, '@OPENAI_API_KEY');
 //   FMemory.Save('capital_france', 'Paris', 'geography');
 //   txt := FMemory.Search('cities in Europe', 5);
@@ -207,7 +207,7 @@ begin
       Meta.Free;
     end;
   except
-    // Errores de red/embedding son no fatales
+    // Network/embedding errors are non-fatal
   end;
 end;
 

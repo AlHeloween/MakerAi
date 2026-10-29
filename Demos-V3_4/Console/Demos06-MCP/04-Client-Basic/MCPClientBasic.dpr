@@ -32,7 +32,7 @@ uses
   uMakerAi.Core;
 
 const
-  // Ruta al servidor compilado (01-Server-StdIO), relativa al ejecutable
+  // Path to the compiled server (01-Server-StdIO), relative to the executable
   SERVER_EXE_REL = '..\01-Server-StdIO\Win64\Release\MCPServerStdIO.exe';
 
 // =============================================================================
@@ -77,7 +77,7 @@ begin
 end;
 
 // =============================================================================
-//  Prueba principal
+//  Main test
 // =============================================================================
 procedure RunTest;
 var
@@ -95,7 +95,7 @@ begin
 
   // Resolve the server path relative to the current executable
   ServerPath := ExpandFileName(ExtractFilePath(ParamStr(0)) + SERVER_EXE_REL);
-  Writeln('Servidor: ', ServerPath);
+  Writeln('Server: ', ServerPath);
   Writeln;
 
   if not TFile.Exists(ServerPath) then
@@ -131,13 +131,13 @@ begin
     Sep('STEP 1: Initialize (MCP handshake)');
     if not Client.Initialize then
     begin
-      Writeln('ERROR: No se pudo inicializar el servidor MCP.');
+      Writeln('ERROR: Could not initialize the MCP server.');
       Exit;
     end;
     Writeln('Initialization OK.');
 
     // Step 2: List available tools
-    Sep('PASO 2: ListTools');
+    Sep('STEP 2: ListTools');
     ToolsJson := Client.ListTools;
     try
       if Assigned(ToolsJson) then
@@ -166,9 +166,9 @@ begin
       Resp := Client.CallTool('get_datetime', Args, MediaList);
       try
         if Assigned(Resp) then
-          Writeln('Resultado: ', ExtraerTexto(Resp))
+          Writeln('Result: ', ExtraerTexto(Resp))
         else
-          Writeln('ERROR: CallTool retorno nil');
+          Writeln('ERROR: CallTool returned nil');
       finally
         Resp.Free;
       end;
@@ -185,9 +185,9 @@ begin
       Resp := Client.CallTool('greet', Args, MediaList);
       try
         if Assigned(Resp) then
-          Writeln('Resultado: ', ExtraerTexto(Resp))
+          Writeln('Result: ', ExtraerTexto(Resp))
         else
-          Writeln('ERROR: CallTool retorno nil');
+          Writeln('ERROR: CallTool returned nil');
       finally
         Resp.Free;
       end;
@@ -211,6 +211,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

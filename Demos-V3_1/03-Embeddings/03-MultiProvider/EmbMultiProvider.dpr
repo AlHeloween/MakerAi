@@ -6,17 +6,17 @@ program EmbMultiProvider;
 // =============================================================================
 // MakerAI — 03-Embeddings / 03-MultiProvider
 // =============================================================================
-// Genera el mismo embedding con distintos proveedores y compara:
-// dimensiones del vector, tiempo de respuesta y similitud entre proveedores.
+// Generates the same embedding with different providers and compares:
+// vector dimensions, response time, and similarity between providers.
 //
 // Conceptos que cubre:
-//   - TAiEmbeddingConnection como interfaz universal para embeddings
-//   - Cambio de proveedor en tiempo de ejecución (igual que TAiChatConnection)
-//   - Diferencias de dimensiones entre modelos (512, 768, 1536, 3072...)
-//   - Los embeddings de diferentes modelos NO son directamente comparables
-//   - Caso de uso: elegir proveedor según costo/velocidad/calidad
+//   - TAiEmbeddingConnection as a universal interface for embeddings
+//   - Changing provider at runtime (same as TAiChatConnection)
+//   - Dimension differences between models (512, 768, 1536, 3072...)
+//   - Embeddings from different models are NOT directly comparable
+//   - Use case: choose provider based on cost/speed/quality
 //
-// Proveedores y modelos por defecto:
+// Default providers and models:
 //   OpenAI  → text-embedding-3-small  (1536 dims)
 //   Gemini  → models/text-embedding-004 (768 dims)
 //   Ollama  → nomic-embed-text  (768 dims, local)
@@ -31,7 +31,7 @@ uses
   uMakerAi.Embeddings.Gemini,
   uMakerAi.Embeddings.Ollama;
 
-// Textos de prueba — similares entre sí
+// Test texts — similar to each other
 const
   TEXT_A = 'Artificial intelligence is transforming software development';
   TEXT_B = 'Machine learning and AI are revolutionizing tech';
@@ -65,13 +65,13 @@ var
 begin
   if not Cfg.Enabled then
   begin
-    Writeln(Format('[%s] — omitido', [Cfg.Driver]));
+    Writeln(Format('[%s] — skipped', [Cfg.Driver]));
     Exit;
   end;
 
   Writeln(StringOfChar('-', 60));
-  Writeln(Format('Proveedor : %s', [Cfg.Driver]));
-  Writeln(Format('Modelo    : %s', [Cfg.Model]));
+  Writeln(Format('Provider : %s', [Cfg.Driver]));
+  Writeln(Format('Model    : %s', [Cfg.Model]));
 
   Conn := TAiEmbeddingConnection.Create(nil);
   try
@@ -94,7 +94,7 @@ begin
 
       Writeln(Format('Dimensiones: %d', [Length(V1)]));
       Writeln(Format('Tiempo (A) : %d ms', [ElapsedA]));
-      Writeln(Format('Similitud  : %.4f  (A↔B, misma semántica)', [Sim]));
+      Writeln(Format('Similarity  : %.4f  (A↔B, same semantics)', [Sim]));
       Writeln(Format('Tokens     : %d', [Conn.total_tokens]));
     except
       on E: Exception do
@@ -116,11 +116,11 @@ begin
   Writeln('=== EmbMultiProvider ===');
   Writeln('Mismos dos textos, distintos proveedores de embeddings.');
   Writeln;
-  Writeln('Texto A: "', TEXT_A, '"');
-  Writeln('Texto B: "', TEXT_B, '"');
+  Writeln('Text A: "', TEXT_A, '"');
+  Writeln('Text B: "', TEXT_B, '"');
   Writeln;
-  Writeln('Nota: dimensiones y similitudes VARÍAN por modelo.');
-  Writeln('      NO comparar vectors de modelos distintos entre sí.');
+  Writeln('Note: dimensions and similarities VARY by model.');
+  Writeln('      DO NOT compare vectors from different models with each other.');
   Writeln;
 
   for I := Low(PROVIDERS) to High(PROVIDERS) do
@@ -128,9 +128,9 @@ begin
 
   Writeln(StringOfChar('=', 60));
   Writeln('Resumen:');
-  Writeln('  - Cada modelo tiene sus propias dimensiones y escala.');
-  Writeln('  - Para producción: elige UN modelo y úsalo consistentemente.');
-  Writeln('  - OpenAI: alta calidad, pago. Ollama: local, gratis.');
+  Writeln('  - Each model has its own dimensions and scale.');
+  Writeln('  - For production: choose ONE model and use it consistently.');
+  Writeln('  - OpenAI: high quality, paid. Ollama: local, free.');
 end;
 
 begin
@@ -141,6 +141,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

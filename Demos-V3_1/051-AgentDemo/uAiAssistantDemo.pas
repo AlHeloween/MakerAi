@@ -152,19 +152,19 @@ begin
   Prompt := AiPrompts1.GetTemplate('AiPrompt', ['Prompt=' + Input]);
   // NOTE Output := OpenChat.AddMessageAndRun(Prompt, 'user',[]);
 
-  Output := 'Este es el codigo que retorn la IA';
+  Output := 'This is the code returned by the AI';
 end;
 
 procedure TForm70.Button2Click(Sender: TObject);
 begin
-  Label4.Text := 'Este es el texto del label';
+  Label4.Text := 'This is the label text';
 
   AIAgentsManager.Run(MemoPrompt.Lines.Text);
 end;
 
 procedure TForm70.clickdellabel(Sender: TObject);
 begin
-  Label4.Text := 'este es el evento del label';
+  Label4.Text := 'this is the label event';
 end;
 
 procedure TForm70.EndNodeExecute(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
@@ -327,13 +327,13 @@ end;
 
 procedure TForm70.NodoInicioExecute(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
 begin
-  Node.Print(Node.Name + '--> Inicicando proceso');
+  Node.Print(Node.Name + '--> Starting process');
   Output := Input;
 end;
 
 procedure TForm70.StartNodeExecute(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
 begin
-  Node.Print(Node.Name + '--> Inicicando proceso');
+  Node.Print(Node.Name + '--> Starting process');
 end;
 
 procedure TForm70.TareaAExecute(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
@@ -352,7 +352,7 @@ procedure TForm70.TareaBExecute(Node, BeforeNode: TAIAgentsNode; Link: TAIAgents
 begin
   Node.Print(Node.Name + '--> TaskB');
   Sleep(500);
-    Output := Input+'  aqu� realiz� la tarea b';
+    Output := Input+'  here I performed task b';
 
 end;
 

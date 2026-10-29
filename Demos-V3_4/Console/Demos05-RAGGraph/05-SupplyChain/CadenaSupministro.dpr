@@ -46,7 +46,7 @@ end;
 procedure EjecutarGQL(RAG: TAiRagGraph; const Descripcion, Query: String);
 begin
   Writeln(StringOfChar('-', 50));
-  Writeln('Consulta: ', Descripcion);
+  Writeln('Query: ', Descripcion);
   Writeln('GQL: ', Query);
   Writeln;
   try
@@ -68,7 +68,7 @@ var
   RobotA1, BrazoB2                      : TAiRagGraphNode;
   AutoFabrik, TechAssembly              : TAiRagGraphNode;
 begin
-  Titulo('Sec. 23.3 — Fase 1: Construyendo el grafo de cadena de suministro');
+  Titulo('Sec. 23.3 — Phase 1: Building the supply chain graph');
 
   // Providers
   SteelCorp := RAG.AddNode('prov-001', 'PROVEEDOR', 'Steel Corp');
@@ -160,8 +160,8 @@ procedure SeccionGQL(RAG: TAiRagGraph);
 begin
   Titulo('Sec. 23.4 — GQL queries on the graph');
 
-  EjecutarGQL(RAG, 'Etiquetas del grafo', 'SHOW LABELS');
-  EjecutarGQL(RAG, 'Tipos de aristas',    'SHOW EDGES');
+  EjecutarGQL(RAG, 'Graph labels', 'SHOW LABELS');
+  EjecutarGQL(RAG, 'Edge types',    'SHOW EDGES');
 
   EjecutarGQL(RAG,
     'All providers',

@@ -5,9 +5,9 @@
 // Main form - visual debate interface.
 //
 // UI:
-//   [Top]    Tema del debate + boton Iniciar + estado
-//   [Client] Transcripcion del debate (TMemo, read-only)
-//   [Bottom] Veredicto final (TMemo, read-only)
+//   [Top]    Debate topic + Start button + status
+//   [Client] Debate transcript (TMemo, read-only)
+//   [Bottom] Final verdict (TMemo, read-only)
 // =============================================================================
 
 interface

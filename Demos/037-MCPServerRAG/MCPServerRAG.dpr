@@ -3,23 +3,23 @@
 (*
   Demo 037-MCPServerRAG
 
-  Servidor MCP (protocolo SSE por defecto) que expone un sistema RAG real
-  respaldado por SQL Server 2025 (TAiRAGVector + TAiRAGVectorMSSQLDriver +
+  MCP server (SSE protocol by default) that exposes a real RAG system
+  backed by SQL Server 2025 (TAiRAGVector + TAiRAGVectorMSSQLDriver +
   TAiOpenAiEmbeddings).
 
-  Configuracion: MCPServerRAG.ini junto al ejecutable (se crea con defaults
-  en la primera ejecucion). Ver secciones [Server], [Database], [Embeddings],
+  Configuration: MCPServerRAG.ini next to the executable (created with defaults
+  on first run). See sections [Server], [Database], [Embeddings],
   [Search].
 
-  Autenticacion: login/password quemados en uTool.RAG (RAG_LOGIN/RAG_PASSWORD).
-  El cliente debe enviar uno de:
-    Authorization: Basic base64(usuario:password)
-    Authorization: Bearer usuario:password
-    X-API-Key: usuario:password
+  Authentication: hardcoded login/password in uTool.RAG (RAG_LOGIN/RAG_PASSWORD).
+  The client must send one of:
+    Authorization: Basic base64(user:password)
+    Authorization: Bearer user:password
+    X-API-Key: user:password
 
-  Uso:
-    MCPServerRAG.exe [--config <ruta.ini>] [--protocol sse|http|stdio] [--port N]
-  (los parametros de linea de comandos tienen prioridad sobre el .ini)
+  Usage:
+    MCPServerRAG.exe [--config <path.ini>] [--protocol sse|http|stdio] [--port N]
+  (command-line parameters take priority over the .ini)
 *)
 
 {$APPTYPE CONSOLE}

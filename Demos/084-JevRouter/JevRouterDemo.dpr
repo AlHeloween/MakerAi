@@ -1,35 +1,35 @@
 ﻿program JevRouterDemo;
 
 // =============================================================================
-// DEMO 084 - Enrutar consultas a agentes especializados con Jev (TypeSafe AI)
+// DEMO 084 - Route queries to specialized agents with Jev (TypeSafe AI)
 // =============================================================================
-// Jev no genera texto: responde preguntas tipadas con probabilidades
-// calibradas. Aqui decide, ANTES de gastar un LLM, que agente especializado
-// debe atender cada consulta y si ese agente necesita su version con RAG
-// (lenta, cita normas) o basta la rapida.
+// Jev does not generate text: it answers typed questions with calibrated
+// probabilities. Here it decides, BEFORE spending an LLM, which specialized agent
+// should handle each query and whether that agent needs its RAG version
+// (slow, cites standards) or whether the fast one is enough.
 //
-// Una sola llamada a Jev por consulta, con tres clases de pregunta:
-//   dominio          Choice : que especialista (relativo: cual de todos)
-//   toca_<dominio>   Noul   : uno por dominio (absoluto: detecta consultas
-//                             que cruzan dos areas, p.ej. contable+tributario)
-//   necesita_fuentes Noul   : si hay que citar una norma, tarifa o plazo
+// A single Jev call per query, with three question classes:
+//   domain           Choice : which specialist (relative: which of all)
+//   touches_<domain> Noul   : one per domain (absolute: detects queries
+//                             that cross two areas, e.g. accounting+tax)
+//   needs_sources    Noul   : whether a standard, rate or deadline must be cited
 //
-// La decision final la toma el CODIGO (EnrutarConsulta): umbrales, catalogo de
-// agentes y reglas quedan a la vista y se cambian sin tocar las preguntas.
+// The final decision is made by CODE (RouteQuery): thresholds, agent catalog and
+// rules stay visible and can be changed without touching the questions.
 //
-// Bloque B muestra los atajos Choose y Noul para una sola pregunta.
+// Block B shows the Choose and Noul shortcuts for a single question.
 //
-// Bloque C hace lo mismo DENTRO de un grafo de agentes: un nodo con
-// TAiJevRouterTool escribe la ruta en el blackboard y un link lmConditional
-// la sigue. OnRoute combina la ruta con el flag 'fuentes' para elegir entre
-// el agente contable rapido y el normativo; la confianza baja cae a NextNo.
+// Block C does the same INSIDE an agent graph: a node with
+// TAiJevRouterTool writes the route to the blackboard and an lmConditional link
+// follows it. OnRoute combines the route with the 'sources' flag to choose between
+// the fast accounting agent and the normative one; low confidence falls to NextNo.
 //
-// Requiere la variable de entorno TYPESAFE_API_KEY (https://console.typesafe.ai/keys).
-// Costo: ~700 tokens de entrada por consulta a US$0.042 por millon.
+// Requires the TYPESAFE_API_KEY environment variable (https://console.typesafe.ai/keys).
+// Cost: ~700 input tokens per query at US$0.042 per million.
 //
-// Modos de uso:
-//   JevRouterDemo.exe                         -> consultas de ejemplo
-//   JevRouterDemo.exe "consulta 1" "consulta 2" -> tus propias consultas
+// Usage modes:
+//   JevRouterDemo.exe                         -> example queries
+//   JevRouterDemo.exe "query 1" "query 2" -> your own queries
 // =============================================================================
 
 {$APPTYPE CONSOLE}
@@ -51,21 +51,21 @@ type
     ConRag: Boolean;
   end;
 
-  // Los eventos del framework son 'of object': los handlers viven en una clase
+  // Framework events are 'of object': handlers live in a class
   TGrafoHandlers = class
   public
-    // Nodo de agente: en una app real aqui iria el LLM (con o sin RAG)
+    // Agent node: in a real app the LLM would go here (with or without RAG)
     procedure AgenteExec(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink;
       Input: string; var Output: string);
     procedure FinExec(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink;
       Input: string; var Output: string);
-    // contable + flag 'fuentes' alto -> contable_normativo; si no, contable_rapido
+    // accounting + high 'sources' flag -> accounting_normative; otherwise, accounting_fast
     procedure AjustarRuta(Sender: TObject; ANode: TAIAgentsNode;
       AResult: TAiJevResult; var ARoute: string);
   end;
 
 const
-  // Lo que Jev lee para elegir: descripciones como se las darias a una recepcionista
+  // What Jev reads to choose: descriptions as you would give them to a receptionist
   DOMINIOS: array[0..4] of string = (
     'contable=Registro contable: asientos, cuentas del PUC, comprobantes, conciliaciones, estados financieros, NIIF',
     'tributario=Impuestos en Colombia: renta, IVA, retencion en la fuente, ICA, declaraciones, DIAN, facturacion electronica',
@@ -73,7 +73,7 @@ const
     'laboral=Relacion con empleados: nomina, prestaciones sociales, seguridad social, contratos laborales, despidos',
     'general=Cualquier otra cosa: saludos, uso del sistema, preguntas que no son de un area especializada');
 
-  // Catalogo de agentes: un dominio puede tener version rapida (sin RAG) y con RAG
+  // Agent catalog: a domain can have a fast version (without RAG) and one with RAG
   AGENTES: array[0..5] of TAgente = (
     (Nombre: 'contable_rapido';    Dominio: 'contable';   ConRag: False),
     (Nombre: 'contable_normativo'; Dominio: 'contable';   ConRag: True),
@@ -82,9 +82,9 @@ const
     (Nombre: 'laboral';            Dominio: 'laboral';    ConRag: False),
     (Nombre: 'general';            Dominio: 'general';    ConRag: False));
 
-  UMBRAL_DOMINIO = 0.5;  // por debajo: no esta claro de que trata -> general
+  UMBRAL_DOMINIO = 0.5;  // below: it is not clear what it is about -> general
   UMBRAL_RAG     = 0.5;
-  UMBRAL_CRUCE   = 0.7;  // otro dominio con Noul alto -> consulta compuesta
+  UMBRAL_CRUCE   = 0.7;  // another domain with high Noul -> composite query
 
   CONSULTAS_EJEMPLO: array[0..7] of string = (
     'Buenos dias, como cambio mi contrasena del sistema?',
@@ -109,7 +109,7 @@ begin
   Result := AOpcion.Substring(AOpcion.IndexOf('=') + 1);
 end;
 
-// Las preguntas se arman una vez y se reutilizan para todas las consultas
+// Questions are built once and reused for all queries
 procedure ArmarPreguntas(AQ: TAiJevQuestions);
 var
   D: string;
@@ -126,7 +126,7 @@ begin
     'Se responde con conocimiento general o un procedimiento conocido');
 end;
 
-// Reglas en codigo: faciles de auditar y de cambiar
+// Rules in code: easy to audit and change
 procedure EnrutarConsulta(AJev: TAiJev; AQ: TAiJevQuestions; const AConsulta: string);
 var
   State: TJSONObject;
@@ -173,11 +173,11 @@ begin
         Tambien := Tambien + ' ' + Clave(D);
 
     Writeln(AConsulta);
-    Writeln(Format('  -> %s   (dominio %s, confianza %.2f, necesita fuentes %.2f)',
+    Writeln(Format('  -> %s   (domain %s, confidence %.2f, needs sources %.2f)',
       [Agente, R['dominio'].Choice, R['dominio'].Confidence, R['necesita_fuentes'].Noul]));
     if Tambien <> '' then
-      Writeln('     consultar tambien:' + Tambien);
-    Writeln('     alternativas: ' + string.Join(', ', R['dominio'].Top(3)));
+      Writeln('     also consult:' + Tambien);
+    Writeln('     alternatives: ' + string.Join(', ', R['dominio'].Top(3)));
     Writeln;
   finally
     R.Free;
@@ -189,14 +189,14 @@ var
   Conf, P: Double;
   Tarea: string;
 begin
-  Writeln('--- B. Atajos para una sola pregunta ---');
+  Writeln('--- B. Shortcuts for a single question ---');
   Tarea := AJev.Choose('Traduce al ingles: la reunion se aplaza para el lunes',
     'Que tipo de tarea pide el texto?', ['conversacion', 'redaccion', 'codigo', 'analisis'], Conf);
   Writeln(Format('Choose -> %s (confianza %.2f)', [Tarea, Conf]));
 
   P := AJev.Noul('Mi pago lleva 3 dias fallando y necesito resolverlo hoy',
     'El mensaje expresa urgencia?');
-  Writeln(Format('Noul   -> urgencia %.2f', [P]));
+  Writeln(Format('Noul   -> urgency %.2f', [P]));
   Writeln;
 end;
 
@@ -205,7 +205,7 @@ end;
 procedure TGrafoHandlers.AgenteExec(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink;
   Input: string; var Output: string);
 begin
-  Output := Format('%s atiende: "%s"', [Node.Name, Input]);
+  Output := Format('%s handles: "%s"', [Node.Name, Input]);
 end;
 
 procedure TGrafoHandlers.FinExec(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink;
@@ -224,9 +224,9 @@ begin
       ARoute := 'contable_rapido';
 end;
 
-// Bloque C: el enrutado dentro de un grafo. El nodo Recepcion no tiene
-// OnExecute: su Tool (TAiJevRouterTool) escribe 'next_route' y el link
-// lmConditional lo sigue. Sin coincidencia o con confianza baja -> NextNo.
+// Block C: routing inside a graph. The Reception node has no
+// OnExecute: its Tool (TAiJevRouterTool) writes 'next_route' and the link
+// lmConditional follows it. No match or low confidence -> NextNo.
 procedure BloqueGrafo(const AConsultas: array of string);
 var
   Grafo: TAIAgentManager;
@@ -236,7 +236,7 @@ var
   D, C: string;
   i: Integer;
 begin
-  Writeln('--- C. El mismo enrutado dentro de un grafo de agentes ---');
+  Writeln('--- C. The same routing inside an agent graph ---');
   Writeln;
   Grafo := TAIAgentManager.Create(nil);
   Handlers := TGrafoHandlers.Create;
@@ -273,7 +273,7 @@ begin
 
     for C in AConsultas do
     begin
-      // Run con semilla: cada consulta arranca con el blackboard limpio
+      // Run with seed: each query starts with a clean blackboard
       Grafo.Run(C, procedure(B: TAIBlackboard) begin end);
       while Grafo.Busy do
       begin
@@ -283,7 +283,7 @@ begin
       CheckSynchronize;
 
       Writeln(Grafo.EndNode.Output);
-      Writeln(Format('  ruta=%s  eleccion=%s  confianza=%s  fuentes=%s%s', [
+      Writeln(Format('  route=%s  choice=%s  confidence=%s  sources=%s%s', [
         Grafo.Blackboard.GetString('next_route'),
         Grafo.Blackboard.GetString('Recepcion.jev.choice'),
         Grafo.Blackboard.GetString('Recepcion.jev.confidence'),
@@ -317,7 +317,7 @@ begin
       // Model queda en 'jev-1.13.0': los umbrales de arriba se calibran contra esa version
       ArmarPreguntas(Preguntas);
 
-      Writeln('--- A. Enrutar consultas a agentes especializados ---');
+      Writeln('--- A. Route queries to specialized agents ---');
       Writeln;
       if ParamCount > 0 then
         for i := 1 to ParamCount do
@@ -328,7 +328,7 @@ begin
 
       BloqueAtajos(Jev);
 
-      Writeln(Format('Tokens de entrada del bloque A: %d  (~US$%.5f)',
+      Writeln(Format('Input tokens in block A: %d  (~US$%.5f)',
         [TotalTokens, TotalTokens * 0.042 / 1E6]));
       Writeln;
 

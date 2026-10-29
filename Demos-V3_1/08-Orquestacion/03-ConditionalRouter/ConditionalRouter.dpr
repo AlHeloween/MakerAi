@@ -11,7 +11,7 @@ program ConditionalRouter;
 // the blackboard and writes the key 'ruta'. A conditional link dispatches
 // to the correct specialist.
 //
-// Conceptos que cubre:
+// Concepts it covers:
 //   - TAIAgentsLink.Mode := lmConditional
 //   - TAIAgentsLink.ConditionalKey: key in the blackboard that decides the route
 //   - TAIAgentsLink.AddConditionalTarget(key, node)
@@ -144,8 +144,8 @@ begin
 
     // Classifier: returns ONE word
     Clasificador := MakeLLM(Manager, 'Clasificador',
-      'Eres un CLASIFICADOR. Tu trabajo es devolver UNA sola palabra.' + #10 +
-      'Dada una pregunta, responde SOLO con una de estas palabras exactas: math  science  history' + #10 +
+      'You are a CLASSIFIER. Your job is to return ONE single word.' + #10 +
+      'Given a question, respond ONLY with one of these exact words: math  science  history' + #10 +
       'Sin explicaciones. Sin puntuacion. Solo una palabra.');
     Clasificador.MaxTokens := 3;
 
@@ -157,21 +157,21 @@ begin
 
     // Specialists
     EspMath := MakeLLM(Manager, 'EspecialistaMath',
-      'Eres un experto en matematicas. Responde la pregunta claramente ' +
+      'You are a mathematics expert. Answer the question clearly ' +
       'mostrando todos los pasos si hay calculos. Responde en espanol.');
 
     EspCiencia := MakeLLM(Manager, 'EspecialistaCiencia',
-      'Eres un experto en ciencias. Responde con precision cientifica ' +
+      'You are a science expert. Answer with scientific precision ' +
       'usando lenguaje claro. Responde en espanol.');
 
     EspHistoria := MakeLLM(Manager, 'EspecialistaHistoria',
-      'Eres un experto en historia. Responde con contexto historico ' +
+      'You are a history expert. Answer with historical context ' +
       'y datos clave. Responde en espanol.');
 
     // Final formatter: jmAny (only one specialist arrives)
     Formatter := MakeLLM(Manager, 'Formatter',
-      'Recibes la respuesta de un experto. ' +
-      'Formatéala: agrega un titulo breve, luego la respuesta estructurada. ' +
+      'You receive an expert''s answer. ' +
+      'Format it: add a brief title, then the structured answer. ' +
       'Mantén la concision. Responde en espanol.');
     Formatter.JoinMode := jmAny;
 
@@ -216,11 +216,11 @@ begin
     Manager.Compile;
 
     // Queries from different categories
-    RunQuery(Manager, 'Cuanto es la raiz cuadrada de 225?');
-    RunQuery(Manager, 'Como funciona la fotosintesis?');
-    RunQuery(Manager, 'Cuando termino la Segunda Guerra Mundial?');
-    RunQuery(Manager, 'Cuanto es el 18 por ciento de 350?');
-    RunQuery(Manager, 'Que causa un eclipse solar?');
+    RunQuery(Manager, 'What is the square root of 225?');
+    RunQuery(Manager, 'How does photosynthesis work?');
+    RunQuery(Manager, 'When did World War II end?');
+    RunQuery(Manager, 'What is 18 percent of 350?');
+    RunQuery(Manager, 'What causes a solar eclipse?');
 
   finally
     Manager.Free;

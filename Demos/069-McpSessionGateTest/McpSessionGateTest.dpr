@@ -4,18 +4,18 @@
 {$R *.res}
 
 // =============================================================================
-// Test runtime del ISSUE #110: vetting de cliente MCP (OnClientConnect) + gate
-// de sesion HTTP por Mcp-Session-Id (Parte A + Parte B).
+// Runtime test of ISSUE #110: MCP client vetting (OnClientConnect) + HTTP
+// session gate by Mcp-Session-Id (Part A + Part B).
 //
-// Arranca un TAiMCPHttpServer real (Indy) con una tool 'echo' y lo prueba como
-// cliente HTTP (THTTPClient). Valida 4 escenarios con asserts automaticos:
-//   FASE 1  gating OFF (sin OnClientConnect) -> tools/call funciona sin sesion.
-//   FASE 2  gating ON  -> tools/call sin sesion = -32001; initialize emite
-//           Mcp-Session-Id; tools/call con esa sesion = OK; sesion invalida = -32001.
-//   FASE 3  OnUnauthorizedRequest concede acceso (AAllow:=True) -> tool ejecuta.
-//   FASE 4  OnClientConnect rechaza (AAllow:=False) -> initialize = error, sin sesion.
+// Starts a real TAiMCPHttpServer (Indy) with an 'echo' tool and tests it as
+// an HTTP client (THTTPClient). Validates 4 scenarios with automatic asserts:
+//   PHASE 1  gating OFF (without OnClientConnect) -> tools/call works without a session.
+//   PHASE 2  gating ON  -> tools/call without session = -32001; initialize emits
+//           Mcp-Session-Id; tools/call with that session = OK; invalid session = -32001.
+//   PHASE 3  OnUnauthorizedRequest grants access (AAllow:=True) -> tool executes.
+//   PHASE 4  OnClientConnect rejects (AAllow:=False) -> initialize = error, no session.
 //
-// 100% local, no requiere API keys. Codigo de salida 0 si todo pasa.
+// 100% local, requires no API keys. Exit code 0 if everything passes.
 // =============================================================================
 
 uses
@@ -30,10 +30,10 @@ uses
 const
   TEST_PORT = 8765;
   BASE_URL  = 'http://localhost:8765/mcp';
-  ECHO_MARK = 'ECHO_OK'; // marcador fijo: prueba que el tool corrio sin depender del param
+  ECHO_MARK = 'ECHO_OK'; // fixed marker: proves the tool ran without depending on the param
 
 type
-  // Parametros del tool echo (deserializados desde 'arguments' por RTTI)
+  // Parameters of the echo tool (deserialized from 'arguments' via RTTI)
   TEchoParams = class
   private
     FText: string;
@@ -48,14 +48,14 @@ type
     constructor Create; override;
   end;
 
-  // Aloja los handlers de eventos (of object) y contadores observables.
+  // Hosts event handlers (of object) and observable counters.
   THarness = class
   public
     ConnectFired: Boolean;
     LastClientName: string;
-    RejectClient: string; // si clientInfo.name coincide (case-insensitive) -> rechaza
+    RejectClient: string; // if clientInfo.name matches (case-insensitive) -> reject
     UnauthFired: Boolean;
-    AllowUnauth: Boolean; // valor que el handler pone en AAllow
+    AllowUnauth: Boolean; // value the handler sets in AAllow
     procedure HandleClientConnect(Sender: TObject; const AClientName, AClientVersion, AProtocolVersion: string;
       var AAllow: Boolean; var AReason: string);
     procedure HandleUnauthorized(Sender: TObject; const ASessionID, AMethod: string;
@@ -194,21 +194,21 @@ begin
           Result := TEchoTool.Create;
         end);
       Server.Start;
-      WriteLn('=== ISSUE #110: MCP OnClientConnect + gate de sesion ===');
-      WriteLn('Servidor MCP HTTP escuchando en ' + BASE_URL);
+      WriteLn('=== ISSUE #110: MCP OnClientConnect + session gate ===');
+      WriteLn('MCP HTTP server listening on ' + BASE_URL);
       WriteLn('');
 
       // ===================== FASE 1: gating OFF =====================
-      WriteLn('== FASE 1: gating OFF (sin OnClientConnect) ==');
+      WriteLn('== PHASE 1: gating OFF (without OnClientConnect) ==');
       if DoPost(CallEchoBody, '', st, body, sess) then
       begin
-        Check(Pos(ECHO_MARK, body) > 0, 'tools/call sin sesion ejecuta el tool (backward compat)');
-        Check(Pos('-32001', body) = 0, 'no hay error de autorizacion');
+        Check(Pos(ECHO_MARK, body) > 0, 'tools/call without session executes the tool (backward compat)');
+        Check(Pos('-32001', body) = 0, 'no authorization error');
       end;
       WriteLn('');
 
       // ===================== FASE 2: gating ON =====================
-      WriteLn('== FASE 2: gating ON (OnClientConnect asignado) ==');
+      WriteLn('== PHASE 2: gating ON (OnClientConnect assigned) ==');
       Server.OnClientConnect := H.HandleClientConnect;
       Server.OnUnauthorizedRequest := H.HandleUnauthorized;
       H.AllowUnauth := False;
@@ -217,9 +217,9 @@ begin
       H.UnauthFired := False;
       if DoPost(CallEchoBody, '', st, body, sess) then
       begin
-        Check(Pos('-32001', body) > 0, '2a. tools/call sin sesion -> error -32001');
-        Check(H.UnauthFired, '2a. OnUnauthorizedRequest se disparo');
-        Check(Pos(ECHO_MARK, body) = 0, '2a. el tool NO se ejecuto');
+        Check(Pos('-32001', body) > 0, '2a. tools/call without session -> error -32001');
+        Check(H.UnauthFired, '2a. OnUnauthorizedRequest was fired');
+        Check(Pos(ECHO_MARK, body) = 0, '2a. the tool was NOT executed');
       end;
 
       // 2b. initialize -> emite Mcp-Session-Id
@@ -228,51 +228,51 @@ begin
       sid := '';
       if DoPost(InitBody('GoodClient'), '', st, body, sess) then
       begin
-        Check(st = 200, '2b. initialize responde HTTP 200');
-        Check(H.ConnectFired, '2b. OnClientConnect se disparo');
-        Check(H.LastClientName = 'GoodClient', '2b. recibio clientInfo.name = GoodClient');
-        Check(sess <> '', '2b. respuesta trae cabecera Mcp-Session-Id');
+        Check(st = 200, '2b. initialize responds HTTP 200');
+        Check(H.ConnectFired, '2b. OnClientConnect was fired');
+        Check(H.LastClientName = 'GoodClient', '2b. received clientInfo.name = GoodClient');
+        Check(sess <> '', '2b. response includes Mcp-Session-Id header');
         sid := sess;
       end;
 
       // 2c. tools/call con la sesion emitida -> permitido
       if DoPost(CallEchoBody, sid, st, body, sess) then
       begin
-        Check(Pos(ECHO_MARK, body) > 0, '2c. tools/call con Mcp-Session-Id valido ejecuta el tool');
-        Check(Pos('-32001', body) = 0, '2c. no hay error de autorizacion');
+        Check(Pos(ECHO_MARK, body) > 0, '2c. tools/call with valid Mcp-Session-Id executes the tool');
+        Check(Pos('-32001', body) = 0, '2c. no authorization error');
       end;
 
       // 2d. tools/call con sesion invalida -> rechazado
       H.UnauthFired := False;
       if DoPost(CallEchoBody, 'sesion-invalida-xyz', st, body, sess) then
       begin
-        Check(Pos('-32001', body) > 0, '2d. tools/call con sesion invalida -> -32001');
-        Check(H.UnauthFired, '2d. OnUnauthorizedRequest se disparo (sesion invalida)');
+        Check(Pos('-32001', body) > 0, '2d. tools/call with invalid session -> -32001');
+        Check(H.UnauthFired, '2d. OnUnauthorizedRequest was fired (invalid session)');
       end;
       WriteLn('');
 
       // ============ FASE 3: el evento concede acceso ============
-      WriteLn('== FASE 3: OnUnauthorizedRequest concede acceso (AAllow:=True) ==');
+      WriteLn('== PHASE 3: OnUnauthorizedRequest grants access (AAllow:=True) ==');
       H.AllowUnauth := True;
       H.UnauthFired := False;
       if DoPost(CallEchoBody, '', st, body, sess) then
       begin
-        Check(H.UnauthFired, '3. OnUnauthorizedRequest se disparo');
-        Check(Pos(ECHO_MARK, body) > 0, '3. el handler permitio la llamada -> tool ejecutado');
+        Check(H.UnauthFired, '3. OnUnauthorizedRequest was fired');
+        Check(Pos(ECHO_MARK, body) > 0, '3. the handler allowed the call -> tool executed');
       end;
       H.AllowUnauth := False;
       WriteLn('');
 
       // ============ FASE 4: OnClientConnect rechaza ============
-      WriteLn('== FASE 4: OnClientConnect rechaza el cliente (AAllow:=False) ==');
+      WriteLn('== PHASE 4: OnClientConnect rejects the client (AAllow:=False) ==');
       H.RejectClient := 'EvilClient';
       H.ConnectFired := False;
       if DoPost(InitBody('EvilClient'), '', st, body, sess) then
       begin
-        Check(H.ConnectFired, '4. OnClientConnect se disparo');
+        Check(H.ConnectFired, '4. OnClientConnect was fired');
         Check((Pos('"error"', body) > 0) and (Pos('"result"', body) = 0),
           '4. initialize rechazado -> error JSON-RPC, sin result');
-        Check(sess = '', '4. no se emite Mcp-Session-Id al cliente rechazado');
+        Check(sess = '', '4. no Mcp-Session-Id issued to rejected client');
       end;
       H.RejectClient := '';
       WriteLn('');
@@ -281,7 +281,7 @@ begin
       WriteLn('========================================');
       WriteLn(Format('  PASS: %d    FAIL: %d', [GPass, GFail]));
       if GFail = 0 then
-        WriteLn('  RESULTADO: OK - ISSUE #110 validado')
+        WriteLn('  RESULT: OK - ISSUE #110 validated')
       else
         WriteLn('  RESULTADO: FALLOS detectados');
       WriteLn('========================================');

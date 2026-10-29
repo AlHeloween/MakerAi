@@ -98,30 +98,30 @@ begin
     AiConn.RegisterUserParam(DRIVER, 'ResponseTimeOut', '60000');
 
     AiConn.SystemPrompt.Text :=
-      'Eres un asistente util. Tienes acceso a herramientas MCP: ' +
-      'get_datetime (para saber la fecha y hora) y greet (para saludar). ' +
-      'Usa las herramientas cuando sea apropiado. Responde en espanol.';
+      'You are a helpful assistant. You have access to MCP tools: ' +
+      'get_datetime (to know the date and time) and greet (to greet). ' +
+      'Use the tools when appropriate. Respond in Spanish.';
 
     // Ejecutar consultas que usan las herramientas MCP
     Writeln(StringOfChar('-', 60));
-    Pregunta := 'Que fecha y hora es ahora?';
-    Writeln('Pregunta: ', Pregunta);
+    Pregunta := 'What date and time is it now?';
+    Writeln('Question: ', Pregunta);
     Respuesta := AiConn.AddMessageAndRun(Pregunta, 'user', []);
-    Writeln('Respuesta: ', Respuesta);
+    Writeln('Answer: ', Respuesta);
     Writeln;
 
     Writeln(StringOfChar('-', 60));
-    Pregunta := 'Saluda a "MakerAI" en espanol.';
-    Writeln('Pregunta: ', Pregunta);
+    Pregunta := 'Greet "MakerAI" in Spanish.';
+    Writeln('Question: ', Pregunta);
     Respuesta := AiConn.AddMessageAndRun(Pregunta, 'user', []);
-    Writeln('Respuesta: ', Respuesta);
+    Writeln('Answer: ', Respuesta);
     Writeln;
 
     Writeln(StringOfChar('-', 60));
-    Pregunta := 'Saluda a "Developer" en ingles y dime tambien la hora actual en formato ISO.';
-    Writeln('Pregunta: ', Pregunta);
+    Pregunta := 'Greet "Developer" in English and also tell me the current time in ISO format.';
+    Writeln('Question: ', Pregunta);
     Respuesta := AiConn.AddMessageAndRun(Pregunta, 'user', []);
-    Writeln('Respuesta: ', Respuesta);
+    Writeln('Answer: ', Respuesta);
     Writeln;
 
   finally

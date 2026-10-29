@@ -3,12 +3,12 @@
 {$APPTYPE CONSOLE}
 {$R *.res}
 
-// Test runtime de prompt caching en Claude.
-// Dispara 2 requests con el MISMO system prompt grande (>1024 tokens) y el flag
-// portable CacheContext activado. Esperado:
-//   Request 1 -> cache_write > 0 (escribe el system en cache)
-//   Request 2 -> cache_read  > 0 (lee el system desde cache; mismo prefijo)
-// Requiere CLAUDE_API_KEY en el entorno.
+// Runtime test of prompt caching in Claude.
+// Fires 2 requests with the SAME large system prompt (>1024 tokens) and the
+// portable CacheContext flag enabled. Expected:
+//   Request 1 -> cache_write > 0 (writes the system into cache)
+//   Request 2 -> cache_read  > 0 (reads the system from cache; same prefix)
+// Requires CLAUDE_API_KEY in the environment.
 
 uses
   System.SysUtils,
@@ -73,7 +73,7 @@ begin
   WriteLn('=== ' + ALabel + ' ===');
   Cap.Input := 0; Cap.CacheWrite := 0; Cap.CacheRead := 0;
   R := Conn.AddMessageAndRun(APrompt, 'user', []);
-  WriteLn('  Respuesta: ' + Trim(R));
+  WriteLn('  Response: ' + Trim(R));
   WriteLn(Format('  input=%d  cache_write=%d  cache_read=%d',
     [Cap.Input, Cap.CacheWrite, Cap.CacheRead]));
 end;
@@ -98,21 +98,21 @@ begin
       Conn.OnReceiveDataEnd := Cap.OnEnd;
       Conn.OnError := Cap.OnError;
 
-      WriteLn('Modelo: claude-opus-4-8  | CacheContext=True');
+      WriteLn('Model: claude-opus-4-8  | CacheContext=True');
       WriteLn(Format('System prompt: %d chars', [Length(Conn.SystemPrompt.Text)]));
       WriteLn('');
 
-      RunOne(Conn, Cap, 'Request 1 (cache_write>0: escribe system + turno)', 'Di "hola" en una sola palabra.');
+      RunOne(Conn, Cap, 'Request 1 (cache_write>0: writes system + turn)', 'Say "hello" in a single word.');
       WriteLn('');
       Sleep(1500);
-      RunOne(Conn, Cap, 'Request 2 (cache_read>0: lee system + turno 1)', 'Ahora di "adios" en una sola palabra.');
+      RunOne(Conn, Cap, 'Request 2 (cache_read>0: reads system + turn 1)', 'Now say "goodbye" in a single word.');
       var LRead2 := Cap.CacheRead;
       WriteLn('');
       Sleep(1500);
-      RunOne(Conn, Cap, 'Request 3 (cache_read mayor: prefijo crecio con el turno 2)', 'Y ahora di "gracias" en una sola palabra.');
+      RunOne(Conn, Cap, 'Request 3 (larger cache_read: prefix grew with turn 2)', 'And now say "thanks" in a single word.');
 
       WriteLn('');
-      WriteLn('=== Veredicto ===');
+      WriteLn('=== Verdict ===');
       if Cap.CacheRead > 0 then
         WriteLn('OK: caching efectivo. cache_read Req2=' + IntToStr(LRead2) +
                 ', Req3=' + IntToStr(Cap.CacheRead) +
@@ -123,7 +123,7 @@ begin
       Conn.Free;
       Cap.Free;
     end;
-    WriteLn('=== FIN ===');
+    WriteLn('=== END ===');
   except
     on E: Exception do
       WriteLn('FATAL: ' + E.ClassName + ': ' + E.Message);

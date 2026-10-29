@@ -167,7 +167,7 @@ begin
   Writeln('Driver: ', DRIVER, ' / ', MODEL);
   Writeln;
 
-  // Registrar la herramienta en el registry global
+  // Register the tool in the global registry
   TAiToolRegistry.Instance.Register(TCalculatorTool.Create, 'local', 'math');
   Writeln('Registered tools: ', TAiToolRegistry.Instance.Count);
   Writeln;
@@ -189,9 +189,9 @@ begin
     LLMAgent.ApiKey       := API_KEY;
     LLMAgent.UseAllTools  := True; // expone todas las herramientas del registry
     LLMAgent.SystemPrompt :=
-      'Eres un asistente de matematicas. ' +
-      'SIEMPRE usa la herramienta calculator para cualquier operacion aritmetica. ' +
-      'Nunca calcules mentalmente. Responde en espanol.';
+      'You are a math assistant. ' +
+      'ALWAYS use the calculator tool for any arithmetic operation. ' +
+      'Never calculate mentally. Answer in Spanish.';
 
     Finish       := TAIAgentsNode.Create(Manager);
     Finish.Name  := 'End';
@@ -222,6 +222,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

@@ -6,31 +6,31 @@
 // =============================================================================
 // MakerAI — 10-STT / 01-NativeTranscription
 // =============================================================================
-// Prueba la transcripci?n nativa de audio (InternalRunNativeTranscription) para
-// los tres drivers que implementaron el override en mayo 2026:
+// Tests native audio transcription (InternalRunNativeTranscription) for
+// the three drivers that implemented the override in May 2026:
 //
 //   - Groq     : whisper-large-v3 / whisper-large-v3-turbo
 //                (endpoint OpenAI-compatible: /audio/transcriptions)
 //   - Mistral  : voxtral-mini-latest / voxtral-small-latest
 //                (endpoint OpenAI-compatible: /audio/transcriptions)
 //   - Cohere   : cohere-transcribe-03-2026
-//                (endpoint /v2/audio/transcriptions; language obligatorio)
+//                (endpoint /v2/audio/transcriptions; language required)
 //
 // As a reference/baseline, OpenAI whisper-1 is also tested.
 //
-// Configuraci?n clave:
-//   ChatMode = cmTranscription  -->  RunNew va directo a InternalRunTranscription
-//                                    sin pasar por InternalRunCompletions.
-//   Sin SpeechTool asignado     -->  InternalRunTranscription llama al override
-//                                    nativo del driver (no al tool externo).
+// Key configuration:
+//   ChatMode = cmTranscription  -->  RunNew goes directly to InternalRunTranscription
+//                                    without going through InternalRunCompletions.
+//   Without an assigned SpeechTool     -->  InternalRunTranscription calls the override
+//                                    native to the driver (not the external tool).
 //   OnError captura errores     -->  RunNew swallows exceptions internamente
-//                                    y los reporta v?a el evento OnError.
+//                                    and reports them via the OnError event.
 //
-// Uso:
-//   NativeTranscription.exe [ruta_audio]
+// Usage:
+//   NativeTranscription.exe [audio_path]
 //
 // Supported formats: WAV, MP3, OGG, M4A, FLAC, WEBM (depending on provider).
-// Variables de entorno: OPENAI_API_KEY  GROQ_API_KEY  MISTRAL_API_KEY  COHERE_API_KEY
+// Environment variables: OPENAI_API_KEY  GROQ_API_KEY  MISTRAL_API_KEY  COHERE_API_KEY
 // =============================================================================
 
 uses
@@ -49,8 +49,8 @@ const
   WIDE = '============================================================';
 
 // ---------------------------------------------------------------------------
-// TErrorCapture — captura el OnError de TAiChatConnection
-// RunNew atrapa todas las exceptions internamente y las redirige a OnError.
+// TErrorCapture — captures the OnError of TAiChatConnection
+// RunNew catches all exceptions internally and redirects them to OnError.
 // ---------------------------------------------------------------------------
 type
   TErrorCapture = class
@@ -111,8 +111,8 @@ end;
 
 // ---------------------------------------------------------------------------
 // TestTranscription
-//   AResponseFormat : '' = default del driver | 'json' | 'verbose_json' | 'text'
-//   ALanguage       : '' = no forzar  | 'es' | 'en' | ...
+//   AResponseFormat : '' = driver default | 'json' | 'verbose_json' | 'text'
+//   ALanguage       : '' = do not force  | 'es' | 'en' | ...
 // ---------------------------------------------------------------------------
 function TestTranscription(const ADriver, AModel, AAudioFile,
   ALanguage, AResponseFormat: String): Boolean;
@@ -151,9 +151,9 @@ begin
     if AResponseFormat <> '' then
       Conn.TranscriptionParams.ResponseFormat := AResponseFormat;
 
-    // --- Archivo de audio ---
-    // AddMessageAndRun transfiere la propiedad de MF al historial interno.
-    // Conn.Free libera el historial y con ?l todos los TAiMediaFile.
+    // --- Audio file ---
+    // AddMessageAndRun transfers ownership of MF to the internal history.
+    // Conn.Free frees the history and with it all TAiMediaFile.
     MF := TAiMediaFile.Create;
     MF.LoadFromFile(AAudioFile);
 
@@ -168,7 +168,7 @@ begin
     end
     else if Resp = '' then
     begin
-      Writeln('VACIA');
+      Writeln('EMPTY');
       AddResult(ADriver, AModel, Tag, False, '[respuesta vacia]');
     end
     else
@@ -186,8 +186,8 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// TestErrorCase: archivo vac?o — debe reportar error v?a OnError
-// RunNew atrapa la exception y llama OnError (no re-raise).
+// TestErrorCase: empty file — must report error via OnError
+// RunNew catches the exception and calls OnError (does not re-raise).
 // ---------------------------------------------------------------------------
 procedure TestErrorCase(const ADriver, AModel: String);
 var
@@ -212,7 +212,7 @@ begin
     Resp := Conn.AddMessageAndRun('', 'user', [MF]);
 
     if EC.HasError then
-      Writeln('OK (error capturado: ', Copy(EC.Msg, 1, 60), ')')
+      Writeln('OK (error captured: ', Copy(EC.Msg, 1, 60), ')')
     else if Resp = '' then
       Writeln('OK (empty response — validation before the driver)')
     else
@@ -247,7 +247,7 @@ begin
     AudioPath := Trim(ParamStr(1))
   else
   begin
-    Write('Ruta del archivo de audio (WAV/MP3/OGG, Enter para omitir): ');
+    Write('Path of the audio file (WAV/MP3/OGG, Enter to skip): ');
     Readln(AudioPath);
     AudioPath := Trim(AudioPath);
   end;
@@ -257,7 +257,7 @@ begin
     if not FileExists(AudioPath) then
     begin
       Writeln('ERROR: File not found: "', AudioPath, '"');
-      Write('Presiona Enter...');
+      Write('Press Enter...');
       Readln;
       Halt(1);
     end;
@@ -268,11 +268,11 @@ begin
   end;
 
   // ===========================================================================
-  // BLOQUE 0: Caso de error — archivo vac?o
-  // Verifica que el driver detecta el problema y reporta v?a OnError.
+  // BLOCK 0: Error case — empty file
+  // Verifies that the driver detects the problem and reports it via OnError.
   // ===========================================================================
   Writeln(SEP);
-  Writeln('BLOQUE 0: Manejo de error (archivo sin contenido)');
+  Writeln('BLOCK 0: Error handling (file without content)');
   Writeln(SEP);
   TestErrorCase('OpenAI',  'whisper-1');
   TestErrorCase('Groq',    'whisper-large-v3');
@@ -283,28 +283,28 @@ begin
   if not HasAudio then
   begin
     Writeln(SEP);
-    Writeln('INFO: Sin archivo de audio — bloques 1-4 omitidos.');
-    Writeln('      Pasa la ruta como argumento:');
+    Writeln('INFO: No audio file — blocks 1-4 skipped.');
+    Writeln('      Pass the path as an argument:');
     Writeln('        NativeTranscription.exe D:\ruta\audio.wav');
     Writeln(SEP);
   end
   else
   begin
     // =========================================================================
-    // BLOQUE 1: OpenAI — baseline (funcionaba antes del PR)
+    // BLOCK 1: OpenAI — baseline (worked before the PR)
     // =========================================================================
     Writeln(SEP);
-    Writeln('BLOQUE 1: OpenAI (baseline)');
+    Writeln('BLOCK 1: OpenAI (baseline)');
     Writeln(SEP);
     TestTranscription('OpenAI', 'whisper-1', AudioPath, '',   '');
     TestTranscription('OpenAI', 'whisper-1', AudioPath, 'en', 'verbose_json');
     Writeln;
 
     // =========================================================================
-    // BLOQUE 2: Groq — whisper OpenAI-compatible
+    // BLOCK 2: Groq — whisper OpenAI-compatible
     // =========================================================================
     Writeln(SEP);
-    Writeln('BLOQUE 2: Groq (whisper — OpenAI-compatible)');
+    Writeln('BLOCK 2: Groq (whisper — OpenAI-compatible)');
     Writeln(SEP);
     TestTranscription('Groq', 'whisper-large-v3',       AudioPath, '',   '');
     TestTranscription('Groq', 'whisper-large-v3',       AudioPath, 'en', 'verbose_json');
@@ -312,10 +312,10 @@ begin
     Writeln;
 
     // =========================================================================
-    // BLOQUE 3: Mistral — Voxtral OpenAI-compatible
+    // BLOCK 3: Mistral — Voxtral OpenAI-compatible
     // =========================================================================
     Writeln(SEP);
-    Writeln('BLOQUE 3: Mistral (Voxtral — OpenAI-compatible)');
+    Writeln('BLOCK 3: Mistral (Voxtral — OpenAI-compatible)');
     Writeln(SEP);
     TestTranscription('Mistral', 'voxtral-mini-latest', AudioPath, '',   '');
     TestTranscription('Mistral', 'voxtral-mini-latest', AudioPath, 'es', 'verbose_json');
@@ -324,11 +324,11 @@ begin
 
     // =========================================================================
     // BLOQUE 4: Cohere
-    // Diferencias: language obligatorio (driver usa 'en' por defecto),
-    // response_format no soportado (se ignora en el override — no debe explotar).
+    // Differences: language required (driver uses 'en' by default),
+    // response_format not supported (ignored in the override — must not crash).
     // =========================================================================
     Writeln(SEP);
-    Writeln('BLOQUE 4: Cohere (language obligatorio, sin response_format)');
+    Writeln('BLOCK 4: Cohere (language required, without response_format)');
     Writeln(SEP);
     // Without language → override uses 'en' automatically
     TestTranscription('Cohere', 'cohere-transcribe-03-2026', AudioPath, '',   '');
@@ -341,10 +341,10 @@ begin
   end;
 
   // ===========================================================================
-  // RESUMEN FINAL
+  // FINAL SUMMARY
   // ===========================================================================
   Writeln(WIDE);
-  Writeln('RESUMEN');
+  Writeln('SUMMARY');
   Writeln(WIDE);
   OK    := 0;
   Total := Length(GResults);
@@ -365,7 +365,7 @@ begin
     end;
   end;
   Writeln;
-  Writeln('Resultado: ', OK, '/', Total, ' transcripciones OK');
+  Writeln('Result: ', OK, '/', Total, ' transcriptions OK');
   Writeln(WIDE);
 
   Writeln;

@@ -29,7 +29,7 @@ const
   API_KEY = '@CLAUDE_API_KEY';
 
 // -----------------------------------------------------------------------------
-// TRubyCheckerTool — verifica criterios de calidad en un texto
+// TRubyCheckerTool — checks quality criteria in a text
 // Args: { "text": string, "criteria": string }
 // Returns: { "score": number, "issues": string, "passed": bool }
 // -----------------------------------------------------------------------------
@@ -89,7 +89,7 @@ begin
   Score     := 10;
   Issues    := '';
 
-  // Verificaciones automaticas basicas
+  // Basic automatic checks
   if WordCount < 50 then begin
     Dec(Score, 3);
     Issues := Issues + 'Too short (< 50 words). ';
@@ -155,13 +155,13 @@ begin
 
     CriticRegistry.Register(TQualityCheckerTool.Create, 'local', 'quality');
 
-    // Nodo 1: Escritor de borrador
+    // Node 1: Draft writer
     DraftNode := MakeLLMNode(Manager, 'DraftWriter',
       'You are a content writer. Write a draft paragraph (80-150 words) about the given topic. ' +
       'Use at least one contrast word (however/but/although) and one rhetorical question.',
       False);
 
-    // Nodo 2: Critico con herramienta de calidad
+    // Node 2: Critic with quality tool
     CriticNode := MakeLLMNode(Manager, 'Critic',
       'You are a strict editor. Evaluate the draft using the check_quality tool. ' +
       'Then provide specific improvement suggestions in this format: ' +
@@ -169,14 +169,14 @@ begin
       True);
     CriticNode.Registry := CriticRegistry;
 
-    // Nodo 3: Reescritor con el feedback del critico
+    // Node 3: Rewriter with critic feedback
     RewriteNode := MakeLLMNode(Manager, 'Rewriter',
       'You are an expert writer. You receive a draft and detailed feedback. ' +
       'Rewrite the draft incorporating ALL the improvement instructions. ' +
       'The rewritten version should be clearly better than the original.',
       False);
 
-    // Encadenar
+    // Chain
     Link1 := TAIAgentsLink.Create(Manager); Link1.Name := 'L1'; Link1.Graph := Manager; Link1.NextA := CriticNode;  DraftNode.Next  := Link1;
     Link2 := TAIAgentsLink.Create(Manager); Link2.Name := 'L2'; Link2.Graph := Manager; Link2.NextA := RewriteNode; CriticNode.Next := Link2;
 

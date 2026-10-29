@@ -165,17 +165,17 @@ begin
     Exit;
   end;
 
-  OK('Instalado en: ' + LItem.Params.Values['Command']);
+  OK('Installed at: ' + LItem.Params.Values['Command']);
 
   // Initialize MCP process
-  INFO('Inicializando proceso MCP...');
+  INFO('Initializing MCP process...');
   if not LItem.MCPClient.Initialized then
     LItem.MCPClient.Initialize;
 
   if LItem.MCPClient.Available then
     OK('MCP process active and available.')
   else
-    ERR('El proceso MCP NO quedó disponible tras Initialize.');
+    ERR('The MCP process was NOT available after Initialize.');
 end;
 
 // ============================================================================
@@ -250,7 +250,7 @@ begin
   LItem := FFunctions.MCPClients.GetClientByName('mcp-postgres');
   if not Assigned(LItem) or not LItem.MCPClient.Available then
   begin
-    ERR('mcp-postgres no disponible. Salta TEST 3.');
+    ERR('mcp-postgres not available. Skipping TEST 3.');
     Exit;
   end;
 
@@ -277,7 +277,7 @@ begin
       LResult.Free;
     end
     else
-      ERR('CallTool retornó nil.');
+      ERR('CallTool returned nil.');
   finally
     LArgs.Free;
     LMedia.Free;
@@ -315,14 +315,14 @@ begin
   if LResp <> '' then
   begin
     Writeln;
-    OK('Respuesta del LLM:');
+    OK('LLM response:');
     Writeln(LResp);
     Writeln;
   end
   else if FLastError <> '' then
     ERR('No response, error: ' + FLastError)
   else
-    ERR('Sin respuesta y sin error registrado.');
+    ERR('No response and no error recorded.');
 end;
 
 // ============================================================================
@@ -347,10 +347,10 @@ begin
       ERR('InstallMCPFromPPM returned nil.');
       Exit;
     end;
-    OK('Instalado en: ' + LItem.Params.Values['Command']);
+    OK('Installed at: ' + LItem.Params.Values['Command']);
   end;
 
-  INFO('Inicializando proceso MCP...');
+  INFO('Initializing MCP process...');
   if not LItem.MCPClient.Initialized then
     LItem.MCPClient.Initialize;
 
@@ -478,7 +478,7 @@ begin
       LResult.Free;
     end
     else
-      ERR('CallTool retornó nil.');
+      ERR('CallTool returned nil.');
   finally
     LArgs.Free;
     LMedia.Free;
@@ -494,7 +494,7 @@ var
 begin
   HDR('TEST 7 — LLM chat + AutoMCP: use tts-gemini to say "hola"');
   FAiConn.NewChat;
-  // Actualizar system prompt — tts-gemini debería aparecer como ya instalado
+  // Update system prompt — tts-gemini should appear as already installed
   FAiConn.SystemPrompt.Text := FFunctions.GetAutoMCPSystemPrompt;
 
   INFO('System prompt (first 400):');
@@ -516,7 +516,7 @@ begin
   if LResp <> '' then
   begin
     Writeln;
-    OK('Respuesta del LLM:');
+    OK('LLM response:');
     Writeln(LResp);
   end
   else

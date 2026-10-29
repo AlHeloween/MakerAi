@@ -34,22 +34,22 @@
       constructor Create(const AAllowedDirectories: array of string);
       destructor Destroy; override;
 
-      // Lectura
+      // Reading
       function ReadFile(const APath: string): string;
       function ReadMultipleFiles(const APaths: array of string): TDictionary<string, string>;
       function GetFileInfo(const APath: string): TFileInfo;
 
-      // Escritura
+      // Writing
       procedure WriteFile(const APath, AContent: string);
       function EditFile(const APath, AOldText, ANewText: string): string;
       procedure MoveFile(const ASourcePath, ADestPath: string);
 
-      // Directorios
+      // Directories
       procedure CreateDirectory(const APath: string);
       function ListDirectory(const APath: string): TArray<TDirectoryEntry>;
       function DirectoryTree(const APath: string): TJSONObject;
 
-      // B�squeda
+      // Search
       function SearchFiles(const ARootPath, APattern: string;
         ARecursive: Boolean = True): TArray<string>;
 
@@ -105,7 +105,7 @@
   end;
 
   // ---------------------------------------------------------------------------
-  // Lectura
+  // Reading
   // ---------------------------------------------------------------------------
 
   function TMCPFilesystem.ReadFile(const APath: string): string;
@@ -161,7 +161,7 @@
   end;
 
   // ---------------------------------------------------------------------------
-  // Escritura
+  // Writing
   // ---------------------------------------------------------------------------
 
   procedure TMCPFilesystem.WriteFile(const APath, AContent: string);
@@ -215,7 +215,7 @@
   end;
 
   // ---------------------------------------------------------------------------
-  // Directorios
+  // Directories
   // ---------------------------------------------------------------------------
 
   procedure TMCPFilesystem.CreateDirectory(const APath: string);
@@ -313,7 +313,7 @@
   end;
 
   // ---------------------------------------------------------------------------
-  // B�squeda
+  // Search
   // ---------------------------------------------------------------------------
 
   function TMCPFilesystem.SearchFiles(const ARootPath, APattern: string;

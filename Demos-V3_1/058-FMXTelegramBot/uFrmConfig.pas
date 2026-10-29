@@ -1,10 +1,10 @@
 ﻿unit uFrmConfig;
 
 // =============================================================================
-// MakerAI Bot - Formulario de configuracion de proveedores
-// Construido 100% en codigo (sin .fmx) para evitar problemas de encoding.
-// Categorias: LLM, TTS, STT, Imagen, Video, Embeddings
-// Cada categoria tiene proveedor primario + fallback.
+// MakerAI Bot - Provider configuration form
+// Built 100% in code (without .fmx) to avoid encoding issues.
+// Categories: LLM, TTS, STT, Image, Video, Embeddings
+// Each category has a primary provider + fallback.
 // =============================================================================
 
 interface
@@ -74,7 +74,7 @@ const
   CAT_VID  = 4;
   CAT_EMB  = 5;
 
-  CAT_TITLES: array[0..5] of string = ('LLM', 'TTS', 'STT', 'Imagen', 'Video', 'Embeddings');
+  CAT_TITLES: array[0..5] of string = ('LLM', 'TTS', 'STT', 'Image', 'Video', 'Embeddings');
 
 class function TFrmConfig.DriversFor(ACat: Integer): TArray<string>;
 begin
@@ -93,12 +93,12 @@ end;
 class function TFrmConfig.ExtraLabel(ACat: Integer): string;
 begin
   case ACat of
-    CAT_LLM: Result := 'Base URL (vacio = default)';
-    CAT_TTS: Result := 'Voz';
-    CAT_STT: Result := 'Idioma (ej: es, en)';
-    CAT_IMG: Result := 'Tamano (ej: 1024x1024)';
-    CAT_VID: Result := 'Duracion (seg)';
-    CAT_EMB: Result := 'Dimensiones';
+    CAT_LLM: Result := 'Base URL (empty = default)';
+    CAT_TTS: Result := 'Voice';
+    CAT_STT: Result := 'Language (e.g.: es, en)';
+    CAT_IMG: Result := 'Size (e.g.: 1024x1024)';
+    CAT_VID: Result := 'Duration (sec)';
+    CAT_EMB: Result := 'Dimensions';
   else
     Result := 'Extra';
   end;
@@ -121,7 +121,7 @@ var
   LayBottom: TLayout;
   i: Integer;
 begin
-  // Tab control (ocupa todo menos los botones de abajo)
+  // Tab control (occupies everything except the buttons at the bottom)
   FTabs := TTabControl.Create(Self);
   FTabs.Parent := Self;
   FTabs.Align  := TAlignLayout.Client;
@@ -240,7 +240,7 @@ begin
   FCats[ACatIdx].Row[ASlotIdx].CboDriver := Cbo;
 
   // Model
-  Row := MakeRow('Modelo:', 36);
+  Row := MakeRow('Model:', 36);
   Ed  := TEdit.Create(Self);
   Ed.Parent := Row;
   Ed.Align  := TAlignLayout.Client;

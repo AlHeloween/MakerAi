@@ -57,7 +57,7 @@ begin
   Writeln;
 
   ServerPath := ExpandFileName(ExtractFilePath(ParamStr(0)) + SERVER_EXE_REL);
-  Writeln('Servidor MCP: ', ServerPath);
+  Writeln('MCP server: ', ServerPath);
   Writeln;
 
   Functions := TAiFunctions.Create(nil);
@@ -105,23 +105,23 @@ begin
     // Run queries that use the MCP tools
     Writeln(StringOfChar('-', 60));
     Pregunta := 'What date and time is it now?';
-    Writeln('Pregunta: ', Pregunta);
+    Writeln('Question: ', Pregunta);
     Respuesta := AiConn.AddMessageAndRun(Pregunta, 'user', []);
-    Writeln('Respuesta: ', Respuesta);
+    Writeln('Answer: ', Respuesta);
     Writeln;
 
     Writeln(StringOfChar('-', 60));
     Pregunta := 'Greet "MakerAI" in Spanish.';
-    Writeln('Pregunta: ', Pregunta);
+    Writeln('Question: ', Pregunta);
     Respuesta := AiConn.AddMessageAndRun(Pregunta, 'user', []);
-    Writeln('Respuesta: ', Respuesta);
+    Writeln('Answer: ', Respuesta);
     Writeln;
 
     Writeln(StringOfChar('-', 60));
     Pregunta := 'Greet "Developer" in English and also tell me the current time in ISO format.';
-    Writeln('Pregunta: ', Pregunta);
+    Writeln('Question: ', Pregunta);
     Respuesta := AiConn.AddMessageAndRun(Pregunta, 'user', []);
-    Writeln('Respuesta: ', Respuesta);
+    Writeln('Answer: ', Respuesta);
     Writeln;
 
   finally
@@ -138,6 +138,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

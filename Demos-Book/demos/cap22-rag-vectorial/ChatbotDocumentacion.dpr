@@ -45,7 +45,7 @@ end;
 
 function ObtenerContexto(const Pregunta: string): string;
 begin
-  // SearchText devuelve los fragmentos mas similares como string formateado
+  // SearchText returns the most similar fragments as a formatted string
   Result := RAG.SearchText(Pregunta, 4, 0.6, nil, False, False);
 end;
 
@@ -61,7 +61,7 @@ begin
     'POLITICA DE ENVIO' + sLineBreak +
     'Envio gratuito en compras mayores a $50.' + sLineBreak +
     'Tiempo estimado de entrega: 3 a 5 dias habiles.' + sLineBreak +
-    'Las devoluciones tienen costo de envio a cargo del cliente.'
+    'Returns have shipping cost charged to the customer.'
   );
   TFile.WriteAllText(DOCS_FOLDER + 'productos.txt',
     'CATALOGO DE PRODUCTOS 2025' + sLineBreak +
@@ -70,14 +70,14 @@ begin
     'Monitor 4K 27": $350 — panel IPS, 144Hz, HDR.' + sLineBreak +
     'Teclado Mecanico: $80 — switches Cherry MX Blue.' + sLineBreak +
     sLineBreak +
-    'Todos los productos incluyen garantia de 1 año.'
+    'All products include a 1-year warranty.'
   );
   WriteLn('Sample documents created in: ', DOCS_FOLDER);
 end;
 
 begin
   WriteLn('=================================================');
-  WriteLn('  Cap. 22 - Vector RAG: Chatbot Demo');
+  WriteLn('  Ch. 22 - Vector RAG: Chatbot Demo');
   WriteLn('=================================================');
   WriteLn;
 
@@ -85,11 +85,11 @@ begin
   RAG    := TAiRAGVector.Create(nil);
   AiConn := TAiChatConnection.Create(nil);
   try
-    // Configurar embedder
+    // Configure embedder
     Emb.ApiKey     := '@OPENAI_API_KEY';
     RAG.Embeddings := Emb;
 
-    // Crear o cargar indice
+    // Create or load index
     if TFile.Exists(INDEX_FILE) then
     begin
       RAG.LoadFromFile(INDEX_FILE);
@@ -97,7 +97,7 @@ begin
     end
     else
     begin
-      // Crear documentos de ejemplo si no existen
+      // Create sample documents if they do not exist
       if not TDirectory.Exists(DOCS_FOLDER) then
         CrearDocumentosEjemplo;
 
@@ -105,7 +105,7 @@ begin
       IndexarDocumentos(DOCS_FOLDER);
     end;
 
-    // Configurar LLM (Groq llama-3.3-70b — rapido y gratuito en tier)
+    // Configure LLM (Groq llama-3.3-70b — fast and free tier)
     AiConn.DriverName                    := 'Groq';
     AiConn.Params.Values['ApiKey']       := '@GROQ_API_KEY';
     AiConn.Model                          := 'llama-3.3-70b-versatile';
@@ -125,7 +125,7 @@ begin
       if SameText(Trim(Pregunta), 'salir') then Break;
       if Trim(Pregunta) = '' then Continue;
 
-      // 1. Recuperar fragmentos relevantes del indice
+      // 1. Retrieve relevant fragments from the index
       var Contexto := ObtenerContexto(Pregunta);
 
       if Contexto = '' then
@@ -135,16 +135,16 @@ begin
         Continue;
       end;
 
-      // 2. Configurar system prompt con el contexto recuperado
+      // 2. Configure system prompt with the retrieved context
       AiConn.NewChat;
       AiConn.SystemPrompt.Text :=
-        'Eres un asistente que responde preguntas basandote SOLO en la ' +
-        'documentacion de la empresa proporcionada. ' +
-        'Si la respuesta no esta en el contexto, di: "No tengo informacion sobre eso."' +
+        'You are an assistant that answers questions based ONLY on the ' +
+        'company documentation provided. ' +
+        'If the answer is not in the context, say: "I have no information about that."' +
         sLineBreak + sLineBreak +
-        'DOCUMENTACION:' + sLineBreak + Contexto;
+        'DOCUMENTATION:' + sLineBreak + Contexto;
 
-      // 3. Obtener respuesta del LLM
+      // 3. Get response from the LLM
       var Respuesta := AiConn.AddMessageAndRun(Pregunta, 'user', []);
       WriteLn('IA  > ', Respuesta);
       WriteLn;

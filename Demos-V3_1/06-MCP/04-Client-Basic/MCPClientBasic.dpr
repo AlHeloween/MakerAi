@@ -95,7 +95,7 @@ begin
 
   // Resolve the server path relative to the current executable
   ServerPath := ExpandFileName(ExtractFilePath(ParamStr(0)) + SERVER_EXE_REL);
-  Writeln('Servidor: ', ServerPath);
+  Writeln('Server: ', ServerPath);
   Writeln;
 
   if not TFile.Exists(ServerPath) then
@@ -128,7 +128,7 @@ begin
     Client.Params.Values['Command'] := ServerPath;
     Client.Params.Values['Timeout'] := '10000';
 
-    Sep('PASO 1: Initialize (handshake MCP)');
+    Sep('STEP 1: Initialize (MCP handshake)');
     if not Client.Initialize then
     begin
       Writeln('ERROR: Could not initialize the MCP server.');
@@ -137,7 +137,7 @@ begin
     Writeln('Initialization OK.');
 
     // Step 2: List available tools
-    Sep('PASO 2: ListTools');
+    Sep('STEP 2: ListTools');
     ToolsJson := Client.ListTools;
     try
       if Assigned(ToolsJson) then
@@ -159,16 +159,16 @@ begin
     end;
 
     // Step 3: Call get_datetime
-    Sep('PASO 3: CallTool — get_datetime');
+    Sep('STEP 3: CallTool — get_datetime');
     Args := TJSONObject.Create;
     try
       Args.AddPair('format', 'readable');
       Resp := Client.CallTool('get_datetime', Args, MediaList);
       try
         if Assigned(Resp) then
-          Writeln('Resultado: ', ExtraerTexto(Resp))
+          Writeln('Result: ', ExtraerTexto(Resp))
         else
-          Writeln('ERROR: CallTool retorno nil');
+          Writeln('ERROR: CallTool returned nil');
       finally
         Resp.Free;
       end;
@@ -177,7 +177,7 @@ begin
     end;
 
     // Step 4: Call greet
-    Sep('PASO 4: CallTool — greet');
+    Sep('STEP 4: CallTool — greet');
     Args := TJSONObject.Create;
     try
       Args.AddPair('name',     'MakerAI Developer');
@@ -185,9 +185,9 @@ begin
       Resp := Client.CallTool('greet', Args, MediaList);
       try
         if Assigned(Resp) then
-          Writeln('Resultado: ', ExtraerTexto(Resp))
+          Writeln('Result: ', ExtraerTexto(Resp))
         else
-          Writeln('ERROR: CallTool retorno nil');
+          Writeln('ERROR: CallTool returned nil');
       finally
         Resp.Free;
       end;

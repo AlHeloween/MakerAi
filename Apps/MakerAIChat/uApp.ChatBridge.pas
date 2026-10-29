@@ -152,7 +152,7 @@ begin
   FChatView.ThemeDark    := AppSettings.ThemeDark;
   FChatInput.ThemeDark   := AppSettings.ThemeDark;
 
-  // Reconectar memoria según configuración
+  // Reconnect memory according to configuration
   FConn.PersistentMemory  := nil;
   FreeAndNil(FMemory);
   if AppSettings.MemoryEnabled then

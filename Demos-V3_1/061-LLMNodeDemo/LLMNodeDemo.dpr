@@ -43,12 +43,12 @@ const
   // ──────────────────────────────────────────────────────────────────────────
 
 // =============================================================================
-//  HERRAMIENTAS DEMO
+//  DEMO TOOLS
 // =============================================================================
 
 // -----------------------------------------------------------------------------
 //  TCalculatorTool
-//  Realiza operaciones aritmeticas simples.
+//  Performs simple arithmetic operations.
 //  Args: { "operation": "multiply"|"add"|"subtract"|"divide", "a": N, "b": N }
 // -----------------------------------------------------------------------------
 type
@@ -304,7 +304,7 @@ begin
   else if (From = 'F') and (ToSc = 'C') then
     Res := (Val - 32) * 5 / 9
   else
-    Res := Val;  // misma escala
+    Res := Val;  // same scale
 
   Writeln(Format('  [Tool] convert_temperature(%.2f %s → %s) → %.2f', [Val, From, ToSc, Res]));
 
@@ -315,7 +315,7 @@ begin
 end;
 
 // =============================================================================
-//  DEMO PRINCIPAL
+//  MAIN DEMO
 // =============================================================================
 
 procedure RunQuery(AManager: TAIAgentManager; const AQuestion: String);
@@ -381,12 +381,12 @@ begin
     Manager.Compile;
 
     // ── 4. Run queries ──────────────────────────────────────────────
-    RunQuery(Manager, '¿Cuánto es 347 multiplicado por 28?');
-    RunQuery(Manager, '¿Qué fecha y hora es ahora?');
-    RunQuery(Manager, '¿Cuánto es 100°F en Celsius? ¿Y 37°C en Fahrenheit?');
+    RunQuery(Manager, 'How much is 347 multiplied by 28?');
+    RunQuery(Manager, 'What date and time is it now?');
+    RunQuery(Manager, 'How much is 100°F in Celsius? And 37°C in Fahrenheit?');
     RunQuery(Manager,
-      '¿Cuánto es (15 + 27) * 4? Y también, ¿cuánto es 1000 / 8? ' +
-      'Dame ambos resultados.');
+      'How much is (15 + 27) * 4? Also, how much is 1000 / 8? ' +
+      'Give me both results.');
 
   finally
     Manager.Free;

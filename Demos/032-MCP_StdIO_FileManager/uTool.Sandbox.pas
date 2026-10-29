@@ -108,13 +108,13 @@ var
   LFullPath: string;
   LCleanRel: string;
 begin
-  // Normalizar entrada
+  // Normalize input
   if (ARelativePath = '') or (ARelativePath = '.') then
     LCleanRel := ''
   else
     LCleanRel := ARelativePath;
 
-  // Construir ruta absoluta
+  // Build absolute path
   LFullPath := TPath.GetFullPath(TPath.Combine(SANDBOX_ROOT, LCleanRel));
 
   // Check security (Avoid Path Traversal: "..\..\windows")
@@ -182,7 +182,7 @@ begin
     end;
   except
     on E: Exception do
-      Result := TAiMCPResponseBuilder.New.AddText('Error listando: ' + E.Message).Build;
+      Result := TAiMCPResponseBuilder.New.AddText('Error listing: ' + E.Message).Build;
   end;
 end;
 
@@ -304,7 +304,7 @@ begin
     // Ensure destination directory
     TDirectory.CreateDirectory(TPath.GetDirectoryName(LDst));
 
-    TFile.Copy(LSrc, LDst, True); // True = Sobrescribir
+    TFile.Copy(LSrc, LDst, True); // True = Overwrite
     Result := TAiMCPResponseBuilder.New.AddText(Format('✅ Copied from "%s" to "%s"', [AParams.Source, AParams.Destination])).Build;
   except
     on E: Exception do

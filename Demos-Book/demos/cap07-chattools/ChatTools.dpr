@@ -109,7 +109,7 @@ begin
 
   if not TFile.Exists(IMG_PATH) then
   begin
-    WriteLn('  Imagen no encontrada: ', IMG_PATH);
+    WriteLn('  Image not found: ', IMG_PATH);
     WriteLn('  Adjust IMG_PATH to a JPEG image on your system.');
     Exit;
   end;
@@ -119,14 +119,14 @@ begin
   WriteLn('  Image        : ', TPath.GetFileName(IMG_PATH));
   WriteLn('');
 
-  // El VisionTool: describe imágenes usando gemma3:4b en Ollama
+  // The VisionTool: describes images using gemma3:4b in Ollama
   VisionTool := TAiOllamaVisionTool.Create(nil);
   VisionTool.Url   := OLLAMA_URL;
   VisionTool.Model := VISION_MODEL;
   // Prompt sent to the vision model (in Spanish)
-  VisionTool.Prompt := 'Describe esta imagen en detalle en español.';
+  VisionTool.Prompt := 'Describe this image in detail in Spanish.';
 
-  // La conexión principal con Groq — texto puro
+  // The main connection with Groq — pure text
   Conn := TAiChatConnection.Create(nil);
   try
     Conn.DriverName := LLM_DRIVER;
@@ -157,7 +157,7 @@ begin
     // The bridge activates automatically: gemma3 describes → Groq reasons
     Write('  Processing (gemma3 describes image, Groq reasons)... ');
     R := Conn.AddMessageAndRun(
-      'Describe 3 elementos visuales principales que observas en la imagen.',
+      'Describe 3 main visual elements you observe in the image.',
       'user', Files);
     WriteLn('OK');
     WriteLn('');
@@ -197,7 +197,7 @@ begin
 
   if not TFile.Exists(IMG_PATH) then
   begin
-    WriteLn('  Imagen no encontrada: ', IMG_PATH);
+    WriteLn('  Image not found: ', IMG_PATH);
     Exit;
   end;
 
@@ -210,7 +210,7 @@ begin
   try
     Descripcion := TAiOllamaVisionTool.DescribeFromFile(
       IMG_PATH,
-      'Describe brevemente esta imagen en español (máximo 2 oraciones).',
+      'Briefly describe this image in Spanish (maximum 2 sentences).',
       OLLAMA_URL);
     WriteLn('OK');
     WriteLn('');
@@ -241,7 +241,7 @@ procedure Demo3_CaminoAvsB;
 begin
   Separador('Demo 3 — Patron Camino A vs Camino B');
 
-  WriteLn('  Cuando un ChatTool procesa un archivo, elige cómo comunicar');
+  WriteLn('  When a ChatTool processes a file, it chooses how to communicate');
   WriteLn('  the result. This decision completely defines the data flow.');
   WriteLn('');
   WriteLn('  PATH A — result goes to the LLM (comprehension tool):');
@@ -262,34 +262,34 @@ begin
   WriteLn('  ─────────────────────────────────────────────────────────────');
   WriteLn('');
   WriteLn('    MFAudio := TAiMediaFile.Create;');
-  WriteLn('    MFAudio.LoadFromStream(''respuesta.mp3'', AudioStream);');
+  WriteLn('    MFAudio.LoadFromStream(''response.mp3'', AudioStream);');
   WriteLn('    ResMsg.AddMediaFile(MFAudio);   // goes directly to the user');
   WriteLn('');
   WriteLn('    Flow: LLM text ──> TTSTool generates audio ──> MP3');
   WriteLn('                                                 ──> user receives');
   WriteLn('                                   (the LLM never saw the audio)');
   WriteLn('');
-  WriteLn('    Herramientas Camino B (generación de salida):');
-  WriteLn('      SpeechTool  → texto  convierte a audio generado (MP3/WAV)');
-  WriteLn('      ImageTool   → prompt convierte a imagen generada (PNG/JPG)');
-  WriteLn('      VideoTool   → prompt convierte a video generado (MP4)');
-  WriteLn('      ReportTool  → datos  convierte a PDF generado');
+  WriteLn('    Path B tools (output generation):');
+  WriteLn('      SpeechTool  → text  converts to generated audio (MP3/WAV)');
+  WriteLn('      ImageTool   → prompt converts to generated image (PNG/JPG)');
+  WriteLn('      VideoTool   → prompt converts to generated video (MP4)');
+  WriteLn('      ReportTool  → data  converts to generated PDF');
   WriteLn('');
-  WriteLn('  Tabla de decision:');
+  WriteLn('  Decision table:');
   WriteLn('  ┌─────────────────┬──────────────┬──────────────────────────┐');
-  WriteLn('  │ Tool            │ Tipo         │ LLM ve el resultado?     │');
+  WriteLn('  │ Tool            │ Type         │ Does the LLM see the result? │');
   WriteLn('  ├─────────────────┼──────────────┼──────────────────────────┤');
-  WriteLn('  │ VisionTool      │ Comprension  │ Si — razona la descripc. │');
-  WriteLn('  │ SpeechTool (STT)│ Comprension  │ Si — razona la transcrip.│');
-  WriteLn('  │ PdfTool         │ Comprension  │ Si — razona el contenido │');
-  WriteLn('  │ SpeechTool (TTS)│ Generacion   │ No — audio va al usuario │');
-  WriteLn('  │ ImageTool       │ Generacion   │ No — imagen va al usuario│');
-  WriteLn('  │ VideoTool       │ Generacion   │ No — video va al usuario │');
+  WriteLn('  │ VisionTool      │ Comprehension│ Yes — reasons about the desc.│');
+  WriteLn('  │ SpeechTool (STT)│ Comprehension│ Yes — reasons about the transcr.│');
+  WriteLn('  │ PdfTool         │ Comprehension│ Yes — reasons about the content │');
+  WriteLn('  │ SpeechTool (TTS)│ Generation  │ No — audio goes to the user │');
+  WriteLn('  │ ImageTool       │ Generation   │ No — image goes to the user│');
+  WriteLn('  │ VideoTool       │ Generation  │ No — video goes to the user │');
   WriteLn('  └─────────────────┴──────────────┴──────────────────────────┘');
   WriteLn('');
-  WriteLn('→ Pregunta clave: ¿necesitas que el LLM procese el resultado?');
-  WriteLn('  Si  → Camino A: aMediaFile.Transcription + Procesado = True');
-  WriteLn('  No  → Camino B: ResMsg.AddMediaFile(archivoGenerado)');
+  WriteLn('→ Key question: do you need the LLM to process the result?');
+  WriteLn('  Yes → Path A: aMediaFile.Transcription + Procesado = True');
+  WriteLn('  No  → Path B: ResMsg.AddMediaFile(archivoGenerado)');
 end;
 
 // =============================================================================
@@ -299,21 +299,21 @@ procedure RunDemo;
 var
   OllamaOK: Boolean;
 begin
-  WriteLn('=== MakerAI — Capítulo 7: ChatTools ===');
-  WriteLn('Gap = SessionCaps - ModelCaps -> VisionTool cubre la brecha');
+  WriteLn('=== MakerAI — Chapter 7: ChatTools ===');
+  WriteLn('Gap = SessionCaps - ModelCaps -> VisionTool covers the gap');
 
   OllamaOK := OllamaDisponible;
   WriteLn('');
 
   if OllamaOK then
-    WriteLn('[OK] Ollama detectado en ', OLLAMA_URL)
+    WriteLn('[OK] Ollama detected at ', OLLAMA_URL)
   else
   begin
     WriteLn('[!!] Ollama no detectado en ', OLLAMA_URL);
-    WriteLn('     Demos 1 y 2 requieren Ollama con gemma3:4b.');
-    WriteLn('     Para instalar: https://ollama.com');
-    WriteLn('     Para el modelo: ollama pull gemma3:4b');
-    WriteLn('     Solo se ejecutara el Demo 3 (conceptual, sin servicios externos).');
+    WriteLn('     Demos 1 and 2 require Ollama with gemma3:4b.');
+    WriteLn('     To install: https://ollama.com');
+    WriteLn('     For the model: ollama pull gemma3:4b');
+    WriteLn('     Only Demo 3 will run (conceptual, no external services).');
   end;
 
   if OllamaOK then
@@ -326,7 +326,7 @@ begin
 
   WriteLn('');
   WriteLn(StringOfChar('=', 62));
-  WriteLn('  Demo completado.');
+  WriteLn('  Demo completed.');
   WriteLn(StringOfChar('=', 62));
 end;
 
@@ -338,6 +338,6 @@ begin
       WriteLn('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   WriteLn('');
-  WriteLn('Presiona Enter para salir...');
+  WriteLn('Press Enter to exit...');
   ReadLn;
 end.

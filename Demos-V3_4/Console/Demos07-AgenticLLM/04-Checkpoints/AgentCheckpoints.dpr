@@ -72,7 +72,7 @@ begin
     Translator.SystemPrompt :=
       'You are a translator from English to Spanish. ' +
       'Translate each keyword on its own line. ' +
-      'Format: "English term → termino en espanol". One per line.';
+      'Format: "English term → Spanish term". One per line.';
 
     // Node 3: Summary generator
     Summarizer := TLLMNode.Create(Manager);
@@ -83,7 +83,7 @@ begin
     Summarizer.ApiKey       := API_KEY;
     Summarizer.UseAllTools  := False;
     Summarizer.SystemPrompt :=
-      'You are a Spanish writer. You receive a list of translated keywords. ' +
+      'You are a writer in Spanish. You receive a list of translated keywords. ' +
       'Write a short paragraph (3-4 sentences) in Spanish that integrates ' +
       'all those concepts naturally.';
 

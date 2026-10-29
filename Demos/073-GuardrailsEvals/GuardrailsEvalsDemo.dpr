@@ -1,31 +1,31 @@
 program GuardrailsEvalsDemo;
 
 // =============================================================================
-// DEMO 073 - Guardrails de tool calls y framework de evals
+// DEMO 073 - Tool-call guardrails and evals framework
 // =============================================================================
-// Dos componentes que trabajan juntos para poner una IA en produccion con algo
-// de red de seguridad, sin necesidad de LLM ni API keys:
+// Two components that work together to put an AI in production with some
+// safety net, without needing an LLM or API keys:
 //
-//   1. TAiGuardrails : politica de tool calls. Se consulta en el choke point de
-//                      TAiFunctions.DoCallFunction, de modo que cubre por igual
-//                      los tools locales, los de MCP y los de AutoMCP.
-//   2. TAiEvalRunner : evals sobre un target generico function(Input): string,
-//                      con checks deterministas y reporte para consola o CI.
+//   1. TAiGuardrails : tool-call policy. It is consulted at the choke point of
+//                      TAiFunctions.DoCallFunction, so it covers equally
+//                      local tools, MCP tools and AutoMCP tools.
+//   2. TAiEvalRunner : evals over a generic function(Input): string target,
+//                      with deterministic checks and a report for console or CI.
 //
-// El demo corre tres bloques:
-//   A. Guardrails en aislado  -> allowlist, blocklist con comodin, patron
-//                                prohibido en argumentos y veto programatico.
-//   B. Guardrails integrado   -> se registra un tool real en TAiFunctions y se
-//                                comprueba que el bloqueo IMPIDE su ejecucion
-//                                (no basta con avisar: el handler no corre).
-//   C. Evals                  -> se evalua un clasificador determinista y se
-//                                imprime el reporte; el exit code refleja si
-//                                todos los casos pasaron.
+// The demo runs three blocks:
+//   A. Isolated guardrails -> allowlist, wildcard blocklist, forbidden
+//                            argument pattern and programmatic veto.
+//   B. Integrated guardrails -> a real tool is registered in TAiFunctions and
+//                            it is verified that blocking PREVENTS its execution
+//                            (warning is not enough: the handler does not run).
+//   C. Evals                -> a deterministic classifier is evaluated and the
+//                            report is printed; the exit code reflects whether
+//                            all cases passed.
 //
-// Modos de uso:
-//   GuardrailsEvalsDemo.exe            -> los tres bloques
-//   GuardrailsEvalsDemo.exe --json r.json -> ademas vuelca el reporte de evals
-//   GuardrailsEvalsDemo.exe --otel     -> exporta trazas OTLP a localhost:4318
+// Usage modes:
+//   GuardrailsEvalsDemo.exe            -> the three blocks
+//   GuardrailsEvalsDemo.exe --json r.json -> also dumps the eval report
+//   GuardrailsEvalsDemo.exe --otel     -> exports OTLP traces to localhost:4318
 // =============================================================================
 
 {$APPTYPE CONSOLE}
@@ -43,8 +43,8 @@ uses
   uMakerAi.Telemetry;
 
 type
-  // Los eventos del framework son 'of object': no aceptan lambdas, por eso los
-  // handlers viven en una clase.
+  // Framework events are 'of object': they do not accept lambdas, so the
+  // handlers live in a class.
   TDemoHandlers = class
   public
     ToolEjecutado: Boolean;
@@ -60,9 +60,9 @@ type
 procedure TDemoHandlers.ToolAction(Sender: TObject; FunctionAction: TFunctionActionItem; FunctionName: String;
   ToolCall: TAiToolsFunction; var Handled: Boolean);
 begin
-  // Si esto corre, el guardrail NO cumplio su trabajo.
+  // If this runs, the guardrail did NOT do its job.
   ToolEjecutado := True;
-  ToolCall.Response := 'El tool se ejecuto y borro los archivos';
+  ToolCall.Response := 'The tool ran and deleted the files';
   Handled := True;
 end;
 
@@ -77,15 +77,15 @@ procedure TDemoHandlers.GuardCheck(Sender: TObject; const AToolName, AArguments:
 var
   Args: string;
 begin
-  // OJO: AArguments es el JSON CRUDO que mando el modelo, no un valor ya
-  // parseado. En una ruta de Windows las barras vienen escapadas por JSON
-  // ("c:\\windows"), asi que comparar contra 'c:\windows' no dispara nunca.
-  // Hay que desescaparlas primero. Es el error tipico al escribir un filtro
-  // sobre argumentos, y deja el guardrail silenciosamente inutil.
+  // NOTE: AArguments is the RAW JSON sent by the model, not an already
+  // parsed value. In a Windows path the slashes are escaped by JSON
+  // ("c:\\windows"), so comparing against 'c:\windows' never triggers.
+  // They must be unescaped first. This is the typical error when writing a
+  // filter over arguments, and it leaves the guardrail silently useless.
   Args := AArguments.ToLower.Replace('\\', '\');
 
-  // Veto programatico: la ultima palabra la tiene el codigo de la aplicacion,
-  // por encima de las listas. Aqui: nada que toque la carpeta de sistema.
+  // Programmatic veto: the application code has the last word,
+  // above the lists. Here: nothing may touch the system folder.
   if Args.Contains('c:\windows') then
   begin
     AAllow := False;
@@ -113,15 +113,15 @@ var
   Guard: TAiGuardrails;
 begin
   Writeln('');
-  Writeln('== A. Guardrails: politica de tool calls ==');
+  Writeln('== A. Guardrails: tool-call policy ==');
   Writeln('');
 
   Guard := TAiGuardrails.Create(nil);
   try
     Guard.OnBlocked := AHandlers.GuardBlocked;
 
-    // --- A.1 Blocklist con comodines de mascara ---
-    Writeln('   A.1 Blocklist: shell_* y borrar_archivo');
+    // --- A.1 Blocklist with wildcard masks ---
+    Writeln('   A.1 Blocklist: shell_* and borrar_archivo');
     Guard.BlockedTools.Add('shell_*');
     Guard.BlockedTools.Add('borrar_archivo');
     Probar(Guard, 'consultar_saldo', '{}');
@@ -129,32 +129,32 @@ begin
     Probar(Guard, 'borrar_archivo', '{"path":"a.txt"}');
     Writeln('');
 
-    // --- A.2 Allowlist estricta: si no esta vacia, manda ella ---
-    Writeln('   A.2 Allowlist estricta: solo consultar_*');
+    // --- A.2 Strict allowlist: if it is not empty, it wins ---
+    Writeln('   A.2 Strict allowlist: only consultar_*');
     Guard.BlockedTools.Clear;
     Guard.AllowedTools.Add('consultar_*');
     Probar(Guard, 'consultar_saldo', '{}');
     Probar(Guard, 'transferir', '{"monto":1000}');
     Writeln('');
 
-    // --- A.3 Patrones prohibidos en los ARGUMENTOS ---
-    // El nombre del tool puede ser inocuo y el argumento no serlo.
-    Writeln('   A.3 Patron prohibido en argumentos: DROP TABLE');
+    // --- A.3 Forbidden patterns in ARGUMENTS ---
+    // The tool name can be harmless while the argument is not.
+    Writeln('   A.3 Forbidden pattern in arguments: DROP TABLE');
     Guard.AllowedTools.Clear;
     Guard.BlockedArgPatterns.Add('DROP TABLE');
     Probar(Guard, 'ejecutar_sql', '{"q":"select * from clientes"}');
     Probar(Guard, 'ejecutar_sql', '{"q":"drop table clientes"}'); // case-insensitive
     Writeln('');
 
-    // --- A.4 Veto programatico ---
-    Writeln('   A.4 Veto programatico via OnCheckToolCall');
+    // --- A.4 Programmatic veto ---
+    Writeln('   A.4 Programmatic veto via OnCheckToolCall');
     Guard.BlockedArgPatterns.Clear;
     Guard.OnCheckToolCall := AHandlers.GuardCheck;
     Probar(Guard, 'leer_archivo', '{"path":"d:\\datos\\informe.txt"}');
     Probar(Guard, 'leer_archivo', '{"path":"c:\\windows\\system32\\config"}');
     Writeln('');
 
-    Writeln(Format('   Total bloqueos registrados: %d (BlockedCount=%d)', [AHandlers.BloqueosVistos, Guard.BlockedCount]));
+    Writeln(Format('   Total recorded blocks: %d (BlockedCount=%d)', [AHandlers.BloqueosVistos, Guard.BlockedCount]));
   finally
     Guard.Free;
   end;
@@ -171,14 +171,14 @@ var
   ToolCall: TAiToolsFunction;
 begin
   Writeln('');
-  Writeln('== B. Integracion real: el tool bloqueado NO se ejecuta ==');
+  Writeln('== B. Real integration: the blocked tool does NOT run ==');
   Writeln('');
 
   Guard := TAiGuardrails.Create(nil);
   Funcs := TAiFunctions.Create(nil);
   ToolCall := TAiToolsFunction.Create;
   try
-    // Un tool de verdad, con su handler
+    // A real tool, with its handler
     Item := Funcs.Functions.Add;
     Item.FunctionName := 'borrar_todo';
     Item.Enabled := True;
@@ -191,15 +191,15 @@ begin
     ToolCall.Name := 'borrar_todo';
     ToolCall.Arguments := '{}';
 
-    // Este es el choke point que usan tools locales, MCP y AutoMCP
+    // This is the choke point used by local tools, MCP and AutoMCP
     Funcs.DoCallFunction(ToolCall);
 
-    Writeln('   Respuesta devuelta al LLM:');
+    Writeln('   Response returned to the LLM:');
     Writeln('     ' + ToolCall.Response);
     if AHandlers.ToolEjecutado then
-      Writeln('   FALLO: el handler del tool llego a ejecutarse')
+      Writeln('   FAIL: the tool handler did run')
     else
-      Writeln('   OK: el handler NUNCA se ejecuto, y el LLM recibio el motivo');
+      Writeln('   OK: the handler NEVER ran, and the LLM received the reason');
   finally
     ToolCall.Free;
     Funcs.Free;
@@ -211,20 +211,20 @@ end;
 // C. Evals
 // -----------------------------------------------------------------------------
 
-// El "sistema bajo prueba". En un caso real seria una llamada a un LLM, un
-// agente o una cadena RAG; aqui es determinista para que el demo no dependa de
-// claves ni de red.
+// The "system under test". In a real case it would be an LLM call, an
+// agent or a RAG chain; here it is deterministic so the demo does not depend on
+// keys or network.
 function ClasificarTicket(const AInput: string): string;
 var
   S: string;
 begin
   S := AInput.ToLower;
-  if S.Contains('factura') or S.Contains('cobro') or S.Contains('pago') then
-    Result := 'categoria: facturacion'
-  else if S.Contains('error') or S.Contains('falla') or S.Contains('no funciona') then
-    Result := 'categoria: soporte tecnico'
+  if S.Contains('invoice') or S.Contains('charge') or S.Contains('payment') then
+    Result := 'category: billing'
+  else if S.Contains('error') or S.Contains('failure') or S.Contains('not working') then
+    Result := 'category: technical support'
   else
-    Result := 'categoria: general';
+    Result := 'category: general';
 end;
 
 function BloqueEvals(const AJsonPath: string): Boolean;
@@ -234,27 +234,27 @@ var
   Json: TJSONObject;
 begin
   Writeln('');
-  Writeln('== C. Evals: TAiEvalRunner sobre un clasificador ==');
+  Writeln('== C. Evals: TAiEvalRunner over a classifier ==');
   Writeln('');
 
   Runner := TAiEvalRunner.Create(nil);
   try
     Runner.AddCase('clasifica.facturacion')
-      .Input('Me llego una factura duplicada este mes')
-      .ExpectContains('facturacion');
+      .Input('I received a duplicate invoice this month')
+      .ExpectContains('billing');
 
     Runner.AddCase('clasifica.soporte')
-      .Input('La aplicacion muestra un error al iniciar')
-      .ExpectEquals('categoria: soporte tecnico');
+      .Input('The application shows an error on startup')
+      .ExpectEquals('category: technical support');
 
     Runner.AddCase('clasifica.general')
-      .Input('Queria saber el horario de atencion')
+      .Input('I wanted to know the opening hours')
       .ExpectContains('general')
       .ExpectNotContains('soporte');
 
     Runner.AddCase('clasifica.formato')
-      .Input('No funciona el boton de pago')
-      .ExpectRegex('^categoria: .+$')
+      .Input('The payment button does not work')
+      .ExpectRegex('^category: .+$')
       .ExpectMaxLength(60);
 
     // Para usar LLM-as-judge basta asignar Runner.Judge := <un TAiChat> y
@@ -323,10 +323,10 @@ begin
       Telemetry := TAiTelemetry.Create(nil);
       Telemetry.ServiceName := 'GuardrailsEvalsDemo';
       Telemetry.Enabled := True;
-      Writeln('[otel] Exportando trazas a ' + Telemetry.Endpoint);
+      Writeln('[otel] Exporting traces to ' + Telemetry.Endpoint);
     end;
 
-    Writeln('=== DEMO 073: Guardrails y Evals (sin LLM, sin API keys) ===');
+    Writeln('=== DEMO 073: Guardrails and Evals (no LLM, no API keys) ===');
 
     Handlers := TDemoHandlers.Create;
     try
@@ -339,7 +339,7 @@ begin
 
     Writeln('');
     if TodoOk then
-      Writeln('OK: todos los casos de eval pasaron.')
+      Writeln('OK: all eval cases passed.')
     else
       Writeln('ATENCION: hay casos de eval fallidos.');
 

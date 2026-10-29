@@ -6,16 +6,16 @@ program PDFChat;
 // =============================================================================
 // MakerAI — 02-ChatTools / 04-PDF
 // =============================================================================
-// Envía documentos PDF al LLM para que los lea, resuma y responda preguntas
-// sobre su contenido.
+// Sends PDF documents to the LLM so it can read, summarize, and answer questions
+// about their content.
 //
 // Concepts covered:
-//   - Adjuntar PDFs igual que imágenes (TAiMediaFile.LoadFromFile)
-//   - Activar Tfc_Pdf en NativeInputFiles y Tcm_Pdf en ChatMediaSupports
-//   - Extracción de información estructurada de documentos
-//   - Q&A sobre el contenido del PDF
-//   - Resumen automático
-//   - Proveedores con soporte nativo: Claude, Gemini
+//   - Attach PDFs just like images (TAiMediaFile.LoadFromFile)
+//   - Enable Tfc_Pdf in NativeInputFiles and Tcm_Pdf in ChatMediaSupports
+//   - Extract structured information from documents
+//   - Q&A about the PDF content
+//   - Automatic summary
+//   - Providers with native support: Claude, Gemini
 //
 // Note: If you don't have a PDF available, the demo creates a test one.
 // =============================================================================
@@ -36,8 +36,8 @@ const
   MODEL   = 'claude-haiku-4-5-20251001';
   API_KEY = '@CLAUDE_API_KEY';
 
-  // Ruta a tu PDF de prueba — ajusta según tu sistema
-  // Si el archivo no existe, el demo informa cómo obtener uno
+  // Path to your test PDF — adjust according to your system
+  // If the file does not exist, the demo explains how to get one
   PDF_PATH = 'C:\Users\Public\Documents\sample.pdf';
 
   PDF_FALLBACK_URL = 'https://www.w3.org/WAI/WCAG21/wcag21.pdf';
@@ -81,19 +81,19 @@ begin
   // Verify that the PDF exists
   PdfPath := PDF_PATH;
 
-  // Buscar un PDF del sistema si no existe el configurado
+  // Search for a system PDF if the configured one does not exist
   if not TFile.Exists(PdfPath) then
   begin
     Writeln('Test PDF not found at: ', PdfPath);
     Writeln;
-    Writeln('Para ejecutar este demo necesitas un archivo PDF.');
-    Writeln('Opciones:');
-    Writeln('  1. Edita PDF_PATH en el código con la ruta a tu PDF');
-    Writeln('  2. Descarga uno de prueba: ', PDF_FALLBACK_URL);
-    Writeln('  3. Usa cualquier PDF que tengas en tu sistema');
+    Writeln('To run this demo you need a PDF file.');
+    Writeln('Options:');
+    Writeln('  1. Edit PDF_PATH in the code with the path to your PDF');
+    Writeln('  2. Download a test one: ', PDF_FALLBACK_URL);
+    Writeln('  3. Use any PDF you have on your system');
     Writeln;
 
-    // Buscar cualquier PDF en Documents
+    // Search for any PDF in Documents
     var Files := TDirectory.GetFiles(
       TPath.GetDocumentsPath, '*.pdf', TSearchOption.soAllDirectories);
 

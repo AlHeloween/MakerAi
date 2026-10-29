@@ -1,25 +1,25 @@
-﻿// Demo de TRADUCTOR BIDIRECCIONAL en tiempo real (consola)
+﻿// Demo of a BIDIRECTIONAL real-time TRANSLATOR (console)
 // =========================================================
 //
-// Captura simultaneamente:
-//   [ELLOS] el audio que el sistema REPRODUCE (WASAPI loopback) -> lo que dice
-//           el otro lado de la videollamada (Zoom, Meet, Teams, YouTube...)
-//   [YO]    el microfono (WASAPI) -> lo que dices tu
+// Captures simultaneously:
+//   [THEM] the audio the system PLAYS (WASAPI loopback) -> what is said
+//           by the other side of the video call (Zoom, Meet, Teams, YouTube...)
+//   [ME]    the microphone (WASAPI) -> what you say
 //
-// Cada flujo se envia a un Realtime STT de OpenAI (VAD en el servidor) y cada
-// transcripcion completada se traduce con TAiChatConnection.
+// Each stream is sent to an OpenAI Realtime STT (VAD on the server) and each
+// completed transcription is translated with TAiChatConnection.
 //
 //   loopback --> TAiAudioCapture --> TAiOpenAiRealtimeSTT --+
 //                                                           +--> TAiChatConnection --> consola
 //   microfono -> TAiAudioCapture --> TAiOpenAiRealtimeSTT --+
 //
-// Requisitos:
-//   - Variable de entorno OPENAI_API_KEY (para STT y, por defecto, traduccion).
-//   - AURICULARES recomendados: con altavoces el microfono captura tambien el
-//     audio remoto y se duplican las transcripciones (eco acustico).
+// Requirements:
+//   - OPENAI_API_KEY environment variable (for STT and, by default, translation).
+//   - HEADPHONES recommended: with speakers the microphone also captures
+//     remote audio and transcriptions are duplicated (acoustic echo).
 //
-// El traductor es intercambiable: cambia TRANSLATOR_DRIVER / TRANSLATOR_MODEL /
-// TRANSLATOR_URL para usar Ollama u otro proveedor (p.ej. un servidor local).
+// The translator is interchangeable: change TRANSLATOR_DRIVER / TRANSLATOR_MODEL /
+// TRANSLATOR_URL to use Ollama or another provider (e.g. a local server).
 
 program TranslatorDemo;
 
@@ -43,23 +43,23 @@ const
   // ==========================================================================
 
   // Target language for each side
-  TARGET_LANG_REMOTE = 'espanol'; // lo que dice el otro lado -> espanol
-  TARGET_LANG_LOCAL = 'ingles'; // lo que digo yo -> ingles
+  TARGET_LANG_REMOTE = 'Spanish'; // what the other side says -> Spanish
+  TARGET_LANG_LOCAL = 'English'; // what I say -> English
 
   // Language hint for STT (ISO-639-1: 'en', 'es'... empty = auto-detect)
   STT_LANG_REMOTE = '';
   STT_LANG_LOCAL = '';
 
-  // Proveedor de traduccion (cualquier driver registrado de MakerAI).
-  // Para Ollama local: DRIVER='Ollama', MODEL='gpt-oss:20b', URL='http://192.168.3.121:11434/'
+  // Translation provider (any registered MakerAI driver).
+  // For local Ollama: DRIVER='Ollama', MODEL='gpt-oss:20b', URL='http://192.168.3.121:11434/'
   TRANSLATOR_DRIVER = 'OpenAi';
   TRANSLATOR_MODEL = 'gpt-4o-mini';
   TRANSLATOR_URL = ''; // vacio = URL por defecto del driver
   TRANSLATOR_APIKEY = '@OPENAI_API_KEY';
 
   STT_APIKEY = '@OPENAI_API_KEY';
-  // Modelo de la sesion Realtime (coincide con el default del driver;
-  // se deja explicito para que el demo no cambie si el default cambia).
+  // Realtime session model (matches the driver default;
+  // kept explicit so the demo does not change if the default changes).
   STT_MODEL = 'gpt-realtime-2.1';
 
 var
@@ -120,8 +120,8 @@ begin
   FSTT := TAiOpenAiRealtimeSTT.Create(nil);
   FSTT.ApiKey := STT_APIKEY;
   FSTT.Model := STT_MODEL;
-  // gpt-live-transcribe (ago 2026): mejor WER con ruido de fondo, acentos y
-  // terminologia; acepta contexto del dominio (prompt + idiomas esperados)
+  // gpt-live-transcribe (Aug 2026): better WER with background noise, accents and
+  // terminology; accepts domain context (prompt + expected languages)
   FSTT.TranscriptionModel := otmGptLiveTranscribe;
   FSTT.TranscriptionPrompt := 'Llamada de trabajo traducida en tiempo real';
   FSTT.Language := aSttLanguage;
@@ -244,22 +244,22 @@ begin
     try
       WriteLn('=== Bidirectional real-time translator (MakerAI) ===');
       WriteLn;
-      WriteLn('  [ELLOS] audio del sistema (loopback)  -> ' + TARGET_LANG_REMOTE);
-      WriteLn('  [YO]    microfono                     -> ' + TARGET_LANG_LOCAL);
+      WriteLn('  [THEM] system audio (loopback)  -> ' + TARGET_LANG_REMOTE);
+      WriteLn('  [ME]    microphone                     -> ' + TARGET_LANG_LOCAL);
       WriteLn;
-      WriteLn('  Recomendado usar AURICULARES (evita que el microfono capture');
-      WriteLn('  el audio remoto y se dupliquen las transcripciones).');
+      WriteLn('  HEADPHONES recommended (prevents the microphone from capturing');
+      WriteLn('  remote audio and duplicating transcriptions).');
       WriteLn;
 
       if GetEnvironmentVariable('OPENAI_API_KEY') = '' then
       begin
-        WriteLn('ERROR: la variable de entorno OPENAI_API_KEY no esta definida.');
-        WriteLn('Definela y vuelve a ejecutar.');
+        WriteLn('ERROR: the OPENAI_API_KEY environment variable is not defined.');
+        WriteLn('Define it and run again.');
         Exit;
       end;
 
-      Remote := TTranslatorSide.Create(asLoopback, '[ELLOS]', TARGET_LANG_REMOTE, STT_LANG_REMOTE);
-      Local := TTranslatorSide.Create(asMicrophone, '[YO]   ', TARGET_LANG_LOCAL, STT_LANG_LOCAL);
+      Remote := TTranslatorSide.Create(asLoopback, '[THEM]', TARGET_LANG_REMOTE, STT_LANG_REMOTE);
+      Local := TTranslatorSide.Create(asMicrophone, '[ME]   ', TARGET_LANG_LOCAL, STT_LANG_LOCAL);
       try
         Remote.Start;
         Local.Start;
@@ -267,7 +267,7 @@ begin
         WriteLn('Translating... press ENTER to finish.');
         WriteLn;
 
-        // ReadLn en un task; el hilo principal procesa los eventos TThread.Queue
+        // ReadLn in a task; the main thread processes TThread.Queue events
         TTask.Run(
           procedure
           begin
@@ -281,7 +281,7 @@ begin
         WriteLn('Stopping...');
         Remote.Stop;
         Local.Stop;
-        CheckSynchronize(200); // drenar eventos pendientes
+        CheckSynchronize(200); // drain pending events
       finally
         Remote.Free;
         Local.Free;

@@ -37,8 +37,8 @@ uses
   System.Math;
 
 // =============================================================================
-// TExprCalc — evaluador aritmetico de expresiones de texto
-// Soporta: +  -  *  /  ()  sqrt()  numeros decimales
+// TExprCalc — arithmetic expression evaluator for text
+// Supports: +  -  *  /  ()  sqrt()  decimal numbers
 // =============================================================================
 type
   TExprCalc = class
@@ -233,8 +233,8 @@ procedure TDmW01.RunDemo;
   procedure Solve(const AQuestion: String);
   begin
     Writeln(StringOfChar('-', 60));
-    Writeln('Pregunta : ', AQuestion);
-    Writeln('Respuesta: ', Manager.Run(AQuestion));
+    Writeln('Question : ', AQuestion);
+    Writeln('Answer   : ', Manager.Run(AQuestion));
     Writeln;
   end;
 

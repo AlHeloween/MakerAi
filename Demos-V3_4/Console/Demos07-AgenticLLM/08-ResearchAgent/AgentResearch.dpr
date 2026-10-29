@@ -38,8 +38,8 @@ const
   API_KEY = '@CLAUDE_API_KEY';
 
 // -----------------------------------------------------------------------------
-// TMockSearchTool — busqueda web simulada con datos predefinidos
-// Args: { "query": string, "max_results": number (opcional) }
+// TMockSearchTool — simulated web search with predefined data
+// Args: { "query": string, "max_results": number (optional) }
 // -----------------------------------------------------------------------------
 type
   TMockSearchTool = class(TInterfacedObject, IAiTool)
@@ -146,7 +146,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// TNoteTool — guarda notas de investigacion en el blackboard
+// TNoteTool — saves research notes in the blackboard
 // Args: { "key": string, "content": string }
 // -----------------------------------------------------------------------------
 type
@@ -245,12 +245,12 @@ begin
     ResearchRegistry.Register(TMockSearchTool.Create, 'local', 'research');
     ResearchRegistry.Register(TNoteTool.Create(Manager.Blackboard), 'local', 'research');
 
-    // Nodo 1: Planner — genera consultas de busqueda
+    // Node 1: Planner — generates search queries
     PlannerNode := MakeLLMNode(Manager, 'Planner',
       'You are a research planner. Given a topic, output a research plan with ' +
       '3 specific search queries. Format: "QUERY 1: ...\nQUERY 2: ...\nQUERY 3: ..."');
 
-    // Nodo 2: Researcher — ejecuta busquedas y guarda hallazgos
+    // Node 2: Researcher — runs searches and saves findings
     ResearchNode := MakeLLMNode(Manager, 'Researcher',
       'You are a researcher. Execute the 3 search queries using web_search. ' +
       'After each search, save key findings using save_note with keys "finding1", "finding2", "finding3". ' +
@@ -258,17 +258,17 @@ begin
       True);  // UseAllTools=True
     ResearchNode.Registry := ResearchRegistry;  // usa su propio registry
 
-    // Nodo 3: Analyst — identifica insights y gaps
+    // Node 3: Analyst — identifies insights and gaps
     AnalystNode := MakeLLMNode(Manager, 'Analyst',
       'You are a critical analyst. Identify 3 key insights and 2 gaps. ' +
       'Format: "KEY INSIGHTS:" and "GAPS:"');
 
-    // Nodo 4: Writer — escribe el reporte final
+    // Node 4: Writer — writes the final report
     WriterNode := MakeLLMNode(Manager, 'Writer',
       'You are a technical writer. Write a structured mini-report with: ' +
       'Executive Summary, Key Findings, Conclusion. Keep it to 3 short paragraphs.');
 
-    // Encadenar: Planner -> Researcher -> Analyst -> Writer
+    // Chain: Planner -> Researcher -> Analyst -> Writer
     Link1 := TAIAgentsLink.Create(Manager); Link1.Name := 'L1'; Link1.Graph := Manager; Link1.NextA := ResearchNode; PlannerNode.Next  := Link1;
     Link2 := TAIAgentsLink.Create(Manager); Link2.Name := 'L2'; Link2.Graph := Manager; Link2.NextA := AnalystNode;  ResearchNode.Next := Link2;
     Link3 := TAIAgentsLink.Create(Manager); Link3.Name := 'L3'; Link3.Graph := Manager; Link3.NextA := WriterNode;   AnalystNode.Next  := Link3;

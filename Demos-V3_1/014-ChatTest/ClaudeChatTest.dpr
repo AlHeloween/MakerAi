@@ -59,7 +59,7 @@ begin
   Writeln('==============================');
 
   // --------------------------------------------------------------
-  // VALIDAR ARCHIVOS ANTES DE EJECUTAR LA PRUEBA
+  // VALIDATE FILES BEFORE RUNNING THE TEST
   // --------------------------------------------------------------
   for I := 0 to High(Attachments) do
   begin
@@ -67,20 +67,20 @@ begin
 
     if not FileExists(FileName) then
     begin
-      Writeln('⚠ ADVERTENCIA: El archivo requerido para esta prueba NO existe.');
-      Writeln('  Ruta: ', FileName);
-      Writeln('  ==> Esta prueba se omitirá.');
-      Exit('Archivo no encontrado: ' + FileName);
+      Writeln('WARNING: The file required for this test does NOT exist.');
+      Writeln('  Path: ', FileName);
+      Writeln('  ==> This test will be skipped.');
+      Exit('File not found: ' + FileName);
     end;
   end;
 
   // --------------------------------------------------------------
-  // SI LOS ARCHIVOS EXISTEN → EJECUTAMOS LA PRUEBA NORMALMENTE
+  // IF THE FILES EXIST → WE RUN THE TEST NORMALLY
   // --------------------------------------------------------------
 
   Ai := TAiChatConnection.Create(nil);
   try
-    // Configuración base estándar
+    // Standard base configuration
     ConfigureBase(Ai);
 
     Ai.Params.Values['Response_format'] := Cfg.ResponseFormat;
@@ -98,7 +98,7 @@ begin
       Ai.Params.Values['ThinkingLevel'] := Cfg.Thinking;
 
     // ------------------------------
-    // Manejo de archivos adjuntos
+    // Attachment handling
     // ------------------------------
     if Length(Attachments) > 0 then
     begin
@@ -129,21 +129,21 @@ end;
 
 //
 // =======================================
-// PRUEBAS DEL LOG (SIN SHELL/EDIT/FUNC)
+// LOG TESTS (WITHOUT SHELL/EDIT/FUNC)
 // =======================================
 //
 
 /// ///////////////////////
-// CHAT BÁSICO
+// BASIC CHAT
 /// ///////////////////////
 
 procedure Test_Chat1;
 var
   Cfg: TTestConfig;
 begin
-  Cfg.Name := 'CHAT BASICO 1';
+  Cfg.Name := 'BASIC CHAT 1';
   Cfg.ResponseFormat := 'tiaChatRfText';
-  RunSyncTest(Cfg, 'hola, cómo estas hoy?', []);
+  RunSyncTest(Cfg, 'hello, how are you today?', []);
 end;
 
 
@@ -157,7 +157,7 @@ var
 begin
   Cfg.Name := 'JSON FORMAT 1';
   Cfg.ResponseFormat := 'tiaChatRfJson';
-  RunSyncTest(Cfg, 'genera un json de prueba de 3 lineas', []);
+  RunSyncTest(Cfg, 'generate a test json of 3 lines', []);
 end;
 
 
@@ -173,7 +173,7 @@ begin
   Cfg.ResponseFormat := 'tiaChatRfJsonSchema';
   Cfg.JsonSchema := '{ "type":"object","properties":{"nombre":{"type":"string"},"edad":{"type":"integer"},"email":{"type":"string","format":"email"}},"required":["nombre","email"] }';
 
-  RunSyncTest(Cfg, 'genera un json de prueba', []);
+  RunSyncTest(Cfg, 'generate a test json', []);
 end;
 
 
@@ -189,7 +189,7 @@ begin
   Cfg.ResponseFormat := 'tiaChatRfText';
   Cfg.ChatMedia := '[Tcm_WebSearch, Tcm_Image, Tcm_Pdf]';
 
-  RunSyncTest(Cfg, 'busca en internet sobre MakerAi Delphi Suite', []);
+  RunSyncTest(Cfg, 'search the internet about MakerAi Delphi Suite', []);
 end;
 
 
@@ -205,7 +205,7 @@ begin
   Cfg.ResponseFormat := 'tiaChatRfText';
   Cfg.ChatMedia := '[Tcm_code_interpreter, Tcm_Image, Tcm_Pdf]';
 
-  RunSyncTest(Cfg, 'Genera un archivo .wav con un tono de 1500 hz', []);
+  RunSyncTest(Cfg, 'Generate a .wav file with a 1500 hz tone', []);
 end;
 
 
@@ -221,7 +221,7 @@ begin
   Cfg.ResponseFormat := 'tiaChatRfText';
   Cfg.NativeOutput := '[tfc_ExtracttextFile]';
 
-  RunSyncTest(Cfg, 'genera un html básico, un hola mundo', []);
+  RunSyncTest(Cfg, 'generate a basic html, a hello world', []);
 end;
 
 procedure Test_ExtractText2;
@@ -232,7 +232,7 @@ begin
   Cfg.ResponseFormat := 'tiaChatRfText';
   Cfg.NativeOutput := '[tfc_ExtracttextFile]';
 
-  RunSyncTest(Cfg, 'genera un código en pascal, un hola mundo en modo consola', []);
+  RunSyncTest(Cfg, 'generate pascal code, a hello world in console mode', []);
 end;
 
 /// ///////////////////////
@@ -243,9 +243,9 @@ procedure Test_VisionImage;
 var
   Cfg: TTestConfig;
 begin
-  Cfg.Name := 'VISION IMAGEN';
+  Cfg.Name := 'VISION IMAGE';
   Cfg.ResponseFormat := 'tiaChatRfText';
-  RunSyncTest(Cfg, 'describe esta imagen', ['medios/patito.png']);
+  RunSyncTest(Cfg, 'describe this image', ['medios/patito.png']);
 end;
 
 procedure Test_VisionPDF;
@@ -254,7 +254,7 @@ var
 begin
   Cfg.Name := 'VISION PDF';
   Cfg.ResponseFormat := 'tiaChatRfText';
-  RunSyncTest(Cfg, 'extrae el contenido de esta factura', ['medios/factura.pdf']);
+  RunSyncTest(Cfg, 'extract the content of this invoice', ['medios/factura.pdf']);
 end;
 
 procedure Test_VisionPDFJson;
@@ -265,7 +265,7 @@ begin
   Cfg.ResponseFormat := 'tiaChatRfJson';
   Cfg.NativeOutput := '[tfc_ExtracttextFile]';
 
-  RunSyncTest(Cfg, 'extrae el contenido de esta factura en un json', ['medios/factura.pdf']);
+  RunSyncTest(Cfg, 'extract the content of this invoice in a json', ['medios/factura.pdf']);
 end;
 
 /// ///////////////////////
@@ -280,33 +280,33 @@ begin
   Cfg.ResponseFormat := 'tiaChatRfText';
   Cfg.Thinking := 'tlHigh';
 
-  RunSyncTest(Cfg, 'si tengo 10 velas y las enciendo todas...', []);
+  RunSyncTest(Cfg, 'if I have 10 candles and light them all...', []);
 end;
 
 /// ///////////////////////
-// AGRADECIMIENTOS
+// ACKNOWLEDGMENTS
 /// ///////////////////////
 
 procedure Test_Agradecimientos;
 var
   Cfg: TTestConfig;
 begin
-  Cfg.Name := 'AGRADECIMIENTOS';
+  Cfg.Name := 'ACKNOWLEDGMENTS';
   Cfg.ResponseFormat := 'tiaChatRfText';
 
-  RunSyncTest(Cfg, 'agradece a los que están viendo este video por vernos y llegar hasta el final', []);
+  RunSyncTest(Cfg, 'thank those who are watching this video for watching us and making it to the end', []);
 end;
 
 
 //
 // ======================
-// EJECUCIÓN GENERAL
+// GENERAL EXECUTION
 // ======================
 //
 
 begin
   try
-    Writeln('=== EJECUTANDO PRUEBAS ===');
+    Writeln('=== RUNNING TESTS ===');
 
     Test_Chat1;
 
@@ -329,7 +329,7 @@ begin
     Test_Agradecimientos;
 
     Writeln('');
-    Writeln('=== FIN DE PRUEBAS ===');
+    Writeln('=== END OF TESTS ===');
     Readln;
 
   except

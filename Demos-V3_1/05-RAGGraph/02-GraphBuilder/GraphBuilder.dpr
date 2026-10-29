@@ -9,7 +9,7 @@ program GraphBuilder;
 // Builds a more complex graph and navigates relationships between nodes.
 // Shows how to traverse neighbors, find paths, and analyze the graph.
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - Scientific domain graph (disciplines, concepts, authors)
 //   - FindNodesByLabel: search nodes by label
 //   - FindNodeByName: search node by name
@@ -38,74 +38,74 @@ const
 // =============================================================================
 procedure ConstruirGrafoCiencias(RAG: TAiRagGraph);
 var
-  // Disciplinas
+  // Disciplines
   IA, ML, DL, NLP, CV: TAiRagGraphNode;
-  // Técnicas
+  // Techniques
   NN, CNN, RNN, Transformer, RAGTech: TAiRagGraphNode;
   // Frameworks
   TensorFlow, PyTorch, Keras: TAiRagGraphNode;
 begin
-  Writeln('Construyendo grafo de Ciencias de la Computacion...');
+  Writeln('Building computer science graph...');
 
   // --- Disciplines ---
-  IA := RAG.AddNode('d001', 'DISCIPLINA', 'Inteligencia Artificial');
-  IA.Text := 'Inteligencia Artificial: rama de la informatica que simula capacidades cognitivas.';
+  IA := RAG.AddNode('d001', 'DISCIPLINE', 'Artificial Intelligence');
+  IA.Text := 'Artificial Intelligence: branch of computer science that simulates cognitive capabilities.';
 
-  ML := RAG.AddNode('d002', 'DISCIPLINA', 'Machine Learning');
-  ML.Text := 'Machine Learning: subcampo de IA que aprende patrones de datos.';
+  ML := RAG.AddNode('d002', 'DISCIPLINE', 'Machine Learning');
+  ML.Text := 'Machine Learning: subfield of AI that learns patterns from data.';
 
-  DL := RAG.AddNode('d003', 'DISCIPLINA', 'Deep Learning');
-  DL.Text := 'Deep Learning: ML con redes neuronales profundas de múltiples capas.';
+  DL := RAG.AddNode('d003', 'DISCIPLINE', 'Deep Learning');
+  DL.Text := 'Deep Learning: ML with deep neural networks of multiple layers.';
 
-  NLP := RAG.AddNode('d004', 'DISCIPLINA', 'Procesamiento de Lenguaje Natural');
-  NLP.Text := 'NLP: rama de IA para entender y generar texto en lenguaje humano.';
+  NLP := RAG.AddNode('d004', 'DISCIPLINE', 'Natural Language Processing');
+  NLP.Text := 'NLP: branch of AI for understanding and generating text in human language.';
 
-  CV := RAG.AddNode('d005', 'DISCIPLINA', 'Vision por Computadora');
-  CV.Text := 'Vision por Computadora: IA para interpretar y analizar imágenes y video.';
+  CV := RAG.AddNode('d005', 'DISCIPLINE', 'Computer Vision');
+  CV.Text := 'Computer Vision: AI for interpreting and analyzing images and video.';
 
   // --- Techniques ---
-  NN := RAG.AddNode('t001', 'TECNICA', 'Redes Neuronales');
-  NN.Text := 'Redes neuronales artificiales inspiradas en el cerebro humano.';
+  NN := RAG.AddNode('t001', 'TECHNIQUE', 'Neural Networks');
+  NN.Text := 'Artificial neural networks inspired by the human brain.';
 
-  CNN := RAG.AddNode('t002', 'TECNICA', 'CNN');
-  CNN.Text := 'Convolutional Neural Networks, especializadas en análisis de imágenes.';
+  CNN := RAG.AddNode('t002', 'TECHNIQUE', 'CNN');
+  CNN.Text := 'Convolutional Neural Networks, specialized in image analysis.';
 
-  RNN := RAG.AddNode('t003', 'TECNICA', 'RNN');
-  RNN.Text := 'Recurrent Neural Networks, para secuencias y datos temporales.';
+  RNN := RAG.AddNode('t003', 'TECHNIQUE', 'RNN');
+  RNN.Text := 'Recurrent Neural Networks, for sequences and temporal data.';
 
-  Transformer := RAG.AddNode('t004', 'TECNICA', 'Transformer');
-  Transformer.Text := 'Arquitectura Transformer con atención, base de GPT y BERT.';
+  Transformer := RAG.AddNode('t004', 'TECHNIQUE', 'Transformer');
+  Transformer.Text := 'Transformer architecture with attention, basis of GPT and BERT.';
 
-  RAGTech := RAG.AddNode('t005', 'TECNICA', 'RAG');
-  RAGTech.Text := 'Retrieval Augmented Generation: combina búsqueda vectorial con LLMs.';
+  RAGTech := RAG.AddNode('t005', 'TECHNIQUE', 'RAG');
+  RAGTech.Text := 'Retrieval Augmented Generation: combines vector search with LLMs.';
 
   // --- Frameworks ---
   TensorFlow := RAG.AddNode('f001', 'FRAMEWORK', 'TensorFlow');
-  TensorFlow.Text := 'TensorFlow: framework de ML de Google para producción.';
+  TensorFlow.Text := 'TensorFlow: Google ML framework for production.';
 
   PyTorch := RAG.AddNode('f002', 'FRAMEWORK', 'PyTorch');
-  PyTorch.Text := 'PyTorch: framework de ML de Meta, popular en investigación.';
+  PyTorch.Text := 'PyTorch: Meta ML framework, popular in research.';
 
   Keras := RAG.AddNode('f003', 'FRAMEWORK', 'Keras');
-  Keras.Text := 'Keras: API de alto nivel para construir redes neuronales.';
+  Keras.Text := 'Keras: high-level API for building neural networks.';
 
   // --- Hierarchical relationships ---
-  RAG.AddEdge(IA, ML,  'h001', 'INCLUYE', 'incluye');
-  RAG.AddEdge(ML, DL,  'h002', 'INCLUYE', 'incluye');
-  RAG.AddEdge(DL, NLP, 'h003', 'HABILITA', 'habilita');
-  RAG.AddEdge(DL, CV,  'h004', 'HABILITA', 'habilita');
+  RAG.AddEdge(IA, ML,  'h001', 'INCLUDES', 'includes');
+  RAG.AddEdge(ML, DL,  'h002', 'INCLUDES', 'includes');
+  RAG.AddEdge(DL, NLP, 'h003', 'ENABLES', 'enables');
+  RAG.AddEdge(DL, CV,  'h004', 'ENABLES', 'enables');
 
   // --- Relationships technique → discipline ---
-  RAG.AddEdge(NN,          ML,  'u001', 'USADA_EN', 'usada en');
-  RAG.AddEdge(CNN,         CV,  'u002', 'USADA_EN', 'usada en');
-  RAG.AddEdge(RNN,         NLP, 'u003', 'USADA_EN', 'usada en');
-  RAG.AddEdge(Transformer, NLP, 'u004', 'USADA_EN', 'usada en');
-  RAG.AddEdge(RAGTech,     NLP, 'u005', 'USADA_EN', 'usada en');
+  RAG.AddEdge(NN,          ML,  'u001', 'USED_IN', 'used in');
+  RAG.AddEdge(CNN,         CV,  'u002', 'USED_IN', 'used in');
+  RAG.AddEdge(RNN,         NLP, 'u003', 'USED_IN', 'used in');
+  RAG.AddEdge(Transformer, NLP, 'u004', 'USED_IN', 'used in');
+  RAG.AddEdge(RAGTech,     NLP, 'u005', 'USED_IN', 'used in');
 
   // --- Relationships framework → technique ---
-  RAG.AddEdge(TensorFlow, NN,          'i001', 'IMPLEMENTA', 'implementa');
-  RAG.AddEdge(PyTorch,    Transformer, 'i002', 'IMPLEMENTA', 'implementa');
-  RAG.AddEdge(Keras,      CNN,         'i003', 'IMPLEMENTA', 'implementa');
+  RAG.AddEdge(TensorFlow, NN,          'i001', 'IMPLEMENTS', 'implements');
+  RAG.AddEdge(PyTorch,    Transformer, 'i002', 'IMPLEMENTS', 'implements');
+  RAG.AddEdge(Keras,      CNN,         'i003', 'IMPLEMENTS', 'implements');
 
   Writeln(Format('Graph ready: %d nodes, %d edges.', [RAG.NodeCount, RAG.EdgeCount]));
   Writeln;
@@ -132,7 +132,7 @@ begin
 
   Vecinos := RAG.GetNeighbors(Node, gdOutgoing);
   if Length(Vecinos) = 0 then
-    Writeln('  (sin vecinos salientes)')
+    Writeln('  (no outgoing neighbors)')
   else
     for Vecino in Vecinos do
       Writeln(Format('  --> %s (%s)', [Vecino.Name, Vecino.NodeLabel]));
@@ -210,7 +210,7 @@ begin
     Writeln;
 
     // Neighbors
-    MostrarVecinos(RAG, 'Deep Learning', 'DISCIPLINA');
+    MostrarVecinos(RAG, 'Deep Learning', 'DISCIPLINE');
     MostrarVecinos(RAG, 'PyTorch', 'FRAMEWORK');
     Writeln;
 
@@ -230,9 +230,9 @@ begin
 
     // Semantic search with depth=1 (expands neighbors)
     Writeln(StringOfChar('-', 60));
-    Writeln('Busqueda semantica con expansion (depth=1):');
+    Writeln('Semantic search with expansion (depth=1):');
     Writeln('"text generation with transformers"');
-    Writeln(RAG.SearchText('generacion de texto con transformers', 1, False, 3, 0.2));
+    Writeln(RAG.SearchText('text generation with transformers', 1, False, 3, 0.2));
 
   finally
     RAG.Free;
@@ -248,6 +248,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

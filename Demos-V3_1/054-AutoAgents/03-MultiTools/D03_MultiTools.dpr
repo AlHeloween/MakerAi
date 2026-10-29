@@ -294,7 +294,7 @@ begin
   Writeln('4 tools: calculator, datetime, temperature, word count');
   Writeln;
 
-  // Registrar todas las herramientas
+  // Register all tools
   TAiToolRegistry.Instance.Register(TCalculatorTool.Create,   'local', 'math');
   TAiToolRegistry.Instance.Register(TDateTimeTool.Create,     'local', 'utility');
   TAiToolRegistry.Instance.Register(TTemperatureTool.Create,  'local', 'utility');
@@ -334,19 +334,19 @@ begin
     Manager.EndNode   := EndNode;
     Manager.Compile;
 
-    // Pregunta 1: solo calculadora
-    RunQuery(Manager, 'Cuanto es 347 por 28?');
+    // Question 1: calculator only
+    RunQuery(Manager, 'How much is 347 times 28?');
 
-    // Pregunta 2: solo datetime
-    RunQuery(Manager, 'Que fecha y hora es ahora?');
+    // Question 2: datetime only
+    RunQuery(Manager, 'What date and time is it now?');
 
-    // Pregunta 3: dos herramientas (temperatura + calculadora)
-    RunQuery(Manager, 'Cuanto es 100 grados Fahrenheit en Celsius? Y cuanto es ese valor al cuadrado?');
+    // Question 3: two tools (temperature + calculator)
+    RunQuery(Manager, 'How much is 100 degrees Fahrenheit in Celsius? And what is that value squared?');
 
-    // Pregunta 4: word count
-    RunQuery(Manager, 'Cuantas palabras tiene esta frase: El rapido zorro marron salta sobre el perro perezoso');
+    // Question 4: word count
+    RunQuery(Manager, 'How many words does this sentence have: The quick brown fox jumps over the lazy dog');
 
-    // Mostrar contenido del blackboard tras la ultima ejecucion
+    // Show blackboard content after the last execution
     Writeln('--- Blackboard ---');
     ShowBlackboard(Manager);
 

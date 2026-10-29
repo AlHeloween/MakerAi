@@ -55,8 +55,8 @@ var
   UserConfig: TFileAccessConfig;
 begin
 
-  // 1. Configurar Usuario (Contexto de Seguridad)
-  // DataSnap nos da la info de sesi�n actual
+  // 1. Configure User (Security Context)
+  // DataSnap gives us the current session info
   if TDSSessionManager.GetThreadSession <> nil then
     MCPDirect.User := TDSSessionManager.GetThreadSession.UserName;
 
@@ -75,14 +75,14 @@ begin
   UserConfig.AddAllowedExtension('.txt');
   UserConfig.AddAllowedExtension('.pdf');
 
-  // 2. Registrar herramientas pas�ndoles ESTA configuraci�n
-  // Nota: Las herramientas usar�n esta config pero NO la liberar�n (FOwnsConfig=False)
-  // Debemos asegurarnos de que la configuraci�n viva tanto como las herramientas.
-  // Como las herramientas y el DataModule mueren juntos al final de la sesi�n,
-  // podemos dejar que UserConfig se libere en el DataModuleDestroy o usar una interfaz para conteo de referencias.
+  // 2. Register tools passing THIS configuration
+  // Note: The tools will use this config but will NOT free it (FOwnsConfig=False)
+  // We must ensure the configuration lives as long as the tools.
+  // Since the tools and the DataModule die together at the end of the session,
+  // we can let UserConfig be freed in DataModuleDestroy or use an interface for reference counting.
 
-  // TRUCO: Para simplificar la gesti�n de memoria sin interfaces, podemos hacer que
-  // la PRIMERA herramienta sea due�a de la config, o registrarlas manualmente.
+  // TRICK: To simplify memory management without interfaces, we can make
+  // the FIRST tool own the config, or register them manually.
 
   MCPDirect.RegisterTool('list_files',
     function: IAiMCPTool
@@ -90,7 +90,7 @@ begin
       Result := TListFilesTool.Create(UserConfig);
     end);
 
-  // 3. Arrancar
+  // 3. Start
   MCPDirect.Start;
 end;
 

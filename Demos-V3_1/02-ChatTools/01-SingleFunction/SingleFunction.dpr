@@ -6,19 +6,19 @@ program SingleFunction;
 // =============================================================================
 // MakerAI — 02-ChatTools / 01-SingleFunction
 // =============================================================================
-// Demuestra cómo exponer UNA función Delphi al LLM para que la invoque
+// Demonstrates how to expose ONE Delphi function to the LLM so it can invoke it
 // cuando lo necesite (Tool Use / Function Calling).
 //
 // Conceptos que cubre:
-//   - Crear TAiFunctions y registrar una función con AddFunction()
-//   - Asignar TAiFunctions a TAiChatConnection.AiFunctions
-//   - Implementar el handler como método de clase (TFunctionEvent)
-//   - El LLM decide CUÁNDO llamar la función según el contexto
-//   - La función devuelve un resultado en ToolCall.Response
+//   - Create TAiFunctions and register a function with AddFunction()
+//   - Assign TAiFunctions to TAiChatConnection.AiFunctions
+//   - Implement the handler as a class method (TFunctionEvent)
+//   - The LLM decides WHEN to call the function based on context
+//   - The function returns a result in ToolCall.Response
 //
-// Flujo:
-//   Usuario → LLM detecta que necesita la función → llama get_weather →
-//   handler Delphi produce JSON → LLM redacta respuesta final
+// Flow:
+//   User → LLM detects it needs the function → calls get_weather →
+//   Delphi handler produces JSON → LLM drafts final response
 // =============================================================================
 
 uses
@@ -82,7 +82,7 @@ begin
     Args.Free;
   end;
 
-  // Datos simulados según la ciudad
+  // Simulated data according to the city
   if City.ToLower.Contains('monterrey') or City.ToLower.Contains('guadalajara') then
   begin
     TempC := 28; Cond := 'Soleado'; Hum := 45;
@@ -129,7 +129,7 @@ begin
     LParam.Name        := 'city';
     LParam.ParamType   := ptString;
     LParam.Required    := True;
-    LParam.Description.Text := 'Nombre de la ciudad (ej: "Monterrey", "Ciudad de México")';
+    LParam.Description.Text := 'Name of the city (e.g.: "Monterrey", "Mexico City")';
 
     // ── Crear conexión ────────────────────────────────────────────────────────
     Conn := TAiChatConnection.Create(nil);
@@ -147,24 +147,24 @@ begin
         'usa la función get_weather para obtener datos reales. Responde en español.';
 
       // ── Pregunta 1: necesita la función ────────────────────────────────────
-      Writeln('── Pregunta 1 (necesita la función) ──');
+      Writeln('── Question 1 (needs the function) ──');
       Res := Conn.AddMessageAndRun('¿Cómo está el clima en Monterrey hoy?', 'user', []);
-      Writeln('Respuesta: ', Res);
+      Writeln('Response: ', Res);
       Writeln;
       Conn.Messages.Clear;
 
       // ── Pregunta 2: NO necesita la función ─────────────────────────────────
-      Writeln('── Pregunta 2 (no necesita la función) ──');
+      Writeln('── Question 2 (does not need the function) ──');
       Res := Conn.AddMessageAndRun('¿Cuál es la capital de México?', 'user', []);
-      Writeln('Respuesta: ', Res);
+      Writeln('Response: ', Res);
       Writeln;
       Conn.Messages.Clear;
 
       // ── Pregunta 3: función con otra ciudad ────────────────────────────────
-      Writeln('── Pregunta 3 (invoca función con otra ciudad) ──');
+      Writeln('── Question 3 (invokes function with another city) ──');
       Res := Conn.AddMessageAndRun(
         '¿Necesito llevar paraguas si salgo en CDMX?', 'user', []);
-      Writeln('Respuesta: ', Res);
+      Writeln('Response: ', Res);
 
     finally
       Conn.Free;
@@ -190,6 +190,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

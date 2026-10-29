@@ -6,19 +6,19 @@ program AllCapabilities;
 // =============================================================================
 // MakerAI — 02-ChatTools / 06-AllCapabilities
 // =============================================================================
-// Muestra cómo configurar TAiChatConnection con múltiples capacidades y cómo
-// el sistema de Gap (SessionCaps - ModelCaps) activa automáticamente los
-// ChatTools bridge correspondientes.
+// Shows how to configure TAiChatConnection with multiple capabilities and how
+// the Gap system (SessionCaps - ModelCaps) automatically activates the
+// corresponding ChatTools bridges.
 //
 // Capabilities demonstrated:
-//   cap_Image      — análisis de imágenes (Vision)
-//   cap_WebSearch  — búsqueda web
-//   cap_Pdf        — extracción de texto de PDFs
-//   cap_GenImage   — generación de imágenes
-//   cap_GenAudio   — síntesis de voz (TTS)
+//   cap_Image      — image analysis (Vision)
+//   cap_WebSearch  — web search
+//   cap_Pdf        — text extraction from PDFs
+//   cap_GenImage   — image generation
+//   cap_GenAudio   — voice synthesis (TTS)
 //
-// Para ejecutar los modos que requieren API keys externas, configure las
-// variables de entorno correspondientes (OPENAI_API_KEY, GEMINI_API_KEY, etc.)
+// To run the modes that require external API keys, configure the
+// corresponding environment variables (OPENAI_API_KEY, GEMINI_API_KEY, etc.)
 // =============================================================================
 
 uses
@@ -81,9 +81,9 @@ begin
     PrintCapabilities('Gap (bridges)', Gap);
 
     if Gap = [] then
-      Writeln('  -> Sin bridges necesarios (todo nativo)')
+      Writeln('  -> No bridges needed (all native)')
     else
-      Writeln('  -> Bridges activados automaticamente por el motor');
+      Writeln('  -> Bridges automatically activated by the engine');
   finally
     Conn.Free;
   end;
@@ -124,8 +124,8 @@ begin
 
   Writeln;
   Writeln('=============================================================');
-  Writeln('Consulta los demos individuales (03-Vision, 05-WebSearch,');
-  Writeln('07-AudioBridge, 09-ImageGeneration) para ejemplos completos.');
+  Writeln('See the individual demos (03-Vision, 05-WebSearch,');
+  Writeln('07-AudioBridge, 09-ImageGeneration) for complete examples.');
   Writeln('=============================================================');
 
   Write('Press Enter to exit...');

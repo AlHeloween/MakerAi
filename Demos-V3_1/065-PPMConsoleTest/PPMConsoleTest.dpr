@@ -45,7 +45,7 @@ begin
         ERR('Status: ' + IntToStr(LResp.StatusCode));
     except
       on E: Exception do
-        ERR('Excepcion: ' + E.ClassName + ' — ' + E.Message);
+        ERR('Exception: ' + E.ClassName + ' — ' + E.Message);
     end;
   finally
     LClient.Free;
@@ -66,7 +66,7 @@ begin
   Log('TEST 2 — SearchPPMMCP("' + AQuery + '")');
   LFunctions := TAiFunctions.Create(nil);
   try
-    // OnLog requiere 'of object' — se omite en console test
+    // OnLog requires 'of object' — omitted in console test
     try
       LResult := LFunctions.SearchPPMMCP(AQuery);
       if not Assigned(LResult) then
@@ -148,7 +148,7 @@ begin
       end;
     except
       on E: Exception do
-        ERR('Excepcion: ' + E.ClassName + ' — ' + E.Message);
+        ERR('Exception: ' + E.ClassName + ' — ' + E.Message);
     end;
   finally
     LClient.Free;
@@ -182,7 +182,7 @@ begin
       LStream := TFileStream.Create(LTempFile, fmCreate);
       try
         LResp := LClient.Get(LUrl, LStream);
-        Log('Status descarga: ' + IntToStr(LResp.StatusCode) +
+        Log('Download status: ' + IntToStr(LResp.StatusCode) +
             ' | Bytes: ' + IntToStr(LStream.Size));
       finally
         LStream.Free;
@@ -234,7 +234,7 @@ begin
   Log('TEST 5 — InstallMCPFromPPM("' + AName + '")');
   LFunctions := TAiFunctions.Create(nil);
   try
-    // OnLog requiere 'of object' — se omite en console test
+    // OnLog requires 'of object' — omitted in console test
     try
       LItem := LFunctions.InstallMCPFromPPM(AName);
       if Assigned(LItem) then
@@ -274,7 +274,7 @@ var
   LResult: TJSONObject;
 begin
   Sep;
-  Log('TEST 6 — CallTool directo: ' + AName + ' -> ' + AToolName);
+  Log('TEST 6 — CallTool direct: ' + AName + ' -> ' + AToolName);
   LFunctions := TAiFunctions.Create(nil);
   try
     try
@@ -314,7 +314,7 @@ begin
         // NOTE: LArgs ownership passes to CallTool — do not call LArgs.Free
         if Assigned(LResult) then
         begin
-          OK('CallTool exitoso. Respuesta (primeros 200 chars): ' +
+          OK('CallTool successful. Response (first 200 chars): ' +
              Copy(LResult.ToJSON, 1, 200));
           LResult.Free;
         end

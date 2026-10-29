@@ -154,6 +154,6 @@ begin
     end;
   except
     on E: Exception do
-      Writeln('Error fatal: ', E.ClassName, ': ', E.Message);
+      Writeln('Fatal error: ', E.ClassName, ': ', E.Message);
   end;
 end.

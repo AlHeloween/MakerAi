@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   System.Threading, Winapi.CommCtrl, System.Math, System.AnsiStrings,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  uMakerAi.Utils.VoiceMonitor, // Nuestra unidad de monitor
+  uMakerAi.Utils.VoiceMonitor, // Our monitor unit
 {$IFDEF MSWINDOWS}
   Winapi.MMSystem,
 {$ENDIF}
@@ -80,7 +80,7 @@ implementation
 procedure TForm6.FormCreate(Sender: TObject);
 begin
 
-  // Prepara el directorio para guardar los archivos WAV.
+  // Prepare the directory to save WAV files.
   try
     TDirectory.CreateDirectory('c:\temp');
   except
@@ -123,7 +123,7 @@ begin
   ProgressBarLevel.Min := 0;
   ProgressBarLevel.Max := FMaxLevelSeen;
   ButtonStop.Enabled := False;
-  Self.Caption := 'Monitor Inactivo';
+  Self.Caption := 'Monitor Inactive';
 end;
 
 procedure TForm6.FormDestroy(Sender: TObject);
@@ -225,7 +225,7 @@ begin
   ComboBoxDevices.Enabled := True;
 
   ProgressBarLevel.Position := 0;
-  Self.Caption := 'Monitor Inactivo';
+  Self.Caption := 'Monitor Inactive';
 end;
 
 procedure TForm6.ChWakeUpClick(Sender: TObject);
@@ -272,7 +272,7 @@ begin
 end;
 
 
-// --- Eventos de Controles de UI ---
+// --- UI Control Events ---
 
 procedure TForm6.SpinEditSilenceChange(Sender: TObject);
 begin
@@ -371,7 +371,7 @@ var
   TranscriptionResult: String;
   LWhisper: TAIWhisper;
 begin
-  // Crear una copia local del stream para uso seguro
+  // Create a local copy of the stream for safe use
   LocalStream := TMemoryStream.Create;
   try
     // Copy the received stream content
@@ -382,7 +382,7 @@ begin
       LocalStream.Position := 0;
     end;
 
-    // Verificar que tenemos datos válidos
+    // Verify that we have valid data
     if LocalStream.Size = 0 then
     begin
       MemoLog.Lines.Add('--- Warning: Empty audio stream ---');
@@ -444,7 +444,7 @@ begin
           LWhisper.Free;
         End;
 
-        // Mostrar el resultado de la transcripción del fragmento
+        // Show the transcription result of the fragment
         if TranscriptionResult <> '' then
         begin
           MemoLog.Lines.Add('--- total audio transcribed ---');
@@ -467,7 +467,7 @@ begin
       on E: Exception do
       begin
         MemoLog.Lines.Add('');
-        MemoLog.Lines.Add('❌ ERROR al procesar el audio final:');
+        MemoLog.Lines.Add('❌ ERROR processing the final audio:');
         MemoLog.Lines.Add('   ' + E.Message);
       end;
     end;
@@ -539,7 +539,7 @@ var
   TranscriptionResult: String;
   LWhisper: TAIWhisper;
 begin
-  // Crear una copia local del stream para uso seguro
+  // Create a local copy of the stream for safe use
   LocalStream := TMemoryStream.Create;
   try
     // Copy the received fragment content
@@ -550,7 +550,7 @@ begin
       LocalStream.Position := 0;
     end;
 
-    // Verificar que tenemos datos válidos
+    // Verify that we have valid data
     if LocalStream.Size = 0 then
       Exit;
 
@@ -566,7 +566,7 @@ begin
         LWhisper.Free;
       End;
 
-      // Mostrar el resultado de la transcripción del fragmento
+      // Show the transcription result of the fragment
       if TranscriptionResult <> '' then
       begin
         MemoLog.Lines.Add('--- Transcribed fragment ---');
@@ -578,7 +578,7 @@ begin
     except
       on E: Exception do
       begin
-        MemoLog.Lines.Add('Error al transcribir fragmento: ' + E.Message);
+        MemoLog.Lines.Add('Error transcribing fragment: ' + E.Message);
       end;
     end;
   finally

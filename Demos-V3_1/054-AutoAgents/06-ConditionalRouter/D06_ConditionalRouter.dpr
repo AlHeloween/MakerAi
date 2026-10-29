@@ -46,10 +46,10 @@ var
   Classification: String;
   Route         : String;
 begin
-  // La clasificacion viene del blackboard (escrita por el TLLMNode anterior)
+  // The classification comes from the blackboard (written by the previous TLLMNode)
   Classification := Trim(LowerCase(Node.Graph.Blackboard.GetString('Classifier.output')));
 
-  // Normalizar: tomar la primera palabra del output (el LLM a veces genera texto extra)
+  // Normalize: take the first word of the output (the LLM sometimes generates extra text)
   Route := 'history';  // default
   var FirstWord := Trim(Classification.Split([' ', #10, #13, #9, '.', ','])[0]);
   if FirstWord = 'math' then
@@ -60,19 +60,19 @@ begin
     Route := 'history'
   else
   begin
-    // fallback: buscar en todo el texto si la primera palabra no coincide
+    // fallback: search the entire text if the first word does not match
     if Pos('math', Classification) > 0 then
       Route := 'math'
     else if Pos('science', Classification) > 0 then
       Route := 'science';
   end;
 
-  // Escribir la clave que usa el link condicional
+  // Write the key used by the conditional link
   Node.Graph.Blackboard.SetString('route', Route);
 
   Writeln(Format('  [Router] Classification="%s" -> Route="%s"', [Classification, Route]));
-  // Pasar la pregunta ORIGINAL (BeforeNode.Input = Classifier.Input = pregunta del usuario)
-  // no el texto de clasificacion que devolvio el LLM
+  // Pass the ORIGINAL question (BeforeNode.Input = Classifier.Input = user's question)
+  // not the classification text returned by the LLM
   if Assigned(BeforeNode) then
     Output := BeforeNode.Input
   else

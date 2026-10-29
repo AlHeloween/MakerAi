@@ -14,7 +14,7 @@ uses
   uMakerAi.Memory.Types;
 
 // ---------------------------------------------------------------------------
-// Helpers de consola
+// Console helpers
 // ---------------------------------------------------------------------------
 
 procedure PrintLine(const S: string = '');
@@ -168,9 +168,9 @@ begin
     Conn.Params.Values['Asynchronous'] := 'False';
     Conn.Params.Values['Max_Tokens']   := '1024';
     Conn.SystemPrompt.Text :=
-      'Eres un asistente útil con memoria persistente. ' +
-      'Cuando el contexto de memoria esté disponible, úsalo para personalizar tus respuestas. ' +
-      'Responde en el mismo idioma del usuario.';
+      'You are a helpful assistant with persistent memory. ' +
+      'When memory context is available, use it to personalize your responses. ' +
+      'Respond in the same language as the user.';
 
     Conn.PersistentMemory  := Memory;
     Conn.MemoryTokenBudget := 1500;
@@ -259,7 +259,7 @@ begin
         if Content <> '' then
         begin
           var Id := Memory.Store(Content, mt_Fact, NextImportance);
-          PrintColor(Format('  Guardado → id=%d  imp=%d', [Id, NextImportance]), 33);
+          PrintColor(Format('  Saved → id=%d  imp=%d', [Id, NextImportance]), 33);
           PrintLine;
         end;
         Continue;
@@ -269,7 +269,7 @@ begin
       begin
         var N := StrToIntDef(Trim(Input.Substring(12)), 5);
         NextImportance := Max(1, Min(10, N));
-        PrintColor(Format('  Importancia para /store: %d', [NextImportance]), 33);
+        PrintColor(Format('  Importance for /store: %d', [NextImportance]), 33);
         PrintLine;
         Continue;
       end;
@@ -305,8 +305,8 @@ begin
         var Response := Conn.Run(LMsg);
         if Response = '' then
           Response := '(no response)';
-        // La respuesta ya se imprimió en streaming si hay OnReceiveData,
-        // pero como es síncrona sin handler imprimimos el resultado final
+        // The response was already printed in streaming if there is OnReceiveData,
+        // but since it is synchronous without a handler we print the final result
         Writeln(Response);
         PrintLine;
       except

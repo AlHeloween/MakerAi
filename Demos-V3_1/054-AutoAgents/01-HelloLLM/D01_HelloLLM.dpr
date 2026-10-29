@@ -43,9 +43,9 @@ begin
   Writeln('Model  : ', MODEL);
   Writeln;
 
-  Questions[0] := 'Cual es la capital de Francia?';
-  Questions[1] := 'Quien escribio Don Quijote de la Mancha?';
-  Questions[2] := 'Explica en una frase que es la fotosintesis.';
+  Questions[0] := 'What is the capital of France?';
+  Questions[1] := 'Who wrote Don Quixote of La Mancha?';
+  Questions[2] := 'Explain in one sentence what photosynthesis is.';
 
   Manager := TAIAgentManager.Create(nil);
   try
@@ -66,7 +66,7 @@ begin
     LLMNode.ApiKey       := API_KEY;
     LLMNode.UseAllTools  := False;
     LLMNode.SystemPrompt :=
-      'Eres un asistente conciso. Responde siempre en una sola frase corta y directa.';
+      'You are a concise assistant. Always answer in a single short and direct sentence.';
 
     // Exit node: pass-through (receives Output from LLMNode)
     EndNode       := TAIAgentsNode.Create(Manager);

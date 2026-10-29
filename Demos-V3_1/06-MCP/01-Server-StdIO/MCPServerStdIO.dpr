@@ -38,7 +38,7 @@ type
   private
     FFormat: String;
   public
-    [AiMCPSchemaDescription('Formato deseado: "iso" (por defecto) o "readable"')]
+    [AiMCPSchemaDescription('Desired format: "iso" (default) or "readable"')]
     property Format: String read FFormat write FFormat;
   end;
 
@@ -54,8 +54,8 @@ constructor TDateTimeMCPTool.Create;
 begin
   inherited;
   FName        := 'get_datetime';
-  FDescription := 'Retorna la fecha y hora actual del servidor. ' +
-                  'Formato "iso" devuelve ISO-8601; "readable" devuelve texto legible.';
+  FDescription := 'Returns the current date and time of the server. ' +
+                  'Format "iso" returns ISO-8601; "readable" returns readable text.';
 end;
 
 function TDateTimeMCPTool.ExecuteWithParams(const AParams: TDateTimeParams;
@@ -82,9 +82,9 @@ type
     FName    : String;
     FLanguage: String;
   public
-    [AiMCPSchemaDescription('Nombre de la persona a saludar')]
+    [AiMCPSchemaDescription('Name of the person to greet')]
     property Name: String read FName write FName;
-    [AiMCPSchemaDescription('Idioma del saludo: "es" espanol (defecto), "en" ingles')]
+    [AiMCPSchemaDescription('Greeting language: "es" Spanish (default), "en" English')]
     property Language: String read FLanguage write FLanguage;
   end;
 
@@ -100,8 +100,8 @@ constructor TGreetMCPTool.Create;
 begin
   inherited;
   FName        := 'greet';
-  FDescription := 'Genera un saludo personalizado. ' +
-                  'Soporta idiomas: "es" (espanol) y "en" (ingles).';
+  FDescription := 'Generates a personalized greeting. ' +
+                  'Supports languages: "es" (Spanish) and "en" (English).';
 end;
 
 function TGreetMCPTool.ExecuteWithParams(const AParams: TGreetParams;
@@ -116,7 +116,7 @@ begin
   if Lang = 'en' then
     Saludo := Format('Hello, %s! Welcome to MakerAI MCP Server.', [NombrePersona])
   else
-    Saludo := Format('Hola, %s! Bienvenido al servidor MCP de MakerAI.', [NombrePersona]);
+    Saludo := Format('Hello, %s! Welcome to the MakerAI MCP server.', [NombrePersona]);
 
   Result := TAiMCPResponseBuilder.New.AddText(Saludo).Build;
 end;

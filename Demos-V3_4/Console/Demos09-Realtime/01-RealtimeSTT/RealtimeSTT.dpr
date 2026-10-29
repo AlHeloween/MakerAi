@@ -8,18 +8,18 @@
 // =============================================================================
 // Real-time transcription via OpenAI Realtime API (WebSocket).
 //
-// Flujo:
+// Flow:
 //   1. TAIVoiceMonitor captures audio from the microphone (PCM16 44100 Hz)
 //   2. The audio is automatically forwarded to TAiOpenAiRealtimeSTT
 //   3. The component resamples to 24kHz and sends it to the server via WebSocket
 //   4. The server VAD detects speech start/end
 //   5. The transcription arrives in real time (delta) and as final text
 //
-// Controles:
-//   - Presionar Enter para detener y salir
+// Controls:
+//   - Press Enter to stop and exit
 //
-// Requiere:
-//   - Variable de entorno OPENAI_API_KEY configurada
+// Requires:
+//   - OPENAI_API_KEY environment variable configured
 // =============================================================================
 
 uses
@@ -120,12 +120,12 @@ begin
   // Connect to the server (async, does not block)
   FSTT.Connect;
 
-  // Esperar un momento a que el WebSocket se establezca antes de activar el mic
-  // El evento OnSessionReady arranca la captura cuando el servidor confirma sesion
-  // (ver OnSessionReady abajo)
+  // Wait a moment for the WebSocket to establish before activating the mic
+  // The OnSessionReady event starts capture when the server confirms the session
+  // (see OnSessionReady below)
 end;
 
-{ Handlers de eventos }
+{ Event handlers }
 
 procedure TRealtimeDemo.OnConnected(Sender: TObject);
 begin
@@ -147,7 +147,7 @@ end;
 procedure TRealtimeDemo.OnCalibrated(Sender: TObject;
   const NoiseLevel, Sensitivity, StopSensitivity: Integer);
 begin
-  Writeln(Format('[mic] Calibrado — ruido=%d  umbral-inicio=%d  umbral-stop=%d',
+  Writeln(Format('[mic] Calibrated — noise=%d  start-threshold=%d  stop-threshold=%d',
     [NoiseLevel, Sensitivity, StopSensitivity]));
   Writeln;
   Writeln('Ready. Speak into the microphone. Press Enter to exit.');
@@ -164,7 +164,7 @@ end;
 procedure TRealtimeDemo.OnSpeechStopped(Sender: TObject; AudioMs: Int64;
   const ItemId: string);
 begin
-  Writeln; // nueva linea al terminar el habla
+  Writeln; // new line when speech ends
 end;
 
 procedure TRealtimeDemo.OnTranscriptDelta(Sender: TObject; const Delta: string);

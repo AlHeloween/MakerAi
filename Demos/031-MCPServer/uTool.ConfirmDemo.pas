@@ -49,7 +49,7 @@ constructor TConfirmDemoTool.Create;
 begin
   inherited;
   FName := 'confirm_demo';
-  FDescription := 'Demo MRTR: ejecuta una operacion solo despues de que el usuario la confirme via elicitation (spec 2026-07-28)';
+  FDescription := 'Demo MRTR: executes an operation only after the user confirms it via elicitation (spec 2026-07-28)';
 end;
 
 // Construye el InputRequiredResult con un ElicitRequest 'user_confirmation'.
@@ -70,7 +70,7 @@ begin
   ElicitParams := TJSONObject.Create;
   Elicit.AddPair('params', ElicitParams);
   ElicitParams.AddPair('mode', 'form');
-  ElicitParams.AddPair('message', 'Confirma la operacion: ' + AOperation);
+  ElicitParams.AddPair('message', 'Confirm the operation: ' + AOperation);
   Schema := TJSONObject.Create;
   ElicitParams.AddPair('requestedSchema', Schema);
   Schema.AddPair('type', 'object');

@@ -9,13 +9,13 @@
 // Same question, sent to multiple LLM providers one after another.
 // Demonstrates that the application code does NOT change when changing provider.
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - Universal connector pattern (TAiChatConnection)
 //   - Provider change at runtime
 //   - Comparison of responses between models
 //   - Error handling per provider (invalid key, model not available)
 //
-// Requisitos:
+// Requirements:
 //   Define the API keys as environment variables:
 //   CLAUDE_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, GROQ_API_KEY
 //   Local providers (Ollama) do not require an API key.
@@ -53,7 +53,7 @@ const
     (Driver: 'Ollama';   Model: 'gemma3:4b';                   ApiKey: '';                 Enabled: True)
   );
 
-  QUESTION = 'En exactamente 2 oraciones: ¿Qué es la inteligencia artificial?';
+  QUESTION = 'In exactly 2 sentences: What is artificial intelligence?';
 
 // =============================================================================
 //  Function that sends the same question to a provider and measures the time
@@ -82,7 +82,7 @@ begin
     Conn.Params.Values['Asynchronous'] := 'False';
     Conn.Params.Values['Max_Tokens']   := '256';
 
-    Conn.SystemPrompt.Text := 'Responde siempre en español de forma concisa.';
+    Conn.SystemPrompt.Text := 'Always respond concisely in Spanish.';
 
     SW := TStopwatch.StartNew;
     try

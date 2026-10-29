@@ -6,16 +6,16 @@
 // =============================================================================
 // MakerAI — Chapter 5: Prompt Engineering for Developers
 // =============================================================================
-// Demuestra las técnicas fundamentales de prompt engineering aplicadas
-// a casos de uso reales de desarrollo de software con MakerAI.
+// Demonstrates the fundamental prompt engineering techniques applied
+// to real software development use cases with MakerAI.
 //
 // Demonstrates:
-//   - Demo 1: Prompt básico vs. CRIFE — el mismo task con estructuras distintas
-//             produce respuestas radicalmente diferentes en calidad y formato.
-//   - Demo 2: Few-shot en el SystemPrompt — enseñar el formato con ejemplos
-//             embebidos en el behavior; más limpio que pre-sembrar el historial.
-//   - Demo 3: Chain of Thought — "piensa paso a paso" mejora la precisión
-//             en tareas de razonamiento y cálculo.
+//   - Demo 1: Basic prompt vs. CRIFE — the same task with different structures
+//             produces radically different responses in quality and format.
+//   - Demo 2: Few-shot in the SystemPrompt — teach the format with examples
+//             embedded in the behavior; cleaner than pre-seeding the history.
+//   - Demo 3: Chain of Thought — "think step by step" improves accuracy
+//             in reasoning and calculation tasks.
 //
 // CRIFE technique (professional prompt framework):
 //   C — Context:   What situation are we in?
@@ -39,12 +39,12 @@ const
   MODEL   = 'llama-3.3-70b-versatile';
   API_KEY = '@GROQ_API_KEY';
 
-  // Correo de prueba que se clasificará en Demo 1
+  // Test email to be classified in Demo 1
   EMAIL_EJEMPLO =
-    'Asunto: URGENTE - Sistema caído' + #13#10 +
-    'Hola, desde las 9am no podemos acceder al sistema. ' +
-    'Somos 50 usuarios bloqueados. Esto nos genera pérdidas. ' +
-    'Necesitamos una solución inmediata.';
+    'Subject: URGENT - System down' + #13#10 +
+    'Hello, since 9am we cannot access the system. ' +
+    'We are 50 blocked users. This causes us losses. ' +
+    'We need an immediate solution.';
 
 procedure Separador(const Titulo: string);
 begin
@@ -55,11 +55,11 @@ begin
 end;
 
 // =============================================================================
-//  Demo 1 — Prompt básico vs. CRIFE
+//  Demo 1 — Basic prompt vs. CRIFE
 //
-//  El mismo correo enviado dos veces con prompts muy distintos.
-//  El prompt básico da un resultado impredecible y no parseable.
-//  El prompt CRIFE produce JSON parseable, con categoría y urgencia definidas.
+//  The same email sent twice with very different prompts.
+//  The basic prompt gives an unpredictable, non-parseable result.
+//  The CRIFE prompt produces parseable JSON, with defined category and urgency.
 // =============================================================================
 procedure Demo1_BasicoVsCRIFE(Conn: TAiChatConnection);
 var
@@ -69,11 +69,11 @@ begin
 
   // ── Basic version ─────────────────────────────────────────────────────────
   WriteLn('── Basic prompt (unpredictable result): ──');
-  Conn.SystemPrompt.Text := 'Eres un asistente.';
+  Conn.SystemPrompt.Text := 'You are an assistant.';
   Conn.NewChat;
 
   R := Conn.AddMessageAndRun(
-    'Clasifica este correo: ' + EMAIL_EJEMPLO, 'user', []);
+    'Classify this email: ' + EMAIL_EJEMPLO, 'user', []);
   WriteLn(R);
 
   // ── CRIFE version ──────────────────────────────────────────────────────────
@@ -82,18 +82,18 @@ begin
 
   // ROLE + CONTEXT go in SystemPrompt (agent behavior)
   Conn.SystemPrompt.Text :=
-    'ROL: Eres un sistema de clasificación de correos para un CRM empresarial.' + #13#10 +
-    'CONTEXTO: Procesas correos de clientes y los enrutas al departamento correcto.' + #13#10 +
-    'RESTRICCIONES: Responde ÚNICAMENTE con el JSON especificado. ' +
-    'Sin texto adicional fuera del JSON.';
+    'ROLE: You are an email classification system for a business CRM.' + #13#10 +
+    'CONTEXT: You process customer emails and route them to the correct department.' + #13#10 +
+    'CONSTRAINTS: Respond ONLY with the specified JSON. ' +
+    'No additional text outside the JSON.';
   Conn.NewChat;
 
   // INSTRUCTION + FORMAT + EXAMPLE go in the user message
   R := Conn.AddMessageAndRun(
-    'INSTRUCCIÓN: Clasifica en exactamente UNA categoría: ' +
+    'INSTRUCTION: Classify into exactly ONE category: ' +
     '[SOPORTE_TECNICO, FACTURACION, VENTAS, QUEJA, OTRO]' + #13#10 +
-    'FORMATO: {"categoria":"...","urgencia":"ALTA|MEDIA|BAJA","resumen":"max 10 palabras"}' + #13#10 +
-    'CORREO:' + #13#10 + EMAIL_EJEMPLO,
+    'FORMAT: {"categoria":"...","urgencia":"ALTA|MEDIA|BAJA","resumen":"max 10 words"}' + #13#10 +
+    'EMAIL:' + #13#10 + EMAIL_EJEMPLO,
     'user', []);
   WriteLn(R);
 
@@ -102,19 +102,19 @@ begin
 end;
 
 // =============================================================================
-//  Demo 2 — Few-Shot en el SystemPrompt
+//  Demo 2 — Few-Shot in the SystemPrompt
 //
-//  En lugar de explicar el formato con palabras, mostrar 2-3 ejemplos reales.
-//  Los LLM aprenden por imitación: pocos ejemplos bien elegidos > párrafos de
-//  instrucciones. Los ejemplos van en el SystemPrompt para reutilizarse
-//  en cada NewChat sin tener que reinyectarlos.
+//  Instead of explaining the format in words, show 2-3 real examples.
+//  LLMs learn by imitation: a few well-chosen examples > paragraphs of
+//  instructions. Examples go in the SystemPrompt to be reused
+//  in every NewChat without having to re-inject them.
 // =============================================================================
 procedure Demo2_FewShot(Conn: TAiChatConnection);
 const
   TICKETS: array[0..2] of string = (
-    'La pantalla de inicio parece diferente desde ayer',
-    'Me cobraron dos veces en mi tarjeta este mes',
-    'Quiero agregar 10 usuarios más a mi cuenta'
+    'The home screen looks different since yesterday',
+    'I was charged twice on my card this month',
+    'I want to add 10 more users to my account'
   );
 var
   I: integer;
@@ -124,25 +124,25 @@ begin
 
   // The examples are embedded in the behavior; there is no need to re-inject them
   Conn.SystemPrompt.Text :=
-    'Eres un clasificador de tickets de soporte. Responde SOLO con JSON.' + #13#10 +
+    'You are a support ticket classifier. Respond ONLY with JSON.' + #13#10 +
     'Formato: {"categoria":"SOPORTE_TECNICO|FACTURACION|VENTAS|ACCESO|HARDWARE","urgencia":"ALTA|MEDIA|BAJA"}' + #13#10 +
     '' + #13#10 +
-    'EJEMPLOS:' + #13#10 +
-    'Ticket:  "Mi impresora no imprime"' + #13#10 +
+    'EXAMPLES:' + #13#10 +
+    'Ticket:  "My printer does not print"' + #13#10 +
     'Salida:  {"categoria":"HARDWARE","urgencia":"MEDIA"}' + #13#10 +
     '' + #13#10 +
-    'Ticket:  "No puedo acceder a mi cuenta"' + #13#10 +
+    'Ticket:  "I cannot access my account"' + #13#10 +
     'Salida:  {"categoria":"ACCESO","urgencia":"ALTA"}' + #13#10 +
     '' + #13#10 +
-    'Ticket:  "¿Cuándo vence mi suscripción?"' + #13#10 +
-    'Salida:  {"categoria":"FACTURACION","urgencia":"BAJA"}';
+    'Ticket:  "When does my subscription expire?"' + #13#10 +
+    'Output:  {"categoria":"BILLING","urgencia":"LOW"}';
 
   WriteLn('Classifying 3 tickets with few-shot in the SystemPrompt:');
   WriteLn('');
 
   for I := 0 to High(TICKETS) do
   begin
-    Conn.NewChat;   // Cada ticket es independiente; historial limpio
+    Conn.NewChat;   // Each ticket is independent; clean history
     Write('  Ticket ', I + 1, ': "', TICKETS[I], '"');
     R := Conn.AddMessageAndRun(TICKETS[I], 'user', []);
     WriteLn(' → ', R);
@@ -154,26 +154,26 @@ begin
 end;
 
 // =============================================================================
-//  Demo 3 — Chain of Thought (Cadena de Pensamiento)
+//  Demo 3 — Chain of Thought
 //
-//  Para tareas de razonamiento o cálculo, pedir al modelo que "piense en voz
-//  alta" reduce errores. La frase "Piensa paso a paso" fuerza un proceso de
-//  razonamiento explícito antes de dar la respuesta final.
+//  For reasoning or calculation tasks, asking the model to "think out loud"
+//  reduces errors. The phrase "Think step by step" forces an explicit
+//  reasoning process before giving the final answer.
 // =============================================================================
 procedure Demo3_ChainOfThought(Conn: TAiChatConnection);
 const
   PROBLEMA =
-    'Una empresa tiene 3 licencias activas (plan Básico a $50/mes/licencia). ' +
-    'Quieren agregar 2 licencias más. Si pasan al plan Pro ($75/mes/licencia) ' +
-    'obtienen un 20% de descuento en las nuevas licencias. ' +
-    '¿Cuánto pagarán en total el próximo mes con el plan Pro?';
+    'A company has 3 active licenses (Basic plan at $50/month/license). ' +
+    'They want to add 2 more licenses. If they switch to the Pro plan ($75/month/license) ' +
+    'they get a 20% discount on the new licenses. ' +
+    'How much will they pay in total next month with the Pro plan?';
 var
   R: string;
 begin
   Separador('Demo 3 — Chain of Thought');
 
   Conn.SystemPrompt.Text :=
-    'Eres un asistente de ventas. Responde en español.';
+    'You are a sales assistant. Respond in Spanish.';
 
   // ── Without Chain of Thought ───────────────────────────────────────────────────
   WriteLn('── Without Chain of Thought (direct answer): ──');
@@ -187,7 +187,7 @@ begin
   Conn.NewChat;
   R := Conn.AddMessageAndRun(
     PROBLEMA + #13#10#13#10 +
-    'Piensa paso a paso. Muestra cada cálculo antes de dar el total.',
+    'Think step by step. Show each calculation before giving the total.',
     'user', []);
   WriteLn(R);
 

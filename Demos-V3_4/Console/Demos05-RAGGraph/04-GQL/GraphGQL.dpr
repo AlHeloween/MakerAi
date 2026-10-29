@@ -38,15 +38,15 @@ const
 procedure ConstruirGrafoPeliculas(RAG: TAiRagGraph);
 var
   N: TAiRagGraphNode;
-  // Directores
+  // Directors
   Nolan, Spielberg, Kubrick, Cameron: TAiRagGraphNode;
-  // Películas
+  // Movies
   Inception, Interstellar, Schindler, ET, Odyssey,
   Shining, Titanic, Avatar: TAiRagGraphNode;
-  // Géneros
+  // Genres
   SciFi, Drama, Terror, Aventura: TAiRagGraphNode;
 begin
-  // Directores
+  // Directors
   Nolan := RAG.AddNode('d001', 'DIRECTOR', 'Christopher Nolan');
   Nolan.Text := 'Christopher Nolan, director britanico de thrillers cientificos complejos.';
   Nolan.Properties['nacionalidad'] := 'Britanico';
@@ -63,7 +63,7 @@ begin
   Cameron.Text := 'James Cameron, director de thrillers de accion y ciencia ficcion visual.';
   Cameron.Properties['nacionalidad'] := 'Canadiense';
 
-  // Películas
+  // Movies
   Inception := RAG.AddNode('p001', 'PELICULA', 'Inception');
   Inception.Text := 'Inception 2010: sueños dentro de sueños, thriller de ciencia ficcion.';
   Inception.Properties['año']  := 2010;
@@ -104,7 +104,7 @@ begin
   Avatar.Properties['año']  := 2009;
   Avatar.Properties['nota'] := 7.9;
 
-  // Géneros
+  // Genres
   SciFi    := RAG.AddNode('g001', 'GENERO', 'Ciencia Ficcion');
   Drama    := RAG.AddNode('g002', 'GENERO', 'Drama');
   Terror   := RAG.AddNode('g003', 'GENERO', 'Terror');
@@ -115,7 +115,7 @@ begin
   Terror.Text   := 'Terror: genero de miedo, suspenso y ambientes oscuros.';
   Aventura.Text := 'Aventura: genero de viajes, accion y descubrimientos.';
 
-  // Director → Película
+  // Director → Movie
   RAG.AddEdge(Nolan,     Inception,     'r001', 'DIRIGIO', 'dirigió', 0.9);
   RAG.AddEdge(Nolan,     Interstellar,  'r002', 'DIRIGIO', 'dirigió', 0.9);
   RAG.AddEdge(Spielberg, Schindler,     'r003', 'DIRIGIO', 'dirigió', 0.9);
@@ -125,7 +125,7 @@ begin
   RAG.AddEdge(Cameron,   Titanic,       'r007', 'DIRIGIO', 'dirigió', 0.9);
   RAG.AddEdge(Cameron,   Avatar,        'r008', 'DIRIGIO', 'dirigió', 0.9);
 
-  // Película → Género
+  // Movie → Genre
   RAG.AddEdge(Inception,    SciFi,    'g001', 'ES_DE_GENERO', 'es de género');
   RAG.AddEdge(Interstellar, SciFi,    'g002', 'ES_DE_GENERO', 'es de género');
   RAG.AddEdge(Interstellar, Drama,    'g003', 'ES_DE_GENERO', 'es de género');
@@ -189,7 +189,7 @@ begin
     RAG.RebuildIndexes;
     Writeln;
 
-    // ── Comandos de exploración ───────────────────────────────────────────
+    // ── Exploration commands ───────────────────────────────────────────
     EjecutarGQL(RAG,
       'List node labels',
       'SHOW LABELS');
@@ -198,7 +198,7 @@ begin
       'List edge types',
       'SHOW EDGES');
 
-    // ── Consultas MATCH básicas ───────────────────────────────────────────
+    // ── Basic MATCH queries ───────────────────────────────────────────
     EjecutarGQL(RAG,
       'All directors',
       'MATCH (d:DIRECTOR) RETURN d');
@@ -207,7 +207,7 @@ begin
       'Movies by Christopher Nolan',
       'MATCH (d:DIRECTOR)-[r:DIRIGIO]->(p:PELICULA) WHERE d.nombre = "Christopher Nolan" RETURN p');
 
-    // ── Consultas con WHERE ───────────────────────────────────────────────
+    // ── Queries with WHERE ───────────────────────────────────────────────
     EjecutarGQL(RAG,
       'Movies with rating > 8.5',
       'MATCH (p:PELICULA) WHERE p.nota > 8.5 RETURN p');
@@ -216,7 +216,7 @@ begin
       'Movies before 1990',
       'MATCH (p:PELICULA) WHERE p.año < 1990 RETURN p');
 
-    // ── Relaciones completas ──────────────────────────────────────────────
+    // ── Complete relationships ──────────────────────────────────────────────
     EjecutarGQL(RAG,
       'Science fiction movies with their director',
       'MATCH (d:DIRECTOR)-[r:DIRIGIO]->(p:PELICULA)-[g:ES_DE_GENERO]->(gen:GENERO) ' +
@@ -236,6 +236,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

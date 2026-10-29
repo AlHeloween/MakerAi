@@ -30,7 +30,7 @@ begin
     Chat.Max_tokens   := 256;
 
     Write('Sending question... ');
-    Respuesta := Chat.AddMessageAndRun('¿Cuánto es 2 + 2? Responde en una sola frase.', 'user', []);
+    Respuesta := Chat.AddMessageAndRun('How much is 2 + 2? Answer in a single sentence.', 'user', []);
     Writeln('OK');
     Writeln;
     Writeln('Model response:');

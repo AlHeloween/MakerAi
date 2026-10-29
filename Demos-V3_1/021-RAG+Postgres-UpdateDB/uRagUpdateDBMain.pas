@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enr�quez
-// Redes Sociales:
+// Name: Gustavo Enr�quez
+// Social networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -169,7 +169,7 @@ Var
   Emb: TAiEmbeddingNode;
 begin
 
-  aDataVec := TAiRAGVector.Create(Nil); // Crea un vector de respuesta temporal
+  aDataVec := TAiRAGVector.Create(Nil); // Creates a temporary response vector
 
   Query := NewQuery;
   Try
@@ -260,12 +260,12 @@ Var
 
 begin
   Limit := 10;
-  Presicion := 0.3;  //muy permisivo para que encuentre la informaci�n  1 es exactamente igual
+  Presicion := 0.3;  // very permissive so it finds the information  1 is exactly equal
   Prompt := EditPrompt.Text;
   Res := RAGVectorConsulta.SearchText(Prompt, Limit, Presicion);
   MemoRes.Lines.Text := Res;
 
-  PromptIa := 'Responde a la pregunta '+sLineBreak+Prompt +slineBreak+'utilizando esta informaci�n, estrae de estos datos lo que te estoy pidiendo '+slineBreak+Res;
+  PromptIa := 'Answer the question '+sLineBreak+Prompt +slineBreak+'using this information, extract from these data what I am asking you '+slineBreak+Res;
 
   ResFinal := AiChatConnection1.AddMessageAndRun(PromptIA, 'user', []);
 
@@ -360,12 +360,12 @@ Var
   Emb: TAiEmbeddingNode;
 begin
 
-  aDataVec := TAiRAGVector.Create(Nil); // Crea un vector de respuesta temporal
+  aDataVec := TAiRAGVector.Create(Nil); // Creates a temporary response vector
 
   Query := NewQuery;
 
   Try
-    //1. Obteneemos el embedding de la consulta para realizar la b�squeda
+    //1. We get the query embedding to perform the search
     JArr := Target.ToJsonArray;
     Try
       sEmbedding := JArr.ToString;
@@ -374,7 +374,7 @@ begin
     End;
 
 
-    //2. ejecutamos el query organizandolo por parecido con la consulta
+    //2. we execute the query ordering it by similarity to the query
     Query.Sql.Clear;
     Query.Sql.Add('SELECT id, resumen, embedding <-> ''' + sEmbedding + ''' as distancia');
     Query.Sql.Add('FROM anexos');
@@ -382,8 +382,8 @@ begin
     Query.Sql.Add('LIMIT ' + aLimit.ToString);
     Query.Open;
 
-    //3. creamos un dataset con los registros que m�s se parecen adicionando la informaci�n obtenida en cada registro.
-    //   Si los registros hacen referencia a documentos almacenados en lugar del resumen se puede adicionar el texto del documento
+    //3. we create a dataset with the records that are most similar, adding the information obtained in each record.
+    //   If the records refer to stored documents instead of the summary, the document text can be added
     While not Query.Eof do
     Begin
       Emb := TAiEmbeddingNode.Create(Target.Dim);
@@ -392,7 +392,7 @@ begin
       Query.Next;
     End;
 
-    //4. Se indica que se maneja el procedimiento aqu�, es importante para que el sistema no intente almacenarlo en memoria.
+    //4. It indicates that the procedure is handled here; it is important so the system does not try to store it in memory.
     Handled := True;
   Finally
     Query.Free;
@@ -411,7 +411,7 @@ Var
   Emb: TAiEmbeddingNode;
 begin
 
-  aDataVec := TAiRAGVector.Create(Nil); // Crea un vector de respuesta temporal
+  aDataVec := TAiRAGVector.Create(Nil); // Creates a temporary response vector
 
   Query := NewQuery;
   Try

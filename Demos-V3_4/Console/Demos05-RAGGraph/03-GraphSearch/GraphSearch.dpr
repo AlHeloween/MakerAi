@@ -167,7 +167,7 @@ begin
 
     ConstruirGrafoHistoria(RAG);
 
-    Writeln('Generando embeddings...');
+    Writeln('Generating embeddings...');
     RAG.RebuildIndexes;
     Writeln;
 

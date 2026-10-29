@@ -201,7 +201,7 @@ procedure TForm21.BtnCancelarClick(Sender: TObject);
 begin
   FUserCancelled      := True;
   BtnCancelar.Enabled := False;
-  SetStatus('Cancelando...');
+  SetStatus('Canceling...');
 end;
 
 procedure TForm21.RAGImportProgress(Sender: TObject; aPosition, Total: Integer; var Cancel: Boolean);
@@ -224,8 +224,8 @@ end;
 procedure TForm21.BtnSaveToFileClick(Sender: TObject);
 begin
   SaveDialog1.DefaultExt := 'mkVRag';
-  SaveDialog1.Filter     := 'MakerAI Vector Files (*.mkVRag)|*.mkVRag|Todos los archivos (*.*)|*.*';
-  SaveDialog1.Title      := 'Guardar Base de Vectores';
+  SaveDialog1.Filter     := 'MakerAI Vector Files (*.mkVRag)|*.mkVRag|All files (*.*)|*.*';
+  SaveDialog1.Title      := 'Save Vector Base';
 
   if SaveDialog1.Execute then
   begin
@@ -246,7 +246,7 @@ var
   ItemsCargados: Integer;
 begin
   OpenDialog1.DefaultExt := 'mkVRag';
-  OpenDialog1.Filter     := 'MakerAI Vector Files (*.mkVRag)|*.mkVRag|Todos los archivos (*.*)|*.*';
+  OpenDialog1.Filter     := 'MakerAI Vector Files (*.mkVRag)|*.mkVRag|All files (*.*)|*.*';
 
   if OpenDialog1.Execute then
   begin
@@ -557,20 +557,20 @@ begin
     SB.AppendLine('ENTITY (Target): [Global / Default]').AppendLine;
 
     if LPrompt.IsEmpty then
-      SB.AppendLine('QUERY: (Vacio)')
+      SB.AppendLine('QUERY: (Empty)')
     else
       SB.AppendLine('QUERY: ' + LPrompt);
     SB.AppendLine;
 
     SB.Append('MODE: ');
     if LUseEmbeddings and LUseBM25 then
-      SB.Append('Hibrido (Semantico + Lexico)')
+      SB.Append('Hybrid (Semantic + Lexical)')
     else if LUseEmbeddings then
-      SB.Append('Embeddings Only (Semantico)')
+      SB.Append('Embeddings Only (Semantic)')
     else if LUseBM25 then
-      SB.Append('BM25 Only (Lexico)')
+      SB.Append('BM25 Only (Lexical)')
     else
-      SB.Append('NINGUNO (configuracion invalida)');
+      SB.Append('NONE (invalid configuration)');
     SB.AppendLine;
 
     if LUseEmbeddings and LUseBM25 then

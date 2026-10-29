@@ -49,7 +49,7 @@ const
   EMB_MODEL   = 'text-embedding-3-small';
   EMB_API_KEY = '@OPENAI_API_KEY';
 
-  // ── Ajustar según tu instalación de PostgreSQL ───────────────────────────
+  // ── Adjust according to your PostgreSQL installation ───────────────────────────
   PG_SERVER   = 'localhost';
   PG_PORT     = '5432';
   PG_DATABASE = 'makerai_demo';
@@ -57,7 +57,7 @@ const
   PG_PASSWORD = 'postgres';
 
   TABLE_NAME  = 'PGVectorDemo';
-  EMB_DIM     = 1536; // dimensión de text-embedding-3-small
+  EMB_DIM     = 1536; // dimension of text-embedding-3-small
 
 const
   DOCS: array[0..4] of String = (

@@ -52,7 +52,7 @@ const
     (Driver: 'Ollama';   Model: 'gemma3:4b';                   ApiKey: '';                 Enabled: True)
   );
 
-  QUESTION = 'En exactamente 2 oraciones: ¿Qué es la inteligencia artificial?';
+  QUESTION = 'In exactly 2 sentences: What is artificial intelligence?';
 
 // =============================================================================
 //  Función que envía la misma pregunta a un proveedor y mide el tiempo
@@ -81,7 +81,7 @@ begin
     Conn.Params.Values['Asynchronous'] := 'False';
     Conn.Params.Values['Max_Tokens']   := '256';
 
-    Conn.SystemPrompt.Text := 'Responde siempre en español de forma concisa.';
+    Conn.SystemPrompt.Text := 'Always respond in Spanish concisely.';
 
     SW := TStopwatch.StartNew;
     try

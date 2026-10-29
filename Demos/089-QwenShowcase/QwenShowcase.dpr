@@ -1,27 +1,27 @@
 ﻿program QwenShowcase;
 
 // =============================================================================
-// DEMO 089 - Qwen (Alibaba Model Studio) en MakerAI
+// DEMO 089 - Qwen (Alibaba Model Studio) in MakerAI
 // =============================================================================
-// Un recorrido por todo lo que MakerAI hace con Qwen usando una sola API key.
-// Cada seccion se puede correr sola:
+// A tour of everything MakerAI does with Qwen using a single API key.
+// Each section can run on its own:
 //
-//   chat        sincrono, streaming, razonamiento con presupuesto, herramientas
-//   vision      generar una imagen -> editarla -> describirla
-//   voz         TTS -> transcripcion con contexto -> audio entendido por omni
-//   traduccion  qwen-mt-plus con glosario y dominio, dos idiomas destino
-//   rag         embeddings (ranking por similitud) + reranker con instruccion
-//   realtime    LLM -> voz en tiempo real y traduccion simultanea por el
-//               conector universal, con DriverParams
-//   --video     texto a video con Wan, 2 s a 720p (cuesta mas: solo si se pide)
-//   --voces     clonar una voz, hablar con ella y borrarla (idem)
+//   chat        synchronous, streaming, reasoning with budget, tools
+//   vision      generate an image -> edit it -> describe it
+//   voice       TTS -> transcription with context -> audio understood by omni
+//   translation qwen-mt-plus with glossary and domain, two target languages
+//   rag         embeddings (similarity ranking) + reranker with instruction
+//   realtime    LLM -> real-time voice and simultaneous translation through the
+//               universal connector, with DriverParams
+//   --video     text to video with Wan, 2 s at 720p (costs more: only if requested)
+//   --voices    clone a voice, speak with it and delete it (same)
 //
-// Uso:  QwenShowcase.exe                    todas menos video y voces
-//       QwenShowcase.exe vision voz         solo esas
-//       QwenShowcase.exe --video --voces    agrega las opcionales
+// Usage:  QwenShowcase.exe                    all except video and voices
+//       QwenShowcase.exe vision voice         only those
+//       QwenShowcase.exe --video --voices    adds the optional ones
 //
-// Requiere DASHSCOPE_API_KEY (region internacional, Singapur). Los archivos
-// generados quedan en la carpeta 'salida' del demo.
+// Requires DASHSCOPE_API_KEY (international region, Singapore). The generated
+// files are saved in the demo's 'salida' folder.
 // =============================================================================
 
 {$APPTYPE CONSOLE}
@@ -52,7 +52,7 @@ uses
   uMakerAi.Realtime.QwenTTS in '..\..\Source\Realtime\uMakerAi.Realtime.QwenTTS.pas';
 
 type
-  // Los eventos del framework son 'of object': los manejadores viven en una clase
+  // Framework events are 'of object': handlers live in a class
   TDemo = class
   public
     Fin: TEvent;
@@ -75,7 +75,7 @@ type
     procedure OnError(Sender: TObject; const ErrorMsg: string; Exception: Exception; const AResponse: IHTTPResponse);
     procedure OnCambio(Sender: TObject; FunctionAction: TFunctionActionItem; FunctionName: string;
       ToolCall: TAiToolsFunction; var Handled: Boolean);
-    // LLM -> voz: cada fragmento del chat va directo al TTS en tiempo real
+    // LLM -> voice: each chat fragment goes straight to the TTS in real time
     procedure OnDeltaAVoz(const Sender: TObject; aMsg: TAiChatMessage; aResponse: TJSONObject; aRole, aText: string);
     procedure OnFinAVoz(const Sender: TObject; aMsg: TAiChatMessage; aResponse: TJSONObject; aRole, aText: string);
     // Realtime
@@ -207,7 +207,7 @@ begin
   Writeln('=== ', S, ' ', StringOfChar('=', Max(0, 70 - Length(S))));
 end;
 
-// Los eventos llegan por TThread.Queue: en consola hay que drenar la cola
+// Events arrive through TThread.Queue: in the console the queue must be drained
 procedure Esperar(ACond: TFunc<Boolean>; AMs: Integer = 60000);
 var
   T0: Cardinal;
@@ -233,7 +233,7 @@ begin
   Result := C.GetLastMessage;
 end;
 
-// Guarda PCM16 mono como WAV reproducible
+// Saves mono PCM16 as a playable WAV
 procedure GuardarWav(const AArchivo: string; APcm: TMemoryStream; ASampleRate: Integer);
 var
   F: TFileStream;
@@ -280,17 +280,17 @@ var
 begin
   Titulo('CHAT');
 
-  // 1. Sincrono: Qwen razona por defecto en el API; el driver lo apaga si el
-  //    modelo no tiene cap_Reasoning (rapido y sin pagar tokens de razonar)
+  // 1. Synchronous: Qwen reasons by default in the API; the driver turns it off if the
+  //    model has no cap_Reasoning (fast and without paying reasoning tokens)
   C := Conexion('qwen3.8-flash');
   try
-    Writeln('1. Sincrono (qwen3.8-flash):');
+    Writeln('1. Synchronous (qwen3.8-flash):');
     Writeln('   ', Corto(C.AddMessageAndRun('Que es la partida doble? Responde en una frase.', 'user', [])));
   finally
     C.Free;
   end;
 
-  // 2. Streaming: el texto se imprime a medida que llega
+  // 2. Streaming: the text is printed as it arrives
   C := Conexion('qwen3.8-flash', True);
   try
     C.OnReceiveData := Demo.OnDelta;
@@ -302,19 +302,19 @@ begin
     C.Free;
   end;
 
-  // 3. Razonamiento: cap_Reasoning lo activa y ThinkingLevel fija el presupuesto
+  // 3. Reasoning: cap_Reasoning activates it and ThinkingLevel sets the budget
   C := Conexion('qwen3.8-flash');
   try
     C.Params.Values['ModelCaps'] := '[cap_Image, cap_Reasoning]';
     C.Params.Values['ThinkingLevel'] := 'tlLow'; // thinking_budget = 1024 tokens
-    Writeln('3. Razonamiento (tlLow):');
+    Writeln('3. Reasoning (tlLow):');
     Writeln('   ', Corto(C.AddMessageAndRun('Si vendo con 19% de IVA a 119.000, cual es la base gravable? Solo el numero.', 'user', [])));
-    Writeln(Format('   razonamiento: %d caracteres', [Length(Ultimo(C).ReasoningContent)]));
+    Writeln(Format('   reasoning: %d characters', [Length(Ultimo(C).ReasoningContent)]));
   finally
     C.Free;
   end;
 
-  // 4. Herramientas: el modelo pide la funcion, MakerAI la ejecuta y sigue
+  // 4. Tools: the model requests the function, MakerAI executes it and continues
   F := TAiFunctions.Create(nil);
   C := Conexion('qwen3.8-flash');
   try
@@ -330,9 +330,9 @@ begin
     end;
     Fn.OnAction := Demo.OnCambio;
     C.AiFunctions := F;
-    Writeln('4. Herramientas:');
+    Writeln('4. Tools:');
     Writeln('   ', Corto(C.AddMessageAndRun('Cuantos pesos colombianos son 100 dolares hoy?', 'user', [])));
-    Writeln('   la funcion se llamo con: ', Demo.Herramienta);
+    Writeln('   the function was called with: ', Demo.Herramienta);
   finally
     C.Free;
     F.Free;
@@ -353,23 +353,23 @@ begin
   Faro := TPath.Combine(Salida, 'faro.png');
   FaroVerde := TPath.Combine(Salida, 'faro_verde.png');
 
-  // 1. Generar: un modelo de imagen tiene cap_GenImage en SessionCaps
+  // 1. Generate: an image model has cap_GenImage in SessionCaps
   C := Conexion('qwen-image-2.0');
   try
     C.AddMessageAndRun('Un faro rojo y blanco sobre rocas al atardecer, acuarela', 'user', []);
     if Ultimo(C).MediaFiles.Count > 0 then
     begin
       Ultimo(C).MediaFiles[0].SaveToFile(Faro);
-      Writeln('1. Imagen generada: ', Faro);
+      Writeln('1. Image generated: ', Faro);
     end
     else
-      Writeln('1. Sin imagen: ', C.AiChat.LastError);
+      Writeln('1. No image: ', C.AiChat.LastError);
   finally
     C.Free;
   end;
   if not TFile.Exists(Faro) then Exit;
 
-  // 2. Editar: la imagen adjunta al prompt es la entrada; sin 'size' conserva la proporcion
+  // 2. Edit: the image attached to the prompt is the input; without 'size' it keeps the aspect ratio
   C := Conexion('qwen-image-edit-plus');
   M := TAiMediaFile.Create;
   try
@@ -378,21 +378,21 @@ begin
     if Ultimo(C).MediaFiles.Count > 0 then
     begin
       Ultimo(C).MediaFiles[0].SaveToFile(FaroVerde);
-      Writeln('2. Imagen editada:  ', FaroVerde);
+      Writeln('2. Image edited:  ', FaroVerde);
     end
     else
-      Writeln('2. Sin imagen: ', C.AiChat.LastError);
+      Writeln('2. No image: ', C.AiChat.LastError);
   finally
     C.Free;
   end;
   if not TFile.Exists(FaroVerde) then Exit;
 
-  // 3. Describir con un modelo de chat con vision
+  // 3. Describe with a chat model with vision
   C := Conexion('qwen3.8-flash');
   M := TAiMediaFile.Create;
   try
     M.LoadFromfile(FaroVerde);
-    Writeln('3. Descripcion: ', Corto(C.AddMessageAndRun('De que colores es el faro? Una frase.', 'user', [M])));
+    Writeln('3. Description: ', Corto(C.AddMessageAndRun('De que colores es el faro? Una frase.', 'user', [M])));
   finally
     C.Free;
   end;
@@ -415,7 +415,7 @@ begin
     if Result then
       Ultimo(C).MediaFiles[0].SaveToFile(AArchivo)
     else
-      Writeln('   Sin audio: ', C.AiChat.LastError);
+      Writeln('   No audio: ', C.AiChat.LastError);
   finally
     C.Free;
   end;
@@ -430,25 +430,25 @@ begin
   Titulo('VOZ');
   Wav := TPath.Combine(Salida, 'voz.wav');
 
-  // 1. Texto a voz
+  // 1. Text to speech
   if GenerarVoz('Hola, esta es una prueba de voz de MakerAI desde Delphi.', Wav) then
-    Writeln('1. Voz generada: ', Wav)
+    Writeln('1. Voice generated: ', Wav)
   else
     Exit;
 
-  // 2. Transcripcion: en cmTranscription el prompt es contexto para el reconocedor
-  //    (nombres propios, jerga), no una pregunta
+  // 2. Transcription: in cmTranscription the prompt is context for the recognizer
+  //    (proper names, jargon), not a question
   C := Conexion('qwen3-asr-flash');
   M := TAiMediaFile.Create;
   try
     C.ChatMode := cmTranscription;
     M.LoadFromfile(Wav);
-    Writeln('2. Transcripcion: ', Corto(C.AddMessageAndRun('MakerAI, Delphi', 'user', [M])));
+    Writeln('2. Transcription: ', Corto(C.AddMessageAndRun('MakerAI, Delphi', 'user', [M])));
   finally
     C.Free;
   end;
 
-  // 3. Un modelo omni entiende el audio directamente
+  // 3. An omni model understands the audio directly
   C := Conexion('qwen3.8-omni-flash');
   M := TAiMediaFile.Create;
   try
@@ -472,14 +472,14 @@ begin
   Titulo('TRADUCCION');
   C := Conexion('qwen-mt-plus');
   try
-    // Idioma destino y dominio por Params; el glosario es una lista en el driver
+    // Target language and domain via Params; the glossary is a list in the driver
     C.Params.Values['TranslateTo'] := 'English';
     C.Params.Values['TranslateDomain'] := 'Colombian accounting, chart of accounts (PUC)';
     (C.AiChat as TAiQwenChat).TranslateTerms.Text := 'IVA descontable=deductible VAT';
     Writeln('Original: ', TEXTO);
     Writeln('English:  ', Corto(C.AddMessageAndRun(TEXTO, 'user', [])));
     C.Params.Values['TranslateTo'] := 'Japanese';
-    Writeln('Japanese: (se guarda en salida\traduccion_ja.txt; la consola no muestra japones)');
+    Writeln('Japanese: (saved in salida\traduccion_ja.txt; the console does not show Japanese)');
     TFile.WriteAllText(TPath.Combine(Salida, 'traduccion_ja.txt'),
       C.AddMessageAndRun(TEXTO, 'user', []), TEncoding.UTF8);
   finally
@@ -524,21 +524,21 @@ var
   I: Integer;
 begin
   Titulo('RAG');
-  Writeln('Consulta: ', CONSULTA);
+  Writeln('Query: ', CONSULTA);
 
-  // 1. Embeddings: similitud coseno de cada pasaje con la consulta
+  // 1. Embeddings: cosine similarity of each passage with the query
   E := TAiEmbeddingConnection.Create(nil);
   try
     E.DriverName := 'Qwen'; // text-embedding-v4, 1024 dimensiones
     Q := Copy(E.CreateEmbedding(CONSULTA, 'user'));
-    Writeln(Format('1. Embeddings (%s, %d dimensiones):', [E.AiEmbeddings.Model, Length(Q)]));
+    Writeln(Format('1. Embeddings (%s, %d dimensions):', [E.AiEmbeddings.Model, Length(Q)]));
     for I := 0 to High(PASAJES) do
       Writeln(Format('   %.3f  %s', [Coseno(Q, E.CreateEmbedding(PASAJES[I], 'user')), PASAJES[I]]));
   finally
     E.Free;
   end;
 
-  // 2. Reranker: puntaje de relevancia 0..1 por pasaje (se enchufa en TAiRAGVector.Reranker)
+  // 2. Reranker: relevance score 0..1 per passage (plugs into TAiRAGVector.Reranker)
   R := TAiQwenRAGReranker.Create(nil);
   try
     R.Instruct := 'Given an accounting question, retrieve the chart-of-accounts passage that answers it';
@@ -570,8 +570,8 @@ var
 begin
   Titulo('REALTIME');
 
-  // 1. LLM -> voz: cada fragmento que escribe el modelo va directo al TTS, que
-  //    empieza a hablar antes de que el modelo termine
+  // 1. LLM -> voice: each fragment the model writes goes straight to the TTS, which
+  //    starts speaking before the model finishes
   TTS := TAiQwenRealtimeTTS.Create(nil);
   try
     TTS.Voice := 'Cherry';
@@ -593,12 +593,12 @@ begin
       C.OnReceiveData := Demo.OnDeltaAVoz;
       C.OnReceiveDataEnd := Demo.OnFinAVoz;
       Demo.T0 := TThread.GetTickCount;
-      Write('1. LLM -> voz: ');
+      Write('1. LLM -> voice: ');
       C.AddMessageAndRun('Explica en dos frases cortas que es una cuenta contable.', 'user', []);
       Esperar(function: Boolean begin Result := Demo.Terminado end);
       Writeln;
       GuardarWav(TPath.Combine(Salida, 'llm_voz.wav'), Demo.Audio, 24000);
-      Writeln(Format('   primer audio a los %d ms de la pregunta; %.1f s de voz en salida\llm_voz.wav',
+      Writeln(Format('   first audio at %d ms after the question; %.1f s of voice in salida\llm_voz.wav',
         [Demo.PrimerAudioMs, Demo.Audio.Size / 48000]));
     finally
       C.Free;
@@ -607,8 +607,8 @@ begin
     TTS.Free;
   end;
 
-  // 2. Traduccion simultanea por TAiRealtimeConnection: el mismo codigo sirve
-  //    con otros drivers; lo propio de Qwen va en DriverParams
+  // 2. Simultaneous translation through TAiRealtimeConnection: the same code works
+  //    with other drivers; Qwen-specific settings go in DriverParams
   VozWav := TPath.Combine(Salida, 'voz.wav');
   if not TFile.Exists(VozWav) and not GenerarVoz('Hola, esta es una prueba de voz de MakerAI desde Delphi.', VozWav) then
     Exit;
@@ -633,8 +633,8 @@ begin
       Writeln('2. La traduccion en tiempo real no se conecto: ', Demo.Error);
       Exit;
     end;
-    // Se envia como si fuera un microfono: bloques de 100 ms y luego silencio
-    // (este modelo cierra el turno tras ~2.5 s sin voz)
+    // It is sent as if it were a microphone: 100 ms blocks and then silence
+    // (this model closes the turn after ~2.5 s without voice)
     I := 0;
     while I < Length(Pcm) do
     begin
@@ -652,11 +652,11 @@ begin
     end;
     Esperar(function: Boolean begin Result := Demo.Terminado end, 30000);
     RT.Disconnect;
-    Writeln('2. Traduccion simultanea (QwenTranslate):');
-    Writeln('   escuchado: ', Demo.Original);
-    Writeln('   traducido: ', Demo.Traduccion);
+    Writeln('2. Simultaneous translation (QwenTranslate):');
+    Writeln('   heard: ', Demo.Original);
+    Writeln('   translated: ', Demo.Traduccion);
     GuardarWav(TPath.Combine(Salida, 'traduccion_en.wav'), Demo.Audio, 24000);
-    Writeln(Format('   voz traducida: %.1f s en salida\traduccion_en.wav', [Demo.Audio.Size / 48000]));
+    Writeln(Format('   translated voice: %.1f s in salida\traduccion_en.wav', [Demo.Audio.Size / 48000]));
   finally
     RT.Free;
   end;
@@ -675,16 +675,16 @@ begin
   Archivo := TPath.Combine(Salida, 'video.mp4');
   C := Conexion('wan2.6-t2v');
   try
-    C.VideoParams.Params.Values['duration'] := '2'; // 720p por defecto en el driver
-    Writeln('Generando 2 s de video (tarda ~1 minuto)...');
+    C.VideoParams.Params.Values['duration'] := '2'; // 720p by default in the driver
+    Writeln('Generating 2 s of video (takes ~1 minute)...');
     C.AddMessageAndRun('Olas rompiendo contra un faro al atardecer', 'user', []);
     if Ultimo(C).MediaFiles.Count > 0 then
     begin
       Ultimo(C).MediaFiles[0].SaveToFile(Archivo);
-      Writeln('Video con audio: ', Archivo);
+      Writeln('Video with audio: ', Archivo);
     end
     else
-      Writeln('Sin video: ', C.AiChat.LastError);
+      Writeln('No video: ', C.AiChat.LastError);
   finally
     C.Free;
   end;
@@ -697,16 +697,16 @@ var
   C: TAiChatConnection;
 begin
   Titulo('VOCES PROPIAS');
-  // Clonar solo voces con permiso de su dueno. Aqui la muestra es la voz sintetica del TTS.
+  // Clone only voices with their owner's permission. Here the sample is the TTS synthetic voice.
   Muestra := TPath.Combine(Salida, 'voz.wav');
   if not TFile.Exists(Muestra) and not GenerarVoz('Hola, esta es una prueba de voz de MakerAI desde Delphi.', Muestra) then
     Exit;
   V := TAiQwenVoices.Create(nil);
   try
     Id := V.CloneVoice(Muestra, 'demo089', 'es');
-    Writeln('Voz clonada: ', Id);
+    Writeln('Cloned voice: ', Id);
     try
-      C := Conexion('qwen3-tts-flash'); // el driver cambia al modelo que exige la voz
+      C := Conexion('qwen3-tts-flash'); // the driver switches to the model required by the voice
       try
         C.TtsParams.Voice := Id;
         C.AddMessageAndRun('Esta es la voz clonada, hablando desde el demo de MakerAI.', 'user', []);
@@ -714,14 +714,14 @@ begin
         begin
           Archivo := TPath.Combine(Salida, 'voz_clonada.wav');
           Ultimo(C).MediaFiles[0].SaveToFile(Archivo);
-          Writeln('Audio con la voz clonada: ', Archivo);
+          Writeln('Audio with the cloned voice: ', Archivo);
         end;
       finally
         C.Free;
       end;
     finally
-      V.DeleteVoice(Id); // las voces propias quedan en la cuenta hasta borrarlas
-      Writeln('Voz borrada de la cuenta');
+      V.DeleteVoice(Id); // own voices remain in the account until deleted
+      Writeln('Voice deleted from the account');
     end;
   finally
     V.Free;
@@ -736,7 +736,7 @@ begin
   ExitCode := 0;
   if GetEnvironmentVariable('DASHSCOPE_API_KEY') = '' then
   begin
-    Writeln('Falta la variable de entorno DASHSCOPE_API_KEY');
+    Writeln('The DASHSCOPE_API_KEY environment variable is missing');
     ExitCode := 2;
     Exit;
   end;
@@ -748,7 +748,7 @@ begin
   try
     for I := 1 to ParamCount do
       Secciones.Add(LowerCase(ParamStr(I)).Replace('--', ''));
-    // Sin secciones (o solo las opcionales): todas las baratas
+    // With no sections (or only the optional ones): all the cheap ones
     var SoloOpcionales := True;
     for var LSec in Secciones do
       if (LSec <> 'video') and (LSec <> 'voces') then
@@ -772,7 +772,7 @@ begin
       end;
     end;
     Writeln;
-    Writeln('Archivos generados en: ', Salida);
+    Writeln('Generated files in: ', Salida);
   finally
     Demo.Free;
     Secciones.Free;

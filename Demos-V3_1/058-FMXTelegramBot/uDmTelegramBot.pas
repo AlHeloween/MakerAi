@@ -1,33 +1,33 @@
 ﻿unit uDmTelegramBot;
 
 // =============================================================================
-// MakerAI - Demo 058: FMX Telegram Bot  (Fase 1 + 2 + 3 + 4)
+// MakerAI - Demo 058: FMX Telegram Bot  (Phase 1 + 2 + 3 + 4)
 //
-// Flujo texto:
+// Text flow:
 //   Telegram long poll -> ProcessUpdate
 //       -> IsAuthorized / HandleCommand / GetOrCreateChat
 //       -> TAiChatConnection.AddMessageAndRun  [LLM]
 //       -> SendTgMessage
 //
-// Flujo voz (Fase 4):
+// Voice flow (Phase 4):
 //   Telegram voice message -> DownloadTgFile (OGG)
 //       -> TranscribeAudio  (MCPService mcp-transcribe  ||  TAiOpenAiAudio)
 //       -> TAiChatConnection.AddMessageAndRun  [LLM]
 //       -> SynthesizeVoice  (MCPService mcp-tts  ||  TAiOpenAiAudio)
 //       -> SendTgVoice      (multipart MP3)
 //
-// Skills Fase 1: shell_exec, file_read, file_write, file_list
-// Skills Fase 2: memory_save/get/delete/list, agent_run
-// Fase 3: permisos whitelist, historial persistente, stats
-// Fase 4: voz entrada+salida via MCPService o TAiOpenAiAudio directo
-//         CheckVoiceCapabilities consulta PPM registry al arrancar
+// Skills Phase 1: shell_exec, file_read, file_write, file_list
+// Skills Phase 2: memory_save/get/delete/list, agent_run
+// Phase 3: whitelist permissions, persistent history, stats
+// Phase 4: voice input+output via MCPService or direct TAiOpenAiAudio
+//         CheckVoiceCapabilities queries PPM registry at startup
 //
 // Comandos: /start /help /clear /status /voice /voiceon /voiceoff
 // Admin:    /allow /deny /users /whitelist /openmode
 //
 // PPM registry: https://registry.cimamaker.com  (mcp-transcribe, mcp-tts)
-// MCPService:   FMCPToolsURL (default vacio = modo directo)
-// Datos:        %APPDATA%\MakerAI\
+// MCPService:   FMCPToolsURL (default empty = direct mode)
+// Data:        %APPDATA%\MakerAI\
 // =============================================================================
 
 interface
@@ -109,7 +109,7 @@ type
     // ── Phase 2: active chat_id (for pipeline progress msgs) ──────────
     FCurrentChatId: Int64;
 
-    // ── Fase 3: Permisos ──────────────────────────────────────────────────
+    // ── Phase 3: Permissions ──────────────────────────────────────────────────
     FOwnerChatId  : Int64;
     FWhitelistMode: Boolean;
     FAllowedIds   : TDictionary<Int64, string>;
@@ -122,7 +122,7 @@ type
     FTotalToolCalls: Integer;
     FBotStartTime  : TDateTime;
 
-    // ── Fase 4: Voz ───────────────────────────────────────────────────────
+    // ── Phase 4: Voice ───────────────────────────────────────────────────────
     FVoiceEnabled : Boolean;  // responde con voz cuando el input es voz
     FMCPToolsURL  : string;   // URL MCPService (vacio = TAiOpenAiAudio directo)
 
@@ -167,7 +167,7 @@ type
     function  PipelineAnalyze   (const Task: string): string;
     function  PipelineCodeReview(const Task: string): string;
 
-    // ── Fase 3: Permisos ──────────────────────────────────────────────────
+    // ── Phase 3: Permissions ──────────────────────────────────────────────────
     procedure LoadConfig;
     procedure SaveConfig;
     procedure LoadProviders(AObj: TJSONObject);
@@ -180,7 +180,7 @@ type
     procedure SaveHistory(AChatId: Int64; AChat: TAiChatConnection);
     procedure LoadHistory(AChatId: Int64; AChat: TAiChatConnection);
 
-    // ── Fase 4: Voz ───────────────────────────────────────────────────────
+    // ── Phase 4: Voice ───────────────────────────────────────────────────────
     function  DownloadTgFile(const AFileId: string): string;
     function  TranscribeAudio(const AFilePath: string): string;
     function  SynthesizeVoice(const AText: string): string;
@@ -196,8 +196,8 @@ type
     function  FindMCPToolBySource(const ASourceId: string): IAiTool;
     // Extracts text from an MCP response (content array or direct text field).
     function  ExtractMCPText(const AResult: TJSONObject): string;
-    // Busca AQuery en PPM, descarga, instala y registra en TAiFunctions.
-    // Devuelve True si instaló exitosamente. APkgName y AToolsList son informativos.
+    // Searches AQuery in PPM, downloads, installs and registers in TAiFunctions.
+    // Returns True if installed successfully. APkgName and AToolsList are informational.
     function  InstallMCPPackage(const AQuery: string;
                                 out APkgName, AToolsList: string): Boolean;
     // Implementation of the ppm_install tool that the LLM can call.
@@ -210,8 +210,8 @@ type
     procedure SavePPMState;
     // Reads FPPMStateFile and reinstalls the saved packages.
     procedure LoadAndRestorePPMState;
-    // Bridge nativo para mcp-telegram (schema-only en PPM).
-    // Soporta operation: send_message, get_updates.
+    // Native bridge for mcp-telegram (schema-only in PPM).
+    // Supports operation: send_message, get_updates.
     function  ToolNativeTelegram(const Args: TJSONObject): string;
 
     // Telegram helpers
@@ -380,7 +380,7 @@ begin
   FAllowedIds.Free;
   FConfigLock.Free;
 
-  // PPM: liberar clientes MCP instalados dinámicamente
+  // PPM: release dynamically installed MCP clients
   TAiToolRegistry.Instance.Clear;
   FreeAndNil(FInstalledClients);
   FreeAndNil(FInstalledPkgs);
@@ -403,7 +403,7 @@ begin
   Result.Params.Values['Tool_Active']  := 'True';
   Result.SystemPrompt.Text             := SYS_PROMPT;
   Result.AiFunctions                   := FFunctions;
-  // Log API errors que RunNew captura internamente (sin re-raise)
+  // Log API errors that RunNew captures internally (without re-raise)
   Result.OnError := OnChatError;
 end;
 
@@ -417,7 +417,7 @@ begin
       LoadHistory(AChatId, Result);
       FChats.Add(AChatId, Result);
       if Result.Messages.Count > 0 then
-        DoLog('SYS', Format('Usuario reconectado: chat_id=%d (historial: %d msgs, sesiones: %d)',
+        DoLog('SYS', Format('User reconnected: chat_id=%d (history: %d msgs, sessions: %d)',
                             [AChatId, Result.Messages.Count, FChats.Count]))
       else
         DoLog('SYS', Format('New user: chat_id=%d (total: %d)', [AChatId, FChats.Count]));
@@ -658,9 +658,9 @@ begin
   if hNulIn <> 0 then CloseHandle(hNulIn);
   CloseHandle(PI.hThread); // no necesitamos el handle del thread
 
-  // Leer output con loop no-bloqueante (PeekNamedPipe + timeout de inactividad).
-  // ReadFile bloqueante se quedaría colgado si el proceso espera input interactivo
-  // (ej. psql pidiendo contraseña via consola en lugar de stdin).
+  // Read output with non-blocking loop (PeekNamedPipe + inactivity timeout).
+  // Blocking ReadFile would hang if the process waits for interactive input
+  // (e.g. psql asking for a password via console instead of stdin).
   LEnc := TEncoding.UTF8;
   SB := TStringBuilder.Create;
   TimedOut := False;
@@ -700,7 +700,7 @@ begin
             TerminateProcess(PI.hProcess, 1);
             SB.Append(#10 + '[Timeout: proceso sin output durante ' +
               IntToStr(MAX_IDLE_MS div 1000) + 's — posiblemente requiere input interactivo. ' +
-              'Tip: usa variables de entorno (ej. set PGPASSWORD=xxx) en lugar de prompts.]');
+              'Tip: use environment variables (e.g. set PGPASSWORD=xxx) instead of prompts.]');
             TimedOut := True;
             Break;
           end;
@@ -708,7 +708,7 @@ begin
         end;
       end
       else
-        Break; // PeekNamedPipe falló: pipe cerrado
+        Break; // PeekNamedPipe failed: pipe closed
     until False;
     AOutput := Trim(SB.ToString);
     if Length(AOutput) > MAX_RESP then
@@ -1203,7 +1203,7 @@ begin
     else if Cmd = '/llm' then
     begin
       Result := True;
-      // Uso: /llm   (sin arg = mostrar config actual)
+      // Usage: /llm   (no arg = show current config)
       //      /llm Claude claude-opus-4-6 @CLAUDE_API_KEY
       //      /llm OpenAI gpt-4o @OPENAI_API_KEY
       //      /llm Gemini gemini-3-flash-preview @GEMINI_API_KEY
@@ -1238,7 +1238,7 @@ begin
             'Driver: %s' + #10 +
             'Model:  %s' + #10 +
             'Key:    %s' + #10 +
-            'Sesiones reiniciadas.',
+            'Sessions restarted.',
             [FProviders.LLM.Primary.Driver, FProviders.LLM.Primary.Model, FProviders.LLM.Primary.ApiKey]));
           DoLog('SYS', Format('[LLM] -> %s / %s', [FProviders.LLM.Primary.Driver, FProviders.LLM.Primary.Model]));
         end
@@ -1385,10 +1385,10 @@ var
   Http: THTTPClient;
   Resp: IHTTPResponse;
 begin
-  // Restaurar paquetes PPM instalados en sesiones anteriores
+  // Restore PPM packages installed in previous sessions
   LoadAndRestorePPMState;
 
-  // Auto-instalar herramientas de voz vía PPM
+  // Auto-install voice tools via PPM
   for var Cap in VOICE_CAPS do
   begin
     if InstallMCPPackage(Cap, PkgName, ToolsList) then
@@ -1397,7 +1397,7 @@ begin
       DoLog('SYS', Format('[PPM] %s unavailable - using direct mode', [Cap]));
   end;
 
-  // Verificar MCPService legacy si esta configurado
+  // Check legacy MCPService if configured
   if FMCPToolsURL <> '' then
   begin
     Http := THTTPClient.Create;
@@ -1406,7 +1406,7 @@ begin
       try
         Resp := Http.Get(FMCPToolsURL + '/health');
         if (Resp <> nil) and (Resp.StatusCode = 200) then
-          DoLog('SYS', '[MCP] MCPService activo: ' + FMCPToolsURL)
+          DoLog('SYS', '[MCP] MCPService active: ' + FMCPToolsURL)
         else
         begin
           DoLog('SYS', '[MCP] MCPService not responding - switching to direct mode');
@@ -1486,8 +1486,8 @@ var
 begin
   Result := '';
 
-  // Opcion A: TAiToolRegistry (mcp-transcribe auto-instalado vía PPM)
-  // Buscar por nombre de tool (no por SourceId: mcp-audio registra sus tools con SourceId='mcp-audio')
+  // Option A: TAiToolRegistry (mcp-transcribe auto-installed via PPM)
+  // Search by tool name (not by SourceId: mcp-audio registers its tools with SourceId='mcp-audio')
   var McpTranscribe: IAiTool := nil;
   TAiToolRegistry.Instance.TryFind('stt', McpTranscribe);
   if Assigned(McpTranscribe) then
@@ -1515,7 +1515,7 @@ begin
     if Result <> '' then begin DoLog('SYS', '[STT] via PPM/' + McpTranscribe.GetName); Exit; end;
   end;
 
-  // Opcion B: MCPService legacy
+  // Option B: legacy MCPService
   if FMCPToolsURL <> '' then
   begin
     JArgs := TJSONObject.Create;
@@ -1570,8 +1570,8 @@ begin
   OutPath := TPath.Combine(GetEnvironmentVariable('TEMP'),
     Format('tts_%d_%d.mp3', [FCurrentChatId, GetTickCount64 mod 999983]));
 
-  // Opcion A: TAiToolRegistry (mcp-tts auto-instalado vía PPM)
-  // Buscar por nombre de tool (no por SourceId: mcp-audio registra sus tools con SourceId='mcp-audio')
+  // Option A: TAiToolRegistry (mcp-tts auto-installed via PPM)
+  // Search by tool name (not by SourceId: mcp-audio registers its tools with SourceId='mcp-audio')
   var McpTts: IAiTool := nil;
   TAiToolRegistry.Instance.TryFind('tts', McpTts);
   if Assigned(McpTts) then
@@ -1601,7 +1601,7 @@ begin
     if Result <> '' then Exit;
   end;
 
-  // Opcion B: MCPService legacy
+  // Option B: legacy MCPService
   if FMCPToolsURL <> '' then
   begin
     JArgs := TJSONObject.Create;
@@ -1804,7 +1804,7 @@ begin
 
     TempAudio := DownloadTgFile(VoiceFileId);
     if TempAudio = '' then
-    begin SendTgMessage(ChatId, 'No pude descargar el audio.'); Exit; end;
+    begin SendTgMessage(ChatId, 'I could not download the audio.'); Exit; end;
 
     try
       Text := TranscribeAudio(TempAudio);
@@ -1813,7 +1813,7 @@ begin
     end;
 
     if Text = '' then
-    begin SendTgMessage(ChatId, 'No pude transcribir el audio.'); Exit; end;
+    begin SendTgMessage(ChatId, 'I could not transcribe the audio.'); Exit; end;
 
     // Confirmar lo que se entendio
     SendTgMessage(ChatId, '[Heard]: ' + Text);
@@ -1876,7 +1876,7 @@ begin
       try
         Resp := Http.Get(URL);
         if Resp = nil then Continue;
-        if Resp.StatusCode = 401 then begin DoLog('SYS', 'Error 401: token invalido.'); FPolling := False; Break; end;
+        if Resp.StatusCode = 401 then begin DoLog('SYS', 'Error 401: invalid token.'); FPolling := False; Break; end;
         if Resp.StatusCode <> 200 then begin DoLog('SYS', Format('Telegram HTTP %d', [Resp.StatusCode])); if FPolling then Sleep(3000); Continue; end;
         JRoot := TJSONObject.ParseJSONValue(Resp.ContentAsString(TEncoding.UTF8));
         if Assigned(JRoot) then
@@ -1892,7 +1892,7 @@ begin
         finally JRoot.Free; end;
       except
         on E: Exception do
-          if FPolling then begin DoLog('SYS', 'Red: ' + E.Message); Sleep(3000); end;
+          if FPolling then begin DoLog('SYS', 'Network: ' + E.Message); Sleep(3000); end;
       end;
     end;
   finally Http.Free; end;
@@ -2032,8 +2032,8 @@ begin
   Pkg      := Pkgs[0];
   APkgName := Pkg.Name;
 
-  // Verificar si ya está instalado CON PROCESO ACTIVO en esta sesión
-  // (FInstalledPkgs solo contiene paquetes con cliente MCP vivo, no schema-only)
+  // Check if already installed WITH ACTIVE PROCESS in this session
+  // (FInstalledPkgs only contains packages with a live MCP client, not schema-only)
   if FInstalledPkgs.IndexOf(Pkg.Name) >= 0 then
   begin
     Entries := TAiToolRegistry.Instance.GetEntries;
@@ -2083,7 +2083,7 @@ end;
 
 function TDmTelegramBot.ToolNativeTelegram(const Args: TJSONObject): string;
 // Bridge nativo para el tool 'telegram' (mcp-telegram schema-only).
-// Usa el Telegram Bot API directamente con FToken o bot_token del Args.
+// Uses the Telegram Bot API directly with FToken or bot_token from Args.
 var
   Op, ChatId, Text, BotToken, ParseMode, URL: string;
   Http  : THTTPClient;
@@ -2206,9 +2206,9 @@ begin
   // Liberar clientes MCP activos (detiene los procesos)
   FInstalledClients.Clear;
   FInstalledPkgs.Clear;
-  // Nota: los tools siguen registrados en TAiFunctions pero sus clientes
-  // ya no corren; llamadas fallaran con error hasta reiniciar o reinstalar.
-  // Borrar archivo de estado
+  // Note: tools remain registered in TAiFunctions but their clients
+  // no longer run; calls will fail with an error until restart or reinstall.
+  // Delete state file
   if TFile.Exists(FPPMStateFile) then
     TFile.Delete(FPPMStateFile);
   DoLog('SYS', Format('[PPM] Cleared: %d package(s) removed', [Count]));
@@ -2234,11 +2234,11 @@ begin
     Exit;
   end;
 
-  DoLog('TOOL', '[PPM] Buscando: ' + Capability);
+  DoLog('TOOL', '[PPM] Searching: ' + Capability);
 
   if InstallMCPPackage(Capability, PkgName, ToolsList) then
   begin
-    DoLog('TOOL', Format('[PPM] %s instalado - tools: %s', [PkgName, ToolsList]));
+    DoLog('TOOL', Format('[PPM] %s installed - tools: %s', [PkgName, ToolsList]));
     JResult := TJSONObject.Create;
     JArr    := TJSONArray.Create;
     try
@@ -2258,7 +2258,7 @@ begin
   begin
     Result := Format('{"error": "Could not install capability: %s. ' +
       'Try a more specific keyword."}', [Capability]);
-    DoLog('TOOL', '[PPM] Instalación fallida para: ' + Capability);
+    DoLog('TOOL', '[PPM] Installation failed for: ' + Capability);
   end;
 end;
 

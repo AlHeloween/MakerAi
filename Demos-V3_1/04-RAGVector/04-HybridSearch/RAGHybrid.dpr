@@ -9,7 +9,7 @@ program RAGHybrid;
 // Combines vector search (semantic) with lexical search (BM25).
 // Hybrid search outperforms each method alone in many cases.
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - TAiSearchOptions: UseEmbeddings, UseBM25, UseRRF
 //   - Reciprocal Rank Fusion (RRF): combines vector + BM25 rankings
 //   - When vector search fails (exact technical terms)
@@ -33,16 +33,16 @@ const
 // Corpus with technical terms and mixed semantic text
 const
   CORPUS: array[0..9] of String = (
-    'La funcion SHA256 genera un hash criptografico de 256 bits.',
-    'El algoritmo de hashing es fundamental para la seguridad de contraseñas.',
-    'HTTPS usa TLS para cifrar las comunicaciones web de forma segura.',
-    'SQL injection es un ataque donde codigo malicioso se inyecta en consultas.',
-    'Los ataques de ciberseguridad pueden comprometer datos sensibles.',
-    'REST API permite comunicacion entre servicios usando HTTP y JSON.',
-    'GraphQL es una alternativa a REST para consultar datos de forma flexible.',
-    'Docker containeriza aplicaciones para facilitar el despliegue.',
-    'Kubernetes orquesta contenedores Docker a escala empresarial.',
-    'DevOps combina desarrollo y operaciones para entregas continuas.'
+    'The SHA256 function generates a 256-bit cryptographic hash.',
+    'The hashing algorithm is fundamental for password security.',
+    'HTTPS uses TLS to securely encrypt web communications.',
+    'SQL injection is an attack where malicious code is injected into queries.',
+    'Cybersecurity attacks can compromise sensitive data.',
+    'REST API allows communication between services using HTTP and JSON.',
+    'GraphQL is an alternative to REST for querying data flexibly.',
+    'Docker containerizes applications to facilitate deployment.',
+    'Kubernetes orchestrates Docker containers at enterprise scale.',
+    'DevOps combines development and operations for continuous delivery.'
   );
 
 // =============================================================================
@@ -54,7 +54,7 @@ var
   Results: String;
 begin
   Writeln(StringOfChar('-', 60));
-  Writeln('Consulta: "', Query, '"');
+  Writeln('Query: "', Query, '"');
   Writeln;
 
   Opts := RAG.SearchOptions;
@@ -140,6 +140,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

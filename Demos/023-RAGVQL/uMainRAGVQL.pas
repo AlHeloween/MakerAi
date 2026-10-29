@@ -201,7 +201,7 @@ procedure TForm21.BtnCancelarClick(Sender: TObject);
 begin
   FUserCancelled      := True;
   BtnCancelar.Enabled := False;
-  SetStatus('Cancelando...');
+  SetStatus('Canceling...');
 end;
 
 procedure TForm21.RAGImportProgress(Sender: TObject; aPosition, Total: Integer; var Cancel: Boolean);
@@ -224,7 +224,7 @@ end;
 procedure TForm21.BtnSaveToFileClick(Sender: TObject);
 begin
   SaveDialog1.DefaultExt := 'mkVRag';
-  SaveDialog1.Filter     := 'MakerAI Vector Files (*.mkVRag)|*.mkVRag|Todos los archivos (*.*)|*.*';
+  SaveDialog1.Filter     := 'MakerAI Vector Files (*.mkVRag)|*.mkVRag|All files (*.*)|*.*';
   SaveDialog1.Title      := 'Save Vector Database';
 
   if SaveDialog1.Execute then
@@ -246,7 +246,7 @@ var
   ItemsCargados: Integer;
 begin
   OpenDialog1.DefaultExt := 'mkVRag';
-  OpenDialog1.Filter     := 'MakerAI Vector Files (*.mkVRag)|*.mkVRag|Todos los archivos (*.*)|*.*';
+  OpenDialog1.Filter     := 'MakerAI Vector Files (*.mkVRag)|*.mkVRag|All files (*.*)|*.*';
 
   if OpenDialog1.Execute then
   begin
@@ -332,7 +332,7 @@ begin
             MemoResponse.Lines.Text := LResponse;
 
             if LResponse.IsEmpty then
-              MemoResponse.Lines.Add('(No se encontraron coincidencias con esa precision)');
+              MemoResponse.Lines.Add('(No matches found with that precision)');
 
             BtnConsultar.Enabled := True;
             Cursor := crDefault;
@@ -492,9 +492,9 @@ begin
 
       SB.Append('MODE: ');
       case Req.Mode of
-        smEmbeddings: SB.Append('Semantico (Embeddings)');
-        smBM25:       SB.Append('Lexico (BM25)');
-        smHybrid:     SB.Append('Hibrido');
+        smEmbeddings: SB.Append('Semantic (Embeddings)');
+        smBM25:       SB.Append('Lexical (BM25)');
+        smHybrid:     SB.Append('Hybrid');
       end;
       SB.AppendLine;
 
@@ -557,18 +557,18 @@ begin
     SB.AppendLine('ENTITY (Target): [Global / Default]').AppendLine;
 
     if LPrompt.IsEmpty then
-      SB.AppendLine('QUERY: (Vacio)')
+      SB.AppendLine('QUERY: (Empty)')
     else
       SB.AppendLine('QUERY: ' + LPrompt);
     SB.AppendLine;
 
     SB.Append('MODE: ');
     if LUseEmbeddings and LUseBM25 then
-      SB.Append('Hibrido (Semantico + Lexico)')
+      SB.Append('Hybrid (Semantic + Lexical)')
     else if LUseEmbeddings then
-      SB.Append('Embeddings Only (Semantico)')
+      SB.Append('Embeddings Only (Semantic)')
     else if LUseBM25 then
-      SB.Append('BM25 Only (Lexico)')
+      SB.Append('BM25 Only (Lexical)')
     else
       SB.Append('NINGUNO (configuracion invalida)');
     SB.AppendLine;
@@ -586,14 +586,14 @@ begin
     end;
     SB.AppendLine;
 
-    SB.AppendLine('FILTROS (MetaData):');
-    SB.AppendLine('  (La busqueda simple no soporta filtros de metadatos)').AppendLine;
+    SB.AppendLine('FILTERS (MetaData):');
+    SB.AppendLine('  (Simple search does not support metadata filters)').AppendLine;
 
     SB.AppendLine('THRESHOLDS:');
     SB.AppendFormat('  - Min Global: %s', [EditPrecision.Text]).AppendLine.AppendLine;
 
-    SB.AppendLine('RERANKING: Inactivo');
-    SB.AppendLine('  (Usar VQL para activar RERANK)').AppendLine;
+    SB.AppendLine('RERANKING: Inactive');
+    SB.AppendLine('  (Use VQL to enable RERANK)').AppendLine;
 
     SB.AppendLine('OPTIMIZATIONS:');
     SB.AppendFormat('  - Reorder Context (Lost-in-Middle): %s',

@@ -1,36 +1,36 @@
 program A2AOrchestrationDemo;
 
 // =============================================================================
-// DEMO 074 - Flujos de orquestacion sobre A2A (spec 1.0)
+// DEMO 074 - A2A orchestration flows (spec 1.0)
 // =============================================================================
-// El demo 072 muestra el camino feliz punto a punto: un cliente, un agente, una
-// respuesta. Este muestra lo que hace falta para que A2A sirva de verdad en una
-// orquestacion. Todo determinista, sin LLM ni API keys.
+// Demo 072 shows the happy path point to point: one client, one agent, one
+// response. This shows what is needed for A2A to really work in an
+// orchestration. Everything deterministic, no LLM or API keys.
 //
-//   1. POOL          : tres tasks SIMULTANEOS contra el mismo agente. Con un
-//                      solo TAIAgentManager el segundo y el tercero recibirian
-//                      AgentBusy (-32000), porque un grafo no ejecuta dos
-//                      corridas a la vez. Con OnAcquireManager el servidor
-//                      mantiene un pool y los tres completan.
+//   1. POOL          : three SIMULTANEOUS tasks against the same agent. With a
+//                      single TAIAgentManager the second and third would receive
+//                      AgentBusy (-32000), because a graph does not run two
+//                      runs at once. With OnAcquireManager the server
+//                      maintains a pool and all three complete.
 //
-//   2. HUMAN-IN-THE-LOOP : el grafo se suspende pidiendo aprobacion. El task
-//                      queda en input-required con la pregunta en
-//                      status.message, y un SendMessage posterior con el MISMO
-//                      taskId lo reanuda hasta completed.
+//   2. HUMAN-IN-THE-LOOP : the graph suspends asking for approval. The task
+//                      stays in input-required with the question in
+//                      status.message, and a later SendMessage with the SAME
+//                      taskId resumes it until completed.
 //
-//   3. HITL FEDERADO : lo mismo, pero el que pide aprobacion es un agente
-//                      REMOTO. El nodo local se suspende en vez de fallar, y al
-//                      reanudarlo la respuesta viaja al task remoto y el grafo
-//                      local termina. Es lo que hace que un human-in-the-loop
-//                      cruce la federacion en lugar de morir en el borde.
+//   3. FEDERATED HITL : the same, but the one asking for approval is a REMOTE
+//                      agent. The local node suspends instead of failing, and
+//                      when resumed the response travels to the remote task and
+//                      the local graph finishes. This is what makes a
+//                      human-in-the-loop cross federation instead of dying at
 //
-//   4. NO BLOQUEANTE : configuration.blocking=false devuelve el task en working
-//                      de inmediato y el cliente sigue con GetTask, que refresca
-//                      el estado desde el grafo vivo.
+//   4. NON-BLOCKING : configuration.blocking=false returns the task in working
+//                      immediately and the client continues with GetTask, which
+//                      refreshes the state from the live graph.
 //
-// Modos de uso:
-//   A2AOrchestrationDemo.exe          -> los cuatro escenarios
-//   A2AOrchestrationDemo.exe --otel   -> exporta trazas OTLP a localhost:4318
+// Usage modes:
+//   A2AOrchestrationDemo.exe          -> the four scenarios
+//   A2AOrchestrationDemo.exe --otel   -> exports OTLP traces to localhost:4318
 // =============================================================================
 
 {$APPTYPE CONSOLE}
@@ -52,17 +52,17 @@ const
   PORT = 8281;
 
 type
-  // Los eventos del framework son 'of object': sin lambdas.
+  // Framework events are 'of object': no lambdas.
   TDemoHandlers = class
   public
-    // Nodo normal: encadena su nombre al input
+    // Normal node: appends its name to the input
     procedure NodoExec(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
-    // Nodo lento: fuerza solapamiento real entre tasks concurrentes
+    // Slow node: forces real overlap between concurrent tasks
     procedure NodoLento(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
-    // Nodo con human-in-the-loop: se suspende la primera vez y en la
-    // reanudacion incorpora la respuesta humana
+    // Node with human-in-the-loop: suspends the first time and on
+    // resumption incorporates the human response
     procedure NodoAprobacion(Node, BeforeNode: TAIAgentsNode; Link: TAIAgentsLink; Input: string; var Output: string);
-    // Fabrica del pool: un grafo nuevo por slot
+    // Pool factory: a new graph per slot
     procedure FabricaManager(Sender: TObject; var AManager: TAIAgentManager);
   end;
 
@@ -81,13 +81,13 @@ procedure TDemoHandlers.NodoAprobacion(Node, BeforeNode: TAIAgentsNode; Link: TA
 const
   KEY = 'demo.aprobado.';
 begin
-  // La marca va en el blackboard, no en el handler: ResumeThread REEJECUTA este
-  // mismo nodo, asi que hay que distinguir la primera pasada de la reanudacion.
+  // The mark goes in the blackboard, not in the handler: ResumeThread
+  // RE-EXECUTES this same node, so the first pass must be distinguished from
   if Node.Graph.Blackboard.GetString(KEY + Node.Name) = '' then
   begin
     Node.Graph.Blackboard.SetString(KEY + Node.Name, '1');
     Output := Input; // pass-through mientras se espera al humano
-    Node.Suspend('Autoriza el pago de ' + Input + '?', 'Se requiere firma de un supervisor');
+    Node.Suspend('Authorize payment of ' + Input + '?', 'A supervisor signature is required');
   end
   else
     Output := Input + ' [autorizado: ' + Node.Input + ']';
@@ -95,8 +95,8 @@ end;
 
 procedure TDemoHandlers.FabricaManager(Sender: TObject; var AManager: TAIAgentManager);
 begin
-  // El servidor se hace cargo de liberarlo. Debe tener el mismo shape que el
-  // grafo que el agente publica.
+  // The server takes care of freeing it. It must have the same shape as
+  // the graph the agent publishes.
   AManager := TAIAgentManager.Create(nil);
   AManager.AddNode('Validar', NodoLento).AddNode('Procesar', NodoExec);
   AManager.AddEdge('Validar', 'Procesar');
@@ -137,7 +137,7 @@ var
   Inicio: TDateTime;
 begin
   Writeln('');
-  Writeln('== 1. POOL: tres tasks simultaneos contra el mismo agente ==');
+  Writeln('== 1. POOL: three simultaneous tasks against the same agent ==');
   Writeln('');
 
   Server := TAiA2AServer.Create(nil);
@@ -145,7 +145,7 @@ begin
     Server.Port := PORT;
     Server.AgentName := 'Agente Procesador';
     Server.AgentDescription := 'Valida y procesa solicitudes';
-    // Sin esta fabrica el pool no puede crecer y el limite efectivo es 1.
+    // Without this factory the pool cannot grow and the effective limit is 1.
     Server.OnAcquireManager := AHandlers.FabricaManager;
     Server.MaxConcurrentTasks := 3;
     Server.Active := True;
@@ -190,12 +190,12 @@ begin
         end);
     TTask.WaitForAll(Tareas);
 
-    Writeln(Format('   completados=%d  agent-busy=%d  otros=%d', [Ok, Busy, Otros]));
-    Writeln(Format('   tiempo total: %d ms (cada grafo tarda ~400 ms)', [MilliSecondsBetween(Now, Inicio)]));
+    Writeln(Format('   completed=%d  agent-busy=%d  others=%d', [Ok, Busy, Otros]));
+    Writeln(Format('   total time: %d ms (each graph takes ~400 ms)', [MilliSecondsBetween(Now, Inicio)]));
     if Ok = 3 then
-      Writeln('   OK: los tres corrieron en paralelo; en serie habrian tardado ~3x')
+      Writeln('   OK: all three ran in parallel; in series they would have taken ~3x')
     else
-      Writeln('   ATENCION: no completaron los tres');
+      Writeln('   WARNING: not all three completed');
 
     Server.Active := False;
   finally
@@ -215,7 +215,7 @@ var
   Salida, TaskId, CtxId: string;
 begin
   Writeln('');
-  Writeln('== 2. HUMAN-IN-THE-LOOP: input-required y reanudacion por taskId ==');
+  Writeln('== 2. HUMAN-IN-THE-LOOP: input-required and resumption by taskId ==');
   Writeln('');
 
   Server := TAiA2AServer.Create(nil);
@@ -238,8 +238,8 @@ begin
     try
       TaskId := Client.LastTaskId;
       CtxId := Client.LastContextId;
-      Writeln('   turno 1 -> estado: ' + NombreEstado(Client.LastTaskState));
-      Writeln('             pregunta del agente: ' + Client.LastStatusMessage);
+      Writeln('   turn 1 -> state: ' + NombreEstado(Client.LastTaskState));
+      Writeln('             agent question: ' + Client.LastStatusMessage);
       Writeln('             taskId: ' + TaskId);
     finally
       Task.Free;
@@ -247,12 +247,12 @@ begin
 
     // --- Segundo turno: MISMO taskId = reanudacion, no un task nuevo ---
     Writeln('');
-    Writeln('   (el humano responde "aprobado por Ana")');
+    Writeln('   (the human answers "approved by Ana")');
     Task := Client.SendTextEx('aprobado por Ana', TaskId, CtxId, Salida);
     try
-      Writeln('   turno 2 -> estado: ' + NombreEstado(Client.LastTaskState));
-      Writeln('             resultado: ' + Salida);
-      Writeln('             mismo taskId: ' + BoolToStr(Client.LastTaskId = TaskId, True));
+      Writeln('   turn 2 -> state: ' + NombreEstado(Client.LastTaskState));
+      Writeln('             result: ' + Salida);
+      Writeln('             same taskId: ' + BoolToStr(Client.LastTaskId = TaskId, True));
     finally
       Task.Free;
     end;
@@ -275,13 +275,13 @@ var
   Tool: TAiA2ARemoteAgentTool;
 begin
   Writeln('');
-  Writeln('== 3. HITL FEDERADO: el nodo local se suspende, no falla ==');
+  Writeln('== 3. FEDERATED HITL: the local node suspends, it does not fail ==');
   Writeln('');
 
   Server := TAiA2AServer.Create(nil);
   Remoto := TAIAgentManager.Create(nil);
   try
-    // Agente remoto: pide aprobacion humana
+    // Remote agent: asks for human approval
     Remoto.AddNode('Recibir', AHandlers.NodoExec).AddNode('Aprobar', AHandlers.NodoAprobacion);
     Remoto.AddEdge('Recibir', 'Aprobar');
     Remoto.SetEntryPoint('Recibir').SetFinishPoint('Aprobar');
@@ -291,15 +291,15 @@ begin
     Server.AgentManager := Remoto;
     Server.Active := True;
 
-    // Grafo local: uno de sus nodos delega en el agente remoto
+    // Local graph: one of its nodes delegates to the remote agent
     Local := TAIAgentManager.Create(nil);
     try
       Local.AddNode('Origen', AHandlers.NodoExec);
       Local.AddNode('Delegado', nil);
       Tool := TAiA2ARemoteAgentTool.Create(Local);
       Tool.AgentUrl := 'http://localhost:' + IntToStr(PORT);
-      // Default True: ante input-required suspende el nodo local en vez de
-      // lanzar excepcion. Con False el grafo local moriria aqui.
+      // Default True: on input-required it suspends the local node instead of
+      // throwing an exception. With False the local graph would die here.
       Tool.SuspendOnInputRequired := True;
       Local.FindNode('Delegado').Tool := Tool;
       Local.AddEdge('Origen', 'Delegado');
@@ -307,18 +307,18 @@ begin
 
       Local.Run('pago 900 EUR');
       EsperarGrafo(Local);
-      Writeln('   tras la corrida inicial, el grafo LOCAL quedo en: ' +
+      Writeln('   after the initial run, the LOCAL graph ended in: ' +
         NombreStatus(Local.Blackboard.GetStatus));
-      Writeln('   (el agente remoto pidio input y el nodo local se suspendio)');
+      Writeln('   (the remote agent requested input and the local node suspended)');
 
       Writeln('');
-      Writeln('   (se reanuda el nodo local con la respuesta del humano)');
+      Writeln('   (the local node is resumed with the human response)');
       Local.ResumeThread(Local.CurrentThreadID, 'Delegado', 'aprobado por Luis');
       EsperarGrafo(Local);
 
-      Writeln('   estado final del grafo LOCAL: ' + NombreStatus(Local.Blackboard.GetStatus));
-      Writeln('   salida: ' + Local.EndNode.Output);
-      Writeln('   OK: la respuesta viajo al MISMO task remoto y ambos grafos terminaron');
+      Writeln('   final state of the LOCAL graph: ' + NombreStatus(Local.Blackboard.GetStatus));
+      Writeln('   output: ' + Local.EndNode.Output);
+      Writeln('   OK: the response traveled to the SAME remote task and both graphs finished');
     finally
       Local.Free;
     end;
@@ -343,7 +343,7 @@ var
   Vueltas: Integer;
 begin
   Writeln('');
-  Writeln('== 4. NO BLOQUEANTE: blocking=false y sondeo con GetTask ==');
+  Writeln('== 4. NON-BLOCKING: blocking=false and polling with GetTask ==');
   Writeln('');
 
   Server := TAiA2AServer.Create(nil);
@@ -364,7 +364,7 @@ begin
     Task := Client.SendTextEx('lote-42', '', '', Salida, False); // blocking=false
     try
       TaskId := Client.LastTaskId;
-      Writeln('   SendMessage devolvio de inmediato en estado: ' + NombreEstado(Client.LastTaskState));
+      Writeln('   SendMessage returned immediately in state: ' + NombreEstado(Client.LastTaskState));
     finally
       Task.Free;
     end;
@@ -378,7 +378,7 @@ begin
         Writeln(Format('   GetTask #%d -> %s', [Vueltas, NombreEstado(Client.LastTaskState)]));
         if Client.LastTaskState = tsCompleted then
         begin
-          Writeln('   resultado: ' + TAiA2AClient.ArtifactsText(Task));
+          Writeln('   result: ' + TAiA2AClient.ArtifactsText(Task));
           Break;
         end;
       finally
@@ -386,7 +386,7 @@ begin
       end;
     until Vueltas >= 30;
 
-    Writeln('   OK: el estado se refresca desde el grafo vivo, no queda congelado');
+    Writeln('   OK: the state is refreshed from the live graph, it does not stay frozen');
 
     Server.Active := False;
   finally
@@ -420,10 +420,10 @@ begin
       Telemetry := TAiTelemetry.Create(nil);
       Telemetry.ServiceName := 'A2AOrchestrationDemo';
       Telemetry.Enabled := True;
-      Writeln('[otel] Exportando trazas a ' + Telemetry.Endpoint);
+      Writeln('[otel] Exporting traces to ' + Telemetry.Endpoint);
     end;
 
-    Writeln('=== DEMO 074: orquestacion A2A (sin LLM, sin API keys) ===');
+    Writeln('=== DEMO 074: A2A orchestration (no LLM, no API keys) ===');
 
     Handlers := TDemoHandlers.Create;
     try
@@ -436,7 +436,7 @@ begin
     end;
 
     Writeln('');
-    Writeln('OK: los cuatro escenarios de orquestacion completaron.');
+    Writeln('OK: the four orchestration scenarios completed.');
 
     if Assigned(Telemetry) then
     begin

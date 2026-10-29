@@ -4,25 +4,25 @@
 {$R *.res}
 
 // =============================================================================
-// MakerAI — Capítulo 9: Visión Artificial con Ollama (100% local)
+// MakerAI — Chapter 9: Artificial Vision with Ollama (100% local)
 // =============================================================================
-// Demuestra el análisis de imágenes usando modelos multimodales en Ollama.
-// La imagen nunca sale de tu máquina — privacidad total, sin API key.
+// Demonstrates image analysis using multimodal models in Ollama.
+// The image never leaves your machine — total privacy, no API key.
 //
-// Modelo: gemma3:4b (visión nativa, ModelCaps = [cap_Image])
+// Model: gemma3:4b (native vision, ModelCaps = [cap_Image])
 //   → ollama pull gemma3:4b
 //   Alternativas: 'llava:latest', 'llama3.2-vision:latest', 'moondream:latest'
 //
-// Demuestra:
-//   - Demo 1: Descripción general de una imagen — el patrón base de visión.
-//   - Demo 2: OCR — extracción de texto visible en la imagen.
-//   - Demo 3: Extracción estructurada — pedir JSON con elementos detectados.
-//   - Demo 4: Conversación multi-turno con imagen — el modelo recuerda la
-//             imagen en turnos siguientes sin re-enviarla.
-//   - Demo 5: Comparación de dos imágenes — múltiples archivos en un mensaje.
+// Demonstrates:
+//   - Demo 1: General description of an image — the base vision pattern.
+//   - Demo 2: OCR — extraction of visible text in the image.
+//   - Demo 3: Structured extraction — request JSON with detected elements.
+//   - Demo 4: Multi-turn conversation with image — the model remembers the
+//             image in following turns without resending it.
+//   - Demo 5: Comparison of two images — multiple files in one message.
 //
-// Prerequisito:
-//   Ollama corriendo en localhost:11434 con modelo gemma3:4b.
+// Prerequisite:
+//   Ollama running on localhost:11434 with model gemma3:4b.
 //   Instalar: https://ollama.com
 //   Modelo:   ollama pull gemma3:4b
 // =============================================================================
@@ -42,11 +42,11 @@ const
 
   OLLAMA_URL = 'http://localhost:11434/';
 
-  // Wallpaper de Windows — presente en todas las instalaciones
+  // Windows wallpaper — present in all installations
   IMG1 = 'C:\Windows\Web\Wallpaper\Windows\img0.jpg';
 
-  // Segunda imagen para el Demo 5 (comparación)
-  // Si no existe, el demo busca automáticamente otra imagen en el sistema
+  // Second image for Demo 5 (comparison)
+  // If it does not exist, the demo automatically searches for another image in the system
   IMG2 = 'C:\Windows\Web\Wallpaper\Windows\img0.jpg';  // reemplazar si tienes otra
 
 procedure Separador(const Titulo: string);
@@ -110,30 +110,30 @@ var
   Files: TAiMediaFilesArray;
   R    : string;
 begin
-  Separador('Demo 1 — Descripcion general de la imagen');
+  Separador('Demo 1 — General description of the image');
 
   MF := TAiMediaFile.Create;
   MF.LoadFromFile(IMG1);
-  WriteLn('  Imagen: ', MF.FileName);
-  WriteLn('  Tipo  : ', MF.MimeType, '  (', MF.Bytes div 1024, ' KB)');
+  WriteLn('  Image: ', MF.FileName);
+  WriteLn('  Type  : ', MF.MimeType, '  (', MF.Bytes div 1024, ' KB)');
   WriteLn('');
 
   SetLength(Files, 1);
   Files[0] := MF;
 
   Conn.NewChat;
-  Write('  Describiendo imagen... ');
+  Write('  Describing image... ');
   R := Conn.AddMessageAndRun(
     'Describe esta imagen en detalle: ¿qué ves? objetos, colores, ambiente.',
     'user', Files);
   WriteLn('OK');
   WriteLn('');
-  WriteLn('  Descripcion:');
+  WriteLn('  Description:');
   WriteLn('  ', R);
 
   WriteLn('');
-  WriteLn('→ Patron base: MF.LoadFromFile + AddMessageAndRun([MF]).');
-  WriteLn('  gemma3:4b procesa la imagen de forma nativa (ModelCaps=[cap_Image]).');
+  WriteLn('→ Base pattern: MF.LoadFromFile + AddMessageAndRun([MF]).');
+  WriteLn('  gemma3:4b processes the image natively (ModelCaps=[cap_Image]).');
 end;
 
 // =============================================================================
@@ -148,7 +148,7 @@ var
   Files: TAiMediaFilesArray;
   R    : string;
 begin
-  Separador('Demo 2 — OCR: extraccion de texto visible');
+  Separador('Demo 2 — OCR: extraction of visible text');
 
   MF := TAiMediaFile.Create;
   MF.LoadFromFile(IMG1);
@@ -157,7 +157,7 @@ begin
   Files[0] := MF;
 
   Conn.NewChat;
-  Write('  Extrayendo texto visible... ');
+  Write('  Extracting visible text... ');
   R := Conn.AddMessageAndRun(
     '¿Hay texto visible en esta imagen? ' +
     'Si sí, transcríbelo exactamente. ' +
@@ -165,12 +165,12 @@ begin
     'user', Files);
   WriteLn('OK');
   WriteLn('');
-  WriteLn('  Texto encontrado:');
+  WriteLn('  Text found:');
   WriteLn('  ', R);
 
   WriteLn('');
-  WriteLn('→ Los modelos multimodales hacen OCR inteligente: entienden contexto,');
-  WriteLn('  posicion y formato del texto, no solo los caracteres.');
+  WriteLn('→ Multimodal models perform intelligent OCR: they understand context,');
+  WriteLn('  position and format of the text, not just the characters.');
 end;
 
 // =============================================================================
@@ -185,7 +185,7 @@ var
   Files: TAiMediaFilesArray;
   R    : string;
 begin
-  Separador('Demo 3 — Extraccion estructurada (respuesta JSON)');
+  Separador('Demo 3 — Structured extraction (JSON response)');
 
   MF := TAiMediaFile.Create;
   MF.LoadFromFile(IMG1);
@@ -205,21 +205,21 @@ begin
     '"colores_principales": ["color1", "color2", "color3"], ' +
     '"objetos": ["obj1", "obj2"], ' +
     '"hay_texto": false, ' +
-    '"ambiente": "interior|exterior|abstracto"}',
+    '"ambiente": "indoor|outdoor|abstract"}',
     'user', Files);
   WriteLn('OK');
   WriteLn('');
-  WriteLn('  JSON devuelto:');
+  WriteLn('  JSON returned:');
   WriteLn('  ', R);
 
-  // Restaurar system prompt para los demos siguientes
+  // Restore system prompt for following demos
   Conn.SystemPrompt.Text :=
     'Eres un asistente experto en análisis visual. ' +
     'Describe lo que ves de forma clara y concisa. Responde en español.';
 
   WriteLn('');
-  WriteLn('→ JSON en SystemPrompt + ejemplo de formato = respuesta parseable.');
-  WriteLn('  Combina con TJSONObject.ParseJSONValue() para procesar en Delphi.');
+  WriteLn('→ JSON in SystemPrompt + format example = parseable response.');
+  WriteLn('  Combine with TJSONObject.ParseJSONValue() to process in Delphi.');
 end;
 
 // =============================================================================
@@ -235,7 +235,7 @@ var
   Files: TAiMediaFilesArray;
   R    : string;
 begin
-  Separador('Demo 4 — Conversacion multi-turno sobre la imagen');
+  Separador('Demo 4 — Multi-turn conversation about the image');
 
   MF := TAiMediaFile.Create;
   MF.LoadFromFile(IMG1);
@@ -246,38 +246,38 @@ begin
   Conn.NewChat;
 
   // Turno 1: enviar la imagen con la primera pregunta
-  Write('  [Turno 1] Enviando imagen... ');
+  Write('  [Turn 1] Sending image... ');
   R := Conn.AddMessageAndRun(
     'Mira esta imagen. ¿Cuál es el elemento más prominente que ves?',
     'user', Files);
   WriteLn('OK');
-  WriteLn('  Respuesta: ', R);
-  WriteLn('  [Historial: ', Conn.Messages.Count, ' mensajes]');
+  WriteLn('  Response: ', R);
+  WriteLn('  [History: ', Conn.Messages.Count, ' messages]');
 
   // Turno 2: segunda pregunta SIN reenviar la imagen
   WriteLn('');
-  Write('  [Turno 2] Pregunta de seguimiento (sin reenviar imagen)... ');
+  Write('  [Turn 2] Follow-up question (without resending image)... ');
   R := Conn.AddMessageAndRun(
     '¿Qué colores predominan en esa área?',
     'user', []);  // ← sin imagen en el array
   WriteLn('OK');
-  WriteLn('  Respuesta: ', R);
-  WriteLn('  [Historial: ', Conn.Messages.Count, ' mensajes]');
+  WriteLn('  Response: ', R);
+  WriteLn('  [History: ', Conn.Messages.Count, ' messages]');
 
   // Turno 3: otra pregunta de contexto
   WriteLn('');
-  Write('  [Turno 3] Otra pregunta de contexto... ');
+  Write('  [Turn 3] Another context question... ');
   R := Conn.AddMessageAndRun(
     '¿Qué estado de ánimo o sensación transmite esta imagen?',
     'user', []);
   WriteLn('OK');
-  WriteLn('  Respuesta: ', R);
-  WriteLn('  [Historial: ', Conn.Messages.Count, ' mensajes]');
+  WriteLn('  Response: ', R);
+  WriteLn('  [History: ', Conn.Messages.Count, ' messages]');
 
   WriteLn('');
-  WriteLn('→ La imagen se envía UNA sola vez (Turno 1).');
-  WriteLn('  Los Turnos 2 y 3 usan el historial para mantener el contexto.');
-  WriteLn('  El orquestador no re-envía la imagen — ahorra tokens y tiempo.');
+  WriteLn('→ The image is sent only ONCE (Turn 1).');
+  WriteLn('  Turns 2 and 3 use the history to maintain context.');
+  WriteLn('  The orchestrator does not resend the image — saves tokens and time.');
 end;
 
 // =============================================================================
@@ -294,7 +294,7 @@ var
   R         : string;
   Img2Path  : string;
 begin
-  Separador('Demo 5 — Comparacion de dos imagenes');
+  Separador('Demo 5 — Comparison of two images');
 
   // Buscar una segunda imagen en el sistema si IMG2 es igual a IMG1
   Img2Path := IMG2;
@@ -315,9 +315,9 @@ begin
 
   if SameText(Img2Path, IMG1) then
   begin
-    WriteLn('  Solo se encontró una imagen diferente.');
-    WriteLn('  Para este demo, ajusta IMG2 a otra imagen en tu sistema.');
-    WriteLn('  (Mostrando el patrón con la misma imagen dos veces)');
+    WriteLn('  Only one different image was found.');
+    WriteLn('  For this demo, adjust IMG2 to another image on your system.');
+    WriteLn('  (Showing the pattern with the same image twice)');
     WriteLn('');
   end;
 
@@ -326,8 +326,8 @@ begin
   MF1.LoadFromFile(IMG1);
   MF2.LoadFromFile(Img2Path);
 
-  WriteLn('  Imagen 1: ', MF1.FileName);
-  WriteLn('  Imagen 2: ', MF2.FileName);
+  WriteLn('  Image 1: ', MF1.FileName);
+  WriteLn('  Image 2: ', MF2.FileName);
   WriteLn('');
 
   // Enviar las dos imágenes en el mismo mensaje
@@ -336,7 +336,7 @@ begin
   Files[1] := MF2;
 
   Conn.NewChat;
-  Write('  Comparando dos imagenes... ');
+  Write('  Comparing two images... ');
   R := Conn.AddMessageAndRun(
     'Analiza estas dos imágenes. ' +
     '¿Qué tienen en común? ¿Cuáles son las diferencias principales? ' +
@@ -344,12 +344,12 @@ begin
     'user', Files);
   WriteLn('OK');
   WriteLn('');
-  WriteLn('  Analisis comparativo:');
+  WriteLn('  Comparative analysis:');
   WriteLn('  ', R);
 
   WriteLn('');
-  WriteLn('→ Patron multi-imagen: SetLength(Files, N) + asignar cada MF.');
-  WriteLn('  El modelo recibe ambas imágenes en el mismo contexto de mensaje.');
+  WriteLn('→ Multi-image pattern: SetLength(Files, N) + assign each MF.');
+  WriteLn('  The model receives both images in the same message context.');
 end;
 
 // =============================================================================
@@ -359,28 +359,28 @@ procedure RunDemo;
 var
   Conn: TAiChatConnection;
 begin
-  WriteLn('=== MakerAI — Capítulo 9: Visión con Ollama (100% local) ===');
-  WriteLn('Modelo: ', MODEL, '  [ModelCaps = cap_Image — visión nativa]');
-  WriteLn('La imagen nunca sale de tu máquina.');
+  WriteLn('=== MakerAI — Chapter 9: Vision with Ollama (100% local) ===');
+  WriteLn('Model: ', MODEL, '  [ModelCaps = cap_Image — native vision]');
+  WriteLn('The image never leaves your machine.');
 
   if not OllamaActivo then
   begin
     WriteLn('');
-    WriteLn('[!!] Ollama no detectado en ', OLLAMA_URL);
-    WriteLn('     Instalar : https://ollama.com');
-    WriteLn('     Modelo   : ollama pull gemma3:4b');
-    WriteLn('     Iniciar  : ollama serve');
+    WriteLn('[!!] Ollama not detected at ', OLLAMA_URL);
+    WriteLn('     Install : https://ollama.com');
+    WriteLn('     Model   : ollama pull gemma3:4b');
+    WriteLn('     Start    : ollama serve');
     Exit;
   end;
 
   WriteLn('');
-  WriteLn('[OK] Ollama detectado. Usando ', DRIVER, ' / ', MODEL);
+  WriteLn('[OK] Ollama detected. Using ', DRIVER, ' / ', MODEL);
 
   if not TFile.Exists(IMG1) then
   begin
     WriteLn('');
-    WriteLn('[!!] Imagen de prueba no encontrada: ', IMG1);
-    WriteLn('     Ajusta la constante IMG1 a una imagen JPEG en tu sistema.');
+    WriteLn('[!!] Test image not found: ', IMG1);
+    WriteLn('     Adjust the IMG1 constant to a JPEG image on your system.');
     Exit;
   end;
 
@@ -397,7 +397,7 @@ begin
 
   WriteLn('');
   WriteLn(StringOfChar('=', 62));
-  WriteLn('  Demo completado.');
+  WriteLn('  Demo completed.');
   WriteLn(StringOfChar('=', 62));
 end;
 
@@ -409,6 +409,6 @@ begin
       WriteLn('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   WriteLn('');
-  WriteLn('Presiona Enter para salir...');
+  WriteLn('Press Enter to exit...');
   ReadLn;
 end.

@@ -20,8 +20,8 @@ program Vision;
 // Providers without native vision:
 //   Ollama (gemma3:4b), Groq → MakerAI activates an automatic OCR bridge
 //
-// Imágenes de prueba: crea archivos de imagen en la misma carpeta o ajusta
-// la ruta IMG_PATH a una imagen existente en tu sistema.
+// Test images: create image files in the same folder or adjust
+// the IMG_PATH path to an existing image on your system.
 // =============================================================================
 
 uses
@@ -41,8 +41,8 @@ const
   API_KEY = '@CLAUDE_API_KEY';
 
   // Ajusta estas rutas a imágenes reales en tu sistema
-  IMG_SCREENSHOT = 'C:\Windows\Web\Wallpaper\Windows\img0.jpg';  // Wallpaper por defecto
-  IMG_CUSTOM     = '';  // Deja vacío si no tienes otra imagen
+  IMG_SCREENSHOT = 'C:\Windows\Web\Wallpaper\Windows\img0.jpg';  // Default wallpaper
+  IMG_CUSTOM     = '';  // Leave empty if you don't have another image
 
 // =============================================================================
 //  Envía una imagen con una pregunta y muestra la respuesta
@@ -111,7 +111,7 @@ begin
     Conn.Params.Values['ChatMediaSupports'] := '[Tcm_Image]';
 
     Conn.SystemPrompt.Text :=
-      'Eres un asistente experto en análisis de imágenes. ' +
+      'You are an expert assistant in image analysis. ' +
       'Describe lo que ves de forma detallada y precisa. Responde en español.';
 
     // Determine image to use
@@ -121,27 +121,27 @@ begin
 
     // ── Demo 1: general description ──────────────────────────────────────
     AskAboutImage(Conn, ImgPath,
-      'Describe esta imagen en detalle: ¿qué ves? colores, objetos, contexto.',
+      'Describe this image in detail: what do you see? colors, objects, context.',
       'General description');
 
     // ── Demo 2: specific analysis ──────────────────────────────────────
     AskAboutImage(Conn, ImgPath,
-      '¿Qué colores predominan en esta imagen? Lista los 3 más importantes.',
+      'What colors predominate in this image? List the 3 most important.',
       'Color analysis');
 
     // ── Demo 3: specific question ────────────────────────────────────────
     AskAboutImage(Conn, ImgPath,
-      '¿Hay texto visible en la imagen? Si sí, transcríbelo exactamente.',
+      'Is there visible text in the image? If so, transcribe it exactly.',
       'Text extraction (OCR)');
 
     // ── Demo 4: custom image if provided ────────────────────────────────────
     if (IMG_CUSTOM <> '') and TFile.Exists(IMG_CUSTOM) then
       AskAboutImage(Conn, IMG_CUSTOM,
-        'Analiza esta imagen desde el punto de vista técnico o artístico.',
+        'Analyze this image from a technical or artistic point of view.',
         'Custom image analysis');
 
-    Writeln('Nota: Prueba cambiando DRIVER a "Gemini" o "OpenAI" para');
-    Writeln('comparar cómo describe la misma imagen cada modelo.');
+    Writeln('Note: Try changing DRIVER to "Gemini" or "OpenAI" to');
+    Writeln('compare how each model describes the same image.');
 
   finally
     Conn.Free;

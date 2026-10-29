@@ -81,7 +81,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// TEST 1: Chat basico + verificar que thinking llega
+// TEST 1: Basic chat + verify that thinking arrives
 // ---------------------------------------------------------------------------
 procedure Test1_Reasoning;
 var
@@ -97,8 +97,8 @@ begin
   Ev   := TEvHandler.Create;
   Conn := MakeConn(Ev);
   try
-    Conn.SystemPrompt.Text := 'Eres un asistente util. Responde siempre en espanol.';
-    Write('Respuesta : ');
+    Conn.SystemPrompt.Text := 'You are a helpful assistant. Always respond in Spanish.';
+    Write('Response: ');
     Resp := Conn.AddMessageAndRun('Cuanto es 17 x 23? Piensa paso a paso.', 'user', []);
     Writeln;
 
@@ -107,7 +107,7 @@ begin
     else if Resp <> '' then
       Writeln('WARN: response OK but thinking empty')
     else
-      Writeln('FAIL: sin respuesta');
+      Writeln('FAIL: no response');
   finally
     Conn.Free;
     Ev.Free;
@@ -115,7 +115,7 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// TEST 2: Vision — imagen PNG 1x1 rojo
+// TEST 2: Vision — red 1x1 PNG image
 // ---------------------------------------------------------------------------
 procedure Test2_Vision;
 const
@@ -137,7 +137,7 @@ begin
   Conn := MakeConn(Ev);
   Media := TAiMediaFile.Create;
   try
-    // Cargar imagen PNG 1x1 desde base64
+    // Load 1x1 PNG image from base64
     Media.LoadFromBase64('image.png', RED_PNG_B64);
 
     Resp := Conn.AddMessageAndRun(
@@ -153,12 +153,12 @@ begin
   finally
     Conn.Free;
     Ev.Free;
-    // Media es liberado por la conexion via AddMessageAndRun
+    // Media is released by the connection via AddMessageAndRun
   end;
 end;
 
 // ---------------------------------------------------------------------------
-// TEST 3: Audio — transcripcion de un WAV
+// TEST 3: Audio — transcription of a WAV
 // ---------------------------------------------------------------------------
 procedure Test3_Audio;
 const
@@ -186,16 +186,16 @@ begin
   try
     Media.LoadFromFile(AUDIO_FILE);
 
-    Write('Respuesta : ');
+    Write('Response: ');
     Resp := Conn.AddMessageAndRun(
-      'Transcribe exactamente lo que dice el audio. Solo el texto, sin comentarios.',
+      'Transcribe exactly what the audio says. Only the text, no comments.',
       'user', [Media]);
     Writeln;
 
     if Resp <> '' then
       Writeln('PASS: audio transcribed correctly')
     else
-      Writeln('FAIL: sin respuesta');
+      Writeln('FAIL: no response');
   finally
     Conn.Free;
     Ev.Free;

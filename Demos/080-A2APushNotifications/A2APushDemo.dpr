@@ -1,25 +1,25 @@
 program A2APushDemo;
 
 // =============================================================================
-// DEMO 080 - Push notifications de A2A: el agente avisa a tu webhook
+// DEMO 080 - A2A push notifications: the agent notifies your webhook
 // =============================================================================
-// El streaming SSE sirve cuando el cliente puede quedarse conectado esperando.
-// Las push notifications son para lo contrario: tareas largas en las que el
-// cliente se desconecta y quiere que le avisen cuando terminen. El agente hace
-// un POST a la URL que le registres.
+// SSE streaming is useful when the client can stay connected waiting.
+// Push notifications are for the opposite: long tasks where the
+// client disconnects and wants to be notified when they finish. The agent makes
+// a POST to the URL you register.
 //
-// Todo ocurre en un solo proceso y sin claves de API:
-//   - un agente A2A (grafo con un nodo lento) en el puerto 8282
-//   - un receptor de webhook propio en el 8283, para ver lo que llega
+// Everything happens in a single process and without API keys:
+//   - an A2A agent (graph with a slow node) on port 8282
+//   - your own webhook receiver on 8283, to see what arrives
 //
-// Recorrido:
-//   1. Config por el CRUD: CreateTaskPushNotificationConfig sobre un task ya
-//      creado, y luego Get / List / Delete.
-//   2. Config EN la propia peticion: configuration.taskPushNotificationConfig
-//      dentro de SendMessage, que evita la segunda llamada.
-//   3. Se comprueba lo que recibe el webhook: cabecera Authorization y payload.
+// Walkthrough:
+//   1. Config via CRUD: CreateTaskPushNotificationConfig on an already
+//      created task, then Get / List / Delete.
+//   2. Config IN the request itself: configuration.taskPushNotificationConfig
+//      inside SendMessage, which avoids the second call.
+//   3. Check what the webhook receives: Authorization header and payload.
 //
-// Uso:
+// Usage:
 //   A2APushDemo.exe [--port 8282] [--hook-port 8283]
 // =============================================================================
 
@@ -40,22 +40,22 @@ uses
   uMakerAi.A2A.Client in '..\..\Source\Agents\uMakerAi.A2A.Client.pas';
 
 type
-  // Lo que recibio el webhook, para poder enseñarlo
+  // What the webhook received, to be able to show it
   TAviso = record
     Auth: string;
     Cuerpo: string;
   end;
 
-  // Receptor de webhook: un HTTP server minimo que apunta lo que le llega.
+  // Webhook receiver: a minimal HTTP server that records what arrives.
   TReceptorWebhook = class
   private
     FHttp: TIdHTTPServer;
     FLock: TCriticalSection;
     FAvisos: TList<TAviso>;
     procedure OnPost(AContext: TIdContext; ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo);
-    // TIdHTTPServer solo sabe de Basic. Si llega un Authorization con otro
-    // esquema (Bearer, por ejemplo) contesta 401 el solo y OnCommandGet ni
-    // se entera. Marcandolo como atendido dejamos pasar la peticion.
+    // TIdHTTPServer only knows Basic. If an Authorization with another
+    // scheme (Bearer, for example) arrives, it answers 401 by itself and OnCommandGet doesn't
+    // even notice. Marking it as handled lets the request through.
     procedure OnParseAuth(AContext: TIdContext; const AAuthType, AAuthData: string;
       var VUsername, VPassword: string; var VHandled: Boolean);
   public
@@ -64,7 +64,7 @@ type
     function Cuantos: Integer;
     function Ultimo: TAviso;
     procedure Limpiar;
-    // Espera a que llegue algo, hasta ATimeoutMs. Devuelve False si no llego.
+    // Waits for something to arrive, up to ATimeoutMs. Returns False if nothing arrived.
     function EsperarAviso(ATimeoutMs: Integer): Boolean;
   end;
 
@@ -241,7 +241,7 @@ begin
     Url := Format('http://localhost:%d/', [Puerto]);
     HookUrl := Format('http://localhost:%d/webhook', [PuertoHook]);
 
-    Writeln('=== DEMO 080: push notifications de A2A ===');
+    Writeln('=== DEMO 080: A2A push notifications ===');
     Writeln('');
 
     Recibidos := 0;
@@ -259,16 +259,16 @@ begin
       Server.Port := Puerto;
       Server.Active := True;
 
-      Writeln('   agente A2A  : ' + Url);
+      Writeln('   A2A agent  : ' + Url);
       Writeln('   webhook     : ' + HookUrl);
 
       // ---------------------------------------------------------------------
       Writeln('');
-      Writeln('== 1. Registrar el webhook con el CRUD ==');
+      Writeln('== 1. Register the webhook with CRUD ==');
       Writeln('');
 
-      // Un task que se queda trabajando, para registrar el aviso antes de que
-      // termine. Con blocking=false SendMessage vuelve enseguida.
+      // A task that keeps working, to register the notice before it
+      // finishes. With blocking=false SendMessage returns immediately.
       R := Rpc(Url, '{"jsonrpc":"2.0","id":1,"method":"SendMessage","params":{' +
         '"message":{"messageId":"m1","role":"ROLE_USER","parts":[{"text":"lote-1"}]},' +
         '"configuration":{"blocking":false}}}');
@@ -277,13 +277,13 @@ begin
       finally
         R.Free;
       end;
-      Writeln('   task creado: ' + TaskId);
+      Writeln('   task created: ' + TaskId);
 
       R := Rpc(Url, Format('{"jsonrpc":"2.0","id":2,"method":"CreateTaskPushNotificationConfig","params":' +
         '{"taskId":"%s","config":{"id":"cfg-1","url":"%s",' +
         '"authentication":{"scheme":"Bearer","credentials":"mi-token-secreto"}}}}', [TaskId, HookUrl]));
       try
-        Writeln('   config registrada: ' + R.GetValue<TJSONObject>('result').ToJSON);
+        Writeln('   config registered: ' + R.GetValue<TJSONObject>('result').ToJSON);
       finally
         R.Free;
       end;
@@ -291,30 +291,30 @@ begin
       R := Rpc(Url, Format('{"jsonrpc":"2.0","id":3,"method":"ListTaskPushNotificationConfigs",' +
         '"params":{"taskId":"%s"}}', [TaskId]));
       try
-        Writeln('   listado: ' + R.GetValue<TJSONObject>('result').ToJSON);
+        Writeln('   list: ' + R.GetValue<TJSONObject>('result').ToJSON);
       finally
         R.Free;
       end;
 
       Writeln('');
-      Writeln('   esperando el aviso...');
+      Writeln('   waiting for the notice...');
       if Receptor.EsperarAviso(15000) then
       begin
         Aviso := Receptor.Ultimo;
         Inc(Recibidos);
-        Writeln('   AVISO RECIBIDO');
+        Writeln('   NOTICE RECEIVED');
         Writeln('     Authorization: ' + Aviso.Auth);
-        Writeln('     cuerpo: ' + Copy(Aviso.Cuerpo, 1, 150) + '...');
-        Writeln('   (el payload es un StreamResponse, con el task dentro de "task")');
+        Writeln('     body: ' + Copy(Aviso.Cuerpo, 1, 150) + '...');
+        Writeln('   (the payload is a StreamResponse, with the task inside "task")');
       end
       else
-        Writeln('   ATENCION: no llego ningun aviso');
+        Writeln('   WARNING: no notice arrived');
 
       // ---------------------------------------------------------------------
       Writeln('');
-      Writeln('== 2. Registrar el webhook EN la propia peticion ==');
+      Writeln('== 2. Register the webhook IN the request itself ==');
       Writeln('');
-      Writeln('   (configuration.taskPushNotificationConfig, sin segunda llamada)');
+      Writeln('   (configuration.taskPushNotificationConfig, without a second call)');
       Receptor.Limpiar;
 
       R := Rpc(Url, Format('{"jsonrpc":"2.0","id":4,"method":"SendMessage","params":{' +
@@ -329,24 +329,24 @@ begin
         R.Free;
       end;
 
-      Writeln('   esperando el aviso...');
+      Writeln('   waiting for the notice...');
       if Receptor.EsperarAviso(15000) then
       begin
         Aviso := Receptor.Ultimo;
         Inc(Recibidos);
-        Writeln('   AVISO RECIBIDO con Authorization: ' + Aviso.Auth);
+        Writeln('   NOTICE RECEIVED with Authorization: ' + Aviso.Auth);
       end
       else
-        Writeln('   ATENCION: no llego ningun aviso');
+        Writeln('   WARNING: no notice arrived');
 
       // ---------------------------------------------------------------------
       Writeln('');
-      Writeln('== 3. Delete es idempotente ==');
+      Writeln('== 3. Delete is idempotent ==');
       Writeln('');
       R := Rpc(Url, Format('{"jsonrpc":"2.0","id":5,"method":"DeleteTaskPushNotificationConfig",' +
         '"params":{"taskId":"%s","id":"cfg-1"}}', [TaskId]));
       try
-        Writeln('   primer delete : ' + BoolToStr(R.GetValue('error') = nil, True) + ' (sin error)');
+        Writeln('   first delete : ' + BoolToStr(R.GetValue('error') = nil, True) + ' (no error)');
       finally
         R.Free;
       end;
@@ -354,7 +354,7 @@ begin
         '"params":{"taskId":"%s","id":"cfg-1"}}', [TaskId]));
       try
         Writeln('   segundo delete: ' + BoolToStr(R.GetValue('error') = nil, True) +
-          ' (borrar lo que ya no esta tampoco es error)');
+          ' (deleting what is no longer there is not an error either)');
       finally
         R.Free;
       end;
@@ -362,15 +362,15 @@ begin
       Writeln('');
       if Recibidos = 2 then
       begin
-        Writeln('OK: el agente notifico a un webhook externo al completar sus tareas.');
+        Writeln('OK: the agent notified an external webhook when completing its tasks.');
         ExitCode := 0;
       end
       else
       begin
-        Writeln(Format('FALLO: se esperaban 2 avisos y llegaron %d.', [Recibidos]));
-        Writeln('El CRUD de configuraciones SI funciona; lo que falla es la ENTREGA');
-        Writeln('cuando nadie consulta el task (blocking=false). Ver el CLAUDE.md');
-        Writeln('de este demo para el estado real de la limitacion.');
+        Writeln(Format('FAILURE: 2 notices were expected and %d arrived.', [Recibidos]));
+        Writeln('The configuration CRUD DOES work; what fails is DELIVERY');
+        Writeln('when nobody queries the task (blocking=false). See the CLAUDE.md');
+        Writeln('of this demo for the real state of the limitation.');
         ExitCode := 1;
       end;
       Server.Active := False;

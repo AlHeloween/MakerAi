@@ -1,29 +1,29 @@
-﻿// PUENTE DE VOZ BIDIRECCIONAL en tiempo real (consola)
+﻿// BIDIRECTIONAL VOICE BRIDGE in real time (console)
 // =====================================================
 //
-// Escenario: estas en una reunion (Zoom/Meet/Teams) con un hablante de ingles.
+// Scenario: you are in a meeting (Zoom/Meet/Teams) with an English speaker.
 //
-//   [ELLOS] El audio de la reunion (loopback) se transcribe (EN), se traduce
-//           al espanol y se REPRODUCE con TTS en tus auriculares.
-//   [YO]    Hablas en espanol al microfono; se transcribe, se traduce al
-//           ingles y el TTS se REPRODUCE en el cable virtual que la reunion
-//           usa como microfono -> el otro lado te escucha en ingles.
+//   [THEM] The meeting audio (loopback) is transcribed (EN), translated
+//           to Spanish and PLAYED with TTS in your headphones.
+//   [ME]    You speak Spanish into the microphone; it is transcribed, translated to
+//           English and the TTS is PLAYED on the virtual cable the meeting
+//           uses as a microphone -> the other side hears you in English.
 //
 //   loopback --> STT(en) --> traducir(es) --> TTS --> auriculares (yo escucho)
 //   microfono -> STT(es) --> traducir(en) --> TTS --> CABLE Input (reunion escucha)
 //
-// Configuracion necesaria:
-//   1. OPENAI_API_KEY en el entorno (STT + traduccion + TTS).
-//   2. VB-CABLE instalado (https://vb-audio.com/Cable/) o cualquier cable
-//      virtual. En la reunion seleccionar "CABLE Output" como MICROFONO.
-//      Si no hay cable, el demo avisa y reproduce todo en el dispositivo
-//      predeterminado (modo prueba).
-//   3. AURICULARES: el audio de la reunion y el TTS-es deben salir por
-//      auriculares para que el microfono no los capture.
+// Required setup:
+//   1. OPENAI_API_KEY in the environment (STT + translation + TTS).
+//   2. VB-CABLE installed (https://vb-audio.com/Cable/) or any virtual cable
+//      virtual. In the meeting select "CABLE Output" as MICROPHONE.
+//      If there is no cable, the demo warns and plays everything on the default
+//      device (test mode).
+//   3. HEADPHONES: meeting audio and TTS-es must come out through
+//      headphones so the microphone does not capture them.
 //
-// Anti-realimentacion: mientras suena nuestro propio TTS en el dispositivo
-// que el loopback captura, la captura se silencia (TAiAudioCapture.Muted)
-// para no retraducir nuestra propia voz sintetica.
+// Anti-feedback: while our own TTS plays on the device
+// captured by loopback, capture is muted (TAiAudioCapture.Muted)
+// to avoid re-translating our own synthetic voice.
 
 program VoiceBridgeDemo;
 
@@ -64,8 +64,8 @@ const
   // OpenAI TTS with trfPcm format returns PCM16 at 24 kHz mono
   TTS_PCM_RATE = 24000;
 
-  // Subcadena para localizar el cable virtual entre los dispositivos de
-  // salida. En la reunion se selecciona el extremo "CABLE Output" como mic.
+  // Substring to locate the virtual cable among the output
+  // devices. In the meeting the "CABLE Output" end is selected as mic.
   MEETING_DEVICE_HINT = 'CABLE Input';
 
 var
@@ -226,7 +226,7 @@ end;
 
 procedure TBridgeSide.PlayerStateChange(Sender: TObject; aIsPlaying: Boolean);
 begin
-  // Al terminar de sonar nuestro TTS, reactivar la captura silenciada
+  // When our TTS finishes playing, reactivate the muted capture
   if (not aIsPlaying) and Assigned(FMuteCapture) then
     FMuteCapture.Muted := False;
 end;
@@ -252,7 +252,7 @@ begin
       Pcm: TBytes;
     begin
       try
-        // --- 1) Traducir ---
+        // --- 1) Translate ---
         FChatLock.Enter;
         try
           if FClosing then
@@ -281,7 +281,7 @@ begin
           PcmStream.Free;
         end;
 
-        // --- 3) Reproducir (silenciando la captura que nos escucharia) ---
+        // --- 3) Play (muting the capture that would hear us) ---
         if FClosing then
           Exit;
         if Assigned(FMuteCapture) then
@@ -345,8 +345,8 @@ begin
       HasCable := FindMeetingDevice(MeetingDeviceId, MeetingDeviceName);
       if HasCable then
       begin
-        WriteLn('Cable virtual encontrado: ' + MeetingDeviceName);
-        WriteLn('  -> En la reunion selecciona "CABLE Output" como MICROFONO.');
+        WriteLn('Virtual cable found: ' + MeetingDeviceName);
+        WriteLn('  -> In the meeting select "CABLE Output" as MICROPHONE.');
 
         // TRAMPA CONOCIDA: el instalador de VB-CABLE puede dejar "CABLE Input"
         // como dispositivo de salida PREDETERMINADO de Windows. En ese caso todo
@@ -356,31 +356,31 @@ begin
           if D.IsDefault and SameText(D.EndpointId, MeetingDeviceId) then
           begin
             WriteLn;
-            WriteLn('*** ATENCION: "CABLE Input" es el dispositivo de salida PREDETERMINADO. ***');
-            WriteLn('*** Asi NO escucharas ni la reunion ni la traduccion.                  ***');
-            WriteLn('*** Ve a Configuracion > Sistema > Sonido y pon tus AURICULARES        ***');
-            WriteLn('*** como salida predeterminada antes de continuar.                     ***');
+            WriteLn('*** WARNING: "CABLE Input" is the DEFAULT output device. ***');
+            WriteLn('*** This way you will hear NEITHER the meeting NOR the translation.    ***');
+            WriteLn('*** Go to Settings > System > Sound and set your HEADPHONES            ***');
+            WriteLn('*** as the default output before continuing.                           ***');
             Break;
           end;
       end
       else
       begin
-        WriteLn('AVISO: no se encontro "' + MEETING_DEVICE_HINT + '" (VB-CABLE no instalado?).');
-        WriteLn('  MODO PRUEBA: el TTS en ingles sonara por el dispositivo predeterminado');
-        WriteLn('  y NO llegara a la reunion. Instala VB-CABLE para el flujo completo.');
+        WriteLn('WARNING: "' + MEETING_DEVICE_HINT + '" was not found (VB-CABLE not installed?).');
+        WriteLn('  TEST MODE: English TTS will play through the default device');
+        WriteLn('  and will NOT reach the meeting. Install VB-CABLE for the full flow.');
         MeetingDeviceId := '';
       end;
       WriteLn;
 
-      // [ELLOS]: loopback -> es; su TTS suena en MIS auriculares (predeterminado),
-      // que es el mismo dispositivo que captura el loopback -> hay que silenciarlo
-      // mientras suena (anti-realimentacion).
-      Remote := TBridgeSide.Create(asLoopback, '[ELLOS]', TARGET_LANG_REMOTE, STT_LANG_REMOTE,
+      // [THEM]: loopback -> es; their TTS plays in MY headphones (default),
+      // which is the same device captured by loopback -> it must be muted
+      // while it plays (anti-feedback).
+      Remote := TBridgeSide.Create(asLoopback, '[THEM]', TARGET_LANG_REMOTE, STT_LANG_REMOTE,
         TAiTTSVoice.tvNova, '');
       Remote.MuteCapture := Remote.Capture;
 
       // [ME]: microphone -> en; their TTS goes to the virtual cable (the meeting hears it).
-      Local := TBridgeSide.Create(asMicrophone, '[YO]   ', TARGET_LANG_LOCAL, STT_LANG_LOCAL,
+      Local := TBridgeSide.Create(asMicrophone, '[ME]   ', TARGET_LANG_LOCAL, STT_LANG_LOCAL,
         TAiTTSVoice.tvOnyx, MeetingDeviceId);
       if not HasCable then
         Local.MuteCapture := Remote.Capture; // en modo prueba tambien sonara por el default

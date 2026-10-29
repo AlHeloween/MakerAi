@@ -4,7 +4,7 @@ uses
   System.StartUpCopy,
   FMX.Forms,
   FMX.Skia,
-  // Registro de FireDAC SQLite (requerido por TAiMemory)
+  // FireDAC SQLite registration (required by TAiMemory)
   FireDAC.Stan.Intf,
   FireDAC.Stan.Option,
   FireDAC.Stan.Error,

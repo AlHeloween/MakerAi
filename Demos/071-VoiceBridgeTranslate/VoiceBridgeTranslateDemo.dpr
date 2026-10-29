@@ -1,31 +1,31 @@
-﻿// PUENTE DE VOZ BIDIRECCIONAL con gpt-realtime-translate (consola)
+﻿// BIDIRECTIONAL VOICE BRIDGE with gpt-realtime-translate (console)
 // ================================================================
 //
-// REFACTOR del demo 063: el pipeline STT -> LLM(traducir) -> TTS de cada
-// direccion se reemplaza por UN SOLO WebSocket de traduccion de voz
-// (TAiOpenAiRealtimeTranslate). El servidor recibe el audio continuo y
-// devuelve directamente el texto traducido Y el audio TTS traducido:
+// REFACTOR of demo 063: the STT -> LLM(translate) -> TTS pipeline of each
+// direction is replaced by a SINGLE voice translation WebSocket
+// (TAiOpenAiRealtimeTranslate). The server receives continuous audio and
+// returns directly the translated text AND the translated TTS audio:
 //
-//   063 (3 saltos):  loopback -> STT -> chat traduce -> TTS -> parlante
-//   071 (1 salto):   loopback -> gpt-realtime-translate -> parlante
+//   063 (3 hops):  loopback -> STT -> chat translates -> TTS -> speaker
+//   071 (1 hop):   loopback -> gpt-realtime-translate -> speaker
 //
-// Ventajas: menos latencia (el audio traducido llega en streaming mientras
-// la frase avanza), menos codigo, un solo punto de fallo por direccion.
-// Diferencia: la voz TTS la elige el servidor (no hay voz configurable).
+// Advantages: lower latency (translated audio arrives streaming while
+// the phrase advances), less code, a single failure point per direction.
+// Difference: the server chooses the TTS voice (no configurable voice).
 //
-//   [ELLOS] El audio de la reunion (loopback) se traduce al espanol y suena
-//           en tus auriculares (texto + voz).
-//   [YO]    Hablas en espanol al microfono; la traduccion al ingles suena en
-//           el cable virtual que la reunion usa como microfono.
+//   [THEM] The meeting audio (loopback) is translated to Spanish and plays
+//           in your headphones (text + voice).
+//   [ME]    You speak Spanish into the microphone; the English translation plays
+//           in the virtual cable the meeting uses as a microphone.
 //
-// Configuracion necesaria (igual que 063):
-//   1. OPENAI_API_KEY en el entorno.
-//   2. VB-CABLE instalado; en la reunion seleccionar "CABLE Output" como mic.
-//      Sin cable: modo prueba por el dispositivo predeterminado.
-//   3. AURICULARES para que el microfono no capture la reunion.
+// Required configuration (same as 063):
+//   1. OPENAI_API_KEY in the environment.
+//   2. VB-CABLE installed; in the meeting select "CABLE Output" as mic.
+//      Without cable: test mode through the default device.
+//   3. HEADPHONES so the microphone does not capture the meeting.
 //
-// Anti-realimentacion: mientras suena el audio traducido en el dispositivo
-// que el loopback captura, la captura se silencia (TAiAudioCapture.Muted).
+// Anti-feedback: while translated audio plays on the device
+// captured by loopback, capture is muted (TAiAudioCapture.Muted).
 
 program VoiceBridgeTranslateDemo;
 
@@ -44,14 +44,14 @@ uses
 
 const
   // ==========================================================================
-  // CONFIGURACION
+  // CONFIGURATION
   // ==========================================================================
-  TARGET_LANG_REMOTE = 'es'; // lo que dice el otro lado -> espanol (para mi)
-  TARGET_LANG_LOCAL  = 'en'; // lo que digo yo -> ingles (para la reunion)
+  TARGET_LANG_REMOTE = 'es'; // what the other side says -> Spanish (for me)
+  TARGET_LANG_LOCAL  = 'en'; // what I say -> English (for the meeting)
 
   TRANSLATE_APIKEY = '@OPENAI_API_KEY';
 
-  // El audio traducido de gpt-realtime-translate es PCM16 24 kHz mono
+  // Translated audio from gpt-realtime-translate is PCM16 24 kHz mono
   TR_PCM_RATE = 24000;
 
   MEETING_DEVICE_HINT = 'CABLE Input';
@@ -70,7 +70,7 @@ begin
 end;
 
 type
-  // Un "lado" del puente: captura -> traduccion streaming -> reproduccion
+  // A "side" of the bridge: capture -> streaming translation -> playback
   TBridgeSide = class
   private
     FTag: string;
@@ -78,9 +78,9 @@ type
     FCapture: TAiAudioCapture;
     FTr: TAiOpenAiRealtimeTranslate;
     FPlayer: TAiAudioPlayer;
-    FMuteCapture: TAiAudioCapture; // captura a silenciar mientras suena MI audio
-    FSrcText: string;              // linea en curso del idioma origen
-    FDstText: string;              // linea en curso de la traduccion
+    FMuteCapture: TAiAudioCapture; // capture to mute while MY audio plays
+    FSrcText: string;              // current line in source language
+    FDstText: string;              // current line of translation
     procedure TrSessionReady(Sender: TObject);
     procedure TrSourceDelta(Sender: TObject; const Delta: string);
     procedure TrTranslatedDelta(Sender: TObject; const Delta: string);
@@ -107,25 +107,25 @@ begin
   FTag := aTag;
   FClosing := False;
 
-  // --- Traduccion de voz en streaming (1 socket por direccion) ---
+  // --- Streaming voice translation (1 socket per direction) ---
   FTr := TAiOpenAiRealtimeTranslate.Create(nil);
   FTr.ApiKey := TRANSLATE_APIKEY;
   FTr.TargetLanguage := aTargetLang;
   FTr.SourceTranscription := True; // mostrar tambien lo que se escucho
-  FTr.InputSampleRate := 16000;    // la captura entrega 16 kHz; el driver resamplea
+  FTr.InputSampleRate := 16000;    // capture delivers 16 kHz; driver resamples
   FTr.OnSessionReady := TrSessionReady;
   FTr.OnTranscriptDelta := TrSourceDelta;
   FTr.OnAssistantTextDelta := TrTranslatedDelta;
   FTr.OnAudioChunk := TrAudioChunk;
   FTr.OnError := TrError;
 
-  // --- Reproductor (dispositivo seleccionable) ---
+  // --- Player (selectable device) ---
   FPlayer := TAiAudioPlayer.Create(nil);
   FPlayer.DeviceId := aPlayerDeviceId;
   FPlayer.OnError := PlayerError;
   FPlayer.OnStateChange := PlayerStateChange;
 
-  // --- Captura ---
+  // --- Capture ---
   FCapture := TAiAudioCapture.Create(nil);
   FCapture.Source := aSource;
   FCapture.OutputSampleRate := 16000;
@@ -146,7 +146,7 @@ end;
 procedure TBridgeSide.Start;
 begin
   FPlayer.Active := True;
-  FTr.Connect;              // asincrono; los chunks fluyen al conectar
+  FTr.Connect;              // asynchronous; chunks flow once connected
   FCapture.Active := True;
 end;
 
@@ -156,40 +156,40 @@ begin
   if Assigned(FCapture) then
     FCapture.Active := False;
   if Assigned(FTr) and FTr.IsConnected then
-    FTr.Disconnect;         // envia session.close antes de cerrar
+    FTr.Disconnect;         // sends session.close before closing
   if Assigned(FPlayer) then
     FPlayer.Active := False;
 end;
 
 procedure TBridgeSide.TrSessionReady(Sender: TObject);
 begin
-  SafeWriteLn(FTag + ' traductor conectado (gpt-realtime-translate).');
+  SafeWriteLn(FTag + ' translator connected (gpt-realtime-translate).');
 end;
 
 procedure TBridgeSide.TrError(Sender: TObject; const ErrorMsg, ErrorCode: string);
 begin
-  SafeWriteLn(Format('%s ERROR traductor [%s]: %s', [FTag, ErrorCode, ErrorMsg]));
+  SafeWriteLn(Format('%s ERROR translator [%s]: %s', [FTag, ErrorCode, ErrorMsg]));
 end;
 
 procedure TBridgeSide.CaptureError(Sender: TObject; const ErrorMessage: string);
 begin
-  SafeWriteLn(FTag + ' ERROR captura: ' + ErrorMessage);
+  SafeWriteLn(FTag + ' ERROR capture: ' + ErrorMessage);
 end;
 
 procedure TBridgeSide.PlayerError(Sender: TObject; const ErrorMessage: string);
 begin
-  SafeWriteLn(FTag + ' ERROR reproduccion: ' + ErrorMessage);
+  SafeWriteLn(FTag + ' ERROR playback: ' + ErrorMessage);
 end;
 
 procedure TBridgeSide.PlayerStateChange(Sender: TObject; aIsPlaying: Boolean);
 begin
-  // Al vaciarse la cola de reproduccion, reactivar la captura silenciada
+  // When playback queue empties, reactivate muted capture
   if (not aIsPlaying) and Assigned(FMuteCapture) then
     FMuteCapture.Muted := False;
 end;
 
-// Acumula deltas y escribe la linea completa al cerrar la frase
-// (puntuacion final) o si crece demasiado.
+// Accumulates deltas and writes the complete line when the sentence closes
+// (final punctuation) or if it grows too much.
 procedure TBridgeSide.FlushIfSentence(var aLine: string; const aPrefix: string);
 var
   LastCh: Char;
@@ -218,8 +218,8 @@ end;
 procedure TBridgeSide.TrAudioChunk(Sender: TObject; const AData: TBytes);
 begin
   if FClosing then Exit;
-  // Silenciar la captura que nos escucharia mientras suena la traduccion;
-  // se reactiva en PlayerStateChange cuando la cola queda vacia
+  // Mute the capture that would hear us while the translation plays;
+  // it is reactivated in PlayerStateChange when the queue is empty
   if Assigned(FMuteCapture) then
     FMuteCapture.Muted := True;
   FPlayer.PlayPCM16(AData, TR_PCM_RATE, 1);
@@ -256,20 +256,20 @@ begin
   GConsoleLock := TCriticalSection.Create;
   try
     try
-      WriteLn('=== Puente de voz con gpt-realtime-translate (MakerAI) ===');
-      WriteLn('    (1 WebSocket por direccion: audio -> texto + voz traducidos)');
+      WriteLn('=== Voice bridge with gpt-realtime-translate (MakerAI) ===');
+      WriteLn('    (1 WebSocket per direction: audio -> text + translated voice)');
       WriteLn;
 
       if GetEnvironmentVariable('OPENAI_API_KEY') = '' then
       begin
-        WriteLn('ERROR: la variable de entorno OPENAI_API_KEY no esta definida.');
+        WriteLn('ERROR: the OPENAI_API_KEY environment variable is not defined.');
         Exit;
       end;
 
-      WriteLn('Dispositivos de salida:');
+      WriteLn('Output devices:');
       for D in TAiAudioPlayer.GetPlaybackDevices do
         if D.IsDefault then
-          WriteLn('  * ' + D.DeviceName + '  (predeterminado)')
+          WriteLn('  * ' + D.DeviceName + '  (default)')
         else
           WriteLn('  - ' + D.DeviceName);
       WriteLn;
@@ -277,44 +277,44 @@ begin
       HasCable := FindMeetingDevice(MeetingDeviceId, MeetingDeviceName);
       if HasCable then
       begin
-        WriteLn('Cable virtual encontrado: ' + MeetingDeviceName);
+        WriteLn('Virtual cable found: ' + MeetingDeviceName);
         WriteLn('  -> En la reunion selecciona "CABLE Output" como MICROFONO.');
-        // Ver demo 063 / uMakerAi-AudioBridge.md: si "CABLE Input" quedo como
-        // salida predeterminada de Windows no escucharas nada
+        // See demo 063 / uMakerAi-AudioBridge.md: if "CABLE Input" became the
+        // default Windows output you will hear nothing
         for D in TAiAudioPlayer.GetPlaybackDevices do
           if D.IsDefault and SameText(D.EndpointId, MeetingDeviceId) then
           begin
             WriteLn;
-            WriteLn('*** ATENCION: "CABLE Input" es la salida PREDETERMINADA de Windows. ***');
-            WriteLn('*** Pon tus AURICULARES como salida predeterminada antes de seguir. ***');
+            WriteLn('*** WARNING: "CABLE Input" is the DEFAULT Windows output. ***');
+            WriteLn('*** Set your HEADPHONES as the default output before continuing. ***');
             Break;
           end;
       end
       else
       begin
-        WriteLn('AVISO: no se encontro "' + MEETING_DEVICE_HINT + '" (VB-CABLE no instalado?).');
-        WriteLn('  MODO PRUEBA: la traduccion al ingles sonara por el dispositivo');
-        WriteLn('  predeterminado y NO llegara a la reunion.');
+        WriteLn('WARNING: "' + MEETING_DEVICE_HINT + '" was not found (VB-CABLE not installed?).');
+        WriteLn('  TEST MODE: the English translation will play through the default');
+        WriteLn('  device and will NOT reach the meeting.');
         MeetingDeviceId := '';
       end;
       WriteLn;
 
-      // [ELLOS]: loopback -> es; el audio traducido suena en MIS auriculares
-      // (mismo dispositivo que captura el loopback -> silenciar mientras suena)
+      // [THEM]: loopback -> es; translated audio plays in MY headphones
+      // (same device that captures loopback -> mute while it plays)
       Remote := TBridgeSide.Create(asLoopback, '[ELLOS]', TARGET_LANG_REMOTE, '');
       Remote.MuteCapture := Remote.Capture;
 
-      // [YO]: microfono -> en; el audio traducido va al cable virtual
+      // [ME]: microphone -> en; translated audio goes to the virtual cable
       Local := TBridgeSide.Create(asMicrophone, '[YO]   ', TARGET_LANG_LOCAL,
         MeetingDeviceId);
       if not HasCable then
-        Local.MuteCapture := Remote.Capture; // en modo prueba suena por el default
+        Local.MuteCapture := Remote.Capture; // in test mode it plays through the default
 
       try
         Remote.Start;
         Local.Start;
 
-        WriteLn('Puente activo... pulsa ENTER para terminar.');
+        WriteLn('Bridge active... press ENTER to finish.');
         WriteLn;
 
         TTask.Run(
@@ -327,7 +327,7 @@ begin
         while not StopRequested do
           CheckSynchronize(50);
 
-        WriteLn('Deteniendo...');
+        WriteLn('Stopping...');
         Remote.Stop;
         Local.Stop;
         CheckSynchronize(200);

@@ -9,15 +9,15 @@ program AgentDebate;
 //
 //   [Moderator] -> [Proposer] -> [Critic] -> [Rebuttal] -> [Judge]
 //
-// Cada nodo construye sobre el output del anterior.
-// TDebateContext inyecta el historial completo del debate antes de cada nodo
-// via Manager.OnEnterNode, dando a cada participante todo el contexto previo.
+// Each node builds on the previous node's output.
+// TDebateContext injects the full debate history before each node
+// via Manager.OnEnterNode, giving each participant all the previous context.
 //
 // Concepts it covers:
-//   - Manager.OnEnterNode: callback que se dispara antes de cada nodo
-//   - Modificacion de Node.Input desde OnEnterNode (inyeccion de contexto)
-//   - Manager.Blackboard.GetString(NodeName + '.output') para leer historial
-//   - Pipeline lineal de 5 nodos LLM con roles diferenciados
+//   - Manager.OnEnterNode: callback that fires before each node
+//   - Modification of Node.Input from OnEnterNode (context injection)
+//   - Manager.Blackboard.GetString(NodeName + '.output') to read history
+//   - Linear pipeline of 5 LLM nodes with differentiated roles
 // =============================================================================
 
 uses

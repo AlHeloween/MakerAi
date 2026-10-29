@@ -137,7 +137,7 @@ end;
 
 procedure RunQuery(Manager: TAIAgentManager; const AQuestion: String);
 begin
-  // Limpiar estado del blackboard entre preguntas independientes
+  // Clear blackboard state between independent questions
   Manager.Blackboard.Clear;
 
   Writeln(StringOfChar('-', 60));
@@ -159,7 +159,7 @@ var
   LLMNode  : TLLMNode;
   EndNode  : TAIAgentsNode;
 begin
-  Writeln('=== Demo 02 — SingleTool (Calculadora) ===');
+  Writeln('=== Demo 02 — SingleTool (Calculator) ===');
   Writeln('Driver: ', DRIVER, '  Model: ', MODEL);
   Writeln;
 
@@ -199,10 +199,10 @@ begin
     Manager.EndNode   := EndNode;
     Manager.Compile;
 
-    RunQuery(Manager, 'Cuanto es 1234 multiplicado por 5678?');
-    RunQuery(Manager, 'Cuanto es (100 + 200) / 15?');
-    RunQuery(Manager, 'Calcula el 15 por ciento de 840.');
-    RunQuery(Manager, 'Cuanto es 999 menos 456, y luego multiplica ese resultado por 3?');
+    RunQuery(Manager, 'How much is 1234 multiplied by 5678?');
+    RunQuery(Manager, 'How much is (100 + 200) / 15?');
+    RunQuery(Manager, 'Calculate 15 percent of 840.');
+    RunQuery(Manager, 'How much is 999 minus 456, and then multiply that result by 3?');
 
   finally
     Manager.Free;

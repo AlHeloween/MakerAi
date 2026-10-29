@@ -3,24 +3,24 @@
 // =============================================================================
 //  Computer Use contra el SERVIDOR cimamaker (no directo a Claude).
 //
-//  Diferencia con uMainComputerUseTest:
-//   - Aquel usa TAiChatConnection con loop agentico INTERNO directo a Claude/Gemini.
-//   - Este implementa el loop A MANO contra api.cimamaker.com (formato OpenAI):
-//       1. POST /v1/chat/completions con mk_tools:{computer_use:{display_width,display_height}}
-//       2. El server (cerebro Claude) responde finish_reason="tool_calls" con un
-//          tool_call name="computer" y argumentos en formato NATIVO de Claude
-//          (ej. {"action":"left_click","coordinate":[x_px,y_px]}).
-//       3. El cliente traduce y ejecuta la accion REAL + captura screenshot:
+//  Difference from uMainComputerUseTest:
+//   - That one uses TAiChatConnection with an INTERNAL agentic loop direct to Claude/Gemini.
+//   - This implements the loop BY HAND against api.cimamaker.com (OpenAI format):
+//       1. POST /v1/chat/completions with mk_tools:{computer_use:{display_width,display_height}}
+//       2. The server (Claude brain) responds finish_reason="tool_calls" with a
+//          tool_call name="computer" and arguments in Claude's NATIVE format
+//          (e.g. {"action":"left_click","coordinate":[x_px,y_px]}).
+//       3. The client translates and executes the REAL action + captures a screenshot:
 //            FCU.TranslateClaudeToolCall(tc);   // pixeles Claude -> formato interno
 //            Res := FCU.ProcessToolCall(tc, Shot);
-//       4. POST con el historial: assistant(tool_calls) + tool(result + image_url
+//       4. POST with the history: assistant(tool_calls) + tool(result + image_url
 //          data:image/jpeg;base64), y repite hasta finish_reason="stop".
 //
-//  El screenshot se envia EXACTAMENTE a display_width x display_height (CaptureScaled).
-//  La captura corre en el hilo principal (FMX.Canvas no es thread-safe).
-//  La API key sale de la variable de entorno MAKERAI_API_KEY (igual que el Service).
+//  The screenshot is sent EXACTLY at display_width x display_height (CaptureScaled).
+//  Capture runs on the main thread (FMX.Canvas is not thread-safe).
+//  The API key comes from the MAKERAI_API_KEY environment variable (same as the Service).
 //
-//  AVISO: controla el escritorio real. No dejes ventanas sensibles en primer plano.
+//  WARNING: it controls the real desktop. Do not leave sensitive windows in the foreground.
 // =============================================================================
 
 interface
@@ -101,14 +101,14 @@ begin
   FModel := CU_MODEL;
   FApiKey := GetEnvironmentVariable('MAKERAI_API_KEY').Trim;
 
-  // Componente de Computer Use (igual que el demo directo)
+  // Computer Use component (same as the direct demo)
   FCU := TAiComputerUseTool.Create(Self);
   FCU.OnExecuteAction := DoExecuteAction;
   FCU.OnRequestScreenshot := DoRequestScreenshot;
   FCU.OnSafetyConfirmation := DoSafetyConfirmation;
   FCU.EnableZoom := True; // accion zoom de Claude (computer_20251124)
 
-  // Area de captura = monitor primario fisico (origen 0,0).
+  // Capture area = physical primary monitor (origin 0,0).
   FCU.AreaLeft := 0;
   FCU.AreaTop := 0;
   {$IFDEF MSWINDOWS}
@@ -118,8 +118,8 @@ begin
   FCU.AreaWidth := 1920;
   FCU.AreaHeight := 1080;
   {$ENDIF}
-  // Resolucion declarada a la IA = la del screenshot que enviamos.
-  // display_width/display_height del mk_tools DEBEN coincidir con esto.
+  // Resolution declared to the AI = that of the screenshot we send.
+  // display_width/display_height of mk_tools MUST match this.
   FCU.ScreenWidth := 1280;
   FCU.ScreenHeight := Round(FCU.AreaHeight * 1280 / FCU.AreaWidth);
   FDisplayW := FCU.ScreenWidth;
@@ -135,9 +135,9 @@ begin
   if FApiKey = '' then
     SetStatus('FALTA la variable de entorno MAKERAI_API_KEY.')
   else
-    SetStatus('Listo. Abre la app objetivo y pulsa Ejecutar.');
-  Log(Format('Modelo: %s   display: %dx%d', [FModel, FDisplayW, FDisplayH]));
-  Log('Screenshots guardados en: ' + FShotDir);
+    SetStatus('Ready. Open the target app and press Run.');
+  Log(Format('Model: %s   display: %dx%d', [FModel, FDisplayW, FDisplayH]));
+  Log('Screenshots saved in: ' + FShotDir);
 end;
 
 destructor TFormCUServer.Destroy;
@@ -207,15 +207,15 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// Eventos de Computer Use (identicos al demo directo)
+// Computer Use events (identical to the direct demo)
 // -----------------------------------------------------------------------------
 procedure TFormCUServer.DoExecuteAction(Sender: TObject; const ActionData: TAiActionData; var Result: TAiActionResult);
 begin
-  Log(Format('ACCION: %s  (x=%d y=%d mod="%s" keys="%s")',
+  Log(Format('ACTION: %s  (x=%d y=%d mod="%s" keys="%s")',
     [ActionData.FunctionName, ActionData.X, ActionData.Y, ActionData.Modifiers, ActionData.KeyCombo]));
   Result := TAiWindowsFMXExecutor.Execute(ActionData);
   if not Result.Success then
-    Log('  -> ERROR ejecutando: ' + Result.ErrorMessage)
+    Log('  -> ERROR executing: ' + Result.ErrorMessage)
   else if ActionData.ActionType = catCursorPosition then
     Log('  -> cursor: ' + Result.CustomOutput);
 end;
@@ -321,12 +321,12 @@ begin
       MF := CaptureScaled(Area, OutW, OutH);
     end);
   MediaFile := MF;
-  Log(Format('  -> screenshot %dx%d (origen %dx%d)', [OutW, OutH, Area.Width, Area.Height]));
+  Log(Format('  -> screenshot %dx%d (origin %dx%d)', [OutW, OutH, Area.Width, Area.Height]));
 end;
 
 procedure TFormCUServer.DoSafetyConfirmation(Sender: TObject; const Explanation: string; var Allow: Boolean);
 begin
-  Log('SAFETY (auto-permitido): ' + Explanation);
+  Log('SAFETY (auto-allowed): ' + Explanation);
   Allow := True;
 end;
 
@@ -403,7 +403,7 @@ var
   JV: TJSONValue;
 begin
   try
-    // mensaje inicial (el system va embebido por el server; mandamos user con la tarea)
+    // initial message (system is embedded by the server; we send user with the task)
     AddUserMsg('user', APrompt);
 
     for Step := 1 to MAX_STEPS do
@@ -436,7 +436,7 @@ begin
         if (FinishReason = 'tool_calls') and Assigned(JToolCalls) and (JToolCalls.Count > 0) then
         begin
           if AsstText <> '' then
-            Log('Modelo: ' + AsstText);
+            Log('Model: ' + AsstText);
 
           // 1) Echo del mensaje assistant TAL CUAL (role+content+tool_calls)
           FMessages.AddElement(JMsg.Clone as TJSONValue);
@@ -465,12 +465,12 @@ begin
               ToolCall.name := ToolName;            // 'computer'
               ToolCall.Arguments := ToolArgs;       // JSON nativo Claude
 
-              // pixeles Claude -> formato interno (muta Name y Arguments)
+              // Claude pixels -> internal format (mutates Name and Arguments)
               FCU.TranslateClaudeToolCall(ToolCall);
-              // ejecuta accion REAL + captura screenshot (out Shot)
+              // executes REAL action + captures screenshot (out Shot)
               ResultStr := FCU.ProcessToolCall(ToolCall, Shot);
 
-              // tool message con content array [texto, imagen]
+              // tool message with content array [text, image]
               ToolMsg := TJSONObject.Create;
               ToolMsg.AddPair('role', 'tool');
               ToolMsg.AddPair('tool_call_id', ToolId);
@@ -499,11 +499,11 @@ begin
               ToolCall.Free;
             end;
           end;
-          // siguiente iteracion del loop
+          // next loop iteration
         end
         else
         begin
-          // finish_reason = 'stop' (u otro): fin del loop
+          // finish_reason = 'stop' (or other): end of loop
           EndRun('=== FIN (' + FinishReason + ') ===' + sLineBreak +
                  'Modelo: ' + AsstText);
           Exit;
@@ -513,7 +513,7 @@ begin
       end;
     end;
 
-    EndRun('=== Tope de pasos alcanzado (' + IntToStr(MAX_STEPS) + ') ===');
+    EndRun('=== Step limit reached (' + IntToStr(MAX_STEPS) + ') ===');
   except
     on E: Exception do
       EndRun('ERROR: ' + E.Message);
@@ -523,7 +523,7 @@ end;
 procedure TFormCUServer.EndRun(const AMsg: string);
 begin
   Log(AMsg);
-  SetStatus('Completado.');
+  SetStatus('Completed.');
   TThread.Queue(nil, procedure begin FRun.Enabled := True; end);
 end;
 
@@ -533,7 +533,7 @@ var
 begin
   if FApiKey = '' then
   begin
-    Log('No hay API key (MAKERAI_API_KEY). Aborta.');
+    Log('No API key (MAKERAI_API_KEY). Aborting.');
     Exit;
   end;
 
@@ -541,14 +541,14 @@ begin
   FShotCount := 0;
   FRun.Enabled := False;
 
-  // limpiar historial previo
+  // clear previous history
   FMessages.Free;
   FMessages := TJSONArray.Create;
 
   Prompt := FPrompt.Lines.Text;
-  SetStatus('Ejecutando contra ' + MAKERAI_URL + ' ...');
-  Log('Servidor: ' + MAKERAI_URL + '   Modelo: ' + FModel);
-  Log('Tienes 4 segundos para llevar el foco a la app objetivo...');
+  SetStatus('Running against ' + MAKERAI_URL + ' ...');
+  Log('Server: ' + MAKERAI_URL + '   Model: ' + FModel);
+  Log('You have 4 seconds to focus the target app...');
 
   TThread.CreateAnonymousThread(
     procedure

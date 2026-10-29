@@ -95,7 +95,7 @@ begin
   MetaData := taiEmbeddingMetaData.Create;
   Try
     Text := St.DataString;
-    MetaData.Properties['tipo'] := 'Cuento';
+    MetaData.Properties['tipo'] := 'Story';
     MetaData.Properties['Autor'] := 'Claude';
     MetaData.Properties['A�o'] := 2026;
     MetaData.Properties['Fecha'] := EncodeDate(2026,01,10);

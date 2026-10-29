@@ -96,9 +96,9 @@ begin
   BuildUI;
   BuildAi;
   InitProviders;
-  AddLog('Listo. Selecciona proveedor y modelo, escribe un prompt y pulsa Enviar.');
-  AddLog('Tools disponibles para la IA: GetFechaHora, GraficarSerie.');
-  AddLog('RAG local en SQLite: ' + FDConn.Params.Database);
+  AddLog('Ready. Select provider and model, write a prompt and press Send.');
+  AddLog('Tools available to the AI: GetFechaHora, GraficarSerie.');
+  AddLog('Local RAG in SQLite: ' + FDConn.Params.Database);
 end;
 
 procedure TFormMain.FormDestroy(Sender: TObject);
@@ -118,13 +118,13 @@ var
   LLeft, LTopBar, LBottom: TLayout;
   Spl: TSplitter;
 begin
-  // ---------- Panel izquierdo (chat) ----------
+  // ---------- Left panel (chat) ----------
   LLeft := TLayout.Create(Self);
   LLeft.Parent := Self;
   LLeft.Align := TAlignLayout.Left;
   LLeft.Width := 560;
 
-  // barra superior: selectores + RAG
+  // top bar: selectors + RAG
   LTopBar := TLayout.Create(Self);
   LTopBar.Parent := LLeft;
   LTopBar.Align := TAlignLayout.Top;
@@ -145,16 +145,16 @@ begin
   ChkUseRAG.Parent := LTopBar;
   ChkUseRAG.Position.X := 10; ChkUseRAG.Position.Y := 52;
   ChkUseRAG.Width := 220;
-  ChkUseRAG.Text := 'Usar RAG (contexto local)';
+  ChkUseRAG.Text := 'Use RAG (local context)';
 
   BtnLoadRAG := TButton.Create(Self);
   BtnLoadRAG.Parent := LTopBar;
   BtnLoadRAG.Position.X := 240; BtnLoadRAG.Position.Y := 48;
   BtnLoadRAG.Width := 300;
-  BtnLoadRAG.Text := 'Cargar texto/archivo a RAG...';
+  BtnLoadRAG.Text := 'Load text/file to RAG...';
   BtnLoadRAG.OnClick := BtnLoadRAGClick;
 
-  // zona inferior: prompt + enviar
+  // bottom area: prompt + send
   LBottom := TLayout.Create(Self);
   LBottom.Parent := LLeft;
   LBottom.Align := TAlignLayout.Bottom;
@@ -164,16 +164,16 @@ begin
   BtnSend.Parent := LBottom;
   BtnSend.Align := TAlignLayout.Right;
   BtnSend.Width := 90;
-  BtnSend.Text := 'Enviar';
+  BtnSend.Text := 'Send';
   BtnSend.OnClick := BtnSendClick;
 
   MemoPrompt := TMemo.Create(Self);
   MemoPrompt.Parent := LBottom;
   MemoPrompt.Align := TAlignLayout.Client;
   MemoPrompt.TextSettings.WordWrap := True;
-  MemoPrompt.Lines.Text := 'Hola, dime la fecha y hora actual.';
+  MemoPrompt.Lines.Text := 'Hello, tell me the current date and time.';
 
-  // centro: memo del chat
+  // center: chat memo
   MemoChat := TMemo.Create(Self);
   MemoChat.Parent := LLeft;
   MemoChat.Align := TAlignLayout.Client;
@@ -186,7 +186,7 @@ begin
   Spl.Align := TAlignLayout.Left;
   Spl.Width := 6;
 
-  // ---------- TabControl derecho ----------
+  // ---------- Right TabControl ----------
   Tab := TTabControl.Create(Self);
   Tab.Parent := Self;
   Tab.Align := TAlignLayout.Client;
@@ -198,12 +198,12 @@ begin
   WebBrowser1.Align := TAlignLayout.Client;
 
   tabChart := Tab.Add;
-  tabChart.Text := 'Grafica (TeeChart)';
+  tabChart.Text := 'Chart (TeeChart)';
   Chart1 := TChart.Create(Self);
   Chart1.Parent := tabChart;
   Chart1.Align := TAlignLayout.Client;
   Chart1.View3D := False;
-  Chart1.Title.Text.Text := 'Serie de tiempo';
+  Chart1.Title.Text.Text := 'Time series';
   FSerie := TLineSeries.Create(Chart1);
   Chart1.AddSeries(FSerie);
   FSerie.XValues.DateTime := True;
@@ -218,7 +218,7 @@ begin
 
   Tab.ActiveTab := tabLog;
 
-  // pagina inicial del navegador
+  // browser initial page
   try
     WebBrowser1.URL := 'https://makerai.cimamaker.com';
     WebBrowser1.Navigate;
@@ -234,7 +234,7 @@ var
   LFn: TFunctionActionItem;
   LParam: TFunctionParamsItem;
 begin
-  // ---- SQLite (FireDAC, embebido) ----
+  // ---- SQLite (FireDAC, embedded) ----
   FGUIWait := TFDGUIxWaitCursor.Create(Self);
   FDConn := TFDConnection.Create(Self);
   FDConn.LoginPrompt := False;
@@ -247,7 +247,7 @@ begin
   Embeddings := TAiOpenAiEmbeddings.Create(Self);
   Embeddings.ApiKey := '@OPENAI_API_KEY';
 
-  // ---- Driver SQLite del RAG (busqueda vectorial en Delphi puro, sin vec0) ----
+  // ---- SQLite RAG driver (vector search in pure Delphi, without vec0) ----
   RAGDriver := TAiRAGVectorSQLiteDriver.Create(Self);
   RAGDriver.Connection := FDConn;
   RAGDriver.TableName := 'vec_docs';
@@ -255,41 +255,41 @@ begin
     RAGDriver.CreateSchema('vec_docs');
   except
     on E: Exception do
-      AddLog('Aviso al crear esquema RAG: ' + E.Message);
+      AddLog('Warning while creating RAG schema: ' + E.Message);
   end;
 
-  // ---- Store vectorial ----
+  // ---- Vector store ----
   RAG := TAiRAGVector.Create(Self, True);
   RAG.Embeddings := Embeddings;
   RAG.Driver := RAGDriver;
 
-  // ---- Conexion de chat ----
+  // ---- Chat connection ----
   AiConn := TAiChatConnection.Create(Self);
   AiConn.OnReceiveData := AiConnReceiveData;
   AiConn.OnReceiveDataEnd := AiConnReceiveDataEnd;
   AiConn.OnError := AiConnError;
 
-  // ---- TAiFunctions con dos funciones ----
+  // ---- TAiFunctions with two functions ----
   AiFunctions1 := TAiFunctions.Create(Self);
 
   // 1) GetFechaHora
   LFn := AiFunctions1.Functions.Add;
   LFn.FunctionName := 'GetFechaHora';
   LFn.Enabled := True;
-  LFn.Description.Text := 'Devuelve la fecha y hora actual del sistema en formato ISO 8601.';
+  LFn.Description.Text := 'Returns the current system date and time in ISO 8601 format.';
   LFn.OnAction := FuncGetFechaHora;
   LParam := LFn.Parameters.Add;
   LParam.Name := 'zona';
   LParam.ParamType := ptString;
-  LParam.Description.Text := 'Zona horaria opcional (solo informativa).';
+  LParam.Description.Text := 'Optional time zone (informational only).';
   LParam.Required := False;
 
-  // 2) GraficarSerie (schema con array de puntos via RawSchemaJson)
+  // 2) GraficarSerie (schema with point array via RawSchemaJson)
   LFn := AiFunctions1.Functions.Add;
   LFn.FunctionName := 'GraficarSerie';
   LFn.Enabled := True;
-  LFn.Description.Text := 'Grafica una serie de tiempo en el panel de graficos. ' +
-    'Recibe un titulo y un arreglo de puntos {fecha, valor}.';
+  LFn.Description.Text := 'Plots a time series in the chart panel. ' +
+    'Receives a title and an array of points {date, value}.';
   LFn.RawSchemaJson :=
     '{"type":"object","properties":{' +
     '"titulo":{"type":"string","description":"Titulo de la grafica"},' +
@@ -300,7 +300,7 @@ begin
     '"required":["fecha","valor"]}}},"required":["puntos"]}';
   LFn.OnAction := FuncGraficarSerie;
 
-  // conectar funciones al chat
+  // connect functions to chat
   AiConn.AiFunctions := AiFunctions1;
 end;
 
@@ -326,7 +326,7 @@ begin
     end;
   except
     on E: Exception do
-      AddLog('No se pudieron cargar los proveedores: ' + E.Message);
+      AddLog('Could not load providers: ' + E.Message);
   end;
 end;
 
@@ -338,7 +338,7 @@ begin
     Exit;
 
   AiConn.DriverName := Trim(ComboDriver.Selected.Text);
-  // habilitar tools y streaming para este demo
+  // enable tools and streaming for this demo
   AiConn.Params.Values['Tool_Active'] := 'True';
   AiConn.Params.Values['Asynchronous'] := 'True';
 
@@ -354,7 +354,7 @@ begin
     end;
   except
     on E: Exception do
-      AddLog('No se pudieron cargar los modelos de ' + AiConn.DriverName + ': ' + E.Message);
+      AddLog('Could not load models for ' + AiConn.DriverName + ': ' + E.Message);
   end;
 end;
 
@@ -372,7 +372,7 @@ begin
   if Assigned(ComboModel.Selected) then
     AiConn.Model := Trim(ComboModel.Selected.Text);
 
-  // RAG: recuperar contexto local y anteponerlo al prompt
+  // RAG: retrieve local context and prepend it to the prompt
   LFinal := LPrompt;
   if ChkUseRAG.IsChecked then
   begin
@@ -383,17 +383,17 @@ begin
         LFinal := 'Usa el siguiente CONTEXTO (recuperado de la base local) para responder.' + sLineBreak +
           '--- CONTEXTO ---' + sLineBreak + LContext + sLineBreak +
           '--- PREGUNTA ---' + sLineBreak + LPrompt;
-        AddLog('RAG: contexto recuperado (' + Length(LContext).ToString + ' chars).');
+        AddLog('RAG: context retrieved (' + Length(LContext).ToString + ' chars).');
       end
       else
-        AddLog('RAG: sin coincidencias relevantes.');
+        AddLog('RAG: no relevant matches.');
     except
       on E: Exception do
         AddLog('RAG error: ' + E.Message);
     end;
   end;
 
-  ChatAppend('Tu: ' + LPrompt + sLineBreak + 'IA: ');
+  ChatAppend('You: ' + LPrompt + sLineBreak + 'AI: ');
   MemoPrompt.Lines.Clear;
   BtnSend.Enabled := False;
 
@@ -407,7 +407,7 @@ begin
           TThread.Queue(nil,
             procedure
             begin
-              AddLog('Error al enviar: ' + E.Message);
+              AddLog('Error while sending: ' + E.Message);
               BtnSend.Enabled := True;
             end);
       end;
@@ -423,7 +423,7 @@ var
   LText: string;
   N: Integer;
 begin
-  // si el prompt tiene texto, indexarlo; si no, abrir un archivo .txt
+  // if the prompt has text, index it; otherwise open a .txt file
   LText := Trim(MemoPrompt.Lines.Text);
   if LText = '' then
   begin
@@ -447,7 +447,7 @@ begin
     MemoPrompt.Lines.Clear;
   except
     on E: Exception do
-      AddLog('RAG: error al indexar: ' + E.Message + ' (revisa OPENAI_API_KEY para embeddings)');
+      AddLog('RAG: error while indexing: ' + E.Message + ' (check OPENAI_API_KEY for embeddings)');
   end;
 end;
 
@@ -471,8 +471,8 @@ begin
   TThread.Queue(nil,
     procedure
     begin
-      // en sincrono aText trae la respuesta completa; en async ya se fue
-      // pintando en OnReceiveData, asi que solo cerramos el turno.
+      // in sync aText carries the full response; in async it was already
+      // painted in OnReceiveData, so we only close the turn.
       if (MemoChat.Lines.Text <> '') and (aText <> '') and
          (Pos(aText, MemoChat.Lines.Text) = 0) then
         MemoChat.Lines.Text := MemoChat.Lines.Text + aText;
@@ -523,7 +523,7 @@ begin
   jObj := TJSONObject.ParseJSONValue(ToolCall.Arguments) as TJSONObject;
   if not Assigned(jObj) then
   begin
-    ToolCall.Response := 'Error: argumentos JSON invalidos.';
+    ToolCall.Response := 'Error: invalid JSON arguments.';
     Exit;
   end;
   try
@@ -531,12 +531,12 @@ begin
     jObj.TryGetValue<string>('titulo', LTitulo);
     if not jObj.TryGetValue<TJSONArray>('puntos', jPuntos) or (jPuntos.Count = 0) then
     begin
-      ToolCall.Response := 'Error: no se recibieron puntos para graficar.';
+      ToolCall.Response := 'Error: no points received to plot.';
       Exit;
     end;
 
     LCount := jPuntos.Count;
-    // Graficar en el hilo principal (toca la UI)
+    // Plot on the main thread (touches the UI)
     TThread.Synchronize(nil,
       procedure
       var
@@ -564,12 +564,12 @@ begin
         end;
         Chart1.BottomAxis.DateTimeFormat := CHART_DT_FMT;
         Tab.ActiveTab := tabChart;
-        AddLog(Format('Tool GraficarSerie -> %d puntos. "%s"', [LCount, LTitulo]));
+        AddLog(Format('Tool GraficarSerie -> %d points. "%s"', [LCount, LTitulo]));
       end);
 
-    ToolCall.Response := Format('OK, grafica generada con %d puntos.', [LCount]);
+    ToolCall.Response := Format('OK, chart generated with %d points.', [LCount]);
   finally
-    // mantener variables tocadas para evitar hints
+    // keep touched variables to avoid hints
     jVal := nil; jPto := nil; i := 0; LFecha := ''; LValor := 0;
     if (jVal = nil) and (jPto = nil) and (i = 0) and (LFecha = '') and (LValor = 0) then ;
     jObj.Free;

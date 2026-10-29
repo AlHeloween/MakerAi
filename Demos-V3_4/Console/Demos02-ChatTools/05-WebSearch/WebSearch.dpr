@@ -6,15 +6,15 @@ program WebSearch;
 // =============================================================================
 // MakerAI — 02-ChatTools / 05-WebSearch
 // =============================================================================
-// El LLM busca en internet para responder preguntas con información reciente,
-// superando la limitación del "knowledge cutoff".
+// The LLM searches the internet to answer questions with recent information,
+// overcoming the "knowledge cutoff" limitation.
 //
 // Concepts covered:
-//   - Activar búsqueda web con cap_WebSearch en Capabilities
-//   - Proveedores con búsqueda nativa: Gemini (Google Search), Grok (X/Twitter)
-//   - Proveedor Claude: usa Brave Search si se configura la API key
-//   - Diferencia entre respuestas con y sin búsqueda web
-//   - Las citas/fuentes que devuelve el LLM
+//   - Enable web search with cap_WebSearch in Capabilities
+//   - Providers with native search: Gemini (Google Search), Grok (X/Twitter)
+//   - Claude provider: uses Brave Search if the API key is configured
+//   - Difference between responses with and without web search
+//   - The citations/sources returned by the LLM
 //
 // Supported providers:
 //   - Gemini    → Google Search integrado, sin configuración extra
@@ -42,14 +42,14 @@ const
 // Preguntas que requieren información actual
 const
   PREGUNTAS: array[0..3] of String = (
-    '¿Cuáles son las últimas noticias de inteligencia artificial de esta semana?',
-    '¿Cuál es el precio actual del dólar respecto al peso mexicano?',
-    '¿Cuál es el último modelo de LLM lanzado por Anthropic?',
-    '¿Qué eventos tecnológicos importantes ocurrieron este mes?'
+    'What are the latest artificial intelligence news this week?',
+    'What is the current price of the dollar against the Mexican peso?',
+    'What is the latest LLM model released by Anthropic?',
+    'What important technology events happened this month?'
   );
 
 // =============================================================================
-//  Compara respuesta CON y SIN búsqueda web para la misma pregunta
+//  Compares responses WITH and WITHOUT web search for the same question
 // =============================================================================
 procedure CompararConSinBusqueda(Conn: TAiChatConnection; const Question: String);
 var
@@ -90,8 +90,8 @@ begin
   Writeln('=== WebSearch ===');
   Writeln('Driver: ', DRIVER, ' / Model: ', MODEL);
   Writeln;
-  Writeln('Gemini tiene acceso a Google Search de forma nativa.');
-  Writeln('Grok usa la web de X/Twitter. Claude requiere Brave API key.');
+  Writeln('Gemini has native access to Google Search.');
+  Writeln('Grok uses the X/Twitter web. Claude requires a Brave API key.');
   Writeln;
 
   Conn := TAiChatConnection.Create(nil);
@@ -137,7 +137,7 @@ begin
       'las URLs consultadas. Responde en español.';
 
     Res := Conn.AddMessageAndRun(
-      '¿Qué es Model Context Protocol (MCP) de Anthropic y para qué sirve?',
+      'What is the Model Context Protocol (MCP) from Anthropic and what is it for?',
       'user', []);
     Writeln(Res);
 

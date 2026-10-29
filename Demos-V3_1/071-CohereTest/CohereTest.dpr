@@ -5,9 +5,9 @@
 // =============================================================================
 // MakerAI - Demo 071: Cohere Async Diagnostic
 // =============================================================================
-// Prueba el driver TCohereChat en modo sincrono y asincronico (streaming).
-// Muestra cada token recibido en async para detectar problemas de parseo.
-// Incluye prueba con modelo reasoning (command-a-reasoning-08-2025).
+// Tests the TCohereChat driver in synchronous and asynchronous (streaming) mode.
+// Shows each token received in async to detect parsing issues.
+// Includes a test with a reasoning model (command-a-reasoning-08-2025).
 //
 // Configure COHERE_API_KEY as an environment variable before running.
 // =============================================================================
@@ -28,10 +28,10 @@ uses
 const
   API_KEY = '@COHERE_API_KEY';
   // Available models:
-  //   'command-a-03-2025'           - texto + tools, 256K ctx (flagship)
-  //   'command-a-reasoning-08-2025' - texto + tools + reasoning, 32K output
-  //   'command-a-vision-07-2025'    - vision, sin tools
-  //   'command-r7b-12-2024'         - ligero, texto + tools
+  //   'command-a-03-2025'           - text + tools, 256K ctx (flagship)
+  //   'command-a-reasoning-08-2025' - text + tools + reasoning, 32K output
+  //   'command-a-vision-07-2025'    - vision, no tools
+  //   'command-r7b-12-2024'         - lightweight, text + tools
   MODEL_TEXT     = 'command-a-03-2025';
   MODEL_REASON   = 'command-a-reasoning-08-2025';
 
@@ -222,7 +222,7 @@ begin
       Writeln;
       Writeln('*** DISCREPANCY buffer vs history ***');
       Writeln(Format('  Buffer    : %d chars', [Length(FBuffer)]));
-      Writeln(Format('  Historial : %d chars', [Length(LHistorial)]));
+      Writeln(Format('  History : %d chars', [Length(LHistorial)]));
       Writeln('  Buffer    start: [' + Copy(FBuffer, 1, 40) + ']');
       Writeln('  History start: [' + Copy(LHistorial, 1, 40) + ']');
       Writeln('  Buffer    end   : [' + Copy(FBuffer, Length(FBuffer)-39, 40) + ']');
@@ -241,7 +241,7 @@ var
   Response: String;
 begin
   PrintSeparator(ALabel + ' [' + AModel + ']');
-  Writeln('Pregunta : ', AQuestion);
+  Writeln('Question : ', AQuestion);
   Writeln(StringOfChar('-', 70));
 
   ResetBuffers;
@@ -253,7 +253,7 @@ begin
     if FHasError then
       Writeln('ERROR: ', FError)
     else if Response = '' then
-      Writeln('Respuesta: <vacia>')
+      Writeln('Response: <empty>')
     else
       Writeln('Answer: ', Response);
   except
@@ -271,7 +271,7 @@ var
   WaitResult: TWaitResult;
 begin
   PrintSeparator(ALabel + ' [' + AModel + ']');
-  Writeln('Pregunta : ', AQuestion);
+  Writeln('Question : ', AQuestion);
   Writeln(StringOfChar('-', 70));
 
   ResetBuffers;
@@ -341,7 +341,7 @@ procedure TCohereTest.TestMultiTurnAsync(const AModel: String);
   end;
 
 begin
-  PrintSeparator('Multi-turno Async [' + AModel + ']');
+  PrintSeparator('Multi-turn Async [' + AModel + ']');
   FConn.Model := AModel;
   FConn.NewChat;
 

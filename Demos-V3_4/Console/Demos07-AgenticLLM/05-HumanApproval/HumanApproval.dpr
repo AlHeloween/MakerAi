@@ -131,9 +131,9 @@ begin
   FDrafter.ApiKey       := API_KEY;
   FDrafter.UseAllTools  := False;
   FDrafter.SystemPrompt :=
-    'Eres un escritor profesional. Escribe un parrafo claro y atractivo ' +
-    '(80-120 palabras) sobre el tema dado. Si recibes instrucciones de ' +
-    'mejora, incorpóralas completamente. Responde en espanol.';
+    'You are a professional writer. Write a clear and engaging paragraph ' +
+    '(80-120 words) about the given topic. If you receive improvement ' +
+    'instructions, incorporate them fully. Answer in Spanish.';
 
   // Node 2: Human reviewer (suspends for approval)
   FReviewer := TAIAgentsNode.Create(FManager);
@@ -150,10 +150,10 @@ begin
   FFinalizer.ApiKey       := API_KEY;
   FFinalizer.UseAllTools  := False;
   FFinalizer.SystemPrompt :=
-    'Eres un editor. Recibes un borrador aprobado. ' +
-    'Pulelo: mejora el flujo, corrige frases torpes, optimiza la eleccion ' +
-    'de palabras. Mantén el mismo significado y longitud. ' +
-    'Devuelve solo el texto pulido en espanol.';
+    'You are an editor. You receive an approved draft. ' +
+    'Polish it: improve the flow, fix awkward sentences, optimize word ' +
+    'choice. Keep the same meaning and length. ' +
+    'Return only the polished text in Spanish.';
 
   // Chain: Drafter -> HumanReviewer -> Finalizer
   FLink1 := TAIAgentsLink.Create(FManager);
@@ -242,8 +242,8 @@ begin
         GFinalOutput := '';
 
         NewPrompt := ATask + sLineBreak + sLineBreak +
-          'BORRADOR PREVIO (necesita mejora):' + sLineBreak + GSuspendContext + sLineBreak + sLineBreak +
-          'INSTRUCCIONES DE MEJORA: ' + UserInput;
+          'PREVIOUS DRAFT (needs improvement):' + sLineBreak + GSuspendContext + sLineBreak + sLineBreak +
+          'IMPROVEMENT INSTRUCTIONS: ' + UserInput;
 
         FManager.Run(NewPrompt);
       end;

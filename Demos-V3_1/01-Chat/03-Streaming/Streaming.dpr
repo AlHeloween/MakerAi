@@ -110,9 +110,9 @@ procedure TStreamingDemo.OnProgressDone(const Sender: TObject; aMsg: TAiChatMess
 begin
   Writeln;
   Writeln;
-  Writeln('Respuesta completa:');
+  Writeln('Complete response:');
   Writeln(FFullResponse);
-  Writeln(Format('(Total: %d fragmentos)', [FFragCount]));
+  Writeln(Format('(Total: %d fragments)', [FFragCount]));
 end;
 
 // =============================================================================
@@ -217,7 +217,7 @@ begin
     FConn.Params.Values['Asynchronous'] := 'False';
     FConn.Params.Values['Max_Tokens']   := '512';
 
-    FConn.SystemPrompt.Text := 'Responde siempre en español.';
+    FConn.SystemPrompt.Text := 'Always respond in Spanish.';
 
     DemoSinStreaming;
     DemoConStreaming;

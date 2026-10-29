@@ -6,19 +6,19 @@ program ChatHistory;
 // =============================================================================
 // MakerAI — 01-Chat / 04-ChatHistory
 // =============================================================================
-// Conversación multi-turno: el LLM recuerda lo que se dijo anteriormente
-// porque cada llamada a AddMessageAndRun() acumula el historial internamente.
+// Multi-turn conversation: the LLM remembers what was said earlier
+// because each call to AddMessageAndRun() accumulates the history internally.
 //
 // Conceptos que cubre:
-//   - Historial de mensajes automático (user / assistant alternados)
-//   - Referencia a mensajes anteriores dentro de la conversación
-//   - Limpiar historial con ClearMessages()
-//   - Inspeccionar el historial con Messages.Count
-//   - Gestionar el tamaño del contexto (truncar historial cuando crece)
+//   - Automatic message history (alternating user / assistant)
+//   - Reference to previous messages within the conversation
+//   - Clear history with ClearMessages()
+//   - Inspect the history with Messages.Count
+//   - Manage context size (truncate history when it grows)
 //
 // Importante:
-//   Cada proveedor tiene un límite de tokens de contexto. Si la conversación
-//   es muy larga, eventualmente hay que limpiar o resumir el historial.
+//   Each provider has a context token limit. If the conversation
+//   is very long, the history must eventually be cleared or summarized.
 // =============================================================================
 
 uses
@@ -54,10 +54,10 @@ end;
 procedure DemoConversacionSimple(Conn: TAiChatConnection);
 const
   PREGUNTAS: array[0..3] of String = (
-    'Mi nombre es Carlos y me gustan los dinosaurios.',
-    '¿Cuál es tu dinosaurio favorito y por qué?',
-    '¿Recuerdas cómo me llamo?',
-    'Recomiéndame 3 libros sobre el tema que mencioné al inicio.'
+    'My name is Carlos and I like dinosaurs.',
+    'What is your favorite dinosaur and why?',
+    'Do you remember my name?',
+    'Recommend 3 books about the topic I mentioned at the beginning.'
   );
 var
   I       : Integer;
@@ -90,8 +90,8 @@ begin
   Conn.AddMessageAndRun('El código secreto de hoy es ALFA-7.', 'user', []);
   Conn.AddMessageAndRun('¿Recuerdas el código secreto?', 'user', []);
 
-  Writeln('Before reset — the LLM remembers the code:');
-  Response := Conn.AddMessageAndRun('¿Cuál era el código exacto?', 'user', []);
+  Writeln('Before reset — the LLM remembers the secret code:');
+  Response := Conn.AddMessageAndRun('What was the exact code?', 'user', []);
   Writeln('  ', Response);
 
   // Reset history
@@ -116,7 +116,7 @@ var
   Response: String;
   Turn    : Integer;
 begin
-  Writeln('─── Interactive chat (type "salir" to finish) ───');
+  Writeln('─── Interactive chat (type "exit" to finish) ───');
   Conn.Messages.Clear;
   Turn := 0;
 
@@ -125,7 +125,7 @@ begin
     Readln(Input);
     Input := Trim(Input);
 
-    if (Input = '') or (SameText(Input, 'salir')) then
+    if (Input = '') or (SameText(Input, 'exit')) then
       Break;
 
     Inc(Turn);
@@ -160,8 +160,8 @@ begin
     Conn.Params.Values['Max_Tokens']   := '512';
 
     Conn.SystemPrompt.Text :=
-      'Eres un asistente amigable. Recuerdas todo lo dicho en la conversación. ' +
-      'Responde siempre en español.';
+      'You are a friendly assistant. You remember everything said in the conversation. ' +
+      'Always respond in Spanish.';
 
     DemoConversacionSimple(Conn);
     DemoConReset(Conn);

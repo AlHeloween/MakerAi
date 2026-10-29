@@ -54,8 +54,8 @@ constructor TDateTimeMCPTool.Create;
 begin
   inherited;
   FName        := 'get_datetime';
-  FDescription := 'Retorna la fecha y hora actual del servidor. ' +
-                  'Formato "iso" devuelve ISO-8601; "readable" devuelve texto legible.';
+  FDescription := 'Returns the current server date and time. ' +
+                  'Format "iso" returns ISO-8601; "readable" returns readable text.';
 end;
 
 function TDateTimeMCPTool.ExecuteWithParams(const AParams: TDateTimeParams;
@@ -100,8 +100,8 @@ constructor TGreetMCPTool.Create;
 begin
   inherited;
   FName        := 'greet';
-  FDescription := 'Genera un saludo personalizado. ' +
-                  'Soporta idiomas: "es" (espanol) y "en" (ingles).';
+  FDescription := 'Generates a personalized greeting. ' +
+                  'Supports languages: "es" (Spanish) and "en" (English).';
 end;
 
 function TGreetMCPTool.ExecuteWithParams(const AParams: TGreetParams;

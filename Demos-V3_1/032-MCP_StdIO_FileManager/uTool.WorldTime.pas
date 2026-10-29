@@ -17,10 +17,10 @@ type
     FCountry: string;
     FCity: string;
   public
-    [AiMCPSchemaDescription('PaÃ­s de la ciudad (ej: "EspaÃ±a", "MÃ©xico", "Argentina")')]
+    [AiMCPSchemaDescription('Country of the city (e.g.: "Spain", "Mexico", "Argentina")')]
     property Country: string read FCountry write FCountry;
     
-    [AiMCPSchemaDescription('Nombre de la ciudad (ej: "Madrid", "Ciudad de MÃ©xico", "Buenos Aires")')]
+    [AiMCPSchemaDescription('Name of the city (e.g.: "Madrid", "Mexico City", "Buenos Aires")')]
     property City: string read FCity write FCity;
   end;
 
@@ -41,7 +41,7 @@ constructor TGetCityTimeTool.Create;
 begin
   inherited;
   FName := 'get_city_time';
-  FDescription := 'Obtiene la fecha y hora actual de una ciudad especÃ­fica en un paÃ­s determinado';
+  FDescription := 'Gets the current date and time of a specific city in a given country';
 end;
 
 function TGetCityTimeTool.ExecuteWithParams(const AParams: TGetCityTimeParams; 
@@ -53,34 +53,34 @@ var
   CityDateTime: TDateTime;
 begin
   try
-    // Validar parÃ¡metros obligatorios
+    // Validate required parameters
     if AParams.Country.IsEmpty then
-      raise Exception.Create('El parÃ¡metro "Country" es obligatorio');
+      raise Exception.Create('The "Country" parameter is required');
       
     if AParams.City.IsEmpty then
-      raise Exception.Create('El parÃ¡metro "City" es obligatorio');
+      raise Exception.Create('The "City" parameter is required');
 
     // =========================================================================
-    // AQUÃ IMPLEMENTA TU LÃ“GICA PARA OBTENER LA HORA DE LA CIUDAD
+    // IMPLEMENT YOUR LOGIC HERE TO GET THE CITY TIME
     // =========================================================================
     // You can:
     // 1. Query an external time zone API (WorldTimeAPI, TimeZoneDB, etc.)
-    // 2. Usar una base de datos local con informaciÃ³n de zonas horarias
-    // 3. Implementar tu propia lÃ³gica de conversiÃ³n de zonas horarias
+    // 2. Use a local database with time zone information
+    // 3. Implement your own time zone conversion logic
     //
-    // Ejemplo de estructura que podrÃ­as retornar:
+    // Example of structure you could return:
     // - DateTime: current date and time in that city
     // - TimeZone: name of the time zone (e.g.: "UTC-5", "Europe/Madrid")
     // - UTCOffset: difference in hours from UTC
-    // - IsDST: si estÃ¡ en horario de verano
+    // - IsDST: whether it is in daylight saving time
     
-    // EJEMPLO TEMPORAL (reemplazar con implementaciÃ³n real):                 ewrqwr
+    // TEMPORARY EXAMPLE (replace with real implementation):                 ewrqwr
     CurrentDateTime := Now;
-    TimeZoneOffset := 0; // Calcular el offset real segÃºn la ciudad
-    CityDateTime := CurrentDateTime; // Ajustar segÃºn zona horaria
+    TimeZoneOffset := 0; // Calculate the real offset according to the city
+    CityDateTime := CurrentDateTime; // Adjust according to time zone
 
     // =========================================================================
-    // FIN DEL ESPACIO PARA IMPLEMENTACIÃ“N
+    // END OF IMPLEMENTATION SPACE
     // =========================================================================
 
     // Build structured response
@@ -105,7 +105,7 @@ begin
   except
     on E: Exception do
       Result := TAiMCPResponseBuilder.New
-        .AddText('âŒ Error obteniendo hora de la ciudad: ' + E.Message)
+        .AddText('❌ Error getting city time: ' + E.Message)
         .Build;
   end;
 end;

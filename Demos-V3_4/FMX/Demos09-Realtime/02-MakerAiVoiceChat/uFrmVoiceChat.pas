@@ -4,14 +4,14 @@
 // MakerAI — Demo FMX Voice Chat (STT + LLM + TTS)
 // Full voice conversation with MakerAI Realtime API.
 //
-// Componentes: TAiMakerAiRealtimeChat + TAIVoiceMonitor + TAudioPushStream
+// Components: TAiMakerAiRealtimeChat + TAIVoiceMonitor + TAudioPushStream
 //
-// Flujo:
-//   1. TAIVoiceMonitor captura audio del microfono (PCM16 44100 Hz)
-//   2. TAiMakerAiRealtimeChat resamplea a 24 kHz y envia por WebSocket
-//   3. Servidor transcribe (STT) y muestra en "Tu voz"
-//   4. LLM genera respuesta → OnAssistantText
-//   5. TTS devuelve audio PCM16 → OnAudioChunk → TAudioPushStream reproduce
+// Flow:
+//   1. TAIVoiceMonitor captures audio from the microphone (PCM16 44100 Hz)
+//   2. TAiMakerAiRealtimeChat resamples to 24 kHz and sends over WebSocket
+//   3. Server transcribes (STT) and displays in "Your voice"
+//   4. LLM generates response → OnAssistantText
+//   5. TTS returns PCM16 audio → OnAudioChunk → TAudioPushStream plays
 //
 // Requires: MAKERAI_API_KEY environment variable configured.
 // =============================================================================
@@ -218,7 +218,7 @@ begin
   begin
     FMic.Active := False;
     FChat.Disconnect;
-    BtnConnect.Text := 'Conectar';
+    BtnConnect.Text := 'Connect';
   end
   else
   begin
@@ -259,7 +259,7 @@ begin
   end;
   SetStatus('Disconnected. Press Connect to start.');
   SetStateColor(CLR_GRAY);
-  BtnConnect.Text := 'Conectar';
+  BtnConnect.Text := 'Connect';
 end;
 
 procedure TFrmVoiceChat.OnChatSessionReady(Sender: TObject);
@@ -270,7 +270,7 @@ begin
     FPlayer.Start(24000, 1, 16);
     FPlayerStarted := True;
   end;
-  // Asignar el micrófono seleccionado
+  // Assign the selected microphone
   if (CbxMic.ItemIndex >= 0) and (CbxMic.ItemIndex < Length(FMicDevices)) then
   begin
     FMic.DeviceID := FMicDevices[CbxMic.ItemIndex].DeviceID;
@@ -293,10 +293,10 @@ begin
   ProgressBarLevel.Max := Sensitivity * 5;
   LblVADInfo.Text      := Format('Ruido: %d | Umbral inicio: %d | Umbral stop: %d',
     [NoiseLevel, Sensitivity, StopSensitivity]);
-  SetStatus(Format('Listo - habla en el microfono  [ruido=%d  umbral=%d]',
+  SetStatus(Format('Ready - speak into the microphone  [noise=%d  threshold=%d]',
     [NoiseLevel, Sensitivity]));
   SetStateColor(CLR_GREEN);
-  Log(Format('>> [CAL] Calibrado — ruido=%d  umbral=%d  (tu voz debe superar %d)',
+  Log(Format('>> [CAL] Calibrated — noise=%d  threshold=%d  (your voice must exceed %d)',
     [NoiseLevel, Sensitivity, Sensitivity]));
 end;
 
@@ -348,7 +348,7 @@ begin
   Log('>> ' + FullMsg);
   SetStatus(FullMsg);
   SetStateColor(CLR_RED);
-  BtnConnect.Text := 'Conectar';
+  BtnConnect.Text := 'Connect';
   ShowMessage(FullMsg);
 end;
 

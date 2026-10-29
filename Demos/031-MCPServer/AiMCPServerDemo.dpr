@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enríquez
-// Redes Sociales:
+// Name: Gustavo Enríquez
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -206,7 +206,7 @@ begin
     Exit;
   end;
 
-  // En modo stdio, stdout es EXCLUSIVO del protocolo MCP (JSON-RPC por linea).
+  // In stdio mode, stdout is EXCLUSIVE to the MCP protocol (JSON-RPC per line).
   // Cualquier texto informativo (banner, estados) debe ir a stderr; de lo
   // contrario se intercala con las respuestas y rompe el parser del cliente.
   if not SameText(Protocol, 'stdio') then

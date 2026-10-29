@@ -6,20 +6,20 @@ program HumanApproval;
 // =============================================================================
 // MakerAI — 07-AgenticLLM / 05-HumanApproval
 // =============================================================================
-// Human-in-the-loop: el agente se pausa esperando aprobacion humana.
-// El usuario puede aprobar el borrador o rechazarlo con feedback,
-// lo que relanza el agente con instrucciones de mejora.
+// Human-in-the-loop: the agent pauses waiting for human approval.
+// The user can approve the draft or reject it with feedback,
+// which relaunches the agent with improvement instructions.
 //
 // Concepts covered:
-//   - Manager.Asynchronous = True: ejecucion en hilo separado
-//   - Manager.OnSuspend: callback cuando el agente se suspende
-//   - Manager.OnFinish: callback cuando termina
-//   - Node.Suspend(reason, context): pausar la ejecucion
-//   - Manager.ResumeThread(threadId, nodeName, context): reanudar
-//   - Manager.Abort: cancelar ejecucion actual
-//   - Blackboard para pasar datos entre OnExecute y el loop principal
+//   - Manager.Asynchronous = True: execution in a separate thread
+//   - Manager.OnSuspend: callback when the agent suspends
+//   - Manager.OnFinish: callback when it finishes
+//   - Node.Suspend(reason, context): pause execution
+//   - Manager.ResumeThread(threadId, nodeName, context): resume
+//   - Manager.Abort: cancel current execution
+//   - Blackboard to pass data between OnExecute and the main loop
 //
-// Estructura: [Drafter] -> [HumanReviewer (suspend)] -> [Finalizer]
+// Structure: [Drafter] -> [HumanReviewer (suspend)] -> [Finalizer]
 // =============================================================================
 
 uses
@@ -35,7 +35,7 @@ const
   MODEL   = 'claude-haiku-4-5-20251001';
   API_KEY = '@CLAUDE_API_KEY';
 
-// Estado global del ciclo suspend/resume
+// Global state of the suspend/resume cycle
 var
   GSuspendThreadID : String  = '';
   GSuspendNodeName : String  = '';
@@ -122,7 +122,7 @@ begin
   FManager.OnSuspend    := OnSuspend;
   FManager.OnFinish     := OnFinish;
 
-  // Nodo 1: Redactor
+  // Node 1: Drafter
   FDrafter := TLLMNode.Create(FManager);
   FDrafter.Name         := 'Drafter';
   FDrafter.Graph        := FManager;
@@ -131,17 +131,17 @@ begin
   FDrafter.ApiKey       := API_KEY;
   FDrafter.UseAllTools  := False;
   FDrafter.SystemPrompt :=
-    'Eres un escritor profesional. Escribe un parrafo claro y atractivo ' +
-    '(80-120 palabras) sobre el tema dado. Si recibes instrucciones de ' +
-    'mejora, incorpóralas completamente. Responde en espanol.';
+    'You are a professional writer. Write a clear and engaging paragraph ' +
+    '(80-120 words) about the given topic. If you receive improvement ' +
+    'instructions, incorporate them fully. Respond in Spanish.';
 
-  // Nodo 2: Revisor humano (suspende para aprobacion)
+  // Node 2: Human reviewer (suspends for approval)
   FReviewer := TAIAgentsNode.Create(FManager);
   FReviewer.Name      := 'HumanReviewer';
   FReviewer.Graph     := FManager;
   FReviewer.OnExecute := ReviewerExec;
 
-  // Nodo 3: Finalizador
+  // Node 3: Finalizer
   FFinalizer := TLLMNode.Create(FManager);
   FFinalizer.Name         := 'Finalizer';
   FFinalizer.Graph        := FManager;
@@ -150,12 +150,12 @@ begin
   FFinalizer.ApiKey       := API_KEY;
   FFinalizer.UseAllTools  := False;
   FFinalizer.SystemPrompt :=
-    'Eres un editor. Recibes un borrador aprobado. ' +
-    'Pulelo: mejora el flujo, corrige frases torpes, optimiza la eleccion ' +
-    'de palabras. Mantén el mismo significado y longitud. ' +
-    'Devuelve solo el texto pulido en espanol.';
+    'You are an editor. You receive an approved draft. ' +
+    'Polish it: improve the flow, fix awkward phrases, optimize word ' +
+    'choice. Keep the same meaning and length. ' +
+    'Return only the polished text in Spanish.';
 
-  // Encadenar: Drafter -> HumanReviewer -> Finalizer
+  // Chain: Drafter -> HumanReviewer -> Finalizer
   FLink1 := TAIAgentsLink.Create(FManager);
   FLink1.Name := 'L1'; FLink1.Graph := FManager; FLink1.NextA := FReviewer;
   FDrafter.Next := FLink1;
@@ -198,7 +198,7 @@ begin
   repeat
     Inc(Iteration);
 
-    // Esperar hasta suspension o fin
+    // Wait until suspension or completion
     while (not GSuspended) and (not GFinished) do
     begin
       CheckSynchronize;
@@ -229,7 +229,7 @@ begin
       end
       else
       begin
-        // Rechazado: relanzar con feedback
+        // Rejected: relaunch with feedback
         if Trim(UserInput) = '' then
           UserInput := 'Por favor mejora la calidad del texto.';
 
@@ -251,7 +251,7 @@ begin
 
   until Approved or GFinished;
 
-  // Esperar resultado final
+  // Wait for final result
   while not GFinished do
   begin
     CheckSynchronize;

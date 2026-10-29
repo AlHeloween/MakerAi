@@ -3,22 +3,22 @@
 {$APPTYPE CONSOLE}
 
 // =============================================================================
-// MakerAI — Capítulo 15: Function Calling
-// Demo: Sistema de consultas empresariales
+// MakerAI — Chapter 15: Function Calling
+// Demo: Business query system
 // =============================================================================
-// Muestra cómo el LLM invoca funciones Delphi reales para responder preguntas
-// de negocio: stock, precios y fecha/hora actuales.
+// Shows how the LLM invokes real Delphi functions to answer questions
+// business: stock, prices, and current date/time.
 //
-// Provider: Ollama (local, sin API key)
-// Modelo  : qwen2.5:latest   ← soporta function calling nativo
-//           llama3.3:latest  ← alternativa
+// Provider: Ollama (local, no API key)
+// Model   : qwen2.5:latest   ← supports native function calling
+//           llama3.3:latest  ← alternative
 //
-// Conceptos demostrados:
-//   - TAiFunctions con tres herramientas registradas
-//   - Handler por función (OnAction) — patrón recomendado
-//   - ToolCall.Params.Values para leer argumentos (forma cómoda)
-//   - Bucle interactivo: el usuario escribe preguntas en lenguaje natural
-//   - El modelo decide cuándo y con qué argumentos llamar cada función
+// Concepts demonstrated:
+//   - TAiFunctions with three registered tools
+//   - Per-function handler (OnAction) — recommended pattern
+//   - ToolCall.Params.Values to read arguments (convenient form)
+//   - Interactive loop: the user types questions in natural language
+//   - The model decides when and with which arguments to call each function
 // =============================================================================
 
 uses
@@ -33,10 +33,10 @@ uses
 const
   DRIVER = 'Ollama';
   MODEL  = 'gemma4:e4b';   // Soporta tool calling nativo en Ollama
-  // Alternativas si el modelo no está instalado:
-  //   'gemma4:e2b'    — más ligero
-  //   'llama3.2:latest' — si se instala con: ollama pull llama3.2
-  //   'qwen2.5:latest'  — si se instala con: ollama pull qwen2.5
+  // Alternatives if the model is not installed:
+  //   'gemma4:e2b'    — lighter
+  //   'llama3.2:latest' — if installed with: ollama pull llama3.2
+  //   'qwen2.5:latest'  — if installed with: ollama pull qwen2.5
 
 // =============================================================================
 //  TConsultasDemo
@@ -59,7 +59,7 @@ type
   end;
 
 // =============================================================================
-//  Handlers de las herramientas
+//  Tool handlers
 // =============================================================================
 
 procedure TConsultasDemo.OnFnStock(Sender: TObject; FA: TFunctionActionItem;
@@ -129,7 +129,7 @@ begin
   LParam.Name             := 'codigo_producto';
   LParam.ParamType        := ptString;
   LParam.Required         := True;
-  LParam.Description.Text := 'Código del producto (ej: PROD001, PROD002, PROD003)';
+  LParam.Description.Text := 'Product code (e.g.: PROD001, PROD002, PROD003)';
 
   // ── ConsultarPrecio ────────────────────────────────────────────────────────
   LFn := FAiFuncs.Functions.AddFunction('ConsultarPrecio', True, OnFnPrecio);
@@ -140,14 +140,14 @@ begin
   LParam.Name             := 'codigo_producto';
   LParam.ParamType        := ptString;
   LParam.Required         := True;
-  LParam.Description.Text := 'Código del producto';
+  LParam.Description.Text := 'Product code';
 
   // ── ObtenerFechaActual ─────────────────────────────────────────────────────
   LFn := FAiFuncs.Functions.AddFunction('ObtenerFechaActual', True, OnFnFecha);
   LFn.Description.Text :=
     'Obtiene la fecha y hora actuales del sistema. ' +
     'Usar cuando el usuario pregunte por la fecha, hora o día de la semana.';
-  // Sin parámetros
+  // No parameters
 end;
 
 // =============================================================================
@@ -178,26 +178,26 @@ begin
       'necesite esa información. Responde siempre en español.';
 
     WriteLn('');
-    WriteLn('=== Cap. 15 — Function Calling con Ollama ===');
+    WriteLn('=== Cap. 15 — Function Calling with Ollama ===');
     WriteLn('Driver : ', DRIVER);
-    WriteLn('Modelo : ', MODEL);
+    WriteLn('Model   : ', MODEL);
     WriteLn('Tools  : ConsultarStock, ConsultarPrecio, ObtenerFechaActual');
-    WriteLn('Productos disponibles: PROD001, PROD002, PROD003');
-    WriteLn('Escribe "salir" para terminar.');
+    WriteLn('Available products: PROD001, PROD002, PROD003');
+    WriteLn('Type "exit" to finish.');
     WriteLn('');
 
     repeat
-      Write('Tú > ');
+      Write('You > ');
       ReadLn(Pregunta);
       Pregunta := Trim(Pregunta);
 
       if Pregunta = '' then Continue;
-      if SameText(Pregunta, 'salir') then Break;
+      if SameText(Pregunta, 'exit') then Break;
 
       WriteLn('');
       try
         Resp := Conn.AddMessageAndRun(Pregunta, 'user', []);
-        WriteLn('IA  > ', Resp);
+        WriteLn('AI  > ', Resp);
       except
         on E: Exception do
           WriteLn('ERROR: ', E.ClassName, ' — ', E.Message);
@@ -225,6 +225,6 @@ begin
     on E: Exception do
       WriteLn('ERROR FATAL: ', E.ClassName, ' — ', E.Message);
   end;
-  WriteLn('Presiona Enter para salir...');
+  WriteLn('Press Enter to exit...');
   ReadLn;
 end.

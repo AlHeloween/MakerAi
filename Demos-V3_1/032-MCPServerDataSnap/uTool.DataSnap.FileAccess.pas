@@ -167,7 +167,7 @@ uses
   System.StrUtils;
 
 // =============================================================================
-// Helper de Registro
+// Registration Helper
 // =============================================================================
 procedure RegisterTools(ALogicServer: TAiMCPServer; AConfig: TFileAccessConfig = nil);
 var
@@ -175,18 +175,18 @@ var
   SharedConfig: TFileAccessConfig;
 begin
   if not Assigned(ALogicServer) then
-    raise Exception.Create('LogicServer no puede ser nulo.');
+    raise Exception.Create('LogicServer cannot be null.');
 
-  // Nota: Si AConfig es nil, cada herramienta crear� su propia config por defecto internamente.
-  // Pero para consistencia, es mejor que compartan la misma si se van a registrar juntas.
+  // Note: If AConfig is nil, each tool will create its own default config internally.
+  // But for consistency, it is better that they share the same one if they are registered together.
 
-  // Opci�n 1: Si el usuario pasa una config, la usamos. EL USUARIO ES RESPONSABLE DE LIBERARLA (o el �ltimo tool).
-  // Para simplificar en DataSnap, haremos que cada tool tenga su referencia.
+  // Option 1: If the user passes a config, we use it. THE USER IS RESPONSIBLE FOR FREEING IT (or the last tool).
+  // To simplify in DataSnap, we will make each tool have its reference.
 
   ALogicServer.RegisterTool('list_files',
     function: IAiMCPTool
     begin
-      // Si AConfig es nil, el tool crea una nueva y se hace due�o.
+      // If AConfig is nil, the tool creates a new one and becomes its owner.
       // If AConfig is NOT nil, the tool uses it but does NOT become its owner (shared reference).
       Result := TListFilesTool.Create(AConfig);
     end);
@@ -205,7 +205,7 @@ begin
 end;
 
 // =============================================================================
-// TFileAccessConfig (L�gica de Seguridad)
+// TFileAccessConfig (Security Logic)
 // =============================================================================
 
 constructor TFileAccessConfig.Create;
@@ -291,7 +291,7 @@ begin
 end;
 
 // =============================================================================
-// TAiFileToolBase (Clase Base para Herramientas)
+// TAiFileToolBase (Base Class for Tools)
 // =============================================================================
 
 constructor TAiFileToolBase<T>.Create(AConfig: TFileAccessConfig);
@@ -339,10 +339,10 @@ var
 begin
   try
     if not TDirectory.Exists(AParams.Path) then
-      raise Exception.Create('La carpeta no existe: ' + AParams.Path);
+      raise Exception.Create('The folder does not exist: ' + AParams.Path);
 
     if not FConfig.IsPathAllowed(AParams.Path) then
-      raise Exception.Create('Acceso denegado a la carpeta: ' + AParams.Path);
+      raise Exception.Create('Access denied to the folder: ' + AParams.Path);
 
     SearchPattern := AParams.Pattern;
     if SearchPattern.IsEmpty then SearchPattern := '*.*';
@@ -403,18 +403,18 @@ function TReadFileTool.ExecuteWithParams(const AParams: TReadFileParams; const A
 begin
   try
     if not TFile.Exists(AParams.FilePath) then
-      raise Exception.Create('El archivo no existe.');
+      raise Exception.Create('The file does not exist.');
 
     if not FConfig.IsPathAllowed(ExtractFileDir(AParams.FilePath)) then
-      raise Exception.Create('Acceso denegado a la ruta.');
+      raise Exception.Create('Access denied to the path.');
 
     if not FConfig.IsExtensionAllowed(AParams.FilePath) then
-      raise Exception.Create('Extensi�n no permitida.');
+      raise Exception.Create('Extension not allowed.');
 
     var FS := TFileStream.Create(AParams.FilePath, fmOpenRead or fmShareDenyNone);
     try
       if FS.Size > MAX_FILE_SIZE then
-        raise Exception.Create('Archivo demasiado grande (>10MB).');
+        raise Exception.Create('File too large (>10MB).');
     finally
       FS.Free;
     end;
@@ -447,10 +447,10 @@ begin
     FileDir := ExtractFileDir(AParams.FilePath);
 
     if not FConfig.IsPathAllowed(FileDir) then
-      raise Exception.Create('Acceso denegado a la ruta de escritura.');
+      raise Exception.Create('Access denied to the write path.');
 
     if not FConfig.IsExtensionAllowed(AParams.FilePath) then
-      raise Exception.Create('Extensi�n no permitida para escritura.');
+      raise Exception.Create('Extension not allowed for writing.');
 
     if AParams.CreateDirs and not TDirectory.Exists(FileDir) then
       TDirectory.CreateDirectory(FileDir);
@@ -461,7 +461,7 @@ begin
       TFile.WriteAllText(AParams.FilePath, AParams.Content, TEncoding.UTF8);
 
     Result := TAiMCPResponseBuilder.New
-      .AddText('Archivo guardado correctamente.')
+      .AddText('File saved successfully.')
       .Build;
   except
     on E: Exception do

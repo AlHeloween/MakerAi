@@ -4,38 +4,38 @@
 {$R *.res}
 
 // =============================================================================
-// MakerAI — Capítulo 11: Voz — De audio a texto y de texto a voz
+// MakerAI — Chapter 11: Voice — From audio to text and from text to voice
 // =============================================================================
-// Demuestra el flujo completo de voz con MakerAI: STT, TTS y pipeline
-// integrado. Todos los demos usan únicamente la API de OpenAI.
+// Demonstrates the complete voice flow with MakerAI: STT, TTS and pipeline
+// integrated. All demos use only the OpenAI API.
 //
-//   Demo 1 — STT con TAIWhisper (standalone)
-//     Transcribe un archivo de audio MP3/WAV a texto usando Whisper.
-//     API directa: no requiere TAiChatConnection.
+//   Demo 1 — STT with TAIWhisper (standalone)
+//     Transcribes an MP3/WAV audio file to text using Whisper.
+//     Direct API: does not require TAiChatConnection.
 //
-//   Demo 2 — TTS con TAiOpenAiAudio (standalone)
-//     Convierte texto a voz y guarda el MP3 resultante en disco.
-//     API directa: modelos tts-1 / tts-1-hd, 11 voces distintas.
+//   Demo 2 — TTS with TAiOpenAiAudio (standalone)
+//     Converts text to voice and saves the resulting MP3 to disk.
+//     Direct API: tts-1 / tts-1-hd models, 11 different voices.
 //
-//   Demo 3 — Asistente de voz completo (pipeline manual)
+//   Demo 3 — Complete voice assistant (manual pipeline)
 //     Audio MP3 → Whisper (STT) → gpt-4o-mini (LLM) → TTS → MP3
-//     Muestra cómo encadenar las tres fases en una sola función.
+//     Shows how to chain the three phases in a single function.
 //
 //   Demo 4 — cmTranscription via TAiChatConnection
-//     TAiChatConnection.ChatMode = cmTranscription + SpeechTool asignado.
-//     Patrón limpio para integrar STT en aplicaciones con historial de chat.
+//     TAiChatConnection.ChatMode = cmTranscription + assigned SpeechTool.
+//     Clean pattern to integrate STT in applications with chat history.
 //
-// Nota sobre micrófono:
-//   TAiVoiceMonitor (captura en tiempo real) y los modos Realtime se cubren
-//   en el Capítulo 12. Aquí trabajamos exclusivamente con archivos de audio.
+// Note about microphone:
+//   TAiVoiceMonitor (real-time capture) and Realtime modes are covered
+//   in Chapter 12. Here we work exclusively with audio files.
 //
-// Requisitos:
-//   Todos los demos:  OPENAI_API_KEY en variables de entorno
-//   Demos 1, 3, 4:   Un archivo de audio MP3 o WAV (ver AUDIO_PATH)
+// Requirements:
+//   All demos: OPENAI_API_KEY in environment variables
+//   Demos 1, 3, 4:   An MP3 or WAV audio file (see AUDIO_PATH)
 //
-// Cómo probar sin archivo de audio propio:
-//   Graba cualquier nota de voz desde tu teléfono y cópiala a AUDIO_PATH,
-//   o bien ejecuta primero el Demo 2 (genera un MP3) y úsalo como entrada.
+// How to test without your own audio file:
+//   Record any voice note from your phone and copy it to AUDIO_PATH,
+//   or first run Demo 2 (generates an MP3) and use it as input.
 // =============================================================================
 
 uses
@@ -45,20 +45,20 @@ uses
   uMakerAi.Core,
   uMakerAi.Chat,
   uMakerAi.Chat.AiConnection,
-  uMakerAi.Chat.OpenAi,    // DriverName = 'OpenAI' — se auto-registra al importar
-  uMakerAi.Whisper,        // TAIWhisper — STT legacy, simple y directo
-  uMakerAi.OpenAI.Audio;   // TAiOpenAiAudio — TTS moderno con enums tipados
+  uMakerAi.Chat.OpenAi,    // DriverName = 'OpenAI' — auto-registers on import
+  uMakerAi.Whisper,        // TAIWhisper — legacy STT, simple and direct
+  uMakerAi.OpenAI.Audio;   // TAiOpenAiAudio — modern TTS with typed enums
 
 const
   OPENAI_DRIVER = 'OpenAI';
   OPENAI_MODEL  = 'gpt-4o-mini';
 
-  // Ruta del archivo de audio de entrada para demos de STT.
-  // Formatos soportados por Whisper: mp3, mp4, mpeg, mpga, m4a, ogg, wav, webm.
-  // Si el archivo no existe, los demos STT se omiten con instrucciones.
+  // Path to the input audio file for STT demos.
+  // Formats supported by Whisper: mp3, mp4, mpeg, mpga, m4a, ogg, wav, webm.
+  // If the file does not exist, the STT demos are skipped with instructions.
   AUDIO_PATH = 'C:\Users\Public\Documents\sample.mp3';
 
-  // Archivos de salida para los demos TTS (se crean o sobreescriben).
+  // Output files for the TTS demos (created or overwritten).
   OUTPUT_TTS_DEMO2    = 'C:\Users\Public\Documents\tts_demo2.mp3';
   OUTPUT_TTS_PIPELINE = 'C:\Users\Public\Documents\tts_demo3.mp3';
 
@@ -89,7 +89,7 @@ begin
   if TFile.Exists(AUDIO_PATH) then
     Exit(AUDIO_PATH);
 
-  // Buscar en el directorio del ejecutable (formatos soportados por Whisper)
+  // Search in the executable directory (formats supported by Whisper)
   Exts[0] := 'mp3';  Exts[1] := 'wav';  Exts[2] := 'ogg';
   Exts[3] := 'm4a';  Exts[4] := 'webm'; Exts[5] := 'mp4';
   for i := 0 to High(Exts) do
@@ -99,7 +99,7 @@ begin
       Exit(RutaLocal);
   end;
 
-  // Buscar cualquier MP3 o WAV en el directorio del ejecutable
+  // Search for any MP3 or WAV in the executable directory
   var Archivos := TDirectory.GetFiles(
     ExtractFilePath(ParamStr(0)), '*.mp3', TSearchOption.soTopDirectoryOnly);
   if Length(Archivos) > 0 then
@@ -121,9 +121,9 @@ end;
 //  No requiere TAiChatConnection — es un componente independiente.
 //
 //  API:
-//    Whisper.Transcription(Stream, NombreArchivo, Prompt): String
-//    Whisper.Languaje := 'es';   // ISO-639-1; en blanco = auto-detectar
-//    Whisper.Model   := 'whisper-1';  // único modelo público a Mayo 2026
+//    Whisper.Transcription(Stream, FileName, Prompt): String
+//    Whisper.Languaje := 'es';   // ISO-639-1; blank = auto-detect
+//    Whisper.Model   := 'whisper-1';  // only public model as of May 2026
 // =============================================================================
 procedure Demo1_STT_Whisper(const AudioPath: string);
 var
@@ -131,7 +131,7 @@ var
   Stream : TMemoryStream;
   Texto  : string;
 begin
-  Separador('Demo 1 — STT con TAIWhisper (transcripción directa)');
+  Separador('Demo 1 — STT with TAIWhisper (direct transcription)');
 
   Whisper := TAIWhisper.Create(nil);
   Stream  := TMemoryStream.Create;
@@ -141,15 +141,15 @@ begin
     Whisper.Languaje := 'es';    // nota: propiedad con typo intencional en la fuente
 
     Stream.LoadFromFile(AudioPath);
-    WriteLn('  Archivo  : ', ExtractFileName(AudioPath));
-    WriteLn('  Tamaño   : ', Stream.Size div 1024, ' KB');
+    WriteLn('  File     : ', ExtractFileName(AudioPath));
+    WriteLn('  Size     : ', Stream.Size div 1024, ' KB');
     WriteLn('');
 
-    Write('  Transcribiendo... ');
+    Write('  Transcribing... ');
     Texto := Whisper.Transcription(Stream, ExtractFileName(AudioPath), '');
     WriteLn('OK');
     WriteLn('');
-    WriteLn('  Transcripción:');
+    WriteLn('  Transcription:');
     WriteLn('  ', Texto);
   finally
     Stream.Free;
@@ -157,9 +157,9 @@ begin
   end;
 
   WriteLn('');
-  WriteLn('→ Patrón: TAIWhisper.Transcription(Stream, NombreArchivo, HintPrompt).');
-  WriteLn('  El parámetro "prompt" es un hint opcional para mejorar la precisión.');
-  WriteLn('  Por ejemplo: ''Esta es una llamada médica'' mejora términos técnicos.');
+  WriteLn('→ Pattern: TAIWhisper.Transcription(Stream, FileName, HintPrompt).');
+  WriteLn('  The "prompt" parameter is an optional hint to improve accuracy.');
+  WriteLn('  For example: ''This is a medical call'' improves technical terms.');
 end;
 
 // =============================================================================
@@ -169,26 +169,26 @@ end;
 //  en lugar de strings para evitar errores de escritura en modelo/voz.
 //
 //  API:
-//    Audio.Speech(Texto): TMemoryStream   // devuelve el audio en memoria
+//    Audio.Speech(Text): TMemoryStream   // returns the audio in memory
 //    Audio.TTSModel  := tts_1;            // o tts_1_hd, gpt_4o_mini_tts
-//    Audio.TTSVoice  := tvAlloy;          // 11 voces: alloy, ash, ballad...
+//    Audio.TTSVoice  := tvAlloy;          // 11 voices: alloy, ash, ballad...
 //    Audio.TTSResponseFormat := trfMp3;   // mp3, opus, aac, flac, wav, pcm
-//    Audio.TTSSpeed  := 1.0;             // 0.25 a 4.0
+//    Audio.TTSSpeed  := 1.0;             // 0.25 to 4.0
 // =============================================================================
 procedure Demo2_TTS_OpenAiAudio;
 const
   TEXTO_DEMO =
-    'Hola. Soy un asistente de voz creado con MakerAI y Delphi. ' +
-    'Esta es una demostración de síntesis de voz usando la API de OpenAI. ' +
-    'El texto que escuchas fue generado en tiempo real desde una aplicación Delphi.';
+    'Hello. I am a voice assistant created with MakerAI and Delphi. ' +
+    'This is a demonstration of voice synthesis using the OpenAI API. ' +
+    'The text you hear was generated in real time from a Delphi application.';
 var
   Audio : TAiOpenAiAudio;
   Stream: TMemoryStream;
 begin
-  Separador('Demo 2 — TTS con TAiOpenAiAudio (síntesis de voz)');
+  Separador('Demo 2 — TTS with TAiOpenAiAudio (voice synthesis)');
 
-  WriteLn('  Texto   : ', Copy(TEXTO_DEMO, 1, 60), '...');
-  WriteLn('  Longitud: ', Length(TEXTO_DEMO), ' caracteres');
+  WriteLn('  Text    : ', Copy(TEXTO_DEMO, 1, 60), '...');
+  WriteLn('  Length  : ', Length(TEXTO_DEMO), ' characters');
   WriteLn('');
 
   Audio := TAiOpenAiAudio.Create(nil);
@@ -199,18 +199,18 @@ begin
     Audio.TTSResponseFormat := trfMp3;
     Audio.TTSSpeed          := 1.0;
 
-    Write('  Generando audio (voz: Nova, modelo: tts-1)... ');
+    Write('  Generating audio (voice: Nova, model: tts-1)... ');
     Stream := Audio.Speech(TEXTO_DEMO);
     try
       if Stream.Size > 0 then
       begin
         Stream.SaveToFile(OUTPUT_TTS_DEMO2);
         WriteLn('OK');
-        WriteLn('  Guardado: ', OUTPUT_TTS_DEMO2);
-        WriteLn('  Tamaño  : ', Stream.Size div 1024, ' KB');
+        WriteLn('  Saved: ', OUTPUT_TTS_DEMO2);
+        WriteLn('  Size    : ', Stream.Size div 1024, ' KB');
       end
       else
-        WriteLn('ERROR — stream vacío');
+        WriteLn('ERROR — empty stream');
     finally
       Stream.Free;
     end;
@@ -219,22 +219,22 @@ begin
   end;
 
   WriteLn('');
-  WriteLn('→ Speech() devuelve TMemoryStream — guarda con SaveToFile().');
-  WriteLn('  Voces disponibles: Alloy, Ash, Ballad, Coral, Echo, Fable,');
+  WriteLn('→ Speech() returns TMemoryStream — save with SaveToFile().');
+  WriteLn('  Available voices: Alloy, Ash, Ballad, Coral, Echo, Fable,');
   WriteLn('                     Onyx, Nova, Sage, Shimmer, Verse.');
-  WriteLn('  TTSInstructions   := ''Habla despacio y claro'' — tonalidad libre.');
+  WriteLn('  TTSInstructions   := ''Speak slowly and clearly'' — free tone.');
 end;
 
 // =============================================================================
 //  Demo 3 — Asistente de voz completo (pipeline manual)
 //
 //  Encadena tres fases sin magia:
-//    1. STT: archivo de audio → texto (TAIWhisper)
-//    2. LLM: texto → respuesta IA (TAiChatConnection con OpenAI)
-//    3. TTS: respuesta → audio MP3 (TAiOpenAiAudio)
+//    1. STT: audio file → text (TAIWhisper)
+//    2. LLM: text → AI response (TAiChatConnection with OpenAI)
+//    3. TTS: response → MP3 audio (TAiOpenAiAudio)
 //
-//  Este patrón "manual" da control total sobre cada fase.
-//  El Capítulo 12 muestra cómo hacerlo en tiempo real con TAiVoiceMonitor.
+//  This "manual" pattern gives full control over each phase.
+//  Chapter 12 shows how to do it in real time with TAiVoiceMonitor.
 // =============================================================================
 procedure Demo3_PipelineCompleto(const AudioPath: string);
 var
@@ -245,9 +245,9 @@ var
   Pregunta: string;
   Respuesta: string;
 begin
-  Separador('Demo 3 — Asistente de voz: Audio → STT → LLM → TTS → Audio');
+  Separador('Demo 3 — Voice assistant: Audio → STT → LLM → TTS → Audio');
 
-  WriteLn('  Fase 1 de 3: Transcribir audio de entrada...');
+  WriteLn('  Phase 1 of 3: Transcribe input audio...');
 
   // ── Fase 1: STT ─────────────────────────────────────────────────────────
   Whisper := TAIWhisper.Create(nil);
@@ -257,17 +257,17 @@ begin
     Whisper.Languaje := 'es';
 
     Stream.LoadFromFile(AudioPath);
-    Write('    Transcribiendo ', ExtractFileName(AudioPath), '... ');
+    Write('    Transcribing ', ExtractFileName(AudioPath), '... ');
     Pregunta := Whisper.Transcription(Stream, ExtractFileName(AudioPath), '');
     WriteLn('OK');
-    WriteLn('    Texto: ', Pregunta);
+    WriteLn('    Text: ', Pregunta);
   finally
     Stream.Free;
     Whisper.Free;
   end;
 
   WriteLn('');
-  WriteLn('  Fase 2 de 3: Enviar al LLM (gpt-4o-mini)...');
+  WriteLn('  Phase 2 of 3: Send to LLM (gpt-4o-mini)...');
 
   // ── Fase 2: LLM ─────────────────────────────────────────────────────────
   Conn := TAiChatConnection.Create(nil);
@@ -278,21 +278,21 @@ begin
     Conn.Params.Values['Asynchronous'] := 'False';
     Conn.Params.Values['Max_Tokens']   := '256';
     Conn.SystemPrompt.Text :=
-      'Eres un asistente de voz amigable. Responde siempre en español, ' +
-      'de forma concisa (máximo 3 oraciones) y en tono conversacional. ' +
-      'Tus respuestas serán convertidas a voz, así que evita listas o formatos.';
+      'You are a friendly voice assistant. Always respond in English, ' +
+      'concisely (maximum 3 sentences) and in a conversational tone. ' +
+      'Your responses will be converted to voice, so avoid lists or formatting.';
 
     Conn.NewChat;
-    Write('    Llamando a ', OPENAI_MODEL, '... ');
+    Write('    Calling ', OPENAI_MODEL, '... ');
     Respuesta := Conn.AddMessageAndRun(Pregunta, 'user', []);
     WriteLn('OK');
-    WriteLn('    Respuesta: ', Respuesta);
+    WriteLn('    Response: ', Respuesta);
   finally
     Conn.Free;
   end;
 
   WriteLn('');
-  WriteLn('  Fase 3 de 3: Sintetizar respuesta a voz...');
+  WriteLn('  Phase 3 of 3: Synthesize response to voice...');
 
   // ── Fase 3: TTS ─────────────────────────────────────────────────────────
   Audio := TAiOpenAiAudio.Create(nil);
@@ -301,17 +301,17 @@ begin
     Audio.TTSModel := tts_1;
     Audio.TTSVoice := tvAlloy;
 
-    Write('    Generando audio... ');
+    Write('    Generating audio... ');
     Stream := Audio.Speech(Respuesta);
     try
       if Stream.Size > 0 then
       begin
         Stream.SaveToFile(OUTPUT_TTS_PIPELINE);
         WriteLn('OK');
-        WriteLn('    Guardado: ', OUTPUT_TTS_PIPELINE);
+        WriteLn('    Saved: ', OUTPUT_TTS_PIPELINE);
       end
       else
-        WriteLn('ERROR — stream vacío');
+        WriteLn('ERROR — empty stream');
     finally
       Stream.Free;
     end;
@@ -320,9 +320,9 @@ begin
   end;
 
   WriteLn('');
-  WriteLn('→ Pipeline completo en 3 fases independientes.');
-  WriteLn('  Cada fase puede sustituirse: Gemini STT, Groq LLM, ElevenLabs TTS...');
-  WriteLn('  Cap.12 muestra el mismo flujo con entrada de micrófono en tiempo real.');
+  WriteLn('→ Complete pipeline in 3 independent phases.');
+  WriteLn('  Each phase can be replaced: Gemini STT, Groq LLM, ElevenLabs TTS...');
+  WriteLn('  Ch.12 shows the same flow with real-time microphone input.');
 end;
 
 // =============================================================================
@@ -335,10 +335,10 @@ end;
 //  encadenar la transcripción con un turno de chat posterior.
 //
 //  Patrón:
-//    Conn.SpeechTool  := Whisper;       // herramienta de audio
+//    Conn.SpeechTool  := Whisper;       // audio tool
 //    Conn.ChatMode    := cmTranscription;
 //    MF.LoadFromFile('audio.mp3');       // FileCategory → Tfc_Audio
-//    R := Conn.AddMessageAndRun('', 'user', [MF]);   // R = texto transcripto
+//    R := Conn.AddMessageAndRun('', 'user', [MF]);   // R = transcribed text
 // =============================================================================
 procedure Demo4_cmTranscription(const AudioPath: string);
 var
@@ -368,12 +368,12 @@ begin
     // Cargar el audio en un TAiMediaFile
     // LoadFromFile detecta la extensión → FileCategory = Tfc_Audio (ord=2)
     MF.LoadFromFile(AudioPath);
-    WriteLn('  Archivo : ', ExtractFileName(AudioPath));
-    WriteLn('  Categoría: Tfc_Audio (ord=', Ord(MF.FileCategory), ')');
+    WriteLn('  File    : ', ExtractFileName(AudioPath));
+    WriteLn('  Category: Tfc_Audio (ord=', Ord(MF.FileCategory), ')');
     WriteLn('');
 
     Conn.NewChat;
-    Write('  Transcribiendo via ChatMode... ');
+    Write('  Transcribing via ChatMode... ');
 
     // El array [MF] lleva el audio; el texto del prompt queda vacío.
     // IMPORTANTE: AddMessageAndRun transfiere propiedad de MF a la conexión
@@ -383,7 +383,7 @@ begin
     MF := nil;   // ownership transferida — Conn.Free libera MF vía NewChat
     WriteLn('OK');
     WriteLn('');
-    WriteLn('  Transcripción:');
+    WriteLn('  Transcription:');
     WriteLn('  ', Texto);
     WriteLn('');
     WriteLn('  Historial de mensajes: ', Conn.Messages.Count,
@@ -395,9 +395,9 @@ begin
   end;
 
   WriteLn('');
-  WriteLn('→ cmTranscription integra STT en el historial (Conn.Messages).');
-  WriteLn('  Tras la transcripción, puedes cambiar ChatMode a cmConversation');
-  WriteLn('  y llamar AddMessageAndRun() — el LLM verá el texto transcripto.');
+  WriteLn('→ cmTranscription integrates STT into history (Conn.Messages).');
+  WriteLn('  After transcription, you can change ChatMode to cmConversation');
+  WriteLn('  and call AddMessageAndRun() — the LLM will see the transcribed text.');
 end;
 
 // =============================================================================
@@ -409,9 +409,9 @@ var
   TieneApiKey : Boolean;
   TieneAudio  : Boolean;
 begin
-  WriteLn('=== MakerAI — Capítulo 11: Voz (STT y TTS) ===');
-  WriteLn('Requisito: OPENAI_API_KEY en variables de entorno.');
-  WriteLn('Demos STT: un archivo de audio MP3/WAV en ', AUDIO_PATH);
+  WriteLn('=== MakerAI — Chapter 11: Voice (STT and TTS) ===');
+  WriteLn('Requirement: OPENAI_API_KEY in environment variables.');
+  WriteLn('STT demos: an MP3/WAV audio file at ', AUDIO_PATH);
 
   // Verificar disponibilidad
   TieneApiKey := OpenAiApiKeyDisponible;
@@ -419,26 +419,26 @@ begin
   TieneAudio  := AudioPath <> '';
 
   WriteLn('');
-  WriteLn('  Estado:');
+  WriteLn('  Status:');
   if TieneApiKey then
-    WriteLn('  [OK] OPENAI_API_KEY detectado')
+    WriteLn('  [OK] OPENAI_API_KEY detected')
   else
-    WriteLn('  [--] OPENAI_API_KEY no configurado → todos los demos se omitirán');
+    WriteLn('  [--] OPENAI_API_KEY not configured → all demos will be skipped');
 
   if TieneAudio then
-    WriteLn('  [OK] Audio encontrado: ', ExtractFileName(AudioPath))
+    WriteLn('  [OK] Audio found: ', ExtractFileName(AudioPath))
   else
   begin
-    WriteLn('  [--] Audio no encontrado (', AUDIO_PATH, ')');
-    WriteLn('       Los demos 1, 3 y 4 se omitirán.');
-    WriteLn('       Ejecuta el Demo 2 primero para generar un MP3,');
-    WriteLn('       luego cópialo a la ruta esperada.');
+    WriteLn('  [--] Audio not found (', AUDIO_PATH, ')');
+    WriteLn('       Demos 1, 3 and 4 will be skipped.');
+    WriteLn('       Run Demo 2 first to generate an MP3,');
+    WriteLn('       then copy it to the expected path.');
   end;
 
   if not TieneApiKey then
   begin
     WriteLn('');
-    WriteLn('  Configura OPENAI_API_KEY y vuelve a ejecutar.');
+    WriteLn('  Configure OPENAI_API_KEY and run again.');
     Exit;
   end;
 
@@ -448,7 +448,7 @@ begin
   else
   begin
     WriteLn('');
-    WriteLn('--- Demo 1 omitido (audio no encontrado) ---');
+    WriteLn('--- Demo 1 skipped (audio not found) ---');
   end;
 
   // ── Demo TTS (siempre disponible si hay API key) ─────────────────────────
@@ -460,8 +460,8 @@ begin
   else
   begin
     WriteLn('');
-    WriteLn('--- Demo 3 omitido (audio no encontrado) ---');
-    WriteLn('  Tip: usa el MP3 generado por Demo 2 como entrada STT.');
+    WriteLn('--- Demo 3 skipped (audio not found) ---');
+    WriteLn('  Tip: use the MP3 generated by Demo 2 as STT input.');
   end;
 
   // ── cmTranscription (requiere audio) ─────────────────────────────────────
@@ -470,13 +470,13 @@ begin
   else
   begin
     WriteLn('');
-    WriteLn('--- Demo 4 omitido (audio no encontrado) ---');
+    WriteLn('--- Demo 4 skipped (audio not found) ---');
   end;
 
   WriteLn('');
   WriteLn(StringOfChar('=', 62));
-  WriteLn('  Demo completado.');
-  WriteLn('  Archivos de audio generados:');
+  WriteLn('  Demo completed.');
+  WriteLn('  Generated audio files:');
   if TFile.Exists(OUTPUT_TTS_DEMO2)    then WriteLn('    ', OUTPUT_TTS_DEMO2);
   if TFile.Exists(OUTPUT_TTS_PIPELINE) then WriteLn('    ', OUTPUT_TTS_PIPELINE);
   WriteLn(StringOfChar('=', 62));

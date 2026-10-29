@@ -1,27 +1,27 @@
 ﻿program ComputerUseLinuxDemo;
 
 {
-  Demo 083 - Computer Use en Linux (X11).
+  Demo 083 - Computer Use on Linux (X11).
 
-  Ejecuta un ciclo agentico real de Computer Use sobre una pantalla X: el modelo
-  pide capturas, hace clic y teclea, y el demo le devuelve el nuevo estado.
+  Runs a real agentic Computer Use cycle on an X screen: the model
+  requests screenshots, clicks and types, and the demo returns the new state.
 
-  Es el mismo subsistema que el demo 066 de Windows; lo unico que cambia son los
-  dos handlers del TAiComputerUseTool, que aqui apuntan a TAiLinuxExecutor
-  (xdotool + scrot) en vez de al executor Win32.
+  It is the same subsystem as demo 066 on Windows; the only thing that changes are the
+  two handlers of TAiComputerUseTool, which here point to TAiLinuxExecutor
+  (xdotool + scrot) instead of the Win32 executor.
 
-  PENSADO PARA UNA PANTALLA VIRTUAL (Xvfb). Asi es como corre un broker en un
-  VPS headless, y ademas evita el riesgo del 066: alli la captura es el
-  escritorio REAL del usuario y se envia entero al proveedor. Aqui solo se ve lo
-  que haya dentro del display virtual.
+  INTENDED FOR A VIRTUAL SCREEN (Xvfb). This is how a broker runs on a
+  headless VPS, and it also avoids the risk of 066: there the capture is the
+  user's REAL desktop and is sent entirely to the provider. Here only what is
+  inside the virtual display is seen.
 
     sudo apt-get install -y xvfb xdotool scrot x11-apps
     Xvfb :99 -screen 0 1280x800x24 &
     DISPLAY=:99 xedit /tmp/prueba.txt &
     DISPLAY=:99 ./ComputerUseLinuxDemo
 
-  Si se apunta a un display con pantalla fisica (:0), se captura el escritorio
-  entero y se envia al proveedor. Revisar que hay en pantalla ANTES.
+  If it points to a display with a physical screen (:0), the entire desktop is captured
+  and sent to the provider. Check what is on screen BEFORE.
 }
 
 {$APPTYPE CONSOLE}
@@ -49,10 +49,10 @@ uses
 
 const
   CDefaultPrompt =
-    'Eres un agente de automatizacion de escritorio. ' +
-    'Tarea: toma un screenshot, localiza el area de texto del editor que hay en ' +
-    'pantalla, haz click en ella y escribe exactamente: ' +
-    '"Hola MakerAI desde Linux". Luego toma otro screenshot para confirmar y ' +
+    'You are a desktop automation agent. ' +
+    'Task: take a screenshot, locate the text area of the editor on ' +
+    'screen, click on it and type exactly: ' +
+    '"Hola MakerAI desde Linux". Then take another screenshot to confirm and ' +
     'describe brevemente lo que ves.';
 
 type
@@ -76,7 +76,7 @@ procedure THandlers.ExecuteAction(Sender: TObject; const ActionData: TAiActionDa
   var Result: TAiActionResult);
 begin
   Inc(Actions);
-  Log(Format('ACCION %-18s x=%d y=%d dest=%d,%d scroll=%s/%d combo="%s" texto="%s"',
+  Log(Format('ACTION %-18s x=%d y=%d dest=%d,%d scroll=%s/%d combo="%s" text="%s"',
     [ActionData.FunctionName, ActionData.X, ActionData.Y,
      ActionData.DestX, ActionData.DestY,
      ActionData.ScrollDirection, ActionData.ScrollAmount, ActionData.KeyCombo,
@@ -85,18 +85,18 @@ begin
   Result := TAiLinuxExecutor.Execute(ActionData);
 
   if not Result.Success then
-    Log('   -> FALLO: ' + Result.ErrorMessage)
+    Log('   -> FAILED: ' + Result.ErrorMessage)
   else if Result.CustomOutput <> '' then
     Log('   -> ' + StringReplace(Result.CustomOutput, sLineBreak, ' ', [rfReplaceAll]));
 end;
 
 procedure THandlers.RawToolCall(Sender: TObject; AiToolCall: TAiToolsFunction);
 begin
-  // Solo diagnostico: se registra el tool_call TAL CUAL llega del proveedor,
-  // antes de que TranslateXxxToolCall lo pase al formato canonico. Es la unica
-  // forma de ver si una coordenada que falta la omitio el modelo o la perdio la
-  // traduccion. NO se toca Response: llenarlo delegaria la accion y el driver
-  // no la ejecutaria en local (ver demo 082).
+  // Diagnostic only: the tool_call is logged EXACTLY as it arrives from the provider,
+  // before TranslateXxxToolCall converts it to the canonical format. It is the only
+  // way to see whether a missing coordinate was omitted by the model or lost by the
+  // translation. Response is NOT touched: filling it would delegate the action and the driver
+  // would not execute it locally (see demo 082).
   Log(Format('   RAW name=%s args=%s',
     [AiToolCall.Name, Copy(AiToolCall.Arguments, 1, 200)]));
 end;
@@ -115,7 +115,7 @@ begin
   if Assigned(MediaFile) then
   begin
     Inc(ShotCount);
-    // Copia de depuracion: permite ver exactamente lo que se le mando al modelo.
+    // Debug copy: allows seeing exactly what was sent to the model.
     try
       MediaFile.SaveToFile(TPath.Combine(ShotDir,
         Format('shot_%.3d.png', [ShotCount])));
@@ -160,13 +160,13 @@ begin
   try
     if HasArg('--help') or HasArg('-h') then
     begin
-      WriteLn('Demo 083 - Computer Use en Linux');
+      WriteLn('Demo 083 - Computer Use on Linux');
       WriteLn('  --provider=openai|claude   (default: openai)');
-      WriteLn('  --display=:99              (default: el DISPLAY del entorno)');
-      WriteLn('  --width=1280 --height=800  (tamano de la pantalla X)');
-      WriteLn('  --prompt=<texto>');
+      WriteLn('  --display=:99              (default: the DISPLAY of the environment)');
+      WriteLn('  --width=1280 --height=800  (size of the X screen)');
+      WriteLn('  --prompt=<text>');
       WriteLn('');
-      WriteLn('Requiere OPENAI_API_KEY o CLAUDE_API_KEY, y xdotool + scrot.');
+      WriteLn('Requires OPENAI_API_KEY or CLAUDE_API_KEY, and xdotool + scrot.');
       Halt(0);
     end;
 
@@ -181,7 +181,7 @@ begin
 
     if not TAiLinuxExecutor.ToolsAvailable(LMissing) then
     begin
-      WriteLn('ERROR: falta ', LMissing, '. Instalar con:');
+      WriteLn('ERROR: missing ', LMissing, '. Install with:');
       WriteLn('  sudo apt-get install -y xdotool scrot');
       Halt(2);
     end;
@@ -193,9 +193,9 @@ begin
       LH.ShotDir := TPath.Combine(ExtractFilePath(ParamStr(0)), 'shots');
       ForceDirectories(LH.ShotDir);
 
-      // Area capturada = pantalla X completa. Como es <= 1280 de ancho, la
-      // resolucion DECLARADA al modelo coincide con la imagen y no hay que
-      // reescalar: los clics caen donde el modelo cree.
+      // Captured area = entire X screen. Since it is <= 1280 wide, the
+      // resolution DECLARED to the model matches the image and there is no need to
+      // rescale: clicks land where the model thinks.
       LTool.AreaLeft := 0;
       LTool.AreaTop := 0;
       LTool.AreaWidth := LW;
@@ -231,27 +231,27 @@ begin
 
       LConn.Params.Values['Asynchronous'] := 'False';
 
-      Log(Format('Proveedor: %s  Modelo: %s', [LConn.DriverName, LConn.Model]));
-      Log(Format('Pantalla X: %dx%d  DISPLAY=%s', [LW, LH2,
+      Log(Format('Provider: %s  Model: %s', [LConn.DriverName, LConn.Model]));
+      Log(Format('X screen: %dx%d  DISPLAY=%s', [LW, LH2,
         IfThen(LDisplay <> '', LDisplay, GetEnvironmentVariable('DISPLAY'))]));
-      Log('Screenshots en: ' + LH.ShotDir);
-      Log('--- inicio ---');
+      Log('Screenshots in: ' + LH.ShotDir);
+      Log('--- start ---');
 
       LRes := LConn.AddMessageAndRun(LPrompt, 'user', []);
 
-      Log('--- fin ---');
+      Log('--- end ---');
       if LConn.LastError <> '' then
         Log('LastError: ' + LConn.LastError);
-      Log(Format('Acciones ejecutadas: %d   Screenshots: %d',
+      Log(Format('Actions executed: %d   Screenshots: %d',
         [LH.Actions, LH.ShotCount]));
       WriteLn;
-      WriteLn('Respuesta del modelo:');
+      WriteLn('Model response:');
       WriteLn(LRes);
 
       if (LH.Actions = 0) then
       begin
         WriteLn;
-        WriteLn('AVISO: el modelo no uso la herramienta en este turno.');
+        WriteLn('WARNING: the model did not use the tool in this turn.');
         Halt(3);
       end;
     finally
@@ -271,8 +271,8 @@ end.
 {$ELSE}
 
 begin
-  WriteLn('Demo 083 solo corre en Linux: usa xdotool y scrot sobre X11.');
-  WriteLn('Compila en Windows a proposito, para no romper el group project.');
+  WriteLn('Demo 083 only runs on Linux: it uses xdotool and scrot on X11.');
+  WriteLn('It compiles on Windows on purpose, so as not to break the group project.');
 end.
 
 {$ENDIF}

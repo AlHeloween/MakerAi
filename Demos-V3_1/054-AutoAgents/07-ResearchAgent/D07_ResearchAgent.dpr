@@ -87,7 +87,7 @@ begin
 
   Results := TJSONArray.Create;
 
-  // Datos mock basados en palabras clave
+  // Mock data based on keywords
   if (Pos('climate', QLower) > 0) or (Pos('global warming', QLower) > 0) then
   begin
     Snippet := TJSONObject.Create; Snippet.AddPair('title', 'Climate Change Overview'); Snippet.AddPair('snippet', 'Global temperatures have risen 1.1C since pre-industrial times. CO2 levels at 421 ppm (2023). Arctic warming 3x faster than global average.'); Results.Add(Snippet);

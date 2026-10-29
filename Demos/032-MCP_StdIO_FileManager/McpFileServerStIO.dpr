@@ -32,7 +32,7 @@ begin
       WriteLn(ErrOutput, '📂 Controlled folder: ' + uTool.Sandbox.SANDBOX_ROOT);
       WriteLn(ErrOutput, 'Waiting for JSON-RPC commands via Stdin...');
 
-      // 5. Bucle infinito para mantener la app viva
+      // 5. Infinite loop to keep the app alive
       while True do
         Sleep(1000);
 

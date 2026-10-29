@@ -8,26 +8,26 @@ program AudioBridge;
 // =============================================================================
 // Demonstrates audio input modes with gemma4 (Ollama local):
 //
-//   ESCENARIO 1 — Audio nativo (cap_Audio en ModelCaps → sin bridge)
-//     gemma4:e4b / gemma4:e2b tienen cap_Audio nativo registrado.
-//     Gap = SessionCaps − ModelCaps = [] → el audio se envía directamente
-//     al modelo vía la API de Ollama, sin pasar por Gemini.
+//   SCENARIO 1 — Native audio (cap_Audio in ModelCaps → no bridge)
+//     gemma4:e4b / gemma4:e2b have native cap_Audio registered.
+//     Gap = SessionCaps − ModelCaps = [] → audio is sent directly
+//     to the model via the Ollama API, without going through Gemini.
 //
-//   ESCENARIO 2 — STT Bridge (forzar ModelCaps=[] → Gemini transcribe → gemma4 responde)
-//     Sobreescribir ModelCaps=[] en tiempo de ejecución produce
-//     Gap=[cap_Audio] → Fase 1 activa TAiGeminiSpeechTool.ExecuteTranscription.
-//     El audio se transcribe con Gemini 2.0-flash; gemma4 recibe texto plano.
-//     Útil cuando Ollama no acepta audio en la API aunque el modelo lo soporte.
+//   SCENARIO 2 — STT Bridge (force ModelCaps=[] → Gemini transcribes → gemma4 responds)
+//     Overriding ModelCaps=[] at runtime produces
+//     Gap=[cap_Audio] → Phase 1 activates TAiGeminiSpeechTool.ExecuteTranscription.
+//     Audio is transcribed with Gemini 2.0-flash; gemma4 receives plain text.
+//     Useful when Ollama does not accept audio in the API even though the model supports it.
 //
-//   ESCENARIO 3 — TTS directo (texto → Gemini TTS → WAV)
-//     Usa TAiGeminiSpeechTool.GenerateSpeech() directamente.
+//   SCENARIO 3 — Direct TTS (text → Gemini TTS → WAV)
+//     Uses TAiGeminiSpeechTool.GenerateSpeech() directly.
 //
 //   SCENARIO 4 — Full pipeline (audio → STT bridge → gemma4 → TTS)
 //
 // Requirements:
-//   - Ollama corriendo en http://localhost:11434 con gemma4:e4b y gemma4:e2b
-//   - Variable de entorno GEMINI_API_KEY con una clave válida
-//   - Archivo de audio WAV/MP3/OGG/M4A (primer argumento o se pide interactivo)
+//   - Ollama running at http://localhost:11434 with gemma4:e4b and gemma4:e2b
+//   - GEMINI_API_KEY environment variable with a valid key
+//   - WAV/MP3/OGG/M4A audio file (first argument or requested interactively)
 //
 // Usage:
 //   AudioBridge.exe [audio_path] [question]
@@ -95,7 +95,7 @@ begin
   Writeln;
   Writeln('=== ', Title, ' ===');
   if Text = '' then
-    Writeln('  [SIN RESULTADO]')
+    Writeln('  [NO RESULT]')
   else
     Writeln(Text);
 end;
@@ -108,9 +108,9 @@ begin
 end;
 
 // ---------------------------------------------------------------------------
-// Crea una conexión Ollama.
-//   ForceSttBridge=True  → ModelCaps=[] fuerza el bridge Gemini STT
-//   ForceSttBridge=False → ModelCaps del registro (gemma4 incluye cap_Audio nativo)
+// Creates an Ollama connection.
+//   ForceSttBridge=True  → ModelCaps=[] forces the Gemini STT bridge
+//   ForceSttBridge=False → ModelCaps from the registry (gemma4 includes native cap_Audio)
 // ---------------------------------------------------------------------------
 function MakeOllamaConn(const AModel: String;
   ForceSttBridge: Boolean;
@@ -121,10 +121,10 @@ var
 begin
   Conn := TAiChatConnection.Create(nil);
 
-  // IMPORTANTE: SpeechTool y OnError se asignan ANTES de DriverName.
-  // DriverName dispara SetupChatFromDriver → ApplyParamsToChat, que copia
-  // Conn.FChatTools al FChat interno. Si SpeechTool se asigna después,
-  // FChat.FChatTools.FSpeechTool queda nil y el STT bridge falla.
+  // IMPORTANT: SpeechTool and OnError are assigned BEFORE DriverName.
+  // DriverName triggers SetupChatFromDriver → ApplyParamsToChat, which copies
+  // Conn.FChatTools to the internal FChat. If SpeechTool is assigned later,
+  // FChat.FChatTools.FSpeechTool remains nil and the STT bridge fails.
   Conn.SpeechTool := SpeechTool;
   Conn.OnError := EC.OnError;
 
@@ -142,7 +142,7 @@ begin
   end
   else
   begin
-    // gemma4 registrado con cap_Audio nativo → se usan valores del registro
+    // gemma4 registered with native cap_Audio → registry values are used
     // Note: Ollama does not serialize audio in the API → the model will receive empty text
     Conn.Params.Values['Tool_Active']  := 'True';
   end;
@@ -164,20 +164,20 @@ begin
   Writeln('>>> SCENARIO 1 — Native audio');
   Writeln('    Model   : ', AModel, ' (cap_Audio in ModelCaps → no STT bridge)');
   Writeln('    Audio   : ', AAudioFile);
-  Writeln('    Pregunta: ', AQuestion);
+  Writeln('    Question: ', AQuestion);
   Writeln(SEP);
 
   EC   := TErrorCapture.Create;
   Conn := MakeOllamaConn(AModel, False, EC, SpeechTool);
   try
-    // ModelCaps del registro incluye cap_Audio → Gap = [] → audio va directo
-    // a Ollama sin pasar por Gemini
+    // ModelCaps from the registry includes cap_Audio → Gap = [] → audio goes directly
+    // to Ollama without going through Gemini
     AudioFile := TAiMediaFile.Create;
     AudioFile.LoadFromFile(AAudioFile);
-    Writeln('  Cargado: ', AudioFile.Content.Size, ' bytes  MIME: ', AudioFile.MimeType);
-    Writeln('  Nota: Ollama serializa audio como imagen en la API multimodal.');
-    Writeln('        Si el modelo responde "adjunta el audio", la API de Ollama');
-    Writeln('        no soporta audio nativo — usar STT bridge (Escenario 2).');
+    Writeln('  Loaded: ', AudioFile.Content.Size, ' bytes  MIME: ', AudioFile.MimeType);
+    Writeln('  Note: Ollama serializes audio as an image in the multimodal API.');
+    Writeln('        If the model responds "attach the audio", the Ollama API');
+    Writeln('        does not support native audio — use the STT bridge (Scenario 2).');
     Writeln('  Sending audio directly to ', AModel, ' via Ollama...');
 
     Result := Conn.AddMessageAndRun(AQuestion, 'user', [AudioFile]);
@@ -207,18 +207,18 @@ begin
   Writeln('>>> SCENARIO 2 — STT Bridge (Gemini transcribes → ', AModel, ')');
   Writeln('    ModelCaps=[]  /  SessionCaps=[cap_Audio]  →  Gap=[cap_Audio]');
   Writeln('    Audio   : ', AAudioFile);
-  Writeln('    Pregunta: ', AQuestion);
+  Writeln('    Question: ', AQuestion);
   Writeln(SEP);
 
   EC   := TErrorCapture.Create;
   Conn := MakeOllamaConn(AModel, True, EC, SpeechTool);
   try
-    // Gap=[cap_Audio] activa:
-    //   Fase 1 → ExecuteTranscription(Gemini 2.0-flash) → AskMsg.Prompt aumentado
-    //   Fase 3 → InternalRunCompletions → gemma4 recibe solo texto
+    // Gap=[cap_Audio] activates:
+    //   Phase 1 → ExecuteTranscription(Gemini 2.0-flash) → AskMsg.Prompt increased
+    //   Phase 3 → InternalRunCompletions → gemma4 receives only text
     AudioFile := TAiMediaFile.Create;
     AudioFile.LoadFromFile(AAudioFile);
-    Writeln('  Cargado: ', AudioFile.Content.Size, ' bytes  MIME: ', AudioFile.MimeType);
+    Writeln('  Loaded: ', AudioFile.Content.Size, ' bytes  MIME: ', AudioFile.MimeType);
     Writeln('  Transcribing with Gemini and sending text to ', AModel, '...');
 
     Result := Conn.AddMessageAndRun(AQuestion, 'user', [AudioFile]);
@@ -320,7 +320,7 @@ begin
         AudioPath := Trim(ParamStr(1))
       else
       begin
-        Write('Ruta del archivo de audio (Enter para omitir): ');
+        Write('Audio file path (Enter to skip): ');
         Readln(AudioPath);
         AudioPath := Trim(AudioPath);
       end;
@@ -328,7 +328,7 @@ begin
       if AudioPath <> '' then
       begin
         if not FileExists(AudioPath) then
-          raise Exception.CreateFmt('Archivo no encontrado: "%s"', [AudioPath]);
+          raise Exception.CreateFmt('File not found: "%s"', [AudioPath]);
         HasAudio := True;
       end;
 
@@ -336,12 +336,12 @@ begin
       if ParamCount >= 2 then
         Question := ParamStr(2)
       else if HasAudio then
-        Question := 'Resume brevemente el contenido del audio.'
+        Question := 'Briefly summarize the audio content.'
       else
         Question := '';
 
       // -----------------------------------------------------------------------
-      // Escenario 3: TTS (siempre disponible, no requiere audio de entrada)
+      // Scenario 3: TTS (always available, does not require input audio)
       // -----------------------------------------------------------------------
       RunTTSDirect(
         'Hola! Soy gemma4, un modelo de lenguaje local corriendo en Ollama. ' +
@@ -349,7 +349,7 @@ begin
         ExtractFilePath(ParamStr(0)) + 'tts_demo.wav');
 
       // -----------------------------------------------------------------------
-      // Escenarios con audio
+      // Scenarios with audio
       // -----------------------------------------------------------------------
       if HasAudio then
       begin
@@ -371,9 +371,9 @@ begin
       begin
         Writeln;
         Writeln(SEP);
-        Writeln('INFO: No se proporcionó archivo de audio.');
-        Writeln('      Los Escenarios 1, 2 y 4 requieren un archivo de audio.');
-        Writeln('      Pasa la ruta como primer argumento:');
+        Writeln('INFO: No audio file was provided.');
+        Writeln('      Scenarios 1, 2, and 4 require an audio file.');
+        Writeln('      Pass the path as the first argument:');
         Writeln('        AudioBridge.exe D:\ruta\audio.wav');
       end;
 

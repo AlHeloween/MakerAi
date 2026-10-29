@@ -9,14 +9,14 @@ program ChatHistory;
 // Multi-turn conversation: the LLM remembers what was said previously
 // because each call to AddMessageAndRun() accumulates the history internally.
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - Automatic message history (user / assistant alternated)
 //   - Reference to previous messages within the conversation
 //   - Clear history with ClearMessages()
 //   - Inspect the history with Messages.Count
 //   - Manage context size (truncate history when it grows)
 //
-// Importante:
+// Important:
 //   Each provider has a context token limit. If the conversation
 //   is very long, eventually the history must be cleared or summarized.
 // =============================================================================
@@ -54,10 +54,10 @@ end;
 procedure DemoConversacionSimple(Conn: TAiChatConnection);
 const
   PREGUNTAS: array[0..3] of String = (
-    'Mi nombre es Carlos y me gustan los dinosaurios.',
-    '¿Cuál es tu dinosaurio favorito y por qué?',
-    '¿Recuerdas cómo me llamo?',
-    'Recomiéndame 3 libros sobre el tema que mencioné al inicio.'
+    'My name is Carlos and I like dinosaurs.',
+    'What is your favorite dinosaur and why?',
+    'Do you remember my name?',
+    'Recommend me 3 books about the topic I mentioned at the beginning.'
   );
 var
   I       : Integer;
@@ -71,7 +71,7 @@ begin
     PrintTurn('user', PREGUNTAS[I], I + 1);
     Response := Conn.AddMessageAndRun(PREGUNTAS[I], 'user', []);
     PrintTurn('assistant', Response, I + 1);
-    Writeln(Format('  [Historial: %d mensajes acumulados]', [Conn.Messages.Count]));
+    Writeln(Format('  [History: %d messages accumulated]', [Conn.Messages.Count]));
   end;
   Writeln;
 end;
@@ -83,15 +83,15 @@ procedure DemoConReset(Conn: TAiChatConnection);
 var
   Response: String;
 begin
-  Writeln('─── Conversación con reset ───');
+  Writeln('─── Conversation with reset ───');
   Conn.Messages.Clear;
 
   // Primera conversación
-  Conn.AddMessageAndRun('El código secreto de hoy es ALFA-7.', 'user', []);
-  Conn.AddMessageAndRun('¿Recuerdas el código secreto?', 'user', []);
+  Conn.AddMessageAndRun('Today''s secret code is ALFA-7.', 'user', []);
+  Conn.AddMessageAndRun('Do you remember the secret code?', 'user', []);
 
   Writeln('Before reset — the LLM remembers the code:');
-  Response := Conn.AddMessageAndRun('¿Cuál era el código exacto?', 'user', []);
+  Response := Conn.AddMessageAndRun('What was the exact code?', 'user', []);
   Writeln('  ', Response);
 
   // Reset del historial
@@ -160,7 +160,7 @@ begin
     Conn.Params.Values['Max_Tokens']   := '512';
 
     Conn.SystemPrompt.Text :=
-      'Eres un asistente amigable. Recuerdas todo lo dicho en la conversación. ' +
+      'You are a friendly assistant. You remember everything said in the conversation. ' +
       'Responde siempre en español.';
 
     DemoConversacionSimple(Conn);

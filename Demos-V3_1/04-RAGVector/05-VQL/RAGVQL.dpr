@@ -9,7 +9,7 @@ program RAGVQL;
 // VQL (Vector Query Language) — advanced queries on the vector store
 // using SQL-like syntax adapted to vector search.
 //
-// Conceptos que cubre:
+// Concepts covered:
 //   - TAiRAGVector.ExecuteVGQL() for VQL queries
 //   - SELECT, SEARCH NEAR, WHERE, ORDER BY, LIMIT
 //   - Metadata filtering with operators
@@ -47,14 +47,14 @@ type
 
 const
   CORPUS: array[0..7] of TDocMeta = (
-    (Text: 'Machine learning es un subcampo de la inteligencia artificial.'; Categoria: 'IA'; Año: 2023; Autor: 'Lopez'),
-    (Text: 'Redes neuronales profundas aprenden representaciones jerarquicas.'; Categoria: 'IA'; Año: 2023; Autor: 'Garcia'),
-    (Text: 'Python es el lenguaje mas popular para ciencia de datos.'; Categoria: 'Programacion'; Año: 2022; Autor: 'Martinez'),
-    (Text: 'Delphi permite crear aplicaciones nativas multiplataforma.'; Categoria: 'Programacion'; Año: 2024; Autor: 'Lopez'),
-    (Text: 'Los transformers revolucionaron el procesamiento de lenguaje natural.'; Categoria: 'IA'; Año: 2024; Autor: 'Hernandez'),
-    (Text: 'Rust garantiza seguridad de memoria sin recolector de basura.'; Categoria: 'Programacion'; Año: 2023; Autor: 'Garcia'),
-    (Text: 'ChatGPT popularizo el uso de LLMs en aplicaciones de consumo.'; Categoria: 'IA'; Año: 2022; Autor: 'Martinez'),
-    (Text: 'TypeScript añade tipos estaticos al ecosistema JavaScript.'; Categoria: 'Programacion'; Año: 2022; Autor: 'Hernandez')
+    (Text: 'Machine learning is a subfield of artificial intelligence.'; Categoria: 'AI'; Año: 2023; Autor: 'Lopez'),
+    (Text: 'Deep neural networks learn hierarchical representations.'; Categoria: 'AI'; Año: 2023; Autor: 'Garcia'),
+    (Text: 'Python is the most popular language for data science.'; Categoria: 'Programming'; Año: 2022; Autor: 'Martinez'),
+    (Text: 'Delphi allows creating native cross-platform applications.'; Categoria: 'Programming'; Año: 2024; Autor: 'Lopez'),
+    (Text: 'Transformers revolutionized natural language processing.'; Categoria: 'AI'; Año: 2024; Autor: 'Hernandez'),
+    (Text: 'Rust guarantees memory safety without a garbage collector.'; Categoria: 'Programming'; Año: 2023; Autor: 'Garcia'),
+    (Text: 'ChatGPT popularized the use of LLMs in consumer applications.'; Categoria: 'AI'; Año: 2022; Autor: 'Martinez'),
+    (Text: 'TypeScript adds static types to the JavaScript ecosystem.'; Categoria: 'Programming'; Año: 2022; Autor: 'Hernandez')
   );
 
 // =============================================================================
@@ -137,19 +137,19 @@ begin
     // Progressive VQL queries
     EjecutarVQL(RAG,
       'Simple semantic search',
-      'SEARCH "inteligencia artificial y redes neuronales" LIMIT 3');
+      'SEARCH "artificial intelligence and neural networks" LIMIT 3');
 
     EjecutarVQL(RAG,
       'Search filtered by category',
-      'SEARCH "aprendizaje automatico" WHERE metadata.categoria = "IA" LIMIT 3');
+      'SEARCH "machine learning" WHERE metadata.categoria = "AI" LIMIT 3');
 
     EjecutarVQL(RAG,
       'Search filtered by year',
-      'SEARCH "lenguajes de programacion" WHERE metadata.año >= 2023 LIMIT 3');
+      'SEARCH "programming languages" WHERE metadata.año >= 2023 LIMIT 3');
 
     EjecutarVQL(RAG,
       'Search with multiple filters',
-      'SEARCH "machine learning" WHERE metadata.categoria = "IA" AND metadata.año = 2024 LIMIT 3');
+      'SEARCH "machine learning" WHERE metadata.categoria = "AI" AND metadata.año = 2024 LIMIT 3');
 
   finally
     RAG.Free;
@@ -165,6 +165,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

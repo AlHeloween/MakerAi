@@ -36,7 +36,7 @@ type
   private
     FFormat: String;
   public
-    [AiMCPSchemaDescription('Formato: "iso" (ISO-8601, defecto) o "readable" (texto legible)')]
+    [AiMCPSchemaDescription('Format: "iso" (ISO-8601, default) or "readable" (readable text)')]
     property Format: String read FFormat write FFormat;
   end;
 
@@ -52,7 +52,7 @@ constructor TDateTimeMCPTool.Create;
 begin
   inherited;
   FName        := 'get_datetime';
-  FDescription := 'Retorna la fecha y hora actual del servidor en el formato solicitado.';
+  FDescription := 'Returns the current date and time of the server in the requested format.';
 end;
 
 function TDateTimeMCPTool.ExecuteWithParams(const AParams: TDateTimeParams;
@@ -77,9 +77,9 @@ type
     FName    : String;
     FLanguage: String;
   public
-    [AiMCPSchemaDescription('Nombre de la persona a saludar')]
+    [AiMCPSchemaDescription('Name of the person to greet')]
     property Name: String read FName write FName;
-    [AiMCPSchemaDescription('Idioma: "es" espanol (defecto), "en" ingles')]
+    [AiMCPSchemaDescription('Language: "es" Spanish (default), "en" English')]
     property Language: String read FLanguage write FLanguage;
   end;
 
@@ -95,7 +95,7 @@ constructor TGreetMCPTool.Create;
 begin
   inherited;
   FName        := 'greet';
-  FDescription := 'Genera un saludo personalizado en espanol o ingles.';
+  FDescription := 'Generates a personalized greeting in Spanish or English.';
 end;
 
 function TGreetMCPTool.ExecuteWithParams(const AParams: TGreetParams;

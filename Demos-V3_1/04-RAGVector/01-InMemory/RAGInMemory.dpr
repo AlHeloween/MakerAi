@@ -48,36 +48,36 @@ const
   LLM_API_KEY = '@CLAUDE_API_KEY';
 
 // =============================================================================
-//  Base de conocimiento de ejemplo
+//  Example knowledge base
 // =============================================================================
 const
   DOCUMENTOS: array[0..8] of String = (
     'MakerAI es una suite Delphi para integrar LLMs en aplicaciones FMX. ' +
-    'Soporta Claude, OpenAI, Gemini, Groq, Ollama y otros proveedores.',
+    'Supports Claude, OpenAI, Gemini, Groq, Ollama and other providers.',
 
     'TAiChatConnection es el componente central de MakerAI. ' +
-    'Permite chatear con cualquier LLM cambiando solo DriverName y Model.',
+    'Allows chatting with any LLM by changing only DriverName and Model.',
 
     'Los embeddings son representaciones vectoriales de texto. ' +
-    'Textos semanticamente similares tienen vectores parecidos en el espacio vectorial.',
+    'Semantically similar texts have similar vectors in vector space.',
 
     'RAG (Retrieval-Augmented Generation) combina busqueda vectorial con LLMs. ' +
-    'Permite responder preguntas usando informacion que no esta en el modelo.',
+    'Allows answering questions using information not in the model.',
 
     'TAiRAGVector almacena embeddings en memoria RAM. ' +
-    'Soporta busqueda hibrida: vectorial (semantica) + lexica (BM25).',
+    'Supports hybrid search: vector (semantic) + lexical (BM25).',
 
     'Para instalar MakerAI en Delphi debes abrir el grupo de proyectos ' +
-    'MakerAI.groupproj y compilar los paquetes en orden: Core, RAG, UI, DSG.',
+    'MakerAI.groupproj and compile the packages in order: Core, RAG, UI, DSG.',
 
     'El proveedor Ollama permite usar LLMs locales sin internet. ' +
-    'Modelos populares: llama3.2, gemma3, mistral, codellama.',
+    'Popular models: llama3.2, gemma3, mistral, codellama.',
 
     'La similitud coseno mide el angulo entre dos vectores. ' +
-    'Un valor cercano a 1.0 indica alta similitud semantica.',
+    'A value close to 1.0 indicates high semantic similarity.',
 
     'MCP (Model Context Protocol) es un estandar de Anthropic ' +
-    'para conectar LLMs con herramientas externas de forma estandarizada.'
+    'to connect LLMs with external tools in a standardized way.'
   );
 
 // =============================================================================
@@ -90,7 +90,7 @@ var
   Response: String;
 begin
   Writeln(StringOfChar('-', 60));
-  Writeln('Pregunta: ', Question);
+  Writeln('Question: ', Question);
   Writeln;
 
   // Retrieve relevant fragments
@@ -107,11 +107,11 @@ begin
 
   // Build RAG prompt
   Prompt :=
-    'Contexto de referencia:' + sLineBreak +
+    'Reference context:' + sLineBreak +
     Contexto + sLineBreak +
-    'Pregunta del usuario: ' + Question + sLineBreak +
-    'Responde basandote SOLO en el contexto proporcionado. ' +
-    'Si la informacion no esta en el contexto, indicalo.';
+    'User question: ' + Question + sLineBreak +
+    'Answer based ONLY on the provided context. ' +
+    'If the information is not in the context, say so.';
 
   // Generate answer
   Chat.Messages.Clear;
@@ -171,13 +171,13 @@ begin
     Chat.Params.Values['Asynchronous'] := 'False';
     Chat.Params.Values['Max_Tokens']   := '512';
     Chat.SystemPrompt.Text :=
-      'Eres un asistente tecnico de MakerAI. ' +
-      'Responde en espanol de forma concisa y precisa.';
+      'You are a technical assistant for MakerAI. ' +
+      'Answer in English concisely and precisely.';
 
     // ── Questions to the RAG ──────────────────────────────────────────────────
-    AskRAG(RAG, Chat, 'Que es MakerAI y para que sirve?');
-    AskRAG(RAG, Chat, 'Como puedo usar un LLM local sin internet?');
-    AskRAG(RAG, Chat, 'Que es RAG y como funciona?');
+    AskRAG(RAG, Chat, 'What is MakerAI and what is it for?');
+    AskRAG(RAG, Chat, 'How can I use a local LLM without internet?');
+    AskRAG(RAG, Chat, 'What is RAG and how does it work?');
 
   finally
     Chat.Free;
@@ -194,6 +194,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

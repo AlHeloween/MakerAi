@@ -5,13 +5,13 @@
 // =============================================================================
 // MakerAI - Demo 072: Grok Async Diagnostic
 // =============================================================================
-// Prueba el driver TAiGrokChat en modo sincrono y asincronico (streaming).
+// Tests the TAiGrokChat driver in synchronous and asynchronous (streaming) mode.
 // Verifica:
-//   - Texto basico sync/async con grok-3
-//   - Reasoning con grok-3-mini (reasoning_effort=low/high, sin error 400)
-//   - Que los parametros prohibidos NO se envian en modelos grok-4 / grok-3-mini
-//   - Vision con grok-4-0709 (si el usuario tiene acceso)
-//   - Multi-turno async
+//   - Basic text sync/async with grok-3
+//   - Reasoning with grok-3-mini (reasoning_effort=low/high, no error 400)
+//   - That forbidden parameters are NOT sent in grok-4 / grok-3-mini models
+//   - Vision with grok-4-0709 (if the user has access)
+//   - Multi-turn async
 //
 // Configure GROK_API_KEY as an environment variable before running.
 // =============================================================================
@@ -32,12 +32,12 @@ uses
 const
   API_KEY = '@GROK_API_KEY';
   // Available models:
-  //   'grok-3'               - texto + tools, 131K ctx
-  //   'grok-3-fast'          - texto + tools, 131K ctx (mismas caps, infra rapida)
-  //   'grok-3-mini'          - texto + reasoning + tools (reasoning_effort: low/high)
-  //   'grok-3-mini-fast'     - idem grok-3-mini
+  //   'grok-3'               - text + tools, 131K ctx
+  //   'grok-3-fast'          - text + tools, 131K ctx (same caps, fast infra)
+  //   'grok-3-mini'          - text + reasoning + tools (reasoning_effort: low/high)
+  //   'grok-3-mini-fast'     - same as grok-3-mini
   //   'grok-2-vision-1212'   - vision + tools
-  //   'grok-4-0709'          - vision + reasoning siempre activo + tools, 256K ctx
+  //   'grok-4-0709'          - vision + reasoning always active + tools, 256K ctx
   //   'grok-4-fast-reasoning'- vision + reasoning + tools, 2M ctx
   MODEL_TEXT    = 'grok-3';
   MODEL_REASON  = 'grok-3-mini';
@@ -230,7 +230,7 @@ begin
       Writeln;
       Writeln('*** DISCREPANCY buffer vs history ***');
       Writeln(Format('  Buffer    : %d chars', [Length(FBuffer)]));
-      Writeln(Format('  Historial : %d chars', [Length(LHistorial)]));
+      Writeln(Format('  History : %d chars', [Length(LHistorial)]));
       Writeln('  Buffer    start: [' + Copy(FBuffer, 1, 40) + ']');
       Writeln('  History start: [' + Copy(LHistorial, 1, 40) + ']');
       Writeln('  Buffer    end   : [' + Copy(FBuffer, Length(FBuffer)-39, 40) + ']');
@@ -249,7 +249,7 @@ var
   Response: String;
 begin
   PrintSeparator(ALabel + ' [' + AModel + ']');
-  Writeln('Pregunta : ', AQuestion);
+  Writeln('Question : ', AQuestion);
   Writeln(StringOfChar('-', 70));
 
   ResetBuffers;
@@ -261,7 +261,7 @@ begin
     if FHasError then
       Writeln('ERROR: ', FError)
     else if Response = '' then
-      Writeln('Respuesta: <vacia>')
+      Writeln('Response: <empty>')
     else
       Writeln('Answer: ', Response);
   except
@@ -279,7 +279,7 @@ var
   WaitResult: TWaitResult;
 begin
   PrintSeparator(ALabel + ' [' + AModel + ']');
-  Writeln('Pregunta : ', AQuestion);
+  Writeln('Question : ', AQuestion);
   Writeln(StringOfChar('-', 70));
 
   ResetBuffers;
@@ -349,7 +349,7 @@ procedure TGrokTester.TestMultiTurnAsync(const AModel: String);
   end;
 
 begin
-  PrintSeparator('Multi-turno Async [' + AModel + ']');
+  PrintSeparator('Multi-turn Async [' + AModel + ']');
   FConn.Model := AModel;
   FConn.NewChat;
 
@@ -389,7 +389,7 @@ begin
       MODEL_TEXT, 'Test 3 - Async respuesta larga');
 
     // --- grok-3-mini (reasoning: reasoning_effort=low, no vision) ---
-    // Verifica que NO se envia frequency/presence/stop (error 400 si se enviaran)
+    // Verifies that frequency/presence/stop are NOT sent (error 400 if sent)
     Tester.TestSync(
       'Cuanto es 347 multiplicado por 28? Muestra el razonamiento paso a paso.',
       MODEL_REASON, 'Test 4 - Sync reasoning');
@@ -399,7 +399,7 @@ begin
       MODEL_REASON, 'Test 5 - Async reasoning');
 
     // --- grok-4-0709 (vision + reasoning always active) ---
-    // Verifica que NO se envia reasoning_effort (error si se enviara)
+    // Verifies that reasoning_effort is NOT sent (error if sent)
     Tester.TestSync(
       'En una sola oracion: cual es la capital de Australia?',
       MODEL_VISION, 'Test 6 - Sync grok-4 (sin reasoning_effort)');

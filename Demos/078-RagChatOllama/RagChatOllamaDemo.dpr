@@ -1,35 +1,35 @@
 program RagChatOllamaDemo;
 
 // =============================================================================
-// DEMO 078 - RAG completo 100% local: pgvector + Ollama (embeddings y chat)
+// DEMO 078 - Complete 100% local RAG: pgvector + Ollama (embeddings and chat)
 // =============================================================================
-// El demo 077 llega hasta recuperar los fragmentos relevantes. Este cierra el
-// ciclo: recupera, arma el contexto y se lo pasa a un LLM local para que
-// responda. Sin API keys, sin salir de la maquina.
+// Demo 077 goes as far as retrieving the relevant fragments. This closes the
+// cycle: it retrieves, builds the context and passes it to a local LLM so it
+// can answer. No API keys, without leaving the machine.
 //
-// El demo esta construido para que se VEA por que hace falta el RAG: cada
-// pregunta se hace DOS veces contra el mismo modelo.
+// The demo is built so it is VISIBLE why RAG is needed: each
+// question is asked TWICE against the same model.
 //
-//   SIN contexto : el modelo no tiene forma de conocer un catalogo privado, y
-//                  responde igual: inventa titulos, directores y anios con
-//                  aplomo. Es la alucinacion en estado puro.
-//   CON contexto : se recuperan las fichas relevantes de PostgreSQL y se
-//                  inyectan en el system prompt. El modelo pasa a responder
-//                  sobre datos reales, y puede citar.
+//   WITHOUT context : the model has no way to know a private catalog, and
+//                  answers anyway: it invents titles, directors and years with
+//                  confidence. This is hallucination in its pure state.
+//   WITH context    : the relevant records are retrieved from PostgreSQL and
+//                  injected into the system prompt. The model then answers
+//                  about real data, and can cite.
 //
-// Requiere que la tabla vectorial exista y este poblada: correr antes el
-// demo 077 (que crea el esquema, siembra peliculas e indexa).
+// Requires the vector table to exist and be populated: run demo 077
+// first (which creates the schema, seeds movies and indexes).
 //
-// Configuracion por variables de entorno (mismos defaults que 077):
+// Configuration via environment variables (same defaults as 077):
 //   PGHOST localhost   PGPORT 5432   PGDATABASE peliculasdb
 //   PGUSER postgres    PGPASSWORD (obligatoria)
 //   OLLAMA_URL http://localhost:11434/
 //
-// Modos de uso:
+// Usage modes:
 //   RagChatOllamaDemo.exe
 //   RagChatOllamaDemo.exe --chat gpt-oss:20b
 //   RagChatOllamaDemo.exe --embed mxbai-embed-large --dim 1024
-//   RagChatOllamaDemo.exe --ask "que peliculas de terror hay?"
+//   RagChatOllamaDemo.exe --ask "what horror movies are there?"
 //   RagChatOllamaDemo.exe --otel
 // =============================================================================
 
@@ -73,10 +73,10 @@ const
   // las que evitan el fallo mas comun: que el modelo complete con lo que "sabe"
   // cuando el contexto no alcanza.
   SYSTEM_RAG = 'Eres el asistente de un catalogo de peliculas.' + sLineBreak +
-    'Responde UNICAMENTE con la informacion del CATALOGO que viene abajo.' + sLineBreak +
-    'Si el catalogo no contiene la respuesta, di exactamente: "No tengo esa informacion en el catalogo".' + sLineBreak +
-    'No inventes titulos, directores ni anios. Cita el titulo de las peliculas que uses.' + sLineBreak +
-    'Responde en espanol, en 4 lineas como maximo.' + sLineBreak + sLineBreak + 'CATALOGO:' + sLineBreak;
+    'Answer ONLY with the information from the CATALOG below.' + sLineBreak +
+    'If the catalog does not contain the answer, say exactly: "I do not have that information in the catalog".' + sLineBreak +
+    'Do not invent titles, directors or years. Cite the title of the movies you use.' + sLineBreak +
+    'Answer in English, in at most 4 lines.' + sLineBreak + sLineBreak + 'CATALOG:' + sLineBreak;
 
 var
   Conn: TFDConnection;
@@ -196,18 +196,18 @@ begin
   end;
   Writeln('   ollama: embeddings=' + ModeloEmb + ' (dim ' + IntToStr(DimEmb) + ')  chat=' + ModeloChat);
 
-  // --- Indice vectorial (lo crea y puebla el demo 077) ---
+  // --- Vector index (created and populated by demo 077) ---
   if Conn.ExecSQLScalar('select count(*) from information_schema.tables where table_name = ' + QuotedStr(TablaVec)) = 0
   then
-    raise Exception.Create('No existe la tabla ' + TablaVec + '. Corre antes el demo 077-RagPostgresConsole' +
+    raise Exception.Create('The table ' + TablaVec + ' does not exist. Run demo 077-RagPostgresConsole first' +
       ' con --model ' + ModeloEmb + ' --dim ' + IntToStr(DimEmb));
 
   Total := Conn.ExecSQLScalar(Format('select count(*) from %s where entidad = %s', [TablaVec, QuotedStr(ENTIDAD)]));
   if Total = 0 then
-    raise Exception.Create('La tabla ' + TablaVec + ' esta vacia. Corre antes el demo 077 para indexar.');
-  Writeln(Format('   indice: %s con %d vectores', [TablaVec, Total]));
+    raise Exception.Create('The table ' + TablaVec + ' is empty. Run demo 077 first to index.');
+  Writeln(Format('   index: %s with %d vectors', [TablaVec, Total]));
 
-  // --- Componentes MakerAI ---
+  // --- MakerAI components ---
   Embedder := TAiOllamaEmbeddings.Create(nil);
   Embedder.Url := OllamaUrl;
   Embedder.Model := ModeloEmb;
@@ -222,21 +222,21 @@ begin
   Rag.Embeddings := Embedder;
   Rag.Driver := Driver;
   Rag.Entidad := ENTIDAD;
-  // Hibrido: los embeddings aportan el sentido y BM25 rescata los terminos
-  // exactos (nombres propios, titulos), fusionados con RRF.
+  // Hybrid: embeddings provide meaning and BM25 rescues exact terms
+  // (proper names, titles), fused with RRF.
   Rag.SearchOptions.UseEmbeddings := True;
   Rag.SearchOptions.UseBM25 := True;
   Rag.SearchOptions.UseRRF := True;
 
   Chat := TAiOllamaChat.Create(nil);
-  // TRAMPA de los modelos de razonamiento en Ollama: num_predict (que el driver
-  // toma de Max_tokens) limita TODOS los tokens generados, y el thinking cuenta.
-  // Con qwen3.5:4b y el default de 3000, el razonamiento se comia el presupuesto
-  // entero y la respuesta llegaba VACIA: sin error, solo content vacio.
-  // Para un RAG no interesa la cadena de pensamiento sino la respuesta, asi que
-  // se desactiva con think=false (via ModelExtraBodyParams, que el driver mezcla
-  // en la raiz del request). Con --think se deja activo, pero entonces hace falta
-  // un presupuesto de tokens mucho mayor.
+  // TRAP of reasoning models in Ollama: num_predict (which the driver
+  // takes from Max_tokens) limits ALL generated tokens, and thinking counts.
+  // With qwen3.5:4b and the default of 3000, reasoning ate the whole budget
+  // and the response arrived EMPTY: no error, only empty content.
+  // For a RAG the chain of thought is not interesting, only the answer, so
+  // it is disabled with think=false (via ModelExtraBodyParams, which the driver
+  // mixes into the request root). With --think it stays active, but then a
+  // much larger token budget is needed.
   Chat.Url := OllamaUrl;
   Chat.Model := ModeloChat;
   Chat.Asynchronous := False; // consola: respuesta completa de una vez
@@ -266,8 +266,8 @@ begin
       if Assigned(Res) then
       begin
         ACuantos := Res.Count;
-        // Arma el bloque de texto con los fragmentos y sus metadatos. Los
-        // scores se omiten: al modelo no le aportan y gastan tokens.
+        // Builds the text block with the fragments and their metadata. Scores
+        // are omitted: they do not help the model and waste tokens.
         Result := Rag.VectorToContextText(Res, True, False);
       end;
     finally
@@ -287,11 +287,11 @@ var
   Cuantos: Integer;
   SW: TStopwatch;
 begin
-  Separador('PREGUNTA: ' + APregunta);
+  Separador('QUESTION: ' + APregunta);
 
   // ---------- 1. Sin RAG ----------
   Writeln('');
-  Writeln('  [SIN CONTEXTO]  el modelo responde solo con lo que trae de fabrica');
+  Writeln('  [WITHOUT CONTEXT]  the model answers only with what it brings from the factory');
   Chat.Messages.Clear;
   Chat.SystemPrompt.Text := 'Responde en espanol, en 4 lineas como maximo.';
   SW := TStopwatch.StartNew;
@@ -307,7 +307,7 @@ begin
   // ---------- 2. Con RAG ----------
   Writeln('');
   Contexto := RecuperarContexto(APregunta, Cuantos);
-  Writeln(Format('  [CON CONTEXTO]  %d fichas recuperadas de PostgreSQL e inyectadas en el system prompt', [Cuantos]));
+  Writeln(Format('  [WITH CONTEXT]  %d records retrieved from PostgreSQL and injected into the system prompt', [Cuantos]));
   Chat.Messages.Clear;
   Chat.SystemPrompt.Text := SYSTEM_RAG + Contexto;
   SW := TStopwatch.StartNew;
@@ -357,16 +357,16 @@ begin
         Telemetry := TAiTelemetry.Create(nil);
         Telemetry.ServiceName := 'RagChatOllamaDemo';
         Telemetry.Enabled := True;
-        Writeln('[otel] Exportando trazas a ' + Telemetry.Endpoint);
+        Writeln('[otel] Exporting traces to ' + Telemetry.Endpoint);
       end;
 
       if HasFlag('--debug') then
       begin
         MakerAiDebugLogEnabled := True;
         MakerAiDebugLogPath := 'demo078.log';
-        Writeln('[debug] log en demo078.log');
+        Writeln('[debug] log in demo078.log');
       end;
-      Writeln('=== DEMO 078: RAG completo 100% local (pgvector + Ollama) ===');
+      Writeln('=== DEMO 078: complete 100% local RAG (pgvector + Ollama) ===');
       Writeln('');
       Preparar;
 
@@ -377,16 +377,16 @@ begin
       begin
         // Preguntas sobre un catalogo PRIVADO: el modelo no puede saberlas.
         // Sin contexto inventara; con contexto respondera con datos reales.
-        Preguntar('Que peliculas de terror dirigio Carla Mendez?');
-        Preguntar('De que trata Orbita Cero y en que anio se estreno?');
-        Preguntar('Recomiendame una pelicula de animacion y explica por que.');
+        Preguntar('Which horror movies did Carla Mendez direct?');
+        Preguntar('What is Orbit Zero about and in what year was it released?');
+        Preguntar('Recommend an animated movie and explain why.');
         // Esta NO esta en el catalogo: sirve para comprobar que el modelo
         // admite que no sabe en vez de inventar.
-        Preguntar('Quien dirigio El Padrino?');
+        Preguntar('Who directed The Godfather?');
       end;
 
       Writeln('');
-      Writeln('OK: RAG de extremo a extremo con modelos locales.');
+      Writeln('OK: end-to-end RAG with local models.');
       ExitCode := 0;
     except
       on E: Exception do

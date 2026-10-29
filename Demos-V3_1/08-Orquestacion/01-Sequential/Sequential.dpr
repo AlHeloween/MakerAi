@@ -6,15 +6,15 @@ program Sequential;
 // =============================================================================
 // MakerAI — 08-Orquestacion / 01-Sequential
 // =============================================================================
-// Pipeline lineal de tres TLLMNodes especializados.
-// La salida de cada nodo es la entrada del siguiente.
-// Patron fundamental de composicion de agentes.
+// Linear pipeline of three specialized TLLMNodes.
+// The output of each node is the input of the next.
+// Fundamental pattern for composing agents.
 //
 // Concepts covered:
-//   - TAIAgentsLink encadenando nodos linealmente
-//   - Salidas intermedias via Blackboard.GetString('Nodo.output')
-//   - Especializacion por SystemPrompt
-//   - Manager.Run() -> salida del nodo final
+//   - TAIAgentsLink chaining nodes linearly
+//   - Intermediate outputs via Blackboard.GetString('Nodo.output')
+//   - Specialization via SystemPrompt
+//   - Manager.Run() -> output of the final node
 //
 // Pipeline: [Analizador] -> [Expansor] -> [Redactor]
 // =============================================================================
@@ -58,8 +58,8 @@ begin
     Analizador.ApiKey       := API_KEY;
     Analizador.UseAllTools  := False;
     Analizador.SystemPrompt :=
-      'Eres un analista de conceptos. Dado un tema, lista exactamente 5 conceptos ' +
-      'clave relacionados. Salida SOLO los 5 conceptos, uno por linea, sin numeracion.';
+      'You are a concept analyst. Given a topic, list exactly 5 related ' +
+      'key concepts. Output ONLY the 5 concepts, one per line, without numbering.';
 
     // Node 2: Expands each concept with a definition
     Expansor := TLLMNode.Create(Manager);
@@ -70,9 +70,9 @@ begin
     Expansor.ApiKey       := API_KEY;
     Expansor.UseAllTools  := False;
     Expansor.SystemPrompt :=
-      'Eres un explicador de conceptos. Recibes una lista de conceptos (uno por linea). ' +
-      'Para cada concepto escribe una definicion breve de una sola frase en espanol. ' +
-      'Formato: "Concepto: definicion."';
+      'You are a concept explainer. You receive a list of concepts (one per line). ' +
+      'For each concept write a brief one-sentence definition in Spanish. ' +
+      'Format: "Concept: definition."';
 
     // Node 3: Generates a short article integrating everything
     Redactor := TLLMNode.Create(Manager);
@@ -83,9 +83,9 @@ begin
     Redactor.ApiKey       := API_KEY;
     Redactor.UseAllTools  := False;
     Redactor.SystemPrompt :=
-      'Eres un redactor tecnico. Recibes definiciones de conceptos. ' +
-      'Escribe un articulo corto (3 parrafos) en espanol que integre ' +
-      'todos los conceptos de forma natural y coherente.';
+      'You are a technical writer. You receive concept definitions. ' +
+      'Write a short article (3 paragraphs) in Spanish that integrates ' +
+      'all the concepts naturally and coherently.';
 
     // Chain: Analizador -> Expansor -> Redactor
     L1 := TAIAgentsLink.Create(Manager);

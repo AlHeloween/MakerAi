@@ -6,23 +6,23 @@ program SmartDispatch;
 // =============================================================================
 // MakerAI - 02-ChatTools / 08-SmartDispatch
 // =============================================================================
-// Valida el modo cmSmartDispatch: despacho inteligente para modelos pequeños
-// sin function calling nativo.
+// Validates cmSmartDispatch mode: intelligent dispatch for small models
+// without native function calling.
 //
 // Flow per message:
-//   Pase 1 (silencioso) — el LLM recibe un system prompt especial y elige
-//                         herramienta + reescribe el prompt.
-//   Pase 2              — se ejecuta la herramienta elegida, o se usa la
-//                         respuesta del Pase 1 directamente si elige [CHAT].
+//   Pass 1 (silent) — the LLM receives a special system prompt and chooses
+//                         tool + rewrites the prompt.
+//   Pass 2              — the chosen tool is executed, or the
+//                         Pass 1 response is used directly if it chooses [CHAT].
 //
 // Simulated tools (mock):
-//   TMockImageTool     — imprime el prompt en lugar de generar imagen real
-//   TMockWebSearchTool — imprime la consulta en lugar de buscar en internet
+//   TMockImageTool     — prints the prompt instead of generating a real image
+//   TMockWebSearchTool — prints the query instead of searching the internet
 //
 // Requirements:
-//   - Ollama corriendo en http://localhost:11434
-//   - Modelo gemma3:4b (o cualquier modelo local sin function calling)
-//   - Cambiar DRIVER/MODEL/OLLAMA_URL si se usa otro proveedor
+//   - Ollama running at http://localhost:11434
+//   - gemma3:4b model (or any local model without function calling)
+//   - Change DRIVER/MODEL/OLLAMA_URL if using another provider
 // =============================================================================
 
 uses
@@ -104,7 +104,7 @@ var
 begin
   Writeln('=== SmartDispatch Demo ===');
   Writeln('Driver : ', DRIVER, ' / ', MODEL);
-  Writeln('Modo   : cmSmartDispatch');
+  Writeln('Mode   : cmSmartDispatch');
   Writeln('Note   : Asynchronous=False required in this mode');
   Writeln;
 
@@ -175,6 +175,6 @@ begin
       Writeln('FATAL: ', E.ClassName, ' - ', E.Message);
   end;
   Writeln;
-  Write('Presiona Enter para salir...');
+  Write('Press Enter to exit...');
   Readln;
 end.

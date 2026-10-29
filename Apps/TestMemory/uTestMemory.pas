@@ -76,31 +76,31 @@ begin
     // ── 1. Store ────────────────────────────────────────────────────────────
     Section('1. Store');
 
-    Id1 := Mem.Store('Delphi usa Ln() en lugar de Log() para logaritmo natural',
+    Id1 := Mem.Store('Delphi uses Ln() instead of Log() for natural logarithm',
                      mt_ErrorFix, 9, 'delphi,math', nil, 0);
     Check(Id1 > 0, 'Store ErrorFix returns Id > 0', 'Id=' + Id1.ToString);
 
-    Id2 := Mem.Store('El usuario prefiere respuestas concisas sin bullets innecesarios',
+    Id2 := Mem.Store('The user prefers concise responses without unnecessary bullets',
                      mt_Preference, 8, 'ux', nil, 0);
     Check(Id2 > 0, 'Store Preference returns Id > 0');
 
-    Id3 := Mem.Store('TAiMemory usa FireDAC + FTS5 para búsqueda léxica',
+    Id3 := Mem.Store('TAiMemory uses FireDAC + FTS5 for lexical search',
                      mt_Fact, 7, 'architecture,firedac', nil, 0);
     Check(Id3 > 0, 'Store Fact returns Id > 0');
 
-    Id4 := Mem.Store('El decay exponencial modela la curva de olvido de Ebbinghaus',
+    Id4 := Mem.Store('Exponential decay models the Ebbinghaus forgetting curve',
                      mt_Pattern, 5, 'decay,memory', nil, 0);
     Check(Id4 > 0, 'Store Pattern returns Id > 0');
 
-    Id5 := Mem.Store('Error al compilar: E2003 TComparer no funciona con tipos locales',
+    Id5 := Mem.Store('Compile error: E2003 TComparer does not work with local types',
                      mt_ErrorFix, 6, 'delphi,generics', nil, 0);
     Check(Id5 > 0, 'Store second ErrorFix returns Id > 0');
 
     // Duplicate — must reuse the same Id
-    IdDup := Mem.Store('Delphi usa Ln() en lugar de Log() para logaritmo natural',
+    IdDup := Mem.Store('Delphi uses Ln() instead of Log() for natural logarithm',
                             mt_ErrorFix, 9, 'delphi,math', nil, 0);
-    Check(IdDup = Id1, 'Store duplicado devuelve mismo Id (dedup por content_hash)',
-          'Esperado=' + Id1.ToString + ' Obtenido=' + IdDup.ToString);
+    Check(IdDup = Id1, 'Store duplicate returns the same Id (dedup by content_hash)',
+          'Expected=' + Id1.ToString + ' Got=' + IdDup.ToString);
 
     // ── 2. Get ──────────────────────────────────────────────────────────────
     Section('2. Get');
@@ -122,12 +122,12 @@ begin
     // ── 3. Search FTS ───────────────────────────────────────────────────────
     Section('3. Search FTS');
 
-    Results := Mem.Search('logaritmo delphi', 10, ms_FTS);
+    Results := Mem.Search('logarithm delphi', 10, ms_FTS);
     try
-      Check(Length(Results) > 0, 'FTS "logaritmo delphi" devuelve resultados',
+      Check(Length(Results) > 0, 'FTS "logarithm delphi" returns results',
             'Count=' + Length(Results).ToString);
       if Length(Results) > 0 then
-        Check(Results[0].Score > 0, 'Primer resultado tiene score > 0',
+        Check(Results[0].Score > 0, 'First result has score > 0',
               'Score=' + FloatToStr(Results[0].Score));
     finally
       for I := 0 to High(Results) do
@@ -155,7 +155,7 @@ begin
     RecallList := Mem.Recall(7, 20);
     try
       // Entries with importance >= 7: Id1(9), Id2(8), Id3(7) = 3
-      Check(RecallList.Count >= 3, 'Recall(importance>=7) devuelve al menos 3 entries',
+      Check(RecallList.Count >= 3, 'Recall(importance>=7) returns at least 3 entries',
             'Count=' + RecallList.Count.ToString);
       for I := 0 to RecallList.Count - 1 do
         Check(RecallList[I].Importance >= 7,
@@ -164,9 +164,9 @@ begin
       RecallList.Free;
     end;
 
-    RecallList := Mem.Recall(10, 20); // Solo importance=10 → vacío
+    RecallList := Mem.Recall(10, 20); // Only importance=10 → empty
     try
-      Check(RecallList.Count = 0, 'Recall(importance=10) devuelve vacío',
+      Check(RecallList.Count = 0, 'Recall(importance=10) returns empty',
             'Count=' + RecallList.Count.ToString);
     finally
       RecallList.Free;
@@ -185,8 +185,8 @@ begin
     // ── 7. Context Builder ──────────────────────────────────────────────────
     Section('7. Context Builder');
 
-    Ctx := Mem.Context('cómo compilar Delphi con logaritmos', 500);
-    Check(Ctx.MemoryCount > 0, 'Context devuelve al menos 1 entry',
+    Ctx := Mem.Context('how to compile Delphi with logarithms', 500);
+    Check(Ctx.MemoryCount > 0, 'Context returns at least 1 entry',
           'Count=' + Ctx.MemoryCount.ToString);
     Check(Ctx.TokenEstimate > 0, 'Context.TokenEstimate > 0');
     Check(Ctx.FormattedText <> '', 'Context.FormattedText not empty');
@@ -199,14 +199,14 @@ begin
     // ── 8. Update ───────────────────────────────────────────────────────────
     Section('8. Update');
 
-    Mem.Update(Id4, 'El decay exponencial modela la curva de olvido (actualizado)', 7);
+    Mem.Update(Id4, 'Exponential decay models the forgetting curve (updated)', 7);
     Entry := Mem.Get(Id4);
     try
       Check(Assigned(Entry), 'Get after Update returns entry');
       if Assigned(Entry) then
       begin
         Check(Entry.Importance = 7, 'Update changes importance to 7');
-        Check(Pos('actualizado', Entry.Content) > 0, 'Update changes content');
+        Check(Pos('updated', Entry.Content) > 0, 'Update changes content');
       end;
     finally
       Entry.Free;
@@ -219,7 +219,7 @@ begin
       if Assigned(Entry) then
       begin
         Check(Entry.Importance = 10, 'Update only importance works');
-        Check(Pos('actualizado', Entry.Content) > 0, 'Content is kept when AContent=""');
+        Check(Pos('updated', Entry.Content) > 0, 'Content is kept when AContent=""');
       end;
     finally
       Entry.Free;
@@ -237,7 +237,7 @@ begin
     end;
 
     Stats := Mem.Stats;
-    Check(Stats.TotalCount = 4, 'Stats.TotalCount = 4 tras Delete',
+    Check(Stats.TotalCount = 4, 'Stats.TotalCount = 4 after Delete',
           'Got=' + Stats.TotalCount.ToString);
 
     // ── 10. Links ───────────────────────────────────────────────────────────
@@ -246,7 +246,7 @@ begin
     Mem.Link(Id1, Id3, 'related');
     Links := Mem.Links(Id1);
     try
-      Check(Links.Count > 0, 'Links(Id1) devuelve al menos 1',
+      Check(Links.Count > 0, 'Links(Id1) returns at least 1',
             'Count=' + Links.Count.ToString);
     finally
       Links.Free;
@@ -263,9 +263,9 @@ begin
     // ── 11. Prune ───────────────────────────────────────────────────────────
     Section('11. Prune');
 
-    // Prune agresivo: importance < 8 con decay < 0.99 → debería dejar solo Id1(9) e Id2(8)
+    // Aggressive prune: importance < 8 with decay < 0.99 → should leave only Id1(9) and Id2(8)
     // With AutoDecay=False all have decay=1.0, so prune by importance+age
-    Mem.Prune(8, 0); // MinImportance=8, MaxAgeDays=0 → entries de hoy también
+    Mem.Prune(8, 0); // MinImportance=8, MaxAgeDays=0 → today's entries too
     Stats := Mem.Stats;
     // Note: Prune(8, 0) removes entries with importance < 8 AND age >= 0 days AND decay < threshold
     // With decay=1.0 (fresh) the threshold is 0.1 → none are pruned by decay

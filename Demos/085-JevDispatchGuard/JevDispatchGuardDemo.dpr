@@ -1,33 +1,33 @@
 ﻿program JevDispatchGuardDemo;
 
 // =============================================================================
-// DEMO 085 - Jev en SmartDispatch y en Guardrails
+// DEMO 085 - Jev in SmartDispatch and in Guardrails
 // =============================================================================
-// Dos decisiones que hoy cuestan un LLM completo o una lista que no alcanza:
+// Two decisions that today cost a full LLM or a list that is not enough:
 //
-//   A. SmartDispatch: TAiJevDispatchClassifier, asignado a
-//      ChatTools.DispatchClassifier, decide si la peticion va a IMAGEGEN,
-//      VIDEOGEN, TTS, WEBSEARCH o CHAT sin el pase de clasificacion por LLM.
-//      Aqui se llama directo (via IAiDispatchClassifier) para no exigir las
-//      API keys de las tools; en una app lo llama el chat.
+//   A. SmartDispatch: TAiJevDispatchClassifier, assigned to
+//      ChatTools.DispatchClassifier, decides whether the request goes to IMAGEGEN,
+//      VIDEOGEN, TTS, WEBSEARCH or CHAT without the LLM classification pass.
+//      Here it is called directly (via IAiDispatchClassifier) so as not to require the
+//      API keys of the tools; in an app the chat calls it.
 //
-//   B. Guardrails: TAiJevGuardrailClassifier, asignado a
-//      TAiGuardrails.Classifier, juzga el riesgo de cada tool call que las
-//      listas dejaron pasar. Las listas atrapan lo enumerable ('rm -rf'); Jev
-//      atrapa lo que no, como un correo con una clave a un externo.
+//   B. Guardrails: TAiJevGuardrailClassifier, assigned to
+//      TAiGuardrails.Classifier, judges the risk of each tool call that the
+//      lists let through. Lists catch the enumerable ('rm -rf'); Jev
+//      catches what they do not, such as an email with a password to an outsider.
 //
-//   C. Guardrail de entrada: TAiJevPromptGuard, asignado a
-//      ChatTools.PromptGuard, revisa el mensaje del usuario ANTES del LLM.
-//      Se compara con el sanitizador por regex que MakerAI ya trae
-//      (SanitizerActive): la regex atrapa formulas conocidas; Jev, lo demas.
+//   C. Input guardrail: TAiJevPromptGuard, assigned to
+//      ChatTools.PromptGuard, reviews the user message BEFORE the LLM.
+//      It is compared with the regex sanitizer that MakerAI already ships
+//      (SanitizerActive): regex catches known formulas; Jev catches the rest.
 //
-//   D. Categorias de permiso: el mismo TAiJevGuardrailClassifier clasifica
-//      cada tool call (read / write / delete / financial / external_comm /
-//      system) en la misma llamada que el riesgo, y bloquea las categorias
-//      prohibidas. ToolDescriptions aclara tools con nombre de dominio.
+//   D. Permission categories: the same TAiJevGuardrailClassifier classifies
+//      each tool call (read / write / delete / financial / external_comm /
+//      system) in the same call as the risk, and blocks the categories
+//      that are forbidden. ToolDescriptions clarifies tools with domain names.
 //
-// Requiere la variable de entorno TYPESAFE_API_KEY (https://console.typesafe.ai/keys).
-// Costo: unos centavos de centavo por corrida.
+// Requires the TYPESAFE_API_KEY environment variable (https://console.typesafe.ai/keys).
+// Cost: a few hundredths of a cent per run.
 // =============================================================================
 
 {$APPTYPE CONSOLE}
@@ -79,7 +79,7 @@ var
   Intf: IAiDispatchClassifier;
   P, Tag: string;
 begin
-  Writeln('--- A. SmartDispatch: a que tool va cada peticion ---');
+  Writeln('--- A. SmartDispatch: which tool each request goes to ---');
   Writeln;
   Clasif := TAiJevDispatchClassifier.Create(nil);
   try
@@ -88,7 +88,7 @@ begin
     begin
       Tag := Intf.ClassifyDispatch(P, TAGS);
       if Tag = '' then
-        Tag := '(sin decidir: el chat usaria el LLM)';
+        Tag := '(undecided: the chat would use the LLM)';
       Writeln(Format('  %-10s conf %.2f  %s', [Tag, Clasif.LastConfidence, P]));
     end;
     Intf := nil;
@@ -106,12 +106,12 @@ var
   Reason, Quien: string;
   Ok: Boolean;
 begin
-  Writeln('--- B. Guardrails: listas + juicio de riesgo con Jev ---');
+  Writeln('--- B. Guardrails: lists + risk judgment with Jev ---');
   Writeln;
   Guard := TAiGuardrails.Create(nil);
   JevGuard := TAiJevGuardrailClassifier.Create(nil);
   try
-    // Lista clasica: atrapa lo enumerable antes de gastar una llamada a Jev
+    // Classic list: catches the enumerable before spending a Jev call
     Guard.BlockedArgPatterns.Add('rm -rf');
     Guard.Classifier := JevGuard;
 
@@ -119,14 +119,14 @@ begin
     begin
       Ok := Guard.CheckToolCall(L.Tool, L.Args, Reason);
       if Ok then
-        Quien := Format('permitido  (riesgo %.2f)', [JevGuard.LastRisk])
+        Quien := Format('allowed  (risk %.2f)', [JevGuard.LastRisk])
       else
-        Quien := 'BLOQUEADO  ' + Reason;
+        Quien := 'BLOCKED  ' + Reason;
       Writeln(Format('  %-15s %s', [L.Tool, Quien]));
       Writeln('                  ' + L.Args);
     end;
     Writeln;
-    Writeln(Format('Bloqueados: %d de %d', [Guard.BlockedCount, Length(LLAMADAS)]));
+    Writeln(Format('Blocked: %d of %d', [Guard.BlockedCount, Length(LLAMADAS)]));
   finally
     Guard.Free;
     JevGuard.Free;
@@ -150,7 +150,7 @@ var
   M, Regex, JevRes: string;
   V: TAiPromptVerdict;
 begin
-  Writeln('--- C. Guardrail de entrada: regex (ya existente) + Jev ---');
+  Writeln('--- C. Input guardrail: regex (already existing) + Jev ---');
   Writeln;
   Guard := TAiJevPromptGuard.Create(nil);
   try
@@ -158,14 +158,14 @@ begin
     for M in MENSAJES do
     begin
       if TSanitizerPipeline.Check(M).IsSuspicious then
-        Regex := 'regex: BLOQUEA'
+        Regex := 'regex: BLOCKS'
       else
-        Regex := 'regex: pasa   ';
+        Regex := 'regex: passes   ';
       V := Guard.CheckPrompt(M);
       if V.Allowed then
-        JevRes := 'Jev: pasa'
+        JevRes := 'Jev: passes'
       else
-        JevRes := Format('Jev: BLOQUEA (%s %.2f)', [V.Category, V.Score]);
+        JevRes := Format('Jev: BLOCKS (%s %.2f)', [V.Category, V.Score]);
       Writeln(Format('  %s | %-34s %s', [Regex, JevRes, Copy(M, 1, 55)]));
     end;
   finally
@@ -198,7 +198,7 @@ var
   L: TLlamada;
   Reason, Decision: string;
 begin
-  Writeln('--- D. Categorias de permiso (financial y system bloqueadas) ---');
+  Writeln('--- D. Permission categories (financial and system blocked) ---');
   Writeln;
   Guard := TAiGuardrails.Create(nil);
   JevGuard := TAiJevGuardrailClassifier.Create(nil);
@@ -207,7 +207,7 @@ begin
       JevGuard.Categories.Add(C);
     JevGuard.BlockedCategories.Add('financial');
     JevGuard.BlockedCategories.Add('system');
-    // Sin esto 'anular_comprobante' se lee como 'read' (0.83)
+    // Without this 'anular_comprobante' is read as 'read' (0.83)
     JevGuard.ToolDescriptions.Add('anular_comprobante=Anula un comprobante contable: genera el ' +
       'comprobante de reversion y lo marca como anulado');
     Guard.Classifier := JevGuard;
@@ -215,9 +215,9 @@ begin
     for L in CALLS do
     begin
       if Guard.CheckToolCall(L.Tool, L.Args, Reason) then
-        Decision := 'permitido'
+        Decision := 'allowed'
       else
-        Decision := 'BLOQUEADO  ' + Reason;
+        Decision := 'BLOCKED  ' + Reason;
       Writeln(Format('  %-19s %-14s %.2f  %s', [L.Tool, JevGuard.LastCategory,
         JevGuard.LastCategoryConfidence, Decision]));
     end;
@@ -232,7 +232,7 @@ begin
   try
     if GetEnvironmentVariable('TYPESAFE_API_KEY') = '' then
     begin
-      Writeln('Falta la variable de entorno TYPESAFE_API_KEY (https://console.typesafe.ai/keys).');
+      Writeln('The TYPESAFE_API_KEY environment variable is missing (https://console.typesafe.ai/keys).');
       ExitCode := 2;
       Exit;
     end;

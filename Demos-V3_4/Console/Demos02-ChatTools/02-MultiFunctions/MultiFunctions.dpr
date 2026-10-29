@@ -6,14 +6,14 @@ program MultiFunctions;
 // =============================================================================
 // MakerAI — 02-ChatTools / 02-MultiFunctions
 // =============================================================================
-// El LLM tiene acceso a VARIAS funciones y decide cuál(es) usar según el
-// contexto. Puede invocar funciones en secuencia o combinar resultados.
+// The LLM has access to SEVERAL functions and decides which one(s) to use based on
+// context. It can invoke functions in sequence or combine results.
 //
 // Concepts covered:
-//   - Registrar múltiples funciones en TAiFunctions
-//   - El LLM encadena funciones automáticamente (multi-step tool use)
-//   - Cada función tiene su propio handler de clase (TFunctionEvent)
-//   - Una consulta puede requerir N llamadas a funciones antes de responder
+//   - Register multiple functions in TAiFunctions
+//   - The LLM chains functions automatically (multi-step tool use)
+//   - Each function has its own class handler (TFunctionEvent)
+//   - A query may require N function calls before responding
 //
 // Functions in this demo:
 //   get_weather(city)                  → clima actual
@@ -266,7 +266,7 @@ begin
       Conn.AiFunctions := FAiFunctions;
 
       Conn.SystemPrompt.Text :=
-        'Eres un asistente inteligente con acceso a herramientas. ' +
+        'You are an intelligent assistant with access to tools. ' +
         'Úsalas cuando el usuario lo necesite. Responde en español.';
 
       // ── P1: one function ────────────────────────────────────────────────────

@@ -4,30 +4,30 @@
 {$R *.res}
 
 // =============================================================================
-// MakerAI — Capítulo 10: Procesamiento de Documentos PDF
+// MakerAI — Chapter 10: PDF Document Processing
 // =============================================================================
-// Demuestra dos estrategias complementarias para trabajar con documentos:
+// Demonstrates two complementary strategies for working with documents:
 //
-//   Estrategia A — PDF nativo con Gemini (requiere GEMINI_API_KEY):
-//     gemini-2.5-flash recibe el PDF directamente (ModelCaps incluye cap_Pdf).
-//     El modelo procesa texto, tablas e imágenes del PDF íntegramente.
+//   Strategy A — Native PDF with Gemini (requires GEMINI_API_KEY):
+//     gemini-2.5-flash receives the PDF directly (ModelCaps includes cap_Pdf).
+//     The model processes text, tables and images of the PDF in full.
 //
-//   Estrategia B — Texto embebido con Ollama (100% local, sin API key):
-//     Ollama no tiene soporte nativo de PDF → leemos el texto y lo enviamos
-//     como contexto en el SystemPrompt. Privacidad total: el documento
-//     nunca sale de tu máquina.
+//   Strategy B — Embedded text with Ollama (100% local, no API key):
+//     Ollama has no native PDF support → we read the text and send it
+//     as context in the SystemPrompt. Total privacy: the document
+//     never leaves your machine.
 //
 // Demos:
-//   1. PDF nativo con Gemini — resumen ejecutivo del documento
-//   2. Multi-turno sobre PDF — el modelo recuerda el documento en el historial
-//   3. Extracción JSON desde PDF — datos estructurados para procesar en Delphi
-//   4. Ollama + contexto de texto — Q&A local sin soporte PDF nativo
+//   1. Native PDF with Gemini — executive summary of the document
+//   2. Multi-turn over PDF — the model remembers the document in history
+//   3. JSON extraction from PDF — structured data to process in Delphi
+//   4. Ollama + text context — local Q&A without native PDF support
 //
-// Requisitos:
-//   Demos 1-3: GEMINI_API_KEY en variables de entorno
-//              Un archivo .pdf accesible (ajusta PDF_PATH o el path en ejecución)
-//   Demo 4   : Ollama en localhost:11434 con gemma3:4b
-//              Instalar: https://ollama.com  |  ollama pull gemma3:4b
+// Requirements:
+//   Demos 1-3: GEMINI_API_KEY in environment variables
+//              An accessible .pdf file (adjust PDF_PATH or the path at runtime)
+//   Demo 4   : Ollama on localhost:11434 with gemma3:4b
+//              Install: https://ollama.com  |  ollama pull gemma3:4b
 // =============================================================================
 
 uses
@@ -37,8 +37,8 @@ uses
   uMakerAi.Core,
   uMakerAi.Chat,
   uMakerAi.Chat.AiConnection,
-  uMakerAi.Chat.Gemini,    // DriverName = 'Gemini' — se auto-registra al importar
-  uMakerAi.Chat.Ollama;    // DriverName = 'Ollama' — se auto-registra al importar
+  uMakerAi.Chat.Gemini,    // DriverName = 'Gemini' — auto-registers on import
+  uMakerAi.Chat.Ollama;    // DriverName = 'Ollama' — auto-registers on import
 
 const
   GEMINI_DRIVER = 'Gemini';
@@ -48,9 +48,9 @@ const
   OLLAMA_MODEL  = 'gemma3:4b';
   OLLAMA_URL    = 'http://localhost:11434/';
 
-  // Ruta al PDF de prueba para Demos 1-3.
-  // Si el archivo no existe, esos demos se omiten con instrucciones.
-  // Puedes usar cualquier PDF: un contrato, factura, manual, informe...
+  // Path to the test PDF for Demos 1-3.
+  // If the file does not exist, those demos are skipped with instructions.
+  // You can use any PDF: a contract, invoice, manual, report...
   PDF_PATH = 'C:\Users\Public\Documents\sample.pdf';
 
 // =============================================================================
@@ -63,7 +63,7 @@ begin
 end;
 
 // =============================================================================
-//  Verifica que Ollama esté corriendo en localhost.
+//  Checks that Ollama is running on localhost.
 // =============================================================================
 function OllamaActivo: Boolean;
 var
@@ -84,7 +84,7 @@ begin
 end;
 
 // =============================================================================
-//  Verifica que la variable de entorno GEMINI_API_KEY esté configurada.
+//  Checks that the GEMINI_API_KEY environment variable is configured.
 // =============================================================================
 function GeminiApiKeyDisponible: Boolean;
 begin
@@ -92,8 +92,8 @@ begin
 end;
 
 // =============================================================================
-//  Busca un PDF en PDF_PATH y en el directorio actual.
-//  Devuelve la ruta si lo encuentra, cadena vacía si no.
+//  Searches for a PDF in PDF_PATH and in the current directory.
+//  Returns the path if found, empty string if not.
 // =============================================================================
 function EncontrarPDF: string;
 var
@@ -102,12 +102,12 @@ begin
   if TFile.Exists(PDF_PATH) then
     Exit(PDF_PATH);
 
-  // Buscar también en el directorio del ejecutable
+  // Also search in the executable directory
   RutaLocal := ExtractFilePath(ParamStr(0)) + 'sample.pdf';
   if TFile.Exists(RutaLocal) then
     Exit(RutaLocal);
 
-  // Buscar cualquier PDF en el directorio actual
+  // Search for any PDF in the current directory
   var Archivos := TDirectory.GetFiles(
     ExtractFilePath(ParamStr(0)), '*.pdf', TSearchOption.soTopDirectoryOnly);
   if Length(Archivos) > 0 then
@@ -117,9 +117,9 @@ begin
 end;
 
 // =============================================================================
-//  Crea la conexión con Gemini 2.5 Flash para procesamiento de PDF.
-//  gemini-2.5-flash tiene ModelCaps que incluye cap_Pdf — soporte nativo.
-//  El llamador es responsable de liberar con Free.
+//  Creates the connection with Gemini 2.5 Flash for PDF processing.
+//  gemini-2.5-flash has ModelCaps that include cap_Pdf — native support.
+//  The caller is responsible for freeing with Free.
 // =============================================================================
 function CrearConexionGemini: TAiChatConnection;
 begin
@@ -130,37 +130,37 @@ begin
   Result.Params.Values['Asynchronous'] := 'False';
   Result.Params.Values['Max_Tokens']   := '1024';
   Result.SystemPrompt.Text :=
-    'Eres un asistente especializado en análisis de documentos. ' +
-    'Basa tus respuestas ÚNICAMENTE en el contenido del documento adjunto. ' +
-    'Si la información no está en el documento, dilo claramente. ' +
-    'Responde en español de forma concisa y precisa.';
+    'You are an assistant specialized in document analysis. ' +
+    'Base your answers ONLY on the attached document content. ' +
+    'If the information is not in the document, say so clearly. ' +
+    'Respond concisely and precisely in Spanish.';
 end;
 
 // =============================================================================
-//  Crea la conexión con Ollama (gemma3:4b) para Q&A local.
-//  El llamador es responsable de liberar con Free.
+//  Creates the connection with Ollama (gemma3:4b) for local Q&A.
+//  The caller is responsible for freeing with Free.
 // =============================================================================
 function CrearConexionOllama: TAiChatConnection;
 begin
   Result := TAiChatConnection.Create(nil);
   Result.DriverName := OLLAMA_DRIVER;
   Result.Model      := OLLAMA_MODEL;
-  Result.Params.Values['Asynchronous'] := 'False';  // Ollama default es True
+  Result.Params.Values['Asynchronous'] := 'False';  // Ollama default is True
   Result.Params.Values['Max_Tokens']   := '512';
   Result.SystemPrompt.Text :=
-    'Eres un asistente útil. Responde en español de forma concisa y precisa.';
+    'You are a helpful assistant. Respond concisely and precisely in Spanish.';
 end;
 
 // =============================================================================
-//  Demo 1 — PDF nativo con Gemini
+//  Demo 1 — Native PDF with Gemini
 //
-//  El patrón base de PDF con MakerAI es idéntico al de imágenes:
-//    1. Crear TAiMediaFile y cargar el PDF con LoadFromFile
-//    2. MF.FileCategory queda en fcDocument automáticamente
-//    3. Pasarlo en AddMessageAndRun — Gemini lo procesa nativo
+//  The base PDF pattern with MakerAI is identical to that of images:
+//    1. Create TAiMediaFile and load the PDF with LoadFromFile
+//    2. MF.FileCategory becomes fcDocument automatically
+//    3. Pass it in AddMessageAndRun — Gemini processes it natively
 //
-//  MakerAI detecta que Gemini tiene cap_Pdf y envía el archivo directamente.
-//  No se necesita configuración adicional.
+//  MakerAI detects that Gemini has cap_Pdf and sends the file directly.
+//  No additional configuration is needed.
 // =============================================================================
 procedure Demo1_PdfNativoGemini(const PdfPath: string; Conn: TAiChatConnection);
 var
@@ -168,41 +168,41 @@ var
   Files: TAiMediaFilesArray;
   R    : string;
 begin
-  Separador('Demo 1 — PDF nativo con Gemini (Estrategia A)');
+  Separador('Demo 1 — Native PDF with Gemini (Strategy A)');
 
   MF := TAiMediaFile.Create;
   MF.LoadFromFile(PdfPath);
-  WriteLn('  Archivo: ', MF.FileName);
-  WriteLn('  Tipo   : ', MF.MimeType, '  (', MF.Bytes div 1024, ' KB)');
+  WriteLn('  File: ', MF.FileName);
+  WriteLn('  Type   : ', MF.MimeType, '  (', MF.Bytes div 1024, ' KB)');
   WriteLn('');
 
   SetLength(Files, 1);
   Files[0] := MF;
 
   Conn.NewChat;
-  Write('  Enviando PDF a Gemini... ');
+  Write('  Sending PDF to Gemini... ');
   R := Conn.AddMessageAndRun(
-    'Lee este documento y dame un resumen ejecutivo con: ' +
-    '(1) tema principal, (2) puntos clave, (3) conclusión o acción requerida. ' +
-    'Máximo 5 líneas en total.',
+    'Read this document and give me an executive summary with: ' +
+    '(1) main topic, (2) key points, (3) conclusion or required action. ' +
+    'Maximum 5 lines in total.',
     'user', Files);
   WriteLn('OK');
   WriteLn('');
-  WriteLn('  Resumen:');
+  WriteLn('  Summary:');
   WriteLn('  ', R);
 
   WriteLn('');
-  WriteLn('→ Patrón base: MF.LoadFromFile(pdf) + AddMessageAndRun([MF]).');
-  WriteLn('  Gemini 2.5 Flash procesa el PDF íntegro (ModelCaps=[cap_Pdf]).');
-  WriteLn('  Claude funciona igual — cambia DriverName a "Claude".');
+  WriteLn('→ Base pattern: MF.LoadFromFile(pdf) + AddMessageAndRun([MF]).');
+  WriteLn('  Gemini 2.5 Flash processes the PDF in full (ModelCaps=[cap_Pdf]).');
+  WriteLn('  Claude works the same — change DriverName to "Claude".');
 end;
 
 // =============================================================================
-//  Demo 2 — Multi-turno sobre un PDF
+//  Demo 2 — Multi-turn Q&A over a PDF
 //
-//  Una vez adjuntado en el primer mensaje, el modelo "recuerda" el documento
-//  en los turnos siguientes sin necesidad de reenviarlo.
-//  Esto permite una sesión de Q&A natural y eficiente.
+//  Once attached in the first message, the model "remembers" the document
+//  in the following turns without needing to resend it.
+//  This allows a natural and efficient Q&A session.
 // =============================================================================
 procedure Demo2_MultiturnoGemini(const PdfPath: string; Conn: TAiChatConnection);
 var
@@ -210,7 +210,7 @@ var
   Files: TAiMediaFilesArray;
   R    : string;
 begin
-  Separador('Demo 2 — Q&A multi-turno sobre PDF (el modelo recuerda)');
+  Separador('Demo 2 — Multi-turn Q&A over PDF (the model remembers)');
 
   MF := TAiMediaFile.Create;
   MF.LoadFromFile(PdfPath);
@@ -219,47 +219,47 @@ begin
 
   Conn.NewChat;
 
-  // Turno 1: enviamos el PDF con la primera pregunta
-  Write('  [Turno 1] Enviando PDF... ');
+  // Turn 1: we send the PDF with the first question
+  Write('  [Turn 1] Sending PDF... ');
   R := Conn.AddMessageAndRun(
-    'He adjuntado un documento. Confirma que lo recibiste y di de qué se trata en una oración.',
+    'I have attached a document. Confirm that you received it and say what it is about in one sentence.',
     'user', Files);
   WriteLn('OK');
-  WriteLn('  Respuesta: ', R);
-  WriteLn('  [Historial: ', Conn.Messages.Count, ' mensajes]');
+  WriteLn('  Response: ', R);
+  WriteLn('  [History: ', Conn.Messages.Count, ' messages]');
 
-  // Turno 2: segunda pregunta SIN reenviar el PDF
+  // Turn 2: second question WITHOUT resending the PDF
   WriteLn('');
-  Write('  [Turno 2] Pregunta sin reenviar PDF... ');
+  Write('  [Turn 2] Question without resending PDF... ');
   R := Conn.AddMessageAndRun(
-    '¿Cuáles son los tres puntos más importantes del documento?',
-    'user', []);   // ← sin PDF en el array
+    'What are the three most important points in the document?',
+    'user', []);   // ← without PDF in the array
   WriteLn('OK');
-  WriteLn('  Respuesta: ', R);
-  WriteLn('  [Historial: ', Conn.Messages.Count, ' mensajes]');
+  WriteLn('  Response: ', R);
+  WriteLn('  [History: ', Conn.Messages.Count, ' messages]');
 
-  // Turno 3: pregunta de detalle
+  // Turn 3: detail question
   WriteLn('');
-  Write('  [Turno 3] Pregunta de detalle... ');
+  Write('  [Turn 3] Detail question... ');
   R := Conn.AddMessageAndRun(
-    '¿Hay fechas, montos o cifras importantes? Menciona las más relevantes.',
+    'Are there important dates, amounts, or figures? Mention the most relevant ones.',
     'user', []);
   WriteLn('OK');
-  WriteLn('  Respuesta: ', R);
-  WriteLn('  [Historial: ', Conn.Messages.Count, ' mensajes]');
+  WriteLn('  Response: ', R);
+  WriteLn('  [History: ', Conn.Messages.Count, ' messages]');
 
   WriteLn('');
-  WriteLn('→ El PDF se adjunta UNA sola vez (Turno 1).');
-  WriteLn('  Turnos 2 y 3 pasan [] — el modelo lo recuerda en el historial.');
-  WriteLn('  Conn.Messages.Count crece con cada turno: system + user + assistant.');
+  WriteLn('→ The PDF is attached only ONCE (Turn 1).');
+  WriteLn('  Turns 2 and 3 pass [] — the model remembers it in history.');
+  WriteLn('  Conn.Messages.Count grows with each turn: system + user + assistant.');
 end;
 
 // =============================================================================
-//  Demo 3 — Extracción JSON estructurada desde PDF
+//  Demo 3 — Structured JSON extraction from PDF
 //
-//  Forzar respuesta JSON permite integración directa con la aplicación:
-//  parsear con TJSONObject, guardar en base de datos, etc.
-//  Útil para facturas, contratos, formularios, informes.
+//  Forcing a JSON response allows direct integration with the application:
+//  parse with TJSONObject, save to database, etc.
+//  Useful for invoices, contracts, forms, reports.
 // =============================================================================
 procedure Demo3_ExtraccionJSON(const PdfPath: string; Conn: TAiChatConnection);
 var
@@ -268,7 +268,7 @@ var
   R     : string;
   OldSP : string;
 begin
-  Separador('Demo 3 — Extracción estructurada (JSON) desde PDF');
+  Separador('Demo 3 — Structured extraction (JSON) from PDF');
 
   MF := TAiMediaFile.Create;
   MF.LoadFromFile(PdfPath);
@@ -277,143 +277,143 @@ begin
 
   Conn.NewChat;
 
-  // Guardar y reemplazar el SystemPrompt para forzar JSON
+  // Save and replace the SystemPrompt to force JSON
   OldSP := Conn.SystemPrompt.Text;
   Conn.SystemPrompt.Text :=
-    'Eres un extractor de datos de documentos. ' +
-    'Responde ÚNICAMENTE con JSON válido. Sin texto adicional fuera del JSON. ' +
-    'Si un campo no aparece en el documento, usa null.';
+    'You are a document data extractor. ' +
+    'Respond ONLY with valid JSON. No additional text outside the JSON. ' +
+    'If a field does not appear in the document, use null.';
 
-  Write('  Extrayendo datos estructurados... ');
+  Write('  Extracting structured data... ');
   R := Conn.AddMessageAndRun(
-    'Analiza este documento y devuelve un JSON con este esquema exacto: ' +
+    'Analyze this document and return a JSON with this exact schema: ' +
     '{"tipo_documento": "...", ' +
-    '"fecha": "YYYY-MM-DD o null", ' +
-    '"partes": ["nombre1", "nombre2"], ' +
+    '"fecha": "YYYY-MM-DD or null", ' +
+    '"partes": ["name1", "name2"], ' +
     '"monto_total": 0.0, ' +
-    '"moneda": "MXN/USD/EUR o null", ' +
-    '"resumen": "una oración"}',
+    '"moneda": "MXN/USD/EUR or null", ' +
+    '"resumen": "one sentence"}',
     'user', Files);
   WriteLn('OK');
   WriteLn('');
-  WriteLn('  JSON extraído:');
+  WriteLn('  Extracted JSON:');
   WriteLn('  ', R);
 
-  // Restaurar SystemPrompt para demos siguientes
+  // Restore SystemPrompt for following demos
   Conn.SystemPrompt.Text := OldSP;
 
   WriteLn('');
-  WriteLn('→ SystemPrompt + esquema JSON = datos parseables.');
-  WriteLn('  En Delphi: TJSONObject.ParseJSONValue(R) para procesar el resultado.');
-  WriteLn('  Haiku (Claude) o Flash (Gemini) son las opciones más económicas para lotes.');
+  WriteLn('→ SystemPrompt + JSON schema = parseable data.');
+  WriteLn('  In Delphi: TJSONObject.ParseJSONValue(R) to process the result.');
+  WriteLn('  Haiku (Claude) or Flash (Gemini) are the most economical options for batches.');
 end;
 
 // =============================================================================
-//  Demo 4 — Ollama + texto embebido (Estrategia B, 100% local)
+//  Demo 4 — Ollama + embedded text (Strategy B, 100% local)
 //
-//  Ollama no tiene soporte nativo de PDF (sin cap_Pdf).
-//  Alternativa práctica: extraer el texto del PDF con Delphi y enviarlo
-//  como contexto en el SystemPrompt. El modelo hace Q&A sobre ese texto.
+//  Ollama has no native PDF support (without cap_Pdf).
+//  Practical alternative: extract the PDF text with Delphi and send it
+//  as context in the SystemPrompt. The model does Q&A over that text.
 //
-//  Para este demo usamos un documento de muestra interno (factura ficticia).
-//  En producción: usar iTextSharp, PdfiumLib, o TAiNativePdfTool
-//  (disponible en el repo AiMaker.ChatTools) para la extracción real del texto.
+//  For this demo we use an internal sample document (fictional invoice).
+//  In production: use iTextSharp, PdfiumLib, or TAiNativePdfTool
+//  (available in the AiMaker.ChatTools repo) for real text extraction.
 // =============================================================================
 procedure Demo4_OllamaTextoLocal(Conn: TAiChatConnection);
 var
   Texto: string;
   R    : string;
 begin
-  Separador('Demo 4 — Ollama + Texto Embebido (Estrategia B, 100% local)');
+  Separador('Demo 4 — Ollama + Embedded Text (Strategy B, 100% local)');
 
-  WriteLn('  Ollama no procesa PDF nativamente — pero podemos incrustar');
-  WriteLn('  el texto extraído directamente en el SystemPrompt.');
-  WriteLn('  Resultado: Q&A sobre el documento sin que salga de tu máquina.');
+  WriteLn('  Ollama does not process PDF natively — but we can embed');
+  WriteLn('  the extracted text directly in the SystemPrompt.');
+  WriteLn('  Result: Q&A over the document without it leaving your machine.');
   WriteLn('');
 
-  // Documento de muestra: factura ficticia
-  // En producción este texto vendría de un lector de PDF:
+  // Sample document: fictional invoice
+  // In production this text would come from a PDF reader:
   //   - TAiNativePdfTool (AiMaker.ChatTools): extractor 100% Delphi + Skia
-  //   - PdfiumLib (componente Delphi open source)
-  //   - System.PDF.PDFium (Delphi 12+ en beta)
+  //   - PdfiumLib (open source Delphi component)
+  //   - System.PDF.PDFium (Delphi 12+ in beta)
   Texto :=
-    'FACTURA ELECTRÓNICA No. FE-2025-0142' + sLineBreak +
-    'Fecha de emisión: 10 de marzo de 2025' + sLineBreak +
+    'ELECTRONIC INVOICE No. FE-2025-0142' + sLineBreak +
+    'Issue date: March 10, 2025' + sLineBreak +
     sLineBreak +
-    'PROVEEDOR: Distribuidora Norte S.A. de C.V.' + sLineBreak +
+    'SUPPLIER: Distribuidora Norte S.A. de C.V.' + sLineBreak +
     'RFC: DNO820315AB8' + sLineBreak +
-    'Dirección: Calle Reforma 450, Col. Centro, CDMX 06040' + sLineBreak +
+    'Address: Calle Reforma 450, Col. Centro, CDMX 06040' + sLineBreak +
     sLineBreak +
-    'CLIENTE: Tech Solutions Monterrey S.A.' + sLineBreak +
+    'CLIENT: Tech Solutions Monterrey S.A.' + sLineBreak +
     'RFC: TSM970612CD4' + sLineBreak +
-    'Dirección: Av. Constitución 1200, Monterrey, N.L. 64000' + sLineBreak +
+    'Address: Av. Constitución 1200, Monterrey, N.L. 64000' + sLineBreak +
     sLineBreak +
-    'CONCEPTOS:' + sLineBreak +
-    '  1. Laptop Dell XPS 15 (cantidad: 3)        $ 45,000.00' + sLineBreak +
-    '  2. Monitor LG 27 pulgadas 4K (cantidad: 5) $ 18,750.00' + sLineBreak +
-    '  3. Switch Cisco 24 puertos (cantidad: 1)   $  8,200.00' + sLineBreak +
-    '  4. Instalación y configuración             $  3,500.00' + sLineBreak +
+    'ITEMS:' + sLineBreak +
+    '  1. Laptop Dell XPS 15 (quantity: 3)        $ 45,000.00' + sLineBreak +
+    '  2. Monitor LG 27 inches 4K (quantity: 5) $ 18,750.00' + sLineBreak +
+    '  3. Switch Cisco 24 ports (quantity: 1)   $  8,200.00' + sLineBreak +
+    '  4. Installation and configuration             $  3,500.00' + sLineBreak +
     sLineBreak +
     'SUBTOTAL:                                    $ 75,450.00' + sLineBreak +
-    'IVA (16%):                                   $ 12,072.00' + sLineBreak +
-    'TOTAL A PAGAR:                               $ 87,522.00' + sLineBreak +
+    'VAT (16%):                                   $ 12,072.00' + sLineBreak +
+    'TOTAL TO PAY:                               $ 87,522.00' + sLineBreak +
     sLineBreak +
-    'Forma de pago: Transferencia bancaria 30 días' + sLineBreak +
-    'Banco: BBVA  CLABE: 012345678901234567' + sLineBreak +
+    'Payment method: Bank transfer 30 days' + sLineBreak +
+    'Bank: BBVA  CLABE: 012345678901234567' + sLineBreak +
     sLineBreak +
-    'Notas: Incluye garantía de 12 meses en equipos.' + sLineBreak +
-    'Fecha de instalación acordada: 15 de marzo de 2025 a las 9:00 hrs.' + sLineBreak +
-    'Contacto proveedor: ventas@distribnorte.com.mx  Tel: 55-1234-5678';
+    'Notes: Includes 12-month warranty on equipment.' + sLineBreak +
+    'Agreed installation date: March 15, 2025 at 9:00' + sLineBreak +
+    'Supplier contact: ventas@distribnorte.com.mx  Phone: 55-1234-5678';
 
-  WriteLn('  Documento: Factura FE-2025-0142 (muestra interna)');
-  WriteLn('  Contenido: ', Length(Texto), ' caracteres');
+  WriteLn('  Document: Invoice FE-2025-0142 (internal sample)');
+  WriteLn('  Content: ', Length(Texto), ' characters');
   WriteLn('');
 
-  // El texto del documento va en el SystemPrompt
-  // El modelo recibe el contenido completo como parte de su contexto inicial
+  // The document text goes in the SystemPrompt
+  // The model receives the full content as part of its initial context
   Conn.NewChat;
   Conn.SystemPrompt.Text :=
-    'Eres un asistente especializado en análisis de documentos.' + sLineBreak +
-    'Basa tus respuestas ÚNICAMENTE en el siguiente contenido.' + sLineBreak +
-    'Si la información no está en el documento, di: "No se menciona en el documento".' + sLineBreak +
-    'Responde en español de forma concisa.' + sLineBreak +
+    'You are an assistant specialized in document analysis.' + sLineBreak +
+    'Base your answers ONLY on the following content.' + sLineBreak +
+    'If the information is not in the document, say: "Not mentioned in the document".' + sLineBreak +
+    'Respond concisely in English.' + sLineBreak +
     sLineBreak +
-    '=== DOCUMENTO ===' + sLineBreak +
+    '=== DOCUMENT ===' + sLineBreak +
     Texto + sLineBreak +
-    '=== FIN DEL DOCUMENTO ===';
+    '=== END OF DOCUMENT ===';
 
-  // Turno 1: identificación del documento
-  Write('  [Turno 1] Identificando documento... ');
+  // Turn 1: document identification
+  Write('  [Turn 1] Identifying document... ');
   R := Conn.AddMessageAndRun(
-    '¿De qué tipo de documento se trata y cuáles son los datos principales?',
+    'What type of document is this and what are the main data?',
     'user', []);
   WriteLn('OK');
-  WriteLn('  Respuesta: ', R);
+  WriteLn('  Response: ', R);
 
-  // Turno 2: cifras financieras
+  // Turn 2: financial figures
   WriteLn('');
-  Write('  [Turno 2] Datos financieros... ');
+  Write('  [Turn 2] Financial data... ');
   R := Conn.AddMessageAndRun(
-    '¿Cuál es el total a pagar y de cuánto es el IVA?',
+    'What is the total to pay and how much is the VAT?',
     'user', []);
   WriteLn('OK');
-  WriteLn('  Respuesta: ', R);
+  WriteLn('  Response: ', R);
 
-  // Turno 3: desglose de productos
+  // Turn 3: product breakdown
   WriteLn('');
-  Write('  [Turno 3] Productos adquiridos... ');
+  Write('  [Turn 3] Products purchased... ');
   R := Conn.AddMessageAndRun(
-    'Lista todos los productos con sus cantidades y precios unitarios.',
+    'List all products with their quantities and unit prices.',
     'user', []);
   WriteLn('OK');
-  WriteLn('  Respuesta: ', R);
+  WriteLn('  Response: ', R);
 
   WriteLn('');
-  WriteLn('→ Patrón Estrategia B: texto del documento en SystemPrompt.');
-  WriteLn('  Sin cap_Pdf nativo — pero efectivo y 100% local con Ollama.');
-  WriteLn('  Para automatizar la extracción de texto desde PDF real:');
-  WriteLn('    TAiNativePdfTool (AiMaker.ChatTools)  — extractor puro Delphi');
-  WriteLn('    PdfiumLib  — binding Delphi a PDFium (código abierto)');
+  WriteLn('→ Strategy B pattern: document text in SystemPrompt.');
+  WriteLn('  Without native cap_Pdf — but effective and 100% local with Ollama.');
+  WriteLn('  To automate text extraction from a real PDF:');
+  WriteLn('    TAiNativePdfTool (AiMaker.ChatTools)  — pure Delphi extractor');
+  WriteLn('    PdfiumLib  — Delphi binding to PDFium (open source)');
 end;
 
 // =============================================================================
@@ -428,34 +428,34 @@ var
   TienePDF   : Boolean;
   TieneOllama: Boolean;
 begin
-  WriteLn('=== MakerAI — Capítulo 10: Procesamiento de Documentos PDF ===');
-  WriteLn('Estrategia A: PDF nativo con Gemini (ModelCaps=[cap_Pdf])');
-  WriteLn('Estrategia B: Texto embebido con Ollama (100% local)');
+  WriteLn('=== MakerAI — Chapter 10: PDF Document Processing ===');
+  WriteLn('Strategy A: Native PDF with Gemini (ModelCaps=[cap_Pdf])');
+  WriteLn('Strategy B: Embedded text with Ollama (100% local)');
 
-  // Verificar disponibilidad de cada recurso
+  // Check availability of each resource
   TieneGemini := GeminiApiKeyDisponible;
   PdfPath     := EncontrarPDF;
   TienePDF    := PdfPath <> '';
   TieneOllama := OllamaActivo;
 
   WriteLn('');
-  WriteLn('  Estado:');
+  WriteLn('  Status:');
   if TieneGemini then
-    WriteLn('  [OK] GEMINI_API_KEY detectado')
+    WriteLn('  [OK] GEMINI_API_KEY detected')
   else
-    WriteLn('  [--] GEMINI_API_KEY no configurado → Demos 1-3 se omitirán');
+    WriteLn('  [--] GEMINI_API_KEY not configured → Demos 1-3 will be skipped');
 
   if TienePDF then
-    WriteLn('  [OK] PDF encontrado: ', ExtractFileName(PdfPath))
+    WriteLn('  [OK] PDF found: ', ExtractFileName(PdfPath))
   else
-    WriteLn('  [--] PDF no encontrado (PDF_PATH=', PDF_PATH, ') → Demos 1-3 se omitirán');
+    WriteLn('  [--] PDF not found (PDF_PATH=', PDF_PATH, ') → Demos 1-3 will be skipped');
 
   if TieneOllama then
-    WriteLn('  [OK] Ollama activo en ', OLLAMA_URL, ' — Demo 4 disponible')
+    WriteLn('  [OK] Ollama active at ', OLLAMA_URL, ' — Demo 4 available')
   else
-    WriteLn('  [--] Ollama no detectado en ', OLLAMA_URL, ' → Demo 4 se omitirá');
+    WriteLn('  [--] Ollama not detected at ', OLLAMA_URL, ' → Demo 4 will be skipped');
 
-  // ── Demos con Gemini (Estrategia A) ─────────────────────────────────────
+  // ── Demos with Gemini (Strategy A) ─────────────────────────────────────
   if TieneGemini and TienePDF then
   begin
     ConnGemini := CrearConexionGemini;
@@ -470,14 +470,14 @@ begin
   else if not TieneGemini or not TienePDF then
   begin
     WriteLn('');
-    WriteLn('--- Demos 1-3 omitidos (Gemini / PDF no disponibles) ---');
+    WriteLn('--- Demos 1-3 skipped (Gemini / PDF not available) ---');
     if not TieneGemini then
-      WriteLn('  Para habilitar: configura la variable de entorno GEMINI_API_KEY');
+      WriteLn('  To enable: configure the GEMINI_API_KEY environment variable');
     if not TienePDF then
-      WriteLn('  Para habilitar: coloca un .pdf en ', PDF_PATH);
+      WriteLn('  To enable: place a .pdf in ', PDF_PATH);
   end;
 
-  // ── Demo con Ollama (Estrategia B) ──────────────────────────────────────
+  // ── Demo with Ollama (Strategy B) ──────────────────────────────────────
   if TieneOllama then
   begin
     ConnOllama := CrearConexionOllama;
@@ -490,13 +490,13 @@ begin
   else
   begin
     WriteLn('');
-    WriteLn('--- Demo 4 omitido (Ollama no disponible) ---');
-    WriteLn('  Para habilitar: ollama serve  |  ollama pull gemma3:4b');
+    WriteLn('--- Demo 4 skipped (Ollama not available) ---');
+    WriteLn('  To enable: ollama serve  |  ollama pull gemma3:4b');
   end;
 
   WriteLn('');
   WriteLn(StringOfChar('=', 62));
-  WriteLn('  Demo completado.');
+  WriteLn('  Demo completed.');
   WriteLn(StringOfChar('=', 62));
 end;
 
@@ -508,6 +508,6 @@ begin
       WriteLn('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   WriteLn('');
-  WriteLn('Presiona Enter para salir...');
+  WriteLn('Press Enter to exit...');
   ReadLn;
 end.

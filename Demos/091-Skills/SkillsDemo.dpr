@@ -1,30 +1,30 @@
 ﻿program SkillsDemo;
 
 // =============================================================================
-// DEMO 091 - Skills: instrucciones reutilizables para chats y agentes
+// DEMO 091 - Skills: reusable instructions for chats and agents
 // =============================================================================
-// Un skill es un SKILL.md: frontmatter YAML (nombre, cuándo usarlo) + las
-// instrucciones en Markdown. Es el formato de las Agent Skills y del registry
-// PPM. La carpeta skills\ de este demo trae tres:
+// A skill is a SKILL.md: YAML frontmatter (name, when to use it) + the
+// instructions in Markdown. It is the format of Agent Skills and of the
+// PPM registry. The skills\ folder of this demo brings three:
 //
-//   facturas        con un archivo de apoyo (plantilla.md)
-//   revisor-delphi  reglas de revisión de código
-//   tono-soporte    tono para responder a clientes
+//   invoices        with a supporting file (plantilla.md)
+//   delphi-reviewer  code review rules
+//   support-tone    tone for replying to customers
 //
-//   A. TAiSkills (bajo demanda): el modelo ve solo el catálogo y carga el
-//      skill que necesita con use_skill; si las instrucciones lo piden, lee
-//      los archivos de apoyo con read_skill_file. Una pregunta que no
-//      corresponde a ningún skill no carga nada.
-//   B. TLLMNode + TAiSkill (personalidad fija): un nodo de agente toma el
-//      skill como base; ResolveConfig muestra cómo se combina con el nodo.
-//   C. TAiPrompts.ApplySkill (a mano): copia las instrucciones de un skill
-//      al SystemPrompt de una conexión.
+//   A. TAiSkills (on demand): the model sees only the catalog and loads the
+//      skill it needs with use_skill; if the instructions ask for it, it reads
+//      the supporting files with read_skill_file. A question that does not
+//      match any skill loads nothing.
+//   B. TLLMNode + TAiSkill (fixed personality): an agent node takes the
+//      skill as its base; ResolveConfig shows how it combines with the node.
+//   C. TAiPrompts.ApplySkill (by hand): copies a skill's instructions
+//      into a connection's SystemPrompt.
 //
 // Uso:
 //   SkillsDemo.exe                                  (OpenAI gpt-5.6-luna)
 //   SkillsDemo.exe --driver Claude --model claude-haiku-4-5-20251001
 //   SkillsDemo.exe --driver Groq --model openai/gpt-oss-120b
-//   SkillsDemo.exe --ppm        (agrega skill-code-review del registry PPM)
+//   SkillsDemo.exe --ppm        (adds skill-code-review from the PPM registry)
 //
 // La API key se toma de <DRIVER>_API_KEY (OPENAI_API_KEY, CLAUDE_API_KEY...).
 // =============================================================================
@@ -62,7 +62,7 @@ const
     'end;';
 
 type
-  // Los eventos del framework son 'of object': los handlers viven en una clase
+  // Framework events are 'of object': handlers live in a class
   TEventos = class
   public
     Cargados: string;
@@ -129,7 +129,7 @@ begin
       Exit;
     Dir := TPath.GetDirectoryName(ExcludeTrailingPathDelimiter(Dir));
   end;
-  raise Exception.Create('No se encontró la carpeta skills\ del demo');
+  raise Exception.Create('The demo skills\ folder was not found');
 end;
 
 procedure Titulo(const S: string);
@@ -176,19 +176,19 @@ begin
   try
     Skills.OnSkillLoaded := Eventos.SkillLoaded;
     Skills.Functions := Funcs;
-    Writeln('Skills cargados de ', GSkillsDir, ': ', Skills.LoadFromFolder(GSkillsDir));
+    Writeln('Skills loaded from ', GSkillsDir, ': ', Skills.LoadFromFolder(GSkillsDir));
     if GUsarPPM then
     try
       Skills.LoadFromPPM('skill-code-review');
-      Writeln('Del registry PPM: skill-code-review');
+      Writeln('From the PPM registry: skill-code-review');
     except
       on E: Exception do
-        Writeln('PPM no disponible: ', E.Message);
+        Writeln('PPM not available: ', E.Message);
     end;
     Conn.AiFunctions := Funcs;
 
     Writeln;
-    Writeln('Catálogo que ve el modelo (solo esto viaja en cada turno):');
+    Writeln('Catalog seen by the model (only this travels in each turn):');
     Writeln(Skills.Catalog);
 
     for P in PREGUNTAS do
@@ -200,9 +200,9 @@ begin
       Writeln('>>> ', P.Replace(#10, ' ').Substring(0, 90));
       R := Conn.AddMessageAndRun(P, 'user', []);
       if Eventos.Cargados = '' then
-        Writeln('[skills cargados: ninguno]')
+        Writeln('[skills loaded: none]')
       else
-        Writeln('[skills cargados: ', Trim(Eventos.Cargados), ']');
+        Writeln('[skills loaded: ', Trim(Eventos.Cargados), ']');
       if Eventos.Error <> '' then
         Writeln('ERROR: ', Eventos.Error)
       else
@@ -242,9 +242,9 @@ begin
     Manager.EndNode := Node;
 
     Cfg := Node.ResolveConfig;
-    Writeln('Driver: ', Cfg.DriverName, '   Modelo: ', Cfg.Model);
-    Writeln('SystemPrompt = instrucciones del skill + las del nodo (',
-      Length(Cfg.SystemPrompt), ' caracteres)');
+    Writeln('Driver: ', Cfg.DriverName, '   Model: ', Cfg.Model);
+    Writeln('SystemPrompt = skill instructions + node instructions (',
+      Length(Cfg.SystemPrompt), ' characters)');
     Writeln;
     Writeln(Manager.Run(CODIGO_CON_ERRORES).Trim);
   finally
@@ -266,7 +266,7 @@ begin
   try
     Prompts.LoadSkillsFromFolder(GSkillsDir);
     Prompts.ApplySkill('tono-soporte', Conn.SystemPrompt);
-    Writeln('SystemPrompt de la conexión: ', Conn.SystemPrompt.Count, ' líneas del skill tono-soporte');
+    Writeln('Connection SystemPrompt: ', Conn.SystemPrompt.Count, ' lines from the tono-soporte skill');
     Writeln;
     Writeln(Conn.AddMessageAndRun(
       'El cliente dice: "Me cobraron dos veces la mensualidad". Responde.', 'user', []).Trim);
@@ -287,7 +287,7 @@ begin
     try
       LeerArgumentos;
       GSkillsDir := BuscarCarpetaSkills;
-      Writeln('Driver: ', GDriver, '   Modelo: ', IfThen(GModel = '', '(default del driver)', GModel));
+      Writeln('Driver: ', GDriver, '   Model: ', IfThen(GModel = '', '(driver default)', GModel));
       BloqueA(Eventos);
       BloqueB;
       BloqueC(Eventos);

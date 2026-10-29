@@ -1,29 +1,29 @@
 ﻿program ComputerUsePassthruDemo;
 
 {
-  Demo 082 - Computer Use: quien ejecuta la accion.
+  Demo 082 - Computer Use: who executes the action.
 
-  Un computer_call se puede resolver de tres maneras, y este demo las ejerce
-  todas contra el API real, sin tocar la pantalla:
+  A computer_call can be resolved in three ways, and this demo exercises
+  all of them against the real API, without touching the screen:
 
-    1. DELEGADA  - OnCallToolFunction llena ToolCall.Response, asi que el
-                   driver NO ejecuta nada en local. Es lo que hace un broker
-                   headless que reenvia la llamada a su cliente remoto.
-    2. SIN TOOL  - cap_ComputerUse esta activo pero falta
-                   ChatTools.ComputerUseTool: configuracion incompleta, el
-                   turno se corta con LastError en vez de mandar un output
-                   invalido.
-    3. LOCAL     - hay ejecutor: el driver ejecuta, captura, responde un
-                   computer_call_output y recurre (bucle agentico normal).
+    1. DELEGATED  - OnCallToolFunction fills ToolCall.Response, so the
+                   driver does NOT execute anything locally. This is what a broker
+                   headless that forwards the call to its remote client does.
+    2. NO TOOL  - cap_ComputerUse is active but
+                   ChatTools.ComputerUseTool is missing: incomplete configuration, the
+                   turn is cut off with LastError instead of sending an invalid
+                   output.
+    3. LOCAL     - there is an executor: the driver executes, captures, responds with a
+                   computer_call_output and recurses (normal agentic loop).
 
-  Cada caso se corre en modo sincrono y en streaming, porque el driver de
-  OpenAI tiene DOS implementaciones separadas del computer_call.
+  Each case runs in synchronous and streaming mode, because the OpenAI
+  driver has TWO separate implementations of computer_call.
 
-  El ejecutor de los casos locales es simulado: devuelve exito y un PNG de
-  1x1 como "screenshot". Asi se valida el round-trip completo sin mover el
-  raton ni mandarle tu escritorio al proveedor (el demo 066 si hace eso).
+  The executor for local cases is simulated: it returns success and a 1x1
+  PNG as a "screenshot". This validates the complete round trip without moving the
+  mouse or sending your desktop to the provider (demo 066 does that).
 
-  Salida: exit code 0 si todo lo que se pudo verificar paso; 1 si algo fallo.
+  Output: exit code 0 if everything that could be verified passed; 1 if something failed.
 }
 
 {$APPTYPE CONSOLE}
@@ -43,13 +43,13 @@ uses
   uMakerAi.Chat.Initializations;
 
 const
-  // PNG 1x1 valido. Hace de screenshot sin tocar la pantalla real.
+  // Valid 1x1 PNG. Acts as a screenshot without touching the real screen.
   CPng1x1 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8' +
             'BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
 
   CDefaultModel = 'gpt-6-astra';
-  CDefaultPrompt = 'Toma el control de la pantalla: haz una captura y dime ' +
-                   'brevemente que ves.';
+  CDefaultPrompt = 'Take control of the screen: take a screenshot and tell me ' +
+                   'briefly what you see.';
 
 type
   // Que se espera del turno, segun quien deba ejecutar la accion.
@@ -88,9 +88,9 @@ begin
     Names := Names + ', ';
   Names := Names + AiToolCall.Name;
 
-  // El gate del framework: si el handler deja Response lleno, el driver da la
-  // accion por ejecutada en otro sitio y no la toca. Mismo contrato en Claude,
-  // en Gemini y en el bridge generico de TAiChat.
+  // The framework gate: if the handler leaves Response filled, the driver considers the
+  // action executed elsewhere and does not touch it. Same contract in Claude,
+  // in Gemini and in the generic TAiChat bridge.
   if Intercept and (Calls >= DelegateFrom) then
     AiToolCall.Response := '{"output":"delegated_to_remote_client"}';
 end;
@@ -136,13 +136,13 @@ var
 begin
   case AKind of
     ckDelegated:
-      Title := 'DELEGADA (broker headless)';
+      Title := 'DELEGATED (headless broker)';
     ckMissingTool:
-      Title := 'SIN ComputerUseTool asignado';
+      Title := 'WITHOUT assigned ComputerUseTool';
   else
-    Title := 'LOCAL (ejecutor simulado)';
+    Title := 'LOCAL (simulated executor)';
   end;
-  Title := Title + IfThen(AAsync, ' - streaming', ' - sincrono');
+  Title := Title + IfThen(AAsync, ' - streaming', ' - synchronous');
 
   HasTool := AKind <> ckMissingTool;
   WithExecutor := AKind = ckLocal;
@@ -157,8 +157,8 @@ begin
   Chat := TAiOpenChat.Create(nil);
   try
     Spy.Intercept := AKind <> ckMissingTool;
-    // En el caso local se dejan dos rondas reales antes de cortar el bucle.
-    // (IfThen entero vive en System.Math y chocaria con el de System.StrUtils.)
+    // In the local case, two real rounds are left before cutting the loop.
+    // (The integer IfThen lives in System.Math and would clash with the one in System.StrUtils.)
     if AKind = ckLocal then
       Spy.DelegateFrom := 3
     else
@@ -166,9 +166,9 @@ begin
 
     Chat.ApiKey := '@OPENAI_API_KEY';
     Chat.Model := GModel;
-    // Computer Use es OPT-IN deliberado: sin cap_ComputerUse el tool 'computer'
-    // ni siquiera se declara. La alternativa documentada es el registry, antes
-    // de crear el componente:
+    // Computer Use is deliberately OPT-IN: without cap_ComputerUse the 'computer' tool
+    // is not even declared. The documented alternative is the registry, before
+    // creating the component:
     //   TAiChatFactory.Instance.RegisterUserParam('OpenAi', 'gpt-6-astra',
     //     'ModelCaps', '[cap_Image, cap_Reasoning, cap_ComputerUse]');
     Chat.ModelCaps := [cap_Image, cap_Reasoning, cap_ComputerUse];
@@ -203,7 +203,7 @@ begin
       end;
 
       if Res.Trim <> '' then
-        WriteLn('Respuesta: ', Copy(Res.Trim, 1, 160));
+        WriteLn('Response: ', Copy(Res.Trim, 1, 160));
     except
       on E: Exception do
       begin
@@ -216,12 +216,12 @@ begin
     if Chat.LastError <> '' then
       WriteLn('LastError: ', Copy(Chat.LastError, 1, 220));
 
-    WriteLn(Format('Eventos: OnCallToolFunction=%d (%s)  OnExecuteAction=%d  OnRequestScreenshot=%d',
+    WriteLn(Format('Events: OnCallToolFunction=%d (%s)  OnExecuteAction=%d  OnRequestScreenshot=%d',
       [Spy.Calls, Spy.Names, Spy.Execs, Spy.Shots]));
 
     NOut := 0;
     NCall := 0;
-    WriteLn('Historial (', Chat.Messages.Count, ' mensajes):');
+    WriteLn('History (', Chat.Messages.Count, ' messages):');
     for I := 0 to Chat.Messages.Count - 1 do
     begin
       WriteLn(Format('  [%d] role=%-9s len=%-6d %s', [I, Chat.Messages[I].Role,
@@ -231,13 +231,13 @@ begin
       if Kind(Chat.Messages[I].Prompt) = 'computer_call' then
         Inc(NCall);
     end;
-    WriteLn('Resumen: computer_call=', NCall, '  computer_call_output=', NOut);
+    WriteLn('Summary: computer_call=', NCall, '  computer_call_output=', NOut);
 
     if NCall = 0 then
     begin
-      // El modelo decide si usa la herramienta. Si no la uso no hay nada que
-      // verificar; no es un fallo del framework.
-      WriteLn('SKIP: el modelo no uso el tool computer en este turno.');
+      // The model decides whether to use the tool. If it did not use it, there is nothing to
+      // verify; it is not a framework failure.
+      WriteLn('SKIP: the model did not use the computer tool in this turn.');
       Inc(GSkips);
       Exit;
     end;
@@ -250,12 +250,12 @@ begin
           if NOut <> 0 then
           begin
             Ok := False;
-            Why := 'se emitio computer_call_output pese a la delegacion';
+            Why := 'a computer_call_output was emitted despite delegation';
           end
           else if (Spy.Execs <> 0) or (Spy.Shots <> 0) then
           begin
             Ok := False;
-            Why := 'se ejecuto en local pese a la delegacion';
+            Why := 'it was executed locally despite delegation';
           end;
         end;
       ckMissingTool:
@@ -263,12 +263,12 @@ begin
           if NOut <> 0 then
           begin
             Ok := False;
-            Why := 'se emitio un computer_call_output sin imagen (400 seguro)';
+            Why := 'a computer_call_output was emitted without an image (400 guaranteed)';
           end
           else if Chat.LastError = '' then
           begin
             Ok := False;
-            Why := 'el turno se corto sin avisar por LastError';
+            Why := 'the turn was cut off without warning by LastError';
           end;
         end;
       ckLocal:
@@ -276,12 +276,12 @@ begin
           if NOut = 0 then
           begin
             Ok := False;
-            Why := 'no se emitio ningun computer_call_output';
+            Why := 'no computer_call_output was emitted';
           end
           else if (Spy.Execs = 0) or (Spy.Shots = 0) then
           begin
             Ok := False;
-            Why := 'no se llamo al ejecutor local';
+            Why := 'the local executor was not called';
           end;
         end;
     end;
@@ -306,18 +306,18 @@ end;
 
 procedure Usage;
 begin
-  WriteLn('Demo 082 - Computer Use: quien ejecuta la accion');
+  WriteLn('Demo 082 - Computer Use: who executes the action');
   WriteLn('');
   WriteLn('  ComputerUsePassthruDemo.exe [opciones]');
   WriteLn('');
   WriteLn('  --case=all|delegated|missing|local   (default: all)');
   WriteLn('  --mode=both|sync|stream              (default: both)');
   WriteLn('  --model=<id>                         (default: ', CDefaultModel, ')');
-  WriteLn('  --prompt=<texto>');
+  WriteLn('  --prompt=<text>');
   WriteLn('  --help');
   WriteLn('');
-  WriteLn('Requiere la variable de entorno OPENAI_API_KEY.');
-  WriteLn('Hace llamadas REALES al API. No toca la pantalla.');
+  WriteLn('Requires the OPENAI_API_KEY environment variable.');
+  WriteLn('Makes REAL calls to the API. Does not touch the screen.');
 end;
 
 function ArgValue(const AName, ADefault: string): string;
@@ -358,7 +358,7 @@ begin
 
     if GetEnvironmentVariable('OPENAI_API_KEY') = '' then
     begin
-      WriteLn('ERROR: falta la variable de entorno OPENAI_API_KEY.');
+      WriteLn('ERROR: the OPENAI_API_KEY environment variable is missing.');
       Halt(2);
     end;
 
@@ -370,7 +370,7 @@ begin
     LDoSync := (LMode = 'both') or (LMode = 'sync');
     LDoStream := (LMode = 'both') or (LMode = 'stream');
 
-    WriteLn('Modelo: ', GModel);
+    WriteLn('Model: ', GModel);
 
     if (LCase = 'all') or (LCase = 'delegated') then
     begin

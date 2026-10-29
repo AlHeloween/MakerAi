@@ -40,7 +40,7 @@ var
   I       : Integer;
 begin
   WriteLn('--- 1. Discover skills in the registry ---');
-  Json := Prompts.SearchPPM('', 'skill', 1, 10);  // query vacío = todos los skills
+  Json := Prompts.SearchPPM('', 'skill', 1, 10);  // empty query = all skills
   if not Assigned(Json) then
   begin
     WriteLn('  Could not connect to the registry.');
@@ -157,7 +157,7 @@ begin
     WriteLn;
     WriteLn('  Agent review:');
     Revision := AiConn.AddMessageAndRun(
-      'Revisa el siguiente código Delphi e identifica problemas:' +
+      'Review the following Delphi code and identify issues:' +
       sLineBreak + CODIGO_SQL_INJECTION, 'user', []);
     WriteLn(Revision);
   finally

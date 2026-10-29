@@ -4,26 +4,26 @@
 {$R *.res}
 
 // =============================================================================
-// MakerAI — Capítulo 8: TAiMediaFile — El Sobre Universal de Archivos
+// MakerAI — Chapter 8: TAiMediaFile — The Universal Envelope for Files
 // =============================================================================
-// Demuestra las capacidades de TAiMediaFile: la abstracción que permite
-// enviar imágenes, audio, PDF y cualquier archivo al mismo código
-// independientemente del provider.
+// Demonstrates the capabilities of TAiMediaFile: the abstraction that allows
+// sending images, audio, PDF and any file to the same code
+// regardless of the provider.
 //
-// Demuestra:
-//   - Demo 1: Las 4 formas de carga y su metadata automática.
+// Demonstrates:
+//   - Demo 1: The 4 loading forms and their automatic metadata.
 //             LoadFromFile, LoadFromBase64, LoadFromStream, LoadFromUrl.
-//   - Demo 2: Categorías y funciones utilitarias globales.
+//   - Demo 2: Categories and global utility functions.
 //             GetContentCategory, GetMimeTypeFromFileName,
 //             GetFileExtensionFromMimeType, StreamToBase64.
-//   - Demo 3: Serialización completa — ToJsonObject / LoadFromJsonObject.
-//             Preserva IdFile/CloudName para reutilizar archivos ya subidos.
-//   - Demo 4: Prompt adaptativo según el tipo de archivo detectado.
-//             El mismo código elige el prompt correcto para cada FileCategory.
-//             Incluye una llamada real a Groq con un archivo de texto.
+//   - Demo 3: Complete serialization — ToJsonObject / LoadFromJsonObject.
+//             Preserves IdFile/CloudName to reuse already uploaded files.
+//   - Demo 4: Adaptive prompt according to the detected file type.
+//             The same code chooses the correct prompt for each FileCategory.
+//             Includes a real call to Groq with a text file.
 //
-// Los Demos 1, 2 y 3 no requieren ninguna API key (solo operaciones locales).
-// El Demo 4 usa GROQ_API_KEY para demostrar el envío de un archivo de texto.
+// Demos 1, 2 and 3 do not require any API key (local operations only).
+// Demo 4 uses GROQ_API_KEY to demonstrate sending a text file.
 // =============================================================================
 
 uses
@@ -42,12 +42,12 @@ const
   MODEL   = 'llama-3.3-70b-versatile';
   API_KEY = '@GROQ_API_KEY';
 
-  // Imagen siempre disponible en Windows
+  // Image always available on Windows
   IMG_PATH  = 'C:\Windows\Web\Wallpaper\Windows\img0.jpg';
 
-  // Archivo de texto siempre disponible en Windows (para Demo 1/2)
+  // Text file always available on Windows (for Demo 1/2)
   TXT_PATH      = 'C:\Windows\win.ini';
-  // Archivo .txt creado por Demo 4 (extensión .txt → Tfc_Text)
+  // .txt file created by Demo 4 (extension .txt → Tfc_Text)
   DEMO4_TXT     = '.\demo_cap08_config.txt';
 
 procedure Separador(const Titulo: string);
@@ -84,8 +84,8 @@ var
 begin
   Separador('Demo 1 — Las 4 formas de cargar un TAiMediaFile');
 
-  // ── Forma 1: LoadFromFile ─────────────────────────────────────────────────
-  WriteLn('  Forma 1: LoadFromFile (la más común)');
+  // ── Form 1: LoadFromFile ─────────────────────────────────────────────────
+  WriteLn('  Form 1: LoadFromFile (the most common)');
   if TFile.Exists(IMG_PATH) then
   begin
     MF := TAiMediaFile.Create;
@@ -100,9 +100,9 @@ begin
   else
     WriteLn('  Imagen no encontrada: ', IMG_PATH);
 
-  // ── Forma 2: LoadFromBase64 ───────────────────────────────────────────────
+  // ── Form 2: LoadFromBase64 ───────────────────────────────────────────────
   WriteLn('');
-  WriteLn('  Forma 2: LoadFromBase64 (desde datos recibidos de otra API)');
+  WriteLn('  Form 2: LoadFromBase64 (from data received from another API)');
   if Base64 <> '' then
   begin
     MF := TAiMediaFile.Create;
@@ -114,9 +114,9 @@ begin
     end;
   end;
 
-  // ── Forma 3: LoadFromStream ───────────────────────────────────────────────
+  // ── Form 3: LoadFromStream ───────────────────────────────────────────────
   WriteLn('');
-  WriteLn('  Forma 3: LoadFromStream (desde TMemoryStream en memoria)');
+  WriteLn('  Form 3: LoadFromStream (from TMemoryStream in memory)');
   if TFile.Exists(TXT_PATH) then
   begin
     Stream := TMemoryStream.Create;
@@ -136,27 +136,27 @@ begin
     end;
   end;
 
-  // ── Forma 4: LoadFromUrl (lazy loading) ──────────────────────────────────
+  // ── Form 4: LoadFromUrl (lazy loading) ──────────────────────────────────
   WriteLn('');
-  WriteLn('  Forma 4: LoadFromUrl (la descarga es lazy — ocurre al acceder a Content)');
-  WriteLn('  Ejemplo de uso (sin descarga real en este demo):');
+  WriteLn('  Form 4: LoadFromUrl (download is lazy — occurs when accessing Content)');
+  WriteLn('  Usage example (without real download in this demo):');
   WriteLn('');
-  WriteLn('    MF.LoadFromUrl(''https://ejemplo.com/contrato.pdf'');');
-  WriteLn('    // FileName = "contrato.pdf", FileCategory = Tfc_Pdf');
-  WriteLn('    // Content aún no descargado — descarga lazy al primer acceso');
+  WriteLn('    MF.LoadFromUrl(''https://example.com/contract.pdf'');');
+  WriteLn('    // FileName = "contract.pdf", FileCategory = Tfc_Pdf');
+  WriteLn('    // Content not downloaded yet — lazy download on first access');
   WriteLn('    Respuesta := AiConn.AddMessageAndRun(''Resume...'', ''user'', [MF]);');
-  WriteLn('    // MakerAI accede a Content al construir el request → descarga ocurre aquí');
+  WriteLn('    // MakerAI accesses Content when building the request → download occurs here');
 
   WriteLn('');
-  WriteLn('→ Las 4 formas producen el mismo TAiMediaFile.');
-  WriteLn('  El tipo se detecta automáticamente por la extensión del nombre.');
+  WriteLn('→ The 4 forms produce the same TAiMediaFile.');
+  WriteLn('  The type is detected automatically by the file name extension.');
 end;
 
 // =============================================================================
-//  Demo 2 — Funciones utilitarias globales
+//  Demo 2 — Global utility functions
 //
-//  MakerAI expone tres funciones de uMakerAi.Core para inspeccionar tipos
-//  de archivo sin necesidad de crear un TAiMediaFile.
+//  MakerAI exposes three functions from uMakerAi.Core to inspect file
+//  types without needing to create a TAiMediaFile.
 // =============================================================================
 procedure Demo2_Utilitarios;
 type
@@ -187,9 +187,9 @@ var
 begin
   Separador('Demo 2 — Funciones utilitarias globales (uMakerAi.Core)');
 
-  WriteLn('  GetContentCategory(extension) — categoria de archivo:');
+  WriteLn('  GetContentCategory(extension) — file category:');
   WriteLn('');
-  WriteLn('  Extension  Categoria                MimeType');
+  WriteLn('  Extension  Category                 MimeType');
   WriteLn('  ' + StringOfChar('-', 58));
   for Rec in EXTENSIONES do
   begin
@@ -201,13 +201,13 @@ begin
   end;
 
   WriteLn('');
-  WriteLn('  GetFileExtensionFromMimeType(mime) — extension desde MIME type:');
+  WriteLn('  GetFileExtensionFromMimeType(mime) — extension from MIME type:');
   WriteLn('');
   for Mime in MIMES do
     WriteLn(Format('  %-40s -> .%s', [Mime, GetFileExtensionFromMimeType(Mime)]));
 
   WriteLn('');
-  WriteLn('  StreamToBase64(stream) — convierte TMemoryStream a Base64 limpio:');
+  WriteLn('  StreamToBase64(stream) — converts TMemoryStream to clean Base64:');
   if TFile.Exists(TXT_PATH) then
   begin
     var St := TMemoryStream.Create;
@@ -215,24 +215,24 @@ begin
       St.LoadFromFile(TXT_PATH);
       St.Position := 0;
       var B64 := StreamToBase64(St);
-      WriteLn('  (', TPath.GetFileName(TXT_PATH), ' → Base64 de ', Length(B64), ' chars)');
-      WriteLn('  Los primeros 60 chars: ', Copy(B64, 1, 60), '...');
+      WriteLn('  (', TPath.GetFileName(TXT_PATH), ' → Base64 of ', Length(B64), ' chars)');
+      WriteLn('  First 60 chars: ', Copy(B64, 1, 60), '...');
     finally
       St.Free;
     end;
   end;
 
   WriteLn('');
-  WriteLn('→ Estas funciones trabajan solo con extensiones/MIME types.');
-  WriteLn('  No necesitan leer el archivo — son resoluciones por tabla.');
+  WriteLn('→ These functions work only with extensions/MIME types.');
+  WriteLn('  They do not need to read the file — they are table-based resolutions.');
 end;
 
 // =============================================================================
-//  Demo 3 — Serialización: ToJsonObject / LoadFromJsonObject
+//  Demo 3 — Serialization: ToJsonObject / LoadFromJsonObject
 //
-//  TAiMediaFile puede exportar e importar su estado completo como JSON.
-//  El caso de uso clave: guardar IdFile/CloudName para reutilizar un archivo
-//  ya subido al provider en una sesión futura sin tener que re-subirlo.
+//  TAiMediaFile can export and import its complete state as JSON.
+//  Key use case: save IdFile/CloudName to reuse a file
+//  already uploaded to the provider in a future session without re-uploading it.
 // =============================================================================
 procedure Demo3_Serializacion;
 const
@@ -266,13 +266,13 @@ begin
     try
       JStr := JObj.Format;
       TFile.WriteAllText(JSON_ESTADO, JStr, TEncoding.UTF8);
-      WriteLn('  Estado guardado en: ', JSON_ESTADO);
-      WriteLn('  Campos en el JSON: FileName, MimeType, Base64, IdFile, Detail...');
+      WriteLn('  State saved in: ', JSON_ESTADO);
+      WriteLn('  Fields in JSON: FileName, MimeType, Base64, IdFile, Detail...');
 
       // Mostrar fragmento del JSON (primeros 300 chars)
       var Fragmento := Copy(JStr, 1, 300);
       WriteLn('');
-      WriteLn('  Fragmento del JSON:');
+      WriteLn('  JSON fragment:');
       WriteLn('  ', Fragmento, '...');
     finally
       JObj.Free;
@@ -284,7 +284,7 @@ begin
   WriteLn('');
 
   // Restaurar desde JSON en una "nueva sesión"
-  WriteLn('  Restaurando desde JSON (simula nueva sesión)...');
+  WriteLn('  Restoring from JSON (simulates new session)...');
   MF2 := TAiMediaFile.Create;
   try
     JCargado := TJSONObject.ParseJSONValue(
@@ -295,31 +295,31 @@ begin
       JCargado.Free;
     end;
 
-    WriteLn('  Estado restaurado:');
+    WriteLn('  State restored:');
     WriteLn('    FileName : ', MF2.FileName);
     WriteLn('    MimeType : ', MF2.MimeType);
     WriteLn('    Bytes    : ', MF2.Bytes);
-    WriteLn('    IdFile   : ', MF2.IdFile, '  ← el provider no re-sube el archivo');
+    WriteLn('    IdFile   : ', MF2.IdFile, '  ← the provider does not re-upload the file');
     WriteLn('    Detail   : ', MF2.Detail);
   finally
     MF2.Free;
   end;
 
-  // Limpiar archivo temporal
+  // Clean up temporary file
   if TFile.Exists(JSON_ESTADO) then
     TFile.Delete(JSON_ESTADO);
 
   WriteLn('');
-  WriteLn('→ Con IdFile/CloudName restaurados, MakerAI usa el archivo ya');
-  WriteLn('  subido sin necesidad de re-subirlo. Ahorra tiempo y ancho de banda.');
+  WriteLn('→ With IdFile/CloudName restored, MakerAI uses the file already');
+  WriteLn('  uploaded without needing to re-upload it. Saves time and bandwidth.');
 end;
 
 // =============================================================================
-//  Demo 4 — Prompt adaptativo por tipo de archivo + envío a Groq
+//  Demo 4 — Adaptive prompt by file type + send to Groq
 //
-//  El mismo código elige el prompt correcto según MF.FileCategory.
-//  En este demo, enviamos un archivo .ini (Tfc_Text) a Groq para demostrar
-//  el flujo completo: carga → detección de tipo → envío → respuesta.
+//  The same code chooses the correct prompt according to MF.FileCategory.
+//  In this demo, we send an .ini file (Tfc_Text) to Groq to demonstrate
+//  the complete flow: load → type detection → send → response.
 // =============================================================================
 procedure Demo4_PromptAdaptativo;
 const
@@ -349,9 +349,9 @@ const
       Tfc_Text,
       Tfc_Web,
       Tfc_ExtractTextFile:
-        Result := 'Analiza el contenido de este archivo de texto y explica su propósito.';
+        Result := 'Analyze the content of this text file and explain its purpose.';
     else
-      Result := 'Analiza el contenido de este archivo y describe lo que encuentres.';
+      Result := 'Analyze the content of this file and describe what you find.';
     end;
   end;
 
@@ -370,18 +370,18 @@ begin
   MF := TAiMediaFile.Create;
   MF.LoadFromFile(DEMO4_TXT);
 
-    WriteLn('  Archivo    : ', MF.FileName);
-    WriteLn('  Categoria  : ', GetEnumName(TypeInfo(TAiFileCategory), Ord(MF.FileCategory)));
+    WriteLn('  File       : ', MF.FileName);
+    WriteLn('  Category   : ', GetEnumName(TypeInfo(TAiFileCategory), Ord(MF.FileCategory)));
     WriteLn('  MimeType   : ', MF.MimeType);
     WriteLn('  Bytes      : ', MF.Bytes);
 
     Prompt := ElegirPrompt(MF);
     WriteLn('');
-    WriteLn('  Prompt elegido automaticamente:');
+    WriteLn('  Prompt chosen automatically:');
     WriteLn('  "', Prompt, '"');
     WriteLn('');
 
-    // Enviar al LLM
+    // Send to LLM
     Conn := TAiChatConnection.Create(nil);
     try
       Conn.DriverName := DRIVER;
@@ -393,19 +393,19 @@ begin
       Conn.SystemPrompt.Text :=
         'Eres un asistente que analiza archivos. Responde en español, conciso.';
 
-      // Para modelos texto-only (Groq, DeepSeek, etc.) el contenido de archivos
-    // de texto va inline en el prompt — no como attachment binario.
-    // Para modelos multimodales (Gemini, Claude, OpenAI) usarías Files[0] := MF.
+      // For text-only models (Groq, DeepSeek, etc.) file content
+    // goes inline in the prompt — not as a binary attachment.
+    // For multimodal models (Gemini, Claude, OpenAI) you would use Files[0] := MF.
     var FileContent := TFile.ReadAllText(DEMO4_TXT, TEncoding.UTF8);
     var PromptFinal := Prompt + #13#10#13#10 +
-      '--- Contenido del archivo ---' + #13#10 + FileContent;
+      '--- File content ---' + #13#10 + FileContent;
 
-    Write('  Enviando a Groq (contenido inline)... ');
+    Write('  Sending to Groq (inline content)... ');
     try
       R := Conn.AddMessageAndRun(PromptFinal, 'user', []);
       WriteLn('OK');
       WriteLn('');
-      WriteLn('  Respuesta de Groq:');
+      WriteLn('  Groq response:');
       WriteLn('  ', R);
     except
       on E: Exception do
@@ -415,18 +415,18 @@ begin
       end;
     end;
 
-    MF.Free;  // MF no fue pasado a AddMessageAndRun — liberación normal
+    MF.Free;  // MF was not passed to AddMessageAndRun — normal release
   finally
     Conn.Free;
   end;
 
-  // Limpiar archivo temporal
+  // Clean up temporary file
   if TFile.Exists(DEMO4_TXT) then
     TFile.Delete(DEMO4_TXT);
 
   WriteLn('');
-  WriteLn('→ El mismo código funciona con cualquier tipo de archivo.');
-  WriteLn('  Cambia TXT_PATH por una imagen, PDF o audio (con el provider correcto).');
+  WriteLn('→ The same code works with any file type.');
+  WriteLn('  Change TXT_PATH to an image, PDF or audio (with the correct provider).');
 end;
 
 // =============================================================================
@@ -434,8 +434,8 @@ end;
 // =============================================================================
 procedure RunDemo;
 begin
-  WriteLn('=== MakerAI — Capítulo 8: TAiMediaFile ===');
-  WriteLn('El sobre universal: la misma clase para imagen, audio, PDF, texto...');
+  WriteLn('=== MakerAI — Chapter 8: TAiMediaFile ===');
+  WriteLn('The universal envelope: the same class for image, audio, PDF, text...');
 
   Demo1_FormasDeCarga;
   Demo2_Utilitarios;
@@ -444,7 +444,7 @@ begin
 
   WriteLn('');
   WriteLn(StringOfChar('=', 62));
-  WriteLn('  Demo completado.');
+  WriteLn('  Demo completed.');
   WriteLn(StringOfChar('=', 62));
 end;
 
@@ -456,6 +456,6 @@ begin
       WriteLn('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   WriteLn('');
-  WriteLn('Presiona Enter para salir...');
+  WriteLn('Press Enter to exit...');
   ReadLn;
 end.

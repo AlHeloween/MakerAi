@@ -5,8 +5,8 @@
 // =============================================================================
 // MakerAI - Demo 070: Kimi Async Diagnostic
 // =============================================================================
-// Prueba el driver TAiKimiChat en modo sincrono y asincronico (streaming).
-// Muestra cada token recibido en async para detectar problemas de parseo.
+// Tests the TAiKimiChat driver in synchronous and asynchronous (streaming) mode.
+// Shows each token received in async to detect parsing issues.
 //
 // Configure KIMI_API_KEY as an environment variable before running.
 // =============================================================================
@@ -27,10 +27,10 @@ uses
 const
   API_KEY = '@KIMI_API_KEY';
   // Available models:
-  //   'kimi-k2'          - texto + tools, 256K ctx
+  //   'kimi-k2'          - text + tools, 256K ctx
   //   'kimi-k2.5'        - vision + PDF + reasoning + tools
-  //   'kimi-k2-thinking' - reasoning + tools, sin vision
-  //   'moonshot-v1-8k'   - legacy estable
+  //   'kimi-k2-thinking' - reasoning + tools, no vision
+  //   'moonshot-v1-8k'   - stable legacy
   MODEL   = 'kimi-k2.5';
 
 // =============================================================================
@@ -48,7 +48,7 @@ type
     FThinkCount   : Integer;
     FError        : String;
     FHasError     : Boolean;
-    FRawChunkLog  : TStringList;  // primeros N chunks raw para diagnostico
+    FRawChunkLog  : TStringList;  // first N raw chunks for diagnostics
 
     procedure OnData(const Sender: TObject; aMsg: TAiChatMessage;
       aResponse: TJSONObject; aRole, aText: String);
@@ -176,7 +176,7 @@ var
 begin
   if ALabel <> '' then LLabel := ALabel else LLabel := 'Sync';
   PrintSeparator(LLabel);
-  Writeln('Pregunta : ', AQuestion);
+  Writeln('Question : ', AQuestion);
   Writeln(StringOfChar('-', 70));
 
   ResetBuffers;
@@ -187,7 +187,7 @@ begin
     if FHasError then
       Writeln('ERROR: ', FError)
     else if Response = '' then
-      Writeln('Respuesta: <vacia>')
+      Writeln('Response: <empty>')
     else
       Writeln('Answer: ', Response);
   except
@@ -207,7 +207,7 @@ var
 begin
   if ALabel <> '' then LLabel := ALabel else LLabel := 'Async';
   PrintSeparator(LLabel);
-  Writeln('Pregunta : ', AQuestion);
+  Writeln('Question : ', AQuestion);
   Writeln(StringOfChar('-', 70));
 
   ResetBuffers;
@@ -277,7 +277,7 @@ begin
             Writeln;
             Writeln('*** DISCREPANCY buffer vs history ***');
             Writeln(Format('  Buffer    : %d chars', [Length(FBuffer)]));
-            Writeln(Format('  Historial : %d chars', [Length(LHistorial)]));
+            Writeln(Format('  History : %d chars', [Length(LHistorial)]));
             // Show first/last chars to see difference
             Writeln('  Buffer    start: [' + Copy(FBuffer, 1, 30) + ']');
             Writeln('  History start: [' + Copy(LHistorial, 1, 30) + ']');
@@ -333,7 +333,7 @@ procedure TKimiTester.TestMultiTurnAsync;
   end;
 
 begin
-  PrintSeparator('Multi-turno Async');
+  PrintSeparator('Multi-turn Async');
   FConn.NewChat;
 
   SendTurn('Hello! My name is Gustavo. Remember it.', 1);
@@ -361,15 +361,15 @@ begin
   try
     Tester.TestSync(
       'En una sola oracion: cual es la capital de Francia?',
-      'Test 1 - Sync basico');
+      'Test 1 - Basic sync');
 
     Tester.TestAsync(
       'En una sola oracion: cual es la capital de Japon?',
-      'Test 2 - Async basico');
+      'Test 2 - Basic async');
 
     Tester.TestAsync(
       'Explica en 3 parrafos breves que es la inteligencia artificial.',
-      'Test 3 - Async respuesta larga');
+      'Test 3 - Async long response');
 
     Tester.TestMultiTurnAsync;
 

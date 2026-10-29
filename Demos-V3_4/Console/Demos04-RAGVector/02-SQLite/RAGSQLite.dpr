@@ -120,7 +120,7 @@ begin
       for I := 0 to High(DOCS) do
       begin
         RAG.AddItem(DOCS[I]);
-        Writeln(Format('  [%d] indexado', [I + 1]));
+        Writeln(Format('  [%d] indexed', [I + 1]));
       end;
       Writeln(Format('%d documents saved in SQLite.', [RAG.Count]));
     end

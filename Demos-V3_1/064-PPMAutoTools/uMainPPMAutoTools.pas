@@ -120,23 +120,23 @@ implementation
 {$R *.fmx}
 
 const
-  // Prompt que explica al LLM cómo usar las herramientas PPM autónomamente
+  // Prompt that explains to the LLM how to use PPM tools autonomously
   SYSTEM_PROMPT =
-    'Eres un asistente inteligente con acceso al registry PPM (PascalAI Package Manager), ' +
-    'un catálogo de más de 158 herramientas MCP que cubren GitHub, PostgreSQL, Slack, Jira, ' +
-    'Stripe, DuckDB, Kubernetes, AWS S3, Azure, Kafka, GraphQL y muchas más.' + sLineBreak +
+    'You are an intelligent assistant with access to the PPM registry (PascalAI Package Manager), ' +
+    'a catalog of more than 158 MCP tools covering GitHub, PostgreSQL, Slack, Jira, ' +
+    'Stripe, DuckDB, Kubernetes, AWS S3, Azure, Kafka, GraphQL and many more.' + sLineBreak +
     sLineBreak +
-    'Cuando el usuario te pida algo que requiere acceso a servicios externos, actúa de forma ' +
-    'AUTÓNOMA siguiendo este flujo sin pedir permiso:' + sLineBreak +
-    '  1. Llama a ppm_search con palabras clave para encontrar la herramienta adecuada.' + sLineBreak +
-    '  2. Llama a ppm_install con el nombre exacto del paquete para instalarlo.' + sLineBreak +
-    '  3. Llama a call_mcp_tool con el nombre del tool, la función y los argumentos JSON.' + sLineBreak +
+    'When the user asks for something that requires access to external services, act ' +
+    'AUTONOMOUSLY following this flow without asking for permission:' + sLineBreak +
+    '  1. Call ppm_search with keywords to find the right tool.' + sLineBreak +
+    '  2. Call ppm_install with the exact package name to install it.' + sLineBreak +
+    '  3. Call call_mcp_tool with the tool name, function, and JSON arguments.' + sLineBreak +
     sLineBreak +
-    'Convenciones importantes:' + sLineBreak +
-    '- Los nombres de paquetes siguen el patrón mcp-<servicio> (ej: mcp-github, mcp-postgres).' + sLineBreak +
-    '- Los argumentos de call_mcp_tool deben ser un JSON válido como string.' + sLineBreak +
-    '- Si una instalación falla, informa al usuario con claridad.' + sLineBreak +
-    '- Responde en el mismo idioma que el usuario.';
+    'Important conventions:' + sLineBreak +
+    '- Package names follow the mcp-<service> pattern (e.g.: mcp-github, mcp-postgres).' + sLineBreak +
+    '- call_mcp_tool arguments must be a valid JSON string.' + sLineBreak +
+    '- If an installation fails, inform the user clearly.' + sLineBreak +
+    '- Respond in the same language as the user.';
 
 { TfrmPPMAutoTools }
 
@@ -287,25 +287,25 @@ begin
   // Assign base system prompt
   InitSystemPrompt;
 
-  // Conectar AiFunctions1 con AiConn
+  // Connect AiFunctions1 with AiConn
   AiConn.AiFunctions := AiFunctions1;
 
-  // Conectar eventos de estado y log
+  // Connect status and log events
   AiConn.OnStateChange        := AiConnStateChange;
   AiFunctions1.OnLog          := AiFunctions1Log;
   AiFunctions1.OnStatusUpdate := AiFunctions1StatusUpdate;
 
-  // Restaurar herramientas instaladas en sesiones anteriores
+  // Restore tools installed in previous sessions
   LoadInstalledTools;
 
-  // Poblar combo de drivers
+  // Populate driver combo
   LDrivers := AiConn.GetDriversNames;
   try
     LDrivers.Sort;
     ComboDriver.Items.Assign(LDrivers);
     if ComboDriver.Items.Count > 0 then
     begin
-      // Intentar preseleccionar OpenAI
+      // Try to preselect OpenAI
       var Idx := ComboDriver.Items.IndexOf('OpenAI');
       if Idx >= 0 then
         ComboDriver.ItemIndex := Idx
@@ -320,7 +320,7 @@ end;
 
 procedure TfrmPPMAutoTools.InitDrivers;
 begin
-  // Configuraciones base por driver
+  // Base configurations per driver
   AiConn.RegisterUserParam('OpenAI',    'Asynchronous', 'True');
   AiConn.RegisterUserParam('OpenAI',    'Tool_Active',  'True');
   AiConn.RegisterUserParam('Claude',    'Asynchronous', 'True');
@@ -438,7 +438,7 @@ begin
   end;
 
   try
-    // Formatear resultados de forma compacta para el LLM
+    // Format results compactly for the LLM
     LSb := TStringBuilder.Create;
     try
       if LResult.TryGetValue<TJSONArray>('tools', LTools) and (LTools.Count > 0) then
@@ -456,7 +456,7 @@ begin
           LSb.AppendLine(Format('• %s (v%s)', [LName, LVer]));
           LSb.AppendLine('  ' + LDesc);
 
-          // Incluir las operaciones disponibles desde el schema si están presentes
+          // Include available operations from the schema if present
           var LSchema: TJSONObject;
           if LTool.TryGetValue<TJSONObject>('schema', LSchema) then
           begin
@@ -466,7 +466,7 @@ begin
               var LProps: TJSONObject;
               if LInput.TryGetValue<TJSONObject>('properties', LProps) then
               begin
-                // Extraer operaciones del enum si existe
+                // Extract operations from the enum if it exists
                 var LOpEnum: TJSONArray;
                 var LOp: TJSONObject;
                 if LProps.TryGetValue<TJSONObject>('operation', LOp) and
@@ -575,9 +575,9 @@ begin
       LFuncNames.Free;
 
       ToolCall.Response := Format(
-        'Herramienta "%s" instalada e inicializada correctamente.' + sLineBreak +
-        'Ejecutable: %s' + sLineBreak +
-        'Ya puedes llamarla con call_mcp_tool.%s',
+        'Tool "%s" installed and initialized successfully.' + sLineBreak +
+        'Executable: %s' + sLineBreak +
+        'You can now call it with call_mcp_tool.%s',
         [LToolName, LItem.Params.Values['Command'], LFuncList]);
 
       AddInstalledTool(LToolName, LItem.Params.Values['Command']);
@@ -588,15 +588,15 @@ begin
     else
     begin
       ToolCall.Response := Format(
-        'Herramienta "%s" instalada pero no se pudo inicializar el proceso. ' +
-        'Verifica que el ejecutable exista y sea compatible.', [LToolName]);
+        'Tool "%s" installed but the process could not be initialized. ' +
+        'Verify that the executable exists and is compatible.', [LToolName]);
       AddLog('ppm_install: WARN - process not started for ' + LToolName);
     end;
   end
   else
   begin
     ToolCall.Response := Format(
-      'No se pudo instalar "%s". Verifica el nombre del paquete y la conexión.', [LToolName]);
+      'Could not install "%s". Verify the package name and the connection.', [LToolName]);
     AddLog('ppm_install: ERROR - ' + LToolName);
   end;
 
@@ -633,14 +633,14 @@ begin
   end;
 
   AddLog(Format('call_mcp_tool: %s → %s', [LToolName, LFuncName]));
-  SetStatus(Format('Ejecutando %s.%s...', [LToolName, LFuncName]));
+  SetStatus(Format('Executing %s.%s...', [LToolName, LFuncName]));
 
   // Find installed client
   LClientItem := AiFunctions1.MCPClients.GetClientByName(LToolName);
   if not Assigned(LClientItem) then
   begin
     ToolCall.Response := Format(
-      'La herramienta "%s" no está instalada. Usa ppm_install primero.', [LToolName]);
+      'The tool "%s" is not installed. Use ppm_install first.', [LToolName]);
     Handled := True;
     Exit;
   end;
@@ -687,8 +687,8 @@ begin
     if not LClientItem.MCPClient.Initialize then
     begin
       ToolCall.Response := Format(
-        'No se pudo inicializar "%s". ' +
-        'Verifica que el ejecutable exista y soporte --protocol stdio.', [LToolName]);
+        'Could not initialize "%s". ' +
+        'Verify that the executable exists and supports --protocol stdio.', [LToolName]);
       Handled := True;
       Exit;
     end;
@@ -698,8 +698,8 @@ begin
   try
     try
       AddLog('call_mcp_tool: starting CallTool...');
-      // NOTA: CallTool toma ownership de LArgsJson y lo libera internamente.
-      // NO llamar LArgsJson.Free después de esta llamada.
+      // NOTE: CallTool takes ownership of LArgsJson and frees it internally.
+      // Do NOT call LArgsJson.Free after this call.
       LResult := LClientItem.MCPClient.CallTool(LFuncName, LArgsJson, LMedia);
       LArgsJson := nil; // Ya fue liberado por CallTool
       AddLog('call_mcp_tool: CallTool completed. Result=' + BoolToStr(Assigned(LResult), True));
@@ -708,7 +708,7 @@ begin
           ToolCall.Response := LResult.Format
         else
         begin
-          // Incluir funciones reales disponibles para ayudar al LLM a corregir el nombre
+          // Include real available functions to help the LLM correct the name
           var LAvailFuncs := '';
           var LToolsJson := TJSONObject.ParseJSONValue(LClientItem.MCPClient.Tools.Text);
           if Assigned(LToolsJson) then
@@ -734,7 +734,7 @@ begin
             LToolsJson.Free;
           end;
           ToolCall.Response := Format(
-            'Función "%s" no encontrada en "%s".%s',
+            'Function "%s" not found in "%s".%s',
             [LFuncName, LToolName, LAvailFuncs]);
         end;
       finally
@@ -868,7 +868,7 @@ end;
 
 procedure TfrmPPMAutoTools.ComboDriverChange(Sender: TObject);
 const
-  // Drivers que no necesitan API key
+  // Drivers that do not need an API key
   NO_KEY_DRIVERS: array[0..2] of string = ('Ollama', 'LMStudio', 'GenericLLM');
 var
   LDriverName, LEnvKey, LAutoKey: string;
@@ -900,7 +900,7 @@ begin
       EditApiKey.Text := '(auto: ' + LEnvKey + ')';
     end
     else if Copy(EditApiKey.Text, 1, 5) = '(auto' then
-      EditApiKey.Text := '';  // limpiar placeholder de otro driver
+      EditApiKey.Text := '';  // clear placeholder from another driver
   end
   else
   begin
@@ -918,7 +918,7 @@ begin
     LModels.Free;
   end;
 
-  // Sincronizar checkbox async con parámetro del driver
+  // Synchronize async checkbox with driver parameter
   ChAsync.IsChecked := StrToBoolDef(AiConn.Params.Values['Asynchronous'], True);
 end;
 

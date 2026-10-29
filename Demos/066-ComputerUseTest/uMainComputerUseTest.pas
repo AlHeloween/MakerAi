@@ -3,16 +3,16 @@
 // =============================================================================
 //  Demo de prueba de Computer Use (Claude computer_20251124 / Gemini computerUse).
 //
-//  Cómo usar:
-//   1. Abre una app objetivo inofensiva (ej. Notepad) y déjala visible.
-//   2. Elige proveedor (Claude / Gemini) y pulsa "Ejecutar".
-//   3. El modelo tomará screenshots y controlará el ratón/teclado REAL para
-//      completar la tarea descrita en el prompt.
+//  How to use:
+//   1. Open a harmless target app (e.g. Notepad) and leave it visible.
+//   2. Choose a provider (Claude / Gemini) and press "Run".
+//   3. The model will take screenshots and control the REAL mouse/keyboard to
+//      complete the task described in the prompt.
 //
-//  El ejecutor físico es TAiWindowsFMXExecutor (SendInput + captura GDI/FMX).
-//  La captura corre en el hilo principal (Synchronize) porque usa FMX.Canvas.
+//  The physical executor is TAiWindowsFMXExecutor (SendInput + GDI/FMX capture).
+//  Capture runs on the main thread (Synchronize) because it uses FMX.Canvas.
 //
-//  AVISO: controla el escritorio real. No dejes ventanas sensibles en primer plano.
+//  WARNING: it controls the real desktop. Do not leave sensitive windows in the foreground.
 // =============================================================================
 
 interface
@@ -79,8 +79,8 @@ const
 
 procedure TFormComputerUse.FormCreate(Sender: TObject);
 begin
-  // Forzar la ventana al centro de la pantalla principal (evita que aparezca
-  // fuera del área visible: se ve en la barra de tareas pero no en pantalla).
+  // Force the window to the center of the primary screen (prevents it from appearing
+  // outside the visible area: it shows in the taskbar but not on screen).
   Self.Position := TFormPosition.ScreenCenter;
   Self.Width := 900;
   Self.Height := 680;
@@ -102,10 +102,10 @@ begin
   FCU.AreaWidth := 1920;
   FCU.AreaHeight := 1080;
   {$ENDIF}
-  // Resolución DECLARADA a la IA: la imagen se envía ya reducida a <=1280px de
-  // ancho. Anthropic/Gemini reducen imágenes grandes en el servidor; si la
-  // resolución declarada no coincide con la imagen real, los clicks se desvían.
-  // El executor sigue clicando en píxeles físicos (DenormalizeCoordinate usa AreaWidth).
+  // Resolution DECLARED to the AI: the image is already sent reduced to <=1280px wide.
+  // Anthropic/Gemini reduce large images on the server; if the
+  // declared resolution does not match the real image, clicks drift.
+  // The executor still clicks in physical pixels (DenormalizeCoordinate uses AreaWidth).
   FCU.ScreenWidth := 1280;
   FCU.ScreenHeight := Round(FCU.AreaHeight * 1280 / FCU.AreaWidth);
 
@@ -115,10 +115,10 @@ begin
   FConn.OnReceiveDataEnd := DoReceiveEnd;
   FConn.OnError := DoError;
 
-  // Habilitar cap_ComputerUse en los modelos que vamos a usar. Ninguno lo trae
-  // por defecto a proposito: es la capacidad que le da a la IA el raton y el
-  // teclado reales, asi que el opt-in es del programador.
-  // (gemini-2.5-computer-use es la excepcion: es un modelo dedicado y ya lo trae.)
+  // Enable cap_ComputerUse on the models we will use. None of them includes it
+  // by default on purpose: it is the capability that gives the AI the real mouse and
+  // keyboard, so opt-in is up to the programmer.
+  // (gemini-2.5-computer-use is the exception: it is a dedicated model and already has it.)
   TAiChatFactory.Instance.RegisterUserParam('Claude', 'claude-opus-4-8', 'ModelCaps',   '[cap_Image, cap_ComputerUse]');
   TAiChatFactory.Instance.RegisterUserParam('Claude', 'claude-opus-4-8', 'SessionCaps', '[cap_Image, cap_ComputerUse]');
   TAiChatFactory.Instance.RegisterUserParam('OpenAi', 'gpt-6-astra', 'ModelCaps',   '[cap_Image, cap_Reasoning, cap_ComputerUse]');
@@ -146,12 +146,12 @@ begin
   mePrompt.Lines.Text := DEF_PROMPT;
   SetStatus('Ready. Open the target app and press Run.');
   Log(Format('Screen: %dx%d', [FCU.ScreenWidth, FCU.ScreenHeight]));
-  Log('Screenshots guardados en: ' + FShotDir);
+  Log('Screenshots saved in: ' + FShotDir);
 
-  // --- Arranque por linea de comandos (para correr sin tocar la GUI) ---
-  //   -provider=openai|claude|gemini   preselecciona el proveedor
-  //   -prompt=<texto>                  sustituye la tarea por defecto
-  //   -autorun                         pulsa Ejecutar solo, al mostrarse
+  // --- Command-line startup (to run without touching the GUI) ---
+  //   -provider=openai|claude|gemini   preselects the provider
+  //   -prompt=<text>                   replaces the default task
+  //   -autorun                         presses Run only, when shown
   for var Pi := 1 to ParamCount do
   begin
     var LP := LowerCase(ParamStr(Pi));
@@ -168,9 +168,9 @@ begin
       FAutoRun := True;
   end;
 
-  // El disparo va aqui y no en FormShow: OnShow no esta enganchado en el .fmx,
-  // asi que ese metodo nunca corre. ForceQueue difiere al bucle de mensajes, o
-  // sea cuando la ventana ya esta visible.
+  // The trigger goes here and not in FormShow: OnShow is not hooked in the .fmx,
+  // so that method never runs. ForceQueue defers to the message loop, i.e.
+  // when the window is already visible.
   if FAutoRun then
   begin
     FAutoRun := False;
@@ -191,9 +191,9 @@ var
 {$ENDIF}
 begin
   {$IFDEF MSWINDOWS}
-  // Reposiciona la ventana real (HWND) dentro del área de trabajo del monitor
-  // principal y la trae al frente. Soluciona el caso "se ve en la barra de
-  // tareas pero no en pantalla" (ventana fuera del área visible).
+  // Repositions the real window (HWND) inside the work area of the
+  // primary monitor and brings it to the front. Solves the case "it shows in the
+  // taskbar but not on screen" (window outside the visible area).
   H := FormToHWND(Self);
   if H = 0 then
     Exit;
@@ -218,13 +218,13 @@ var
 begin
   LLine := FormatDateTime('hh:nn:ss', Now) + '  ' + S;
 
-  // Copia en disco: permite lanzar el demo por linea de comandos y revisar
-  // despues lo que paso sin haber estado mirando la ventana.
+  // Disk copy: allows launching the demo from the command line and reviewing
+  // afterwards what happened without having watched the window.
   if FLogFile <> '' then
   try
     TFile.AppendAllText(FLogFile, LLine + sLineBreak, TEncoding.UTF8);
   except
-    // el log nunca debe tumbar la corrida
+    // the log must never crash the run
   end;
 
   TThread.Queue(nil,
@@ -249,11 +249,11 @@ end;
 // -----------------------------------------------------------------------------
 procedure TFormComputerUse.DoExecuteAction(Sender: TObject; const ActionData: TAiActionData; var Result: TAiActionResult);
 begin
-  Log(Format('ACCIÓN: %s  (x=%d y=%d mod="%s" keys="%s")',
+  Log(Format('ACTION: %s  (x=%d y=%d mod="%s" keys="%s")',
     [ActionData.FunctionName, ActionData.X, ActionData.Y, ActionData.Modifiers, ActionData.KeyCombo]));
   Result := TAiWindowsFMXExecutor.Execute(ActionData);
   if not Result.Success then
-    Log('  -> ERROR ejecutando: ' + Result.ErrorMessage)
+    Log('  -> ERROR executing: ' + Result.ErrorMessage)
   else if ActionData.ActionType = catCursorPosition then
     Log('  -> cursor: ' + Result.CustomOutput);
 end;
@@ -351,8 +351,8 @@ begin
   end
   else
   begin
-    // Pantalla completa: capturar el área física, enviar reducida a la
-    // resolución declarada (ScreenWidth x ScreenHeight) para que coincida.
+    // Full screen: capture the physical area, send it reduced to the
+    // declared resolution (ScreenWidth x ScreenHeight) so it matches.
     Area := Rect(FCU.AreaLeft, FCU.AreaTop, FCU.AreaLeft + FCU.AreaWidth, FCU.AreaTop + FCU.AreaHeight);
     OutW := FCU.ScreenWidth;
     OutH := FCU.ScreenHeight;
@@ -366,13 +366,13 @@ begin
       MF := CaptureScaled(Area, OutW, OutH);
     end);
   MediaFile := MF;
-  Log(Format('  -> screenshot %dx%d (origen %dx%d)', [OutW, OutH, Area.Width, Area.Height]));
+  Log(Format('  -> screenshot %dx%d (origin %dx%d)', [OutW, OutH, Area.Width, Area.Height]));
 end;
 
 procedure TFormComputerUse.DoSafetyConfirmation(Sender: TObject; const Explanation: string; var Allow: Boolean);
 begin
   // In this test with the user present, we auto-allow but log it.
-  Log('SAFETY (auto-permitido): ' + Explanation);
+  Log('SAFETY (auto-allowed): ' + Explanation);
   Allow := True;
 end;
 
@@ -381,10 +381,10 @@ end;
 // -----------------------------------------------------------------------------
 procedure TFormComputerUse.DoReceiveEnd(const Sender: TObject; aMsg: TAiChatMessage; aResponse: TJSONObject; aRole, aText: String);
 begin
-  Log('=== FIN ===');
+  Log('=== END ===');
   if aText <> '' then
-    Log('Modelo: ' + aText);
-  SetStatus('Completado.');
+    Log('Model: ' + aText);
+  SetStatus('Completed.');
   TThread.Queue(nil, procedure begin btnRun.Enabled := True; end);
 end;
 
@@ -424,9 +424,9 @@ begin
     FConn.Params.Values['ApiKey'] := '@CLAUDE_API_KEY';
   end;
 
-  SetStatus('Ejecutando con ' + FConn.DriverName + '...');
-  Log('Proveedor: ' + FConn.DriverName + '  Modelo: ' + FConn.Model);
-  Log('Tienes 4 segundos para llevar el foco a la app objetivo...');
+  SetStatus('Running with ' + FConn.DriverName + '...');
+  Log('Provider: ' + FConn.DriverName + '  Model: ' + FConn.Model);
+  Log('You have 4 seconds to focus the target app...');
 
   // Small wait so the user can activate the target window.
   TThread.CreateAnonymousThread(

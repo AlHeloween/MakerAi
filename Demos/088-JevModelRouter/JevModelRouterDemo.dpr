@@ -1,25 +1,25 @@
 ﻿program JevModelRouterDemo;
 
 // =============================================================================
-// DEMO 088 - Enrutador de modelos con Jev: el modelo mas barato que alcanza
+// DEMO 088 - Model router with Jev: the cheapest model that suffices
 // =============================================================================
-// TAiJevModelRouter describe cada peticion con Jev (tarea, dificultad,
-// sensibilidad) y elige en codigo el tier mas barato que alcanza:
+// TAiJevModelRouter describes each request with Jev (task, difficulty,
+// sensitivity) and chooses in code the cheapest tier that suffices:
 //
 //   nivel 0  Groq     openai/gpt-oss-20b     trivial
-//   nivel 1  DeepSeek deepseek-v4-flash      estandar
-//   nivel 2  Claude   claude-sonnet-5        exigente / sensible
-//   nivel 3  Claude   claude-opus-5          experto
+//   level 1  DeepSeek deepseek-v4-flash      standard
+//   level 2  Claude   claude-sonnet-5        demanding / sensitive
+//   level 3  Claude   claude-opus-5          expert
 //
-//   A. Peticiones sueltas: cada una la responde el modelo elegido, y
-//      TAiJevEvalScorer mide si la respuesta es correcta y util. Es la
-//      prueba de calidad: que el modelo barato conteste bien lo que le toca.
-//   B. Una conversacion que empieza trivial (Groq) y escala a experta
-//      (Claude Opus): el historial se migra entre proveedores y el modelo
-//      nuevo debe recordar lo que se dijo en el primer turno.
+//   A. Standalone requests: each is answered by the chosen model, and
+//      TAiJevEvalScorer measures whether the response is correct and useful. It is the
+//      quality test: that the cheap model answers well what it is assigned.
+//   B. A conversation that starts trivial (Groq) and scales to expert
+//      (Claude Opus): the history is migrated between providers and the new model
+//      must remember what was said in the first turn.
 //
-// Requiere TYPESAFE_API_KEY, GROQ_API_KEY, DEEPSEEK_API_KEY y CLAUDE_API_KEY.
-// Las respuestas se limitan a 1200 tokens para acotar el costo.
+// Requires TYPESAFE_API_KEY, GROQ_API_KEY, DEEPSEEK_API_KEY and CLAUDE_API_KEY.
+// Responses are limited to 1200 tokens to cap the cost.
 // =============================================================================
 
 {$APPTYPE CONSOLE}
@@ -50,7 +50,7 @@ const
   CRITERIO_CALIDAD = 'It correctly and usefully answers the user request in `input`';
 
 type
-  // Los eventos del framework son 'of object': el handler vive en una clase
+  // Framework events are 'of object': the handler lives in a class
   TErrores = class
   public
     Ultimo: string;
@@ -78,11 +78,11 @@ procedure Configurar(ARouter: TAiJevModelRouter);
 var
   T: TAiJevModelTier;
 begin
-  // Groq retiro los llama-3.x (model_not_found, sep 2026): gpt-oss-20b es su modelo rapido
+  // Groq retired the llama-3.x (model_not_found, Sep 2026): gpt-oss-20b is its fast model
   ARouter.Tiers.AddTier('rapido',   'Groq',     'openai/gpt-oss-20b', 0, 0.3);
   ARouter.Tiers.AddTier('estandar', 'DeepSeek', 'deepseek-v4-flash',  1, 0.4);
-  // Claude: razonamiento bajo y sin busqueda web. Con los defaults, Opus supero
-  // el timeout HTTP (~300 s) en la pregunta de arquitectura; asi respondio en 91 s.
+  // Claude: low reasoning and no web search. With the defaults, Opus exceeded
+  // the HTTP timeout (~300 s) on the architecture question; this way it answered in 91 s.
   T := ARouter.Tiers.AddTier('exigente', 'Claude', 'claude-sonnet-5', 2, 15);
   T.Params.Add('ThinkingLevel=tlLow');
   T.Params.Add('SessionCaps=[cap_Image, cap_Pdf]');
@@ -90,7 +90,7 @@ begin
   T.Params.Add('ThinkingLevel=tlLow');
   T.Params.Add('SessionCaps=[cap_Image, cap_Pdf]');
   T.Params.Add('Max_Tokens=3000');
-  // El cambio de proveedor recarga los Params del driver: esto vale para todos
+  // Changing provider reloads the driver Params: this applies to all
   ARouter.ConnectionParams.Add('Asynchronous=False');
   ARouter.ConnectionParams.Add('Max_Tokens=1200');
 end;
@@ -104,7 +104,7 @@ var
   Q: Double;
   Buenas: Integer;
 begin
-  Writeln('--- A. Cada peticion al modelo mas barato que alcanza ---');
+  Writeln('--- A. Each request to the cheapest model that suffices ---');
   Writeln;
   Buenas := 0;
   for P in PETICIONES do
@@ -121,11 +121,11 @@ begin
       Q := AScorer.Score(CRITERIO_CALIDAD, P, Resp);
       if Q >= 0.7 then
         Inc(Buenas);
-      Writeln(Format('[nivel %d] %-9s %-22s %5d ms  calidad %.2f', [R.Level, R.TierName, R.Model,
+      Writeln(Format('[level %d] %-9s %-22s %5d ms  quality %.2f', [R.Level, R.TierName, R.Model,
         SW.ElapsedMilliseconds, Q]));
-      Writeln('  pregunta: ', Corto(P, 90));
-      Writeln('  motivo:   ', R.Reason);
-      Writeln('  respuesta: ', Corto(Resp, 110));
+      Writeln('  question: ', Corto(P, 90));
+      Writeln('  reason:   ', R.Reason);
+      Writeln('  response: ', Corto(Resp, 110));
       if Errores.Ultimo <> '' then
         Writeln('  ERROR: ', Corto(Errores.Ultimo, 200));
       Writeln;
@@ -133,7 +133,7 @@ begin
       Conn.Free;
     end;
   end;
-  Writeln(Format('Respuestas utiles (calidad >= 0.70): %d de %d', [Buenas, Length(PETICIONES)]));
+  Writeln(Format('Useful responses (quality >= 0.70): %d of %d', [Buenas, Length(PETICIONES)]));
   Writeln;
 end;
 
@@ -146,26 +146,26 @@ var
   Resp: string;
   Q: Double;
 begin
-  Writeln('--- B. Una conversacion que escala de proveedor ---');
+  Writeln('--- B. A conversation that scales across providers ---');
   Writeln;
   Conn := TAiChatConnection.Create(nil);
   try
     Resp := ARouter.Ask(Conn, TURNO1);
-    Writeln(Format('Turno 1 -> %s / %s (nivel %d)', [ARouter.LastRoute.DriverName,
+    Writeln(Format('Turn 1 -> %s / %s (level %d)', [ARouter.LastRoute.DriverName,
       ARouter.LastRoute.Model, ARouter.LastRoute.Level]));
     Writeln('  ', Corto(Resp, 110));
 
     Resp := ARouter.Ask(Conn, TURNO2);
-    Writeln(Format('Turno 2 -> %s / %s (nivel %d), mensajes en la conversacion: %d',
+    Writeln(Format('Turn 2 -> %s / %s (level %d), messages in the conversation: %d',
       [ARouter.LastRoute.DriverName, ARouter.LastRoute.Model, ARouter.LastRoute.Level,
        Conn.Messages.Count]));
     Writeln('  ', Corto(Resp, 160));
 
-    // El modelo nuevo solo puede saber esto si el historial se migro
+    // The new model can only know this if the history was migrated
     Q := AScorer.Score('It builds on the fact that the user owns a hardware store in Bogota ' +
       'selling screws wholesale', TURNO2, Resp);
-    Writeln(Format('  Recuerda el negocio del turno 1: %s (Jev %.2f; menciona ferreteria/tornillos: %s)',
-      [IfThen(Q >= 0.7, 'si', 'NO'), Q,
+    Writeln(Format('  Remembers the business from turn 1: %s (Jev %.2f; mentions hardware store/screws: %s)',
+      [IfThen(Q >= 0.7, 'yes', 'NO'), Q,
        IfThen(ContainsText(Resp, 'ferreter') or ContainsText(Resp, 'tornillo'), 'si', 'no')]));
   finally
     Conn.Free;
@@ -180,7 +180,7 @@ begin
   try
     if GetEnvironmentVariable('TYPESAFE_API_KEY') = '' then
     begin
-      Writeln('Falta la variable de entorno TYPESAFE_API_KEY (https://console.typesafe.ai/keys).');
+      Writeln('The TYPESAFE_API_KEY environment variable is missing (https://console.typesafe.ai/keys).');
       ExitCode := 2;
       Exit;
     end;

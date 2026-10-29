@@ -5,11 +5,11 @@
 // =============================================================================
 // MakerAI - Demo 073: Groq Async Diagnostic
 // =============================================================================
-// Prueba el driver TAiGroqChat en modo sincrono y asincronico (streaming).
-// Verifica modelos actuales (Abr 2026):
-//   - llama-3.1-8b-instant  (texto, produccion)
-//   - llama-3.3-70b-versatile (texto, produccion)
-//   - openai/gpt-oss-120b   (texto + reasoning, produccion)
+// Tests the TAiGroqChat driver in synchronous and asynchronous (streaming) mode.
+// Verifies current models (Apr 2026):
+//   - llama-3.1-8b-instant  (text, production)
+//   - llama-3.3-70b-versatile (text, production)
+//   - openai/gpt-oss-120b   (text + reasoning, production)
 //   - qwen/qwen3-32b        (reasoning, preview)
 //   - meta-llama/llama-4-scout-17b-16e-instruct (vision, preview)
 //
@@ -227,7 +227,7 @@ var
   Response: String;
 begin
   PrintSeparator(ALabel + ' [' + AModel + ']');
-  Writeln('Pregunta : ', AQuestion);
+  Writeln('Question : ', AQuestion);
   Writeln(StringOfChar('-', 70));
 
   ResetBuffers;
@@ -239,7 +239,7 @@ begin
     if FHasError then
       Writeln('ERROR: ', FError)
     else if Response = '' then
-      Writeln('Respuesta: <vacia>')
+      Writeln('Response: <empty>')
     else
       Writeln('Answer: ', Response);
   except
@@ -255,7 +255,7 @@ var
   WaitResult: TWaitResult;
 begin
   PrintSeparator(ALabel + ' [' + AModel + ']');
-  Writeln('Pregunta : ', AQuestion);
+  Writeln('Question : ', AQuestion);
   Writeln(StringOfChar('-', 70));
 
   ResetBuffers;
@@ -323,7 +323,7 @@ procedure TGroqTester.TestMultiTurnAsync(const AModel: String);
   end;
 
 begin
-  PrintSeparator('Multi-turno Async [' + AModel + ']');
+  PrintSeparator('Multi-turn Async [' + AModel + ']');
   FConn.Model := AModel;
   FConn.NewChat;
 

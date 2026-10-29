@@ -6,19 +6,19 @@ program MultiFunctions;
 // =============================================================================
 // MakerAI — 02-ChatTools / 02-MultiFunctions
 // =============================================================================
-// El LLM tiene acceso a VARIAS funciones y decide cuál(es) usar según el
-// contexto. Puede invocar funciones en secuencia o combinar resultados.
+// The LLM has access to SEVERAL functions and decides which one(s) to use according to the
+// context. It can invoke functions in sequence or combine results.
 //
-// Conceptos que cubre:
-//   - Registrar múltiples funciones en TAiFunctions
-//   - El LLM encadena funciones automáticamente (multi-step tool use)
-//   - Cada función tiene su propio handler de clase (TFunctionEvent)
-//   - Una consulta puede requerir N llamadas a funciones antes de responder
+// Concepts it covers:
+//   - Register multiple functions in TAiFunctions
+//   - The LLM chains functions automatically (multi-step tool use)
+//   - Each function has its own class handler (TFunctionEvent)
+//   - A query can require N function calls before responding
 //
-// Funciones de este demo:
-//   get_weather(city)                  → clima actual
-//   convert_currency(amount, from, to) → conversión de divisa
-//   calculate(expression)              → calculadora básica
+// Functions in this demo:
+//   get_weather(city)                  → current weather
+//   convert_currency(amount, from, to) → currency conversion
+//   calculate(expression)              → basic calculator
 // =============================================================================
 
 uses
@@ -94,7 +94,7 @@ procedure TMultiFunctionsDemo.OnFnConvertCurrency(Sender: TObject;
   FunctionAction: TFunctionActionItem; FunctionName: String;
   ToolCall: TAiToolsFunction; var Handled: Boolean);
 const
-  // Tasas aproximadas respecto al USD
+  // Approximate rates relative to USD
   NAMES : array[0..4] of String  = ('USD','MXN','EUR','GBP','CAD');
   RATES : array[0..4] of Double  = (1.0, 17.5, 0.92, 0.79, 1.36);
 var
@@ -212,30 +212,30 @@ var
 begin
   // ── get_weather ─────────────────────────────────────────────────────────────
   LFn := FAiFunctions.Functions.AddFunction('get_weather', True, OnFnGetWeather);
-  LFn.Description.Text := 'Obtiene el clima actual de una ciudad: temperatura, condición y viento.';
+  LFn.Description.Text := 'Gets the current weather of a city: temperature, condition and wind.';
   LParam := LFn.Parameters.Add;
   LParam.Name := 'city'; LParam.ParamType := ptString; LParam.Required := True;
-  LParam.Description.Text := 'Nombre de la ciudad';
+  LParam.Description.Text := 'Name of the city';
 
   // ── convert_currency ────────────────────────────────────────────────────────
   LFn := FAiFunctions.Functions.AddFunction('convert_currency', True, OnFnConvertCurrency);
-  LFn.Description.Text := 'Convierte una cantidad de una divisa a otra. Soporta USD, MXN, EUR, GBP, CAD.';
+  LFn.Description.Text := 'Converts an amount from one currency to another. Supports USD, MXN, EUR, GBP, CAD.';
   LParam := LFn.Parameters.Add;
   LParam.Name := 'amount'; LParam.ParamType := ptFloat; LParam.Required := True;
-  LParam.Description.Text := 'Cantidad a convertir';
+  LParam.Description.Text := 'Amount to convert';
   LParam := LFn.Parameters.Add;
   LParam.Name := 'from_currency'; LParam.ParamType := ptString; LParam.Required := True;
-  LParam.Description.Text := 'Divisa origen (USD, MXN, EUR...)';
+  LParam.Description.Text := 'Source currency (USD, MXN, EUR...)';
   LParam := LFn.Parameters.Add;
   LParam.Name := 'to_currency'; LParam.ParamType := ptString; LParam.Required := True;
-  LParam.Description.Text := 'Divisa destino';
+  LParam.Description.Text := 'Target currency';
 
   // ── calculate ───────────────────────────────────────────────────────────────
   LFn := FAiFunctions.Functions.AddFunction('calculate', True, OnFnCalculate);
-  LFn.Description.Text := 'Evalúa una expresión matemática simple como "15 + 27" o "100 * 3.14".';
+  LFn.Description.Text := 'Evaluates a simple mathematical expression such as "15 + 27" or "100 * 3.14".';
   LParam := LFn.Parameters.Add;
   LParam.Name := 'expression'; LParam.ParamType := ptString; LParam.Required := True;
-  LParam.Description.Text := 'Expresión matemática a calcular';
+  LParam.Description.Text := 'Mathematical expression to calculate';
 end;
 
 // =============================================================================
@@ -248,7 +248,7 @@ var
 begin
   Writeln('=== MultiFunctions ===');
   Writeln('Driver: ', DRIVER, ' / Model: ', MODEL);
-  Writeln('Funciones disponibles: get_weather, convert_currency, calculate');
+  Writeln('Available functions: get_weather, convert_currency, calculate');
   Writeln;
 
   FAiFunctions := TAiFunctions.Create(nil);
@@ -267,21 +267,21 @@ begin
 
       Conn.SystemPrompt.Text :=
         'Eres un asistente inteligente con acceso a herramientas. ' +
-        'Úsalas cuando el usuario lo necesite. Responde en español.';
+        'Use them when the user needs them. Respond in Spanish.';
 
       // ── P1: una función ────────────────────────────────────────────────────
       Writeln(StringOfChar('-', 60));
-      Writeln('P1 — Una función: "¿Cuánto es 347 × 28?"');
-      Res := Conn.AddMessageAndRun('¿Cuánto es 347 × 28?', 'user', []);
+      Writeln('P1 — One function: "How much is 347 × 28?"');
+      Res := Conn.AddMessageAndRun('How much is 347 × 28?', 'user', []);
       Writeln('R: ', Res);
       Conn.Messages.Clear;
       Writeln;
 
       // ── P2: dos funciones ──────────────────────────────────────────────────
       Writeln(StringOfChar('-', 60));
-      Writeln('P2 — Dos funciones: clima + conversión de moneda');
+      Writeln('P2 — Two functions: weather + currency conversion');
       Res := Conn.AddMessageAndRun(
-        '¿Cómo está el clima en Guadalajara y cuánto son 500 USD en MXN?',
+        'What is the weather in Guadalajara and how much are 500 USD in MXN?',
         'user', []);
       Writeln('R: ', Res);
       Conn.Messages.Clear;
@@ -289,11 +289,11 @@ begin
 
       // ── P3: encadenadas ────────────────────────────────────────────────────
       Writeln(StringOfChar('-', 60));
-      Writeln('P3 — Encadenadas: conversión de temperatura + conversión de moneda');
+      Writeln('P3 — Chained: temperature conversion + currency conversion');
       Res := Conn.AddMessageAndRun(
         'Si en Ciudad de México hay 18°C, ¿cuánto es eso en Fahrenheit? ' +
         '(usa calculate: F = 18 * 9/5 + 32, es decir 18 * 1.8 + 32). ' +
-        'Además, ¿cuántos euros son 1800 MXN?',
+        'Also, how many euros are 1800 MXN?',
         'user', []);
       Writeln('R: ', Res);
 
@@ -321,6 +321,6 @@ begin
       Writeln('ERROR: ', E.ClassName, ' — ', E.Message);
   end;
   Writeln;
-  Writeln('Presiona Enter para salir...');
+  Writeln('Press Enter to exit...');
   Readln;
 end.

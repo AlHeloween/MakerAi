@@ -74,7 +74,7 @@ begin
 
   if NombreArchivo.Trim.IsEmpty then
   begin
-    ToolCall.Response := 'Error: no se especifico nombre de archivo.';
+    ToolCall.Response := 'Error: no file name was specified.';
     Handled := True;
     Exit;
   end;
@@ -89,7 +89,7 @@ begin
   except
     on Ex: Exception do
     begin
-      ToolCall.Response := 'Error al guardar: ' + Ex.Message;
+      ToolCall.Response := 'Error saving: ' + Ex.Message;
       PrintINFO('[Tool error] ' + Ex.Message);
     end;
   end;
@@ -207,14 +207,14 @@ var
   Resp:   string;
 begin
   Result := False;
-  PrintSep('TEST 1 — Chat de texto basico (deepseek-r1:1.5b)');
+  PrintSep('TEST 1 — Basic text chat (deepseek-r1:1.5b)');
   Helper := TTestHelper.Create;
   Conn   := CreateConn('deepseek-r1:1.5b', Helper);
   try
     try
-      PrintINFO('Asynchronous del driver: ' +
+      PrintINFO('Driver asynchronous: ' +
         BoolToStr(Conn.AiChat.Asynchronous, True));
-      PrintINFO('Prompt: "Responde en una sola palabra: de que color es el cielo?"');
+      PrintINFO('Prompt: "Respond in a single word: what color is the sky?"');
       Resp := Conn.AddMessageAndRun(
         'Responde en una sola palabra: de que color es el cielo?',
         'user', []);
@@ -228,7 +228,7 @@ begin
       else
         PrintFAIL('Empty response (no error reported)');
     except
-      on E: Exception do PrintFAIL('Excepcion: ' + E.Message);
+      on E: Exception do PrintFAIL('Exception: ' + E.Message);
     end;
   finally
     Conn.Free;
@@ -250,7 +250,7 @@ var
 begin
   Result   := False;
   ArchPath := TPath.Combine(TPath.GetTempPath, 'taller_test_helloworld.pas');
-  PrintSep('TEST 2 — Function Calling: GuardarArchivo (qwen3.5:0.8b)');
+  PrintSep('TEST 2 — Function Calling: SaveFile (qwen3.5:0.8b)');
 
   Helper := TTestHelper.Create;
   Funcs  := TAiFunctions.Create(nil);
@@ -260,7 +260,7 @@ begin
       DefinirGuardarArchivo(Funcs, Helper);
       Conn.AiFunctions := Funcs;
 
-      PrintINFO('Prompt: "Genera un Hello World en Delphi y guardalo en: ' + ArchPath + '"');
+      PrintINFO('Prompt: "Generate a Hello World in Delphi and save it to: ' + ArchPath + '"');
       Resp := Conn.AddMessageAndRun(
         'Genera un codigo Hello World minimo en Delphi (solo el codigo) ' +
         'y guardalo en el archivo: ' + ArchPath,
@@ -270,7 +270,7 @@ begin
         PrintFAIL('Error: ' + Helper.LastError)
       else if Helper.ArchivoGuardado and TFile.Exists(ArchPath) then
       begin
-        PrintOK('Archivo creado: ' + ArchPath);
+        PrintOK('File created: ' + ArchPath);
         var Contenido := TFile.ReadAllText(ArchPath, TEncoding.UTF8);
         PrintINFO('Primeros 100 chars: ' + Contenido.Substring(0, Min(100, Contenido.Length)));
         PrintOK('Respuesta IA: ' + Resp.Trim.Substring(0, Min(120, Resp.Trim.Length)));
@@ -285,7 +285,7 @@ begin
       else
         PrintFAIL('No response from model.');
     except
-      on E: Exception do PrintFAIL('Excepcion: ' + E.Message);
+      on E: Exception do PrintFAIL('Exception: ' + E.Message);
     end;
   finally
     Conn.Free;
@@ -332,7 +332,7 @@ var
 begin
   Result  := False;
   ImgPath := TPath.Combine(TPath.GetTempPath, 'taller_test_image.png');
-  PrintSep('TEST 3 — Vision: descripcion de imagen (gemma3:4b)');
+  PrintSep('TEST 3 — Vision: image description (gemma3:4b)');
   TFile.WriteAllBytes(ImgPath, MakeTinyPng);
 
   Helper := TTestHelper.Create;
@@ -361,12 +361,12 @@ begin
           Result := True;
         end
         else
-          PrintFAIL('Respuesta vacia.');
+          PrintFAIL('Empty response.');
       finally
         MediaFiles.Free;
       end;
     except
-      on E: Exception do PrintFAIL('Excepcion: ' + E.Message);
+      on E: Exception do PrintFAIL('Exception: ' + E.Message);
     end;
   finally
     Conn.Free;
@@ -398,8 +398,8 @@ begin
   Result   := False;
   ImgPath  := TPath.Combine(TPath.GetTempPath, 'taller_test2.png');
   ArchPath := TPath.Combine(TPath.GetTempPath, 'descripcion_imagen.txt');
-  PrintSep('TEST 4 — Vision + Tools encadenado (gemma3:4b -> qwen3.5:0.8b)');
-  PrintINFO('Patron: modelo vision describe imagen, modelo tools guarda resultado.');
+  PrintSep('TEST 4 — Vision + Tools chained (gemma3:4b -> qwen3.5:0.8b)');
+  PrintINFO('Pattern: vision model describes image, tools model saves result.');
   TFile.WriteAllBytes(ImgPath, MakeTinyPng);
 
   Helper     := TTestHelper.Create;
@@ -450,7 +450,7 @@ begin
         PrintFAIL('Error in tools step: ' + Helper.LastError)
       else if Helper.ArchivoGuardado and TFile.Exists(ArchPath) then
       begin
-        PrintOK('Archivo creado: ' + ArchPath);
+        PrintOK('File created: ' + ArchPath);
         PrintOK('Final response: ' + Resp.Trim.Substring(0, Min(150, Resp.Trim.Length)));
         Result := True;
         TFile.Delete(ArchPath);
@@ -464,7 +464,7 @@ begin
       else
         PrintFAIL('No response from tools model.');
     except
-      on E: Exception do PrintFAIL('Excepcion: ' + E.Message);
+      on E: Exception do PrintFAIL('Exception: ' + E.Message);
     end;
   finally
     ConnVision.Free;
@@ -504,7 +504,7 @@ begin
   PrintSep('DIDACTIC NOTE — Vision + Tools with a single model (qwen3-vl:2b)');
   WriteLn;
   WriteLn('  This is the IDEAL code when model supports vision + tools:');
-  WriteLn('  (un solo TAiChatConnection con cap_Image y Tool_Active = True)');
+  WriteLn('  (a single TAiChatConnection with cap_Image and Tool_Active = True)');
   WriteLn;
   WriteLn('    Conn.DriverName  := ''Ollama'';');
   WriteLn('    Conn.Model       := ''qwen3-vl:2b'';');
@@ -553,10 +553,10 @@ begin
     if TFile.Exists(ArchPath)  then TFile.Delete(ArchPath);
   end;
 
-  // Mostrar el error y la explicacion
+  // Show the error and the explanation
   WriteLn('  Result: ERROR');
   if ErrorCapturado <> '' then
-    WriteLn('  Mensaje  : ' + ErrorCapturado)
+    WriteLn('  Message  : ' + ErrorCapturado)
   else
     WriteLn('  Message  : model runner has unexpectedly stopped (HTTP 500)');
   WriteLn;
@@ -631,7 +631,7 @@ begin
     WriteLn(Format('  Result: %d/4 tests passed', [Passed]));
     WriteLn(StringOfChar('=', 70));
 
-    // Seccion didactica: muestra el error de qwen3-vl y explica la solucion
+    // Didactic section: shows the qwen3-vl error and explains the solution
     Demo_ErrorQwenVL;
   except
     on E: Exception do

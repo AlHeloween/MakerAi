@@ -3,9 +3,9 @@
 {$APPTYPE CONSOLE}
 {$R *.res}
 
-// Test runtime del ISSUE #105: en async, Claude debe archivar sus respuestas en el
-// historial para no repetir/olvidar. Conversacion multi-turno async; el ultimo turno
-// debe recordar datos dados en los turnos previos.
+// Runtime test of ISSUE #105: in async, Claude must archive its responses in
+// history to avoid repeating/forgetting. Multi-turn async conversation; the last turn
+// must remember data given in previous turns.
 
 uses
   System.SysUtils,
@@ -98,24 +98,24 @@ begin
       Conn.OnReceiveDataEnd := H.OnEnd;
       Conn.OnError := H.OnError;
 
-      WriteLn('=== ISSUE #105: historial en async (claude-opus-4-8) ===');
+      WriteLn('=== ISSUE #105: history in async (claude-opus-4-8) ===');
       WriteLn('');
-      RunTurn(Conn, H, 'Mi color favorito es azul. Responde solo: ok.');
-      RunTurn(Conn, H, 'Mi numero de la suerte es 42. Responde solo: ok.');
-      RunTurn(Conn, H, 'En una sola frase, dime cual es mi color favorito y mi numero de la suerte.');
+      RunTurn(Conn, H, 'My favorite color is blue. Reply only: ok.');
+      RunTurn(Conn, H, 'My lucky number is 42. Reply only: ok.');
+      RunTurn(Conn, H, 'In one sentence, tell me my favorite color and my lucky number.');
       LFinal := LowerCase(H.FResult);
 
-      WriteLn('=== Veredicto ===');
-      WriteLn(Format('  mensajes en historial: %d', [Conn.Messages.Count]));
+      WriteLn('=== Verdict ===');
+      WriteLn(Format('  messages in history: %d', [Conn.Messages.Count]));
       if (Pos('azul', LFinal) > 0) and (Pos('42', LFinal) > 0) then
-        WriteLn('OK: recordo color (azul) y numero (42) del contexto previo -> historial async correcto.')
+        WriteLn('OK: remembered color (blue) and number (42) from previous context -> async history correct.')
       else
         WriteLn('FALLO: no recordo el contexto previo (azul/42) -> historial async incompleto (#105).');
     finally
       Conn.Free;
       H.Free;
     end;
-    WriteLn('=== FIN ===');
+    WriteLn('=== END ===');
   except
     on E: Exception do
       WriteLn('FATAL: ' + E.ClassName + ': ' + E.Message);

@@ -106,15 +106,15 @@ begin
 
   Case EditImageSize.ItemIndex of
     0:
-      AiSize := TAiImageSize.is1024x1024; // Soportado por TODOS los modelos
+      AiSize := TAiImageSize.is1024x1024; // Supported by ALL models
     1:
-      AiSize := TAiImageSize.is1792x1024; // Solo para DALL-E 3 (Formato panor�mico/horizontal)
+      AiSize := TAiImageSize.is1792x1024; // Only for DALL-E 3 (Panoramic/horizontal format)
     2:
-      AiSize := TAiImageSize.is1024x1792; // Solo para DALL-E 3 (Formato retrato/vertical)
+      AiSize := TAiImageSize.is1024x1792; // Only for DALL-E 3 (Portrait/vertical format)
     3:
-      AiSize := TAiImageSize.is1536x1024; // Solo para gpt-image-1 (Formato panor�mico/horizontal)
+      AiSize := TAiImageSize.is1536x1024; // Only for gpt-image-1 (Panoramic/horizontal format)
     4:
-      AiSize := TAiImageSize.is1024x1536; // Solo para gpt-image-1 (Formato retrato/vertical)
+      AiSize := TAiImageSize.is1024x1536; // Only for gpt-image-1 (Portrait/vertical format)
   End;
 
 

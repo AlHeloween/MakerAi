@@ -30,7 +30,7 @@ uses
   uMakerAi.MCPServer.SSE;
 
 // =============================================================================
-//  Herramienta: get_datetime
+//  Tool: get_datetime
 // =============================================================================
 type
   TDateTimeParams = class
@@ -63,14 +63,14 @@ var
 begin
   Fmt := Trim(LowerCase(AParams.Format));
   if Fmt = 'readable' then
-    Resultado := FormatDateTime('"Hoy es" dddd, d "de" mmmm "de" yyyy, "a las" hh:nn:ss', Now)
+    Resultado := FormatDateTime('"Today is" dddd, d "of" mmmm "of" yyyy, "at" hh:nn:ss', Now)
   else
     Resultado := FormatDateTime('yyyy-mm-dd"T"hh:nn:ss', Now);
   Result := TAiMCPResponseBuilder.New.AddText(Resultado).Build;
 end;
 
 // =============================================================================
-//  Herramienta: greet
+//  Tool: greet
 // =============================================================================
 type
   TGreetParams = class
@@ -165,6 +165,6 @@ begin
     end;
   except
     on E: Exception do
-      Writeln('Error fatal: ', E.ClassName, ': ', E.Message);
+      Writeln('Fatal error: ', E.ClassName, ': ', E.Message);
   end;
 end.

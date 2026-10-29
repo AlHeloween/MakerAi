@@ -16,7 +16,7 @@ program MCPServerSSE;
 //   - Configuration for Claude Desktop
 //
 // Endpoints:
-//   GET  http://localhost:8080/sse       -> Stream SSE (conectar primero)
+//   GET  http://localhost:8080/sse       -> Stream SSE (connect first)
 //   POST http://localhost:8080/messages  -> JSON-RPC commands
 //
 // Tools: get_datetime, greet
@@ -37,7 +37,7 @@ type
   private
     FFormat: String;
   public
-    [AiMCPSchemaDescription('Formato: "iso" (ISO-8601) o "readable" (texto legible)')]
+    [AiMCPSchemaDescription('Format: "iso" (ISO-8601) or "readable" (readable text)')]
     property Format: String read FFormat write FFormat;
   end;
 
@@ -53,7 +53,7 @@ constructor TDateTimeMCPTool.Create;
 begin
   inherited;
   FName        := 'get_datetime';
-  FDescription := 'Retorna la fecha y hora actual del servidor.';
+  FDescription := 'Returns the current date and time of the server.';
 end;
 
 function TDateTimeMCPTool.ExecuteWithParams(const AParams: TDateTimeParams;
@@ -78,9 +78,9 @@ type
     FName    : String;
     FLanguage: String;
   public
-    [AiMCPSchemaDescription('Nombre de la persona a saludar')]
+    [AiMCPSchemaDescription('Name of the person to greet')]
     property Name: String read FName write FName;
-    [AiMCPSchemaDescription('Idioma: "es" espanol (defecto), "en" ingles')]
+    [AiMCPSchemaDescription('Language: "es" Spanish (default), "en" English')]
     property Language: String read FLanguage write FLanguage;
   end;
 
@@ -96,7 +96,7 @@ constructor TGreetMCPTool.Create;
 begin
   inherited;
   FName        := 'greet';
-  FDescription := 'Genera un saludo personalizado en espanol o ingles.';
+  FDescription := 'Generates a personalized greeting in Spanish or English.';
 end;
 
 function TGreetMCPTool.ExecuteWithParams(const AParams: TGreetParams;
@@ -150,7 +150,7 @@ begin
       Writeln('{');
       Writeln('  "mcpServers": {');
       Writeln('    "makerai-demo": {');
-      Writeln('      "command": "ruta\\al\\MCPServerSSE.exe",');
+      Writeln('      "command": "path\\to\\MCPServerSSE.exe",');
       Writeln('      "args": []');
       Writeln('    }');
       Writeln('  }');

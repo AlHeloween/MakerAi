@@ -5,15 +5,15 @@
 // =============================================================================
 // MakerAI - AutoAgents Demo 10: HumanInTheLoop
 // =============================================================================
-// Agente con aprobacion humana en el flujo:
+// Agent with human approval in the flow:
 //   [Drafter] --suspend--> [Human Review] --> [Finalizer]
 //
-// El nodo de revision llama Node.Suspend() mostrando el borrador.
-// El usuario aprueba o rechaza con feedback desde la consola.
-// Si aprueba: el Finalizer pule el texto.
-// Si rechaza: el Drafter regenera con las instrucciones del usuario.
+// The review node calls Node.Suspend() showing the draft.
+// The user approves or rejects with feedback from the console.
+// If approved: the Finalizer polishes the text.
+// If rejected: the Drafter regenerates with the user's instructions.
 //
-// Usa Asynchronous=True + OnSuspend + ResumeThread para el ciclo de aprobacion.
+// Uses Asynchronous=True + OnSuspend + ResumeThread for the approval cycle.
 // =============================================================================
 
 uses
@@ -80,8 +80,8 @@ end;
 procedure TDemoApp.OnFinish(Sender: TObject; const AInput, AOutput: string;
   Status: TAgentExecutionStatus; E: Exception);
 begin
-  // esSuspended no es terminacion: el agente espera aprobacion humana.
-  // OnSuspend ya notifica al main loop. Ignorar aqui para no adelantar GFinished.
+  // esSuspended is not termination: the agent waits for human approval.
+  // OnSuspend already notifies the main loop. Ignore here to avoid advancing GFinished.
   if Status = esSuspended then Exit;
 
   TThread.Queue(nil, procedure
@@ -194,7 +194,7 @@ begin
   Iteration := 0;
   Approved := False;
 
-  // Lanzar el agente (retorna inmediatamente por Asynchronous=True)
+  // Launch the agent (returns immediately because Asynchronous=True)
   FManager.Run(ATask);
 
   repeat
@@ -232,7 +232,7 @@ begin
       end
       else
       begin
-        // Feedback del usuario: regenerar con instrucciones
+        // User feedback: regenerate with instructions
         if Trim(UserInput) = '' then
           UserInput := 'Please improve the text quality.';
 
@@ -276,8 +276,8 @@ var
   App: TDemoApp;
 begin
   Writeln('=== Demo 10 - HumanInTheLoop ===');
-  Writeln('Patron: Drafter -> [HUMAN REVIEW] -> Finalizer');
-  Writeln('El agente se pausara esperando tu aprobacion.');
+  Writeln('Pattern: Drafter -> [HUMAN REVIEW] -> Finalizer');
+  Writeln('The agent will pause waiting for your approval.');
   Writeln;
 
   App := TDemoApp.Create;

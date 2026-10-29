@@ -113,7 +113,7 @@ end;
 // =============================================================================
 procedure MostrarContraste;
 begin
-  Titulo('Sec. 21.0 — Busqueda sintactica vs semantica');
+  Titulo('Sec. 21.0 — Syntactic vs semantic search');
 
   Writeln('  SYNTACTIC search looks for exact text:');
   Writeln;

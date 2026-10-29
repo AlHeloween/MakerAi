@@ -37,12 +37,12 @@ uses
   uMakerAi.Chat.OpenAi;
 
 const
-  // Proveedor para embeddings
+  // Embeddings provider
   EMB_DRIVER  = 'OpenAI';
   EMB_MODEL   = 'text-embedding-3-small';
   EMB_API_KEY = '@OPENAI_API_KEY';
 
-  // Proveedor para generación de respuesta
+  // Response generation provider
   LLM_DRIVER  = 'Claude';
   LLM_MODEL   = 'claude-haiku-4-5-20251001';
   LLM_API_KEY = '@CLAUDE_API_KEY';
@@ -93,7 +93,7 @@ begin
   Writeln('Question: ', Question);
   Writeln;
 
-  // Recuperar fragmentos relevantes
+  // Retrieve relevant fragments
   Contexto := RAG.SearchText(Question, 3, 0.4, nil, False, True);
 
   if Contexto = '' then
@@ -107,13 +107,13 @@ begin
 
   // Build RAG prompt
   Prompt :=
-    'Contexto de referencia:' + sLineBreak +
+    'Reference context:' + sLineBreak +
     Contexto + sLineBreak +
-    'Pregunta del usuario: ' + Question + sLineBreak +
-    'Responde basandote SOLO en el contexto proporcionado. ' +
-    'Si la informacion no esta en el contexto, indicalo.';
+    'User question: ' + Question + sLineBreak +
+    'Answer based ONLY on the provided context. ' +
+    'If the information is not in the context, say so.';
 
-  // Generar respuesta
+  // Generate response
   Chat.Messages.Clear;
   Response := Chat.AddMessageAndRun(Prompt, 'user', []);
   Writeln('LLM answer:');
@@ -171,8 +171,8 @@ begin
     Chat.Params.Values['Asynchronous'] := 'False';
     Chat.Params.Values['Max_Tokens']   := '512';
     Chat.SystemPrompt.Text :=
-      'Eres un asistente tecnico de MakerAI. ' +
-      'Responde en espanol de forma concisa y precisa.';
+      'You are a MakerAI technical assistant. ' +
+      'Answer in Spanish concisely and precisely.';
 
     // ── Questions to RAG ──────────────────────────────────────────────────
     AskRAG(RAG, Chat, 'Que es MakerAI y para que sirve?');

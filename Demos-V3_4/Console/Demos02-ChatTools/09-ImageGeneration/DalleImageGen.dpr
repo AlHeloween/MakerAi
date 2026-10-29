@@ -20,10 +20,10 @@
 // Images are saved in the system TEMP folder.
 // Requirement: OPENAI_API_KEY environment variable defined.
 //
-// Nota sobre streaming en consola:
-//   TAiDalle usa TThread.Queue para disparar los callbacks de streaming.
-//   En apps de consola (sin message pump), los callbacks se procesan
-//   al llamar CheckSynchronize() despu?s de que Generate() retorna.
+// Note about streaming in console:
+//   TAiDalle uses TThread.Queue to trigger streaming callbacks.
+//   In console apps (without a message pump), callbacks are processed
+//   when calling CheckSynchronize() after Generate() returns.
 // =============================================================================
 
 uses
@@ -92,7 +92,7 @@ begin
     Dalle.Background   := ibOpaque;
     Dalle.OutputFormat := ifPng;
 
-    Write('  Generando... ');
+    Write('  Generating... ');
     Img := Dalle.Generate(
       'A serene Japanese garden at sunset with a koi pond, cherry blossoms, ' +
       'and a wooden bridge. Photorealistic, high detail.',
@@ -107,7 +107,7 @@ begin
       SaveImage('test1_gptimage1_hq.png', Img.Image);
     end
     else
-      Writeln('ERROR: respuesta vacia');
+      Writeln('ERROR: empty response');
   finally
     Dalle.Free;
   end;
@@ -132,7 +132,7 @@ begin
     Dalle.OutputFormat      := ifJpeg;
     Dalle.OutputCompression := 80;
 
-    Write('  Generando... ');
+    Write('  Generating... ');
     Img := Dalle.Generate(
       'A minimalist logo for a tech startup: clean lines, blue gradient, ' +
       'abstract letter "M" made of circuit board traces.',
@@ -145,7 +145,7 @@ begin
       SaveImage('test2_gptimage1mini_medium.jpg', Img.Image);
     end
     else
-      Writeln('ERROR: respuesta vacia');
+      Writeln('ERROR: empty response');
   finally
     Dalle.Free;
   end;
@@ -171,7 +171,7 @@ begin
     Dalle.OutputFormat := ifPng;
     Dalle.Stream       := False; // gpt-image-2 no soporta streaming
 
-    Write('  Generando... ');
+    Write('  Generating... ');
     try
       Img := Dalle.Generate(
         'An elegant product photo of a luxury wristwatch on a marble surface, ' +
@@ -185,7 +185,7 @@ begin
         SaveImage('test3_gptimage2.png', Img.Image);
       end
       else
-        Writeln('ERROR: respuesta vacia');
+        Writeln('ERROR: empty response');
     except
       on E: Exception do
         Writeln('SKIP — ', E.Message);
@@ -292,7 +292,7 @@ begin
     Dalle.Style          := isNatural;
     Dalle.ResponseFormat := irfBase64Json;
 
-    Write('  Generando... ');
+    Write('  Generating... ');
     Img := Dalle.Generate(
       'A vast mountain landscape with a crystal-clear lake in the foreground, ' +
       'golden hour light, dramatic clouds. Photorealistic.',
@@ -306,7 +306,7 @@ begin
       SaveImage('test5_dalle3_hd.png', Img.Image);
     end
     else
-      Writeln('ERROR: respuesta vacia');
+      Writeln('ERROR: empty response');
   finally
     Dalle.Free;
   end;
@@ -339,12 +339,12 @@ begin
     if Assigned(Img) then
     begin
       Writeln('OK  (', Img.Image.Size, ' bytes)');
-      Writeln('  Size devuelto: ', Img.Size);
+      Writeln('  Returned size: ', Img.Size);
       PrintUsage(Img);
       SaveImage('test6_autosize.png', Img.Image);
     end
     else
-      Writeln('ERROR: respuesta vacia');
+      Writeln('ERROR: empty response');
   finally
     Dalle.Free;
   end;

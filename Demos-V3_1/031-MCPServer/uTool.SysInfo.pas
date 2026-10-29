@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Nombre: Gustavo Enríquez
-// Redes Sociales:
+// Name: Gustavo Enríquez
+// Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
 // - Telegram: https://t.me/MakerAi_Suite_Delphi
@@ -49,15 +49,15 @@ type
     FIncludeDetails: Boolean;
     FFormatAsJson: Boolean; // <-- Nuevo parámetro
   public
-    [AiMCPSchemaDescription('Tipo de información: "basic", "memory", "disk", "network" o "all"')]
+    [AiMCPSchemaDescription('Type of information: "basic", "memory", "disk", "network" or "all"')]
     property InfoType: string read FInfoType write FInfoType;
 
     [AiMCPOptional]
-    [AiMCPSchemaDescription('Incluir detalles adicionales (default: false)')]
+    [AiMCPSchemaDescription('Include additional details (default: false)')]
     property IncludeDetails: Boolean read FIncludeDetails write FIncludeDetails;
 
     [AiMCPOptional]
-    // <-- Nuevo parámetro para controlar el formato de salida
+    // <-- New parameter to control output format
     [AiMCPSchemaDescription
       ('Devolver la información como un objeto JSON estructurado (default: true). Si es false, devuelve texto formateado.')]
     property FormatAsJson: Boolean read FFormatAsJson write FFormatAsJson;
@@ -65,14 +65,14 @@ type
 
   TSysInfoTool = class(TAiMCPToolBase<TSysInfoParams>)
   private
-    // Funciones que devuelven JSON
+    // Functions that return JSON
     function GetBasicInfoAsJson: TJSONObject;
     function GetMemoryInfoAsJson: TJSONObject;
     function GetDiskInfoAsJson: TJSONArray;
     function GetNetworkInfoAsJson: TJSONObject;
     function GetAllInfoAsJson(IncludeDetails: Boolean): TJSONObject;
 
-    // Funciones antiguas que devuelven texto (para retrocompatibilidad)
+    // Old functions that return text (for backward compatibility)
     function GetBasicInfoAsText: string;
     function GetMemoryInfoAsText: string;
     function GetDiskInfoAsText: string;
@@ -80,7 +80,7 @@ type
     function GetAllInfoAsText(IncludeDetails: Boolean): string;
 
   protected
-    // CAMBIO: La firma ahora devuelve TJSONObject
+    // CHANGE: The signature now returns TJSONObject
     function ExecuteWithParams(const AParams: TSysInfoParams; const AuthContext: TAiAuthContext): TJSONObject; override;
   public
     constructor Create; Override;
@@ -113,11 +113,11 @@ begin
   FName := 'system_info';
   FDescription :=
     'Obtiene información del sistema (CPU, memoria, disco, etc.) donde se está ejecutando el servidor. Puede devolver la información como texto formateado o como un objeto JSON estructurado.';
-  // Por defecto, FormatAsJson será True
+  // By default, FormatAsJson will be True
   TSysInfoParams.Create.FFormatAsJson := True;
 end;
 
-// CAMBIO: La función principal ahora devuelve TJSONObject y decide el formato
+// CHANGE: The main function now returns TJSONObject and decides the format
 function TSysInfoTool.ExecuteWithParams(const AParams: TSysInfoParams; const AuthContext: TAiAuthContext): TJSONObject;
 var
   LInfoType: string;
@@ -130,7 +130,7 @@ begin
     // Decidir si se devuelve JSON o texto
     if AParams.FormatAsJson then
     begin
-      // --- Lógica para devolver JSON ---
+      // --- Logic to return JSON ---
       if (LInfoType = 'basic') then
         ResultJson := GetBasicInfoAsJson
       else if (LInfoType = 'memory') then
@@ -145,19 +145,19 @@ begin
       else if (LInfoType = 'all') or (LInfoType = '') then
         ResultJson := GetAllInfoAsJson(AParams.IncludeDetails)
       else
-        raise Exception.Create('Tipo de información no válido. Use: basic, memory, disk, network, all');
+        raise Exception.Create('Invalid information type. Use: basic, memory, disk, network, all');
 
-      // Añadir info del usuario al JSON
+      // Add user info to JSON
       if Assigned(ResultJson) then
         ResultJson.AddPair('executedBy', AuthContext.UserID);
 
-      // Usamos el builder para añadir el JSON como texto. La IA lo parseará.
+      // We use the builder to add the JSON as text. The AI will parse it.
       Result := TAiMCPResponseBuilder.New.AddText(ResultJson.ToJSON).Build;
       ResultJson.Free; // Liberamos el JSON que creamos
     end
     else
     begin
-      // --- Lógica para devolver Texto (como antes) ---
+      // --- Logic to return Text (as before) ---
       if (LInfoType = 'basic') then
         ResultText := GetBasicInfoAsText
       else if (LInfoType = 'memory') then
@@ -169,11 +169,11 @@ begin
       else if (LInfoType = 'all') or (LInfoType = '') then
         ResultText := GetAllInfoAsText(AParams.IncludeDetails)
       else
-        ResultText := '❌ Tipo de información no válido. Use: basic, memory, disk, network, all';
+        ResultText := '❌ Invalid information type. Use: basic, memory, disk, network, all';
 
-      // Añadir info del usuario al texto
+      // Add user info to text
       if AuthContext.IsAuthenticated then
-        ResultText := ResultText + sLineBreak + sLineBreak + '✅ Ejecutado por el usuario: ' + AuthContext.UserID
+        ResultText := ResultText + sLineBreak + sLineBreak + '✅ Executed by user: ' + AuthContext.UserID
       else
         ResultText := ResultText + sLineBreak + sLineBreak + '⚠️ Ejecutado por un usuario anónimo.';
 
@@ -181,12 +181,12 @@ begin
     end;
   except
     on E: Exception do
-      Result := TAiMCPResponseBuilder.New.AddText('❌ Error obteniendo información del sistema: ' + E.Message).Build;
+      Result := TAiMCPResponseBuilder.New.AddText('❌ Error obtaining system information: ' + E.Message).Build;
   end;
 end;
 
 // =============================================================================
-// Implementación de funciones que devuelven JSON
+// Implementation of functions that return JSON
 // =============================================================================
 
 function TSysInfoTool.GetBasicInfoAsJson: TJSONObject;
@@ -284,7 +284,7 @@ end;
 
 
 // =============================================================================
-// Implementación de funciones de Texto (sin cambios, solo renombradas)
+// Implementation of Text functions (unchanged, only renamed)
 // =============================================================================
 
 function TSysInfoTool.GetBasicInfoAsText: string;
@@ -292,32 +292,32 @@ var
   ComputerName: array [0 .. MAX_COMPUTERNAME_LENGTH] of Char;
   Size: DWORD;
 begin
-  // Código original de GetBasicInfo
-  Result := '🖥️ INFORMACIÓN BÁSICA DEL SISTEMA' + sLineBreak + sLineBreak;
+  // Original code of GetBasicInfo
+  Result := '🖥️ BASIC SYSTEM INFORMATION' + sLineBreak + sLineBreak;
   Size := MAX_COMPUTERNAME_LENGTH + 1;
   if GetComputerName(ComputerName, Size) then
-    Result := Result + 'Nombre del equipo: ' + string(ComputerName) + sLineBreak;
+    Result := Result + 'Computer name: ' + string(ComputerName) + sLineBreak;
   Result := Result + Format('Windows: %d.%d (Build %d)', [TOSVersion.Major, TOSVersion.Minor, TOSVersion.Build]) + sLineBreak;
 {$IFDEF WIN64}
-  Result := Result + 'Arquitectura: 64-bit' + sLineBreak;
+  Result := Result + 'Architecture: 64-bit' + sLineBreak;
 {$ELSE}
-  Result := Result + 'Arquitectura: 32-bit' + sLineBreak;
+  Result := Result + 'Architecture: 32-bit' + sLineBreak;
 {$ENDIF}
-  Result := Result + 'Fecha/Hora: ' + FormatDateTime('dd/mm/yyyy hh:nn:ss', Now);
+  Result := Result + 'Date/Time: ' + FormatDateTime('dd/mm/yyyy hh:nn:ss', Now);
 end;
 
 function TSysInfoTool.GetMemoryInfoAsText: string;
 begin
-  // Código original de GetMemoryInfo
+  // Original code of GetMemoryInfo
   var
     MemStatus: TMemoryStatusEx;
-  Result := '💾 INFORMACIÓN DE MEMORIA' + sLineBreak + sLineBreak;
+  Result := '💾 MEMORY INFORMATION' + sLineBreak + sLineBreak;
   MemStatus.dwLength := SizeOf(TMemoryStatusEx);
   if GlobalMemoryStatusEx(MemStatus) then
   begin
-    Result := Result + Format('Memoria física total: %.2f GB', [MemStatus.ullTotalPhys / (1024 * 1024 * 1024)]) + sLineBreak;
-    Result := Result + Format('Memoria física disponible: %.2f GB', [MemStatus.ullAvailPhys / (1024 * 1024 * 1024)]) + sLineBreak;
-    Result := Result + Format('Uso de memoria: %d%%', [MemStatus.dwMemoryLoad]);
+    Result := Result + Format('Total physical memory: %.2f GB', [MemStatus.ullTotalPhys / (1024 * 1024 * 1024)]) + sLineBreak;
+    Result := Result + Format('Available physical memory: %.2f GB', [MemStatus.ullAvailPhys / (1024 * 1024 * 1024)]) + sLineBreak;
+    Result := Result + Format('Memory usage: %d%%', [MemStatus.dwMemoryLoad]);
   end;
 end;
 
@@ -327,14 +327,14 @@ var
   RootPath: string;
   FreeBytesAvailable, TotalBytes, TotalFreeBytes: Int64;
 begin
-  Result := '💿 INFORMACIÓN DE DISCOS' + sLineBreak;
+  Result := '💿 DISK INFORMATION' + sLineBreak;
   for Drive := 'A' to 'Z' do
   begin
     RootPath := Drive + ':\';
     if GetDriveType(PChar(RootPath)) = DRIVE_FIXED then
     begin
       if GetDiskFreeSpaceEx(PChar(RootPath), FreeBytesAvailable, TotalBytes, @TotalFreeBytes) then
-        Result := Result + sLineBreak + Format('Unidad %s: %.2f GB libres de %.2f GB totales',
+        Result := Result + sLineBreak + Format('Drive %s: %.2f GB free of %.2f GB total',
           [RootPath, TotalFreeBytes / (1024 * 1024 * 1024), TotalBytes / (1024 * 1024 * 1024)]);
     end;
   end;
@@ -345,21 +345,21 @@ function TSysInfoTool.GetNetworkInfoAsText: string;
     ComputerName: array [0 .. MAX_COMPUTERNAME_LENGTH] of Char;
     Size: DWORD;
 begin
-  Result := '🌐 INFORMACIÓN DE RED' + sLineBreak + sLineBreak;
+  Result := '🌐 NETWORK INFORMATION' + sLineBreak + sLineBreak;
   Size := MAX_COMPUTERNAME_LENGTH + 1;
   if GetComputerName(ComputerName, Size) then
-    Result := Result + 'Nombre de red: ' + string(ComputerName) + sLineBreak;
-  Result := Result + 'Nota: Para más detalles de red, se requieren APIs específicas.';
+    Result := Result + 'Network name: ' + string(ComputerName) + sLineBreak;
+  Result := Result + 'Note: For more network details, specific APIs are required.';
 end;
 
 function TSysInfoTool.GetAllInfoAsText(IncludeDetails: Boolean): string;
 begin
-  // Código original de GetAllInfo
+  // Original code of GetAllInfo
   Result := GetBasicInfoAsText + sLineBreak + sLineBreak + GetMemoryInfoAsText + sLineBreak + sLineBreak + GetDiskInfoAsText + sLineBreak +
     sLineBreak + GetNetworkInfoAsText;
   if IncludeDetails then
     Result := Result + sLineBreak + sLineBreak + '📊 DETALLES ADICIONALES' + sLineBreak + 'Servidor MCP ejecutándose desde: ' +
-      ExtractFilePath(ParamStr(0)) + sLineBreak + 'Compilado con: Delphi 12.2';
+      ExtractFilePath(ParamStr(0)) + sLineBreak + 'Compiled with: Delphi 12.2';
 end;
 
 end.

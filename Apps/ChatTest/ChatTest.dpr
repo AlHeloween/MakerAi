@@ -96,7 +96,7 @@ begin
 
     PrintMessages(Conn, 'Messages after turn 1:');
 
-    // Simular RebuildConnectionHistory
+    // Simulate RebuildConnectionHistory
     Writeln('--- Rebuilding history (stripping reasoning_content) ---');
     RebuildHistory(Conn);
     PrintMessages(Conn, 'Messages after rebuild:');
