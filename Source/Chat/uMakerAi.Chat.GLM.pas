@@ -35,16 +35,16 @@
 
 // Driver GLM (Zhipu AI / Z.ai) - API OpenAI-compatible
 // Docs: https://docs.z.ai/api-reference/llm/chat-completion
-// Endpoint internacional: https://api.z.ai/api/paas/v4/
-// (China continental: https://open.bigmodel.cn/api/paas/v4/ - cambiar la propiedad URL)
+// International endpoint: https://api.z.ai/api/paas/v4/
+// (Mainland China: https://open.bigmodel.cn/api/paas/v4/ - change the URL property)
 //
-// Particularidades del API (ago 2026):
-// - thinking: {"type":"enabled"|"disabled"} en el request; el razonamiento vuelve
-//   en message.reasoning_content (parse y streaming ya los captura la clase base).
-// - reasoning_effort (low/medium/high) solo lo acepta la familia glm-5.x.
-// - Rangos de sampling mas estrechos que OpenAI: temperature [0,1], top_p [0.01,1],
-//   max_tokens hasta 131072 (el driver aplica clamp).
-// - Vision formato OpenAI (image_url); tambien acepta video_url y file_url.
+// API particularities (Aug 2026):
+// - thinking: {"type":"enabled"|"disabled"} in the request; the reasoning comes back
+//   in message.reasoning_content (parsing and streaming already capture it in the base class).
+// - reasoning_effort (low/medium/high) is only accepted by the glm-5.x family.
+// - Sampling ranges narrower than OpenAI: temperature [0,1], top_p [0.01,1],
+//   max_tokens up to 131072 (the driver applies a clamp).
+// - Vision in OpenAI format (image_url); also accepts video_url and file_url.
 
 interface
 
@@ -121,9 +121,9 @@ end;
 
 function TAiGLMChat.ModelSupportsThinking(Const AModel: String): Boolean;
 begin
-  // Familia hibrida con thinking controlable: glm-4.5+, glm-4.6(v), glm-4.7 y
-  // toda la familia glm-5.x (incluye glm-5v-*). Modelos previos (glm-4-32b...)
-  // no aceptan el campo thinking.
+  // Hybrid family with controllable thinking: glm-4.5+, glm-4.6(v), glm-4.7 and
+  // the whole glm-5.x family (includes glm-5v-*). Earlier models (glm-4-32b...)
+  // do not accept the thinking field.
   Result := StartsText('glm-5', AModel) or StartsText('glm-4.5', AModel) or
     StartsText('glm-4.6', AModel) or StartsText('glm-4.7', AModel);
 end;
@@ -168,7 +168,7 @@ begin
       JArr := TJSonArray(TJSonArray.ParseJSONValue(GetTools(TToolFormat.tfOpenAi).Text));
 {$ENDIF}
       If Not Assigned(JArr) then
-        Raise Exception.Create('La propiedad Tools estan mal definido, debe ser un JsonArray');
+        Raise Exception.Create('The Tools property is malformed; it must be a JsonArray');
       AJSONObject.AddPair('tools', JArr);
 
       If (Trim(Tool_choice) <> '') then
@@ -188,26 +188,26 @@ begin
 
     AJSONObject.AddPair('model', LModel);
 
-    // Thinking hibrido: el API lo trae ACTIVADO por defecto en glm-4.7/5.x,
-    // asi que el driver lo controla explicitamente (mismo patron DeepSeek V4):
-    // cap_Reasoning -> enabled; sin el cap -> disabled (modo rapido/economico).
-    // EXCEPCION: glm-5.3 usa forced thinking y NO acepta disabled.
-    // El razonamiento llega en reasoning_content (capturado por la clase base).
+    // Hybrid thinking: the API has it ENABLED by default on glm-4.7/5.x,
+    // so the driver controls it explicitly (same pattern as DeepSeek V4):
+    // cap_Reasoning -> enabled; without the cap -> disabled (fast/economic mode).
+    // EXCEPTION: glm-5.3 uses forced thinking and does NOT accept disabled.
+    // The reasoning arrives in reasoning_content (captured by the base class).
     if ModelSupportsThinking(LModel) then
     begin
       jThinking := TJSonObject.Create;
       if (cap_Reasoning in ModelConfig.ModelCaps) or StartsText('glm-5.3', LModel) then
       begin
         jThinking.AddPair('type', 'enabled');
-        // reasoning_effort documentado solo en glm-5.2/5.3; valores low/high/max
-        // (default del API: max). Mismo mapeo que DeepSeek V4.
+        // reasoning_effort documented only on glm-5.2/5.3; values low/high/max
+        // (API default: max). Same mapping as DeepSeek V4.
         if StartsText('glm-5.2', LModel) or StartsText('glm-5.3', LModel) then
         begin
           case ModelConfig.ThinkingLevel of
             tlLow:    AJSONObject.AddPair('reasoning_effort', 'low');
             tlMedium: AJSONObject.AddPair('reasoning_effort', 'high');
             tlHigh:   AJSONObject.AddPair('reasoning_effort', 'max');
-            // tlDefault: no se envia, el API usa max
+            // tlDefault: not sent; the API uses max
           end;
         end;
       end
@@ -216,7 +216,7 @@ begin
       AJSONObject.AddPair('thinking', jThinking);
     end;
 
-    // Z.ai acota temperature a [0,1] (con thinking recomiendan 1.0)
+    // Z.ai clamps temperature to [0,1] (with thinking they recommend 1.0)
     LTemperature := Trunc(Temperature * 100) / 100;
     if LTemperature > 1 then
       LTemperature := 1;
@@ -224,13 +224,13 @@ begin
       LTemperature := 0;
     AJSONObject.AddPair('temperature', TJSONNumber.Create(LTemperature));
 
-    // max_tokens acepta hasta 131072
+    // max_tokens accepts up to 131072
     LMaxTokens := Max_tokens;
     if LMaxTokens > 131072 then
       LMaxTokens := 131072;
     AJSONObject.AddPair('max_tokens', TJSONNumber.Create(LMaxTokens));
 
-    // top_p acota a [0.01, 1]; 0 = no enviar (usa el default del modelo)
+    // top_p clamped to [0.01, 1]; 0 = not sent (uses the model default)
     If Top_p <> 0 then
     Begin
       LTopP := Top_p;
@@ -250,8 +250,8 @@ begin
       AJSONObject.AddPair('stop', JStop);
     End;
 
-    // Nota: no se envian frequency/presence_penalty, n, logprobs ni seed;
-    // el API de Z.ai no los documenta y podrian ser rechazados.
+    // Note: frequency/presence_penalty, n, logprobs and seed are not sent;
+    // the Z.ai API does not document them and they may be rejected.
 
     Res := UTF8ToString(UTF8Encode(AJSONObject.ToJSON));
 
@@ -270,10 +270,10 @@ var
   Msg: TAiChatMessage;
 begin
   Result := inherited GetMessages;
-  // Z.ai EXIGE devolver reasoning_content en el historial multi-turno para
-  // mantener la coherencia del razonamiento (docs: "remember to return the
-  // historical reasoning_content"). TAiChatMessages.ToJSon no lo serializa
-  // por defecto; mismo patron que DeepSeek V4.
+  // Z.ai REQUIRES returning reasoning_content in the multi-turn history to
+  // keep the reasoning coherent (docs: "remember to return the
+  // historical reasoning_content"). TAiChatMessages.ToJSon does not serialize it
+  // by default; same pattern as DeepSeek V4.
   if Self.Messages.Count <> Result.Count then Exit;
   for I := 0 to Self.Messages.Count - 1 do
   begin

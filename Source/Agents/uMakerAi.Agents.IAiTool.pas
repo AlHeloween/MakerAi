@@ -1,8 +1,8 @@
 ﻿// MIT License
-// MakerAI - Sistema de Agentes v3.4
+// MakerAI - Agent System v3.4
 // Unified tool interface for the agent system redesign.
 //
-// Author: Gustavo Enríquez
+// Author: Gustavo Enriquez
 // GitHub: https://github.com/gustavoeenriquez/MakerAi
 
 unit uMakerAi.Agents.IAiTool;

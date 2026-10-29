@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-// Name: Gustavo Enríquez
+// Name: Gustavo Enriquez
 // Social Networks:
 // - Email: gustavoeenriquez@gmail.com
 
@@ -62,10 +62,11 @@ type
   end;
 
   // ---------------------------------------------------------------------------
-  // 2. ATRIBUTO PARA LOS PAR�METROS (PROPIEDADES) DE the tool ([ToolParameter])
-  // Define c�mo se muestra un par�metro en el di�logo de configuraci�n.
   // ---------------------------------------------------------------------------
-  // Nota de estilo: Renombrado a TToolParameterAttribute por convenci�n de Delphi.
+  // 2. ATTRIBUTE FOR TOOL PARAMETERS (PROPERTIES) ([ToolParameter])
+  // Defines how a parameter is shown in the configuration dialog.
+  // ---------------------------------------------------------------------------
+  // Style note: Renamed to TToolParameterAttribute by Delphi convention.
   //[AttributeUsage(PropertyServices, AllowMultiple = false, Inherited = true)]
   TToolParameterAttribute = class(TCustomAttribute)
   private
@@ -80,11 +81,11 @@ type
   end;
 
   // ---------------------------------------------------------------------------
-  // 3. ATRIBUTO PARA PROPIEDADES SECRETAS ([TSecret])
-  // Marca una propiedad como secreta: nunca se serializa a disco y cualquier
-  // valor entrante para ella se ignora al deserializar, de modo que un archivo
-  // manipulado no pueda inyectar credenciales. El valor se provee en ejecucion
-  // (almacen de credenciales o variable de entorno con sintaxis @ENV_VAR).
+  // 3. ATTRIBUTE FOR SECRET PROPERTIES ([TSecret])
+  // Marks a property as secret: it is never serialized to disk and any
+  // incoming value for it is ignored when deserializing, so a tampered
+  // file cannot inject credentials. The value is provided at runtime
+  // (credential store or environment variable with @ENV_VAR syntax).
   // ---------------------------------------------------------------------------
   TSecretAttribute = class(TCustomAttribute)
   private
